@@ -10,6 +10,11 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   /// When set, the next operation throws it once and clears the field.
   Exception? failNextWith;
 
+  /// When set, the next delete throws it once and clears the field. Unlike
+  /// [failNextWith] this targets delete specifically, so a test can fail a
+  /// best-effort GC delete without tripping the preceding putFile/head.
+  Exception? failDeleteWith;
+
   /// When set, putFile fires onResumeStateChanged with this JSON once per
   /// call (pipeline wiring tests).
   String? emitResumeState;
@@ -21,6 +26,11 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
 
   /// The resumeStateJson the last putFile call received.
   String? lastResumeStateJsonIn;
+
+  /// Every key getFile was asked for, in order. Lets a test assert that an
+  /// expensive object (a whole video) was never downloaded, which a null
+  /// return value alone cannot distinguish from a download-then-discard.
+  final getFileKeys = <String>[];
 
   void _maybeFail() {
     final e = failNextWith;
@@ -67,6 +77,7 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     File destination, {
     TransferProgressCallback? onProgress,
   }) async {
+    getFileKeys.add(key);
     _maybeFail();
     final partial = partialGetThenFail;
     if (partial != null) {
@@ -91,14 +102,40 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   @override
   Future<void> delete(String key) async {
     _maybeFail();
+    final e = failDeleteWith;
+    if (e != null) {
+      failDeleteWith = null;
+      throw e;
+    }
     objects.remove(key);
     modified.remove(key);
+  }
+
+  /// (key, resumeStateJson) pairs abandonResume was called with.
+  final abandonResumeCalls = <(String, String?)>[];
+
+  /// Returned (then zeroed) by the next reapStaleUploadSessions call.
+  int staleSessionCount = 0;
+
+  @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    _maybeFail();
+    final n = staleSessionCount;
+    staleSessionCount = 0;
+    return n;
+  }
+
+  @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    abandonResumeCalls.add((key, resumeStateJson));
   }
 
   @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     _maybeFail();
-    for (final entry in objects.entries) {
+    // Snapshot: real adapters list server-side pages, so a caller deleting
+    // objects mid-stream (the verify sweep) must not perturb the listing.
+    for (final entry in objects.entries.toList()) {
       if (entry.key.startsWith(keyPrefix)) {
         yield StoreObjectInfo(
           key: entry.key,

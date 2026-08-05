@@ -1197,6 +1197,42 @@ void main() {
       expect(result, isNull);
     });
 
+    test('always overlays the raw DC deco stop band (decoStopSource: computer '
+        'is wired at this call site)', () {
+      // diveProfileAnalysisProvider always prefers computer-reported data
+      // (used by widgets that render a dive independently of the legend's
+      // session toggles). 4.5 m is not a multiple of the 3 m stop spacing
+      // the calculated curve quantizes to, and this profile is far too
+      // shallow/brief to owe any calculated decompression, so 4.5 can only
+      // reach the result if overlayComputerDecoData's decoStopSource
+      // parameter is actually passed as computer at this call site.
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0),
+        const DiveProfilePoint(timestamp: 30, depth: 20, ceiling: 4.5),
+        const DiveProfilePoint(timestamp: 60, depth: 20, ceiling: 4.5),
+        const DiveProfilePoint(timestamp: 90, depth: 0),
+      ];
+      final dive = Dive(
+        id: 'dc-ceiling-dive',
+        dateTime: DateTime(2025, 1, 1),
+        profile: profile,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+          settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(diveProfileAnalysisProvider(dive));
+
+      expect(result, isNotNull);
+      expect(result!.decoStopCurve, [0.0, 4.5, 4.5, 0.0]);
+    });
+
     test(
       'CCR dive analysis loads on the loop, not the first tank (issue #455)',
       () async {

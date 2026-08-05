@@ -21,10 +21,17 @@ class SyncManifest {
     this.publishedHlcHigh,
     this.epochId,
     this.uploadNonce,
+    this.appliedPeerHlc = const {},
     this.formatVersion = 1,
+    this.schemaVersion,
   });
 
   final int formatVersion;
+
+  /// The database schema version of the publishing device, used by readers to
+  /// hold data from newer-schema peers rather than lossily merging it.
+  /// Null on manifests written before this field existed.
+  final int? schemaVersion;
   final String deviceId;
   final String provider;
   final int? baseSeq;
@@ -38,8 +45,14 @@ class SyncManifest {
   final String? uploadNonce;
   final int updatedAt;
 
+  /// Highest HLC this device has APPLIED from each peer's log
+  /// (peerDeviceId -> hlc). Peers read it to garbage-collect tombstones every
+  /// live device has provably seen. A missing entry acknowledges nothing.
+  final Map<String, String> appliedPeerHlc;
+
   Map<String, dynamic> toJson() => {
     'formatVersion': formatVersion,
+    'schemaVersion': schemaVersion,
     'deviceId': deviceId,
     'provider': provider,
     'baseSeq': baseSeq,
@@ -51,11 +64,13 @@ class SyncManifest {
     'publishedHlcHigh': publishedHlcHigh,
     'epochId': epochId,
     'uploadNonce': uploadNonce,
+    'appliedPeerHlc': appliedPeerHlc,
     'updatedAt': updatedAt,
   };
 
   factory SyncManifest.fromJson(Map<String, dynamic> json) => SyncManifest(
     formatVersion: (json['formatVersion'] as int?) ?? 1,
+    schemaVersion: json['schemaVersion'] as int?,
     deviceId: json['deviceId'] as String,
     provider: json['provider'] as String,
     baseSeq: json['baseSeq'] as int?,
@@ -68,6 +83,9 @@ class SyncManifest {
     publishedHlcHigh: json['publishedHlcHigh'] as String?,
     epochId: json['epochId'] as String?,
     uploadNonce: json['uploadNonce'] as String?,
+    appliedPeerHlc: Map<String, String>.from(
+      (json['appliedPeerHlc'] as Map?) ?? const {},
+    ),
     updatedAt: (json['updatedAt'] as int?) ?? 0,
   );
 

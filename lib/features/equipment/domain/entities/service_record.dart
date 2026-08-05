@@ -7,6 +7,9 @@ class ServiceRecord extends Equatable {
   final String id;
   final String equipmentId;
   final ServiceType serviceType;
+
+  /// Which service kind (clock) this record fulfills; null = untagged.
+  final String? serviceKindId;
   final DateTime serviceDate;
   final String? provider;
   final double? cost;
@@ -20,6 +23,7 @@ class ServiceRecord extends Equatable {
     required this.id,
     required this.equipmentId,
     required this.serviceType,
+    this.serviceKindId,
     required this.serviceDate,
     this.provider,
     this.cost,
@@ -54,6 +58,7 @@ class ServiceRecord extends Equatable {
     String? id,
     String? equipmentId,
     ServiceType? serviceType,
+    String? serviceKindId,
     DateTime? serviceDate,
     String? provider,
     double? cost,
@@ -67,6 +72,7 @@ class ServiceRecord extends Equatable {
       id: id ?? this.id,
       equipmentId: equipmentId ?? this.equipmentId,
       serviceType: serviceType ?? this.serviceType,
+      serviceKindId: serviceKindId ?? this.serviceKindId,
       serviceDate: serviceDate ?? this.serviceDate,
       provider: provider ?? this.provider,
       cost: cost ?? this.cost,
@@ -96,6 +102,7 @@ class ServiceRecord extends Equatable {
     id,
     equipmentId,
     serviceType,
+    serviceKindId,
     serviceDate,
     provider,
     cost,

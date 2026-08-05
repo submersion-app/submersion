@@ -14,6 +14,17 @@ void main() {
     expect(StoreKeys.markerKey, 'smv1/store.json');
   });
 
+  test('renditionKey fans out and uses the given ext', () {
+    expect(
+      StoreKeys.renditionKey('abcdef0123', ext: 'jpg'),
+      'smv1/renditions/ab/abcdef0123.jpg',
+    );
+    expect(
+      StoreKeys.renditionKey('abcdef0123', ext: 'mp4'),
+      'smv1/renditions/ab/abcdef0123.mp4',
+    );
+  });
+
   test('extensionFor sanitizes and falls back to bin', () {
     expect(StoreKeys.extensionFor('IMG_1234.JPG'), 'jpg');
     expect(StoreKeys.extensionFor('clip.MOV'), 'mov');

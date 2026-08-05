@@ -3,35 +3,34 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart' show DateFormat;
-import 'package:submersion/core/icons/mdi_icons.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
-
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
-import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
-import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -43,12 +42,17 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/dive_pre_dive_section.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
+import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
+import 'package:submersion/features/safety/presentation/widgets/linked_incidents_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -57,45 +61,59 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
-import 'package:submersion/core/tide/entities/tide_extremes.dart';
-import 'package:submersion/features/tides/domain/entities/tide_record.dart';
-import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
-import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weather/presentation/widgets/weather_description_builder.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
+import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
-import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
-
-import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
+
+  /// Optional site ID to show instead of dive details.
+  /// Used in master-detail layout to keep dive list visible.
+  final String? embeddedSiteId;
+
+  /// Callback to clear the embedded site view.
+  final VoidCallback? onCloseEmbeddedSite;
 
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
@@ -104,6 +122,8 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.diveId,
     this.embedded = false,
+    this.embeddedSiteId,
+    this.onCloseEmbeddedSite,
     this.onDeleted,
   });
 
@@ -184,10 +204,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final embeddedSiteId = widget.embeddedSiteId;
+    if (embeddedSiteId != null && embeddedSiteId.isNotEmpty) {
+      return SiteDetailPage(
+        siteId: embeddedSiteId,
+        embedded: true,
+        onClose: widget.onCloseEmbeddedSite,
+      );
+    }
+
     // On desktop, redirect standalone detail pages to master-detail view.
     // Skip in table mode -- table view has no master-detail split to redirect into.
+    // Skip when this page was PUSHED (trip/buddy/site drill-through): the
+    // redirect uses go(), which would wipe the stack and lose the browse
+    // context and back button (#764). Only redirect root-level details
+    // (deep links, tab navigation).
     if (!widget.embedded &&
         !_hasRedirected &&
+        !(GoRouter.maybeOf(context)?.canPop() ?? false) &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
       final viewMode = ref.read(diveListViewModeProvider);
       if (viewMode != ListViewMode.table) {
@@ -271,6 +305,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
         ];
       },
+      DiveDetailSectionId.safetyReview: () {
+        // The widgets collapse to nothing when empty, so plain SizedBox
+        // spacers would double up; each widget owns its own spacing.
+        return [
+          if (dive.profile.isNotEmpty) SafetyReviewSection(diveId: dive.id),
+          LinkedIncidentsRow(diveId: dive.id),
+        ];
+      },
       DiveDetailSectionId.sacSegments: () {
         if (dive.profile.isEmpty) return [];
         return [
@@ -303,7 +345,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
       DiveDetailSectionId.altitude: () {
-        if (dive.altitude == null || dive.altitude! <= 0) return [];
+        if (dive.altitude == null || dive.altitude! <= 0) {
+          // Safety phase 2: the site is at altitude but the dive was not
+          // altitude-adjusted -- surface an informational note instead of
+          // silently hiding the section.
+          if (needsAltitudeAdjustmentFlag(
+            diveAltitude: dive.altitude,
+            siteAltitude: dive.site?.altitude,
+          )) {
+            return [
+              const SizedBox(height: 24),
+              _buildAltitudeMismatchNote(context, dive),
+            ];
+          }
+          return [];
+        }
         return [
           const SizedBox(height: 24),
           _buildAltitudeSection(context, ref, dive),
@@ -343,6 +399,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [
           const SizedBox(height: 24),
           _buildWeightSection(context, dive, units),
+        ];
+      },
+      DiveDetailSectionId.buoyancy: () {
+        if (dive.tanks.isEmpty && !_hasExposureSuit(dive)) return [];
+        return [
+          const SizedBox(height: 24),
+          BuoyancySection(diveId: dive.id, units: units),
         ];
       },
       DiveDetailSectionId.tanks: () {
@@ -399,6 +462,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           const SizedBox(height: 24),
           _buildCustomFieldsSection(context, dive),
         ];
+      },
+      // Always renders: it is also the affordance for linking/running a
+      // pre-dive checklist, and stays one row tall without a session.
+      DiveDetailSectionId.preDiveChecklist: () {
+        return [const SizedBox(height: 24), DivePreDiveSection(dive: dive)];
       },
       DiveDetailSectionId.dataSources: () {
         return [
@@ -695,6 +763,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
+                case 'logNearMiss':
+                  context.push('/incidents/new?diveId=$diveId');
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -706,6 +777,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logNearMiss',
+                child: ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -847,6 +926,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
+                case 'logNearMiss':
+                  context.push('/incidents/new?diveId=$diveId');
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -870,6 +952,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logNearMiss',
+                child: ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -945,6 +1035,31 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           dive.site?.name ??
                           context.l10n.diveLog_listPage_unknownSite,
                       style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final count =
+                            ref
+                                .watch(diveOpenFindingsCountProvider(dive.id))
+                                .value ??
+                            0;
+                        if (count == 0) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: ActionChip(
+                            avatar: Icon(
+                              Icons.rule,
+                              size: 16,
+                              color: colorScheme.tertiary,
+                            ),
+                            label: Text(
+                              context.l10n.dataQuality_detail_chipCount(count),
+                            ),
+                            onPressed: () =>
+                                context.push('/dives/quality?dive=${dive.id}'),
+                          ),
+                        );
+                      },
                     ),
                     if (dive.effectiveName != null && dive.site != null)
                       Text(
@@ -1054,7 +1169,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ? '${context.l10n.diveLog_detail_viewSite} ${site.name}'
             : '',
         child: InkWell(
-          onTap: site != null ? () => context.push('/sites/${site.id}') : null,
+          onTap: site != null
+              ? () {
+                  if (widget.embedded &&
+                      ResponsiveBreakpoints.isMasterDetail(context)) {
+                    final router = GoRouter.of(context);
+                    final state = GoRouterState.of(context);
+                    final currentPath = state.uri.path;
+                    final params = Map<String, String>.from(
+                      state.uri.queryParameters,
+                    );
+                    params['site'] = site.id;
+                    router.go(
+                      Uri(
+                        path: currentPath,
+                        queryParameters: params,
+                      ).toString(),
+                    );
+                  } else {
+                    context.push('/sites/${site.id}');
+                  }
+                }
+              : null,
           child: Stack(
             children: [
               // Map background (decorative, non-interactive).
@@ -1113,7 +1249,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.open_in_new,
+                          Icons.arrow_forward,
                           size: 14,
                           color: colorScheme.onPrimaryContainer,
                         ),
@@ -1498,6 +1634,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
+                        decoStopCurve: analysis?.decoStopCurve,
                         ascentRates: analysis?.ascentRates,
                         events: analysis?.events,
                         ndlCurve: analysis?.ndlCurve,
@@ -1546,6 +1683,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                     gasSwitchesAsync.valueOrNull ?? const [],
                                 diveDurationSeconds:
                                     chartProfile.last.timestamp,
+                                firstSampleSeconds:
+                                    chartProfile.first.timestamp,
                               ),
                         diveDurationSeconds: chartProfile.isEmpty
                             ? null
@@ -1914,21 +2053,34 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         .map((t) => t.volume!)
         .firstOrNull;
 
-    // Determine if we can show L/min (need tank volume)
-    final showLitersPerMin =
-        sacUnit == SacUnit.litersPerMin && tankVolume != null;
-
     // Use the top-level normalization function
     final normalizationFactor = calculateSacNormalizationFactor(dive, analysis);
 
-    // Format SAC value based on unit setting, applying normalization
-    String formatSacValue(double sacBarPerMin) {
+    // Format SAC value based on unit setting, applying normalization.
+    // [segmentTankId] selects that segment's own cylinder volume for the
+    // L/min conversion -- sidemount tanks can differ in size, so one shared
+    // volume misconverts half the segments (#110). Falls back to the first
+    // tank with a volume when the segment carries no attribution.
+    String formatSacValue(double sacBarPerMin, {String? segmentTankId}) {
       // Apply normalization to align with overall dive SAC
       final normalizedSac = sacBarPerMin * normalizationFactor;
 
-      if (showLitersPerMin) {
+      final segmentVolume = segmentTankId == null
+          ? null
+          : dive.tanks
+                .where(
+                  (t) =>
+                      t.id == segmentTankId &&
+                      t.volume != null &&
+                      t.volume! > 0,
+                )
+                .map((t) => t.volume!)
+                .firstOrNull;
+      final effectiveVolume = segmentVolume ?? tankVolume;
+
+      if (sacUnit == SacUnit.litersPerMin && effectiveVolume != null) {
         // Convert bar/min to L/min: sacLPerMin = sacBarPerMin * tankVolume
-        final sacLPerMin = normalizedSac * tankVolume;
+        final sacLPerMin = normalizedSac * effectiveVolume;
         return '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
       } else {
         // Convert to user's pressure unit (bar or psi)
@@ -2074,7 +2226,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         SizedBox(
                           width: 90,
                           child: Text(
-                            formatSacValue(segment.sacRate),
+                            formatSacValue(
+                              segment.sacRate,
+                              segmentTankId: segment.tankId,
+                            ),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.end,
@@ -2671,7 +2826,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildDetailRow(
               context,
               context.l10n.diveLog_detail_label_diveType,
-              dive.diveTypeNames.join(', '),
+              diveTypeLabels(
+                context.l10n,
+                dive.diveTypeIds,
+                typesById: {
+                  for (final t
+                      in ref.watch(diveTypesProvider).value ??
+                          const <DiveTypeEntity>[])
+                    t.id: t,
+                },
+              ),
             ),
             _buildDetailRow(
               context,
@@ -2790,6 +2954,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         (dive.weightAmount != null && dive.weightAmount! > 0);
   }
 
+  bool _hasExposureSuit(Dive dive) => dive.equipment.any(
+    (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,
+  );
+
   /// Calculate profile markers for max depth and pressure thresholds
   List<ProfileMarker> _calculateProfileMarkers({
     required Dive dive,
@@ -2879,7 +3047,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_surfacePressure,
-                  '${(dive.surfacePressure! * 1000).toStringAsFixed(0)} mbar',
+                  units.formatSurfacePressure(dive.surfacePressure),
                 ),
               if (dive.windSpeed != null)
                 _buildDetailRow(
@@ -2891,19 +3059,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_windDirection,
-                  dive.windDirection!.displayName,
+                  dive.windDirection!.localizedName(context.l10n),
                 ),
               if (dive.cloudCover != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_cloudCover,
-                  dive.cloudCover!.displayName,
+                  dive.cloudCover!.localizedName(context.l10n),
                 ),
               if (dive.precipitation != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_precipitation,
-                  dive.precipitation!.displayName,
+                  dive.precipitation!.localizedName(context.l10n),
                 ),
               if (dive.humidity != null)
                 _buildDetailRow(
@@ -2911,13 +3079,34 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context.l10n.diveLog_detail_label_humidity,
                   '${dive.humidity!.toStringAsFixed(0)}%',
                 ),
-              if (dive.weatherDescription != null &&
-                  dive.weatherDescription!.isNotEmpty)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_weatherDescription,
-                  dive.weatherDescription!,
-                ),
+              // Rendered at display time so it follows the diver's locale and
+              // units. Text the diver typed or that arrived with an import is
+              // user data and is shown verbatim; the prose we used to generate
+              // for fetched weather is rebuilt from the structured fields.
+              Builder(
+                builder: (context) {
+                  final description = buildLocalizedWeatherDescription(
+                    l10n: context.l10n,
+                    units: units,
+                    weatherCode: dive.weatherCode,
+                    cloudCover: dive.cloudCover,
+                    airTempCelsius: dive.airTemp,
+                    windSpeedMs: dive.windSpeed,
+                    windDirection: dive.windDirection,
+                    precipitation: dive.precipitation,
+                    storedDescription:
+                        dive.weatherSource == WeatherSource.openMeteo
+                        ? null
+                        : dive.weatherDescription,
+                  );
+                  if (description == null) return const SizedBox.shrink();
+                  return _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_weatherDescription,
+                    description,
+                  );
+                },
+              ),
               if (dive.weatherSource == WeatherSource.openMeteo)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -2948,35 +3137,50 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_currentDirection,
-                  dive.currentDirection!.displayName,
+                  dive.currentDirection!.localizedName(context.l10n),
                 ),
               if (dive.currentStrength != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_currentStrength,
-                  dive.currentStrength!.displayName,
+                  dive.currentStrength!.localizedName(context.l10n),
                 ),
               if (dive.swellHeight != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_swellHeight,
-                  '${dive.swellHeight!.toStringAsFixed(1)}m',
+                  units.formatDepth(dive.swellHeight, decimals: 1),
                 ),
               if (dive.entryMethod != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_entryMethod,
-                  dive.entryMethod!.displayName,
+                  dive.entryMethod!.localizedName(context.l10n),
                 ),
               if (dive.exitMethod != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_exitMethod,
-                  dive.exitMethod!.displayName,
+                  dive.exitMethod!.localizedName(context.l10n),
                 ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Informational note shown when the site records a meaningful altitude
+  /// but the dive itself has none, so deco replay ran at sea-level pressure.
+  Widget _buildAltitudeMismatchNote(BuildContext context, Dive dive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.terrain, color: colorScheme.onSurfaceVariant),
+        title: Text(context.l10n.diveLog_detail_altitudeMismatch_title),
+        subtitle: Text(context.l10n.diveLog_detail_altitudeMismatch_subtitle),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: () => context.push('/dives/${dive.id}/edit'),
       ),
     );
   }
@@ -3281,21 +3485,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
     final dateStr = dateRef != null
-        ? DateFormat('EEE, MMM d').format(dateRef.toLocal())
+        ? DateFormat('EEE, MMM d').format(dateRef)
         : '';
+    // Cycle bounds are stored wall-clock instants, not device-local times:
+    // format them verbatim without any timezone conversion.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
-            final startLocal = cycleStart.toLocal();
-            final endLocal = cycleEnd.toLocal();
             final timeFmt = DateFormat(settings.timeFormat.pattern);
-            final startStr = timeFmt.format(startLocal);
-            final endStr = timeFmt.format(endLocal);
+            final startStr = timeFmt.format(cycleStart);
+            final endStr = timeFmt.format(cycleEnd);
             final spansNewDay =
-                startLocal.year != endLocal.year ||
-                startLocal.month != endLocal.month ||
-                startLocal.day != endLocal.day;
+                cycleStart.year != cycleEnd.year ||
+                cycleStart.month != cycleEnd.month ||
+                cycleStart.day != cycleEnd.day;
             if (spansNewDay) {
-              final endDateStr = DateFormat('MMM d').format(endLocal);
+              final endDateStr = DateFormat('MMM d').format(cycleEnd);
               return '$startStr - $endStr ($endDateStr)';
             }
             return '$startStr - $endStr';
@@ -3412,7 +3616,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Format a DateTime as a time string using the given time format.
   String _formatTime(DateTime time, TimeFormat timeFormat) {
-    return DateFormat(timeFormat.pattern).format(time.toLocal());
+    return DateFormat(timeFormat.pattern).format(time);
   }
 
   Widget _buildWeightSection(
@@ -3999,6 +4203,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return Icons.flashlight_on;
       case EquipmentType.camera:
         return Icons.camera_alt;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       default:
         return Icons.backpack;
     }
@@ -4599,9 +4805,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     if (confirmed != true || !mounted) return;
     try {
-      await ref
+      final newDiveId = await ref
           .read(diveSplitServiceProvider)
           .split(diveId: dive.id, sourceId: sourceId);
+      // Re-scan both the original and the newly split dive (fire-and-forget).
+      scheduleQualityScan([dive.id, newDiveId]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));

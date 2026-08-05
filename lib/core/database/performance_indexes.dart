@@ -132,6 +132,18 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON dive_custom_fields(field_key)',
   ),
   (
+    name: 'idx_equipment_attributes_equipment_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_equipment_id '
+        'ON equipment_attributes(equipment_id)',
+  ),
+  (
+    name: 'idx_equipment_attributes_key_num',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_num '
+        'ON equipment_attributes(attr_key, value_num)',
+  ),
+  (
     name: 'idx_dive_data_sources_dive_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id '

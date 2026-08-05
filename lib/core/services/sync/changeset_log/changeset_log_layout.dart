@@ -7,6 +7,7 @@
 class ChangesetLogLayout {
   static const String prefix = 'ssv1.';
   static const String _manifestSuffix = '.manifest.json';
+  static const String _retiredSuffix = '.retired.json';
   static const String _csMarker = '.cs.';
   static const String _baseMarker = '.base.';
   static const int seqPad = 12;
@@ -28,6 +29,15 @@ class ChangesetLogLayout {
 
   static bool isManifest(String name) =>
       isOurs(name) && name.endsWith(_manifestSuffix);
+
+  /// Durable marker that [deviceId]'s log was retired (see RetirementMarker).
+  /// Ignored by the compaction pruner (no .cs./.base. marker in the name) and
+  /// wiped with everything else on a library replace (prefix match).
+  static String retiredMarkerName(String deviceId) =>
+      '$prefix$deviceId$_retiredSuffix';
+
+  static bool isRetiredMarker(String name) =>
+      isOurs(name) && name.endsWith(_retiredSuffix);
 
   /// The device id encoded in [name], or null if [name] is not ours.
   static String? deviceIdOf(String name) {

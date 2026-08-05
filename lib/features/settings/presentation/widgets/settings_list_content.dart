@@ -69,6 +69,13 @@ const settingsSections = [
     color: Colors.blue,
   ),
   SettingsSection(
+    id: 'safety',
+    icon: Icons.health_and_safety_outlined,
+    title: 'Safety',
+    subtitle: 'Review rules & flying after diving',
+    color: Colors.redAccent,
+  ),
+  SettingsSection(
     id: 'manage',
     icon: Icons.folder_shared,
     title: 'Manage',
@@ -282,6 +289,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_dataSources_title;
       case 'sharedData':
         return context.l10n.settings_sharedData_sectionTitle;
+      case 'safety':
+        return context.l10n.settings_section_safety_title;
       case 'debug':
         return 'Debug';
       default:
@@ -311,6 +320,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_dataSources_subtitle;
       case 'sharedData':
         return context.l10n.settings_sharedData_sectionSubtitle;
+      case 'safety':
+        return context.l10n.settings_section_safety_subtitle;
       case 'debug':
         return 'Logs & diagnostics';
       default:

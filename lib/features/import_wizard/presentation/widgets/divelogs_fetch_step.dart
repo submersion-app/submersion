@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/divelogs_account_adapter.dart';
@@ -103,6 +104,13 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             label: 'divelogs.de',
             accountIdentifier: username,
             diverId: _selectedDiverId,
+            // Deterministic id: every device connecting divelogs.de derives
+            // the same primary key, so sync's upsert-by-id merges the rows
+            // instead of unioning two accounts.
+            id: accountIdFor(
+              kind: AccountKind.divelogs,
+              naturalKey: naturalKeyForKind(AccountKind.divelogs)!,
+            ),
           );
       await ref
           .read(accountCredentialsStoreProvider)

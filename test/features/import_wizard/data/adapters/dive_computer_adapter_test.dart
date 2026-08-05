@@ -1228,6 +1228,59 @@ void main() {
     });
 
     test(
+      'rebinds a discovered identifier to an existing hardware record',
+      () async {
+        final discoveryAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+        );
+        final existingComputer = makeComputer(
+          id: 'existing-computer',
+          serialNumber: 'SN-12345',
+        );
+        when(
+          mockComputerRepo.findByHardwareIdentity(
+            manufacturer: 'Shearwater',
+            model: 'Perdix',
+            serialNumber: 'SN-12345',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => existingComputer);
+
+        final device = DiscoveredDevice(
+          id: 'device-1',
+          name: 'Perdix 2',
+          connectionType: DeviceConnectionType.ble,
+          address: 'NEW-HOST-IDENTIFIER',
+          recognizedModel: const DeviceModel(
+            id: 'shearwater_perdix',
+            manufacturer: 'Shearwater',
+            model: 'Perdix',
+            connectionTypes: [DeviceConnectionType.ble],
+          ),
+          discoveredAt: DateTime(2026, 3, 20),
+        );
+
+        await discoveryAdapter.ensureComputer(
+          device: device,
+          serialNumber: 'SN-12345',
+          firmwareVersion: 'v4.0',
+        );
+
+        expect(discoveryAdapter.computer?.id, equals('existing-computer'));
+        expect(
+          discoveryAdapter.computer?.bluetoothAddress,
+          equals('NEW-HOST-IDENTIFIER'),
+        );
+        verify(mockComputerRepo.updateComputer(captureAny)).called(1);
+        verifyNever(mockComputerRepo.createComputer(any));
+      },
+    );
+
+    test(
       'is a no-op when computer already set (known-computer mode)',
       () async {
         final device = DiscoveredDevice(

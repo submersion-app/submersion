@@ -168,7 +168,7 @@ platform :ios do
 
     # Build the Flutter app (version comes from pubspec.yaml -> Generated.xcconfig -> Info.plist)
     UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build ios --release --no-codesign")
+    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore")
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")
@@ -265,6 +265,50 @@ platform :ios do
       skip_waiting_for_build_processing: true
     )
     UI.success("iOS build uploaded to TestFlight!")
+  end
+
+  desc "Upload pre-built IPA to TestFlight and distribute to the Public Beta group"
+  lane :upload_testflight_beta do |options|
+    api_key = load_api_key
+    ipa_path = options[:ipa] || "./build/Submersion.ipa"
+
+    UI.message("Uploading IPA to TestFlight (Public Beta): #{ipa_path}")
+    # distribute_external requires waiting for processing so the build can be
+    # assigned to the group; expect several minutes per upload.
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ipa_path,
+      distribute_external: true,
+      groups: ["Public Beta"],
+      changelog: ENV["BETA_CHANGELOG"] || "Automated beta build.",
+    )
+    UI.success("iOS beta distributed to the Public Beta group!")
+  end
+
+  desc "Submit an already-uploaded build for App Review (no upload)"
+  lane :submit_existing do |options|
+    api_key = load_api_key
+    app_version = options[:app_version] || UI.user_error!("app_version is required")
+    build_number = options[:build_number] || UI.user_error!("build_number is required")
+
+    UI.message("Submitting #{app_version} (#{build_number}) for App Review...")
+    upload_to_app_store(
+      api_key: api_key,
+      app_version: app_version,
+      build_number: build_number.to_s,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      # skip_metadata false so deliver uploads metadata/en-US/release_notes.txt
+      # (written by promote.yml from the GitHub release notes) - Apple requires
+      # whatsNew on a new version. Only files present are uploaded, and that is
+      # the only metadata file provided.
+      skip_metadata: false,
+      submit_for_review: true,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: { add_id_info_uses_idfa: false },
+    )
+    UI.success("Submitted for review; release manually in App Store Connect on approval.")
   end
 
   desc "Full release: capture screenshots, upload everything, and submit build"

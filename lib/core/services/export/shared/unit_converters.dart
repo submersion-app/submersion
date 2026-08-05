@@ -15,6 +15,8 @@ String formatDateForExport(DateTime date, DateFormatPreference format) {
       return DateFormat('MMM d, yyyy').format(date);
     case DateFormatPreference.dMMMYYYY:
       return DateFormat('d MMM yyyy').format(date);
+    case DateFormatPreference.ddmmyyyyDots:
+      return DateFormat('dd.MM.yyyy').format(date);
   }
 }
 

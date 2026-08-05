@@ -193,4 +193,5 @@ typedef MetricSourceInfo = ({
   MetricDataSource ceilingActual,
   MetricDataSource ttsActual,
   MetricDataSource cnsActual,
+  MetricDataSource decoStopActual,
 });

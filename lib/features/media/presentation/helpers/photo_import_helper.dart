@@ -67,6 +67,8 @@ class PhotoImportHelper {
       ),
       buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
+      // Lets the Files tab link photos this dive's date window rejected.
+      diveId: dive.id,
     );
     // coverage:ignore-end
 

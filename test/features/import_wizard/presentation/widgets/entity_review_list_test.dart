@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -30,6 +32,31 @@ const _possibleMatchResult = DiveMatchResult(
   timeDifferenceMs: 300000,
 );
 
+// A non-dive (unscored) duplicate: buddies/tags arrive with no match score,
+// so they route through the entity duplicate card rather than the dive card.
+const _buddyDupItem = EntityItem(title: 'John Diver', subtitle: 'Buddy');
+
+const _buddyEntityMatch = EntityMatchResult(
+  existingId: 'buddy-1',
+  existingName: 'John Diver',
+  existingFields: {'Name': 'John Diver', 'Cert': 'AOW'},
+  incomingFields: {'Name': 'John Diver', 'Cert': 'Rescue'},
+);
+
+/// Group for an unscored duplicate that carries comparison data, which is what
+/// makes the collapsed header expandable and the action row reachable.
+const _buddyGroupWithMatch = EntityGroup(
+  items: [_buddyDupItem],
+  duplicateIndices: {0},
+  entityMatches: {0: _buddyEntityMatch},
+);
+
+const _nonDiveActions = {
+  DuplicateAction.skip,
+  DuplicateAction.importAsNew,
+  DuplicateAction.consolidate,
+};
+
 Widget _buildList({
   required EntityGroup group,
   Set<int>? selectedIndices,
@@ -42,6 +69,8 @@ Widget _buildList({
   String Function(int)? existingDiveIdForIndex,
 }) {
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
       body: SizedBox(
         width: 800,
@@ -371,6 +400,232 @@ void main() {
       await tester.pump();
 
       expect(find.text('2 / 2 selected'), findsOneWidget);
+    });
+  });
+
+  group('EntityReviewList - link to existing (consolidate)', () {
+    /// Expands the single entity duplicate card by tapping its collapsed
+    /// header, revealing the comparison panel and its action buttons.
+    Future<void> expandCard(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.expand_more));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('expanded unscored duplicate offers the three entity actions', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+        ),
+      );
+      await tester.pump();
+
+      // Collapsed: no action buttons yet.
+      expect(find.text('Link to existing'), findsNothing);
+
+      await expandCard(tester);
+
+      expect(find.text('Link to existing'), findsOneWidget);
+      expect(find.text('Use the matched record'), findsOneWidget);
+      expect(find.text('Skip'), findsOneWidget);
+      expect(find.text('Import as New'), findsOneWidget);
+    });
+
+    testWidgets('tapping Link to existing reports consolidate', (tester) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      int? changedIndex;
+      DuplicateAction? changedAction;
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          onDuplicateActionChanged: (i, a) {
+            changedIndex = i;
+            changedAction = a;
+          },
+        ),
+      );
+      await tester.pump();
+
+      await expandCard(tester);
+      await tester.tap(find.text('Link to existing'));
+      await tester.pump();
+
+      expect(changedIndex, equals(0));
+      expect(changedAction, equals(DuplicateAction.consolidate));
+    });
+
+    testWidgets('selected Link to existing renders as a filled button', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.consolidate},
+        ),
+      );
+      await tester.pump();
+
+      await expandCard(tester);
+
+      // isSelected drives FilledButton (vs OutlinedButton when unselected).
+      expect(
+        find.widgetWithText(FilledButton, 'Link to existing'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, 'Link to existing'),
+        findsNothing,
+      );
+      expect(find.widgetWithText(OutlinedButton, 'Skip'), findsOneWidget);
+    });
+
+    testWidgets('consolidate action shows the LINK badge in the header', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.consolidate},
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('LINK'), findsOneWidget);
+      expect(find.text('IMPORT'), findsNothing);
+      expect(find.text('SKIP'), findsNothing);
+    });
+
+    testWidgets('importAsNew action shows the IMPORT badge in the header', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.importAsNew},
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('IMPORT'), findsOneWidget);
+      expect(find.text('LINK'), findsNothing);
+    });
+
+    testWidgets('skip action shows the SKIP badge in the header', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.skip},
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('SKIP'), findsOneWidget);
+      expect(find.text('LINK'), findsNothing);
+      expect(find.text('IMPORT'), findsNothing);
+    });
+
+    testWidgets('no badge is shown when the row has no decision yet', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('LINK'), findsNothing);
+      expect(find.text('IMPORT'), findsNothing);
+      expect(find.text('SKIP'), findsNothing);
+    });
+
+    testWidgets('consolidate row uses the primary color for its card border', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.consolidate},
+        ),
+      );
+      await tester.pump();
+
+      final cardFinder = find.byType(Card);
+      expect(cardFinder, findsOneWidget);
+
+      final colorScheme = Theme.of(tester.element(cardFinder)).colorScheme;
+      final shape =
+          tester.widget<Card>(cardFinder).shape! as RoundedRectangleBorder;
+
+      expect(shape.side.color, equals(colorScheme.primary));
+      expect(shape.side.width, equals(1.5));
+    });
+
+    testWidgets('skip row uses the error color for its card border', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: _buddyGroupWithMatch,
+          availableActions: _nonDiveActions,
+          duplicateActions: {0: DuplicateAction.skip},
+        ),
+      );
+      await tester.pump();
+
+      final cardFinder = find.byType(Card);
+      final colorScheme = Theme.of(tester.element(cardFinder)).colorScheme;
+      final shape =
+          tester.widget<Card>(cardFinder).shape! as RoundedRectangleBorder;
+
+      expect(shape.side.color, equals(colorScheme.error));
     });
   });
 }

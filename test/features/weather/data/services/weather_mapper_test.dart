@@ -167,22 +167,40 @@ void main() {
       });
     });
 
-    group('buildDescription', () {
-      test('builds description from weather data', () {
-        final desc = WeatherMapper.buildDescription(
-          cloudCover: CloudCover.partlyCloudy,
-          airTempCelsius: 28.0,
-          windSpeedMs: 3.0,
-          windDirection: CurrentDirection.northEast,
-          precipitation: Precipitation.none,
+    group('weather code and description', () {
+      Map<String, dynamic> hourly({int? code}) => {
+        'time': ['2026-07-26T12:00'],
+        'temperature_2m': [24.0],
+        'cloud_cover': [10.0],
+        'wind_speed_10m': [10.0],
+        'wind_direction_10m': [0.0],
+        if (code != null) 'weathercode': [code],
+      };
+
+      test('retains the raw WMO code', () {
+        final data = WeatherMapper.mapApiResponse(
+          hourly(code: 61),
+          targetHour: DateTime.parse('2026-07-26T12:00'),
         );
-        expect(desc, isNotEmpty);
-        expect(desc, contains('Partly Cloudy'));
+        expect(data.weatherCode, 61);
       });
 
-      test('handles all nulls gracefully', () {
-        final desc = WeatherMapper.buildDescription();
-        expect(desc, isNull);
+      test('leaves the code null when the API omits it', () {
+        final data = WeatherMapper.mapApiResponse(
+          hourly(),
+          targetHour: DateTime.parse('2026-07-26T12:00'),
+        );
+        expect(data.weatherCode, isNull);
+      });
+
+      test('does not generate an English description', () {
+        final data = WeatherMapper.mapApiResponse(
+          hourly(code: 0),
+          targetHour: DateTime.parse('2026-07-26T12:00'),
+        );
+        // Prose is rendered at display time so it follows the diver's locale
+        // and units. Persisting it here froze it as English and metric.
+        expect(data.description, isNull);
       });
     });
 

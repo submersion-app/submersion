@@ -68,9 +68,7 @@ Trip _trip() => Trip(
 Future<void> pumpHeader(
   WidgetTester tester,
   TripStoryMapGeometry geometry,
-  TripWithStats stats, {
-  int siteCount = 0,
-}) async {
+) async {
   final overrides = await getBaseOverrides();
   final controller = MapController();
   addTearDown(controller.dispose);
@@ -88,8 +86,6 @@ Future<void> pumpHeader(
                 pinned: true,
                 delegate: TripStoryMapHeaderDelegate(
                   geometry: geometry,
-                  stats: stats,
-                  siteCount: siteCount,
                   activeDayIndex: 0,
                   mapController: controller,
                   onDaySelected: (_) {},
@@ -105,6 +101,28 @@ Future<void> pumpHeader(
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
+}
+
+Future<void> pumpStrip(
+  WidgetTester tester,
+  TripWithStats stats, {
+  int siteCount = 0,
+}) async {
+  final overrides = await getBaseOverrides();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides.cast(),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: TripStatStrip(stats: stats, siteCount: siteCount),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
 }
 
 void main() {
@@ -125,11 +143,9 @@ void main() {
         ),
       ],
     );
-    final stats = TripWithStats(trip: _trip(), diveCount: 8);
-    await pumpHeader(tester, geometry, stats);
+    await pumpHeader(tester, geometry);
 
     expect(find.byType(FlutterMap), findsWidgets);
-    expect(find.byType(TripStatStrip), findsOneWidget);
   });
 
   testWidgets('draws a route polyline only with 2+ points', (tester) async {
@@ -143,8 +159,7 @@ void main() {
         ),
       ],
     );
-    final stats = TripWithStats(trip: _trip(), diveCount: 1);
-    await pumpHeader(tester, onef, stats);
+    await pumpHeader(tester, onef);
     // Single point: map renders, but no route polyline.
     expect(find.byType(FlutterMap), findsWidgets);
     expect(find.byType(PolylineLayer), findsNothing);
@@ -154,17 +169,14 @@ void main() {
     tester,
   ) async {
     const geometry = TripStoryMapGeometry(points: []);
-    final stats = TripWithStats(trip: _trip(), diveCount: 3);
-    await pumpHeader(tester, geometry, stats);
+    await pumpHeader(tester, geometry);
 
     expect(find.byType(FlutterMap), findsNothing);
-    expect(find.byType(TripStatStrip), findsOneWidget);
   });
 
   testWidgets('stat strip shows the dive count', (tester) async {
-    const geometry = TripStoryMapGeometry(points: []);
     final stats = TripWithStats(trip: _trip(), diveCount: 14);
-    await pumpHeader(tester, geometry, stats);
+    await pumpStrip(tester, stats);
 
     expect(find.text('14'), findsOneWidget);
   });
@@ -172,9 +184,8 @@ void main() {
   testWidgets('stat strip shows sites visited when siteCount > 0', (
     tester,
   ) async {
-    const geometry = TripStoryMapGeometry(points: []);
     final stats = TripWithStats(trip: _trip(), diveCount: 14);
-    await pumpHeader(tester, geometry, stats, siteCount: 5);
+    await pumpStrip(tester, stats, siteCount: 5);
 
     expect(find.text('Sites visited'), findsOneWidget);
     expect(find.text('5'), findsOneWidget);
@@ -183,9 +194,8 @@ void main() {
   testWidgets('stat strip hides sites visited when siteCount is 0', (
     tester,
   ) async {
-    const geometry = TripStoryMapGeometry(points: []);
     final stats = TripWithStats(trip: _trip(), diveCount: 14);
-    await pumpHeader(tester, geometry, stats);
+    await pumpStrip(tester, stats);
 
     expect(find.text('Sites visited'), findsNothing);
   });
@@ -203,8 +213,7 @@ void main() {
         ),
       ],
     );
-    final stats = TripWithStats(trip: _trip(), diveCount: 1);
-    await pumpHeader(tester, geometry, stats);
+    await pumpHeader(tester, geometry);
 
     // The tappable marker meets the minimum touch target and is labeled for
     // screen readers with the point's name.
@@ -217,6 +226,29 @@ void main() {
     );
     expect(size.width, greaterThanOrEqualTo(48));
     expect(size.height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('collapsed header keeps the map 180 tall', (tester) async {
+    const geometry = TripStoryMapGeometry(
+      points: [
+        TripStoryMapPoint(
+          latitude: 12.1,
+          longitude: -68.2,
+          dayIndex: 0,
+          label: 'A',
+        ),
+      ],
+    );
+    await pumpHeader(tester, geometry);
+
+    // Fully expanded: the map fills the whole 260px header.
+    expect(tester.getSize(find.byType(FlutterMap).first).height, 260);
+
+    // Scroll far enough to fully collapse the pinned header.
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+    await tester.pump();
+
+    expect(tester.getSize(find.byType(FlutterMap).first).height, 180);
   });
 
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (
@@ -244,27 +276,22 @@ void main() {
       addTearDown(controller.dispose);
       void onDay(int _) {}
       const geometry = TripStoryMapGeometry(points: []);
-      final stats = TripWithStats(trip: _trip(), diveCount: 3);
 
-      TripStoryMapHeaderDelegate make({
-        int activeDayIndex = 0,
-        int siteCount = 0,
-      }) => TripStoryMapHeaderDelegate(
-        geometry: geometry,
-        stats: stats,
-        siteCount: siteCount,
-        activeDayIndex: activeDayIndex,
-        mapController: controller,
-        onDaySelected: onDay, // same callback identity across instances
-        maxExtentValue: 260,
-      );
+      TripStoryMapHeaderDelegate make({int activeDayIndex = 0}) =>
+          TripStoryMapHeaderDelegate(
+            geometry: geometry,
+            activeDayIndex: activeDayIndex,
+            mapController: controller,
+            onDaySelected: onDay, // same callback identity across instances
+            maxExtentValue: 260,
+          );
 
       // Same inputs (including the shared callback) => no rebuild.
       expect(make().shouldRebuild(make()), isFalse);
       // A changed input => rebuild.
       expect(make(activeDayIndex: 1).shouldRebuild(make()), isTrue);
-      // siteCount is part of the rebuild contract.
-      expect(make(siteCount: 3).shouldRebuild(make()), isTrue);
+      // The collapsed map keeps a usable height.
+      expect(make().minExtent, 180);
     },
   );
 }

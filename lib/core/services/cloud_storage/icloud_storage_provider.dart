@@ -2,12 +2,38 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
+
+/// The host platform, as far as iCloud availability is concerned.
+///
+/// [ICloudStorageProvider] takes one of these rather than separate `isApple` /
+/// `isIOS` booleans, so that an impossible combination (iOS but not Apple)
+/// cannot be constructed at all. A provider built from mismatched booleans
+/// would fail the platform guard before ever consulting the container, making
+/// a test pass for the wrong reason.
+enum ICloudHostPlatform {
+  ios,
+  macos,
+  other;
+
+  /// The real host platform this process is running on.
+  static ICloudHostPlatform current() {
+    if (Platform.isIOS) return ICloudHostPlatform.ios;
+    if (Platform.isMacOS) return ICloudHostPlatform.macos;
+    return ICloudHostPlatform.other;
+  }
+
+  /// Whether iCloud can exist here at all.
+  bool get isApple => this != ICloudHostPlatform.other;
+}
+
+/// Resolves the iCloud container's Documents path, or null when iCloud cannot
+/// serve this app.
+typedef ICloudContainerPathLookup = Future<String?> Function();
 
 /// iCloud implementation of CloudStorageProvider
 ///
@@ -21,7 +47,27 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 class ICloudStorageProvider
     with CloudStorageProviderMixin
     implements CloudStorageProvider {
+  /// [platform] defaults to the real host platform. It is injectable because
+  /// unit tests never run on a real iOS device, so the iOS-specific behaviour
+  /// of this provider is otherwise unreachable from a test host.
+  ///
+  /// [containerPathLookup] defaults to the native channel call. It is
+  /// injectable because [ICloudNativeService.getContainerPath] carries its own
+  /// `Platform.isIOS || Platform.isMacOS` guard and returns null without
+  /// reaching the channel on other hosts — so on a Linux CI runner a mocked
+  /// channel is never consulted, and a test would reach its assertion via a
+  /// short circuit rather than via the branch it means to exercise.
+  ICloudStorageProvider({
+    ICloudHostPlatform? platform,
+    ICloudContainerPathLookup? containerPathLookup,
+  }) : _platform = platform ?? ICloudHostPlatform.current(),
+       _lookupContainerPath =
+           containerPathLookup ?? ICloudNativeService.getContainerPath;
+
   static final _log = LoggerService.forClass(ICloudStorageProvider);
+
+  final ICloudHostPlatform _platform;
+  final ICloudContainerPathLookup _lookupContainerPath;
 
   Directory? _icloudContainer;
   Directory? _syncFolder;
@@ -35,7 +81,7 @@ class ICloudStorageProvider
   @override
   Future<bool> isAvailable() async {
     // iCloud is only available on iOS and macOS
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!_platform.isApple) {
       return false;
     }
 
@@ -94,9 +140,9 @@ class ICloudStorageProvider
     }
 
     try {
-      _log.info('Platform: macOS=${Platform.isMacOS}, iOS=${Platform.isIOS}');
+      _log.info('Platform: ${_platform.name}');
 
-      final containerPath = await ICloudNativeService.getContainerPath();
+      final containerPath = await _lookupContainerPath();
       if (containerPath != null) {
         _log.info('iCloud container path: $containerPath');
         final container = Directory(containerPath);
@@ -112,19 +158,13 @@ class ICloudStorageProvider
         return container;
       }
 
-      if (Platform.isIOS) {
-        _log.warning(
-          'iOS: Falling back to local Documents directory (iCloud unavailable)',
-        );
-        final docsDir = await getApplicationDocumentsDirectory();
-        final icloudDir = Directory(path.join(docsDir.path, 'iCloud'));
-        if (!await icloudDir.exists()) {
-          await icloudDir.create(recursive: true);
-        }
-        _icloudContainer = icloudDir;
-        return icloudDir;
-      }
-
+      // No fallback: a null container means iCloud cannot serve this app (no
+      // account signed in, no ubiquity entitlement, or the iOS Simulator,
+      // which never propagates ubiquity documents). Substituting a local
+      // directory would make the provider report itself available and strand
+      // every synced byte in the app sandbox, where no other device can reach
+      // it -- silently, because nothing in the stack would raise an error.
+      _log.warning('iCloud container unavailable; reporting iCloud as offline');
       return null;
     } catch (e) {
       _log.error('Failed to get iCloud container', error: e);

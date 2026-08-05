@@ -59,4 +59,17 @@ void main() {
     expect(await store.get('p1', 's3'), isNull);
     expect(await store.get('p1', 'icloud'), isNotNull);
   });
+
+  test('upsert with null appliedHlcHigh preserves the stored ack', () async {
+    await store.upsert(
+      peerDeviceId: 'p1',
+      provider: 'fake',
+      lastSeqApplied: 1,
+      appliedHlcHigh: '00000000000010:000000:p1',
+    );
+    await store.upsert(peerDeviceId: 'p1', provider: 'fake', lastSeqApplied: 2);
+    final cursor = await store.get('p1', 'fake');
+    expect(cursor!.lastSeqApplied, 2);
+    expect(cursor.appliedHlcHigh, '00000000000010:000000:p1');
+  });
 }

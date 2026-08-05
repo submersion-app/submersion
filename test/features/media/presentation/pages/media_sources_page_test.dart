@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -41,6 +42,7 @@ class _StubDiagnosticsService implements LocalFilesDiagnosticsService {
 
 Widget _wrap() => const ProviderScope(
   child: MaterialApp(
+    locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MediaSourcesPage(),
@@ -50,6 +52,7 @@ Widget _wrap() => const ProviderScope(
 Widget _wrapWith(List<Object> overrides) => ProviderScope(
   overrides: overrides.cast(),
   child: const MaterialApp(
+    locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MediaSourcesPage(),
@@ -57,47 +60,36 @@ Widget _wrapWith(List<Object> overrides) => ProviderScope(
 );
 
 void main() {
-  testWidgets('renders Photo library entry and Show hidden picker tabs', (
-    tester,
-  ) async {
+  // The Lightroom entry point is gated behind [lightroomUiEnabled], which
+  // defaults to false while the integration is pending Adobe review. Enable it
+  // for the surface tests that assert the Lightroom UI wires up correctly, and
+  // reset after each test so the value does not leak.
+  setUp(() => lightroomUiEnabled = true);
+  tearDown(() => lightroomUiEnabled = false);
+
+  testWidgets('renders Photo library and Adobe Lightroom, without the '
+      'hidden-picker-tabs toggle', (tester) async {
     await tester.pumpWidget(_wrap());
     await tester.pumpAndSettle();
 
     expect(find.text('Media Sources'), findsOneWidget);
     expect(find.text('Photo library'), findsOneWidget);
-    expect(find.text('Show hidden picker tabs'), findsOneWidget);
-    expect(find.text('Hidden by default'), findsOneWidget);
-    expect(find.byType(Switch), findsOneWidget);
+    expect(find.text('Adobe Lightroom'), findsOneWidget);
+    // The debug toggle is retired; the picker always shows all tabs.
+    expect(find.text('Show hidden picker tabs'), findsNothing);
+    expect(find.byType(Switch), findsNothing);
   });
 
-  testWidgets('toggling switch flips mediaPickerHiddenTabsProvider', (
-    tester,
-  ) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaSourcesPage(),
-        ),
-      ),
-    );
+  testWidgets('hides the Adobe Lightroom entry point when lightroomUiEnabled '
+      'is false (pending Adobe review)', (tester) async {
+    lightroomUiEnabled = false;
+    await tester.pumpWidget(_wrap());
     await tester.pumpAndSettle();
 
-    expect(container.read(mediaPickerHiddenTabsProvider), isFalse);
-
-    await tester.tap(find.byType(Switch));
-    await tester.pumpAndSettle();
-
-    expect(container.read(mediaPickerHiddenTabsProvider), isTrue);
-    expect(
-      find.text('Files and URL tabs visible in picker (debug)'),
-      findsOneWidget,
-    );
+    // Other sources remain; only the Lightroom card is gated out.
+    expect(find.text('Photo library'), findsOneWidget);
+    expect(find.text('Network sources'), findsOneWidget);
+    expect(find.text('Adobe Lightroom'), findsNothing);
   });
 
   testWidgets(
@@ -235,6 +227,7 @@ void main() {
       ProviderScope(
         child: MaterialApp.router(
           routerConfig: router,
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),

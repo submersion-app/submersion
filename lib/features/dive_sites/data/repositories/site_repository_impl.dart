@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
@@ -77,6 +78,7 @@ class SiteRepository {
               minDepth: Value(site.minDepth),
               maxDepth: Value(site.maxDepth),
               difficulty: Value(site.difficulty?.name),
+              waterType: Value(site.waterType?.name),
               country: Value(site.country),
               region: Value(site.region),
               city: Value(site.city),
@@ -131,6 +133,7 @@ class SiteRepository {
           minDepth: Value(site.minDepth),
           maxDepth: Value(site.maxDepth),
           difficulty: Value(site.difficulty?.name),
+          waterType: Value(site.waterType?.name),
           country: Value(site.country),
           region: Value(site.region),
           city: Value(site.city),
@@ -506,6 +509,7 @@ class SiteRepository {
                   minDepth: Value(site.minDepth),
                   maxDepth: Value(site.maxDepth),
                   difficulty: Value(site.difficulty?.name),
+                  waterType: Value(site.waterType?.name),
                   country: Value(site.country),
                   region: Value(site.region),
                   city: Value(site.city),
@@ -703,6 +707,9 @@ class SiteRepository {
       minDepth: row.minDepth,
       maxDepth: row.maxDepth,
       difficulty: domain.SiteDifficulty.fromString(row.difficulty),
+      waterType: row.waterType == null
+          ? null
+          : WaterType.values.asNameMap()[row.waterType],
       country: row.country,
       region: row.region,
       city: row.city,
@@ -729,6 +736,7 @@ class SiteRepository {
         minDepth: Value(site.minDepth),
         maxDepth: Value(site.maxDepth),
         difficulty: Value(site.difficulty?.name),
+        waterType: Value(site.waterType?.name),
         country: Value(site.country),
         region: Value(site.region),
         city: Value(site.city),

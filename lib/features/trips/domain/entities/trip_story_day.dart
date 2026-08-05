@@ -71,6 +71,10 @@ class TripStoryDay extends Equatable {
   bool get hasContent =>
       dives.isNotEmpty || media.isNotEmpty || itineraryDay != null;
 
+  /// A day with nothing to show: no dives, media, or itinerary entry, and not
+  /// a planned (future) day. Rendered as a slim row with no sticky header.
+  bool get isSurface => !hasContent && kind != TripStoryDayKind.future;
+
   @override
   List<Object?> get props => [
     date,

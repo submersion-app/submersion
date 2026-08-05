@@ -65,8 +65,12 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         if bitmask & UInt32(LIBDC_TRANSPORT_BLE) != 0 {
             transports.append(.ble)
         }
-        if bitmask & UInt32(LIBDC_TRANSPORT_USB) != 0 ||
-           bitmask & UInt32(LIBDC_TRANSPORT_USBHID) != 0 {
+        // USBHID is deliberately NOT surfaced as USB: no platform build
+        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // advertising it sent HID-only devices (Suunto EON Steel family)
+        // into the serial path's "No USB serial ports found" dead end
+        // (#143). BLE is the working path for those devices.
+        if bitmask & UInt32(LIBDC_TRANSPORT_USB) != 0 {
             transports.append(.usb)
         }
         if bitmask & UInt32(LIBDC_TRANSPORT_SERIAL) != 0 {

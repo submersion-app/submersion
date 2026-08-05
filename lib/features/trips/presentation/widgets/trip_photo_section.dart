@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -79,7 +80,9 @@ class TripPhotoSection extends ConsumerWidget {
                     tooltip: context.l10n.trips_photos_tooltip_scan,
                     onPressed: onScanPressed,
                   ),
-                if (onLightroomScanPressed != null)
+                // Lightroom scan hidden pending Adobe review
+                // (lightroomUiEnabled).
+                if (lightroomUiEnabled && onLightroomScanPressed != null)
                   IconButton(
                     icon: Icon(
                       Icons.cloud_sync_outlined,

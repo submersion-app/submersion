@@ -139,6 +139,30 @@ void main() {
       expect(summaries.single.ttsSeconds, 39 * 60);
     });
 
+    test('getPlanSummary returns the persisted numbers, or null', () async {
+      await repository.savePlan(
+        _fullPlan(),
+        summary: const PlanSummaryData(
+          maxDepth: 60.0,
+          runtimeSeconds: 74 * 60,
+          ttsSeconds: 39 * 60,
+        ),
+      );
+
+      final summary = await repository.getPlanSummary('plan-1');
+      expect(summary, isNotNull);
+      expect(summary!.maxDepth, 60.0);
+      expect(summary.runtimeSeconds, 74 * 60);
+      expect(summary.ttsSeconds, 39 * 60);
+
+      // Missing plan -> null.
+      expect(await repository.getPlanSummary('nope'), isNull);
+
+      // Saved without a summary -> null (no computed numbers to restore).
+      await repository.savePlan(_fullPlan().copyWith(id: 'plan-2'));
+      expect(await repository.getPlanSummary('plan-2'), isNull);
+    });
+
     test('re-save with a removed segment tombstones it', () async {
       final plan = _fullPlan();
       await repository.savePlan(plan);

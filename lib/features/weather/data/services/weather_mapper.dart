@@ -74,42 +74,6 @@ class WeatherMapper {
     return hpa / 1000;
   }
 
-  /// Build a human-readable weather description from data.
-  ///
-  /// Returns null if no data is available.
-  static String? buildDescription({
-    CloudCover? cloudCover,
-    double? airTempCelsius,
-    double? windSpeedMs,
-    CurrentDirection? windDirection,
-    Precipitation? precipitation,
-  }) {
-    final parts = <String>[];
-
-    if (cloudCover != null) {
-      parts.add(cloudCover.displayName);
-    }
-
-    if (airTempCelsius != null) {
-      parts.add('${airTempCelsius.round()}C');
-    }
-
-    if (windSpeedMs != null && windSpeedMs > 0) {
-      final beaufort = _windDescription(windSpeedMs);
-      final dirStr =
-          windDirection != null && windDirection != CurrentDirection.none
-          ? ' from ${windDirection.displayName}'
-          : '';
-      parts.add('$beaufort$dirStr');
-    }
-
-    if (precipitation != null && precipitation != Precipitation.none) {
-      parts.add(precipitation.displayName);
-    }
-
-    return parts.isEmpty ? null : parts.join(', ');
-  }
-
   /// Map a full Open-Meteo hourly API response to WeatherData.
   ///
   /// Selects the hour closest to [targetHour] from the hourly arrays.
@@ -143,13 +107,12 @@ class WeatherMapper {
       humidity: humidity,
       airTemp: temp,
       surfacePressure: pressureBar,
-      description: buildDescription(
-        cloudCover: cloudCoverEnum,
-        airTempCelsius: temp,
-        windSpeedMs: windSpeedMs,
-        windDirection: windDirection,
-        precipitation: precipEnum,
-      ),
+      weatherCode: weatherCode,
+      // Deliberately null. The provider returns no prose and has no language
+      // parameter, so any description here would be ours -- and persisting it
+      // froze one locale and one unit system into the database. It is built
+      // at display time instead, from the fields above plus weatherCode.
+      description: null,
     );
   }
 
@@ -181,13 +144,5 @@ class WeatherMapper {
     final val = list[index];
     if (val == null) return null;
     return (val as num).toInt();
-  }
-
-  static String _windDescription(double ms) {
-    if (ms < 0.5) return 'calm';
-    if (ms < 3.4) return 'light breeze';
-    if (ms < 8.0) return 'moderate breeze';
-    if (ms < 13.9) return 'strong breeze';
-    return 'high wind';
   }
 }

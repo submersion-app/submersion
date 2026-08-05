@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/form_append_row.dart';
+import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
-/// Group 2 of the dive form: dive mode, CCR/SCR panels, tank cards,
+/// Group 2 of the dive form: dive mode row, CCR/SCR panels, tank rows,
 /// equipment and weights. Interiors are page-provided slots; this widget
 /// owns only the group chrome and composition.
 class GasGearSection extends StatelessWidget {
@@ -12,8 +15,8 @@ class GasGearSection extends StatelessWidget {
     required this.expanded,
     required this.onToggle,
     required this.summary,
-    required this.modeSelector,
-    required this.tankCards,
+    required this.modeChild,
+    required this.tanks,
     required this.onAddTank,
     required this.addTankLabel,
     required this.equipmentChild,
@@ -26,8 +29,10 @@ class GasGearSection extends StatelessWidget {
   final bool expanded;
   final VoidCallback onToggle;
   final String summary;
-  final Widget modeSelector;
-  final List<Widget> tankCards;
+
+  /// Dive-mode row (+ description caption) built by the page.
+  final Widget modeChild;
+  final List<Widget> tanks;
   final VoidCallback onAddTank;
   final String addTankLabel;
   final Widget equipmentChild;
@@ -36,8 +41,7 @@ class GasGearSection extends StatelessWidget {
   /// CcrSettingsPanel / ScrSettingsPanel when the mode requires one.
   final Widget? rebreatherPanel;
 
-  /// Whether to show the tank cards + add-tank affordance. False for gauge
-  /// dives, which log depth and time only.
+  /// False for gauge dives, which log depth and time only.
   final bool showTankControls;
 
   final int errorCount;
@@ -45,38 +49,26 @@ class GasGearSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     return FormSection(
       label: l10n.diveLog_edit_group_gasGear,
+      icon: MdiIcons.divingScubaTank,
       expanded: expanded,
       onToggle: onToggle,
       summary: summary,
       emptyInvitation: l10n.diveLog_edit_invite_gasGear,
       errorCount: errorCount,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-          child: modeSelector,
-        ),
+        modeChild,
         ?rebreatherPanel,
-        if (showTankControls) ...[
-          Column(children: tankCards),
-          InkWell(
-            onTap: onAddTank,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Center(
-                child: Text(
-                  '+ $addTankLabel',
-                  style: theme.textTheme.bodyMedium!.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+        if (showTankControls)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FormOverline(label: l10n.diveLog_edit_overline_tanks),
+              ...tanks,
+              FormAppendRow(label: addTankLabel, onTap: onAddTank),
+            ],
           ),
-        ],
         equipmentChild,
         weightChild,
       ],

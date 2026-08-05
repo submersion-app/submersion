@@ -35,10 +35,15 @@ Widget testApp({
 
 /// Like [testApp] but backed by a [GoRouter], so widgets that call
 /// `context.go(...)` can be exercised end to end in a test.
-Widget testAppRouter({required GoRouter router, List<dynamic>? overrides}) {
+Widget testAppRouter({
+  required GoRouter router,
+  List<dynamic>? overrides,
+  Locale? locale,
+}) {
   return ProviderScope(
     overrides: overrides?.cast() ?? [],
     child: MaterialApp.router(
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,

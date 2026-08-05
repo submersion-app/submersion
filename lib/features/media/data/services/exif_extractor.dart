@@ -5,19 +5,25 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:native_exif/native_exif.dart';
 
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/media/data/services/capture_time_reader.dart';
 import 'package:submersion/features/media/data/services/exif_date_parser.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 const _isolateThresholdBytes = 5 * 1024 * 1024;
 
-/// Extracts [MediaSourceMetadata] from a local file via `native_exif`.
+/// Extracts [MediaSourceMetadata] from a local file.
 ///
-/// Files larger than 5 MB run in a background isolate via `compute()` so
-/// the UI thread stays responsive during folder picks of large libraries.
-/// On EXIF parse failure (unsupported format, corrupt header) the
-/// extractor falls back to the file's mtime as `takenAt` and returns
-/// the rest of [MediaSourceMetadata] populated by extension-based mime
-/// inference. Returns null only if the file does not exist.
+/// `native_exif` is the primary reader on iOS/Android (it also handles HEIC).
+/// It has no macOS/Windows/Linux implementation, so on desktop `Exif.fromPath`
+/// throws `MissingPluginException`; the extractor then reads the capture time
+/// straight from the file's own container metadata with a pure-Dart parser
+/// ([readLocalCaptureTime]) that works on every platform. Only if that also
+/// yields nothing does `takenAt` fall back to the file mtime — which is the
+/// copy-to-disk time and would not match the dive window.
+///
+/// Files larger than 5 MB run in a background isolate via `compute()` so the UI
+/// thread stays responsive during folder picks of large libraries. Returns null
+/// only if the file does not exist.
 class ExifExtractor {
   Future<MediaSourceMetadata?> extract(File file) async {
     if (!file.existsSync()) return null;
@@ -82,9 +88,17 @@ Future<MediaSourceMetadata?> _extract(String path) async {
       height = _parseInt(attrs['PixelYDimension'] ?? attrs['ImageLength']);
     }
   } on Object {
-    // native_exif throws PlatformException on unsupported formats; treat
-    // as "no EXIF available" and fall through to mtime fallback for takenAt.
+    // native_exif throws PlatformException on unsupported formats, and
+    // MissingPluginException on macOS/Windows/Linux where it has no
+    // implementation at all. Both are treated as "no native EXIF"; the
+    // pure-Dart fallback below recovers takenAt where possible.
   }
+
+  // On desktop (and for any file native_exif could not date), recover the
+  // capture time from the file's own container metadata (JPEG EXIF or the
+  // MP4/MOV mvhd) so it lands inside the dive window instead of defaulting to
+  // the copy-to-disk mtime.
+  takenAt ??= readLocalCaptureTime(file, mime);
 
   return MediaSourceMetadata(
     takenAt: takenAt ?? mtime,

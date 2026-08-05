@@ -49,6 +49,17 @@ class AssetInfo {
   /// Original filename if available.
   final String? filename;
 
+  /// Absolute filesystem path, when the asset came from a file dialog rather
+  /// than a platform photo library.
+  ///
+  /// Null on iOS / Android / macOS, where [id] is a real photo_manager asset
+  /// ID and the library owns the file. Non-null on Windows / Linux, where
+  /// there is no platform gallery and [id] is only a synthetic key into an
+  /// in-memory map that dies with the process. Importers must persist this
+  /// path so the row survives a restart -- see [AssetInfo] usage in
+  /// `MediaImportService`.
+  final String? filePath;
+
   const AssetInfo({
     required this.id,
     required this.type,
@@ -59,6 +70,7 @@ class AssetInfo {
     this.latitude,
     this.longitude,
     this.filename,
+    this.filePath,
   });
 
   /// Whether this asset is a video.

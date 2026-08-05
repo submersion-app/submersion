@@ -112,15 +112,31 @@ class MediaImportService {
       'Starting import of ${selectedAssets.length} assets for dive ${dive.id}',
     );
 
-    // Fetch already-linked asset IDs for this dive
-    final existingAssetIds = await _mediaRepository.getLinkedAssetIdsForDive(
-      dive.id,
-    );
+    // Two dedupe keys, one per origin. Gallery picks are matched on their
+    // platform asset id; desktop picks are localFile rows with a null
+    // platform_asset_id (see [_createMediaItemFromAsset]), invisible to that
+    // query, so they are matched on the path instead.
+    //
+    // Each lookup only feeds one branch of the filter below, so query a
+    // lookup only when the selection actually contains that kind of asset:
+    // a mobile pick has no paths to compare and a desktop pick has no
+    // gallery ids, and either way the unused set would be dead work.
+    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
+    final anyPaths = selectedAssets.any(hasPath);
+    final anyGallery = selectedAssets.any((a) => !hasPath(a));
+
+    final existingAssetIds = anyGallery
+        ? await _mediaRepository.getLinkedAssetIdsForDive(dive.id)
+        : const <String>{};
+    final existingPaths = anyPaths
+        ? await _mediaRepository.getLinkedLocalPathsForDive(dive.id)
+        : const <String>{};
 
     // Filter out duplicates before processing
-    final newAssets = selectedAssets
-        .where((a) => !existingAssetIds.contains(a.id))
-        .toList();
+    final newAssets = selectedAssets.where((a) {
+      if (hasPath(a)) return !existingPaths.contains(a.filePath);
+      return !existingAssetIds.contains(a.id);
+    }).toList();
     final skippedCount = selectedAssets.length - newAssets.length;
 
     if (skippedCount > 0) {
@@ -174,12 +190,35 @@ class MediaImportService {
   MediaItem _createMediaItemFromAsset(AssetInfo asset, String diveId) {
     final now = DateTime.now();
 
+    // Windows / Linux have no platform photo library: the picker opens a file
+    // dialog and the asset's id is a synthetic key into an in-memory map on
+    // the picker service. Persisting such a row with the default
+    // platformGallery sourceType left every path column blank and sent
+    // display through PlatformGalleryResolver -> photo_manager, which has no
+    // desktop-Windows backend, so the photo rendered "File not found" and the
+    // pointer died with the process. When the picker hands us a real path,
+    // store a localFile row instead: LocalFileResolver reads localPath
+    // straight off disk on every desktop platform and survives a restart.
+    final path = asset.filePath;
+    final isLocalFile = path != null && path.isNotEmpty;
+
     return MediaItem(
       id: '',
       diveId: diveId,
-      platformAssetId: asset.id,
+      // Deliberately null for a localFile row. The desktop picker's asset id
+      // is a synthetic in-memory key, and several features gate purely on
+      // `platformAssetId != null` -- MediaItem.isGalleryPhoto,
+      // PhotoViewerPage's write-metadata action, resolvedFilePathProvider's
+      // gallery fast path -- so carrying it would route a Windows file
+      // through photo_manager, which has no backend there. Duplicate
+      // detection for these rows keys on localPath instead.
+      platformAssetId: isLocalFile ? null : asset.id,
       originalFilename: asset.filename,
       mediaType: asset.isVideo ? MediaType.video : MediaType.photo,
+      sourceType: isLocalFile
+          ? MediaSourceType.localFile
+          : MediaSourceType.platformGallery,
+      localPath: isLocalFile ? path : null,
       latitude: asset.latitude,
       longitude: asset.longitude,
       takenAt: asset.createDateTime,

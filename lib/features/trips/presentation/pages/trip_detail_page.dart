@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -116,6 +119,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: body),
         ],
       );
@@ -126,7 +130,12 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: body,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 
@@ -162,7 +171,22 @@ class _TripDetailContent extends ConsumerWidget {
                 _buildDivesTab(context, ref, trip),
                 SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: TripChecklistSection(trip: tripWithStats.trip),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.fact_check),
+                          label: Text(context.l10n.trips_detail_preDive_action),
+                          onPressed: () =>
+                              showStartSessionSheet(context, tripId: trip.id),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TripChecklistSection(trip: tripWithStats.trip),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -175,6 +199,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: tabbedBody),
         ],
       );
@@ -185,7 +210,12 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: tabbedBody,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: tabbedBody),
+        ],
+      ),
     );
   }
 
@@ -405,8 +435,9 @@ class _TripDetailContent extends ConsumerWidget {
     // Read this during build, not inside itemBuilder: itemBuilder runs when the
     // menu opens (outside this consumer's build phase), where ref.watch would
     // register a dependency outside Riverpod's build lifecycle.
+    // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
-        ref.watch(lightroomAccountProvider).value != null;
+        lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {

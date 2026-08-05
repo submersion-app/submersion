@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
@@ -23,6 +34,7 @@ class SpatialSitePage extends ConsumerStatefulWidget {
 class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
+  final ValueNotifier<TissuePick?> _hoverPick = ValueNotifier(null);
   late final AnimationController _player;
 
   @override
@@ -38,6 +50,7 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
   void dispose() {
     _player.dispose();
     _position.dispose();
+    _hoverPick.dispose();
     super.dispose();
   }
 
@@ -59,9 +72,17 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
       appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
       body: sceneAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) =>
-            Center(child: Text(context.l10n.dive3d_spatial_noPath)),
-        data: (scene) {
+        error: (e, _) {
+          // The fallback text blames missing data; surface the real error
+          // in debug builds so a provider failure is never mistaken for it.
+          assert(() {
+            debugPrint('spatialGeometryProvider failed: $e');
+            return true;
+          }());
+          return Center(child: Text(context.l10n.dive3d_spatial_noPath));
+        },
+        data: (result) {
+          final scene = result?.scene;
           if (scene == null || scene.layers.isEmpty) {
             return Center(child: Text(context.l10n.dive3d_spatial_noPath));
           }
@@ -71,13 +92,38 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Dive3dInteractiveViewport(
-                        scene: scene,
-                        scrubPosition: _position,
-                        visibleOverlays: const {SceneOverlay.markers},
+                      child: Builder(
+                        builder: (context) {
+                          final axes = _buildAxes(result!.axisInputs);
+                          final grid = result.grid;
+                          return Dive3dInteractiveViewport(
+                            scene: scene,
+                            scrubPosition: _position,
+                            visibleOverlays: const {SceneOverlay.markers},
+                            axisFrame: axes?.frame,
+                            axisLabels: axes?.labels,
+                            chromeStyle: axes == null
+                                ? null
+                                : seascapeChromeStyle(context),
+                            axisChromeOnly: true,
+                            surfaceGrid: grid == null
+                                ? null
+                                : seascapePickGrid(
+                                    grid,
+                                    scene.layers.first.mesh,
+                                  ),
+                            hoverPick: grid == null ? null : _hoverPick,
+                          );
+                        },
                       ),
                     ),
-                    Positioned(top: 8, left: 8, right: 8, child: _captions()),
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      right: 8,
+                      child: _captions(result!),
+                    ),
+                    if (result.grid != null) _hoverTooltip(result.grid!),
                   ],
                 ),
               ),
@@ -99,7 +145,50 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     );
   }
 
-  Widget _captions() {
+  /// The hover readout, clamped inside the viewport by the shared layout
+  /// delegate and transparent to pointer events so it never steals hover.
+  Widget _hoverTooltip(BathymetryGrid grid) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ValueListenableBuilder<TissuePick?>(
+          valueListenable: _hoverPick,
+          builder: (context, pick, _) {
+            if (pick == null) return const SizedBox.shrink();
+            return CustomSingleChildLayout(
+              delegate: TissueTooltipLayoutDelegate(pick.screenPos),
+              child: SeascapeHoverTooltip(pick: pick, grid: grid),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  SeascapeAxes? _buildAxes(SeascapeAxisInputs? inputs) {
+    if (inputs == null) return null;
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    return buildSeascapeAxes(
+      projection: SpatialProjection(
+        minEast: inputs.minEast,
+        maxEast: inputs.maxEast,
+        minNorth: inputs.minNorth,
+        maxNorth: inputs.maxNorth,
+        maxDepth: inputs.maxDepth,
+      ),
+      minEast: inputs.minEast,
+      maxEast: inputs.maxEast,
+      minNorth: inputs.minNorth,
+      maxNorth: inputs.maxNorth,
+      maxDepthMeters: inputs.maxDepth,
+      displayUnitInMeters: units.depthToMeters(1.0),
+      distanceTitle: context.l10n.dive3d_seascape_axis_distance(
+        units.depthSymbol,
+      ),
+      depthTitle: context.l10n.divePlanner_label_depthAxis(units.depthSymbol),
+    );
+  }
+
+  Widget _captions(SpatialSceneResult result) {
     Widget chip(String text) => Container(
       margin: const EdgeInsets.only(right: 6, bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -116,13 +205,24 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
         ],
       ),
     );
+    // The path caption is an always-true honesty label: the swim path is
+    // always an estimate (dead reckoning or straight-line fallback). The
+    // seafloor chip states provenance: real bathymetry when a grid won,
+    // otherwise the honest synthesized label.
+    final sourceId = result.bathymetrySourceId;
+    final resolution = result.bathymetryResolutionMeters;
     return Wrap(
       children: [
-        // Both captions are always-true honesty labels: the swim path is
-        // always an estimate (dead reckoning or straight-line fallback) and
-        // the seafloor is always synthesized.
         chip(context.l10n.dive3d_spatial_estimatedPath),
-        chip(context.l10n.dive3d_spatial_synthesizedSeafloor),
+        if (sourceId != null && resolution != null)
+          chip(
+            context.l10n.dive3d_seascape_seafloorSource(
+              bathymetrySourceDisplayName(sourceId),
+              resolution.round().toString(),
+            ),
+          )
+        else
+          chip(context.l10n.dive3d_spatial_synthesizedSeafloor),
       ],
     );
   }

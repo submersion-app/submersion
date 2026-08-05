@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
@@ -60,6 +61,27 @@ Future<void> pumpWizard(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('wizard ocean background follows resolved brightness', (
+    tester,
+  ) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const SetupWizardPage(mode: SetupWizardMode.firstRun),
+      ),
+    );
+    await pumpWizard(tester);
+
+    final background = tester.widget<OceanBackground>(
+      find.byType(OceanBackground),
+    );
+    expect(background.brightness, Brightness.dark);
+  });
+
   testWidgets('first run shows fork; fresh choice walks to profile and back', (
     tester,
   ) async {

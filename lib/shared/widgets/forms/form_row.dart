@@ -130,11 +130,11 @@ class FormRow extends StatefulWidget {
     required this.label,
     required int value,
     required ValueChanged<int> onChanged,
+    this.onClear,
   }) : _kind = _RowKind.rating,
        profileSuggestion = null,
        decoration = null,
        inputFormatters = null,
-       onClear = null,
        intValue = value,
        onIntChanged = onChanged,
        controller = null,
@@ -234,6 +234,22 @@ class _FormRowState extends State<FormRow> {
     );
   }
 
+  InputDecoration _bareDecoration(BuildContext context) {
+    return InputDecoration(
+      isDense: true,
+      filled: false,
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      errorBorder: InputBorder.none,
+      focusedErrorBorder: InputBorder.none,
+      disabledBorder: InputBorder.none,
+      contentPadding: EdgeInsets.zero,
+      hintText: widget.placeholder,
+      suffixText: widget.suffixText,
+    );
+  }
+
   Widget _shell(
     BuildContext context, {
     required Widget trailing,
@@ -263,24 +279,34 @@ class _FormRowState extends State<FormRow> {
         if (_persistent || _editing) {
           return Padding(
             padding: FormStyle.rowPadding,
-            child: TextFormField(
-              controller: widget.controller,
-              focusNode: _persistent ? null : _focusNode,
-              autofocus: !_persistent,
-              maxLines: widget.maxLines,
-              keyboardType: widget.keyboardType,
-              inputFormatters: widget.inputFormatters,
-              validator: widget.validator,
-              onChanged: widget.onChanged,
-              decoration:
-                  widget.decoration ??
-                  InputDecoration(
-                    labelText: widget.label,
-                    suffixText: widget.suffixText,
+            child: Row(
+              crossAxisAlignment: widget.maxLines > 1
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.center,
+              children: [
+                Text(widget.label, style: _labelTextStyle(context)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: widget.controller,
+                    focusNode: _persistent ? null : _focusNode,
+                    autofocus: !_persistent,
+                    maxLines: widget.maxLines,
+                    keyboardType: widget.keyboardType,
+                    inputFormatters: widget.inputFormatters,
+                    validator: widget.validator,
+                    onChanged: widget.onChanged,
+                    textAlign: widget.maxLines > 1
+                        ? TextAlign.start
+                        : TextAlign.end,
+                    style: theme.textTheme.bodyMedium,
+                    decoration: widget.decoration ?? _bareDecoration(context),
+                    onFieldSubmitted: _persistent
+                        ? null
+                        : (_) => setState(() => _editing = false),
                   ),
-              onFieldSubmitted: _persistent
-                  ? null
-                  : (_) => setState(() => _editing = false),
+                ),
+              ],
             ),
           );
         }
@@ -399,23 +425,40 @@ class _FormRowState extends State<FormRow> {
           context,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
-            children: List.generate(5, (i) {
-              final filled = i < widget.intValue!;
-              return InkWell(
-                onTap: () => widget.onIntChanged!(i + 1),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(
-                    filled ? Icons.star : Icons.star_border,
-                    size: 22,
-                    color: filled
-                        ? Colors.amber
-                        : theme.colorScheme.onSurfaceVariant,
+            children: [
+              ...List.generate(5, (i) {
+                final filled = i < widget.intValue!;
+                return InkWell(
+                  onTap: () => widget.onIntChanged!(i + 1),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      filled ? Icons.star : Icons.star_border,
+                      size: 22,
+                      color: filled
+                          ? Colors.amber
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              }),
+              if (widget.onClear != null && widget.intValue! > 0) ...[
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: widget.onClear,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.clear,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              );
-            }),
+              ],
+            ],
           ),
         );
 

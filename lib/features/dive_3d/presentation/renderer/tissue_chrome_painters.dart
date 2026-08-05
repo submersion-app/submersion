@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +98,220 @@ class TissueFramePainter extends CustomPainter {
       old.style != style;
 }
 
+/// Draws [frame]'s axis lines and tick marks in the axis colors. Grid
+/// segments are skipped — they belong to the background frame painter.
+/// Shared by the tissue chrome and the seascape's [AxisChromePainter].
+void paintAxisSegments(
+  Canvas canvas,
+  SceneProjector p,
+  AxisFrame frame,
+  TissueChromeStyle style,
+) {
+  Paint stroke(Color c, double w) => Paint()
+    ..color = c
+    ..strokeWidth = w
+    ..style = PaintingStyle.stroke;
+  for (final s in frame.segments) {
+    final a = p.project(s.x1, s.y1, s.z1);
+    final b = p.project(s.x2, s.y2, s.z2);
+    switch (s.role) {
+      case AxisRole.axisX:
+        canvas.drawLine(a, b, stroke(style.axisX, 2));
+      case AxisRole.axisY:
+        canvas.drawLine(a, b, stroke(style.axisY, 2));
+      case AxisRole.axisZ:
+        canvas.drawLine(a, b, stroke(style.axisZ, 2));
+      case AxisRole.tickX:
+        canvas.drawLine(a, b, stroke(style.axisX.withValues(alpha: 0.9), 1.5));
+      case AxisRole.tickY:
+        canvas.drawLine(a, b, stroke(style.axisY.withValues(alpha: 0.9), 1.5));
+      case AxisRole.tickZ:
+        canvas.drawLine(a, b, stroke(style.axisZ.withValues(alpha: 0.9), 1.5));
+      case AxisRole.frameGrid:
+        break; // background layer's concern
+    }
+  }
+}
+
+/// Draws world-anchored axis titles and tick values so labels track the
+/// rotating camera. Shared by the tissue chrome and [AxisChromePainter].
+void paintAxisLabels(
+  Canvas canvas,
+  SceneProjector p,
+  AxisLabelSet? labels,
+  TissueChromeStyle style,
+  TextDirection textDirection,
+) {
+  if (labels == null) return;
+  for (final l in labels.labels) {
+    final at = p.project(l.x, l.y, l.z);
+    final isTitle = l.kind == AxisLabelKind.title;
+    final tp = TextPainter(
+      text: TextSpan(
+        text: l.text,
+        style: TextStyle(
+          color: style.label,
+          fontSize: isTitle ? 11 : 9.5,
+          fontWeight: isTitle ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+      textDirection: textDirection,
+    )..layout();
+    // Titles sit above-right of the axis end; tick values below-left of the
+    // tick, so neither overlaps the axis line.
+    final offset = isTitle
+        ? Offset(4, -tp.height - 2)
+        : Offset(-tp.width - 4, -tp.height / 2);
+    tp.paint(canvas, at + offset);
+  }
+}
+
+/// Screen angle (radians, canvas convention: y grows downward) of the
+/// scene's +Z axis — geographic NORTH in the seascape's east-north-up
+/// frame — under the projector's current camera. Position-independent
+/// under the orthographic projection, so any base point works. Returns
+/// null when the view runs straight along north and the projected
+/// direction collapses (the compass should hide, not point a lie).
+double? compassNeedleAngle(SceneProjector p) {
+  final delta = p.project(0, 0, 1) - p.project(0, 0, 0);
+  if (delta.distance < 1e-3) return null;
+  return math.atan2(delta.dy, delta.dx);
+}
+
+/// Foreground axis + label chrome with no tissue surface — the seascape
+/// views' measurement frame, plus (when hover inputs are provided) the
+/// hover marker ring on the picked terrain vertex. The scrub cursor stays
+/// on the scene's own foreground painter, unaffected. The seascape frame
+/// is small (~10 segments, ~15 labels), so folding the ring's per-hover
+/// repaint into this layer costs little.
+class AxisChromePainter extends CustomPainter {
+  final SceneBounds bounds;
+  final AxisFrame frame;
+  final AxisLabelSet? labels;
+  final TissueChromeStyle style;
+  final double yawDegrees, pitchDegrees, zoom;
+  final TextDirection textDirection;
+  final TissueSurfaceGrid? surfaceGrid;
+  final ValueListenable<TissuePick?>? hoverPick;
+
+  AxisChromePainter({
+    required this.bounds,
+    required this.frame,
+    required this.style,
+    required this.yawDegrees,
+    required this.pitchDegrees,
+    required this.zoom,
+    this.labels,
+    this.textDirection = TextDirection.ltr,
+    this.surfaceGrid,
+    this.hoverPick,
+  }) : super(repaint: hoverPick);
+
+  static const double _compassRadius = 18;
+  static const Offset _compassInset = Offset(36, 36);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = SceneProjector(
+      size: size,
+      bounds: bounds,
+      yawDegrees: yawDegrees,
+      pitchDegrees: pitchDegrees,
+      zoom: zoom,
+    );
+    paintAxisSegments(canvas, p, frame, style);
+    paintAxisLabels(canvas, p, labels, style, textDirection);
+    _paintCompass(canvas, size, p);
+    _paintHoverRing(canvas, p);
+  }
+
+  /// A small rose in the bottom-left corner whose needle points along the
+  /// screen-projected direction of scene-north — so it tracks yaw and
+  /// pitch honestly. Hidden when the projection degenerates (viewing
+  /// straight along north).
+  void _paintCompass(Canvas canvas, Size size, SceneProjector p) {
+    final angle = compassNeedleAngle(p);
+    if (angle == null) return;
+    final center = Offset(_compassInset.dx, size.height - _compassInset.dy);
+    canvas.drawCircle(
+      center,
+      _compassRadius,
+      Paint()
+        ..color = style.label.withValues(alpha: 0.25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+    final needle = Offset(math.cos(angle), math.sin(angle));
+    final tip = center + needle * (_compassRadius - 4);
+    // South tail, fainter, so the rose reads as a needle not a spoke.
+    canvas.drawLine(
+      center,
+      center - needle * (_compassRadius - 8),
+      Paint()
+        ..color = style.label.withValues(alpha: 0.35)
+        ..strokeWidth = 1.5,
+    );
+    canvas.drawLine(
+      center,
+      tip,
+      Paint()
+        ..color = style.label
+        ..strokeWidth = 2,
+    );
+    final tp = TextPainter(
+      text: TextSpan(
+        text: 'N',
+        style: TextStyle(
+          color: style.label,
+          fontSize: 9.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: textDirection,
+    )..layout();
+    // The label rides just beyond the tip, kept clear of the needle.
+    final labelCenter = center + needle * (_compassRadius + 7);
+    tp.paint(canvas, labelCenter - Offset(tp.width / 2, tp.height / 2));
+  }
+
+  void _paintHoverRing(Canvas canvas, SceneProjector p) {
+    final grid = surfaceGrid;
+    final pick = hoverPick?.value;
+    if (grid == null || grid.isEmpty || pick == null) return;
+    if (pick.col >= grid.columns || pick.comp >= grid.compartments) return;
+    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
+    final center = p.project(x, y, z);
+    canvas.drawCircle(
+      center,
+      6,
+      Paint()
+        ..color = style.markerOutline.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.5,
+    );
+    canvas.drawCircle(
+      center,
+      6,
+      Paint()
+        ..color = style.marker.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant AxisChromePainter old) =>
+      old.yawDegrees != yawDegrees ||
+      old.pitchDegrees != pitchDegrees ||
+      old.zoom != zoom ||
+      !identical(old.frame, frame) ||
+      !identical(old.labels, labels) ||
+      !identical(old.bounds, bounds) ||
+      !identical(old.surfaceGrid, surfaceGrid) ||
+      old.style != style ||
+      old.textDirection != textDirection;
+}
+
 /// Static chrome layer: the draped wireframe on the surface, then the axis
 /// lines + ticks + labels. Deliberately has NO scrub/hover listenable, so it
 /// repaints only when the camera, grid, frame, labels, or style change -- it
@@ -143,34 +359,8 @@ class TissueChromePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final p = _projector(size);
     if (!grid.isEmpty) _paintWireframe(canvas, p);
-    _paintAxes(canvas, p);
-    _paintLabels(canvas, p);
-  }
-
-  void _paintLabels(Canvas canvas, SceneProjector p) {
-    final set = labels;
-    if (set == null) return;
-    for (final l in set.labels) {
-      final at = p.project(l.x, l.y, l.z);
-      final isTitle = l.kind == AxisLabelKind.title;
-      final tp = TextPainter(
-        text: TextSpan(
-          text: l.text,
-          style: TextStyle(
-            color: style.label,
-            fontSize: isTitle ? 11 : 9.5,
-            fontWeight: isTitle ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-        textDirection: textDirection,
-      )..layout();
-      // Titles sit above-right of the axis end; tick values below-left of the
-      // tick, so neither overlaps the axis line.
-      final offset = isTitle
-          ? Offset(4, -tp.height - 2)
-          : Offset(-tp.width - 4, -tp.height / 2);
-      tp.paint(canvas, at + offset);
-    }
+    paintAxisSegments(canvas, p, frame, style);
+    paintAxisLabels(canvas, p, labels, style, textDirection);
   }
 
   void _paintWireframe(Canvas canvas, SceneProjector p) {
@@ -201,45 +391,6 @@ class TissueChromePainter extends CustomPainter {
         comp == 0 ? path.moveTo(o.dx, o.dy) : path.lineTo(o.dx, o.dy);
       }
       canvas.drawPath(path, paint);
-    }
-  }
-
-  void _paintAxes(Canvas canvas, SceneProjector p) {
-    Paint stroke(Color c, double w) => Paint()
-      ..color = c
-      ..strokeWidth = w
-      ..style = PaintingStyle.stroke;
-    for (final s in frame.segments) {
-      final a = p.project(s.x1, s.y1, s.z1);
-      final b = p.project(s.x2, s.y2, s.z2);
-      switch (s.role) {
-        case AxisRole.axisX:
-          canvas.drawLine(a, b, stroke(style.axisX, 2));
-        case AxisRole.axisY:
-          canvas.drawLine(a, b, stroke(style.axisY, 2));
-        case AxisRole.axisZ:
-          canvas.drawLine(a, b, stroke(style.axisZ, 2));
-        case AxisRole.tickX:
-          canvas.drawLine(
-            a,
-            b,
-            stroke(style.axisX.withValues(alpha: 0.9), 1.5),
-          );
-        case AxisRole.tickY:
-          canvas.drawLine(
-            a,
-            b,
-            stroke(style.axisY.withValues(alpha: 0.9), 1.5),
-          );
-        case AxisRole.tickZ:
-          canvas.drawLine(
-            a,
-            b,
-            stroke(style.axisZ.withValues(alpha: 0.9), 1.5),
-          );
-        case AxisRole.frameGrid:
-          break; // drawn by TissueFramePainter
-      }
     }
   }
 

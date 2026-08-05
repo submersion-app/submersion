@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
+import 'package:submersion/core/services/lightroom/lightroom_redirect_capture.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/resolvers/connector_media_resolver.dart';
@@ -26,6 +27,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// and are copied to the per-account key once the account is created.
 final lightroomAuthManagerProvider = Provider<AdobeImsAuthManager>(
   (ref) => AdobeImsAuthManager(),
+);
+
+/// The redirect capturer for the embedded connect flow. Overridden with a
+/// fake in tests.
+final lightroomRedirectCaptureProvider = Provider<LightroomRedirectCapture>(
+  (ref) => const FlutterWebAuthRedirectCapture(),
 );
 
 /// The library's Lightroom account (synced roster row), or null when none

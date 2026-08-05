@@ -83,6 +83,27 @@ void main() {
     },
   );
 
+  test('repairLocalSyncState clears the DB-side accepted epoch too', () async {
+    // The epoch is dual-anchored (DB + SharedPreferences mirror) so each
+    // survives what the other does not. Clearing only the mirror turns that
+    // redundancy into a contradiction: the DB still claims an epoch, but
+    // nothing can re-publish its marker, so the gate proceeds on an epoch no
+    // peer shares and the reader skips every one of them -- forever, behind a
+    // green "Sync complete". Repair must leave neither anchor set.
+    const marker = LibraryEpochMarker(
+      epochId: 'e1',
+      replacedAt: 1,
+      deviceId: 'd1',
+    );
+    await SyncRepository().setLastAcceptedEpochId(marker.epochId);
+    await epochStore.setLastAccepted(marker);
+
+    await buildService().repairLocalSyncState();
+
+    expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    expect(epochStore.lastAcceptedMarker, isNull);
+  });
+
   test(
     'rebuildBackendFromThisDevice re-establishes the epoch from local library',
     () async {

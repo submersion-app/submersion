@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +10,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
+import 'package:submersion/core/services/lightroom/lightroom_embedded_connect.dart';
 import 'package:submersion/core/services/lightroom/lightroom_models.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
@@ -30,35 +33,86 @@ class LightroomSettingsPage extends ConsumerStatefulWidget {
 class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
   final _clientIdController = TextEditingController();
   final _clientSecretController = TextEditingController();
+  final _redirectUriController = TextEditingController();
   bool _busy = false;
+
+  /// The embedded "Connect with Adobe" flow relies on a custom-scheme redirect
+  /// registered only on iOS/Android/macOS; on Windows/Linux it cannot complete,
+  /// so the button is hidden there and only the BYO path is offered.
+  static bool get _embeddedConnectSupported => switch (defaultTargetPlatform) {
+    TargetPlatform.iOS ||
+    TargetPlatform.android ||
+    TargetPlatform.macOS => true,
+    _ => false,
+  };
 
   @override
   void dispose() {
     _clientIdController.dispose();
     _clientSecretController.dispose();
+    _redirectUriController.dispose();
     super.dispose();
   }
 
   Future<void> _connect() async {
-    final l10n = context.l10n;
     final authManager = ref.read(lightroomAuthManagerProvider);
     final clientId = _clientIdController.text.trim();
     if (clientId.isEmpty) return;
 
+    final redirectUri = _redirectUriController.text.trim();
     final connected = await showDialog<bool>(
       context: context,
       builder: (_) => LightroomConnectDialog(
         authManager: authManager,
         clientId: clientId,
         clientSecret: _clientSecretController.text,
+        redirectUri: redirectUri.isEmpty ? null : redirectUri,
       ),
     );
     if (connected != true || !mounted) return;
+    await _finishConnect();
+  }
 
+  /// One-tap connect with Submersion's bundled Native App credential: sign
+  /// in via the in-app auth session (no client id, no paste), then run the
+  /// shared account-creation path.
+  Future<void> _connectEmbedded() async {
+    final authManager = ref.read(lightroomAuthManagerProvider);
+    final capture = ref.read(lightroomRedirectCaptureProvider);
     setState(() => _busy = true);
     try {
-      // Fetch identity and catalog, persist them on the auth blob, then
-      // create the connector account row that flips every provider.
+      await signInWithEmbeddedCredential(
+        authManager: authManager,
+        capture: capture,
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+      final message = switch (e) {
+        CloudStorageException(:final displayMessage) => displayMessage,
+        _ => e.toString(),
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.settings_lightroom_connect_failed(message),
+          ),
+        ),
+      );
+      setState(() => _busy = false);
+      return;
+    }
+    if (!mounted) return;
+    await _finishConnect();
+  }
+
+  /// Shared post-sign-in work for both connect paths: fetch identity +
+  /// catalog, persist them, create or reuse the roster row, move tokens to
+  /// the account's own key, and refresh the providers.
+  Future<void> _finishConnect() async {
+    final l10n = context.l10n;
+    final authManager = ref.read(lightroomAuthManagerProvider);
+    setState(() => _busy = true);
+    try {
       final api = ref.read(lightroomApiClientProvider);
       final account = await api.getAccount();
       final catalogId = await api.getCatalogId();
@@ -247,6 +301,19 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
       children: [
         Text(l10n.settings_lightroom_subtitle),
         const SizedBox(height: 16),
+        if (_embeddedConnectSupported) ...[
+          FilledButton.icon(
+            onPressed: _busy ? null : _connectEmbedded,
+            icon: const Icon(Icons.link),
+            label: Text(l10n.settings_lightroom_connectEmbedded),
+          ),
+          const SizedBox(height: 24),
+        ],
+        Text(
+          l10n.settings_lightroom_advancedByo,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
         TextField(
           controller: _clientIdController,
           enabled: !_busy,
@@ -263,6 +330,20 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
           obscureText: true,
           decoration: InputDecoration(
             labelText: l10n.settings_lightroom_clientSecret_label,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _redirectUriController,
+          enabled: !_busy,
+          keyboardType: TextInputType.url,
+          // Custom-scheme redirect URIs (e.g. adobe+<hash>://...) must be typed
+          // verbatim; autocorrect/suggestions would silently mangle them.
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: InputDecoration(
+            labelText: l10n.settings_lightroom_redirectUri_label,
             border: const OutlineInputBorder(),
           ),
         ),

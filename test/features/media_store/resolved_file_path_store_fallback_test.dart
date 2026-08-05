@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
@@ -85,6 +86,12 @@ void main() {
     );
     expect(path, isNotNull);
     expect(await File(path!).readAsBytes(), bytes);
+    // Playable is not just "the right bytes": video_player hands this path
+    // to a bare AVURLAsset, which infers the container from the extension
+    // and fails with -11828 "Cannot Open" without one. Verified against
+    // AVFoundation: identical bytes load at clip.mp4 and fail at an
+    // extensionless path.
+    expect(p.extension(path), '.mp4');
   });
 
   test('no store and no local file yields null', () async {

@@ -8,8 +8,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 
 void main() {
   group('built-in presets', () {
-    test('contains exactly 7 presets', () {
-      expect(builtInCsvPresets.length, 7);
+    test('contains exactly 8 presets', () {
+      expect(builtInCsvPresets.length, 8);
     });
 
     test('all presets have unique IDs', () {

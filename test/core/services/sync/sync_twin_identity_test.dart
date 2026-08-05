@@ -101,6 +101,14 @@ void main() {
       'adopts a fresh identity when own manifest carries a foreign nonce',
       () async {
         final deviceId = await repository.getDeviceId();
+        // A whole-container clone copies the nonce ring along with the DB, so
+        // a real twin scenario always has prior nonces of our own on record.
+        // (An EMPTY ring reads as lost prefs, not as a twin -- see the
+        // dedicated test below.)
+        await initializer.recordUploadNonce(
+          'minted-before-the-clone',
+          cloud.providerId,
+        );
         final twinPayload = await craftPayloadWithDive(deviceId, 'twin-dive-1');
         await seedPeerBaseFromPayload(
           cloud,
@@ -279,6 +287,123 @@ void main() {
       expect(await repository.getDeviceId(), deviceIdBefore);
     });
 
+    test('idle syncs do not rot the nonce ring into a false twin', () async {
+      // Sync 1 publishes a base; its nonce is the one the cloud manifest will
+      // keep carrying through every following idle sync.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-idle-base'),
+      );
+      final service = buildService();
+      expect((await service.performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+
+      // More idle syncs than the ring holds entries. Each publishes nothing,
+      // so the manifest keeps the base upload's nonce; none of them may keep
+      // its speculative ring slot, or that live nonce would be evicted and
+      // the device would read its own manifest as a foreign twin (#733) --
+      // minting a fresh identity and re-uploading a full base every few
+      // idle syncs, forever.
+      for (var i = 1; i <= 9; i++) {
+        final result = await service.performSync();
+        expect(result.isSuccess, isTrue, reason: 'idle sync $i');
+        expect(
+          result.adoptedFreshIdentity,
+          isFalse,
+          reason: 'idle sync $i must not split this device as a twin',
+        );
+      }
+      expect(await repository.getDeviceId(), deviceId);
+    });
+
+    test('a heartbeat rewrite gives its speculative ring slot back', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-heartbeat'),
+      );
+      final service = buildService();
+      expect((await service.performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+      final published = await ownManifest(cloud, deviceId);
+      expect(published, isNotNull);
+
+      // Age the manifest past the heartbeat threshold so the next idle sync
+      // rewrites it -- deliberately preserving the OLD nonce (a heartbeat is
+      // not an upload event). The heartbeat sync's speculative nonce never
+      // reaches the cloud, so it must be un-recorded again.
+      final folder = await cloud.getOrCreateSyncFolder();
+      final aged = SyncManifest(
+        deviceId: published!.deviceId,
+        provider: published.provider,
+        baseSeq: published.baseSeq,
+        basePartCount: published.basePartCount,
+        baseBytes: published.baseBytes,
+        baseChecksum: published.baseChecksum,
+        basePartChecksums: published.basePartChecksums,
+        headSeq: published.headSeq,
+        publishedHlcHigh: published.publishedHlcHigh,
+        epochId: published.epochId,
+        uploadNonce: published.uploadNonce,
+        appliedPeerHlc: published.appliedPeerHlc,
+        updatedAt: 0,
+      );
+      await cloud.uploadFile(
+        aged.toBytes(),
+        ChangesetLogLayout.manifestName(deviceId),
+        folderId: folder,
+      );
+
+      final result = await service.performSync();
+      expect(result.isSuccess, isTrue);
+      expect(result.adoptedFreshIdentity, isFalse);
+
+      final prefs = await SharedPreferences.getInstance();
+      final ring = prefs.getStringList(
+        'sync_upload_nonces_${cloud.providerId}',
+      );
+      expect(
+        ring,
+        [published.uploadNonce],
+        reason:
+            'the heartbeat preserved the previous nonce in the manifest, so '
+            'its own speculative nonce must not stay in the ring',
+      );
+    });
+
+    test('a lost nonce ring reads as lost prefs, not as a twin', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-prefs-loss'),
+      );
+      expect((await buildService().performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+
+      // Simulate SharedPreferences loss while the database (and with it the
+      // device id) survives: reinstall keeping the DB, a DB-only restore, or
+      // the OS clearing app prefs. The manifest's nonce is now unknown, but
+      // an EMPTY ring is evidence of lost prefs, not of a twin.
+      SharedPreferences.setMockInitialValues({});
+      final freshInitializer = SyncInitializer(
+        syncRepository: repository,
+        prefs: await SharedPreferences.getInstance(),
+      );
+      final service = SyncService(
+        syncRepository: repository,
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+        syncInitializer: freshInitializer,
+      );
+
+      final result = await service.performSync();
+      expect(result.isSuccess, isTrue);
+      expect(
+        result.adoptedFreshIdentity,
+        isFalse,
+        reason:
+            'an empty ring means this install has no upload record at all; '
+            'adopting here would mint a new identity (and re-upload a full '
+            'base) after every prefs loss',
+      );
+      expect(await repository.getDeviceId(), deviceId);
+    });
+
     test('the nonce ring keeps the newest entries per provider', () async {
       for (var i = 0; i < 9; i++) {
         await initializer.recordUploadNonce('nonce-$i', 'fake');
@@ -291,6 +416,7 @@ void main() {
       );
       expect(initializer.isForeignUploadNonce('nonce-8', 'fake'), isFalse);
       expect(initializer.isForeignUploadNonce('nonce-1', 'fake'), isFalse);
+      await initializer.recordUploadNonce('other-nonce', 'other-provider');
       expect(
         initializer.isForeignUploadNonce('nonce-8', 'other-provider'),
         isTrue,

@@ -1,0 +1,55 @@
+group = "app.submersion.transcoder"
+version = "0.1.0"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    namespace = "app.submersion.transcoder"
+    compileSdk = 34
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    defaultConfig {
+        // Media3 Transformer video encoding needs API 24+; the app is minSdk 26.
+        minSdk = 24
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+    // AndroidX Media3 Transformer: native H.264/AAC transcoding, no vendored ffmpeg.
+    def media3 = "1.4.1"
+    implementation "androidx.media3:media3-transformer:$media3"
+    implementation "androidx.media3:media3-common:$media3"
+    implementation "androidx.media3:media3-effect:$media3"
+}

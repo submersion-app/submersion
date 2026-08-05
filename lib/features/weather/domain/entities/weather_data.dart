@@ -14,7 +14,18 @@ class WeatherData extends Equatable {
   final double? humidity; // 0-100
   final double? airTemp; // celsius
   final double? surfacePressure; // bar
+
+  /// Free-text description. Null for fetched weather -- the provider returns
+  /// no prose, and generating it here would freeze one locale and one unit
+  /// system into the database. Populated only for manually entered or
+  /// imported text, which is user data and renders verbatim.
   final String? description;
+
+  /// Raw WMO weather code (0 clear, 61 rain, 95 thunderstorm, ...).
+  ///
+  /// The provider's only textual signal. Kept so the description can be
+  /// rendered in the diver's locale at display time.
+  final int? weatherCode;
 
   const WeatherData({
     this.windSpeed,
@@ -25,6 +36,7 @@ class WeatherData extends Equatable {
     this.airTemp,
     this.surfacePressure,
     this.description,
+    this.weatherCode,
   });
 
   @override
@@ -37,5 +49,6 @@ class WeatherData extends Equatable {
     airTemp,
     surfacePressure,
     description,
+    weatherCode,
   ];
 }

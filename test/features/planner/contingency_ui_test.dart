@@ -1,4 +1,4 @@
-import 'package:fl_chart/fl_chart.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -9,7 +9,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_canvas_chart.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -43,7 +43,7 @@ void main() {
           height: 400,
           child: Column(
             children: [
-              Expanded(child: PlanCanvasChart()),
+              Expanded(child: PlanProfileChart()),
               ContingencyChips(),
             ],
           ),
@@ -51,26 +51,30 @@ void main() {
       ),
     );
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanCanvasChart)),
+      tester.element(find.byType(PlanProfileChart)),
     );
     container
         .read(divePlanNotifierProvider.notifier)
         .addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
     await tester.pumpAndSettle();
 
-    LineChart chart() => tester.widget<LineChart>(find.byType(LineChart));
-    final baseBars = chart().data.lineBarsData.length;
+    PlanChartSeriesPainter seriesPainter() =>
+        tester
+                .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
+                .painter
+            as PlanChartSeriesPainter;
+    expect(seriesPainter().ghost, isNull);
 
     await tester.tap(find.text('+5m'));
     await tester.pumpAndSettle();
 
     expect(container.read(selectedDeviationProvider), 'deeper');
-    expect(chart().data.lineBarsData.length, baseBars + 1);
+    expect(seriesPainter().ghost, isNotNull);
 
     // Back to base clears the ghost.
     await tester.tap(find.text('Base'));
     await tester.pumpAndSettle();
-    expect(chart().data.lineBarsData.length, baseBars);
+    expect(seriesPainter().ghost, isNull);
   });
 
   testWidgets('sheet lists deviation tables and turn pressure', (tester) async {

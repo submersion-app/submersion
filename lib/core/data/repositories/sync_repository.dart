@@ -42,12 +42,23 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    'preDiveChecklistTemplates': (
+      table: 'pre_dive_checklist_templates',
+      pk: 'id',
+    ),
+    'preDiveChecklistTemplateItems': (
+      table: 'pre_dive_checklist_template_items',
+      pk: 'id',
+    ),
+    'preDiveSessions': (table: 'pre_dive_sessions', pk: 'id'),
+    'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
     'equipment': (table: 'equipment', pk: 'id'),
     'equipmentSets': (table: 'equipment_sets', pk: 'id'),
+    'equipmentAttributes': (table: 'equipment_attributes', pk: 'id'),
     'diveTypes': (table: 'dive_types', pk: 'id'),
     'diveRoles': (table: 'dive_roles', pk: 'id'),
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),
@@ -55,6 +66,9 @@ class SyncRepository {
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
+    // HLC merge-root only: the courseRequirementDives junction is clockless
+    // and rides the parent requirement's hlc (equipment_set_items pattern).
+    'courseRequirements': (table: 'course_requirements', pk: 'id'),
     'dives': (table: 'dives', pk: 'id'),
     'diveSites': (table: 'dive_sites', pk: 'id'),
     'certifications': (table: 'certifications', pk: 'id'),
@@ -63,8 +77,12 @@ class SyncRepository {
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
     'media': (table: 'media', pk: 'id'),
+    'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
+    'qualityFindings': (table: 'quality_findings', pk: 'id'),
+    'emergencyChambers': (table: 'emergency_chambers', pk: 'id'),
+    'incidents': (table: 'incidents', pk: 'id'),
   };
 
   // ============================================================================
@@ -454,6 +472,37 @@ class SyncRepository {
     }
   }
 
+  /// One-time self-heal for enrichment rows written before schema v130, when
+  /// media_enrichment had no `hlc` column and never synced. Such rows carry
+  /// `hlc IS NULL` and are invisible to the incremental export (which filters
+  /// `hlc > watermark`; SQL `NULL > x` is false). markRecordPending stamps a
+  /// fresh HLC (above every peer watermark) so they replicate on the next sync
+  /// and heal peers that lost the depth/time association.
+  ///
+  /// Self-limiting: rows written by saveEnrichment always get an HLC, so once
+  /// every legacy row is stamped this finds nothing.
+  Future<void> backfillMediaEnrichmentHlc() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, created_at FROM media_enrichment WHERE hlc IS NULL',
+        )
+        .get();
+    if (rows.isEmpty) return;
+    // One transaction for the whole backfill: markRecordPending's own
+    // per-row transaction nests as a savepoint, so a library with many
+    // linked photos commits once instead of once per row (the per-row fsync
+    // was the sync-start cost flagged in review).
+    await _db.transaction(() async {
+      for (final row in rows) {
+        await markRecordPending(
+          entityType: 'mediaEnrichment',
+          recordId: row.read<String>('id'),
+          localUpdatedAt: row.read<int>('created_at'),
+        );
+      }
+    });
+  }
+
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if
   /// the entity is conflict-capable and the clock is configured. Centralised
   /// here (the write choke point) rather than in every repository companion.
@@ -758,17 +807,27 @@ class SyncRepository {
       await ensureSyncClockConfigured();
       final hlc = SyncClock.instance.issue();
 
-      await _db
-          .into(_db.deletionLog)
-          .insert(
-            DeletionLogCompanion(
-              id: Value(id),
-              entityType: Value(entityType),
-              recordId: Value(recordId),
-              deletedAt: Value(now),
-              hlc: Value(hlc),
-            ),
-          );
+      await _db.transaction(() async {
+        // One tombstone per record: replace any prior tombstone for this key
+        // so its deletedAt/hlc advance (re-delete refreshes the stamp) and the
+        // v114 unique index is never violated.
+        await (_db.delete(_db.deletionLog)..where(
+              (t) =>
+                  t.entityType.equals(entityType) & t.recordId.equals(recordId),
+            ))
+            .go();
+        await _db
+            .into(_db.deletionLog)
+            .insert(
+              DeletionLogCompanion(
+                id: Value(id),
+                entityType: Value(entityType),
+                recordId: Value(recordId),
+                deletedAt: Value(now),
+                hlc: Value(hlc),
+              ),
+            );
+      });
 
       _log.info('Logged deletion: $entityType/$recordId');
     } catch (e, stackTrace) {
@@ -860,21 +919,31 @@ class SyncRepository {
     }
   }
 
-  /// Clear old deletions (older than given days)
-  Future<void> clearOldDeletions({int olderThanDays = 90}) async {
+  /// Fleet-acked tombstone GC: delete tombstones that (a) are older than the
+  /// safety floor, (b) carry an HLC (a null-hlc tombstone cannot be compared
+  /// so it is kept and rides every base -- rare and harmless), and (c) sort at
+  /// or below [upToHlc], the minimum HLC every live peer's manifest
+  /// acknowledges having applied from us. A null [upToHlc] means no live peer
+  /// constrains GC (single-device library): the floor alone applies.
+  /// Replaces the old unconditional 90-day purge, which silently resurrected
+  /// records on devices offline longer than the window.
+  Future<void> clearAcknowledgedDeletions({
+    required String? upToHlc,
+    required int floorCutoffMillis,
+  }) async {
     try {
-      final cutoff = DateTime.now()
-          .subtract(Duration(days: olderThanDays))
-          .millisecondsSinceEpoch;
-
-      await (_db.delete(
-        _db.deletionLog,
-      )..where((t) => t.deletedAt.isSmallerThanValue(cutoff))).go();
-
-      _log.info('Cleared deletions older than $olderThanDays days');
+      await (_db.delete(_db.deletionLog)..where((t) {
+            final base =
+                t.deletedAt.isSmallerThanValue(floorCutoffMillis) &
+                t.hlc.isNotNull();
+            if (upToHlc == null) return base;
+            return base & t.hlc.isSmallerOrEqualValue(upToHlc);
+          }))
+          .go();
+      _log.info('Cleared acknowledged deletions (upTo: $upToHlc)');
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to clear old deletions',
+        'Failed to clear acknowledged deletions',
         error: e,
         stackTrace: stackTrace,
       );

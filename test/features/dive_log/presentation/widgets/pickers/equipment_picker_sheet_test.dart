@@ -21,7 +21,9 @@ Future<void> _pump(
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [allEquipmentProvider.overrideWith((ref) async => equipment)],
+      overrides: [
+        activeEquipmentProvider.overrideWith((ref) async => equipment),
+      ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

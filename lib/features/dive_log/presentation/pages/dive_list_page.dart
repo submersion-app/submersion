@@ -2,42 +2,44 @@ import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
-import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
-import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
-import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
-import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
-import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom].
 ///
@@ -157,14 +159,33 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
         tableContent: const DiveListContent(showAppBar: false),
-        detailBuilder: (context, id) => DiveDetailPage(
-          diveId: id,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
-        ),
+        detailBuilder: (context, id) {
+          final state = GoRouterState.of(context);
+          final rawSiteId = state.uri.queryParameters['site'];
+          final siteId = (rawSiteId == null || rawSiteId.isEmpty)
+              ? null
+              : rawSiteId;
+          return DiveDetailPage(
+            diveId: id,
+            embedded: true,
+            embeddedSiteId: siteId,
+            onCloseEmbeddedSite: () {
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              final params = Map<String, String>.from(
+                state.uri.queryParameters,
+              );
+              params.remove('site');
+              router.go(
+                Uri(path: state.uri.path, queryParameters: params).toString(),
+              );
+            },
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          );
+        },
         summaryBuilder: (context) => const DiveSummaryWidget(),
         editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
           diveId: id,
@@ -232,6 +253,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
+              } else if (value == 'data_quality') {
+                context.push('/dives/quality');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -286,6 +309,32 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                     ],
                   ),
                 ),
+                PopupMenuItem(
+                  value: 'data_quality',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.rule, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final count =
+                              ref
+                                  .watch(openQualityFindingsCountProvider)
+                                  .value ??
+                              0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ];
             },
           ),
@@ -305,16 +354,35 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           isMapViewActive: _isMapView,
           onMapViewToggle: _toggleMapView,
         ),
-        detailBuilder: (context, diveId) => DiveDetailPage(
-          diveId: diveId,
-          embedded: true,
-          onDeleted: () {
-            // Clear selection when dive is deleted
-            final router = GoRouter.of(context);
-            final state = GoRouterState.of(context);
-            router.go(state.uri.path);
-          },
-        ),
+        detailBuilder: (context, diveId) {
+          final state = GoRouterState.of(context);
+          final rawSiteId = state.uri.queryParameters['site'];
+          final siteId = (rawSiteId == null || rawSiteId.isEmpty)
+              ? null
+              : rawSiteId;
+          return DiveDetailPage(
+            diveId: diveId,
+            embedded: true,
+            embeddedSiteId: siteId,
+            onCloseEmbeddedSite: () {
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              final params = Map<String, String>.from(
+                state.uri.queryParameters,
+              );
+              params.remove('site');
+              router.go(
+                Uri(path: state.uri.path, queryParameters: params).toString(),
+              );
+            },
+            onDeleted: () {
+              // Clear selection when dive is deleted
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              router.go(state.uri.path);
+            },
+          );
+        },
         summaryBuilder: (context) => const DiveSummaryWidget(),
         mapBuilder: (context, selectedId, onItemSelected) => DiveMapContent(
           selectedId: selectedId,
@@ -326,12 +394,47 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             context.go('$currentPath?selected=$diveId');
           },
         ),
-        editBuilder: (context, diveId, onSaved, onCancel) => DiveEditPage(
-          diveId: diveId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        editBuilder: (context, id, onSaved, onCancel) {
+          final state = GoRouterState.of(context);
+          final siteId = state.uri.queryParameters['site'];
+          if (siteId != null && siteId.isNotEmpty) {
+            return SiteEditPage(
+              siteId: siteId,
+              embedded: true,
+              onSaved: (savedId) {
+                // When a site is saved through the dive details navigation, we want to return to the site detail view.
+                // We must preserve the original dive 'selected' parameter and keep the 'site' parameter,
+                // while removing the 'mode=edit' parameter.
+                final params = Map<String, String>.from(
+                  state.uri.queryParameters,
+                );
+                params.remove('mode');
+                // Ensure the site ID is updated if it changed (though unlikely for edit)
+                params['site'] = savedId;
+                // 'selected' remains the original diveId (passed as 'id' here)
+                context.replace(
+                  Uri(path: state.uri.path, queryParameters: params).toString(),
+                );
+              },
+              onCancel: () {
+                // Same for cancel - return to site detail view without 'mode=edit'
+                final params = Map<String, String>.from(
+                  state.uri.queryParameters,
+                );
+                params.remove('mode');
+                context.replace(
+                  Uri(path: state.uri.path, queryParameters: params).toString(),
+                );
+              },
+            );
+          }
+          return DiveEditPage(
+            diveId: id,
+            embedded: true,
+            onSaved: onSaved,
+            onCancel: onCancel,
+          );
+        },
         createBuilder: (context, onSaved, onCancel) =>
             DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
@@ -592,6 +695,14 @@ class DiveListTile extends ConsumerWidget {
   /// slots and extra fields, giving access to all fields.
   final Dive? fullDive;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Built once per list by [watchDiveTypeLabelResolver] and threaded down, so
+  /// the card neither watches `diveTypesProvider` nor rebuilds a lookup map per
+  /// row. When omitted, a Dive Type slot or extra field falls back to the
+  /// English slug capitalization, matching the locale-independent export path.
+  final DiveTypeLabelResolver? diveTypeLabelResolver;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -621,6 +732,7 @@ class DiveListTile extends ConsumerWidget {
     this.margin,
     this.summary,
     this.fullDive,
+    this.diveTypeLabelResolver,
   });
 
   /// Calculate background color based on the active color attribute
@@ -707,7 +819,10 @@ class DiveListTile extends ConsumerWidget {
     // CompactDiveListTile).
     String buildTitleText() {
       if (summary != null && titleField != DiveField.siteName) {
-        final value = titleField.extractFromSummary(summary!);
+        final value = titleField.extractFromSummary(
+          summary!,
+          diveTypeLabel: diveTypeLabelResolver,
+        );
         return titleField.formatValue(value, units);
       }
       return siteName ?? context.l10n.diveLog_listPage_unknownSite;
@@ -715,7 +830,10 @@ class DiveListTile extends ConsumerWidget {
 
     String buildDateText() {
       if (summary != null && dateField != DiveField.dateTime) {
-        final value = dateField.extractFromSummary(summary!);
+        final value = dateField.extractFromSummary(
+          summary!,
+          diveTypeLabel: diveTypeLabelResolver,
+        );
         return dateField.formatValue(value, units);
       }
       return units.formatDateTime(dateTime, l10n: context.l10n);
@@ -757,12 +875,21 @@ class DiveListTile extends ConsumerWidget {
                             )
                           : CircleAvatar(
                               backgroundColor: colorScheme.primaryContainer,
-                              child: Text(
-                                '#$diveNumber',
-                                style: TextStyle(
-                                  color: colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '#$diveNumber',
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -794,6 +921,23 @@ class DiveListTile extends ConsumerWidget {
                                     Icons.favorite,
                                     size: 18,
                                     color: Colors.red.shade400,
+                                  ),
+                                ),
+                              ],
+                              if ((summary?.safetyFindingCount ?? 0) > 0 &&
+                                  ref.watch(safetyReviewEnabledProvider)) ...[
+                                const SizedBox(width: 6),
+                                Tooltip(
+                                  message: context.l10n
+                                      .safetyReview_findingCount(
+                                        summary!.safetyFindingCount,
+                                      ),
+                                  child: Icon(
+                                    Icons.circle,
+                                    size: 8,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -917,8 +1061,12 @@ class DiveListTile extends ConsumerWidget {
                                 ? field.extractFromDive(
                                     fullDive!,
                                     sacUnit: units.sacUnit,
+                                    diveTypeLabel: diveTypeLabelResolver,
                                   )
-                                : (field.extractFromSummary(summary!) ??
+                                : (field.extractFromSummary(
+                                        summary!,
+                                        diveTypeLabel: diveTypeLabelResolver,
+                                      ) ??
                                       _fallbackValue(field));
                             final formatted = field.formatValue(value, units);
                             return SizedBox(
@@ -1064,9 +1212,16 @@ class DiveListTile extends ConsumerWidget {
   ) {
     // Use full Dive when available (has all fields), otherwise try summary
     dynamic value = fullDive != null
-        ? field.extractFromDive(fullDive!, sacUnit: units.sacUnit)
+        ? field.extractFromDive(
+            fullDive!,
+            sacUnit: units.sacUnit,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : summary != null
-        ? field.extractFromSummary(summary)
+        ? field.extractFromSummary(
+            summary,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : null;
     value ??= _fallbackValue(field);
     final formatted = field.formatValue(value, units);

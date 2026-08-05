@@ -94,6 +94,27 @@ void main() {
     expect(await keyStoreB.loadKeyslotMirror(), isNotNull);
   });
 
+  test('unlock flags encryption on so it survives a relaunch', () async {
+    await enable();
+    // Model a fresh second device: its own (empty) key store and a local
+    // feature flag that has never been turned on. EncryptionKeyNotifier
+    // gates session restore on this flag, so if unlock does not set it the
+    // next launch silently reverts to plaintext and re-prompts forever.
+    await prefs.setSyncEncryptionEnabled(false);
+    final keyStoreB = EncryptionKeyStore(storage: InMemoryKeychain());
+    final serviceB = SyncEncryptionService(
+      keyStore: keyStoreB,
+      preferences: prefs,
+    );
+
+    await serviceB.unlock(
+      rawProvider: cloud,
+      secret: 'correct horse battery staple',
+    );
+
+    expect(prefs.syncEncryptionEnabled, isTrue);
+  });
+
   test('unlock failures: wrong secret and missing keyslot file', () async {
     await enable();
     await expectLater(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -74,6 +75,7 @@ void main() {
             ].cast(),
             child: MaterialApp.router(
               routerConfig: router,
+              locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
             ),
@@ -136,6 +138,7 @@ void main() {
           ].cast(),
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -144,6 +147,84 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('EQUIPMENT_LIST_PAGE'), findsNothing);
+    });
+  });
+
+  group('EquipmentDetailPage attributes card', () {
+    testWidgets('shows curated and custom attributes', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 1600);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final equipment = EquipmentItem(
+        id: 'equip-2',
+        name: 'Winter suit',
+        type: EquipmentType.wetsuit,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'equip-2',
+            key: 'thickness_mm',
+            valueText: '7/5',
+            valueNum: 7.0,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: 'equip-2',
+            key: 'suit_style',
+            valueText: 'semi_dry',
+          ),
+          const EquipmentAttribute(
+            id: 'c1',
+            equipmentId: 'equip-2',
+            key: 'Repair note',
+            isCustom: true,
+            valueText: 'patched left knee',
+          ),
+        ],
+      );
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            equipmentItemProvider(
+              equipment.id,
+            ).overrideWith((ref) async => equipment),
+            equipmentDiveCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            equipmentTripCountProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0),
+            serviceRecordNotifierProvider(
+              equipment.id,
+            ).overrideWith((ref) => _MockServiceRecordNotifier()),
+            serviceRecordTotalCostProvider(
+              equipment.id,
+            ).overrideWith((ref) async => 0.0),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: EquipmentDetailPage(equipmentId: equipment.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('7/5 mm'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('7/5 mm'), findsOneWidget);
+      expect(find.text('Semi-dry'), findsOneWidget);
+      expect(find.text('Repair note'), findsOneWidget);
+      expect(find.text('patched left knee'), findsOneWidget);
     });
   });
 }

@@ -70,6 +70,84 @@ void main() {
       expect(loaded.bodyOfWater, 'Visayan Sea');
     });
 
+    test('create then read round-trips waterType', () async {
+      const site = DiveSite(
+        id: 'wt-1',
+        name: 'Water Type Site',
+        waterType: WaterType.brackish,
+      );
+      await repository.createSite(site);
+      final loaded = await repository.getSiteById('wt-1');
+      expect(loaded!.waterType, WaterType.brackish);
+    });
+
+    test('imported water_type column is read back into the entity', () async {
+      // Importers write the column directly (no entity mapping).
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'wt-ghost',
+              name: 'Imported Site',
+              createdAt: now,
+              updatedAt: now,
+              waterType: const Value('salt'),
+            ),
+          );
+      final loaded = await repository.getSiteById('wt-ghost');
+      expect(loaded!.waterType, WaterType.salt);
+    });
+
+    test('unknown water_type string maps to null (no crash)', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'wt-bad',
+              name: 'Bad Water Type',
+              createdAt: now,
+              updatedAt: now,
+              waterType: const Value('lava'),
+            ),
+          );
+      final loaded = await repository.getSiteById('wt-bad');
+      expect(loaded!.waterType, isNull);
+    });
+
+    test('updateSite persists a changed waterType', () async {
+      const site = DiveSite(
+        id: 'wt-up',
+        name: 'Upd',
+        waterType: WaterType.salt,
+      );
+      await repository.createSite(site);
+      await repository.updateSite(site.copyWith(waterType: WaterType.fresh));
+      final loaded = await repository.getSiteById('wt-up');
+      expect(loaded!.waterType, WaterType.fresh);
+    });
+
+    test(
+      'waterType survives Drift row JSON serialization (sync path)',
+      () async {
+        // Sync serializes each row with row.toJson(); this proves the column
+        // rides that generic path. Key-agnostic: fromJson reads back whatever
+        // key toJson wrote.
+        const site = DiveSite(
+          id: 'wt-json',
+          name: 'JSON Site',
+          waterType: WaterType.fresh,
+        );
+        await repository.createSite(site);
+        final row = await (database.select(
+          database.diveSites,
+        )..where((t) => t.id.equals('wt-json'))).getSingle();
+        final restored = db.DiveSite.fromJson(row.toJson());
+        expect(restored.waterType, 'fresh');
+      },
+    );
+
     test('imported body_of_water is now read back into the entity', () async {
       // Simulate an importer writing the column directly (no entity mapping).
       final now = DateTime.now().millisecondsSinceEpoch;

@@ -40,9 +40,9 @@ void main() {
                   'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Android.apk',
             },
             {
-              'name': 'Submersion-$tagName-Windows.zip',
+              'name': 'Submersion-$tagName-Windows-Setup.exe',
               'browser_download_url':
-                  'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Windows.zip',
+                  'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Windows-Setup.exe',
             },
           ],
     };
@@ -89,6 +89,52 @@ void main() {
       expect(available.version, '1.1.0');
       expect(available.releaseNotes, 'New features');
       expect(available.downloadUrl, contains('Linux.tar.gz'));
+    });
+
+    test(
+      '4-segment current version equal to the release tag is up to date',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response(
+            jsonEncode(makeRelease(tagName: 'v1.7.1.118')),
+            200,
+          );
+        });
+
+        final service = GithubUpdateService(
+          owner: owner,
+          repo: repo,
+          currentVersion: '1.7.1.118',
+          platformSuffix: 'Linux.tar.gz',
+          httpClient: client,
+        );
+
+        expect(await service.checkForUpdate(), isA<UpToDate>());
+      },
+    );
+
+    test('finds the Windows installer asset by its real suffix', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode(makeRelease(tagName: 'v9.9.9.999')),
+          200,
+        );
+      });
+
+      final service = GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: currentVersion,
+        platformSuffix: 'Windows-Setup.exe',
+        httpClient: client,
+      );
+
+      final status = await service.checkForUpdate();
+      expect(status, isA<UpdateAvailable>());
+      expect(
+        (status as UpdateAvailable).downloadUrl,
+        endsWith('Windows-Setup.exe'),
+      );
     });
 
     test('returns UpToDate when current is newer than remote', () async {

@@ -1,7 +1,27 @@
 #!/bin/bash
 
 # Pre-push hook for Submersion
-# Runs dart format check, flutter analyze, and tests before pushing
+# Runs dart format check, flutter analyze, and a SCOPED test run before pushing.
+#
+# Why scoped tests: the full suite is ~1400 test files. Each file pays a fixed
+# isolate + Flutter binding + Drift setup cost, so running all of them on a
+# laptop is slow and battery-hungry. CI already runs the ENTIRE suite across 8
+# parallel shards on every push (see .github/workflows/ci.yaml), so the local
+# gate does not need to duplicate that. Instead we run only the tests affected
+# by the commits being pushed:
+#   - changed *_test.dart files run directly
+#   - for each changed lib/ file, the *_test.dart files that import it
+#     (package:submersion/... imports) plus its mirrored test path
+#   - for a changed test helper (non-_test .dart under test/), the *_test.dart
+#     files that import it by path
+# The comprehensive run stays CI's job; this catches obvious breakage fast.
+#
+# Escape hatches:
+#   RUN_ALL_TESTS=1 git push   run the entire suite locally (old behavior)
+#   SKIP_TESTS=1    git push   skip the local test run entirely
+#   DRY_RUN=1       git push   print the resolved test list and exit (no run)
+# Note: scoped mapping is by DIRECT import; transitive dependents can be missed.
+# CI is the authority for full coverage.
 
 set -e
 
@@ -43,15 +63,163 @@ fi
 echo "✅ Analysis passed"
 echo ""
 
-# Run tests
-echo "🧪 Running tests..."
-if ! flutter test --exclude-tags performance --concurrency=6; then
+# Shared test runner: "$@" is an explicit file list; empty means whole suite.
+run_tests() {
+    flutter test --exclude-tags performance --concurrency=6 "$@"
+}
+
+# --- Test stage ------------------------------------------------------------
+
+if [ "${SKIP_TESTS:-0}" = "1" ]; then
+    echo "🧪 Skipping tests (SKIP_TESTS=1). CI runs the full suite."
     echo ""
-    echo "❌ Tests failed! Fix the failing tests before pushing."
-    exit 1
+    echo "🚀 All checks passed! Pushing..."
+    exit 0
 fi
-echo "✅ All tests passed"
-echo ""
+
+if [ "${RUN_ALL_TESTS:-0}" = "1" ]; then
+    echo "🧪 Running FULL test suite (RUN_ALL_TESTS=1)..."
+    if ! run_tests; then
+        echo ""
+        echo "❌ Tests failed! Fix the failing tests before pushing."
+        exit 1
+    fi
+    echo "✅ All tests passed"
+    echo ""
+    echo "🚀 All checks passed! Pushing..."
+    exit 0
+fi
+
+# Resolve a main ref, used to bound the range when pushing a brand-new branch
+# (its remote sha is all-zeros, so there is no remote base to diff against).
+MAIN_REF=""
+for ref in origin/main main; do
+    if git rev-parse --verify --quiet "$ref" >/dev/null; then
+        MAIN_REF="$ref"
+        break
+    fi
+done
+
+# Collect the files changed by the push. Git feeds pre-push a line per ref on
+# stdin: "<local ref> <local sha> <remote ref> <remote sha>". We diff the range
+# actually being pushed so re-pushes only re-test their new commits.
+changed_files=""
+if [ -t 0 ]; then
+    # Run manually from a terminal (no ref list piped): fall back to the diff
+    # of the current branch against its merge-base with main.
+    if [ -n "$MAIN_REF" ]; then
+        base=$(git merge-base HEAD "$MAIN_REF" 2>/dev/null || true)
+        if [ -n "$base" ]; then
+            changed_files=$(git diff --name-only --diff-filter=d "$base" HEAD 2>/dev/null || true)
+        fi
+    fi
+else
+    while read -r local_ref local_sha remote_ref remote_sha; do
+        # Skip branch deletions (local sha is empty or all zeros).
+        case "$local_sha" in
+            *[!0]*) : ;;
+            *) continue ;;
+        esac
+        # New branch on remote (remote sha all zeros) has no remote base;
+        # bound it by the merge-base with main. Otherwise diff from the
+        # remote sha to the local sha (exactly the commits being pushed).
+        case "$remote_sha" in
+            *[!0]*) base="$remote_sha" ;;
+            *) base=$(git merge-base "$local_sha" "${MAIN_REF:-$local_sha}" 2>/dev/null || true) ;;
+        esac
+        if [ -n "$base" ]; then
+            files=$(git diff --name-only --diff-filter=d "$base" "$local_sha" 2>/dev/null || true)
+        else
+            files=$(git diff --name-only --diff-filter=d "${local_sha}~1" "$local_sha" 2>/dev/null || true)
+        fi
+        changed_files="${changed_files}
+${files}"
+    done
+fi
+
+# Map changed files to affected test files. "matched" accumulates candidate
+# paths (newline-separated); it is deduped and existence-filtered at the end.
+matched=""
+dart_changed=0
+pattern_file=$(mktemp)
+
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    case "$f" in *.dart) dart_changed=1 ;; esac
+    case "$f" in
+        test/*_test.dart)
+            # A changed test: run it directly.
+            matched="${matched}
+${f}"
+            ;;
+        test/*.dart)
+            # A changed helper/fixture: run the tests that import it. Match the
+            # path segment (leading slash) so relative imports at any depth
+            # (../helpers/foo.dart) are caught. Files imported by nobody
+            # (e.g. auto-discovered flutter_test_config.dart) map to nothing.
+            printf '/%s\n' "$(basename "$f")" >> "$pattern_file"
+            ;;
+        lib/*.dart)
+            # Mirrored test path (lib/x/y.dart -> test/x/y_test.dart) ...
+            rel="${f#lib/}"
+            matched="${matched}
+test/${rel%.dart}_test.dart"
+            # ... plus every test that imports this file.
+            printf 'package:submersion/%s\n' "$rel" >> "$pattern_file"
+            ;;
+    esac
+done <<< "$changed_files"
+
+# One grep pass finds all tests importing any changed lib file.
+if [ -s "$pattern_file" ]; then
+    while IFS= read -r t; do
+        matched="${matched}
+${t}"
+    done < <(grep -rlF -f "$pattern_file" --include='*_test.dart' test 2>/dev/null || true)
+fi
+rm -f "$pattern_file"
+
+# Dedupe, drop blanks/non-tests/deleted paths, load into an array.
+final=$(printf '%s\n' "$matched" | sort -u | while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    [[ "$t" == *_test.dart ]] || continue
+    [ -f "$t" ] && printf '%s\n' "$t"
+done)
+
+test_files=()
+while IFS= read -r t; do
+    [ -n "$t" ] && test_files+=("$t")
+done <<< "$final"
+
+if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "🧪 DRY_RUN: ${#test_files[@]} affected test file(s):"
+    printf '   %s\n' "${test_files[@]}"
+    exit 0
+fi
+
+if [ "${#test_files[@]}" -gt 0 ]; then
+    echo "🧪 Running ${#test_files[@]} affected test file(s) (scoped to this push)..."
+    if [ "${#test_files[@]}" -le 25 ]; then
+        printf '   %s\n' "${test_files[@]}"
+    fi
+    echo ""
+    if ! run_tests "${test_files[@]}"; then
+        echo ""
+        echo "❌ Tests failed! Fix the failing tests before pushing."
+        echo "   (RUN_ALL_TESTS=1 git push runs the full suite; CI runs it regardless.)"
+        exit 1
+    fi
+    echo "✅ Affected tests passed"
+    echo "   Only tests importing your changed files ran locally; CI runs the full suite."
+    echo ""
+elif [ "$dart_changed" = "1" ]; then
+    echo "🧪 No test files directly import the changed Dart files; skipping local tests."
+    echo "   CI runs the full suite. (RUN_ALL_TESTS=1 forces a full local run.)"
+    echo ""
+else
+    echo "🧪 No Dart changes in this push; skipping local tests."
+    echo ""
+fi
 
 echo "🚀 All checks passed! Pushing..."
 exit 0

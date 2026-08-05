@@ -35,11 +35,13 @@ void main() {
         ceilingActual: MetricDataSource.calculated,
         ttsActual: MetricDataSource.computer,
         cnsActual: MetricDataSource.calculated,
+        decoStopActual: MetricDataSource.calculated,
       );
       expect(info.ndlActual, MetricDataSource.computer);
       expect(info.ceilingActual, MetricDataSource.calculated);
       expect(info.ttsActual, MetricDataSource.computer);
       expect(info.cnsActual, MetricDataSource.calculated);
+      expect(info.decoStopActual, MetricDataSource.calculated);
     });
 
     test('all-calculated convenience works', () {
@@ -48,6 +50,7 @@ void main() {
         ceilingActual: MetricDataSource.calculated,
         ttsActual: MetricDataSource.calculated,
         cnsActual: MetricDataSource.calculated,
+        decoStopActual: MetricDataSource.calculated,
       );
       expect(info.ndlActual, MetricDataSource.calculated);
     });

@@ -11,6 +11,8 @@ import 'package:submersion/core/services/sync/sync_initializer.dart'
     show DeviceIdentityStatus;
 import 'package:submersion/core/services/sync/sync_service.dart'
     show ConflictResolution;
+import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import 'helpers/mock_providers.dart';
@@ -27,6 +29,9 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
 
   @override
   Future<void> performSync({bool auto = false}) async {}
+
+  @override
+  Future<void> disableForDatabaseReset() async {}
 
   @override
   Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
@@ -85,6 +90,18 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
   ) async {}
 }
 
+/// A [BackupOperationNotifier] stand-in so a test can drive the app-root
+/// restore-completion listener through real state transitions.
+class _DrivableBackupOp extends StateNotifier<BackupOperationState>
+    implements BackupOperationNotifier {
+  _DrivableBackupOp() : super(const BackupOperationState());
+
+  void emit(BackupOperationState next) => state = next;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
 /// dialog (which reads `rootNavigatorKey.currentContext`) can surface.
 GoRouter _testRouter() => GoRouter(
@@ -107,7 +124,11 @@ LibraryEpochMarker _marker() => const LibraryEpochMarker(
 void main() {
   /// Pumps [SubmersionApp] with the providers its build/launch path reads
   /// stubbed out, leaving [sync] as the driver for the app-root listener.
-  Future<void> pumpApp(WidgetTester tester, _DrivableSyncNotifier sync) async {
+  Future<void> pumpApp(
+    WidgetTester tester,
+    _DrivableSyncNotifier sync, {
+    _DrivableBackupOp? backupOp,
+  }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -115,6 +136,8 @@ void main() {
           ...base,
           appRouterProvider.overrideWithValue(_testRouter()),
           syncStateProvider.overrideWith((ref) => sync),
+          if (backupOp != null)
+            backupOperationProvider.overrideWith((ref) => backupOp),
           reconcileDeviceIdentityProvider.overrideWith(
             (ref) async => DeviceIdentityStatus.unchanged,
           ),
@@ -221,6 +244,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Sync is paused'), findsNothing);
+  });
+
+  testWidgets('restore completion routes to RestoreCompletePage app-wide', (
+    tester,
+  ) async {
+    // Even though no page-local listener is involved, a restoreComplete
+    // transition on the operation provider must hand off to RestoreCompletePage
+    // from the app root -- so a restore whose triggering page was disposed
+    // still restarts instead of stranding the user on a stale screen.
+    final sync = _DrivableSyncNotifier(const SyncState());
+    final backupOp = _DrivableBackupOp();
+    await pumpApp(tester, sync, backupOp: backupOp);
+
+    expect(find.byType(RestoreCompletePage), findsNothing);
+
+    backupOp.emit(
+      const BackupOperationState(status: BackupOperationStatus.restoreComplete),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RestoreCompletePage), findsOneWidget);
   });
 
   testWidgets('the banner Review action reopens the adopt dialog', (

@@ -1,9 +1,13 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -13,10 +17,8 @@ import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 
-/// Epoch filtering: a peer whose manifest is stamped with a different library
-/// epoch than ours is inert -- merging it would leak a replaced-away library
-/// back in. Mirrors performSync's per-file stale-epoch filter (sync_service
-/// line ~490): skip when `currentEpochId != null && peer.epochId != current`.
+/// Epoch filtering keeps replaced-away data inert and reports peers that still
+/// need to adopt the current library epoch.
 void main() {
   late FakeCloudStorageProvider provider;
   late ChangesetWriter writer;
@@ -45,7 +47,11 @@ void main() {
 
   Future<void> spyApply(SyncPayload p) async => applied.add(p);
 
-  Future<void> publishPeer(String peerId, {String? epochId}) async {
+  Future<void> publishPeer(
+    String peerId, {
+    String? epochId,
+    int? manifestUpdatedAt,
+  }) async {
     await writer.publish(
       provider: provider,
       deviceId: peerId,
@@ -53,6 +59,21 @@ void main() {
       deletions: const [],
       epochId: epochId,
     );
+    if (manifestUpdatedAt != null) {
+      final manifestFile = (await provider.listFiles(
+        folderId: folder,
+        namePattern: ChangesetLogLayout.manifestName(peerId),
+      )).single;
+      final manifest =
+          jsonDecode(utf8.decode(await provider.downloadFile(manifestFile.id)))
+              as Map<String, dynamic>;
+      manifest['updatedAt'] = manifestUpdatedAt;
+      await provider.uploadFile(
+        Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
+        manifestFile.name,
+        folderId: folder,
+      );
+    }
   }
 
   Future<ChangesetReadResult> pull({String? currentEpochId}) => reader.pull(
@@ -85,10 +106,11 @@ void main() {
     final result = await pull(currentEpochId: 'epoch-NEW');
 
     expect(result.peersProcessed, 0);
+    expect(result.skippedPeerDeviceIds, {'peer-1'});
     expect(applied, isEmpty);
   });
 
-  test('skips an unstamped peer once we are on an epoch', () async {
+  test('skips an unstamped peer and reports it', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
     );
@@ -97,6 +119,24 @@ void main() {
     final result = await pull(currentEpochId: 'epoch-NEW');
 
     expect(result.peersProcessed, 0);
+    expect(applied, isEmpty);
+    expect(result.skippedPeerDeviceIds, {'peer-1'});
+  });
+
+  test('skips unstamped peers regardless of manifest timestamp', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publishPeer('peer-old', manifestUpdatedAt: 0);
+    await publishPeer(
+      'peer-recent',
+      manifestUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    final result = await pull(currentEpochId: 'epoch-NEW');
+
+    expect(result.peersProcessed, 0);
+    expect(result.skippedPeerDeviceIds, {'peer-old', 'peer-recent'});
     expect(applied, isEmpty);
   });
 

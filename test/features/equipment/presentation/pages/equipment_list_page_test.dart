@@ -100,6 +100,7 @@ Future<List<Override>> _buildOverrides({
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => <EquipmentItem>[]),
+    activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListNotifierProvider.overrideWith((ref) => _MockEquipNotifier()),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(

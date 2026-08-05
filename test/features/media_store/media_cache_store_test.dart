@@ -137,4 +137,66 @@ void main() {
     expect(await cache.get(thumbB, MediaCacheKind.thumb), isNotNull);
     expect(await cache.get(bigOriginal, MediaCacheKind.original), isNotNull);
   });
+
+  // The index is keyed {contentHash, kind} and relativePath used to be a pure
+  // function of that key, so an overwrite always rewrote the same path. Now
+  // that the caller supplies the extension, two rows over identical bytes can
+  // ask for different names (StoreKeys.extensionFor is explicitly not
+  // injective over content -- photo.JPG and photo.jpeg -- and a video's name
+  // can also fall back to its local path). The superseded file has to go:
+  // nothing references it, and eviction only walks the index, so it would sit
+  // on disk forever without counting against any cap.
+  test('re-putting under a different extension leaves no untracked '
+      'file', () async {
+    final hash = 'cd${'4' * 62}';
+
+    final first = await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([1, 2, 3]),
+      extension: 'jpg',
+    );
+    expect(await first.exists(), isTrue);
+
+    final second = await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([4, 5, 6]),
+      extension: 'jpeg',
+    );
+
+    expect(second.path, isNot(first.path));
+    expect(await second.exists(), isTrue);
+    expect(
+      await first.exists(),
+      isFalse,
+      reason: 'the superseded file must not linger untracked',
+    );
+
+    // The index agrees with what is on disk.
+    final hit = await cache.get(hash, MediaCacheKind.original);
+    expect(hit!.path, second.path);
+    expect(await hit.readAsBytes(), [4, 5, 6]);
+
+    final pool = Directory('${root.path}/originals/cd');
+    expect(pool.listSync().whereType<File>().length, 1);
+  });
+
+  test('re-putting under the same extension still works', () async {
+    final hash = 'ce${'3' * 62}';
+    await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([1]),
+      extension: 'mp4',
+    );
+    final again = await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([2]),
+      extension: 'mp4',
+    );
+    expect(await again.exists(), isTrue);
+    expect(await again.readAsBytes(), [2]);
+  });
 }

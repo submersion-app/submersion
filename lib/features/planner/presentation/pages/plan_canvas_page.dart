@@ -7,8 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/dive_planner/presentation/widgets/plan_settings_panel.dart';
-import 'package:submersion/features/dive_planner/presentation/widgets/plan_gear_weights_section.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
@@ -18,22 +17,38 @@ import 'package:submersion/features/planner/data/services/plan_slate_pdf_service
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
-import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
-import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_canvas_chart.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
-/// The Live Profile Canvas: a chart-centric dive planner. Editing state lives
-/// on [divePlanNotifierProvider]; every displayed number comes from the
-/// PlanEngine via [planOutcomeProvider].
+/// Whether [id] refers to a plan that already exists in the store. Drives the
+/// visibility of the destructive "Delete plan" action: a brand-new, never-saved
+/// plan has nothing to delete (Reset covers clearing it).
+@visibleForTesting
+bool planIsPersisted(String id, List<domain.DivePlanSummary> summaries) =>
+    summaries.any((s) => s.id == id);
+
+/// Mission Control: a thin layout router over the planner's three panes.
+/// Editing state lives on [divePlanNotifierProvider]; every displayed number
+/// comes from the PlanEngine via [planOutcomeProvider].
+///
+/// Modes, decided from the space the page is actually given:
+/// - >= 1160 px: editor pane, chart column, results pane (side panes
+///   collapsible with remembered state)
+/// - 760-1160 px: chart column + results pane; the editor lives in a drawer
+/// - < 760 px: phone Chart + Tab Deck (Plan / Tanks / Setup / Results)
 class PlanCanvasPage extends ConsumerStatefulWidget {
   const PlanCanvasPage({super.key, this.planId});
 
@@ -44,10 +59,8 @@ class PlanCanvasPage extends ConsumerStatefulWidget {
 }
 
 class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
-  final _sheetController = DraggableScrollableController();
-
-  /// Owns the always-visible results pane on wide layouts so it is created
-  /// once (not per build) and disposed with the page.
+  /// Owns the always-visible results pane so it is created once (not per
+  /// build) and disposed with the page. Shared by the phone Results tab.
   final _wideResultsController = ScrollController();
 
   @override
@@ -66,7 +79,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
   @override
   void dispose() {
-    _sheetController.dispose();
     _wideResultsController.dispose();
     super.dispose();
   }
@@ -74,35 +86,76 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    final isWide = ResponsiveBreakpoints.isDesktop(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    // A plan opened via the :planId route is known-persisted, so short-circuit
+    // before watching the (DB-backed) summaries provider; that avoids an
+    // avoidable subscription/fetch in the common edit-a-saved-plan case. The
+    // summaries watch only runs for a new plan, where it flips the Delete item
+    // on once the plan is first saved.
+    final canDelete =
+        widget.planId != null ||
+        planIsPersisted(
+          planState.id,
+          ref.watch(divePlanSummariesProvider).valueOrNull ??
+              const <domain.DivePlanSummary>[],
+        );
 
     return Scaffold(
       appBar: AppBar(
+        leading: const BackButton(),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
               child: InkWell(
                 onTap: () => _showRenameDialog(context),
-                child: Text(planState.name),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // The inner Flexible is what keeps a long plan name
+                    // ellipsizing once the pencil takes fixed width.
+                    Flexible(
+                      child: Text(
+                        planState.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            // State-derived OC/CCR toggle (replaces the phase-3 placeholder).
+            // State-derived mode toggle: tap cycles OC -> CCR -> SCR.
             InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () => ref
                   .read(divePlanNotifierProvider.notifier)
-                  .updateMode(
-                    planState.mode == domain.PlanMode.ccr
-                        ? domain.PlanMode.oc
-                        : domain.PlanMode.ccr,
-                  ),
+                  .updateMode(_nextMode(planState.mode)),
               child: PlanChip(
-                label: planState.mode == domain.PlanMode.ccr ? 'CCR' : 'OC',
-                emphasized: planState.mode == domain.PlanMode.ccr,
+                label: planState.mode.name.toUpperCase(),
+                emphasized: planState.mode != domain.PlanMode.oc,
               ),
             ),
+            if (MediaQuery.sizeOf(context).width >= 560) ...[
+              const SizedBox(width: 6),
+              PlanChip(
+                label: 'GF',
+                value: '${planState.gfLow}/${planState.gfHigh}',
+                onTap: () => _focusSetup('deco'),
+              ),
+              const SizedBox(width: 6),
+              PlanChip(
+                label:
+                    '${units.convertAltitude(planState.altitude ?? 0).toStringAsFixed(0)} ${units.altitudeSymbol}',
+                onTap: () => _focusSetup('environment'),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -156,13 +209,27 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 Icons.refresh,
                 context.l10n.divePlanner_action_resetPlan,
               ),
+              if (canDelete) _deleteMenuItem(context),
             ],
           ),
         ],
       ),
-      body: isWide ? _buildWide() : _buildPhone(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+          return _buildPhone(constraints);
+        },
+      ),
     );
   }
+
+  static domain.PlanMode _nextMode(domain.PlanMode mode) => switch (mode) {
+    domain.PlanMode.oc => domain.PlanMode.ccr,
+    domain.PlanMode.ccr => domain.PlanMode.scr,
+    domain.PlanMode.scr => domain.PlanMode.pscr,
+    domain.PlanMode.pscr => domain.PlanMode.oc,
+  };
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {
     return PopupMenuItem(
@@ -170,6 +237,21 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _deleteMenuItem(BuildContext context) {
+    final error = Theme.of(context).colorScheme.error;
+    return PopupMenuItem(
+      value: 'delete',
+      child: ListTile(
+        leading: Icon(Icons.delete_outline, color: error),
+        title: Text(
+          context.l10n.divePlanner_action_deletePlan,
+          style: TextStyle(color: error),
+        ),
         contentPadding: EdgeInsets.zero,
       ),
     );
@@ -187,7 +269,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 'follow':
         showFollowDiveSheet(context);
       case 'settings':
-        _showSettingsSheet(context);
+        _focusSetup('deco');
       case 'convert':
         _convertToDive();
       case 'slate':
@@ -196,8 +278,223 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _sharePlanFile();
       case 'reset':
         _resetPlan();
+      case 'delete':
+        _deletePlan();
     }
   }
+
+  /// Reveal a Setup accordion section in whatever layout mode is active.
+  void _focusSetup(String section) {
+    if (MediaQuery.sizeOf(context).width < 760) {
+      ref.read(plannerPhoneTabProvider.notifier).state = 2;
+    } else {
+      ref.read(editorPaneCollapsedProvider.notifier).state = false;
+    }
+    ref.read(setupFocusSectionProvider.notifier).state = section;
+  }
+
+  // --- Layout modes ---
+
+  /// Desktop: the editor pane is always visible (collapsible, never hidden
+  /// behind a drawer). At full width the results pane shows by default; at
+  /// middle widths it defaults to hidden and the right chevron reveals it.
+  Widget _buildDesktop({required bool fullWidth}) {
+    final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
+    final resultsVisible = fullWidth
+        ? !ref.watch(resultsPaneCollapsedProvider)
+        : ref.watch(resultsPaneNarrowExpandedProvider);
+
+    void toggleResults() {
+      if (fullWidth) {
+        ref.read(resultsPaneCollapsedProvider.notifier).update((v) => !v);
+      } else {
+        ref.read(resultsPaneNarrowExpandedProvider.notifier).update((v) => !v);
+      }
+    }
+
+    return Row(
+      children: [
+        if (!editorCollapsed) ...[
+          const SizedBox(width: 320, child: PlanEditorPane()),
+          const VerticalDivider(width: 1),
+        ],
+        Expanded(
+          child: _chartColumn(
+            editorCollapsed: editorCollapsed,
+            onToggleEditor: () => ref
+                .read(editorPaneCollapsedProvider.notifier)
+                .update((v) => !v),
+            resultsVisible: resultsVisible,
+            onToggleResults: toggleResults,
+          ),
+        ),
+        if (resultsVisible) ...[
+          const VerticalDivider(width: 1),
+          SizedBox(
+            width: 320,
+            child: PlanResultsPane(controller: _wideResultsController),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _chartColumn({
+    required bool editorCollapsed,
+    required VoidCallback onToggleEditor,
+    required bool resultsVisible,
+    required VoidCallback onToggleResults,
+  }) {
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: PlanProfileChart(),
+                ),
+              ),
+              Positioned(
+                left: 4,
+                top: 4,
+                child: IconButton(
+                  tooltip: editorCollapsed
+                      ? context.l10n.plannerCanvas_pane_expand
+                      : context.l10n.plannerCanvas_pane_collapse,
+                  icon: Icon(
+                    editorCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                  ),
+                  onPressed: onToggleEditor,
+                ),
+              ),
+              Positioned(
+                right: 4,
+                top: 4,
+                child: IconButton(
+                  tooltip: resultsVisible
+                      ? context.l10n.plannerCanvas_pane_collapse
+                      : context.l10n.plannerCanvas_pane_expand,
+                  icon: Icon(
+                    resultsVisible ? Icons.chevron_right : Icons.chevron_left,
+                  ),
+                  onPressed: onToggleResults,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PlanStatusChips(onIssuesTap: _scrollWideToIssues),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 6, 16, 8),
+          child: ContingencyChips(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhone(BoxConstraints constraints) {
+    final tab = ref.watch(plannerPhoneTabProvider);
+    final tabs = [
+      context.l10n.divePlanner_tab_plan,
+      context.l10n.divePlanner_label_tanks,
+      context.l10n.plannerCanvas_tab_setup,
+      context.l10n.divePlanner_tab_results,
+    ];
+    return Column(
+      children: [
+        SizedBox(
+          height: constraints.maxHeight * 0.40,
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.all(8),
+                  child: PlanProfileChart(),
+                ),
+              ),
+              Positioned(
+                right: 10,
+                bottom: 10,
+                child: IconButton.filledTonal(
+                  icon: const Icon(Icons.open_in_full, size: 18),
+                  onPressed: () => context.go('/planning/dive-planner/chart'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: PlanStatusChips(
+            onIssuesTap: () =>
+                ref.read(plannerPhoneTabProvider.notifier).state = 3,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(12, 6, 12, 0),
+          child: ContingencyChips(),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: SegmentedButton<int>(
+            segments: [
+              for (var i = 0; i < tabs.length; i++)
+                ButtonSegment(value: i, label: Text(tabs[i])),
+            ],
+            selected: {tab},
+            showSelectedIcon: false,
+            onSelectionChanged: (selection) =>
+                ref.read(plannerPhoneTabProvider.notifier).state =
+                    selection.first,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(child: _phoneTabBody(tab)),
+      ],
+    );
+  }
+
+  Widget _phoneTabBody(int tab) {
+    switch (tab) {
+      case 0:
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: const [SegmentList()],
+        );
+      case 1:
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: const [PlanTankList()],
+        );
+      case 2:
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: const [PlanSetupAccordion()],
+        );
+      case 3:
+      default:
+        return PlanResultsPane(controller: _wideResultsController);
+    }
+  }
+
+  /// The results pane is always visible outside phone mode; scroll it to the
+  /// issues section (the last one) when the issues chip is tapped.
+  void _scrollWideToIssues() {
+    if (!_wideResultsController.hasClients) return;
+    _wideResultsController.animateTo(
+      _wideResultsController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  // --- Actions ---
 
   Future<void> _sharePlanFile() async {
     final state = ref.read(divePlanNotifierProvider);
@@ -253,150 +550,81 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
-  // --- Phone: chart + chips + editor list, results in a draggable sheet ---
-
-  Widget _buildPhone() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            Column(
-              children: [
-                SizedBox(
-                  height: constraints.maxHeight * 0.42,
-                  child: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: PlanCanvasChart(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: PlanStatusChips(onIssuesTap: _openResultsSheet),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(12, 6, 12, 0),
-                  child: ContingencyChips(),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 72),
-                    children: const [
-                      SegmentList(),
-                      PlanTankList(),
-                      PlanGearWeightsSection(),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            DraggableScrollableSheet(
-              controller: _sheetController,
-              minChildSize: 0.08,
-              initialChildSize: 0.08,
-              maxChildSize: 0.85,
-              snap: true,
-              snapSizes: const [0.08, 0.5, 0.85],
-              builder: (context, scrollController) => Material(
-                elevation: 8,
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                child: PlanResultsSheet(controller: scrollController),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _openResultsSheet() {
-    _sheetController.animateTo(
-      0.5,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
-  }
-
-  /// On wide layouts the results pane is always visible; scroll it to the
-  /// issues section (the last one) when the issues chip is tapped.
-  void _scrollWideToIssues() {
-    if (!_wideResultsController.hasClients) return;
-    _wideResultsController.animateTo(
-      _wideResultsController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
-  }
-
-  // --- Wide: editor column, chart + chips, always-visible results pane ---
-
-  Widget _buildWide() {
-    return Row(
-      children: [
-        SizedBox(
-          width: 360,
-          child: ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              const PlanSettingsPanel(),
-              if (ref.watch(divePlanNotifierProvider).mode ==
-                  domain.PlanMode.ccr)
-                const CcrSettingsSection(),
-              const ContingencySettingsSection(),
-              const SizedBox(height: 12),
-              const PlanTankList(),
-              const SizedBox(height: 12),
-              const PlanGearWeightsSection(),
-              const SizedBox(height: 12),
-              const SegmentList(),
-            ],
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: Column(
-            children: [
-              const Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: PlanCanvasChart(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: PlanStatusChips(onIssuesTap: _scrollWideToIssues),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 6, 16, 0),
-                child: ContingencyChips(),
-              ),
-              SizedBox(
-                height: 260,
-                child: PlanResultsSheet(controller: _wideResultsController),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- Actions ---
+  /// Guards [_savePlan] against re-entry.
+  ///
+  /// The save button stays enabled across the naming flow's async gaps - the
+  /// site lookup and the write itself both run with no modal up and isDirty
+  /// still true - so a second tap could start a concurrent save. Worse than
+  /// stacked dialogs: [DivePlanNotifier.save] only sets its loaded plan after
+  /// the write completes, so a concurrent call still reads isPersisted as false
+  /// and prompts for a name on a plan that is already being saved.
+  bool _saveInFlight = false;
 
   Future<void> _savePlan() async {
+    if (_saveInFlight) return;
+    _saveInFlight = true;
+    try {
+      await _runSavePlan();
+    } finally {
+      _saveInFlight = false;
+    }
+  }
+
+  Future<void> _runSavePlan() async {
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+
+    // Prompt for a name the first time a plan is persisted, so the saved-plans
+    // list is not a wall of identically-named rows. Re-saves stay silent, and
+    // so does Convert to Dive: that flow is already multi-step and should not
+    // grow a modal.
+    if (!notifier.isPersisted) {
+      final l10n = context.l10n;
+      final units = UnitFormatter(ref.read(settingsProvider));
+      final siteId = ref.read(divePlanNotifierProvider).siteId;
+      final site = siteId == null
+          ? null
+          : await ref.read(siteProvider(siteId).future);
+      if (!mounted) return;
+
+      // Re-read after the site lookup rather than before it. No modal is up
+      // while that read resolves, so the diver can still edit the plan and the
+      // suggested name must describe what the plan is now.
+      final planState = ref.read(divePlanNotifierProvider);
+      final suggestedDepth = ref.read(planOutcomeProvider).maxDepth;
+      // The lookup was keyed on the pre-await id. If the diver switched sites
+      // while it resolved, the fetched name describes a site the plan no longer
+      // uses, so drop it rather than pair it with fresh depth and date.
+      final siteName = planState.siteId == siteId ? site?.name : null;
+
+      final entered = await showPlanNameDialog(
+        context,
+        initialName: generateDefaultPlanName(
+          siteName: siteName,
+          depthLabel: suggestedDepth > 0
+              ? units.formatDepth(suggestedDepth)
+              : null,
+          date: planState.startDateTime ?? DateTime.now(),
+          fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
+        ),
+        title: l10n.plannerCanvas_name_dialogTitle,
+      );
+      // Cancel aborts the save entirely: nothing is written and the plan stays
+      // dirty, so the diver is never surprised by a name they rejected.
+      if (entered == null) return;
+      notifier.updateName(entered);
+    }
+
+    // Build the summary last so the denormalized depth/runtime always describe
+    // the plan actually being persisted, never whatever it looked like before
+    // the naming flow's async gaps.
     final outcome = ref.read(planOutcomeProvider);
-    await ref
-        .read(divePlanNotifierProvider.notifier)
-        .save(
-          summary: PlanSummaryData(
-            maxDepth: outcome.maxDepth,
-            runtimeSeconds: outcome.runtimeSeconds,
-            ttsSeconds: outcome.ttsAtBottom,
-          ),
-        );
+    await notifier.save(
+      summary: PlanSummaryData(
+        maxDepth: outcome.maxDepth,
+        runtimeSeconds: outcome.runtimeSeconds,
+        ttsSeconds: outcome.ttsAtBottom,
+      ),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
@@ -469,27 +697,81 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     return total > 0 ? weighted / total : 0;
   }
 
-  void _showSettingsSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+  Future<void> _deletePlan() async {
+    // Prefer the route's planId. During the loadPlanById() window the notifier
+    // state still holds a freshly generated placeholder id, so reading it here
+    // could target (and tombstone) the wrong plan. widget.planId is the
+    // authoritative plan being edited; fall back to the notifier id only for a
+    // routeless plan saved this session.
+    final repository = ref.read(divePlanRepositoryProvider);
+    final planId = widget.planId ?? ref.read(divePlanNotifierProvider).id;
+
+    // Read the authoritative plan (and its persisted summary numbers) from the
+    // store first, so the confirm dialog, the deletion, and the undo snapshot
+    // all refer to the same real plan. Capturing the summary from the store
+    // (not planOutcomeProvider, which reflects transient in-memory edits) keeps
+    // the restored saved-plans list numbers consistent with the restored plan.
+    // A null plan means it was already deleted elsewhere (e.g. via sync); we
+    // still delete and navigate so the user is never stranded on a dead
+    // :planId route, but omit Undo since there is no snapshot to restore.
+    final captured = await repository.getPlan(planId);
+    if (!mounted) return;
+    final capturedSummary = captured == null
+        ? null
+        : await repository.getPlanSummary(planId);
+    if (!mounted) return;
+    final name = captured?.name ?? ref.read(divePlanNotifierProvider).name;
+
+    final confirmed = await showDialog<bool>(
       context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Consumer(
-            builder: (context, ref, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const PlanSettingsPanel(),
-                if (ref.watch(divePlanNotifierProvider).mode ==
-                    domain.PlanMode.ccr)
-                  const CcrSettingsSection(),
-                const ContingencySettingsSection(),
-              ],
-            ),
-          ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_deletePlan),
+        content: Text(
+          context.l10n.divePlanner_message_deleteConfirmation(name),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await repository.deletePlan(planId);
+    if (!mounted) return;
+
+    // Capture messenger + strings before navigating; this page is about to be
+    // disposed and its context becomes defunct.
+    final messenger = ScaffoldMessenger.of(context);
+    final deletedLabel = context.l10n.divePlanner_message_planDeleted;
+    final undoLabel = context.l10n.divePlanner_undo;
+    context.go('/planning');
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(deletedLabel),
+        duration: const Duration(seconds: 5),
+        // A SnackBar with an action defaults to persist: true, which makes the
+        // auto-dismiss timer a no-op so the banner never hides on its own.
+        // Force the 5s auto-dismiss and add a close icon so the banner can be
+        // dismissed without tapping Undo (which would restore the plan). #406.
+        persist: false,
+        showCloseIcon: true,
+        action: captured == null
+            ? null
+            : SnackBarAction(
+                label: undoLabel,
+                onPressed: () =>
+                    repository.savePlan(captured, summary: capturedSummary),
+              ),
       ),
     );
   }
@@ -517,37 +799,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
-  void _showRenameDialog(BuildContext context) {
-    final controller = TextEditingController(
-      text: ref.read(divePlanNotifierProvider).name,
+  Future<void> _showRenameDialog(BuildContext context) async {
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    final entered = await showPlanNameDialog(
+      context,
+      initialName: ref.read(divePlanNotifierProvider).name,
+      title: context.l10n.divePlanner_action_renamePlan,
     );
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.divePlanner_action_renamePlan),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: context.l10n.divePlanner_field_planName,
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              ref
-                  .read(divePlanNotifierProvider.notifier)
-                  .updateName(controller.text);
-              Navigator.pop(dialogContext);
-            },
-            child: Text(context.l10n.common_action_save),
-          ),
-        ],
-      ),
-    );
+    if (entered == null) return;
+    notifier.updateName(entered);
   }
 }

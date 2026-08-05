@@ -2,16 +2,18 @@ import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.d
 import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
-enum SceneMarkerKind { gasSwitch, bookmark, photo }
+enum SceneMarkerKind { gasSwitch, bookmark, photo, site, nearbySite }
 
-/// A tappable scene annotation anchored to the ribbon at a moment in the
-/// dive. x/y are scene coordinates (z is always 0; renderers billboard).
+/// A tappable scene annotation. x/y/z are scene coordinates; depth-time
+/// scenes leave z at 0 (renderers billboard), spatial scenes position
+/// markers in full 3D.
 class SceneMarker {
   final SceneMarkerKind kind;
   final String? refId;
   final String label;
   final double x;
   final double y;
+  final double z;
   final int timestampSeconds;
 
   const SceneMarker({
@@ -20,6 +22,7 @@ class SceneMarker {
     required this.label,
     required this.x,
     required this.y,
+    this.z = 0,
     required this.timestampSeconds,
   });
 }

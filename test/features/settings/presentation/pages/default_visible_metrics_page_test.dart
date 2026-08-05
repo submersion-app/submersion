@@ -107,6 +107,13 @@ void main() {
     await tester.pumpWidget(buildPage(notifier));
     await tester.pumpAndSettle();
 
+    await tester.dragUntilVisible(
+      find.text('Ascent Rate'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Ascent Rate'));
     await tester.pumpAndSettle();
 

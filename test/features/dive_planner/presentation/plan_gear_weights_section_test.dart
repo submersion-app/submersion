@@ -61,6 +61,7 @@ void main() {
       ...base,
       weightObservationsProvider.overrideWith((ref) async => observations),
       allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+      activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
       latestDiverWeightProvider.overrideWith((ref) async => entry),
     ];
 
@@ -115,6 +116,7 @@ void main() {
           ...base,
           weightObservationsProvider.overrideWith((ref) async => const []),
           allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+          activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           equipmentSetsProvider.overrideWith((ref) async => [set]),
           equipmentSetWithItemsProvider(
@@ -156,6 +158,7 @@ void main() {
           ...base,
           weightObservationsProvider.overrideWith((ref) async => const []),
           allEquipmentProvider.overrideWith((ref) async => const []),
+          activeEquipmentProvider.overrideWith((ref) async => const []),
           latestDiverWeightProvider.overrideWith((ref) async => null),
         ],
         child: const PlanGearWeightsSection(),

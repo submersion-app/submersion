@@ -1,4 +1,4 @@
-#include "WinSparkle-0.8.1/include/winsparkle.h"
+#include "WinSparkle-0.9.4/include/winsparkle.h"
 
 #include <windows.h>
 

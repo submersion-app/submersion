@@ -69,6 +69,20 @@ abstract class MediaObjectStore {
   /// Idempotent delete: absent keys succeed.
   Future<void> delete(String key);
 
+  /// Best-effort abandonment of any provider-side resumable upload session
+  /// recorded in [resumeStateJson] for [key] (orphan-prevention spec 5.5).
+  /// Called when an upload is terminally failed and its resume state will
+  /// never be replayed. Providers whose sessions self-expire (Dropbox,
+  /// Drive, iCloud) no-op; must never throw on malformed or null state.
+  Future<void> abandonResume(String key, String? resumeStateJson);
+
   /// All objects whose key starts with [keyPrefix].
   Stream<StoreObjectInfo> list(String keyPrefix);
+
+  /// Aborts provider-side resumable upload sessions started before
+  /// [olderThan]; returns how many were aborted. Grace-windowed so a
+  /// session another device is actively resuming is never reaped
+  /// (orphan-prevention spec 6.1). Providers whose sessions self-expire
+  /// return 0.
+  Future<int> reapStaleUploadSessions({required DateTime olderThan});
 }

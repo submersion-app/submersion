@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
 /// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
 /// selects the ids of all dives matching [filter], mirroring
@@ -66,6 +67,41 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
     params.addAll(filter.equipmentIds);
   }
 
+  // Equipment attribute: dives linked to an equipment item whose curated
+  // attribute matches. value_num bounds are canonical metric.
+  if (filter.equipmentAttrKey != null) {
+    // The "Suit thickness" axis (thickness_mm) must match only exposure suits,
+    // mirroring getDivesBySuitThickness(): the same attr_key also exists on
+    // hoods/gloves/boots, which are not suits.
+    final suitOnly = filter.equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
+    final sub = StringBuffer(
+      'id IN (SELECT de.dive_id FROM dive_equipment de '
+      'JOIN equipment_attributes ea ON ea.equipment_id = de.equipment_id ',
+    );
+    if (suitOnly) {
+      sub.write(
+        "JOIN equipment eqf ON eqf.id = de.equipment_id "
+        "AND eqf.type IN ('wetsuit', 'drysuit') ",
+      );
+    }
+    sub.write('WHERE ea.attr_key = ? AND ea.is_custom = 0');
+    params.add(filter.equipmentAttrKey);
+    if (filter.equipmentAttrChoice != null) {
+      sub.write(' AND ea.value_text = ?');
+      params.add(filter.equipmentAttrChoice);
+    }
+    if (filter.equipmentAttrMin != null) {
+      sub.write(' AND ea.value_num >= ?');
+      params.add(filter.equipmentAttrMin);
+    }
+    if (filter.equipmentAttrMax != null) {
+      sub.write(' AND ea.value_num <= ?');
+      params.add(filter.equipmentAttrMax);
+    }
+    sub.write(')');
+    conditions.add(sub.toString());
+  }
+
   // Depth: null depth excluded when a bound is set.
   if (filter.minDepth != null) {
     conditions.add('max_depth IS NOT NULL AND max_depth >= ?');
@@ -80,11 +116,17 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
     conditions.add('is_favorite = 1');
   }
 
-  // Buddy free-text: case-insensitive substring.
+  // Buddy free-text: case-insensitive substring against the legacy scalar
+  // column OR any junction-linked buddy's name. The dive editor writes only
+  // the dive_buddies junction; the scalar covers old data (#757).
   if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
     conditions.add(
-      "buddy IS NOT NULL AND LOWER(buddy) LIKE '%' || LOWER(?) || '%'",
+      "((buddy IS NOT NULL AND LOWER(buddy) LIKE '%' || LOWER(?) || '%') "
+      'OR id IN (SELECT db.dive_id FROM dive_buddies db '
+      'JOIN buddies b ON b.id = db.buddy_id '
+      "WHERE LOWER(b.name) LIKE '%' || LOWER(?) || '%'))",
     );
+    params.add(filter.buddyNameFilter);
     params.add(filter.buddyNameFilter);
   }
 

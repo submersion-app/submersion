@@ -6,10 +6,17 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -83,12 +90,22 @@ final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
   ),
 );
 
-/// Apply sorting to a list of equipment items
+/// Apply sorting to a list of equipment items.
+///
+/// [serviceUrgency] is the most-urgent clock per equipment id (from
+/// [equipmentServiceUrgencyProvider]); it is only consulted for the
+/// [EquipmentSortField.serviceDue] field.
 List<EquipmentItem> applyEquipmentSorting(
   List<EquipmentItem> equipment,
-  SortState<EquipmentSortField> sort,
-) {
+  SortState<EquipmentSortField> sort, {
+  Map<String, ServiceClockStatus> serviceUrgency = const {},
+}) {
   final sorted = List<EquipmentItem>.from(equipment);
+
+  // Rank for the service-due sort: overdue (2) > dueSoon (1) > ok (0); items
+  // with no clock rank -1 so they sort last on ascending (most-urgent first).
+  int urgencyRank(EquipmentItem e) =>
+      serviceUrgency[e.id]?.severity.index ?? -1;
 
   sorted.sort((a, b) {
     int comparison;
@@ -110,6 +127,23 @@ List<EquipmentItem> applyEquipmentSorting(
         comparison = (a.lastServiceDate ?? DateTime(1900)).compareTo(
           b.lastServiceDate ?? DateTime(1900),
         );
+      case EquipmentSortField.serviceDue:
+        final ra = urgencyRank(a), rb = urgencyRank(b);
+        int cmp;
+        if (ra != rb) {
+          // Higher rank = more urgent; ascending lists most urgent first.
+          cmp = rb.compareTo(ra);
+        } else {
+          final da = serviceUrgency[a.id]?.dueDate;
+          final db = serviceUrgency[b.id]?.dueDate;
+          cmp = (da ?? DateTime(9999)).compareTo(db ?? DateTime(9999));
+          // Deterministic tie-break: List.sort is not stable, so equal-urgency
+          // items (common while the urgency map is empty/loading) could reorder
+          // between rebuilds and flicker. Fall back to name, then id.
+          if (cmp == 0) cmp = a.name.compareTo(b.name);
+          if (cmp == 0) cmp = a.id.compareTo(b.id);
+        }
+        return sort.direction == SortDirection.ascending ? cmp : -cmp;
     }
 
     if (invertForText) {
@@ -373,6 +407,9 @@ class ServiceRecordNotifier
     _ref.invalidate(serviceRecordCountProvider(equipmentId));
     // Also refresh equipment to update lastServiceDate
     _ref.invalidate(equipmentItemProvider(equipmentId));
+    // A new record of kind X resets clock X: re-evaluate clocks and lists.
+    _ref.invalidate(serviceClockStatusesProvider(equipmentId));
+    _ref.invalidate(dueClocksProvider);
   }
 
   Future<ServiceRecord> addRecord(ServiceRecord record) async {
@@ -479,3 +516,215 @@ final equipmentCompactCardConfigProvider =
         ],
       ),
     );
+
+// ---------------------------------------------------------------------------
+// Service ledger (multi-clock service tracking)
+// ---------------------------------------------------------------------------
+
+/// One equipment item paired with one evaluated service clock, for
+/// cross-equipment lists (dashboard card, trip alerts, list badges).
+typedef DueClock = ({EquipmentItem item, ServiceClockStatus status});
+
+final serviceKindRepositoryProvider = Provider<ServiceKindRepository>((ref) {
+  return ServiceKindRepository();
+});
+
+final serviceScheduleRepositoryProvider = Provider<ServiceScheduleRepository>((
+  ref,
+) {
+  return ServiceScheduleRepository();
+});
+
+/// Built-in kinds plus the current diver's custom kinds.
+final serviceKindsProvider = FutureProvider<List<ServiceKind>>((ref) async {
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  return ref
+      .watch(serviceKindRepositoryProvider)
+      .getAllKinds(diverId: validatedDiverId);
+});
+
+/// The dueSoon window: the widest configured reminder-days value for the
+/// current diver, so a clock turns amber as soon as its earliest reminder
+/// would fire.
+final serviceDueSoonWindowDaysProvider = FutureProvider<int>((ref) async {
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  return ref
+      .watch(serviceScheduleRepositoryProvider)
+      .getDueSoonWindowDays(diverId: validatedDiverId);
+});
+
+/// Evaluates every enabled clock on [item] at this moment.
+Future<List<ServiceClockStatus>> _evaluateClocksFor(
+  Ref ref,
+  EquipmentItem item, {
+  List<ServiceKind>? kinds,
+}) async {
+  final schedules = await ref
+      .watch(serviceScheduleRepositoryProvider)
+      .getSchedulesForEquipment(item.id);
+  if (schedules.isEmpty) return const [];
+  final allKinds =
+      kinds ?? await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  final records = await ref
+      .watch(serviceRecordRepositoryProvider)
+      .getRecordsForEquipment(item.id);
+  final usage = await ref
+      .watch(equipmentRepositoryProvider)
+      .getUsageSamplesForEquipment(item.id);
+  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
+  return const ServiceDueEngine().evaluate(
+    schedules: schedules,
+    kindsById: {for (final k in allKinds) k.id: k},
+    records: records,
+    usage: usage,
+    purchaseDate: item.purchaseDate,
+    equipmentCreatedAt: item.createdAt ?? DateTime.now(),
+    dueSoonWindowDays: window,
+    now: DateTime.now(),
+  );
+}
+
+/// All evaluated clocks for one equipment item (detail page).
+final serviceClockStatusesProvider =
+    FutureProvider.family<List<ServiceClockStatus>, String>((
+      ref,
+      equipmentId,
+    ) async {
+      final repository = ref.watch(equipmentRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      final item = await repository.getEquipmentById(equipmentId);
+      if (item == null) return const [];
+      return _evaluateClocksFor(ref, item);
+    });
+
+/// One active equipment item paired with every evaluated clock on it.
+typedef EquipmentClocks = ({
+  EquipmentItem item,
+  List<ServiceClockStatus> statuses,
+});
+
+/// Evaluates the clocks of every active gear item exactly once. Both
+/// [dueClocksProvider] (badges/dashboard/trip) and
+/// [equipmentServiceUrgencyProvider] (sort/table columns) derive from this, so
+/// a screen watching both pays the per-item DB evaluation (schedules + records
+/// + usage + window) a single time instead of twice. Invalidate THIS provider
+/// (not the derived ones) to force a re-evaluation after schedule/kind edits.
+final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
+  ref,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+
+  final items = await repository.getActiveEquipment(diverId: validatedDiverId);
+  final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  return [
+    for (final item in items)
+      (item: item, statuses: await _evaluateClocksFor(ref, item, kinds: kinds)),
+  ];
+});
+
+/// Every clock on active gear that is due soon or overdue, overdue first.
+final dueClocksProvider = FutureProvider<List<DueClock>>((ref) async {
+  final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
+  final due = <DueClock>[
+    for (final e in evaluated)
+      for (final s in e.statuses)
+        if (s.severity != ServiceClockSeverity.ok) (item: e.item, status: s),
+  ];
+  due.sort((a, b) {
+    if (a.status.severity != b.status.severity) {
+      return b.status.severity.index.compareTo(a.status.severity.index);
+    }
+    final ad = a.status.dueDate, bd = b.status.dueDate;
+    if (ad == null && bd == null) return 0;
+    if (ad == null) return 1;
+    if (bd == null) return -1;
+    return ad.compareTo(bd);
+  });
+  return due;
+});
+
+/// Worst due clock per equipment id (absent = all clocks ok); list badges
+/// read this so they do not run per-row queries. dueClocksProvider is sorted
+/// overdue-first, so the first clock seen per item is its worst.
+final equipmentWorstClockProvider = FutureProvider<Map<String, DueClock>>((
+  ref,
+) async {
+  final due = await ref.watch(dueClocksProvider.future);
+  final worst = <String, DueClock>{};
+  for (final d in due) {
+    worst.putIfAbsent(d.item.id, () => d);
+  }
+  return worst;
+});
+
+/// Most-urgent clock per active equipment id, INCLUDING ok (not-yet-due)
+/// clocks -- unlike [equipmentWorstClockProvider], which only carries due or
+/// overdue clocks. Backs the service-due sort and the Next Service Due table
+/// column so not-yet-due gear still sorts and displays its upcoming date.
+final equipmentServiceUrgencyProvider =
+    FutureProvider<Map<String, ServiceClockStatus>>((ref) async {
+      final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
+      return {
+        for (final e in evaluated)
+          if (e.statuses.isNotEmpty)
+            // Engine returns statuses worst-severity-first, then dueDate asc.
+            e.item.id: e.statuses.first,
+      };
+    });
+
+/// Clocks that block an upcoming trip: date trigger before the trip ends, or
+/// already due/overdue now. Usage triggers are never forecast into the trip.
+final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
+  (ref, tripId) async {
+    final trip = await ref.watch(tripByIdProvider(tripId).future);
+    if (trip == null) return const [];
+
+    final repository = ref.watch(equipmentRepositoryProvider);
+    final validatedDiverId = await ref.watch(
+      validatedCurrentDiverIdProvider.future,
+    );
+    ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+
+    final items = await repository.getActiveEquipment(
+      diverId: validatedDiverId,
+    );
+    final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+    final alerts = <DueClock>[];
+    for (final item in items) {
+      final statuses = await _evaluateClocksFor(ref, item, kinds: kinds);
+      alerts.addAll([
+        for (final s in statuses)
+          if (s.severity == ServiceClockSeverity.overdue ||
+              (s.dueDate != null && s.dueDate!.isBefore(trip.endDate)))
+            (item: item, status: s),
+      ]);
+    }
+    alerts.sort((a, b) {
+      final ad = a.status.dueDate, bd = b.status.dueDate;
+      if (ad == null && bd == null) return 0;
+      if (ad == null) return -1; // usage-overdue first
+      if (bd == null) return 1;
+      return ad.compareTo(bd);
+    });
+    return alerts;
+  },
+);
+
+/// Schedules (raw, unevaluated) for one item -- used by edit surfaces.
+final serviceSchedulesForEquipmentProvider =
+    FutureProvider.family<List<ServiceSchedule>, String>((
+      ref,
+      equipmentId,
+    ) async {
+      return ref
+          .watch(serviceScheduleRepositoryProvider)
+          .getSchedulesForEquipment(equipmentId);
+    });

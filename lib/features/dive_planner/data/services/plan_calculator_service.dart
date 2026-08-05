@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
@@ -41,6 +42,9 @@ class PlanCalculatorService {
   /// Default descent rate in m/min.
   final double defaultDescentRate;
 
+  /// Algorithm used to convert ppO2 exposure into CNS %/min.
+  final CnsCalculationMethod cnsMethod;
+
   final _uuid = const Uuid();
 
   PlanCalculatorService({
@@ -51,6 +55,7 @@ class PlanCalculatorService {
     this.cnsWarningThreshold = 80,
     this.defaultAscentRate = 9.0,
     this.defaultDescentRate = 18.0,
+    this.cnsMethod = CnsCalculationMethod.shearwater,
   });
 
   /// Calculate complete plan results from segments.
@@ -91,6 +96,7 @@ class PlanCalculatorService {
       ppO2WarningThreshold: ppO2Warning,
       ppO2CriticalThreshold: ppO2Critical,
       cnsWarningThreshold: cnsWarningThreshold,
+      cnsMethod: cnsMethod,
     );
 
     // Track results

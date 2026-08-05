@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -11,6 +14,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -82,6 +86,14 @@ class DiverSettingsRepository {
               ascentRateWarning: Value(s.ascentRateWarning),
               ascentRateCritical: Value(s.ascentRateCritical),
               showCeilingOnProfile: Value(s.showCeilingOnProfile),
+              showDecoStopsOnProfile: Value(s.showDecoStopsOnProfile),
+              safetyReviewEnabled: Value(s.safetyReviewEnabled),
+              safetyReviewDisabledRules: Value(
+                _encodeDisabledRules(s.safetyReviewDisabledRules),
+              ),
+              noFlyPreset: Value(s.noFlyPreset.dbValue),
+              hiddenChamberIds: Value(_encodeDisabledRules(s.hiddenChamberIds)),
+              emergencyRegion: Value(s.emergencyRegion),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
@@ -91,8 +103,10 @@ class DiverSettingsRepository {
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
               defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
+              defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
+              cnsCalculationMethod: Value(s.cnsCalculationMethod.dbValue),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
               diveListViewMode: Value(s.diveListViewMode.name),
@@ -142,6 +156,7 @@ class DiverSettingsRepository {
               serviceReminderDays: Value(
                 _formatReminderDays(s.serviceReminderDays),
               ),
+              tripServiceLeadDays: Value(s.tripServiceLeadDays),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
@@ -219,6 +234,16 @@ class DiverSettingsRepository {
           ascentRateWarning: Value(settings.ascentRateWarning),
           ascentRateCritical: Value(settings.ascentRateCritical),
           showCeilingOnProfile: Value(settings.showCeilingOnProfile),
+          showDecoStopsOnProfile: Value(settings.showDecoStopsOnProfile),
+          safetyReviewEnabled: Value(settings.safetyReviewEnabled),
+          safetyReviewDisabledRules: Value(
+            _encodeDisabledRules(settings.safetyReviewDisabledRules),
+          ),
+          noFlyPreset: Value(settings.noFlyPreset.dbValue),
+          hiddenChamberIds: Value(
+            _encodeDisabledRules(settings.hiddenChamberIds),
+          ),
+          emergencyRegion: Value(settings.emergencyRegion),
           showAscentRateColors: Value(settings.showAscentRateColors),
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
@@ -228,8 +253,10 @@ class DiverSettingsRepository {
           endLimit: Value(settings.endLimit),
           defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
           defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
+          defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
           defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
+          cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
           diveListViewMode: Value(settings.diveListViewMode.name),
@@ -281,6 +308,7 @@ class DiverSettingsRepository {
           serviceReminderDays: Value(
             _formatReminderDays(settings.serviceReminderDays),
           ),
+          tripServiceLeadDays: Value(settings.tripServiceLeadDays),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
           showProfilePanelInTableView: Value(
@@ -396,6 +424,14 @@ class DiverSettingsRepository {
       ascentRateWarning: row.ascentRateWarning,
       ascentRateCritical: row.ascentRateCritical,
       showCeilingOnProfile: row.showCeilingOnProfile,
+      showDecoStopsOnProfile: row.showDecoStopsOnProfile,
+      safetyReviewEnabled: row.safetyReviewEnabled,
+      safetyReviewDisabledRules: _decodeDisabledRules(
+        row.safetyReviewDisabledRules,
+      ),
+      noFlyPreset: NoFlyPreset.fromDbValue(row.noFlyPreset),
+      hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
+      emergencyRegion: row.emergencyRegion,
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
@@ -408,8 +444,14 @@ class DiverSettingsRepository {
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
       defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
+      defaultDecoStopSource: MetricDataSource.fromInt(
+        row.defaultDecoStopSource,
+      ),
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
+      cnsCalculationMethod: CnsCalculationMethod.fromDbValue(
+        row.cnsCalculationMethod,
+      ),
       cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
       diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
@@ -452,6 +494,7 @@ class DiverSettingsRepository {
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
+      tripServiceLeadDays: row.tripServiceLeadDays,
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
@@ -588,4 +631,26 @@ class DiverSettingsRepository {
 
   String _formatReminderTime(TimeOfDay time) =>
       '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+/// JSON-encodes the disabled safety rules set (sorted for deterministic
+/// storage); null when empty so the column stays compact.
+String? _encodeDisabledRules(Set<String> rules) {
+  if (rules.isEmpty) return null;
+  final sorted = rules.toList()..sort();
+  return jsonEncode(sorted);
+}
+
+Set<String> _decodeDisabledRules(String? raw) {
+  if (raw == null || raw.isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    // Tolerate corrupted values (non-list JSON, non-string elements) from bad
+    // prefs or a malformed sync payload: fall back to "no rules disabled"
+    // rather than crashing settings load.
+    if (decoded is! List) return const {};
+    return decoded.whereType<String>().toSet();
+  } on FormatException {
+    return const {};
+  }
 }

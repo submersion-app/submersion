@@ -69,6 +69,7 @@ class TheDiveSection extends StatelessWidget {
     final l10n = context.l10n;
     return FormSection(
       label: l10n.diveLog_edit_group_theDive,
+      icon: Icons.show_chart,
       expanded: true,
       onToggle: null,
       children: [

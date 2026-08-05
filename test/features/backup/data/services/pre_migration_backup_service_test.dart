@@ -126,6 +126,30 @@ void main() {
       expect(f.prefs.getHistory(), isEmpty);
     });
 
+    test('skips when stored > target (newer database, no-op)', () async {
+      final f = await _makeFixture();
+      addTearDown(f.dispose);
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => f.livePath,
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+        clock: () => DateTime.utc(2026, 7, 28),
+        idGenerator: () => 'x',
+      );
+
+      // A database written by a newer app version: the startup version guard
+      // rejects it before Drift opens, so no backup must be taken and the
+      // file must not be touched.
+      await service.backupIfMigrationPending(
+        stored: 137,
+        target: 136,
+        appVersion: '1.8.0.5601',
+      );
+
+      expect(await Directory(f.backupsDir).list().isEmpty, isTrue);
+      expect(f.prefs.getHistory(), isEmpty);
+    });
+
     test('skips when live DB file does not exist', () async {
       final f = await _makeFixture();
       addTearDown(f.dispose);

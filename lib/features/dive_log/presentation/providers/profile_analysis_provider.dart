@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
@@ -375,18 +376,25 @@ ProfileAnalysisService _resolveAnalysisService(
     ascentRateWarning: ref.watch(ascentRateWarningProvider),
     ascentRateCritical: ref.watch(ascentRateCriticalProvider),
     lastStopDepth: ref.watch(lastStopDepthProvider),
+    decoStopIncrement: ref.watch(decoStopIncrementProvider),
     environment: environment,
+    cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
   );
 }
 
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
-/// Each metric (NDL, ceiling, TTS, CNS) is independently controlled by its
-/// own [MetricDataSource] parameter. When a source is [MetricDataSource.computer]
-/// and computer data exists in the profile, those values take priority over
-/// the Buhlmann-calculated values. Points without computer data fall back to
-/// the calculated values.
+/// Each metric (NDL, ceiling, TTS, CNS, deco stop band) is independently
+/// controlled by its own [MetricDataSource] parameter. When a source is
+/// [MetricDataSource.computer] and computer data exists in the profile,
+/// those values take priority over the Buhlmann-calculated values. Points
+/// without computer data fall back to the calculated values.
+///
+/// The deco stop band ([decoStopSource]) resolves against the incoming
+/// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the
+/// possibly-overlaid ceiling curve, so choosing computer data for the
+/// ceiling line does not implicitly change the band's source too.
 ///
 /// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
 /// [MetricSourceInfo] reporting the actual source used per metric after
@@ -398,6 +406,7 @@ ProfileAnalysisService _resolveAnalysisService(
   MetricDataSource ceilingSource = MetricDataSource.calculated,
   MetricDataSource ttsSource = MetricDataSource.calculated,
   MetricDataSource cnsSource = MetricDataSource.calculated,
+  MetricDataSource decoStopSource = MetricDataSource.calculated,
   RebreatherPpO2? rebreatherPpO2,
 }) {
   final hasComputerNdl = profile.any((p) => p.ndl != null);
@@ -412,6 +421,10 @@ ProfileAnalysisService _resolveAnalysisService(
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
   final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
+  // Resolved independently of useCeiling: the deco stop band must not be
+  // dragged along when the user picks "computer" for the ceiling line alone.
+  final useDecoStop =
+      decoStopSource == MetricDataSource.computer && hasComputerCeiling;
 
   // ---- ppO2 / O2 cell overlay (CCR/SCR) ----
   // For rebreather dives the displayed ppO2 must come from sensor data or the
@@ -432,9 +445,17 @@ ProfileAnalysisService _resolveAnalysisService(
         : MetricDataSource.calculated,
     ttsActual: useTts ? MetricDataSource.computer : MetricDataSource.calculated,
     cnsActual: useCns ? MetricDataSource.computer : MetricDataSource.calculated,
+    decoStopActual: useDecoStop
+        ? MetricDataSource.computer
+        : MetricDataSource.calculated,
   );
 
-  if (!useNdl && !useCeiling && !useTts && !useCns && resolvedPpO2 == null) {
+  if (!useNdl &&
+      !useCeiling &&
+      !useDecoStop &&
+      !useTts &&
+      !useCns &&
+      resolvedPpO2 == null) {
     return (analysis, sourceInfo);
   }
 
@@ -455,6 +476,15 @@ ProfileAnalysisService _resolveAnalysisService(
                 (i < analysis.ceilingCurve.length
                     ? analysis.ceilingCurve[i]
                     : 0.0),
+          )
+        : null,
+    decoStopCurve: useDecoStop
+        ? List<double>.generate(
+            profile.length,
+            // Raw DC stop depth, deliberately not re-quantized: some computers
+            // use non-3m stop spacing and rounding would misreport what the
+            // diver actually saw. A null means no obligation at that sample.
+            (i) => profile[i].ceiling ?? 0.0,
           )
         : null,
     ttsCurve: useTts
@@ -601,6 +631,7 @@ final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
   final ascentRateWarning = ref.watch(ascentRateWarningProvider);
   final ascentRateCritical = ref.watch(ascentRateCriticalProvider);
   final lastStopDepth = ref.watch(lastStopDepthProvider);
+  final decoStopIncrement = ref.watch(decoStopIncrementProvider);
 
   return ProfileAnalysisService(
     gfLow: gfLow / 100.0, // Convert from percentage to fraction
@@ -611,6 +642,8 @@ final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
     ascentRateWarning: ascentRateWarning,
     ascentRateCritical: ascentRateCritical,
     lastStopDepth: lastStopDepth,
+    decoStopIncrement: decoStopIncrement,
+    cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
   );
 });
 
@@ -626,6 +659,7 @@ class _ProfileAnalysisInput {
   final double ascentRateWarning;
   final double ascentRateCritical;
   final double lastStopDepth;
+  final double decoStopIncrement;
   final String diveId;
   final List<double> depths;
   final List<int> timestamps;
@@ -646,6 +680,7 @@ class _ProfileAnalysisInput {
   final double ascentMaxPpO2;
   final List<double>? rebreatherPpO2Curve;
   final DiveEnvironment environment;
+  final CnsCalculationMethod cnsCalculationMethod;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -656,6 +691,7 @@ class _ProfileAnalysisInput {
     required this.ascentRateWarning,
     required this.ascentRateCritical,
     required this.lastStopDepth,
+    required this.decoStopIncrement,
     required this.diveId,
     required this.depths,
     required this.timestamps,
@@ -676,6 +712,7 @@ class _ProfileAnalysisInput {
     this.ascentMaxPpO2 = 1.6,
     this.rebreatherPpO2Curve,
     this.environment = DiveEnvironment.standard,
+    this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
   });
 }
 
@@ -691,7 +728,9 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     ascentRateWarning: input.ascentRateWarning,
     ascentRateCritical: input.ascentRateCritical,
     lastStopDepth: input.lastStopDepth,
+    decoStopIncrement: input.decoStopIncrement,
     environment: input.environment,
+    cnsCalculationMethod: input.cnsCalculationMethod,
   );
   final ascentGasPlan =
       input.ascentGases != null && input.ascentGases!.isNotEmpty
@@ -889,14 +928,16 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final ndlSource = ref.watch(
       profileLegendProvider.select((s) => s.ndlSource),
     );
-    final ceilingSource = ref.watch(
-      profileLegendProvider.select((s) => s.ceilingSource),
-    );
+    // The ceiling line has no source toggle; it always uses the calculated
+    // (exact, continuous) curve, so no ceilingSource is read here (issue #755).
     final ttsSource = ref.watch(
       profileLegendProvider.select((s) => s.ttsSource),
     );
     final cnsSource = ref.watch(
       profileLegendProvider.select((s) => s.cnsSource),
+    );
+    final decoStopSource = ref.watch(
+      profileLegendProvider.select((s) => s.decoStopSource),
     );
 
     final useComputerCns = cnsSource == MetricDataSource.computer;
@@ -959,6 +1000,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         ascentRateWarning: ref.watch(ascentRateWarningProvider),
         ascentRateCritical: ref.watch(ascentRateCriticalProvider),
         lastStopDepth: ref.watch(lastStopDepthProvider),
+        decoStopIncrement: ref.watch(decoStopIncrementProvider),
         diveId: diveId,
         depths: depths,
         timestamps: timestamps,
@@ -976,6 +1018,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         startOtu: startOtu,
         gasSegments: gasSegments,
         ascentGases: ascentGases,
+        cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
           waterType: dive.waterType,
@@ -991,9 +1034,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       analysis,
       profile,
       ndlSource: ndlSource,
-      ceilingSource: ceilingSource,
+      // ceilingSource omitted: defaults to calculated so the ceiling line is
+      // always the exact continuous curve (issue #755).
       ttsSource: ttsSource,
       cnsSource: cnsSource,
+      decoStopSource: decoStopSource,
       rebreatherPpO2: rebreatherPpO2,
     );
 
@@ -1482,6 +1527,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       ceilingSource: MetricDataSource.computer,
       ttsSource: MetricDataSource.computer,
       cnsSource: MetricDataSource.computer,
+      decoStopSource: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
     );
     return overlaid;

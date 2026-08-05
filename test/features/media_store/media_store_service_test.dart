@@ -6,6 +6,7 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
@@ -92,6 +93,37 @@ void main() {
     final second = await service.connectS3(config);
     expect(second.createdNewStore, isFalse);
     expect(second.storeId, first.storeId);
+  });
+
+  test('connectS3 twice reuses one account row', () async {
+    await service.connectS3(config);
+    await service.connectS3(config);
+    final accounts = await accountsRepository.getAll();
+    expect(accounts.length, 1);
+    expect(accounts.single.kind, AccountKind.s3);
+  });
+
+  test('connectS3 uses the deterministic account id', () async {
+    await service.connectS3(config);
+    final accounts = await accountsRepository.getAll();
+    expect(
+      accounts.single.id,
+      accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(config)),
+    );
+  });
+
+  test('connectS3 keeps two prefixes in one bucket separate', () async {
+    await service.connectS3(config);
+    final otherPrefix = S3Config(
+      endpoint: config.endpoint,
+      region: config.region,
+      bucket: config.bucket,
+      prefix: 'a-different-prefix/',
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    );
+    await service.connectS3(otherPrefix);
+    expect((await accountsRepository.getAll()).length, 2);
   });
 
   test('testConnection round-trips a probe object and cleans up', () async {

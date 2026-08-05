@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  Submersion x Adobe Lightroom — integration walkthrough page.
+
+  PURPOSE: this is the "proper web URL with complete end-to-end workflow" the
+  Adobe Creative Cloud Integrations Review team asked for. Deploy it to the
+  submersion-website repo at the path that resolves to https://submersion.app/lightroom
+  and set that URL as the submission's "App Website" field.
+
+  BEFORE SUBMITTING:
+   - Replace every [SCREENSHOT: ...] block with a real screenshot from the app
+     (recorded after the Native App auth fix lands, so the flow shown is real).
+   - Replace [VIDEO URL] with the demo-video link.
+   - Restyle to match the marketing site if desired; the content is what the
+     reviewer needs.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submersion + Adobe Lightroom — Integration Overview</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 820px; margin: 0 auto; padding: 2rem 1.25rem; color: #16202b;
+      }
+      @media (prefers-color-scheme: dark) { body { color: #e8edf2; background: #0f151b; } }
+      h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .25rem; }
+      h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; }
+      .lede { font-size: 1.1rem; opacity: .85; margin-top: 0; }
+      ol.steps { padding-left: 1.25rem; }
+      ol.steps li { margin: .4rem 0; }
+      table { border-collapse: collapse; width: 100%; margin: .5rem 0; }
+      th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #d5dde5; vertical-align: top; }
+      @media (prefers-color-scheme: dark) { th, td { border-color: #2a3540; } }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+      .shot {
+        border: 1px dashed #9aa7b4; border-radius: 8px; padding: 1.25rem;
+        text-align: center; opacity: .8; margin: .75rem 0; font-style: italic;
+      }
+      .note { background: rgba(120,140,160,.12); border-radius: 8px; padding: .75rem 1rem; }
+      footer { margin-top: 2.5rem; font-size: .9rem; opacity: .7; }
+    </style>
+  </head>
+  <body>
+    <h1>Submersion + Adobe Lightroom</h1>
+    <p class="lede">
+      Submersion is a scuba dive-logging app. This integration links a diver's
+      Adobe Lightroom cloud photos and videos to their dive logs automatically,
+      by capture time.
+    </p>
+
+    <h2>What it does</h2>
+    <p>
+      After a diver connects their Adobe account, Submersion reads their
+      Lightroom cloud catalog, matches photos and videos to dives by the moment
+      they were captured, and shows each shot on the corresponding dive — with a
+      one-tap "Open in Lightroom" link back to the original. It is
+      <strong>read-only</strong>: Submersion never modifies the Lightroom catalog.
+    </p>
+
+    <h2>How a user connects (end to end)</h2>
+    <ol class="steps">
+      <li>Open Submersion → <strong>Settings → Photos &amp; Media → Connect Lightroom</strong>.</li>
+      <li>The system browser opens Adobe's sign-in page; the user signs in with their Adobe ID and approves access.</li>
+      <li>The browser returns to Submersion and the account is connected. No developer setup, no keys — the user only signs in.</li>
+      <li>Submersion scans the diver's trips and attaches confident photo matches; ambiguous ones appear as one-tap suggestions on the dive.</li>
+      <li>Each linked photo shows on its dive, with "Open in Lightroom" to view the original.</li>
+    </ol>
+
+    <div class="shot">[SCREENSHOT: Settings &rarr; Photos &amp; Media, showing the "Connect Lightroom" button]</div>
+    <div class="shot">[SCREENSHOT: Adobe IMS sign-in / consent screen opened from the app]</div>
+    <div class="shot">[SCREENSHOT: A dive with Lightroom photos attached, and the "Open in Lightroom" action]</div>
+
+    <h2>What it accesses, and why</h2>
+    <table>
+      <tr><th>Scope</th><th>Why Submersion requests it</th></tr>
+      <tr><td><code>openid</code>, <code>AdobeID</code></td><td>Identify the signed-in Adobe user (account name / email shown in Settings).</td></tr>
+      <tr><td><code>lr_partner_apis</code></td><td>Read the user's Lightroom catalog: account, catalog id, albums, and asset metadata (capture time, filename) for matching.</td></tr>
+      <tr><td><code>lr_partner_rendition_apis</code></td><td>Fetch a display rendition of each matched photo/video to show it in the app.</td></tr>
+      <tr><td><code>offline_access</code></td><td>Requested so the connection can persist; used only if Adobe issues a refresh token for the credential.</td></tr>
+    </table>
+
+    <h2>Technical summary (for the review team)</h2>
+    <table>
+      <tr><th>Integration type</th><td>Adobe <strong>Lightroom Services API</strong> (Creative Cloud) via Adobe IMS OAuth 2.0. <strong>Not</strong> the Adobe Express Embed SDK.</td></tr>
+      <tr><td>Credential</td><td>OAuth <strong>Native App</strong> (public client, PKCE, no client secret). Client ID: <code>[CLIENT ID]</code>.</td></tr>
+      <tr><td>Authorization</td><td>Three-legged, user-consented. Authorize: <code>ims-na1.adobelogin.com/ims/authorize/v2</code>; token: <code>ims-na1.adobelogin.com/ims/token/v3</code>.</td></tr>
+      <tr><td>API base</td><td><code>lr.adobe.io</code> — <code>/v2/account</code>, <code>/v2/catalog</code>, <code>/v2/catalogs/{id}/albums</code>, <code>/v2/catalogs/{id}/assets</code>, <code>/v2/catalogs/{id}/assets/{id}/renditions/{size}</code>.</td></tr>
+      <tr><td>Platform</td><td>Native app (Flutter) for macOS, Windows, Linux, iOS, and Android — which is why the workflow is shown here and in the demo video rather than as a hosted web app.</td></tr>
+      <tr><td>Data handling</td><td>Read-only. Renditions are cached on the user's device / the user's own cloud store. Submersion operates no server that stores Adobe tokens or photos.</td></tr>
+    </table>
+
+    <h2>Demonstration video</h2>
+    <p>A full end-to-end recording — connect, scan a trip, confirm a match, view the photo on the dive, open in Lightroom: <a href="[VIDEO URL]">[VIDEO URL]</a></p>
+
+    <footer>
+      Submersion — dive logging. Contact: [SUPPORT EMAIL]. This page documents the
+      Adobe Lightroom integration for the Creative Cloud Integrations Review team.
+    </footer>
+  </body>
+</html>

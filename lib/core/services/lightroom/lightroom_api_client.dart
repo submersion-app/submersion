@@ -80,7 +80,7 @@ class LightroomApiClient {
           ),
         );
       }
-      final next = _nextUrl(json);
+      final next = _nextUrl(uri, json);
       uri = next == null ? null : Uri.parse(next);
     }
     return albums;
@@ -100,17 +100,24 @@ class LightroomApiClient {
         : Uri.parse('$baseUrl/v2/catalogs/$catalogId/assets').replace(
             queryParameters: {
               'subtype': 'image;video',
-              'captured_after': ?_isoWallClock(capturedAfter),
-              'captured_before': ?_isoWallClock(capturedBefore),
+              // captured_after and captured_before are mutually exclusive on
+              // this endpoint (Adobe returns 400 if both are sent). Adobe lists
+              // assets coarsely oldest-first, so the scanner queries the lower
+              // bound (captured_after) and pages `next` toward newer assets;
+              // prefer it when both are supplied.
+              if (capturedAfter != null)
+                'captured_after': _isoWallClock(capturedAfter)!
+              else if (capturedBefore != null)
+                'captured_before': _isoWallClock(capturedBefore)!,
             },
           );
     final json = await _getJson(uri);
     return LightroomAssetPage(
       assets: [
         for (final resource in _resources(json))
-          LightroomAsset.fromResource(resource),
+          ?LightroomAsset.fromResource(resource),
       ],
-      nextUrl: _nextUrl(json),
+      nextUrl: _nextUrl(uri, json),
     );
   }
 
@@ -131,11 +138,11 @@ class LightroomApiClient {
       assets: [
         for (final resource in _resources(json))
           if (resource['asset'] is Map<String, Object?>)
-            LightroomAsset.fromResource(
+            ?LightroomAsset.fromResource(
               resource['asset']! as Map<String, Object?>,
             ),
       ],
-      nextUrl: _nextUrl(json),
+      nextUrl: _nextUrl(uri, json),
     );
   }
 
@@ -151,7 +158,7 @@ class LightroomApiClient {
     );
     final response = await _http.get(uri, headers: await _headers());
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw _errorFor(response.statusCode);
+      throw _errorFor(response.statusCode, response.body);
     }
     return response.bodyBytes;
   }
@@ -168,7 +175,7 @@ class LightroomApiClient {
   Future<Map<String, Object?>> _getJson(Uri uri) async {
     final response = await _http.get(uri, headers: await _headers());
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw _errorFor(response.statusCode);
+      throw _errorFor(response.statusCode, response.body);
     }
     final decoded = jsonDecode(stripAbuseGuard(response.body));
     if (decoded is! Map<String, Object?>) {
@@ -177,14 +184,64 @@ class LightroomApiClient {
     return decoded;
   }
 
-  LightroomApiException _errorFor(int statusCode) {
+  LightroomApiException _errorFor(int statusCode, [String? body]) {
     if (statusCode == 401) {
       return const LightroomApiException(
         401,
         'Adobe rejected the credentials. Reconnect Lightroom in Settings.',
       );
     }
-    return LightroomApiException(statusCode, 'Lightroom API error $statusCode');
+    // Surface Adobe's error body (usually JSON naming the offending
+    // parameter); the bare status code alone hides the actual problem. The
+    // body carries the abuse-guard prefix and can be verbose/multiline, so
+    // strip the guard, prefer a concise JSON error field, and compact
+    // whitespace before showing it to the user.
+    final detail = _conciseErrorDetail(body);
+    return LightroomApiException(
+      statusCode,
+      detail.isEmpty
+          ? 'Lightroom API error $statusCode'
+          : 'Lightroom API error $statusCode: $detail',
+    );
+  }
+
+  /// Extract a short, human-readable detail from a Lightroom error body:
+  /// abuse guard stripped, a concise field (`error_description`, `message`,
+  /// ...) preferred when the payload is JSON, whitespace collapsed, and the
+  /// result truncated so user-facing messages stay readable.
+  static String _conciseErrorDetail(String? body) {
+    if (body == null) return '';
+    final cleaned = stripAbuseGuard(body).trim();
+    if (cleaned.isEmpty) return '';
+    try {
+      final decoded = jsonDecode(cleaned);
+      if (decoded is Map<String, Object?>) {
+        for (final key in const [
+          'error_description',
+          'description',
+          'message',
+          'error',
+          'reason',
+          'code',
+          'title',
+        ]) {
+          final value = decoded[key];
+          if (value is String && value.trim().isNotEmpty) {
+            return _compactWhitespace(value);
+          }
+        }
+      }
+    } catch (_) {
+      // Not JSON (HTML error page, plain text); fall through to a snippet.
+    }
+    return _compactWhitespace(cleaned);
+  }
+
+  static String _compactWhitespace(String value) {
+    final collapsed = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return collapsed.length > 200
+        ? '${collapsed.substring(0, 200)}...'
+        : collapsed;
   }
 
   List<Map<String, Object?>> _resources(Map<String, Object?> json) {
@@ -193,15 +250,19 @@ class LightroomApiClient {
     return raw.whereType<Map<String, Object?>>().toList();
   }
 
-  String? _nextUrl(Map<String, Object?> json) {
+  String? _nextUrl(Uri requestUri, Map<String, Object?> json) {
     final links = json['links'];
     if (links is! Map<String, Object?>) return null;
     final next = links['next'];
     if (next is! Map<String, Object?>) return null;
     final href = next['href'];
     if (href is! String || href.isEmpty) return null;
-    final uri = Uri.parse(href);
-    return uri.hasScheme ? href : '$baseUrl$href';
+    // Adobe's `next.href` is a reference relative to the request path (e.g.
+    // `assets?captured_after=...&created_after=...`, no leading slash); resolve
+    // it against the request URI. Gluing it onto the bare host produced
+    // `lr.adobe.ioassets` and a failed host lookup once paging followed it.
+    // Absolute and absolute-path (leading-slash) hrefs resolve correctly too.
+    return requestUri.resolve(href).toString();
   }
 
   /// Wall-clock timestamps formatted without a zone designator, matching

@@ -6,7 +6,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 /// Breathing mode of a saved dive plan.
-enum PlanMode { oc, ccr }
+///
+/// [scr] is a constant-mass-flow semi-closed rebreather; [pscr] is a
+/// passive-addition semi-closed rebreather (ventilation-coupled fresh gas).
+enum PlanMode { oc, ccr, scr, pscr }
 
 /// Gas turn-pressure rule for penetration planning (Phase 5).
 enum TurnPressureRule { allUsable, halves, thirds, custom }
@@ -29,6 +32,10 @@ class DivePlan extends Equatable {
   final PlanMode mode;
   final double? altitude;
   final WaterType? waterType;
+
+  /// Planned start time; null = "now" at planning. Drives repetitive tissue
+  /// init and overlap detection (v120).
+  final DateTime? startDateTime;
 
   // Deco settings
   final int gfLow;
@@ -81,6 +88,7 @@ class DivePlan extends Equatable {
     this.mode = PlanMode.oc,
     this.altitude,
     this.waterType,
+    this.startDateTime,
     required this.gfLow,
     required this.gfHigh,
     this.descentRate = 18.0,
@@ -142,6 +150,8 @@ class DivePlan extends Equatable {
     double? altitude,
     bool clearAltitude = false,
     WaterType? waterType,
+    DateTime? startDateTime,
+    bool clearStartDateTime = false,
     bool clearWaterType = false,
     int? gfLow,
     int? gfHigh,
@@ -191,6 +201,9 @@ class DivePlan extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       mode: mode ?? this.mode,
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      startDateTime: clearStartDateTime
+          ? null
+          : (startDateTime ?? this.startDateTime),
       waterType: clearWaterType ? null : (waterType ?? this.waterType),
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
@@ -250,6 +263,7 @@ class DivePlan extends Equatable {
     mode,
     altitude,
     waterType,
+    startDateTime,
     gfLow,
     gfHigh,
     descentRate,

@@ -75,12 +75,24 @@ class GasAnalysisService {
       final maxDepth = depths.reduce(math.max);
 
       // Calculate SAC for this segment
+      // Window to prorate a pressure-series-less tank across: its own
+      // usage range when the gas switches identify one, else the dive.
+      final usageRange = _getTankUsageRange(
+        tank: tank,
+        gasSwitches: sortedSwitches,
+        diveStart: profile.first.timestamp,
+        diveEnd: diveEndTimestamp,
+        tanks: tanks,
+      );
+
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
         tankPressures: resolvedPressures[tank.id],
         startTime: startTime,
         endTime: endTime,
+        prorationStart: usageRange?.start ?? profile.first.timestamp,
+        prorationEnd: usageRange?.end ?? profile.last.timestamp,
       );
 
       if (sacRate == null) continue;
@@ -190,12 +202,25 @@ class GasAnalysisService {
       final maxD = depths.reduce(math.max);
 
       // Calculate SAC
+      // Same proration window as the gas-switch path: a tank that was only
+      // breathed for part of the dive must not have its drop spread across
+      // the whole of it.
+      final usageRange = _getTankUsageRange(
+        tank: tank,
+        gasSwitches: gasSwitches,
+        diveStart: profile.first.timestamp,
+        diveEnd: profile.last.timestamp,
+        tanks: tanks,
+      );
+
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
         tankPressures: resolvedPressures[tank.id],
         startTime: seg.start,
         endTime: seg.end,
+        prorationStart: usageRange?.start ?? profile.first.timestamp,
+        prorationEnd: usageRange?.end ?? profile.last.timestamp,
       );
 
       if (sacRate == null) continue;
@@ -656,6 +681,8 @@ class GasAnalysisService {
     List<TankPressurePoint>? tankPressures,
     required int startTime,
     required int endTime,
+    required int prorationStart,
+    required int prorationEnd,
   }) {
     if (profile.isEmpty) return null;
 
@@ -683,8 +710,14 @@ class GasAnalysisService {
     // Fallback: estimate from tank start/end (less accurate for segments)
     if (pressureUsed == null || pressureUsed <= 0) {
       if (tank.startPressure != null && tank.endPressure != null) {
-        // Estimate proportionally based on segment duration
-        final totalDuration = profile.last.timestamp - profile.first.timestamp;
+        // Prorate across the window the tank was actually breathed, NOT the
+        // segment's own span: the profile passed in is the segment slice, so
+        // dividing by it made proportion ~1.0 and charged every segment the
+        // entire cylinder (#110). The window is the tank's usage range when
+        // gas switches identify it -- spreading a stage/deco tank's drop over
+        // the whole dive would understate its SAC by the ratio of its stint
+        // to the dive, and calculateCylinderSac already prorates this way.
+        final totalDuration = prorationEnd - prorationStart;
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;
           final proportion = durationSec / totalDuration;
@@ -692,9 +725,7 @@ class GasAnalysisService {
           // Estimate absolute pressures for this segment
           startPressure =
               tank.startPressure! -
-              (tankPressureUsed *
-                  (startTime - profile.first.timestamp) /
-                  totalDuration);
+              (tankPressureUsed * (startTime - prorationStart) / totalDuration);
           endPressure = startPressure - pressureUsed;
         }
       }

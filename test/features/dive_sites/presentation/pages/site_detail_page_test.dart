@@ -193,6 +193,61 @@ void main() {
     );
   });
 
+  group('SiteDetailPage embedded seascape action', () {
+    testWidgets('embedded header shows the seascape button for a site with '
+        'coordinates', (tester) async {
+      const gpsSite = DiveSite(
+        id: 'gps-site',
+        name: 'Salt Pier',
+        location: GeoPoint(12.151, -68.299),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(gpsSite.id).overrideWith((ref) async => gpsSite),
+            siteDiveCountProvider(gpsSite.id).overrideWith((ref) async => 0),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: gpsSite.id, embedded: true),
+          ),
+        ),
+      );
+      // Bounded pumps: the coordinates make the body render a map, whose
+      // tile loading never settles under flutter_test.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byTooltip('Site Seascape'), findsOneWidget);
+    });
+
+    testWidgets('embedded header hides the seascape button without '
+        'coordinates', (tester) async {
+      const bareSite = DiveSite(id: 'bare-site', name: 'Mystery');
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(bareSite.id).overrideWith((ref) async => bareSite),
+            siteDiveCountProvider(bareSite.id).overrideWith((ref) async => 0),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: bareSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Site Seascape'), findsNothing);
+    });
+  });
+
   group('SiteDetailPage loading/error/not-found states', () {
     testWidgets('shows loading indicator in non-embedded mode', (tester) async {
       _setMobileTestSurfaceSize(tester);

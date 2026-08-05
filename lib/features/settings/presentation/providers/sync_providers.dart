@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -72,6 +73,11 @@ final iCloudAvailabilityProvider = FutureProvider<ICloudAvailability>((
 final isApplePlatformProvider = Provider<bool>(
   (ref) => Platform.isIOS || Platform.isMacOS,
 );
+
+/// Whether the host is Linux, where video transcoding depends on a system
+/// ffmpeg. A provider (not Platform.isLinux inline) so widget tests can
+/// simulate Linux on any CI host — same pattern as [isApplePlatformProvider].
+final isLinuxPlatformProvider = Provider<bool>((ref) => Platform.isLinux);
 
 /// Sync preferences provider
 final syncPreferencesProvider = Provider<SyncPreferences>((ref) {
@@ -253,6 +259,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   CloudProviderType type,
   ConnectedAccountsRepository repo, {
   SyncRepository? syncRepository,
+  S3CredentialsStore? s3Credentials,
 }) async {
   final kind = AccountKind.fromCloudProviderType(type);
   final persistedId = await (syncRepository ?? SyncRepository())
@@ -262,16 +269,30 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
     if (persisted != null && persisted.kind == kind) return persisted;
   }
   if (kind == AccountKind.s3) {
-    return repo.create(
-      kind: kind,
-      label: cloudProviderInstanceFor(type).providerName,
-    );
-  }
-  return await repo.getByKind(kind) ??
-      await repo.create(
+    // S3 accounts are instances, so the endpoint identifies them. Read the
+    // legacy config (the source of truth on this path, mirrored by
+    // _mirrorLegacyCredentials) to derive that identity. Without it, fall
+    // back to a fresh row: an account with no resolvable endpoint cannot be
+    // matched to any other, and the deduplicator will canonicalize it once
+    // the config is readable.
+    final config = await (s3Credentials ?? S3CredentialsStore()).load();
+    if (config == null) {
+      return repo.create(
         kind: kind,
         label: cloudProviderInstanceFor(type).providerName,
       );
+    }
+    return repo.ensure(
+      kind: kind,
+      naturalKey: s3NaturalKey(config),
+      label: '${config.bucket} @ ${config.displayHost}',
+    );
+  }
+  return repo.ensure(
+    kind: kind,
+    naturalKey: naturalKeyForKind(kind)!,
+    label: cloudProviderInstanceFor(type).providerName,
+  );
 }
 
 /// File-scoped logger for the top-level sync providers (the provider bodies
@@ -301,6 +322,7 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
       type,
       repo,
       syncRepository: ref.read(syncRepositoryProvider),
+      s3Credentials: ref.read(s3CredentialsStoreProvider),
     );
     await ref
         .read(syncRepositoryProvider)
@@ -439,6 +461,11 @@ class SyncState {
   final DateTime? lastSync;
   final int pendingChanges;
   final int conflicts;
+
+  /// How many peers were held during the last pull because they publish from
+  /// a newer database schema than this build. Drives the "update this
+  /// device" banner; cleared when a fresh sync starts.
+  final int newerSchemaPeerCount;
   final bool isAuthenticated;
   final bool firstSyncAwaitingConfirmation;
 
@@ -480,6 +507,7 @@ class SyncState {
     this.lastSync,
     this.pendingChanges = 0,
     this.conflicts = 0,
+    this.newerSchemaPeerCount = 0,
     this.isAuthenticated = false,
     this.firstSyncAwaitingConfirmation = false,
     this.postRestoreSyncing = false,
@@ -497,6 +525,7 @@ class SyncState {
     DateTime? lastSync,
     int? pendingChanges,
     int? conflicts,
+    int? newerSchemaPeerCount,
     bool? isAuthenticated,
     bool? firstSyncAwaitingConfirmation,
     bool? postRestoreSyncing,
@@ -515,6 +544,7 @@ class SyncState {
       lastSync: lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,
       conflicts: conflicts ?? this.conflicts,
+      newerSchemaPeerCount: newerSchemaPeerCount ?? this.newerSchemaPeerCount,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       firstSyncAwaitingConfirmation:
           firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
@@ -978,6 +1008,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         status: SyncStatus.syncing,
         message: 'Starting sync...',
         progress: 0.0,
+        newerSchemaPeerCount: 0,
         firstSyncAwaitingConfirmation: false,
         replaceAwaitingAdoption: false,
         needsPassphrase: false,
@@ -1051,6 +1082,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
             message: result.message ?? defaultMessage,
             lastSync: result.lastSyncTime,
             conflicts: result.conflictsFound,
+            newerSchemaPeerCount: result.newerSchemaPeerDeviceIds.length,
             progress: 1.0,
           );
           // Mark this provider established and consume any post-restore intent:
@@ -1163,6 +1195,50 @@ class SyncNotifier extends StateNotifier<SyncState> {
     // not leave it showing stale state.
     _ref.invalidate(s3ConfigProvider);
     state = const SyncState();
+  }
+
+  /// Turns cloud sync off as part of a database reset.
+  ///
+  /// Without this, wiping the local database is immediately undone: the
+  /// post-reset launch sync ([SubmersionApp]'s `_maybeSyncOnLaunch`) merges
+  /// the entire cloud library back in, resurrecting the data the user just
+  /// cleared. Disabling auto-sync closes that launch/resume path and signing
+  /// out disconnects the provider so a manual sync cannot re-pull either.
+  ///
+  /// The cloud library itself is left intact -- reconnecting sync re-adopts
+  /// it -- so this is a local-only reset, not a fleet-wide wipe.
+  Future<void> disableForDatabaseReset() async {
+    // Cancel any in-flight auto-sync debounce first. Its callback calls
+    // performSync(auto: true) WITHOUT re-checking autoSyncEnabled, so a timer
+    // scheduled by a write just before the reset would otherwise still fire and
+    // race the DB wipe (or re-pull). Flipping autoSyncEnabled below only stops
+    // NEW timers from being scheduled.
+    _autoSyncTimer?.cancel();
+
+    // Two independent guards against the post-reset re-pull: disabling
+    // auto-sync closes the launch/resume sync, and signing out disconnects the
+    // provider so a manual sync cannot pull either. Attempt BOTH even if one
+    // throws -- either surviving still helps the reset stick -- then surface
+    // the first failure so the caller can log it.
+    Object? firstError;
+    StackTrace? firstStack;
+    Future<void> attempt(Future<void> Function() op) async {
+      try {
+        await op();
+      } catch (e, st) {
+        firstError ??= e;
+        firstStack ??= st;
+      }
+    }
+
+    await attempt(
+      () => _ref.read(syncBehaviorProvider.notifier).setAutoSyncEnabled(false),
+    );
+    await attempt(signOut);
+
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError!, firstStack!);
+    }
   }
 
   /// Reset sync state

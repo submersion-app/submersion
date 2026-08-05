@@ -18,9 +18,11 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent,
         TankPressureProfilesCompanion;
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -135,6 +137,50 @@ class DiveComputerRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Find a computer by its stable hardware identity.
+  ///
+  /// BLE identifiers are host-specific and are therefore only useful for a
+  /// local connection. The serial number, together with manufacturer/model,
+  /// identifies the physical computer across devices.
+  Future<domain.DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async {
+    try {
+      final query = _db.select(_db.diveComputers)
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+      final normalizedDiverId = diverId?.trim();
+      if (normalizedDiverId != null && normalizedDiverId.isNotEmpty) {
+        query.where((t) => t.diverId.equals(normalizedDiverId));
+      }
+
+      // Matched in Dart (rather than pushed into the SQL filter) because a
+      // stored serialNumber/manufacturer/model may itself carry whitespace
+      // from an older import; trimming only the input would miss that row.
+      final rows = await query.get();
+      final normalizedSerial = serialNumber.trim();
+      final normalizedManufacturer = manufacturer.trim().toLowerCase();
+      final normalizedModel = model.trim().toLowerCase();
+      for (final row in rows) {
+        if (row.serialNumber?.trim() == normalizedSerial &&
+            row.manufacturer?.trim().toLowerCase() == normalizedManufacturer &&
+            row.model?.trim().toLowerCase() == normalizedModel) {
+          return _mapRowToComputer(row);
+        }
+      }
+      return null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find dive computer by hardware identity',
         error: e,
         stackTrace: stackTrace,
       );
@@ -936,6 +982,14 @@ class DiveComputerRepository {
           divePoints: defaultPoints,
         );
 
+        // Auto-link a pre-dive checklist session started shortly before
+        // this dive's entry time.
+        await ChecklistDiveLinker().autoLinkForDive(
+          diveId: diveId,
+          diverId: diverId,
+          diveStart: DateTime.fromMillisecondsSinceEpoch(entryTimeMs),
+        );
+
         // Create a data source record for provenance tracking.
         // Derive water temp and CNS from profile samples when not provided
         // as top-level values (e.g. Shearwater).
@@ -1060,6 +1114,15 @@ class DiveComputerRepository {
           );
         }
       });
+
+      // Profile data changed (new source added or re-imported): drop any
+      // stored safety review so it recomputes against the new profile.
+      // No-op for a brand-new dive.
+      await SafetyFindingsRepository.clearReviewForDive(
+        _db,
+        _syncRepository,
+        diveId,
+      );
 
       // Map to track tank index → tank ID for pressure data
       final tankIdsByIndex = <int, String>{};

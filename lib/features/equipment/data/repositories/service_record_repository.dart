@@ -57,6 +57,7 @@ class ServiceRecordRepository {
             id: Value(id),
             equipmentId: Value(record.equipmentId),
             serviceType: Value(record.serviceType.name),
+            serviceKindId: Value(record.serviceKindId),
             serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
             provider: Value(record.provider),
             cost: Value(record.cost),
@@ -95,6 +96,7 @@ class ServiceRecordRepository {
     )..where((t) => t.id.equals(record.id))).write(
       ServiceRecordsCompanion(
         serviceType: Value(record.serviceType.name),
+        serviceKindId: Value(record.serviceKindId),
         serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
         provider: Value(record.provider),
         cost: Value(record.cost),
@@ -271,6 +273,7 @@ class ServiceRecordRepository {
       id: row.id,
       equipmentId: row.equipmentId,
       serviceType: _parseServiceType(row.serviceType),
+      serviceKindId: row.serviceKindId,
       serviceDate: DateTime.fromMillisecondsSinceEpoch(row.serviceDate),
       provider: row.provider,
       cost: row.cost,
@@ -289,6 +292,7 @@ class ServiceRecordRepository {
       id: row.data['id'] as String,
       equipmentId: row.data['equipment_id'] as String,
       serviceType: _parseServiceType(row.data['service_type'] as String),
+      serviceKindId: row.data['service_kind_id'] as String?,
       serviceDate: DateTime.fromMillisecondsSinceEpoch(
         row.data['service_date'] as int,
       ),

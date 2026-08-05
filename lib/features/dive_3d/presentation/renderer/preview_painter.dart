@@ -171,8 +171,14 @@ class Dive3dScenePainter extends CustomPainter {
         SceneMarkerKind.gasSwitch => const Color(0xFF22C55E),
         SceneMarkerKind.bookmark => const Color(0xFFF59E0B),
         SceneMarkerKind.photo => const Color(0xFF00D4FF),
+        SceneMarkerKind.site => const Color(0xFFF43F5E),
+        SceneMarkerKind.nearbySite => const Color(0xFF94A3B8),
       };
-      canvas.drawCircle(projector.project(marker.x, marker.y, 0), 4, paint);
+      canvas.drawCircle(
+        projector.project(marker.x, marker.y, marker.z),
+        4,
+        paint,
+      );
     }
   }
 

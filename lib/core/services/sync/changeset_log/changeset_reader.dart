@@ -1,3 +1,4 @@
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
@@ -21,9 +22,35 @@ class ChangesetReadResult {
   const ChangesetReadResult({
     required this.peersProcessed,
     required this.payloadsApplied,
+    this.peerManifests = const [],
+    this.skippedPeerDeviceIds = const {},
+    this.newerSchemaPeerDeviceIds = const {},
+    this.retiredPeerIds = const {},
+    this.retiredPeerHasFiles = false,
   });
   final int peersProcessed;
   final int payloadsApplied;
+
+  /// Every non-retired peer manifest seen this pull (including stale-epoch
+  /// ones, which stay inert for merging but still block/inform tombstone GC).
+  final List<SyncManifest> peerManifests;
+
+  /// Peers whose manifests were deliberately not applied because they do not
+  /// belong to the current library epoch. The caller should surface these to
+  /// the user rather than reporting a misleadingly clean sync.
+  final Set<String> skippedPeerDeviceIds;
+
+  /// Peers held because their manifests were published from a newer database
+  /// schema than this build understands. Merging them would silently drop the
+  /// fields this build does not know and republish the rows without them.
+  /// Their cursors are not advanced; the data applies after this device
+  /// updates.
+  final Set<String> newerSchemaPeerDeviceIds;
+  final Set<String> retiredPeerIds;
+
+  /// True when a retired peer still has non-marker files in the bucket (a
+  /// partial retirement) -- tells the sweeper to retry the deletion.
+  final bool retiredPeerHasFiles;
 }
 
 /// Consumes peers' changeset logs: discovers peers, decides per-peer what to
@@ -45,35 +72,75 @@ class ChangesetReader {
     required ApplyPayload apply,
     required ApplyBaseFile applyBaseFile,
     String? currentEpochId,
+    int localSchemaVersion = AppDatabase.currentSchemaVersion,
+    List<CloudFileInfo>? preListedFiles,
   }) async {
     final providerId = provider.providerId;
-    final files = await provider.listFiles(
-      folderId: folderId,
-      namePattern: ChangesetLogLayout.prefix,
-    );
+    // [preListedFiles] lets the caller reuse a listing it just made (the
+    // retirement-fence check lists the same folder immediately before this
+    // pull), saving a round-trip on high-latency backends. Safe because
+    // nothing mutates the folder between that listing and this pull, and
+    // every consumer is already tolerant of a slightly stale view (a missing
+    // file reads as a transient gap and retries next sync).
+    final files =
+        preListedFiles ??
+        await provider.listFiles(
+          folderId: folderId,
+          namePattern: ChangesetLogLayout.prefix,
+        );
     final byName = {for (final f in files) f.name: f};
     final peerIds = ChangesetLogLayout.peerDeviceIds(
       files.map((f) => f.name),
       selfDeviceId,
     );
+    final retiredPeerIds = <String>{
+      for (final f in files)
+        if (ChangesetLogLayout.isRetiredMarker(f.name) &&
+            ChangesetLogLayout.deviceIdOf(f.name) != null &&
+            ChangesetLogLayout.deviceIdOf(f.name) != selfDeviceId)
+          ChangesetLogLayout.deviceIdOf(f.name)!,
+    };
+    final retiredPeerHasFiles = files.any(
+      (f) =>
+          !ChangesetLogLayout.isRetiredMarker(f.name) &&
+          retiredPeerIds.contains(ChangesetLogLayout.deviceIdOf(f.name)),
+    );
+    final peerManifests = <SyncManifest>[];
+    final skippedPeerDeviceIds = <String>{};
+    final newerSchemaPeerDeviceIds = <String>{};
 
     var peersProcessed = 0;
     var payloadsApplied = 0;
 
     for (final peerId in peerIds) {
       try {
+        // A retired peer's files are being deleted; never merge from them and
+        // never advance a cursor against them.
+        if (retiredPeerIds.contains(peerId)) continue;
         final manifestFile = byName[ChangesetLogLayout.manifestName(peerId)];
         if (manifestFile == null) continue; // files but no manifest yet
         final manifest = SyncManifest.fromBytes(
           await provider.downloadFile(manifestFile.id),
         );
+        peerManifests.add(manifest);
 
         // Stale-epoch filter: once this device is on a library epoch, a peer
-        // stamped with a different epoch (or unstamped) is inert -- applying it
-        // would leak a replaced-away library back in. Mirrors performSync's
-        // per-file filter. Null currentEpochId is the pre-epoch world: no
-        // filtering, apply every peer.
+        // stamped with a different epoch (including an unstamped legacy peer)
+        // is inert. Applying it could leak a replaced-away library back in.
+        // Timestamps cannot prove that a peer observed the replacement because
+        // heartbeats rewrite updatedAt without changing the library epoch.
         if (currentEpochId != null && manifest.epochId != currentEpochId) {
+          skippedPeerDeviceIds.add(peerId);
+          continue;
+        }
+
+        // Newer-schema filter: hold peers publishing from a newer database
+        // schema. Applying them would silently drop the columns and tables
+        // this build does not know, then republish those rows without them.
+        // The cursor stays put, so the data applies once this device updates.
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null && peerSchema > localSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(peerId);
           continue;
         }
         peersProcessed++;
@@ -84,6 +151,7 @@ class ChangesetReader {
 
         var appliedThrough = lastApplied;
         var baseSeqApplied = cursor?.baseSeqApplied;
+        var appliedHlc = cursor?.appliedHlcHigh;
 
         // Cold-start, or lapped by the peer's compaction: adopt the base.
         final baseSeq = manifest.baseSeq;
@@ -105,6 +173,12 @@ class ChangesetReader {
           payloadsApplied++;
           appliedThrough = baseSeq;
           baseSeqApplied = baseSeq;
+          // The manifest's publishedHlcHigh describes headSeq; it equals the
+          // base's own high watermark only when the base IS the head. Never
+          // over-claim an ack -- tombstone GC relies on it.
+          if (baseSeq == manifest.headSeq) {
+            appliedHlc = _maxHlc(appliedHlc, manifest.publishedHlcHigh);
+          }
         }
 
         // Changesets (appliedThrough+1 .. headSeq], stopping at the first gap.
@@ -120,6 +194,7 @@ class ChangesetReader {
           await apply(cs);
           payloadsApplied++;
           appliedThrough = seq;
+          appliedHlc = _maxHlc(appliedHlc, cs.toHlc);
         }
 
         // Advance only forward, after applying, so an interrupted apply
@@ -130,6 +205,7 @@ class ChangesetReader {
             provider: providerId,
             baseSeqApplied: baseSeqApplied,
             lastSeqApplied: appliedThrough,
+            appliedHlcHigh: appliedHlc,
           );
         }
       } catch (_) {
@@ -142,7 +218,18 @@ class ChangesetReader {
     return ChangesetReadResult(
       peersProcessed: peersProcessed,
       payloadsApplied: payloadsApplied,
+      peerManifests: peerManifests,
+      skippedPeerDeviceIds: skippedPeerDeviceIds,
+      newerSchemaPeerDeviceIds: newerSchemaPeerDeviceIds,
+      retiredPeerIds: retiredPeerIds,
+      retiredPeerHasFiles: retiredPeerHasFiles,
     );
+  }
+
+  static String? _maxHlc(String? a, String? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.compareTo(b) >= 0 ? a : b;
   }
 
   /// Streams the peer's base parts into a single temp file, verifying each

@@ -30,7 +30,9 @@ void main() {
         overrides: [
           ...overrides,
           spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
-          spatialGeometryProvider('d1').overrideWith((ref) async => scene),
+          spatialGeometryProvider(
+            'd1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
         ],
         child: const SpatialSitePage(diveId: 'd1'),
       ),

@@ -565,15 +565,9 @@ class UddfFullImportService {
       }
 
       // Parse dive mode
-      final diveModeStr = UddfImportParsers.getElementText(
-        beforeElement,
-        'divemode',
-      );
-      if (diveModeStr != null) {
-        diveData['diveMode'] = UddfImportParsers.parseEnumValue(
-          diveModeStr,
-          enums.DiveMode.values,
-        );
+      final diveMode = UddfImportParsers.parseDiveModeIn(beforeElement);
+      if (diveMode != null) {
+        diveData['diveMode'] = diveMode;
       }
 
       // Parse planned dive flag
@@ -1011,15 +1005,9 @@ class UddfFullImportService {
         .findElements('rebreather')
         .firstOrNull;
     if (rebreatherElement != null) {
-      final diveMode = UddfImportParsers.getElementText(
-        rebreatherElement,
-        'divemode',
-      );
+      final diveMode = UddfImportParsers.parseDiveModeIn(rebreatherElement);
       if (diveMode != null) {
-        diveData['diveMode'] = UddfImportParsers.parseEnumValue(
-          diveMode,
-          enums.DiveMode.values,
-        );
+        diveData['diveMode'] = diveMode;
       }
       // CCR setpoints
       final spLow = UddfImportParsers.getElementText(
@@ -1124,29 +1112,10 @@ class UddfFullImportService {
       }
     }
 
-    // Parse setpoint and ppO2 from waypoints (sensor readings)
-    final samplesElement = diveElement.findElements('samples').firstOrNull;
-    if (samplesElement != null) {
-      final existingProfile =
-          diveData['profile'] as List<Map<String, dynamic>>?;
-      if (existingProfile != null) {
-        // Enrich existing profile points with setpoint/ppO2
-        int idx = 0;
-        for (final waypoint in samplesElement.findElements('waypoint')) {
-          final sp = UddfImportParsers.getElementText(waypoint, 'setpoint');
-          final ppo2 = UddfImportParsers.getElementText(waypoint, 'ppo2');
-          if ((sp != null || ppo2 != null) && idx < existingProfile.length) {
-            if (sp != null) {
-              existingProfile[idx]['setpoint'] = double.tryParse(sp);
-            }
-            if (ppo2 != null) {
-              existingProfile[idx]['ppO2'] = double.tryParse(ppo2);
-            }
-          }
-          idx++;
-        }
-      }
-    }
+    // Oxygen sample data (setpoint, ppO2, per-cell readings) is parsed with
+    // the rest of the waypoint in _parseUddfDive. Enriching the profile in a
+    // second pass here would index waypoints against profile points, which
+    // drift apart as soon as a waypoint is dropped for lacking a depth.
 
     return diveData;
   }
@@ -1392,13 +1361,22 @@ class UddfFullImportService {
         );
       }
 
-      // Get tank volume (in liters)
-      final volumeText = UddfImportParsers.getElementText(
-        tankDataElement,
-        'tankvolume',
-      );
-      if (volumeText != null) {
-        tankInfo['volume'] = double.tryParse(volumeText);
+      // Get tank volume. UDDF stores cubic meters; normalize to liters
+      // with tolerance for non-conforming exporters (#158). An element that
+      // declares its unit is converted exactly instead of being guessed at.
+      final volumeElement = tankDataElement
+          .findElements('tankvolume')
+          .firstOrNull;
+      final volumeText = volumeElement?.innerText.trim();
+      if (volumeText != null && volumeText.isNotEmpty) {
+        final rawVolume = double.tryParse(volumeText);
+        tankInfo['volume'] = rawVolume == null
+            ? null
+            : normalizeUddfTankVolumeToLiters(
+                rawVolume,
+                strictCubicMeters:
+                    volumeElement?.getAttribute('unit')?.toLowerCase() == 'm3',
+              );
       }
 
       // Get linked gas mix
@@ -1576,6 +1554,14 @@ class UddfFullImportService {
       GasMix? pendingSwitchMix;
       double? lastWaypointCns;
       double? lastWaypointOtu;
+      enums.DiveMode? waypointDiveMode;
+
+      // Cell readings reference sensors declared once per document, so the
+      // order is resolved before walking the samples.
+      final document = diveElement.document;
+      final o2SensorOrder = document == null
+          ? const <String>[]
+          : UddfImportParsers.parseO2SensorOrder(document);
 
       for (final waypoint in samplesElement.findElements('waypoint')) {
         final point = <String, dynamic>{};
@@ -1731,6 +1717,57 @@ class UddfFullImportService {
           }
         }
 
+        // Oxygen data. The spec elements are <setpo2> (setpoint),
+        // <calculatedpo2> (a single aggregate ppO2) and <measuredpo2 ref>
+        // (one per cell). <setpoint> and bare <ppo2> are the non-standard
+        // names our own exporter writes, kept so our files round-trip.
+        final setpoint =
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'setpo2'),
+            ) ??
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'setpoint'),
+            );
+        if (setpoint != null) {
+          point['setpoint'] = setpoint;
+        }
+
+        // A <measuredpo2> or <ppo2> without a ref names no cell, so it is an
+        // aggregate loop value rather than a per-cell reading.
+        final bareLoopPpO2 =
+            [
+              ...waypoint.findElements('measuredpo2'),
+              ...waypoint.findElements('ppo2'),
+            ].where((element) {
+              final ref = element.getAttribute('ref')?.trim();
+              return ref == null || ref.isEmpty;
+            }).firstOrNull;
+        final ppO2 =
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'calculatedpo2'),
+            ) ??
+            UddfImportParsers.parsePartialPressureBar(bareLoopPpO2?.innerText);
+        if (ppO2 != null) {
+          point['ppO2'] = ppO2;
+        }
+
+        final sensorReadings = UddfImportParsers.parseO2SensorReadings(
+          waypoint,
+          o2SensorOrder,
+        );
+        sensorReadings.forEach((index, value) {
+          point['o2Sensor${index + 1}'] = value;
+        });
+
+        // Shearwater and other computers mark the circuit per sample rather
+        // than on the dive. A dive that runs closed circuit for any part of
+        // it is a rebreather dive; bailout segments switch the samples to
+        // open circuit without changing that.
+        final waypointMode = UddfImportParsers.parseDiveModeIn(waypoint);
+        if (waypointMode != null && waypointMode != enums.DiveMode.oc) {
+          waypointDiveMode = waypointMode;
+        }
+
         final ndlText = UddfImportParsers.getElementText(
           waypoint,
           'nodecotime',
@@ -1742,16 +1779,35 @@ class UddfFullImportService {
         final decoStop = waypoint.findElements('decostop').firstOrNull;
         if (decoStop != null) {
           final kind = decoStop.getAttribute('kind')?.trim().toLowerCase();
+          // UDDF 3.2.x specifies `safety` / `mandatory`; some exporters emit
+          // `safetystop` / `decostop`. Accept both spellings and only warn for
+          // a genuinely unknown kind (otherwise a spec-valid `mandatory` file
+          // logs a warning on every in-deco waypoint).
+          const safetyKinds = {'safety', 'safetystop'};
+          const decoKinds = {'mandatory', 'decostop'};
           if (kind != null &&
               kind.isNotEmpty &&
-              kind != 'safetystop' &&
-              kind != 'decostop') {
+              !safetyKinds.contains(kind) &&
+              !decoKinds.contains(kind)) {
             _logger.warning(
               'UDDF import: unsupported decostop kind "$kind"; '
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = kind == 'safetystop' ? 1 : 2;
+          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+
+          // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
+          // `decodepth` is metres and needs no conversion. Unlike Subsurface's
+          // delta-encoded stopdepth, `<decostop>` is present on every in-stop
+          // waypoint, so there is nothing to carry forward: a waypoint with no
+          // decostop is simply no obligation (null ceiling). A non-positive
+          // depth is treated as no stop.
+          final decoDepth = double.tryParse(
+            decoStop.getAttribute('decodepth') ?? '',
+          );
+          if (decoDepth != null && decoDepth > 0) {
+            point['ceiling'] = decoDepth;
+          }
         }
 
         // UDDF exposes both remainingbottomtime and remainingo2time.
@@ -1784,6 +1840,10 @@ class UddfFullImportService {
 
       if (profile.isNotEmpty) {
         diveData['profile'] = profile;
+      }
+      // Only fills the gap: an explicit dive-level mode always wins.
+      if (waypointDiveMode != null && diveData['diveMode'] == null) {
+        diveData['diveMode'] = waypointDiveMode;
       }
       if (lastWaypointCns != null) {
         diveData['cnsEnd'] = lastWaypointCns;

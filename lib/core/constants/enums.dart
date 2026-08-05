@@ -9,6 +9,7 @@ enum EquipmentType {
   fins('Fins'),
   mask('Mask'),
   computer('Dive Computer'),
+  transmitter('Transmitter'),
   tank('Tank'),
   weights('Weights'),
   light('Light'),

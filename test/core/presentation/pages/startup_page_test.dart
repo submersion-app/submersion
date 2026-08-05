@@ -10,6 +10,9 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -184,52 +187,22 @@ Widget _buildVersionMismatchError({
   required int dbVersion,
   required int appVersion,
   VoidCallback? onClose,
+  VoidCallback? onDownloadLatest,
 }) {
-  const textColor = Colors.black87;
-  const subtitleColor = Colors.black54;
-
+  // Renders the real production widget so these tests cannot drift from the
+  // screen users actually see (the previous inline replica did exactly that).
   return MaterialApp(
     home: Scaffold(
       key: const ValueKey('error'),
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.update, size: 64, color: Colors.orange),
-                const SizedBox(height: 24),
-                const Text(
-                  'Update Required',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Your dive data was saved by a newer version of '
-                  'Submersion (schema v$dbVersion). This version '
-                  'only supports up to schema v$appVersion.',
-                  style: const TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Please update Submersion to the latest version. '
-                  'Your data is safe and has not been modified.',
-                  style: TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: onClose ?? () {},
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
+          child: VersionMismatchView(
+            databaseVersion: dbVersion,
+            appVersion: appVersion,
+            textColor: Colors.black87,
+            subtitleColor: Colors.black54,
+            onDownloadLatest: onDownloadLatest ?? () {},
+            onClose: onClose ?? () {},
           ),
         ),
       ),
@@ -416,6 +389,50 @@ void main() {
 
       expect(find.byKey(const ValueKey('error')), findsOneWidget);
     });
+
+    testWidgets('offers a download link for the latest version', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Download Latest Version'), findsOneWidget);
+    });
+
+    testWidgets('mentions the pre-upgrade backup conditionally', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      // A newer-on-disk database means no pre-migration backup ran on this
+      // launch (PreMigrationBackupService returns early when stored >= target),
+      // and the database may have arrived from another device entirely. The
+      // copy must not promise a backup this device might never have taken.
+      expect(
+        find.textContaining('If a backup was taken before the upgrade'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows the release URL as a manual fallback', (tester) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      // launchUrl can fail (headless Linux, sandboxed or kiosk builds); the
+      // visible URL is what keeps the button's failure path recoverable.
+      expect(
+        find.textContaining(VersionMismatchView.latestReleaseUrl),
+        findsOneWidget,
+      );
+      expect(find.textContaining('does not open a browser'), findsOneWidget);
+    });
   });
 
   group('Error UI - generic error', () {
@@ -600,6 +617,61 @@ void main() {
       expect(find.textContaining('Upgrading'), findsNothing);
 
       // Drain the 1-second splash delay timer to avoid pending timer errors
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash renders dark when cached theme mode is dark', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({cachedThemeModeKey: 'dark'});
+      prefs = await SharedPreferences.getInstance();
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
+      // Drain the 1-second splash delay timer to avoid pending timer errors.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash follows platform brightness when cache is absent', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
       await tester.pump(const Duration(seconds: 2));
     });
 

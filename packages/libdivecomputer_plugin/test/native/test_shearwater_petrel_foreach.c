@@ -61,6 +61,23 @@ void device_event_emit(dc_device_t *device, dc_event_type_t event,
   if (event == DC_EVENT_PROGRESS)
     g_last_progress = *(const dc_event_progress_t *)data;
 }
+int device_is_cancelled(dc_device_t *device) {
+  (void)device;
+  return 0;
+}
+// The retry path (#759) sleeps and purges the iostream between attempts;
+// the mock transport has no iostream, so both are no-ops here.
+dc_status_t dc_iostream_sleep(dc_iostream_t *iostream, unsigned int ms) {
+  (void)iostream;
+  (void)ms;
+  return DC_STATUS_SUCCESS;
+}
+dc_status_t dc_iostream_purge(dc_iostream_t *iostream,
+                              dc_direction_t direction) {
+  (void)iostream;
+  (void)direction;
+  return DC_STATUS_SUCCESS;
+}
 
 // ---------------------------------------------------------------------------
 // Scripted mock of the shearwater_common transport layer.
@@ -84,7 +101,7 @@ typedef struct {
   int next_page;
   struct {
     unsigned char id;
-    int fail;  // serve DC_STATUS_TIMEOUT instead of the payload
+    int fail;  // serve DC_STATUS_TIMEOUT this many more times, then succeed
   } dives[MAX_DIVES];
   int ndives;
 } script_t;
@@ -220,7 +237,10 @@ dc_status_t shearwater_common_download(shearwater_common_device_t *device,
   for (int i = 0; i < g_script.ndives; i++) {
     unsigned char id = g_script.dives[i].id;
     if (BASE_ADDR + (unsigned int)id * 0x1000 != address) continue;
-    if (g_script.dives[i].fail) return DC_STATUS_TIMEOUT;
+    if (g_script.dives[i].fail > 0) {
+      g_script.dives[i].fail--;
+      return DC_STATUS_TIMEOUT;
+    }
     unsigned char payload[DIVE_PAYLOAD_SIZE];
     memset(payload, 0xAB, sizeof(payload));
     payload[0] = id;
@@ -349,26 +369,65 @@ static void check_deleted_records_preserved(void) {
   if (s.n != 4 || memcmp(s.order, want, 4) != 0) print_order(&s);
 }
 
-// A failed dive download aborts the pass; everything delivered before it must
-// be a contiguous oldest prefix so the newest imported fingerprint resumes
+// A persistently failed dive download ends the pass early; everything
+// delivered before it must be a contiguous oldest prefix so the newest imported fingerprint resumes
 // correctly on the next attempt.
-static void check_stop_on_failure(void) {
+static void check_partial_after_persistent_failure(void) {
   script_reset();
   g_script.npages = 1;
   set_record(0, 0, 0, 3);  // newest
-  set_record(0, 1, 0, 2);  // this download fails (BLE timeout)
+  set_record(0, 1, 0, 2);  // this download fails on every attempt
   set_record(0, 2, 0, 1);  // oldest
   script_add_dive(1, 0);
-  script_add_dive(2, 1);
+  script_add_dive(2, 99);
   script_add_dive(3, 0);
 
   cb_state_t s;
   dc_status_t rc = run_foreach(NULL, &s);
   const unsigned char want[] = {1};
-  expect(rc == DC_STATUS_TIMEOUT, "the dive failure is propagated");
+  expect(rc == DC_STATUS_SUCCESS,
+         "a mid-pass persistent failure keeps the delivered dives (#759)");
   expect(order_is(&s, want, 1),
          "a failed download leaves a contiguous oldest prefix");
   if (s.n != 1 || s.order[0] != 1) print_order(&s);
+}
+
+// A transient failure (one lost BLE notification) must be retried and the
+// pass completed in full (#759).
+static void check_retry_recovers(void) {
+  script_reset();
+  g_script.npages = 1;
+  set_record(0, 0, 0, 3);  // newest
+  set_record(0, 1, 0, 2);  // fails twice, succeeds on the third attempt
+  set_record(0, 2, 0, 1);  // oldest
+  script_add_dive(1, 0);
+  script_add_dive(2, 2);
+  script_add_dive(3, 0);
+
+  cb_state_t s;
+  dc_status_t rc = run_foreach(NULL, &s);
+  const unsigned char want[] = {1, 2, 3};
+  expect(rc == DC_STATUS_SUCCESS, "a transient failure is retried");
+  expect(order_is(&s, want, 3), "all dives delivered after the retry");
+  if (s.n != 3) print_order(&s);
+}
+
+// With NOTHING delivered yet, a persistent failure is still a real error:
+// zero dives plus DC_STATUS_SUCCESS would look like an empty computer.
+static void check_total_failure_still_errors(void) {
+  script_reset();
+  g_script.npages = 1;
+  set_record(0, 0, 0, 2);  // newest
+  set_record(0, 1, 0, 1);  // oldest; fails on every attempt
+  script_add_dive(1, 99);
+  script_add_dive(2, 0);
+
+  cb_state_t s;
+  dc_status_t rc = run_foreach(NULL, &s);
+  expect(rc == DC_STATUS_TIMEOUT,
+         "a failure before any delivery propagates the error");
+  expect(s.n == 0, "no dives delivered");
+  if (s.n != 0) print_order(&s);
 }
 
 // Resume: with the newest imported dive's fingerprint set, only newer dives
@@ -448,7 +507,9 @@ static void check_multi_page(void) {
 int main(void) {
   check_oldest_first();
   check_deleted_records_preserved();
-  check_stop_on_failure();
+  check_partial_after_persistent_failure();
+  check_retry_recovers();
+  check_total_failure_still_errors();
   check_fingerprint_resume();
   check_progress_accounting();
   check_multi_page();

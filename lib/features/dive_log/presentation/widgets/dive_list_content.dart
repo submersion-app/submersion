@@ -19,6 +19,8 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -26,6 +28,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -782,6 +785,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               context.go('/dives/search');
             } else if (value == 'match_sites') {
               context.push('/dives/match-sites');
+            } else if (value == 'data_quality') {
+              context.push('/dives/quality');
             } else if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -830,6 +835,30 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     const SizedBox(width: 12),
                     Flexible(
                       child: Text(context.l10n.diveLog_listPage_menuMatchSites),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'data_quality',
+                child: Row(
+                  children: [
+                    const Icon(Icons.rule),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(context.l10n.dataQuality_badge_tooltip),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        final count =
+                            ref.watch(openQualityFindingsCountProvider).value ??
+                            0;
+                        if (count == 0) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Badge(label: Text('$count')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -912,6 +941,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 context.go('/dives/search');
               } else if (value == 'match_sites') {
                 context.push('/dives/match-sites');
+              } else if (value == 'data_quality') {
+                context.push('/dives/quality');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -962,6 +993,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'data_quality',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.rule, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final count =
+                              ref
+                                  .watch(openQualityFindingsCountProvider)
+                                  .value ??
+                              0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -1078,29 +1135,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_selection_tooltip_deselectAll,
               onPressed: _deselectAll,
             ),
-          IconButton(
-            icon: const Icon(Icons.date_range, size: 20),
-            tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
-            onPressed: () => _selectByDateRange(dives),
-          ),
-          if (_selectedIds.length >= 2)
-            IconButton(
-              icon: const Icon(Icons.call_merge, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_combine,
-              onPressed: _combineSelected,
-            ),
-          if (_selectedIds.length >= 2)
-            IconButton(
-              icon: const Icon(Icons.view_in_ar, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_compare3d,
-              onPressed: _compareIn3d,
-            ),
-          if (_selectedIds.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.upload, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_export,
-              onPressed: _showExportDialog,
-            ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
@@ -1117,8 +1151,90 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_selection_tooltip_delete,
               onPressed: _confirmAndDelete,
             ),
+          _buildSelectionOverflowMenu(dives),
         ],
       ),
+    );
+  }
+
+  /// Overflow menu for the narrow master-pane selection bar.
+  ///
+  /// The master pane is too narrow to show every selection action as its own
+  /// icon (unlike the full-width [_buildSelectionAppBar]), so the situational
+  /// actions collapse here to prevent the toolbar Row from overflowing. Mirrors
+  /// the overflow pattern used by [_buildCompactAppBar].
+  Widget _buildSelectionOverflowMenu(List<DiveSummary> dives) {
+    final canCombine = _selectedIds.length >= 2;
+    final hasSelection = _selectedIds.isNotEmpty;
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 20),
+      onSelected: (value) {
+        switch (value) {
+          case 'date_range':
+            _selectByDateRange(dives);
+          case 'combine':
+            _combineSelected();
+          case 'compare3d':
+            _compareIn3d();
+          case 'export':
+            _showExportDialog();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'date_range',
+          child: Row(
+            children: [
+              const Icon(Icons.date_range, size: 20),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  context.l10n.diveLog_selection_tooltip_selectDateRange,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (canCombine)
+          PopupMenuItem(
+            value: 'combine',
+            child: Row(
+              children: [
+                const Icon(Icons.call_merge, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_combine),
+                ),
+              ],
+            ),
+          ),
+        if (canCombine)
+          PopupMenuItem(
+            value: 'compare3d',
+            child: Row(
+              children: [
+                const Icon(Icons.view_in_ar, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_compare3d),
+                ),
+              ],
+            ),
+          ),
+        if (hasSelection)
+          PopupMenuItem(
+            value: 'export',
+            child: Row(
+              children: [
+                const Icon(Icons.upload, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_export),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -1215,6 +1331,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       customEnd: settings.cardColorGradientEnd,
     );
 
+    // Built once for the whole list, not per row: the lookup map is shared by
+    // every tile and only this widget subscribes to the dive-type list.
+    final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
+
     // Check if detailed mode needs full Dive objects for non-summary fields
     final detailedConfig = ref.watch(detailedCardConfigProvider);
     final needsFullDive =
@@ -1266,6 +1386,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 // config, and keeps the home Recent dives list in sync (#506).
                 return DiveListItem(
                   summary: dive,
+                  diveTypeLabelResolver: diveTypeLabelResolver,
                   fullDive: fullDiveLookup[dive.id],
                   diveNumber: dive.diveNumber ?? index + 1,
                   colorValue: getCardColorValue(dive, colorAttribute),
@@ -1327,7 +1448,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     if (filter.diveTypeId != null) {
       final diveTypeName =
-          ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ??
+          ref
+              .watch(diveTypeProvider(filter.diveTypeId!))
+              .value
+              ?.localizedName(context.l10n) ??
+          builtInDiveTypeName(context.l10n, filter.diveTypeId!) ??
           filter.diveTypeId!;
       chips.add(
         _buildFilterChip(context, diveTypeName, () {

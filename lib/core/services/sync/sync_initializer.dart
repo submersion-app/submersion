@@ -212,9 +212,20 @@ class SyncInitializer {
   /// install is uploading under this device id (a twin). A null nonce is
   /// never foreign: it was written by a pre-nonce build of this same device,
   /// and flagging it would false-positive every upgrader's first sync.
+  ///
+  /// An empty ring is never foreign either: it means this install has no
+  /// record of ever uploading here -- lost or reset SharedPreferences (a
+  /// reinstall that kept the database, a DB-only restore, OS prefs cleanup)
+  /// rather than evidence of a twin. Adopting on it would mint a fresh
+  /// identity (and re-upload a full base) after every such loss (#733). A
+  /// genuine whole-container clone carries the cloned, non-empty ring, so
+  /// twin detection still fires for it: whichever twin uploads first puts a
+  /// nonce in the manifest that the other's cloned ring does not contain.
   bool isForeignUploadNonce(String? nonce, String providerId) {
     if (nonce == null) return false;
-    return !_recordedUploadNonces(providerId).contains(nonce);
+    final recorded = _recordedUploadNonces(providerId);
+    if (recorded.isEmpty) return false;
+    return !recorded.contains(nonce);
   }
 
   /// Check sync status on app launch

@@ -528,6 +528,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         return Icons.flashlight_on;
       case EquipmentType.camera:
         return Icons.camera_alt;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       default:
         return Icons.backpack;
     }

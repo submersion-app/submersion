@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/backup_sync_step.dart';
@@ -230,11 +232,17 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
         .toList();
     final labelledIndex = labelledIds.indexOf(currentId);
 
+    final oceanBrightness = resolveStartupBrightness(
+      ref.watch(sharedPreferencesProvider),
+      MediaQuery.platformBrightnessOf(context),
+    );
+
     return Scaffold(
       body: OceanBackground(
-        // Match the startup splash's bright ocean so the background does not
-        // visibly darken when the splash dissolves into the wizard.
-        brightness: Brightness.light,
+        // Resolve brightness the same way the startup splash does, so the
+        // background does not visibly shift when the splash dissolves into
+        // the wizard.
+        brightness: oceanBrightness,
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(

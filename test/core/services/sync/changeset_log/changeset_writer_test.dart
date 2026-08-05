@@ -478,4 +478,97 @@ void main() {
       },
     );
   });
+
+  group('acks and heartbeat', () {
+    Future<SyncManifest> downloadManifest(String deviceId) async {
+      return SyncManifest.fromBytes(
+        await provider.downloadFile(
+          '$folder/${ChangesetLogLayout.manifestName(deviceId)}',
+        ),
+      );
+    }
+
+    test('publish stamps appliedPeerHlc into the manifest', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'ack-d1', diveNumber: 1),
+      );
+      final deviceId = await SyncRepository().getDeviceId();
+      await writer.publish(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: folder,
+        deletions: const [],
+        appliedPeerHlc: const {'peer-a': '00000000000010:000000:peer-a'},
+      );
+      final manifest = await downloadManifest(deviceId);
+      expect(manifest.appliedPeerHlc, {
+        'peer-a': '00000000000010:000000:peer-a',
+      });
+    });
+
+    test(
+      'empty publish heartbeats a stale manifest, preserving base and nonce',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'hb-d1', diveNumber: 1),
+        );
+        final deviceId = await SyncRepository().getDeviceId();
+        await writer.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folder,
+          deletions: const [],
+          uploadNonce: 'nonce-1',
+        );
+        // Age the manifest 8 days (past the 7-day heartbeat threshold).
+        final name = ChangesetLogLayout.manifestName(deviceId);
+        final fresh = await downloadManifest(deviceId);
+        final aged = SyncManifest(
+          deviceId: fresh.deviceId,
+          provider: fresh.provider,
+          baseSeq: fresh.baseSeq,
+          basePartCount: fresh.basePartCount,
+          baseBytes: fresh.baseBytes,
+          baseChecksum: fresh.baseChecksum,
+          basePartChecksums: fresh.basePartChecksums,
+          headSeq: fresh.headSeq,
+          publishedHlcHigh: fresh.publishedHlcHigh,
+          epochId: fresh.epochId,
+          uploadNonce: fresh.uploadNonce,
+          updatedAt:
+              DateTime.now().millisecondsSinceEpoch - 8 * 24 * 60 * 60 * 1000,
+        );
+        await provider.uploadFile(aged.toBytes(), name, folderId: folder);
+
+        final result = await writer.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folder,
+          deletions: await SyncRepository().getAllDeletions(),
+          appliedPeerHlc: const {'peer-a': '00000000000099:000000:peer-a'},
+        );
+        expect(result.kind, ChangesetWriteKind.heartbeat);
+        final after = await downloadManifest(deviceId);
+        expect(after.baseSeq, fresh.baseSeq);
+        expect(after.headSeq, fresh.headSeq);
+        expect(after.uploadNonce, 'nonce-1');
+        expect(after.appliedPeerHlc, {
+          'peer-a': '00000000000099:000000:peer-a',
+        });
+        expect(
+          DateTime.now().millisecondsSinceEpoch - after.updatedAt,
+          lessThan(60 * 1000),
+        );
+      },
+    );
+
+    test('empty publish against a fresh manifest stays a noop', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'noop-d1', diveNumber: 1),
+      );
+      await publish();
+      final result = await publish();
+      expect(result.kind, ChangesetWriteKind.noop);
+    });
+  });
 }

@@ -41,6 +41,12 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   final TissueChromeStyle? chromeStyle;
   final ValueNotifier<TissuePick?>? hoverPick;
 
+  /// True for the seascape views: axes + hover picking WITHOUT the tissue
+  /// wireframe/overlay painters (which would otherwise activate once all
+  /// four tissue-chrome inputs are supplied) and with the scrub cursor
+  /// kept on the scene's own foreground painter.
+  final bool axisChromeOnly;
+
   const Dive3dInteractiveViewport({
     super.key,
     required this.scene,
@@ -53,6 +59,7 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     this.axisLabels,
     this.chromeStyle,
     this.hoverPick,
+    this.axisChromeOnly = false,
   });
 
   @override
@@ -238,7 +245,8 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     SceneMarker? best;
     var bestDistance = 24.0;
     for (final marker in widget.scene.markers) {
-      final d = (projector.project(marker.x, marker.y, 0) - cursor).distance;
+      final d =
+          (projector.project(marker.x, marker.y, marker.z) - cursor).distance;
       if (d < bestDistance) {
         bestDistance = d;
         best = marker;
@@ -254,10 +262,19 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
         final size = constraints.biggest;
         _lastLayoutSize = size;
         final hasChrome =
+            !widget.axisChromeOnly &&
             widget.surfaceGrid != null &&
             widget.axisFrame != null &&
             widget.chromeStyle != null &&
             widget.hoverPick != null;
+        // Axis-only chrome (seascape views): frame + labels + optional
+        // hover ring without the tissue painters, scrub cursor untouched.
+        final hasAxisChrome =
+            !hasChrome &&
+            widget.axisFrame != null &&
+            widget.chromeStyle != null;
+        // Hover picking works in both chrome modes.
+        final hasHover = widget.surfaceGrid != null && widget.hoverPick != null;
 
         final scenePaint = CustomPaint(
           painter: Dive3dScenePainter(
@@ -311,6 +328,22 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                   zoom: _zoom,
                   scrubPosition: widget.scrubPosition,
                   hoverPick: widget.hoverPick!,
+                ),
+                child: scenePaint,
+              )
+            : hasAxisChrome
+            ? CustomPaint(
+                foregroundPainter: AxisChromePainter(
+                  bounds: widget.scene.bounds,
+                  frame: widget.axisFrame!,
+                  labels: widget.axisLabels,
+                  style: widget.chromeStyle!,
+                  yawDegrees: _yaw,
+                  pitchDegrees: _pitch,
+                  zoom: _zoom,
+                  textDirection: Directionality.of(context),
+                  surfaceGrid: hasHover ? widget.surfaceGrid : null,
+                  hoverPick: hasHover ? widget.hoverPick : null,
                 ),
                 child: scenePaint,
               )
@@ -368,7 +401,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
           },
           onPointerPanZoomStart: _onPanZoomStart,
           onPointerPanZoomUpdate: _onPanZoomUpdate,
-          child: hasChrome
+          child: hasHover
               ? MouseRegion(
                   onHover: (e) => _pickAt(size, e.localPosition),
                   onExit: (_) => widget.hoverPick!.value = null,

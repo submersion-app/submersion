@@ -49,6 +49,90 @@ void main() {
       expect(find.textContaining('52'), findsWidgets);
     });
 
+    testWidgets('large dive number stays on one line and scales to fit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 88888,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            siteName: 'Blue Corner Wall',
+            maxDepth: 28.5,
+            duration: const Duration(minutes: 52),
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final badge = find.text('#88888');
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Text>(badge).maxLines, 1);
+      expect(
+        find.ancestor(of: badge, matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows a safety finding badge when the summary has findings', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+              safetyFindingCount: 3,
+            ),
+          ),
+        ),
+      );
+
+      final badge = find.ancestor(
+        of: find.byIcon(Icons.circle),
+        matching: find.byType(Tooltip),
+      );
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Tooltip>(badge).message, contains('3'));
+    });
+
+    testWidgets('shows no safety badge when there are no findings', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.circle), findsNothing);
+    });
+
     testWidgets('shows checkbox in selection mode', (tester) async {
       await tester.pumpWidget(
         testApp(

@@ -21,6 +21,8 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -209,7 +211,6 @@ class UddfScreenshotImporter {
         brand: equipData['brand'] as String?,
         model: equipData['model'] as String?,
         serialNumber: equipData['serialNumber'] as String?,
-        size: equipData['size'] as String?,
         status: equipStatus,
         purchaseDate: equipData['purchaseDate'] as DateTime?,
         purchasePrice: equipData['purchasePrice'] as double?,
@@ -218,6 +219,14 @@ class UddfScreenshotImporter {
         serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
+        attributes: [
+          if ((equipData['size'] as String?)?.trim().isNotEmpty ?? false)
+            EquipmentAttribute.curated(
+              equipmentId: newId,
+              key: EquipmentAttrKeys.size,
+              valueText: (equipData['size'] as String).trim(),
+            ),
+        ],
       );
 
       await _equipmentRepository.createEquipment(item);

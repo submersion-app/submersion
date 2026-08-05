@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/resolvers/http_url_media_resolver.dart';
@@ -15,6 +18,7 @@ import 'package:submersion/features/media/data/services/media_source_resolver_re
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/subscription_poller.dart';
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
+import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -48,12 +52,26 @@ final localMediaPlatformProvider = Provider<LocalMediaPlatform>(
 
 final exifExtractorProvider = Provider<ExifExtractor>((ref) => ExifExtractor());
 
+/// Produces and caches OS-generated poster frames for local-file videos so the
+/// media grid shows a real thumbnail instead of the movie-icon placeholder.
+final videoThumbnailServiceProvider = Provider<VideoThumbnailService>(
+  (ref) => VideoThumbnailService(
+    platform: ref.watch(localMediaPlatformProvider),
+    bookmarkStorage: ref.watch(localBookmarkStorageProvider),
+    cacheDir: () async {
+      final support = await getApplicationSupportDirectory();
+      return Directory(p.join(support.path, 'Submersion', 'video_thumbnails'));
+    },
+  ),
+);
+
 /// Singleton [LocalFileResolver] (Phase 2 — multi-platform).
 final localFileResolverProvider = Provider<LocalFileResolver>(
   (ref) => LocalFileResolver(
     bookmarkStorage: ref.watch(localBookmarkStorageProvider),
     platform: ref.watch(localMediaPlatformProvider),
     exifExtractor: ref.watch(exifExtractorProvider),
+    videoThumbnails: ref.watch(videoThumbnailServiceProvider),
   ),
 );
 
@@ -113,11 +131,6 @@ final mediaSourceResolverRegistryProvider =
         ),
       });
     });
-
-/// Whether to show the placeholder Files / URL tabs in the picker. Off by
-/// default; enabled via Settings → Data → Media Sources → Diagnostics
-/// (Task 29 wires the toggle).
-final mediaPickerHiddenTabsProvider = StateProvider<bool>((ref) => false);
 
 /// Singleton [LocalFilesDiagnosticsService] used by the Settings →
 /// Media Sources → Local files subsection.

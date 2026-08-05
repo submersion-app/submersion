@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
@@ -194,6 +195,33 @@ class _SuccessView extends StatelessWidget {
                 label: 'Skipped',
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
+              ),
+            if (importedDiveIds.isNotEmpty)
+              Consumer(
+                builder: (context, ref, _) {
+                  final count =
+                      ref
+                          .watch(
+                            importedDivesOpenFindingsCountProvider(
+                              importedDivesFindingsKey(importedDiveIds),
+                            ),
+                          )
+                          .value ??
+                      0;
+                  if (count == 0) return const SizedBox.shrink();
+                  return ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.rule),
+                    title: Text(l10n.dataQuality_summary_flagged(count)),
+                    trailing: TextButton(
+                      onPressed: () => context.push(
+                        '/dives/quality?dive=${importedDiveIds.join(',')}',
+                      ),
+                      child: Text(l10n.dataQuality_summary_review),
+                    ),
+                  );
+                },
               ),
             if (fileOutcomes.isNotEmpty) ...[
               const SizedBox(height: 16),

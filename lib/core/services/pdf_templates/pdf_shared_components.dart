@@ -7,6 +7,19 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 
+/// Minutes string for a logbook Duration field (#644).
+///
+/// Uses [Dive.effectiveRuntime] (runtime, then exit-entry, then profile,
+/// then bottomTime), never bottomTime directly: the logbook Duration must
+/// show the total dive duration, which bottom time understates.
+String pdfDiveDurationMinutes(Dive dive) =>
+    '${dive.effectiveRuntime?.inMinutes ?? '-'}';
+
+/// Sum of effective runtimes for summary and total rows (#644).
+Duration pdfTotalRuntime(List<Dive> dives) => dives
+    .where((d) => d.effectiveRuntime != null)
+    .fold<Duration>(Duration.zero, (sum, d) => sum + d.effectiveRuntime!);
+
 /// Shared PDF components used across multiple templates.
 ///
 /// These helper methods provide consistent styling and layout for
@@ -504,9 +517,7 @@ class PdfSharedComponents {
       return pw.Center(child: pw.Text('No dives to summarize'));
     }
 
-    final totalDiveTime = dives
-        .where((d) => d.bottomTime != null)
-        .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
+    final totalDiveTime = pdfTotalRuntime(dives);
     final maxDepth = dives
         .where((d) => d.maxDepth != null)
         .map((d) => d.maxDepth!)

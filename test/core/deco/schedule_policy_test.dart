@@ -153,4 +153,29 @@ void main() {
     // FixedAscentGas has no alternative gas.
     expect(FixedAscentGas(fN2: 0.7902).breakGasForDepth(6.0), isNull);
   });
+
+  group('ascent-rate bands and descent rate', () {
+    test('null bands: ascentRateForDepth always returns the single rate', () {
+      const policy = SchedulePolicy(ascentRate: 9);
+      expect(policy.ascentRateForDepth(35, 40), 9);
+      expect(policy.ascentRateForDepth(3, 40), 9);
+    });
+
+    test('four bands select by fraction of mean depth then last 6m', () {
+      const policy = SchedulePolicy(
+        ascentRate: 9,
+        ascentRateBands: [6, 7, 8, 3],
+      );
+      // Mean depth 40 m: 75% = 30 m, 50% = 20 m.
+      expect(policy.ascentRateForDepth(35, 40), 6); // below 75% mean
+      expect(policy.ascentRateForDepth(25, 40), 7); // 75%-50%
+      expect(policy.ascentRateForDepth(10, 40), 8); // 50%-to-6m
+      expect(policy.ascentRateForDepth(4, 40), 3); // last 6 m
+    });
+
+    test('descent rate defaults to 18 and is configurable', () {
+      expect(const SchedulePolicy().descentRate, 18);
+      expect(const SchedulePolicy(descentRate: 24).descentRate, 24);
+    });
+  });
 }

@@ -24,12 +24,16 @@ final plannedProfileOverlayProvider =
       final plan = await repository.getPlanByLinkedDiveId(diveId);
       if (plan == null) return null;
 
-      return buildPlannedOverlay(plan);
+      final config = ref.watch(planEngineConfigProvider);
+      return buildPlannedOverlay(plan, config: config);
     });
 
 /// Pure mapping from a plan to its chart overlay (exposed for tests).
-ChartSourceOverlay buildPlannedOverlay(domain.DivePlan plan) {
-  final outcome = const PlanEngine().compute(plan);
+ChartSourceOverlay buildPlannedOverlay(
+  domain.DivePlan plan, {
+  PlanEngineConfig config = const PlanEngineConfig(),
+}) {
+  final outcome = PlanEngine(config: config).compute(plan);
   final series = buildCanvasSeries(segments: plan.segments, outcome: outcome);
 
   return ChartSourceOverlay(

@@ -119,7 +119,10 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # --- Update pubspec.yaml ---
-sed -i '' "s/^version: .*/version: ${NEW_FULL}/" "$PUBSPEC"
+# perl, not sed -i: BSD sed (macOS) requires `-i ''` while GNU sed (the
+# promote workflow's ubuntu runner) reads that '' as the script and fails
+# with "can't read s/...: No such file or directory". perl -pi is portable.
+perl -pi -e "s/^version: .*/version: ${NEW_FULL}/" "$PUBSPEC"
 
 # Verify the change
 UPDATED=$(grep '^version:' "$PUBSPEC" | sed 's/version: *//')

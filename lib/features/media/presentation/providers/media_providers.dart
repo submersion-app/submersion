@@ -1,7 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Repository provider (singleton)
 final mediaRepositoryProvider = Provider<MediaRepository>((ref) {
@@ -18,6 +20,19 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
   return repository.getMediaForDive(diveId);
+});
+
+/// Positions a dive's linked media on the profile chart by backfilling any
+/// missing [MediaEnrichment] rows. Idempotent; wired to a dive-with-profile
+/// loader and the media repository's read/save.
+final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
+  final mediaRepo = ref.watch(mediaRepositoryProvider);
+  final diveRepo = ref.watch(diveRepositoryProvider);
+  return DiveMediaEnricher(
+    loadDive: diveRepo.getDiveById,
+    loadMediaForDive: mediaRepo.getMediaForDive,
+    saveEnrichment: mediaRepo.saveEnrichment,
+  );
 });
 
 /// Get single media by ID
@@ -117,15 +132,17 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
     _ref.invalidate(mediaByIdProvider(item.id));
   }
 
-  /// Delete a media item
+  /// Delete a media item. Routed through the deletion coordinator so the
+  /// remote-blob delete intent is enqueued before the row dies
+  /// (orphan-prevention spec 5.2).
   Future<void> deleteMedia(String id) async {
-    await _repository.deleteMedia(id);
+    await _ref.read(mediaDeletionCoordinatorProvider).deleteMedia(id);
     await refresh();
   }
 
   /// Delete multiple media items at once
   Future<void> deleteMultipleMedia(List<String> ids) async {
-    await _repository.deleteMultipleMedia(ids);
+    await _ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
     await refresh();
   }
 

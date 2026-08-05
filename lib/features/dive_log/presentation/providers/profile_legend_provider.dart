@@ -23,6 +23,7 @@ class ProfileLegendState {
   final bool showTemperature;
   final bool showPressure;
   final bool showCeiling;
+  final bool showDecoStops;
 
   // Secondary toggles (shown in "More" popover)
   final bool showHeartRate;
@@ -53,11 +54,15 @@ class ProfileLegendState {
   final bool showCns;
   final bool showOtu;
 
-  // Per-metric data source preferences (session overrides)
+  // Per-metric data source preferences (session overrides).
+  // The ceiling line has no source toggle: every import path stores only the
+  // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
+  // would duplicate the deco-stop band. The ceiling line therefore always
+  // renders the exact, continuous calculated curve (see issue #755).
   final MetricDataSource ndlSource;
-  final MetricDataSource ceilingSource;
   final MetricDataSource ttsSource;
   final MetricDataSource cnsSource;
+  final MetricDataSource decoStopSource;
 
   // Per-tank pressure visibility (keyed by tank ID)
   final Map<String, bool> showTankPressure;
@@ -74,6 +79,7 @@ class ProfileLegendState {
     this.showTemperature = true,
     this.showPressure = false,
     this.showCeiling = true,
+    this.showDecoStops = true,
     this.showHeartRate = false,
     this.showSac = false,
     this.showAscentRateColors = false,
@@ -96,9 +102,9 @@ class ProfileLegendState {
     this.showCns = false,
     this.showOtu = false,
     this.ndlSource = MetricDataSource.calculated,
-    this.ceilingSource = MetricDataSource.calculated,
     this.ttsSource = MetricDataSource.calculated,
     this.cnsSource = MetricDataSource.calculated,
+    this.decoStopSource = MetricDataSource.calculated,
     this.showTankPressure = const {},
     this.showGas = true,
     this.sectionExpanded = const {
@@ -116,6 +122,7 @@ class ProfileLegendState {
   int get activeSecondaryCount {
     var count = 0;
     if (showCeiling) count++;
+    if (showDecoStops) count++;
     if (showHeartRate) count++;
     if (showSac) count++;
     if (showAscentRateColors) count++;
@@ -150,6 +157,7 @@ class ProfileLegendState {
     bool? showTemperature,
     bool? showPressure,
     bool? showCeiling,
+    bool? showDecoStops,
     bool? showHeartRate,
     bool? showSac,
     bool? showAscentRateColors,
@@ -172,9 +180,9 @@ class ProfileLegendState {
     bool? showCns,
     bool? showOtu,
     MetricDataSource? ndlSource,
-    MetricDataSource? ceilingSource,
     MetricDataSource? ttsSource,
     MetricDataSource? cnsSource,
+    MetricDataSource? decoStopSource,
     Map<String, bool>? showTankPressure,
     bool? showGas,
     Map<String, bool>? sectionExpanded,
@@ -187,6 +195,7 @@ class ProfileLegendState {
       showTemperature: showTemperature ?? this.showTemperature,
       showPressure: showPressure ?? this.showPressure,
       showCeiling: showCeiling ?? this.showCeiling,
+      showDecoStops: showDecoStops ?? this.showDecoStops,
       showHeartRate: showHeartRate ?? this.showHeartRate,
       showSac: showSac ?? this.showSac,
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
@@ -209,9 +218,9 @@ class ProfileLegendState {
       showCns: showCns ?? this.showCns,
       showOtu: showOtu ?? this.showOtu,
       ndlSource: ndlSource ?? this.ndlSource,
-      ceilingSource: ceilingSource ?? this.ceilingSource,
       ttsSource: ttsSource ?? this.ttsSource,
       cnsSource: cnsSource ?? this.cnsSource,
+      decoStopSource: decoStopSource ?? this.decoStopSource,
       showTankPressure: showTankPressure ?? this.showTankPressure,
       showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
@@ -228,6 +237,7 @@ class ProfileLegendState {
           showTemperature == other.showTemperature &&
           showPressure == other.showPressure &&
           showCeiling == other.showCeiling &&
+          showDecoStops == other.showDecoStops &&
           showHeartRate == other.showHeartRate &&
           showSac == other.showSac &&
           showAscentRateColors == other.showAscentRateColors &&
@@ -250,9 +260,9 @@ class ProfileLegendState {
           showCns == other.showCns &&
           showOtu == other.showOtu &&
           ndlSource == other.ndlSource &&
-          ceilingSource == other.ceilingSource &&
           ttsSource == other.ttsSource &&
           cnsSource == other.cnsSource &&
+          decoStopSource == other.decoStopSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           mapEquals(sectionExpanded, other.sectionExpanded);
@@ -264,6 +274,7 @@ class ProfileLegendState {
     showTemperature,
     showPressure,
     showCeiling,
+    showDecoStops,
     showHeartRate,
     showSac,
     showAscentRateColors,
@@ -286,9 +297,9 @@ class ProfileLegendState {
     showCns,
     showOtu,
     ndlSource,
-    ceilingSource,
     ttsSource,
     cnsSource,
+    decoStopSource,
     ...showTankPressure.entries,
     showGas,
     ...sectionExpanded.entries,
@@ -318,6 +329,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowTemperature: s.defaultShowTemperature,
           defaultShowPressure: s.defaultShowPressure,
           showCeilingOnProfile: s.showCeilingOnProfile,
+          showDecoStopsOnProfile: s.showDecoStopsOnProfile,
           defaultShowHeartRate: s.defaultShowHeartRate,
           defaultShowSac: s.defaultShowSac,
           showAscentRateColors: s.showAscentRateColors,
@@ -340,9 +352,9 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowCns: s.defaultShowCns,
           defaultShowOtu: s.defaultShowOtu,
           defaultNdlSource: s.defaultNdlSource,
-          defaultCeilingSource: s.defaultCeilingSource,
           defaultTtsSource: s.defaultTtsSource,
           defaultCnsSource: s.defaultCnsSource,
+          defaultDecoStopSource: s.defaultDecoStopSource,
         ),
       ),
     );
@@ -351,6 +363,7 @@ class ProfileLegend extends _$ProfileLegend {
       showTemperature: settings.defaultShowTemperature,
       showPressure: settings.defaultShowPressure,
       showCeiling: settings.showCeilingOnProfile,
+      showDecoStops: settings.showDecoStopsOnProfile,
       showHeartRate: settings.defaultShowHeartRate,
       showSac: settings.defaultShowSac,
       showAscentRateColors: settings.showAscentRateColors,
@@ -374,9 +387,9 @@ class ProfileLegend extends _$ProfileLegend {
       showCns: settings.defaultShowCns,
       showOtu: settings.defaultShowOtu,
       ndlSource: settings.defaultNdlSource,
-      ceilingSource: settings.defaultCeilingSource,
       ttsSource: settings.defaultTtsSource,
       cnsSource: settings.defaultCnsSource,
+      decoStopSource: settings.defaultDecoStopSource,
     );
   }
 
@@ -413,6 +426,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleCeiling() {
     state = state.copyWith(showCeiling: !state.showCeiling);
+  }
+
+  void toggleDecoStops() {
+    state = state.copyWith(showDecoStops: !state.showDecoStops);
   }
 
   // Secondary toggle methods
@@ -502,8 +519,8 @@ class ProfileLegend extends _$ProfileLegend {
   }
 
   // Data source set methods (for SegmentedButton)
-  void setCeilingSource(MetricDataSource source) {
-    state = state.copyWith(ceilingSource: source);
+  void setDecoStopSource(MetricDataSource source) {
+    state = state.copyWith(decoStopSource: source);
   }
 
   void setNdlSource(MetricDataSource source) {

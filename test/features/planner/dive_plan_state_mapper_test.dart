@@ -89,8 +89,21 @@ void main() {
     expect(merged.sourceDiveId, isNull);
     // ...while aggregate-only fields survive the cycle.
     expect(merged.waterType, WaterType.fresh);
-    expect(merged.descentRate, 20.0);
     expect(merged.airBreaks, isNotNull);
+    // descentRate is now STATE-owned (Phase 4), so the state's default wins
+    // over the existing plan's value.
+    expect(merged.descentRate, 18.0);
+  });
+
+  test('ascent and descent rate round-trip through the state', () {
+    final rated = state().copyWith(ascentRate: 6.0, descentRate: 24.0);
+    final plan = divePlanFromState(rated);
+    expect(plan.ascentRate, 6.0);
+    expect(plan.descentRate, 24.0);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.ascentRate, 6.0);
+    expect(restored.descentRate, 24.0);
   });
 
   test('dive links round-trip through the state', () {

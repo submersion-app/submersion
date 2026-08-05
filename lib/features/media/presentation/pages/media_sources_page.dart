@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings page listing all media sources.
-///
-/// Phase 1 only renders the platform photo library status and a
-/// Diagnostics toggle that exposes the picker's hidden Files/URL tabs.
-/// Phase 2 appends a Local files subsection; Phase 3 a Network Sources
-/// subsection; Phase 4 a Connected Services subsection.
+/// Settings page listing all media sources: the platform photo library,
+/// local-file diagnostics, network sources, and the Adobe Lightroom
+/// connector.
 class MediaSourcesPage extends ConsumerWidget {
   const MediaSourcesPage({super.key});
 
@@ -29,37 +28,6 @@ class MediaSourcesPage extends ConsumerWidget {
                   leading: Icon(Icons.photo_library_outlined),
                   title: Text('Photo library'),
                   subtitle: Text('Apple Photos / Google Photos / iCloud'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final shown = ref.watch(mediaPickerHiddenTabsProvider);
-                    return ListTile(
-                      leading: const Icon(Icons.bug_report_outlined),
-                      title: const Text('Show hidden picker tabs'),
-                      subtitle: Text(
-                        shown
-                            ? 'Files and URL tabs visible in picker (debug)'
-                            : 'Hidden by default',
-                      ),
-                      trailing: Switch(
-                        value: shown,
-                        onChanged: (v) =>
-                            ref
-                                    .read(
-                                      mediaPickerHiddenTabsProvider.notifier,
-                                    )
-                                    .state =
-                                v,
-                      ),
-                    );
-                  },
                 ),
               ],
             ),
@@ -159,6 +127,21 @@ class MediaSourcesPage extends ConsumerWidget {
                   context.push('/settings/media-sources/network-sources'),
             ),
           ),
+          // Lightroom entry point hidden pending Adobe review
+          // (lightroomUiEnabled). Wraps the spacer too so no orphan gap
+          // is left behind when hidden.
+          if (lightroomUiEnabled) ...[
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.cloud_sync_outlined),
+                title: Text(context.l10n.settings_lightroom_title),
+                subtitle: Text(context.l10n.settings_lightroom_subtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/lightroom'),
+              ),
+            ),
+          ],
         ],
       ),
     );

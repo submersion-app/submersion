@@ -428,9 +428,24 @@ class UddfExportBuilders {
                 if (tank.name != null && tank.name!.isNotEmpty) {
                   builder.element('tankname', nest: tank.name);
                 }
-                // Volume in liters
+                // Volume: UDDF tankvolume is CUBIC METERS per spec (#158).
+                // Stored volume is liters, so divide by 1000 on the way out.
+                // Re-importing is exact at any volume because the file
+                // carries the <applicationdata><submersion> marker, which
+                // switches the importer to strict m3 instead of the
+                // exporter-quirk plausibility ladder.
                 if (tank.volume != null) {
-                  builder.element('tankvolume', nest: tank.volume.toString());
+                  // The unit attribute is what makes re-import exact. It is
+                  // not UDDF-standard (other readers ignore it), but our own
+                  // exports before this change wrote LITERS into the same
+                  // element, and nothing else in the file distinguishes the
+                  // two conventions -- inferring from the Submersion marker
+                  // would silently scale those old files by 1000.
+                  builder.element(
+                    'tankvolume',
+                    attributes: {'unit': 'm3'},
+                    nest: (tank.volume! / 1000).toString(),
+                  );
                 }
                 // Working pressure in Pascal (UDDF standard)
                 if (tank.workingPressure != null) {

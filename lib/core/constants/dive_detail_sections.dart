@@ -8,6 +8,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// (Header and Dive Profile Chart) are not included — they always render first.
 enum DiveDetailSectionId {
   decoO2,
+  safetyReview,
   sacSegments,
   details,
   environment,
@@ -15,6 +16,7 @@ enum DiveDetailSectionId {
   tide,
   surfaceGps,
   weights,
+  buoyancy,
   tanks,
   buddies,
   signatures,
@@ -24,12 +26,14 @@ enum DiveDetailSectionId {
   tags,
   notes,
   customFields,
+  preDiveChecklist,
   dataSources;
 
   /// Human-readable name shown in the settings UI (English fallback).
   String get displayName {
     return switch (this) {
       decoO2 => 'Deco Status / Tissue Loading',
+      safetyReview => 'Safety Review',
       sacSegments => 'SAC Rate by Segment',
       details => 'Details',
       environment => 'Environment',
@@ -37,6 +41,7 @@ enum DiveDetailSectionId {
       tide => 'Tide',
       surfaceGps => 'Surface GPS',
       weights => 'Weights',
+      buoyancy => 'Buoyancy',
       tanks => 'Cylinders',
       buddies => 'Buddies',
       signatures => 'Signatures',
@@ -46,6 +51,7 @@ enum DiveDetailSectionId {
       tags => 'Tags',
       notes => 'Notes',
       customFields => 'Custom Fields',
+      preDiveChecklist => 'Pre-Dive Check',
       dataSources => 'Data Sources',
     };
   }
@@ -55,6 +61,7 @@ enum DiveDetailSectionId {
   String get description {
     return switch (this) {
       decoO2 => 'NDL, ceiling, tissue heat map, O2 toxicity',
+      safetyReview => 'Automatic post-dive profile observations',
       sacSegments => 'Phase/time SAC segmentation',
       details => 'Type, location, trip, dive center, interval',
       environment => 'Air/water temp, visibility, current',
@@ -62,6 +69,7 @@ enum DiveDetailSectionId {
       tide => 'Tide cycle graph and timing',
       surfaceGps => 'GPS entry/exit points and surface drift',
       weights => 'Weight breakdown, total weight',
+      buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
       tanks => 'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
       buddies => 'Buddy list with roles',
       signatures => 'Buddy/instructor signature display and capture',
@@ -71,6 +79,7 @@ enum DiveDetailSectionId {
       tags => 'Dive tags',
       notes => 'Dive notes/description',
       customFields => 'User-defined custom fields',
+      preDiveChecklist => 'Linked pre-dive checklist session',
       dataSources => 'Connected dive computers, source management',
     };
   }
@@ -79,6 +88,7 @@ enum DiveDetailSectionId {
   String localizedDisplayName(AppLocalizations l10n) {
     return switch (this) {
       decoO2 => l10n.diveDetailSection_decoO2_name,
+      safetyReview => l10n.diveDetailSection_safetyReview_name,
       sacSegments => l10n.diveDetailSection_sacSegments_name,
       details => l10n.diveDetailSection_details_name,
       environment => l10n.diveDetailSection_environment_name,
@@ -86,6 +96,7 @@ enum DiveDetailSectionId {
       tide => l10n.diveDetailSection_tide_name,
       surfaceGps => l10n.diveDetailSection_surfaceGps_name,
       weights => l10n.diveDetailSection_weights_name,
+      buoyancy => l10n.diveDetailSection_buoyancy_name,
       tanks => l10n.diveDetailSection_tanks_name,
       buddies => l10n.diveDetailSection_buddies_name,
       signatures => l10n.diveDetailSection_signatures_name,
@@ -95,6 +106,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_name,
       notes => l10n.diveDetailSection_notes_name,
       customFields => l10n.diveDetailSection_customFields_name,
+      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
   }
@@ -103,6 +115,7 @@ enum DiveDetailSectionId {
   String localizedDescription(AppLocalizations l10n) {
     return switch (this) {
       decoO2 => l10n.diveDetailSection_decoO2_description,
+      safetyReview => l10n.diveDetailSection_safetyReview_description,
       sacSegments => l10n.diveDetailSection_sacSegments_description,
       details => l10n.diveDetailSection_details_description,
       environment => l10n.diveDetailSection_environment_description,
@@ -110,6 +123,7 @@ enum DiveDetailSectionId {
       tide => l10n.diveDetailSection_tide_description,
       surfaceGps => l10n.diveDetailSection_surfaceGps_description,
       weights => l10n.diveDetailSection_weights_description,
+      buoyancy => l10n.diveDetailSection_buoyancy_description,
       tanks => l10n.diveDetailSection_tanks_description,
       buddies => l10n.diveDetailSection_buddies_description,
       signatures => l10n.diveDetailSection_signatures_description,
@@ -119,6 +133,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_description,
       notes => l10n.diveDetailSection_notes_description,
       customFields => l10n.diveDetailSection_customFields_description,
+      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
@@ -163,6 +178,10 @@ class DiveDetailSectionConfig {
 
   static const List<DiveDetailSectionConfig> defaultSections = [
     DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+    DiveDetailSectionConfig(
+      id: DiveDetailSectionId.safetyReview,
+      visible: true,
+    ),
     DiveDetailSectionConfig(id: DiveDetailSectionId.sacSegments, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.details, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.environment, visible: true),
@@ -170,6 +189,7 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.surfaceGps, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.weights, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.buoyancy, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buddies, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.signatures, visible: true),
@@ -180,6 +200,10 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
     DiveDetailSectionConfig(
       id: DiveDetailSectionId.customFields,
+      visible: true,
+    ),
+    DiveDetailSectionConfig(
+      id: DiveDetailSectionId.preDiveChecklist,
       visible: true,
     ),
     DiveDetailSectionConfig(id: DiveDetailSectionId.dataSources, visible: true),

@@ -82,13 +82,20 @@ class ConnectorMediaResolver implements MediaSourceResolver {
       return const UnavailableData(kind: UnavailableKind.signInRequired);
     }
 
+    // Lightroom serves a poster-frame JPEG for a video asset at every
+    // rendition size (LightroomApiClient.getRendition), so a video row's
+    // bytes here are always a decodable image rather than the video itself.
+    // MediaItemView cannot tell the two apart from the row alone, and its
+    // default reading of a video's FileData is "not decodable".
+    final isPoster = item.isVideo;
+
     try {
       final cache = await _cache();
       final contentHash = item.contentHash;
 
       if (cache != null && contentHash != null) {
         final cached = await cache.get(contentHash, kind);
-        if (cached != null) return FileData(file: cached);
+        if (cached != null) return FileData(file: cached, isPoster: isPoster);
       }
 
       final api = await _apiClient();
@@ -111,13 +118,23 @@ class ConnectorMediaResolver implements MediaSourceResolver {
         try {
           await staging.writeAsBytes(bytes, flush: true);
           if (kind == MediaCacheKind.thumb) {
-            final file = await cache.put(contentHash, kind, staging);
-            return FileData(file: file);
+            final file = await cache.put(
+              contentHash,
+              kind,
+              staging,
+              extension: 'jpg',
+            );
+            return FileData(file: file, isPoster: isPoster);
           }
           final digest = await sha256OfFile(staging);
           if (digest.hash == contentHash) {
-            final file = await cache.put(contentHash, kind, staging);
-            return FileData(file: file);
+            final file = await cache.put(
+              contentHash,
+              kind,
+              staging,
+              extension: 'jpg',
+            );
+            return FileData(file: file, isPoster: isPoster);
           }
         } finally {
           if (await staging.exists()) {

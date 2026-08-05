@@ -3314,6 +3314,86 @@ void main() {
 
   group('performImport() - _resolveSelections edge cases', () {
     testWidgets(
+      'consolidate on a base-selected buddy links instead of importing a twin '
+      '(#756)',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.buddies: [
+              {'name': 'Jane Doe', 'uddfId': 'Jane Doe'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'buddyRefs': ['Jane Doe'],
+              },
+            ],
+          },
+        );
+
+        final existingBuddy = Buddy(
+          id: 'buddy-1',
+          name: 'Jane Doe',
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final mockBuddyRepo = MockBuddyRepository();
+        when(
+          mockBuddyRepo.addBuddyToDive(any, any, any),
+        ).thenAnswer((_) async {});
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingBuddies: [existingBuddy],
+            mockDiveRepo: mockDiveRepo,
+            mockBuddyRepo: mockBuddyRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final bundle = await adapter.buildBundle();
+            // performImport needs the duplicate-checked bundle: that is what
+            // carries entityMatches (and what the wizard passes in).
+            final checked = await adapter.checkDuplicates(bundle);
+            await adapter.performImport(
+              checked,
+              {
+                // The duplicate index is ALSO in the base selection set --
+                // the shape that used to leak past the consolidate action.
+                wizard.ImportEntityType.buddies: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.buddies: {
+                  0: DuplicateAction.consolidate,
+                },
+              },
+            );
+
+            verifyNever(mockBuddyRepo.createBuddy(any));
+            verify(mockBuddyRepo.addBuddyToDive(any, 'buddy-1', any)).called(1);
+          },
+        );
+      },
+    );
+
+    testWidgets(
       'items with no duplicate action are included from base selection',
       (tester) async {
         final payload = ImportPayload(

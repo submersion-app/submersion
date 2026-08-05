@@ -60,12 +60,20 @@
   "transfer_import_divelogs_subtitle": "Pull your logbook from your divelogs.de account",
   "diveLog_edit_geofenceSuggestion_near": "Near {location}",
   "@diveLog_edit_geofenceSuggestion_near": {
-    "placeholders": { "location": { "type": "String" } }
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
   },
   "diveLog_edit_geofenceSuggestion_title": "Equipment suggestion",
   "diveLog_edit_geofenceSuggestion_body": "Apply your \"{setName}\" set?",
   "@diveLog_edit_geofenceSuggestion_body": {
-    "placeholders": { "setName": { "type": "String" } }
+    "placeholders": {
+      "setName": {
+        "type": "String"
+      }
+    }
   },
   "diveLog_edit_geofenceSuggestion_apply": "Apply",
   "common_action_dismiss": "Dismiss",
@@ -78,7 +86,11 @@
   "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Radius: {distance}",
   "@equipment_setEdit_geofenceRadius": {
-    "placeholders": { "distance": { "type": "String" } }
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
   },
   "equipment_geofenceEditor_title": "Geofence",
   "equipment_geofenceEditor_fromSite": "From dive site",
@@ -90,10 +102,166 @@
   "equipment_setDetail_setAsDefault": "Set as default",
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" is now your default set",
   "@equipment_setDetail_setAsDefaultSnackbar": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "equipment_setDetail_geofencesTitle": "Geofences",
   "equipment_setDetail_noGeofences": "No geofences",
+  "formatter_duration_minutes": "{minutes}m",
+  "@formatter_duration_minutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "formatter_duration_minutesSeconds": "{minutes}m {seconds}s",
+  "@formatter_duration_minutesSeconds": {
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      },
+      "seconds": {
+        "type": "Object"
+      }
+    }
+  },
+  "formatter_duration_seconds": "{seconds}s",
+  "@formatter_duration_seconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_densityCritical": "Above the {limit} g/L hard density ceiling.",
+  "@gasCalculators_bestMix_densityCritical": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_densityLabel": "Gas density at depth",
+  "gasCalculators_bestMix_densityWarn": "Above the recommended {limit} g/L density limit.",
+  "@gasCalculators_bestMix_densityWarn": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_endExceeded": "END exceeds your {limit} limit.",
+  "@gasCalculators_bestMix_endExceeded": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_endLabel": "END at depth",
+  "gasCalculators_bestMix_endLimitLabel": "END limit",
+  "gasCalculators_bestMix_heliumAdded": "Helium added to keep END within your {limit} limit.",
+  "@gasCalculators_bestMix_heliumAdded": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_idealLabel": "Ideal fraction",
+  "gasCalculators_bestMix_marginLabel": "Margin below MOD",
+  "gasCalculators_bestMix_modLabel": "MOD at ppO2 {ppO2}",
+  "@gasCalculators_bestMix_modLabel": {
+    "placeholders": {
+      "ppO2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_bestMix_nearestStandard": "Nearest standard mix covering this depth",
+  "gasCalculators_bestMix_recommendedMix": "Recommended mix",
+  "gasCalculators_bestMix_withoutHelium": "Without helium",
+  "gasCalculators_planningCaveat": "Planning estimate. Assumes a direct ascent. Verify against your training and add margin for conditions.",
+  "gasCalculators_rockBottom_solveGas": "Problem-solving gas at {depth}{unit}",
+  "@gasCalculators_rockBottom_solveGas": {
+    "placeholders": {
+      "depth": {
+        "type": "Object"
+      },
+      "unit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_rockBottom_solveTime": "Problem-solving time",
+  "gasCalculators_rockBottom_solveTimeHint": "Time spent at depth resolving the emergency before starting the ascent.",
+  "o2Toxicity_addedThisDive": "+{value} this dive",
+  "@o2Toxicity_addedThisDive": {
+    "placeholders": {
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_cnsProgressSemantics": "CNS progress {percent} percent",
+  "@o2Toxicity_cnsProgressSemantics": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_daily": "Daily",
+  "o2Toxicity_otuSemantics": "{label}: {value} of {limit} OTU, {percent} percent",
+  "@o2Toxicity_otuSemantics": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      },
+      "value": {
+        "type": "Object"
+      },
+      "limit": {
+        "type": "Object"
+      },
+      "percent": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_otuValueSemantics": "{label}: {value} OTU",
+  "@o2Toxicity_otuValueSemantics": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      },
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_prior": "Prior: {value} OTU",
+  "@o2Toxicity_prior": {
+    "placeholders": {
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_start": "Start: {value} OTU",
+  "@o2Toxicity_start": {
+    "placeholders": {
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "o2Toxicity_thisDive": "This Dive",
+  "o2Toxicity_weekly": "Weekly",
   "trips_story_dayLabel": "Day {number}",
   "@trips_story_dayLabel": {
     "placeholders": {
@@ -1338,6 +1506,110 @@
   "checklists_template_descriptionLabel": "Description",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Add item",
+  "preDive_templates_title": "Pre-Dive Checklists",
+  "preDive_templates_empty": "No pre-dive checklists yet",
+  "preDive_templates_builtInBadge": "Built-in",
+  "preDive_templates_clone": "Clone",
+  "preDive_templates_cloneSuffix": " (copy)",
+  "preDive_templates_delete": "Delete",
+  "preDive_templates_deleteConfirm": "Delete this checklist template?",
+  "preDive_templates_strictOrderBadge": "Strict order",
+  "preDive_edit_titleNew": "New Pre-Dive Checklist",
+  "preDive_edit_titleEdit": "Edit Pre-Dive Checklist",
+  "preDive_edit_name": "Name",
+  "preDive_edit_description": "Description",
+  "preDive_edit_category": "Category",
+  "preDive_edit_strictOrder": "Strict order",
+  "preDive_edit_strictOrderHelp": "Items must be completed top to bottom",
+  "preDive_edit_addItem": "Add item",
+  "preDive_edit_nameRequired": "Enter a name",
+  "preDive_item_title": "Title",
+  "preDive_item_section": "Section",
+  "preDive_item_notes": "Notes",
+  "preDive_item_required": "Required",
+  "preDive_item_type_check": "Checkbox",
+  "preDive_item_type_value": "Recorded value",
+  "preDive_item_type_equipmentSet": "Equipment set items",
+  "preDive_item_valueLabel": "Value label",
+  "preDive_item_valueUnit": "Unit",
+  "preDive_item_valueMin": "Min (warning)",
+  "preDive_item_valueMax": "Max (warning)",
+  "preDive_runner_progress": "{done} of {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Complete",
+  "preDive_runner_completeFlagged": "Complete with {count} flagged items?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Abort checklist",
+  "preDive_runner_abortConfirm": "Abort this checklist? It will be kept in history as aborted.",
+  "preDive_runner_skip": "Skip",
+  "preDive_runner_flag": "Flag",
+  "preDive_runner_undo": "Reset to pending",
+  "preDive_runner_serviceOverdue": "Service overdue",
+  "preDive_runner_addNote": "Add note",
+  "preDive_runner_enterValue": "Enter value",
+  "preDive_runner_flaggedBadge": "{count} flagged",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "This checklist is locked",
+  "preDive_sessions_title": "Pre-Dive Checklists",
+  "preDive_sessions_empty": "No checklist runs yet",
+  "preDive_sessions_resume": "Resume",
+  "preDive_sessions_start": "Start checklist",
+  "preDive_sessions_statusCompleted": "Completed",
+  "preDive_sessions_statusAborted": "Aborted",
+  "preDive_sessions_statusInProgress": "In progress",
+  "preDive_sessions_linkedDive": "Linked dive",
+  "preDive_sessions_delete": "Delete",
+  "preDive_sessions_deleteConfirm": "Delete this checklist record?",
+  "preDive_start_title": "Start pre-dive checklist",
+  "preDive_start_template": "Checklist",
+  "preDive_start_equipmentSet": "Equipment set",
+  "preDive_start_noEquipmentSet": "None",
+  "preDive_start_begin": "Begin",
+  "preDive_section_title": "Pre-Dive Check",
+  "preDive_section_link": "Link a checklist session",
+  "preDive_section_unlink": "Unlink",
+  "preDive_section_run": "Run pre-dive checklist",
+  "preDive_section_noUnlinked": "No unlinked checklist sessions",
+  "diveDetailSection_preDiveChecklist_name": "Pre-Dive Check",
+  "diveDetailSection_preDiveChecklist_description": "Linked pre-dive checklist session",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
+  "preDive_dashboard_title": "Pre-Dive Check",
+  "preDive_dashboard_resume": "Resume - {done} of {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Start pre-dive check",
+  "trips_detail_preDive_action": "Pre-dive checklist",
+  "settings_manage_preDiveChecklists": "Pre-Dive Checklists",
+  "settings_manage_preDiveChecklists_subtitle": "Buddy checks, CCR build lists, gear packing",
   "common_action_back": "Back",
   "common_action_cancel": "Cancel",
   "common_action_close": "Close",
@@ -1395,10 +1667,16 @@
     "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
   "courses_action_add": "Add Course",
+  "courses_action_addFromTemplate": "Add from template",
+  "courses_action_addRequirement": "Add requirement",
   "courses_action_create": "Create Course",
+  "courses_action_deleteRequirement": "Delete requirement",
   "courses_action_edit": "Edit course",
+  "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
+  "courses_action_linkDive": "Link",
   "courses_action_markCompleted": "Mark as Completed",
+  "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
   "courses_action_saveChanges": "Save Changes",
@@ -1451,16 +1729,26 @@
   "courses_picker_selectTitle": "Select Training Course",
   "courses_picker_selected": "selected",
   "courses_picker_tapToLink": "Tap to link to a training course",
+  "courses_requirement_diveProgress": "{count} of {target} dives",
+  "courses_requirement_field_name": "Name",
+  "courses_requirement_field_targetCount": "Required dives",
+  "courses_requirement_kind_checklist": "Check-off item",
+  "courses_requirement_kind_dive": "Dive requirement",
+  "courses_requirement_suggestions": "Suggested dives",
+  "courses_requirements_empty": "Track adventure dives, prerequisites, and check-offs for this course.",
+  "courses_requirements_progress": "{satisfied} of {total} complete",
   "courses_section_details": "Course Details",
   "courses_section_earnedCertification": "Earned Certification",
   "courses_section_instructor": "Instructor",
   "courses_section_notes": "Notes",
+  "courses_section_requirements": "Requirements",
   "courses_section_trainingDives": "Training Dives",
   "courses_status_completed": "Completed",
   "courses_status_daysSinceStart": "{days} days since start",
   "courses_status_durationDays": "{days} days",
   "courses_status_inProgress": "In Progress",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "Adds {count} requirements",
   "courses_summary_overview": "Overview",
   "courses_summary_quickActions": "Quick Actions",
   "courses_summary_recentCourses": "Recent Courses",
@@ -1521,6 +1809,33 @@
       }
     }
   },
+  "@courses_requirement_diveProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_requirements_progress": {
+    "placeholders": {
+      "satisfied": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_template_addsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@courses_status_daysSinceStart": {
     "placeholders": {
       "days": {
@@ -1545,6 +1860,7 @@
       }
     }
   },
+  "dashboard_activeCourses_title": "Courses in progress",
   "dashboard_activity_daySinceDiving": "Day since diving",
   "dashboard_activity_daysSinceDiving": "Days since diving",
   "dashboard_activity_diveInYear": "Dive in {year}",
@@ -1594,6 +1910,10 @@
   "dashboard_hero_todayLabel": "today!",
   "dashboard_hero_noDivesLabel": "no dives yet",
   "dashboard_hero_diverFallbackName": "Diver",
+  "dashboard_hero_statDives": "dives",
+  "dashboard_hero_statHours": "hours",
+  "dashboard_hero_statSites": "sites",
+  "dashboard_hero_statCountries": "countries",
   "dashboard_activityStats_divesInYear": "dives in {year}",
   "@dashboard_activityStats_divesInYear": {
     "placeholders": {
@@ -1603,6 +1923,220 @@
     }
   },
   "dashboard_semantics_statsBar": "Dive statistics summary",
+  "dashboard_gauges_addGear": "Add gear",
+  "dashboard_gauges_gearOk": "{name} OK",
+  "@dashboard_gauges_gearOk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_gearDueIn": "{name} due in {days}d",
+  "@dashboard_gauges_gearDueIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_gearOverdue": "{name} overdue",
+  "@dashboard_gauges_gearOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_insuranceOk": "Insurance OK",
+  "dashboard_gauges_insuranceExpires": "Insurance expires {date}",
+  "@dashboard_gauges_insuranceExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_insuranceExpired": "Insurance expired",
+  "dashboard_gauges_noInsurance": "No insurance on file",
+  "dashboard_gauges_noFlyClear": "No-fly 0:00",
+  "dashboard_gauges_noFlyRemaining": "No-fly {hours}:{minutes}",
+  "@dashboard_gauges_noFlyRemaining": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_lastDiveDays": "Last dive {days}d ago",
+  "@dashboard_gauges_lastDiveDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_lastDiveToday": "Dove today",
+  "dashboard_gauges_noDivesYet": "No dives yet",
+  "settings_homeChips_pageTitle": "Home status chips",
+  "settings_homeChips_description": "Choose which status chips appear at the top of the Home tab.",
+  "settings_homeChips_gear": "Gear service",
+  "settings_homeChips_insurance": "Insurance",
+  "settings_homeChips_noFly": "No-fly timer",
+  "settings_homeChips_lastDive": "Dive currency",
+  "settings_homeChips_certifications": "Certification expiry",
+  "settings_homeChips_trip": "Upcoming trip",
+  "settings_homeChips_checklist": "Active checklist",
+  "settings_homeChips_course": "Course progress",
+  "settings_homeChips_uploads": "Media uploads",
+  "settings_homeChips_backup": "Backup age",
+  "settings_homeChips_sync": "Sync status",
+  "settings_homeChips_dataQuality": "Data quality",
+  "dashboard_gauges_certsExpiring": "{count} certifications expiring",
+  "@dashboard_gauges_certsExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_tripCountdown": "{name} in {days}d",
+  "@dashboard_gauges_tripCountdown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_checklistActive": "Checklist in progress",
+  "dashboard_gauges_courseProgress": "{name}: {done}/{total}",
+  "@dashboard_gauges_courseProgress": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_uploadsPending": "{count} uploads pending",
+  "@dashboard_gauges_uploadsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_backupNone": "No backup yet",
+  "dashboard_gauges_backupToday": "Backed up today",
+  "dashboard_gauges_backupDays": "Backup {days}d ago",
+  "@dashboard_gauges_backupDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_syncPending": "{count} unsynced",
+  "@dashboard_gauges_syncPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_synced": "Synced",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{1 data issue} other{{count} data issues}}",
+  "@dashboard_gauges_dataIssues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_retry": "Status unavailable - tap to retry",
+  "dashboard_urgent_title": "Needs attention",
+  "dashboard_photos_title": "Recent photos",
+  "dashboard_recentSites_title": "Recent sites",
+  "dashboard_yearInReview_title": "This year",
+  "dashboard_yearInReview_divesVs": "{count} dives (vs {previous} last year)",
+  "@dashboard_yearInReview_divesVs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "previous": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_yearInReview_hours": "{hours} hours underwater",
+  "@dashboard_yearInReview_hours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_yearInReview_maxDepth": "Deepest: {depth}",
+  "@dashboard_yearInReview_maxDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_onThisDay_title": "On this day",
+  "dashboard_onThisDay_entry": "{year} - {site}",
+  "@dashboard_onThisDay_entry": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_milestones_title": "Milestones",
+  "dashboard_milestones_nextDive": "{remaining} dives to #{milestone}",
+  "@dashboard_milestones_nextDive": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_milestones_certYears": "{name}: {years} years in {month}",
+  "@dashboard_milestones_certYears": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "years": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
   "dashboard_personalRecords_coldest": "Coldest",
   "dashboard_personalRecords_deepest": "Deepest",
   "dashboard_personalRecords_longest": "Longest",
@@ -2359,6 +2893,36 @@
   "diveLog_edit_noMarineLife": "No marine life logged",
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
+  "diveLog_edit_overline_tanks": "Tanks",
+  "@diveLog_edit_overline_tanks": {
+    "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
+  },
+  "diveLog_edit_profile_draw": "Draw a profile",
+  "@diveLog_edit_profile_draw": {
+    "description": "Dive profile row placeholder when no profile exists; tapping opens the draw editor"
+  },
+  "diveLog_edit_profile_none": "Not recorded",
+  "@diveLog_edit_profile_none": {
+    "description": "Dive profile row value on a new dive with no profile data"
+  },
+  "diveLog_edit_profile_outliers": "{count, plural, one{1 potential outlier detected} other{{count} potential outliers detected}}",
+  "@diveLog_edit_profile_outliers": {
+    "description": "Chip under the dive profile row offering outlier cleanup",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "diveLog_edit_profile_points": "{count, plural, one{1 point} other{{count} points}}",
+  "@diveLog_edit_profile_points": {
+    "description": "Dive profile row value: number of recorded profile samples",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
@@ -2366,6 +2930,10 @@
   "diveLog_edit_row_diveCenter": "Dive center",
   "@diveLog_edit_row_diveCenter": {
     "description": "Row label: dive center picker"
+  },
+  "diveLog_edit_row_diveProfile": "Dive profile",
+  "@diveLog_edit_row_diveProfile": {
+    "description": "Row label: dive profile (points count / draw affordance)"
   },
   "diveLog_edit_row_entry": "Entry",
   "@diveLog_edit_row_entry": {
@@ -2615,6 +3183,7 @@
   "diveLog_legend_label_ascentRate": "Ascent Rate",
   "diveLog_legend_label_ascentRateLine": "Ascent Rate Line",
   "diveLog_legend_label_ceiling": "Ceiling",
+  "diveLog_legend_label_decoStops": "Deco stops",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
@@ -3253,6 +3822,7 @@
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
+  "diveLog_tooltip_decoStop": "Deco stop",
   "diveLog_tooltip_cns": "CNS",
   "diveLog_tooltip_density": "Density",
   "diveLog_tooltip_depth": "Depth",
@@ -3854,6 +4424,7 @@
   },
   "divePlanner_action_addTank": "Add Tank",
   "divePlanner_action_convertToDive": "Convert to Dive",
+  "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_moreOptions": "More options",
   "divePlanner_action_quickPlan": "Quick Plan",
@@ -3909,6 +4480,13 @@
   "divePlanner_message_addSegmentsForProfile": "Add segments to see the dive profile",
   "divePlanner_message_convertingPlan": "Converting plan to dive...",
   "divePlanner_message_noProfile": "No profile to display",
+  "divePlanner_message_deleteConfirmation": "Delete '{name}'?",
+  "@divePlanner_message_deleteConfirmation": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "divePlanner_message_planDeleted": "Plan deleted",
   "divePlanner_message_planSaved": "Plan saved",
   "divePlanner_message_resetConfirmation": "Are you sure you want to reset the plan?",
   "divePlanner_semantics_criticalWarning": "Critical warning: {message}",
@@ -4085,6 +4663,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS Coordinates",
   "diveSites_edit_section_hazards": "Hazards & Safety",
   "diveSites_edit_section_rating": "Rating",
+  "diveSites_edit_section_waterType": "Water Type",
   "diveSites_edit_snackbar_errorDeleting": "Error deleting site: {error}",
   "diveSites_edit_snackbar_errorSaving": "Error saving site: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Location captured",
@@ -4567,6 +5146,21 @@
       }
     }
   },
+  "diveType_builtin_altitude": "Altitude",
+  "diveType_builtin_boat": "Boat",
+  "diveType_builtin_cave": "Cave",
+  "diveType_builtin_cavern": "Cavern",
+  "diveType_builtin_deep": "Deep",
+  "diveType_builtin_drift": "Drift",
+  "diveType_builtin_freedive": "Freedive",
+  "diveType_builtin_ice": "Ice",
+  "diveType_builtin_liveaboard": "Liveaboard",
+  "diveType_builtin_night": "Night",
+  "diveType_builtin_recreational": "Recreational",
+  "diveType_builtin_shore": "Shore",
+  "diveType_builtin_technical": "Technical",
+  "diveType_builtin_training": "Training",
+  "diveType_builtin_wreck": "Wreck",
   "diveTypes_addDialog_addButton": "Add",
   "diveTypes_addDialog_nameHint": "e.g., Search & Recovery",
   "diveTypes_addDialog_nameLabel": "Dive Type Name",
@@ -5135,6 +5729,189 @@
   "equipment_detail_retiredChip": "Retired",
   "equipment_detail_serialNumberLabel": "Serial Number",
   "equipment_detail_serviceInfoTitle": "Service Information",
+  "equipment_serviceClocks_title": "Service clocks",
+  "equipment_serviceClocks_addClock": "Add clock",
+  "equipment_serviceClocks_logService": "Log service",
+  "equipment_serviceClocks_edit": "Edit intervals",
+  "equipment_serviceClocks_pause": "Pause",
+  "equipment_serviceClocks_resume": "Resume",
+  "equipment_serviceClocks_remove": "Remove",
+  "equipment_serviceClocks_paused": "Paused",
+  "equipment_serviceClocks_empty": "No service clocks",
+  "equipment_serviceClocks_unconfigured": "No interval set - tap to configure",
+  "equipment_serviceClocks_dueOn": "Due {date}",
+  "@equipment_serviceClocks_dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_overdueSince": "Overdue since {date}",
+  "@equipment_serviceClocks_overdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_overdue": "Overdue",
+  "equipment_serviceClocks_divesLeft": "{remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceClocks_hoursLeft": "{remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_manageKinds": "Manage service types",
+  "equipment_serviceClocks_appliesToClock": "Applies to clock",
+  "equipment_serviceClocks_noClockOption": "Not tied to a clock",
+  "equipment_scheduleDialog_title": "Edit clock",
+  "equipment_scheduleDialog_intervalDays": "Interval (days)",
+  "equipment_scheduleDialog_intervalDives": "Interval (dives)",
+  "equipment_scheduleDialog_intervalHours": "Interval (hours)",
+  "equipment_scheduleDialog_inheritHint": "Default: {value}",
+  "@equipment_scheduleDialog_inheritHint": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_scheduleDialog_anchorDate": "Baseline date",
+  "equipment_scheduleDialog_anchorHint": "Used when no service record of this kind exists yet",
+  "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
+  "equipment_scheduleDialog_save": "Save",
+  "equipment_scheduleDialog_cancel": "Cancel",
+  "equipment_serviceKinds_title": "Service types",
+  "equipment_serviceKinds_builtIn": "Built-in",
+  "equipment_serviceKinds_custom": "Custom",
+  "equipment_serviceKinds_add": "Add service type",
+  "equipment_serviceKinds_editTitle": "Edit service type",
+  "equipment_serviceKinds_nameLabel": "Name",
+  "equipment_serviceKinds_nameRequired": "A name is required",
+  "equipment_serviceKinds_appliesTo": "Applies to",
+  "equipment_serviceKinds_autoAttach": "Attach automatically to new gear",
+  "equipment_serviceKinds_deleteConfirmTitle": "Delete service type?",
+  "equipment_serviceKinds_deleteConfirmBody": "Clocks using this service type will be removed.",
+  "equipment_serviceKinds_delete": "Delete",
+  "equipment_serviceKinds_cancel": "Cancel",
+  "equipment_serviceKinds_save": "Save",
+  "equipment_serviceKinds_emptyCustom": "No custom service types yet",
+  "equipment_serviceKinds_everyDays": "every {days} days",
+  "@equipment_serviceKinds_everyDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceKinds_everyDives": "every {dives} dives",
+  "@equipment_serviceKinds_everyDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceKinds_everyHours": "every {hours} hours",
+  "@equipment_serviceKinds_everyHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_serviceDue_title": "Service due",
+  "dashboard_serviceDue_more": "+{count} more",
+  "@dashboard_serviceDue_more": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_alerts_clockDue": "{name}: {kind} due",
+  "@dashboard_alerts_clockDue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_alerts_clockOverdue": "{name}: {kind} overdue",
+  "@dashboard_alerts_clockOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_list_worstClock": "{kind} overdue",
+  "@equipment_list_worstClock": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
+  "@trips_serviceAlert_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_serviceAlert_dueBefore": "{kind} due {date}",
+  "@trips_serviceAlert_dueBefore": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_serviceAlert_overdue": "{kind} overdue",
+  "@trips_serviceAlert_overdue": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_notifications_tripLeadTitle": "Trip service lead time",
+  "settings_notifications_tripLeadDays": "{days} days before a trip",
+  "@settings_notifications_tripLeadDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
@@ -5198,6 +5975,7 @@
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "e.g., 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Thickness",
   "equipment_edit_typeLabel": "Type *",
@@ -5223,6 +6001,7 @@
   "equipment_list_sortTitle": "Sort Equipment",
   "equipment_list_sortTooltip": "Sort",
   "equipment_list_tile_daysCount": "{days} days",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Service in 1 day} other{Service in {days} days}}",
   "equipment_list_tile_serviceDueChip": "Service Due",
   "equipment_list_tile_serviceIn": "Service in",
   "equipment_menu_delete": "Delete",
@@ -5505,6 +6284,13 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@equipment_list_tile_serviceInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
       }
     }
   },
@@ -5962,6 +6748,9 @@
   "media_miniProfile_headerLabel": "Dive Profile",
   "media_miniProfile_semanticLabel": "Mini dive profile chart",
   "media_photoPicker_appBarTitle": "Select Photos",
+  "media_photoPicker_tab_gallery": "Gallery",
+  "media_photoPicker_tab_files": "Files",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",
@@ -5979,6 +6768,18 @@
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Toggle selection for photo, selected",
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "Photo already linked to this dive",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "DEPTH",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "TEMP",
+  "media_perdixOverlay_labelTime": "TIME",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "Dive computer overlay",
   "media_photoViewer_cannotShare": "Cannot share this photo",
   "media_photoViewer_cannotWriteMetadata": "Cannot write metadata - media not linked to library",
   "media_photoViewer_closeTooltip": "Close photo viewer",
@@ -6380,6 +7181,8 @@
   "plannerCanvas_ccr_setpointHigh": "Setpoint high (bar)",
   "plannerCanvas_ccr_setpointLow": "Setpoint low (bar)",
   "plannerCanvas_ccr_switchDepth": "Setpoint switch depth",
+  "plannerCanvas_pscr_ratio": "pSCR ratio",
+  "plannerCanvas_pscr_ratio_hint": "Larger adds more fresh gas and lowers the O₂ drop",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "@plannerCanvas_chip_cns": {
     "placeholders": {
@@ -6410,6 +7213,14 @@
     }
   },
   "plannerCanvas_contingency_timeDelta": "Extra minutes",
+  "plannerCanvas_chart_meanDepth": "mean {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
@@ -6481,6 +7292,13 @@
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Cells show time to surface; red = not diveable as planned",
+  "plannerCanvas_pane_collapse": "Collapse panel",
+  "plannerCanvas_pane_expand": "Expand panel",
+  "plannerCanvas_tab_setup": "Setup",
+  "plannerCanvas_o2Narcotic": "Treat O₂ as narcotic",
+  "plannerCanvas_rates_ascent": "Ascent rate",
+  "plannerCanvas_rates_descent": "Descent rate",
+  "plannerCanvas_rates_title": "Rates",
   "plannerCanvas_range_title": "Range table",
   "plannerCanvas_results_noDeco": "No decompression required",
   "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
@@ -6503,6 +7321,8 @@
   "plannerCanvas_saved_duplicate": "Duplicate",
   "plannerCanvas_saved_empty": "No saved plans yet",
   "plannerCanvas_saved_title": "Saved plans",
+  "plannerCanvas_name_dialogTitle": "Name your plan",
+  "plannerCanvas_name_defaultFallback": "Dive Plan",
   "plannerCanvas_scrub_bailout": "BO {minutes}′",
   "@plannerCanvas_scrub_bailout": {
     "placeholders": {
@@ -6599,6 +7419,31 @@
   },
   "settings_appBar_title": "Settings",
   "settings_appearance_appLanguage": "App Language",
+  "settings_appearance_displaySize": "Display size",
+  "@settings_appearance_displaySize": {
+    "description": "Title of the app-wide display zoom control in Appearance settings"
+  },
+  "settings_appearance_displaySize_value": "{percent}%",
+  "@settings_appearance_displaySize_value": {
+    "description": "Current display zoom level shown as a percentage",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_displaySize_reset": "Reset",
+  "@settings_appearance_displaySize_reset": {
+    "description": "Button that returns the display zoom to 100 percent"
+  },
+  "settings_appearance_displaySize_smaller": "Smaller",
+  "@settings_appearance_displaySize_smaller": {
+    "description": "Label at the low end of the display zoom slider"
+  },
+  "settings_appearance_displaySize_larger": "Larger",
+  "@settings_appearance_displaySize_larger": {
+    "description": "Label at the high end of the display zoom slider"
+  },
   "settings_appearance_depthColoredCards": "Depth-colored dive cards",
   "settings_appearance_depthColoredCards_subtitle": "Show dive cards with ocean-colored backgrounds based on depth",
   "settings_appearance_cardColorAttribute": "Color cards by",
@@ -6631,6 +7476,119 @@
   "settings_diveDetailSections_configurableSections": "Configurable sections (drag to reorder)",
   "diveDetailSection_decoO2_name": "Deco Status / Tissue Loading",
   "diveDetailSection_decoO2_description": "NDL, ceiling, tissue heat map, O2 toxicity",
+  "diveDetailSection_safetyReview_name": "Safety Review",
+  "diveDetailSection_safetyReview_description": "Automatic post-dive profile observations",
+  "safetyReview_sectionTitle": "Safety review",
+  "safetyReview_findingCount": "{count, plural, =1{1 observation} other{{count} observations}}",
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_rapidAscent_title": "Ascent exceeded {rate} for {duration}",
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_missedDecoStop_title": "Depth was {excess} above the required stop ceiling for {duration}",
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_omittedSafetyStop_title": "The recommended safety stop was cut short by {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_sawtoothProfile_title": "{count} repeated up-and-down depth changes during the dive",
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_highSurfaceGf_title": "Surfaced at gradient factor {gf}, above the configured {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_timeRange": "At {start}–{end}",
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_dismiss": "Dismiss",
+  "safetyReview_restore": "Restore",
+  "safetySettings_title": "Safety review",
+  "safetySettings_entry_subtitle": "Post-dive observations and rules",
+  "safetySettings_masterToggle": "Post-dive safety review",
+  "safetySettings_masterToggle_subtitle": "Automatically note ascent, stop, and profile observations on analyzed dives",
+  "safetySettings_rulesHeader": "Rules",
+  "safetySettings_rule_rapidAscent": "Rapid ascents",
+  "safetySettings_rule_missedDecoStop": "Missed or shortened deco stops",
+  "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
+  "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
+  "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
+  "safetySettings_analyzeAll": "Analyze all dives",
+  "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",
+  "safetySettings_analyzeAll_progress": "Analyzed {done} of {total}",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "Analysis complete",
+  "safetySettings_analyzeAll_doneWithErrors": "Analysis complete — {count, plural, =1{1 dive could not be analyzed} other{{count} dives could not be analyzed}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_showDismissed": "{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}",
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveDetailSection_sacSegments_name": "SAC Rate by Segment",
   "diveDetailSection_sacSegments_description": "Phase/time SAC segmentation",
   "diveDetailSection_details_name": "Details",
@@ -6655,6 +7613,83 @@
   "diveLog_detail_openInMaps": "Open in Maps",
   "diveDetailSection_weights_name": "Weights",
   "diveDetailSection_weights_description": "Weight breakdown, total weight",
+  "diveDetailSection_buoyancy_name": "Buoyancy",
+  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, swing, ditchable weight",
+  "buoyancy_tooltip": "Modeled net buoyancy through the dive from your profile, gas use, and gear.",
+  "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
+  "@buoyancy_verdictBuoyant": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_verdictHeavy": "At your final stop (~{depth}) you were about {amount} heavy",
+  "@buoyancy_verdictHeavy": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
+  "buoyancy_verdictConvention": "Estimated at the 5 m safety-stop convention",
+  "buoyancy_breakdownTitle": "Term breakdown",
+  "buoyancy_suitTerm": "Suit",
+  "buoyancy_leadTerm": "Lead",
+  "buoyancy_beginNet": "Start of dive",
+  "buoyancy_endNet": "End of dive",
+  "buoyancy_swing": "Buoyancy swing",
+  "buoyancy_peakLift": "Peak lift needed",
+  "buoyancy_wingWarning": "Exceeds your wing's rated lift",
+  "buoyancy_minDitchable": "Min ditchable weight",
+  "buoyancy_droppable": "You can ditch",
+  "buoyancy_ditchWarning": "More than you can ditch",
+  "buoyancy_drysuitGas": "Drysuit gas added",
+  "buoyancy_estimatedPressures": "Tank pressures are estimated",
+  "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
+  "buoyancy_chartNet": "Net",
+  "buoyancy_chartRig": "Rig + lead",
+  "buoyancy_chartMinutes": "Time (min)",
+  "buoyancy_historyTitle": "Weighting history",
+  "buoyancy_historyCarried": "Carried",
+  "buoyancy_historyModeled": "Modeled",
+  "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
+  "@buoyancy_historyMore": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_historyLess": "You typically carry {delta} less than the model suggests",
+  "@buoyancy_historyLess": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_throughDive": "Through the dive",
+  "buoyancy_adjust": "Adjust",
+  "buoyancy_whatIfTitle": "Adjust this dive",
+  "buoyancy_whatIfLead": "Lead",
+  "buoyancy_whatIfSuit": "Suit buoyancy",
+  "buoyancy_whatIfReset": "Reset",
+  "buoyancy_whatIfDelta": "{delta} vs. actual",
+  "@buoyancy_whatIfDelta": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
   "diveDetailSection_tanks_name": "Cylinders",
   "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
   "diveDetailSection_buddies_name": "Buddies",
@@ -6797,7 +7832,7 @@
     "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
   },
   "settings_backToSettings_tooltip": "Back to settings",
-  "settings_cloudSync_appBar_title": "Cloud Sync",
+  "settings_cloudSync_appBar_title": "Database Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
   "settings_cloudSync_autoSync_subtitle": "Sync automatically after changes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
@@ -6882,6 +7917,7 @@
   "settings_cloudSync_header_syncBehavior": "Sync Behavior",
   "settings_cloudSync_lastSynced": "Last synced: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 pending change} other{{count} pending changes}}",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{1 device syncs from a newer version of Submersion. Update this device to receive its latest changes.} other{{count} devices sync from a newer version of Submersion. Update this device to receive their latest changes.}}",
   "settings_cloudSync_provider_connected": "Connected",
   "settings_cloudSync_provider_connectedTo": "Connected to {providerName}",
   "settings_cloudSync_provider_connectionFailed": "{providerName} connection failed: {error}",
@@ -6962,7 +7998,7 @@
   "settings_data_appDefaultLocation": "App default location",
   "settings_data_backup": "Backup & Restore",
   "settings_data_backup_subtitle": "Create a backup of your data",
-  "settings_data_cloudSync": "Cloud Sync",
+  "settings_data_cloudSync": "Database Cloud Sync",
   "settings_data_customFolder": "Custom folder",
   "settings_data_databaseStorage": "Database Storage",
   "settings_data_export_completed": "Export completed",
@@ -7001,6 +8037,7 @@
   "settings_decompression_dialog_title": "Gradient Factors",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradient Factors",
+  "settings_decompression_header_oxygenToxicity": "Oxygen Toxicity",
   "settings_decompression_preset_selectLabel": "Select {presetName} conservatism preset",
   "settings_decompression_header_narcosis": "Narcosis",
   "settings_decompression_o2Narcotic": "O2 is narcotic",
@@ -7008,6 +8045,22 @@
   "settings_decompression_endLimit": "END Limit",
   "settings_decompression_endLimit_subtitle": "Maximum equivalent narcotic depth used for MND calculations",
   "settings_decompression_endLimit_dialog_title": "END Limit",
+  "settings_decompression_cnsMethodTitle": "CNS calculation",
+  "settings_decompression_cnsMethodClassic": "NOAA table, stepped (classic)",
+  "settings_decompression_cnsMethodClassicDesc": "Charges each 0.1 bar band at its harsher edge. Submersion's original method.",
+  "settings_decompression_cnsMethodShearwater": "Linear interpolation (Shearwater-style)",
+  "settings_decompression_cnsMethodShearwaterDesc": "Interpolates between the NOAA limits as documented by Shearwater. Matches most dive computers.",
+  "settings_decompression_cnsMethodSubsurface": "Exponential fit (as Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "Smooth curve fit to the NOAA table. Matches Subsurface's calculated CNS.",
+  "settings_decompression_cnsMethodAboutTitle": "About these methods",
+  "settings_decompression_cnsMethodAboutBody": "All three methods are built on the oxygen exposure limits of the NOAA Diving Manual (300 minutes at a ppO2 of 1.0 bar, 45 minutes at 1.6 bar). The table only defines limits in 0.1 bar steps: the classic method charges everything in a band at the band's harsher edge, which systematically overstates exposure between entries. Shearwater's dive computers document interpolating linearly between the NOAA limits, with a fixed 15% per minute above 1.65 bar. Subsurface replaced its table lookup in 2019 with a smooth two-line exponential fit to the same NOAA data (Robert C. Helling), which also extends naturally beyond 1.6 bar. Between table entries the two smooth methods agree within about one CNS point; the classic method reads higher.",
+  "settings_decompression_cnsMethodDisclaimer": "Names refer to the published methods of the respective projects and manufacturers; no affiliation or endorsement is implied. Computed values may differ from actual dive computer readings.",
+  "settings_decompression_cnsMethodSourcesTitle": "Sources",
+  "settings_linkOpenFailed": "Could not open the link.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (publisher of the NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: The CNS Oxygen Clock",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: Calculating oxygen CNS toxicity",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: implementation (divelist.cpp)",
   "settings_existingDb_cancel": "Cancel",
   "settings_existingDb_continue": "Continue",
   "settings_existingDb_current": "Current",
@@ -7061,7 +8114,7 @@
   "settings_lightroom_albumFilter_all": "Entire catalog",
   "settings_lightroom_albumFilter_title": "Albums to scan",
   "settings_lightroom_autoPoll_title": "Check for new photos automatically",
-  "settings_lightroom_clientId_help": "Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to {redirectUri}.",
+  "settings_lightroom_clientId_help": "Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Enter your credential's redirect URI below — Native App credentials use a custom scheme — or leave it blank to use {redirectUri}.",
   "@settings_lightroom_clientId_help": {
     "placeholders": {
       "redirectUri": {
@@ -7071,7 +8124,16 @@
   },
   "settings_lightroom_clientId_label": "Adobe client ID",
   "settings_lightroom_clientSecret_label": "Client secret (optional)",
+  "settings_lightroom_redirectUri_label": "Redirect URI (optional)",
   "settings_lightroom_connect": "Connect Lightroom",
+  "settings_lightroom_connectEmbedded": "Connect with Adobe",
+  "@settings_lightroom_connectEmbedded": {
+    "description": "Primary button to connect Lightroom with the app's bundled Adobe credential"
+  },
+  "settings_lightroom_advancedByo": "Use your own Adobe credentials",
+  "@settings_lightroom_advancedByo": {
+    "description": "Header for the advanced BYO client-id connect path"
+  },
   "settings_lightroom_connect_codeLabel": "Redirected URL or code",
   "settings_lightroom_connect_emptyCode": "Paste the redirected URL or authorization code",
   "settings_lightroom_connect_failed": "Could not connect to Lightroom: {error}",
@@ -7338,6 +8400,65 @@
   "settings_units_weight": "Weight",
   "settings_units_weight_kilograms": "Kilograms (kg)",
   "settings_units_weight_pounds": "Pounds (lbs)",
+  "settings_updates_automaticUpdates": "Automatic updates",
+  "settings_updates_automaticUpdatesSubtitle": "Check for updates periodically",
+  "settings_updates_betaDialogBody": "Beta builds are published from every change and may upgrade your dive log's database before the stable release does. Switching back to stable later will not downgrade the app, and all devices that sync together should use the same channel. A backup is taken automatically before any database upgrade.",
+  "settings_updates_betaDialogConfirm": "Switch to Beta",
+  "settings_updates_betaDialogTitle": "Receive beta updates?",
+  "settings_updates_channel": "Update channel",
+  "settings_updates_channelBadgeBeta": "{version} (Beta)",
+  "@settings_updates_channelBadgeBeta": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_channelBeta": "Beta",
+  "settings_updates_channelBetaSubtitle": "New builds from every change, ahead of stable",
+  "settings_updates_channelStable": "Stable",
+  "settings_updates_channelStableSubtitle": "Tested releases only",
+  "settings_updates_checkForUpdates": "Check for Updates",
+  "settings_updates_checking": "Checking...",
+  "settings_updates_downloading": "Downloading... {progress}%",
+  "@settings_updates_downloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_error": "Error: {message}",
+  "@settings_updates_error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_header": "Updates",
+  "settings_updates_joinBeta": "Join the Beta",
+  "settings_updates_joinBetaSubtitle": "Get new features early through the beta program",
+  "settings_updates_lastChecked": "Last checked",
+  "settings_updates_never": "Never",
+  "settings_updates_readyToInstall": "Version {version} ready to install",
+  "@settings_updates_readyToInstall": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_stableSwitchNotice": "You will stay on this beta until the next stable release is newer than it.",
+  "settings_updates_upToDate": "Up to date",
+  "settings_updates_versionAvailable": "Version {version} available",
+  "@settings_updates_versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "@settings_cloudSync_conflictItems": {
     "placeholders": {
       "count": {
@@ -7521,6 +8642,54 @@
         "type": "Object"
       }
     }
+  },
+  "@settings_decompression_cnsMethodTitle": {
+    "description": "Title of the CNS calculation method setting tile and its picker dialog."
+  },
+  "@settings_decompression_cnsMethodClassic": {
+    "description": "Label for the classic stepped NOAA-table CNS calculation method."
+  },
+  "@settings_decompression_cnsMethodClassicDesc": {
+    "description": "One-line description of the classic stepped CNS method shown under its label."
+  },
+  "@settings_decompression_cnsMethodShearwater": {
+    "description": "Label for the linear-interpolation CNS method as documented by Shearwater. Keep 'Shearwater' as written."
+  },
+  "@settings_decompression_cnsMethodShearwaterDesc": {
+    "description": "One-line description of the Shearwater-style linear interpolation CNS method. Keep 'NOAA' and 'Shearwater' as written."
+  },
+  "@settings_decompression_cnsMethodSubsurface": {
+    "description": "Label for the exponential-fit CNS method as used by Subsurface. Keep 'Subsurface' as written."
+  },
+  "@settings_decompression_cnsMethodSubsurfaceDesc": {
+    "description": "One-line description of the Subsurface exponential-fit CNS method. Keep 'NOAA' and 'Subsurface' as written."
+  },
+  "@settings_decompression_cnsMethodAboutTitle": {
+    "description": "Title of the expandable 'about these methods' section in the CNS method picker dialog."
+  },
+  "@settings_decompression_cnsMethodAboutBody": {
+    "description": "Explanatory paragraph on the history and differences of the three CNS calculation methods. Keep 'NOAA', 'Shearwater', 'Subsurface' and the name 'Robert C. Helling' as written."
+  },
+  "@settings_decompression_cnsMethodDisclaimer": {
+    "description": "Trademark and accuracy disclaimer shown at the bottom of the CNS method picker dialog."
+  },
+  "@settings_decompression_cnsMethodSourcesTitle": {
+    "description": "Heading for the list of external reference links in the CNS method picker dialog."
+  },
+  "@settings_linkOpenFailed": {
+    "description": "Snackbar shown when an external link cannot be opened"
+  },
+  "@settings_decompression_cnsMethodSourceNoaa": {
+    "description": "Source link label for the NOAA Diving Program page in the CNS method dialog."
+  },
+  "@settings_decompression_cnsMethodSourceShearwater": {
+    "description": "Tappable link label for the Shearwater CNS oxygen clock article. Keep 'Shearwater' and 'CNS' as written; translate only the descriptive words."
+  },
+  "@settings_decompression_cnsMethodSourceTheoreticalDiver": {
+    "description": "Tappable link label for The Theoretical Diver article on oxygen CNS toxicity. Keep the site name 'The Theoretical Diver' and 'CNS' as written; translate only the descriptive words."
+  },
+  "@settings_decompression_cnsMethodSourceSubsurface": {
+    "description": "Tappable link label for the Subsurface source implementation. Keep 'Subsurface', 'CNS' and the file name 'divelist.cpp' as written; translate only the descriptor 'implementation'."
   },
   "@settings_import_itemCount": {
     "placeholders": {
@@ -9491,6 +10660,9 @@
   "universalImport_label_unnamed": "Unnamed",
   "universalImport_label_xOfY": "{current} of {total}",
   "universalImport_label_xOfYSelected": "{selected} of {total} selected",
+  "universalImport_entityAction_linkBadge": "LINK",
+  "universalImport_entityAction_linkExisting": "Link to existing",
+  "universalImport_entityAction_linkExistingSubtitle": "Use the matched record",
   "universalImport_pending_chooseAction": "Choose an action",
   "universalImport_pending_gateHint": "{count} duplicate(s) need a decision",
   "universalImport_pending_needsDecision": "Needs decision",
@@ -9798,6 +10970,15 @@
       }
     }
   },
+  "@universalImport_entityAction_linkBadge": {
+    "description": "Collapsed-header badge on a duplicate row whose action is link-to-existing"
+  },
+  "@universalImport_entityAction_linkExisting": {
+    "description": "Action button on a duplicate buddy/tag row: link the import to the matched existing record instead of skipping or creating a twin"
+  },
+  "@universalImport_entityAction_linkExistingSubtitle": {
+    "description": "Subtitle under the link-to-existing action button"
+  },
   "@universalImport_pending_chooseAction": {
     "description": "Prompt shown above the action buttons on an expanded pending duplicate row, telling the user to pick an action"
   },
@@ -9940,6 +11121,37 @@
   "@universalImport_tooltip_closeWizard": {
     "description": "Tooltip for the close button on the import wizard app bar"
   },
+  "weather_windFromDirection": "{wind} from {direction}",
+  "@weather_windFromDirection": {
+    "placeholders": {
+      "wind": {
+        "type": "Object"
+      },
+      "direction": {
+        "type": "Object"
+      }
+    }
+  },
+  "weather_wind_calm": "calm",
+  "weather_wind_highWind": "high wind",
+  "weather_wind_lightBreeze": "light breeze",
+  "weather_wind_moderateBreeze": "moderate breeze",
+  "weather_wind_strongBreeze": "strong breeze",
+  "weather_wmo_clear": "Clear sky",
+  "weather_wmo_drizzle": "Drizzle",
+  "weather_wmo_fog": "Fog",
+  "weather_wmo_freezingDrizzle": "Freezing drizzle",
+  "weather_wmo_freezingRain": "Freezing rain",
+  "weather_wmo_mainlyClear": "Mainly clear",
+  "weather_wmo_overcast": "Overcast",
+  "weather_wmo_partlyCloudy": "Partly cloudy",
+  "weather_wmo_rain": "Rain",
+  "weather_wmo_rainShowers": "Rain showers",
+  "weather_wmo_snow": "Snow",
+  "weather_wmo_snowGrains": "Snow grains",
+  "weather_wmo_snowShowers": "Snow showers",
+  "weather_wmo_thunderstorm": "Thunderstorm",
+  "weather_wmo_thunderstormHail": "Thunderstorm with hail",
   "weightCalc_baseLine": "Base ({suitType}): {weight} kg",
   "weightCalc_bodyWeightAdjustment": "Body weight adjustment: +{adjustment} kg",
   "weightCalc_suit_drysuit": "Drysuit",
@@ -11084,6 +12296,7 @@
   "divePlanner_segmentType_descent": "Descent",
   "divePlanner_segmentType_gasSwitch": "Gas Switch",
   "divePlanner_segmentType_safetyStop": "Safety Stop",
+  "divePlanner_undo": "Undo",
   "gasCalculators_rockBottom_aboutDescription": "Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses stressed SAC rates (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!",
   "gasCalculators_rockBottom_aboutTitle": "About Rock Bottom",
   "gasCalculators_rockBottom_ascentGasRequired": "Ascent gas required",
@@ -11223,6 +12436,8 @@
     }
   },
   "gpsLogger_tracksHeader": "Recorded tracks",
+  "maps_compass_resetLabel": "Reset map orientation to north",
+  "maps_compass_resetTooltip": "North up",
   "maps_heatMap_hide": "Hide Heat Map",
   "maps_heatMap_overlayOff": "Heat map overlay is off",
   "maps_heatMap_overlayOn": "Heat map overlay is on",
@@ -11532,23 +12747,14 @@
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
   "tankPresets_title": "Tank Presets",
-  "tools_deco_description": "Calculate no-decompression limits, required deco stops, and CNS/OTU exposure for multi-level dive profiles.",
-  "tools_deco_subtitle": "Plan dives with decompression stops",
-  "tools_deco_title": "Deco Calculator",
-  "tools_disclaimer": "These calculators are for planning purposes only. Always verify calculations and follow your dive training.",
-  "tools_gas_description": "Four specialized gas calculators:\n• MOD - Maximum operating depth for a gas mix\n• Best Mix - Ideal O₂% for a target depth\n• Consumption - Gas usage estimation\n• Rock Bottom - Emergency reserve calculation",
-  "tools_gas_subtitle": "MOD, Best Mix, Consumption, Rock Bottom",
-  "tools_gas_title": "Gas Calculators",
   "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
   "tools_gpsLogger_subtitle": "Record a surface track",
   "tools_gpsLogger_title": "GPS Logger",
-  "tools_title": "Tools",
   "tools_weight_aluminumImperial": "More buoyant when empty (+4 lbs)",
   "tools_weight_aluminumMetric": "More buoyant when empty (+2 kg)",
   "tools_weight_bodyWeightOptional": "Body Weight (optional)",
   "tools_weight_carbonFiberImperial": "Very buoyant (+7 lbs)",
   "tools_weight_carbonFiberMetric": "Very buoyant (+3 kg)",
-  "tools_weight_description": "Estimate the weight you need based on your exposure suit, tank material, water type, and body weight.",
   "tools_weight_disclaimer": "This is an estimate only. Always perform a buoyancy check at the start of your dive and adjust as needed. Factors like BCD, personal buoyancy, and breathing patterns will affect your actual weight requirements.",
   "tools_weight_exposureSuit": "Exposure Suit",
   "tools_weight_gasCapacity": "• Gas capacity: {capacity} cuft",
@@ -11576,7 +12782,6 @@
   },
   "tools_weight_steelImperial": "Negatively buoyant (-4 lbs)",
   "tools_weight_steelMetric": "Negatively buoyant (-2 kg)",
-  "tools_weight_subtitle": "Recommended weight for your setup",
   "tools_weight_tankMaterial": "Tank Material",
   "tools_weight_tankSpecifications": "Tank Specifications",
   "tools_weight_title": "Weight Calculator",
@@ -12166,8 +13371,36 @@
   "settings_mediaStorage_transfers_clearCompleted": "Clear completed",
   "settings_mediaStorage_transfers_state_pending": "Waiting",
   "settings_mediaStorage_transfers_state_transferring": "Uploading",
+  "settings_mediaStorage_transfers_state_deleting": "Removing from cloud",
   "settings_mediaStorage_transfers_state_done": "Done",
   "settings_mediaStorage_transfers_state_failed": "Failed",
+  "settings_mediaStorage_transfers_queued": "{count} queued",
+  "@settings_mediaStorage_transfers_queued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_mediaStorage_transfers_waitingRetry": "{count} waiting to retry",
+  "@settings_mediaStorage_transfers_waitingRetry": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_mediaStorage_verify_action": "Verify library",
+  "settings_mediaStorage_verify_running": "Verifying media library...",
+  "settings_mediaStorage_verify_summary": "Checked {checked} objects: removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads",
+  "@settings_mediaStorage_verify_summary": {
+    "placeholders": {
+      "checked": {"type": "int"},
+      "removed": {"type": "int"},
+      "repaired": {"type": "int"},
+      "aborted": {"type": "int"}
+    }
+  },
   "settings_mediaStorage_backfill_action": "Upload existing library",
   "settings_mediaStorage_backfill_enqueued": "{count} uploads queued",
   "@settings_mediaStorage_backfill_enqueued": {
@@ -12239,6 +13472,15 @@
       }
     }
   },
+  "equipment_edit_liftCapacityLabel": "Lift capacity ({unit})",
+  "@equipment_edit_liftCapacityLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_edit_liftCapacityHint": "Wing or BCD rated lift",
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",
@@ -12318,6 +13560,27 @@
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "Markers",
   "@dive3d_overlay_markers": {},
+  "dive3d_seascape_overlay_paths": "Dive paths",
+  "@dive3d_seascape_overlay_paths": {},
+  "dive3d_seascape_siteTitle": "Site Seascape",
+  "@dive3d_seascape_siteTitle": {},
+  "dive3d_seascape_seafloorSource": "Seafloor: {source} (~{resolution} m)",
+  "@dive3d_seascape_seafloorSource": {
+    "placeholders": {
+      "source": {"type": "String"},
+      "resolution": {"type": "String"}
+    }
+  },
+  "dive3d_seascape_noCoordinates": "This site has no GPS coordinates",
+  "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_noData": "No bathymetry available for this location",
+  "@dive3d_seascape_noData": {},
+  "dive3d_seascape_axis_distance": "Distance ({unitSymbol})",
+  "@dive3d_seascape_axis_distance": {
+    "placeholders": {"unitSymbol": {"type": "String"}}
+  },
+  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},
   "dive3d_metric_temperature": "Temp",
@@ -12495,5 +13758,652 @@
   "settings_setupGuide_statusTodo": "Not set up",
   "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
-  "media_unavailablePlaceholder_volumeOffline": "Volume not mounted"
+  "media_unavailablePlaceholder_volumeOffline": "Volume not mounted",
+  "attrLabel_size": "Size",
+  "attrLabel_thickness_mm": "Thickness (mm)",
+  "attrLabel_suit_style": "Suit style",
+  "attrLabel_shell_material": "Shell material",
+  "attrLabel_seal_type": "Seal type",
+  "attrLabel_volume_l": "Volume",
+  "attrLabel_working_pressure_bar": "Working pressure",
+  "attrLabel_tank_material": "Material",
+  "attrLabel_valve_type": "Valve",
+  "attrLabel_tank_identifier": "Identifier",
+  "attrLabel_last_visual_inspection": "Last visual inspection",
+  "attrLabel_last_hydro_test": "Last hydrostatic test",
+  "attrLabel_connection": "Connection",
+  "attrLabel_cold_water_rated": "Cold-water rated",
+  "attrLabel_bcd_style": "Style",
+  "attrLabel_lift_capacity_kg": "Lift capacity",
+  "attrLabel_heel_type": "Heel",
+  "attrLabel_blade_style": "Blade",
+  "attrLabel_mount": "Mount",
+  "attrLabel_connectivity": "Connectivity",
+  "attrLabel_lens_config": "Lens",
+  "attrLabel_prescription": "Prescription lenses",
+  "attrLabel_weight_style": "Style",
+  "attrLabel_lumens": "Lumens",
+  "attrLabel_beam_type": "Beam",
+  "attrLabel_depth_rating_m": "Depth rating",
+  "attrLabel_smb_type": "Type",
+  "attrLabel_length_m": "Length",
+  "attrLabel_reel_type": "Type",
+  "attrLabel_line_length_m": "Line length",
+  "attrLabel_blade_material": "Blade material",
+  "attrLabel_tip_type": "Tip",
+  "attrLabel_glove_type": "Type",
+  "attrLabel_sole_type": "Sole",
+  "attrLabel_buoyancy_kg": "Buoyancy",
+  "attrLabel_dry_weight_kg": "Dry weight",
+  "attrChoice_suit_style_full": "Full suit",
+  "attrChoice_suit_style_shorty": "Shorty",
+  "attrChoice_suit_style_two_piece": "Two-piece",
+  "attrChoice_suit_style_semi_dry": "Semi-dry",
+  "attrChoice_shell_material_trilaminate": "Trilaminate",
+  "attrChoice_shell_material_neoprene": "Neoprene",
+  "attrChoice_shell_material_crushed_neoprene": "Crushed neoprene",
+  "attrChoice_shell_material_vulcanized_rubber": "Vulcanized rubber",
+  "attrChoice_seal_type_latex": "Latex",
+  "attrChoice_seal_type_silicone": "Silicone",
+  "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_tank_material_aluminum": "Aluminum",
+  "attrChoice_tank_material_steel": "Steel",
+  "attrChoice_tank_material_carbon_composite": "Carbon composite",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "Yoke (INT)",
+  "attrChoice_valve_type_convertible": "Convertible",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "Yoke (INT)",
+  "attrChoice_bcd_style_jacket": "Jacket",
+  "attrChoice_bcd_style_back_inflate": "Back-inflate",
+  "attrChoice_bcd_style_wing": "Wing",
+  "attrChoice_bcd_style_sidemount": "Sidemount",
+  "attrChoice_heel_type_open_heel": "Open heel",
+  "attrChoice_heel_type_full_foot": "Full foot",
+  "attrChoice_blade_style_paddle": "Paddle",
+  "attrChoice_blade_style_split": "Split",
+  "attrChoice_blade_style_vented": "Vented",
+  "attrChoice_mount_wrist": "Wrist",
+  "attrChoice_mount_console": "Console",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "Bluetooth (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "Infrared",
+  "attrChoice_connectivity_none": "None",
+  "attrChoice_lens_config_single": "Single lens",
+  "attrChoice_lens_config_twin": "Twin lens",
+  "attrChoice_lens_config_frameless": "Frameless",
+  "attrChoice_weight_style_belt": "Belt",
+  "attrChoice_weight_style_integrated": "Integrated",
+  "attrChoice_weight_style_trim": "Trim",
+  "attrChoice_weight_style_ankle": "Ankle",
+  "attrChoice_beam_type_spot": "Spot",
+  "attrChoice_beam_type_flood": "Flood",
+  "attrChoice_beam_type_adjustable": "Adjustable",
+  "attrChoice_smb_type_open": "Open",
+  "attrChoice_smb_type_closed": "Closed",
+  "attrChoice_reel_type_spool": "Spool",
+  "attrChoice_reel_type_ratchet": "Ratchet",
+  "attrChoice_blade_material_stainless": "Stainless steel",
+  "attrChoice_blade_material_titanium": "Titanium",
+  "attrChoice_tip_type_pointed": "Pointed",
+  "attrChoice_tip_type_blunt": "Blunt",
+  "attrChoice_tip_type_line_cutter": "Line cutter",
+  "attrChoice_glove_type_five_finger": "Five-finger",
+  "attrChoice_glove_type_mitt": "Mitt",
+  "attrChoice_glove_type_dry": "Dry",
+  "attrChoice_sole_type_hard": "Hard sole",
+  "attrChoice_sole_type_soft": "Soft sole",
+  "equipment_edit_customFieldsTitle": "Custom fields",
+  "equipment_edit_addCustomField": "Add custom field",
+  "attr_flagYes": "Yes",
+  "attr_flagNo": "No",
+  "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
+  "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
+  "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
+  "statistics_progression_divesBySuitThickness_error": "Could not load suit thickness data",
+  "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max",
+  "safetySettings_noFlyHeader": "Flying after diving",
+  "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
+  "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
+  "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
+  "safetyHub_noFly_active_title": "No-fly: {remaining} remaining",
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_until": "Until {time}",
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_clear_title": "No flying restriction",
+  "safetyHub_noFly_clear_subtitle": "No active flying restriction",
+  "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_repetitive": "After repetitive dives: {hours} h guideline",
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_deco": "After a decompression dive: {hours} h guideline",
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
+  "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
+  "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
+  "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_title": "Emergency",
+  "emergencyCard_callDan": "Call {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_ems": "Local emergency services: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Diver",
+  "emergencyCard_bloodType": "Blood type: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergies: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medications: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Emergency contacts",
+  "emergencyCard_insuranceSection": "Dive insurance",
+  "emergencyCard_insurancePolicy": "Policy {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Hyperbaric chambers",
+  "emergencyCard_chambersNote": "Availability changes. Always call the diver emergency hotline first for referral.",
+  "emergencyCard_chamberVerified": "Details verified {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Hide",
+  "emergencyCard_chamberHidden": "Chamber hidden",
+  "emergencyCard_undo": "Undo",
+  "emergencyCard_addChamber": "Add chamber",
+  "emergencyCard_deleteChamber": "Delete",
+  "emergencyCard_regionLabel": "Region: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Region unknown - using worldwide hotline",
+  "emergencyCard_noDiverData": "No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.",
+  "addChamber_title": "Add chamber",
+  "addChamber_name": "Name",
+  "addChamber_country": "Country code (e.g. US)",
+  "addChamber_city": "City",
+  "addChamber_phone": "Phone",
+  "addChamber_notes": "Notes",
+  "addChamber_save": "Save",
+  "addChamber_nameRequired": "Name is required",
+  "addChamber_countryRequired": "Country code is required",
+  "addChamber_phoneRequired": "Phone number is required",
+  "safetyHub_emergencyCardLink": "Emergency card",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: hotline, EMS, chambers, your medical and insurance details",
+  "dashboard_quickAction_emergency": "Emergency card",
+  "incidents_title": "Near-miss log",
+  "incidents_empty": "No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.",
+  "incidents_add": "Log near-miss",
+  "incidents_linkedDive": "Linked to a dive",
+  "incidents_delete_confirm": "Delete this near-miss report?",
+  "incidents_notFound": "Near-miss report not found",
+  "incidentEdit_title_new": "Log near-miss",
+  "incidentEdit_title_edit": "Edit near-miss",
+  "incidentEdit_category": "Category",
+  "incidentEdit_severity": "Severity",
+  "incidentEdit_severity_minor": "Minor",
+  "incidentEdit_severity_moderate": "Moderate",
+  "incidentEdit_severity_serious": "Serious",
+  "incidentEdit_date": "When it happened",
+  "incidentEdit_narrative": "What happened",
+  "incidentEdit_narrative_hint": "Just the facts, in your own words. This stays private.",
+  "incidentEdit_narrative_required": "Describe what happened",
+  "incidentEdit_contributingFactors": "What contributed (optional)",
+  "incidentEdit_lessonsLearned": "What would help next time (optional)",
+  "incidentEdit_save": "Save",
+  "incidentEdit_privacyNote": "Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.",
+  "incidentCategory_buoyancy": "Buoyancy",
+  "incidentCategory_gasSupply": "Gas supply",
+  "incidentCategory_equipment": "Equipment",
+  "incidentCategory_buddySeparation": "Buddy separation",
+  "incidentCategory_marineLife": "Marine life",
+  "incidentCategory_boatSurface": "Boat / surface",
+  "incidentCategory_medical": "Medical",
+  "incidentCategory_planning": "Planning",
+  "incidentCategory_other": "Other",
+  "safetyHub_incidentsLink": "Near-miss log",
+  "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
+  "diveLog_detail_menu_logNearMiss": "Log near-miss",
+  "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
+  "@diveLog_detail_linkedIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
+  "settings_section_safety_title": "Safety",
+  "settings_section_safety_subtitle": "Review rules & flying after diving",
+  "dataQuality_inbox_title": "Data quality",
+  "dataQuality_badge_tooltip": "Data quality review",
+  "dataQuality_scan_start": "Scan library",
+  "dataQuality_scan_progress": "Checked {done} of {total} dives",
+  "@dataQuality_scan_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_scan_cancel": "Cancel",
+  "dataQuality_scan_done": "{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}",
+  "@dataQuality_scan_done": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_scan_errors": "{count} dives could not be fully checked",
+  "@dataQuality_scan_errors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_lastScan": "Last scan: {when}",
+  "@dataQuality_lastScan": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_neverScanned": "Your logbook has not been scanned yet",
+  "dataQuality_empty_title": "All clear",
+  "dataQuality_empty_subtitle": "No data quality findings. Scan your library to check imported dives for problems.",
+  "dataQuality_banner_newChecks": "New quality checks are available",
+  "dataQuality_banner_rescan": "Rescan",
+  "dataQuality_action_dismiss": "Dismiss",
+  "dataQuality_action_dismissFiltered": "Dismiss all shown",
+  "dataQuality_action_goToDive": "Go to dive",
+  "dataQuality_action_undo": "Undo",
+  "dataQuality_repair_applied": "Repair applied",
+  "dataQuality_repair_failed": "Repair failed",
+  "dataQuality_chip_all": "All",
+  "dataQuality_chip_time": "Time",
+  "dataQuality_chip_profile": "Profile",
+  "dataQuality_chip_gas": "Gas",
+  "dataQuality_chip_tanks": "Tanks",
+  "dataQuality_chip_duplicates": "Duplicates",
+  "dataQuality_chip_sources": "Sources",
+  "dataQuality_detector_clock_offset": "Clock & timezone",
+  "dataQuality_detector_duplicate": "Likely duplicate",
+  "dataQuality_detector_split_pair": "Accidental split",
+  "dataQuality_detector_sample_gap": "Sample gaps",
+  "dataQuality_detector_depth_spike": "Depth spike",
+  "dataQuality_detector_impossible_rate": "Impossible rate",
+  "dataQuality_detector_temp_anomaly": "Temperature anomaly",
+  "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
+  "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
+  "dataQuality_detector_tank_assignment": "Wrong cylinder",
+  "dataQuality_detector_source_conflict": "Conflicting sources",
+  "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
+  "@dataQuality_msg_clock_future": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_clock_ancient": "Dive is dated before 1950 ({date})",
+  "@dataQuality_msg_clock_ancient": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_clock_offset": "A source clock differs by {hours} hours",
+  "@dataQuality_msg_clock_offset": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_overlap": "Overlaps another dive by {minutes} min",
+  "@dataQuality_msg_clock_overlap": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_duplicate": "{percent}% match with a dive {minutes} min apart",
+  "@dataQuality_msg_duplicate": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_split": "Same computer resumed after a {minutes} min surface interval",
+  "@dataQuality_msg_split": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_gap": "{count, plural, =1{1 gap in samples} other{{count} gaps in samples}}, longest {longest}",
+  "@dataQuality_msg_gap": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "longest": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_spike": "Depth spike to {depth} at {time}",
+  "@dataQuality_msg_spike": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_negativeDepth": "{count} negative depth samples",
+  "@dataQuality_msg_negativeDepth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_maxDepthMismatch": "Logged max depth {stored} but the profile shows {profile}",
+  "@dataQuality_msg_maxDepthMismatch": {
+    "placeholders": {
+      "stored": {
+        "type": "String"
+      },
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {seconds} s",
+  "@dataQuality_msg_rate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_tempRange": "Water temperature outside the plausible range ({min} to {max})",
+  "@dataQuality_msg_tempRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tempUnitBug": "Values look like a temperature unit bug",
+  "dataQuality_msg_tempJump": "Temperature jumped {delta} in one sample",
+  "@dataQuality_msg_tempJump": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tempScalar": "Logged water temperature {temp} is implausible",
+  "@dataQuality_msg_tempScalar": {
+    "placeholders": {
+      "temp": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureSwap": "End pressure {end} is above start pressure {start}",
+  "@dataQuality_msg_pressureSwap": {
+    "placeholders": {
+      "end": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureEndpoint": "Tank record says {record} but the sensor series shows {series}",
+  "@dataQuality_msg_pressureEndpoint": {
+    "placeholders": {
+      "record": {
+        "type": "String"
+      },
+      "series": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureRise": "Pressure rose {rise} mid-dive with no gas switch",
+  "@dataQuality_msg_pressureRise": {
+    "placeholders": {
+      "rise": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_sac": "Implied surface consumption of {sac} is implausible",
+  "@dataQuality_msg_sac": {
+    "placeholders": {
+      "sac": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_ppo2": "ppO2 reached {ppo2} on {gas} at {depth}",
+  "@dataQuality_msg_ppo2": {
+    "placeholders": {
+      "ppo2": {
+        "type": "String"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_hypoxic": "Hypoxic mix ({gas}) shown in use at the surface",
+  "@dataQuality_msg_hypoxic": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_switchMod": "Gas switch at {depth} is beyond that gas's MOD of {mod}",
+  "@dataQuality_msg_switchMod": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tankInactive": "This tank lost {drop} while the gas timeline says it was not in use",
+  "@dataQuality_msg_tankInactive": {
+    "placeholders": {
+      "drop": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_twinTanks": "Two tanks carry a near-identical pressure series",
+  "dataQuality_msg_sourceDepth": "Sources disagree on max depth: {primary} vs {source}",
+  "@dataQuality_msg_sourceDepth": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_salinityHint": "The consistent ratio suggests a salt/fresh water setting difference",
+  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration",
+  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature",
+  "dataQuality_repairLabel_shiftTime": "Shift time by {offset}",
+  "@dataQuality_repairLabel_shiftTime": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
+  "dataQuality_repairLabel_consolidate": "Consolidate",
+  "dataQuality_repairLabel_combine": "Combine into one dive",
+  "dataQuality_repairLabel_despike": "Remove spike",
+  "dataQuality_repairLabel_fillGaps": "Fill gaps",
+  "dataQuality_repairLabel_smoothTemp": "Smooth temperature",
+  "dataQuality_repairLabel_convertTemp": "Convert temperature",
+  "dataQuality_repairLabel_recompute": "Recalculate from profile",
+  "dataQuality_repairLabel_swapPressures": "Swap start/end pressure",
+  "dataQuality_repairLabel_setFromSeries": "Use sensor values",
+  "dataQuality_repairLabel_swapSeries": "Swap tank series",
+  "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
+  "dataQuality_repairLabel_setPrimary": "Make this source primary",
+  "dataQuality_repairLabel_split": "Split into separate dives",
+  "dataQuality_repairLabel_compare": "Compare profiles",
+  "dataQuality_settings_title": "Data quality",
+  "dataQuality_settings_subtitle": "Choose which checks run when scanning",
+  "dataQuality_summary_flagged": "{count, plural, =1{1 item flagged for review} other{{count} items flagged for review}}",
+  "@dataQuality_summary_flagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_summary_review": "Review",
+  "dataQuality_detail_chip": "Review",
+  "dataQuality_detail_chipCount": "Review ({count})",
+  "@dataQuality_detail_chipCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_mediaStorage_quality_section": "Upload quality",
+  "settings_mediaStorage_quality_photos": "Photos",
+  "settings_mediaStorage_quality_video": "Video",
+  "settings_mediaStorage_quality_original": "Original",
+  "settings_mediaStorage_quality_high": "High",
+  "settings_mediaStorage_quality_balanced": "Balanced",
+  "settings_mediaStorage_quality_small": "Small",
+  "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
+  "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
+  "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
+  "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
+  "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it."
 }

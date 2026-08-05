@@ -3,39 +3,41 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/application/career_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/site_seascape_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
   final bool embedded;
   final VoidCallback? onDeleted;
+  final VoidCallback? onClose;
 
   const SiteDetailPage({
     super.key,
     required this.siteId,
     this.embedded = false,
     this.onDeleted,
+    this.onClose,
   });
 
   @override
@@ -49,8 +51,11 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   Widget build(BuildContext context) {
     // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail.
     // Skip in table mode -- table view has no master-detail split to redirect into.
+    // Also skip if we can pop OR if we came from dive detail, which means we arrived here
+    // from another page and want to be able to go back.
     if (!widget.embedded &&
         !_hasRedirected &&
+        !Navigator.of(context).canPop() &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
       final viewMode = ref.read(siteListViewModeProvider);
       if (viewMode != ListViewMode.table) {
@@ -87,6 +92,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           siteId: widget.siteId,
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
+          onClose: widget.onClose,
         );
       },
       loading: () {
@@ -124,12 +130,14 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final String siteId;
   final bool embedded;
   final VoidCallback? onDeleted;
+  final VoidCallback? onClose;
 
   const _SiteDetailContent({
     required this.site,
     required this.siteId,
     required this.embedded,
     this.onDeleted,
+    this.onClose,
   });
 
   @override
@@ -235,6 +243,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       appBar: AppBar(
         title: Text(site.name),
         actions: [
+          if (site.hasCoordinates)
+            IconButton(
+              icon: const Icon(Icons.terrain),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => SiteSeascapePage(siteId: siteId),
+                ),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.view_in_ar),
             tooltip: context.l10n.dive3d_career_title,
@@ -266,7 +284,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -275,6 +293,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ),
       child: Row(
         children: [
+          if (widget.onClose != null) ...[
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: widget.onClose,
+              tooltip: context.l10n.common_action_back,
+            ),
+            const SizedBox(width: 8),
+          ],
           CircleAvatar(
             radius: 20,
             backgroundColor: colorScheme.primaryContainer,
@@ -306,13 +332,41 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
           ),
+          if (site.hasCoordinates)
+            IconButton(
+              icon: const Icon(Icons.terrain, size: 20),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => SiteSeascapePage(siteId: widget.siteId),
+                ),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.diveSites_detail_editTooltipShort,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
-              context.go('$currentPath?selected=${widget.siteId}&mode=edit');
+              if (currentPath.startsWith('/dives')) {
+                // If we're on the /dives path, keep it and just add mode=edit and site parameter.
+                // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
+                // because we'll have both ?site=... and &mode=edit in the query params.
+                final params = Map<String, String>.from(
+                  state.uri.queryParameters,
+                );
+                params['mode'] = 'edit';
+                // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
+                // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
+                // the scaffold will try to find a dive with that siteId and fail.
+                params['site'] = widget.siteId;
+                context.push(
+                  Uri(path: currentPath, queryParameters: params).toString(),
+                );
+              } else {
+                // Default to /sites path for site-related navigation if not on /dives.
+                context.go('/sites?selected=${widget.siteId}&mode=edit');
+              }
             },
           ),
           PopupMenuButton<String>(

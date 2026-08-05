@@ -1,31 +1,15 @@
-<div align="center">
-
-<img src="assets/icon/icon.png" alt="Submersion logo" width="80">
-
-# Submersion
-
-*Own your dive log. Free and open-source, forever.*
-
-**Download**
-
-[![macOS](https://img.shields.io/badge/macOS-2ea44f?logo=apple&logoColor=white&style=for-the-badge)](https://github.com/submersion-app/submersion/releases)
-[![Windows](https://img.shields.io/badge/Windows-2ea44f?logo=windows&logoColor=white&style=for-the-badge)](https://github.com/submersion-app/submersion/releases)
-[![Linux](https://img.shields.io/badge/Linux-2ea44f?logo=linux&logoColor=white&style=for-the-badge)](https://github.com/submersion-app/submersion/releases)
-[![Android](https://img.shields.io/badge/Android-2ea44f?logo=android&logoColor=white&style=for-the-badge)](https://github.com/submersion-app/submersion/releases)
-[![iOS](https://img.shields.io/badge/iOS-2ea44f?logo=apple&logoColor=white&style=for-the-badge)](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
-
-<sub>License &amp; build status</sub>
+<h1>
+<img src="assets/icon/icon.png" alt="Submersion logo" width="72" align="left" hspace="14">
+Submersion<br>
+<sub><sub><sup><em>Own your dive log. Free and open-source, forever.</em></sup></sub></sub><br>&nbsp;
+</h1>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 
 <img src="docs/assets/screenshots/readme/hero.png" alt="Submersion on macOS and iOS" width="900">
 
-</div>
-
 Submersion gives scuba divers full ownership of their logbooks — no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
-
-## See it in action
 
 <table>
 <tr>
@@ -116,6 +100,26 @@ Most dive logging software falls into two categories: desktop applications stuck
 - **Technical Diving Ready** — Bühlmann ZH-L16C decompression, multi-gas support, CNS/OTU tracking, trimix blending, CCR/SCR rebreather support.
 - **Sync Across Devices** — Optional cloud sync via iCloud or Google Drive. No account required — sync is opt-in and your data stays yours.
 - **Free Forever** — Open source under GPL-3.0. No premium tiers for core features. No ads.
+
+## Download
+
+- **macOS / Windows / Linux / Android** — [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+- **iOS** — [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
+
+### Beta channel
+
+Want fixes and features weeks early? Every change merged into Submersion is
+published as a beta build. Betas may upgrade your dive log's database ahead
+of the stable release; downgrading is not supported, and devices that sync
+together should all use the same channel. A backup is taken automatically
+before any database upgrade.
+
+- **Desktop** — Settings > About > Update channel > Beta (updates then arrive
+  through the normal auto-updater), or download directly from
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
+- **Android** — [join the open test](https://play.google.com/apps/testing/app.submersion),
+  then Play delivers beta updates automatically
+- **iOS / Mac App Store** — [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
 
 ## Data Philosophy
 

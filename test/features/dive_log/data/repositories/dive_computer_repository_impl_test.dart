@@ -228,6 +228,156 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // findByHardwareIdentity - manufacturer/model/serial lookup
+  // ---------------------------------------------------------------------------
+
+  group('findByHardwareIdentity', () {
+    test('returns computer matching manufacturer, model and serial', () async {
+      await insertComputer(
+        id: 'comp-a',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+
+      final result = await repository.findByHardwareIdentity(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      expect(result?.id, equals('comp-a'));
+    });
+
+    test(
+      'returns null when serial matches but manufacturer/model do not',
+      () async {
+        await insertComputer(
+          id: 'comp-a',
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          serialNumber: 'SN-12345',
+        );
+
+        final result = await repository.findByHardwareIdentity(
+          manufacturer: 'Suunto',
+          model: 'D5',
+          serialNumber: 'SN-12345',
+        );
+        expect(result, isNull);
+      },
+    );
+
+    test('scopes the match to the given diverId', () async {
+      await insertDiver('diver-a');
+      await insertDiver('diver-b');
+      await insertComputer(
+        id: 'comp-a',
+        diverId: 'diver-a',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      await insertComputer(
+        id: 'comp-b',
+        diverId: 'diver-b',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+
+      final result = await repository.findByHardwareIdentity(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+        diverId: 'diver-b',
+      );
+      expect(result?.id, equals('comp-b'));
+    });
+
+    test('returns null when diverId does not match', () async {
+      await insertDiver('diver-a');
+      await insertComputer(
+        id: 'comp-a',
+        diverId: 'diver-a',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+
+      final result = await repository.findByHardwareIdentity(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+        diverId: 'diver-other',
+      );
+      expect(result, isNull);
+    });
+
+    test(
+      'matches manufacturer and model case-insensitively with whitespace',
+      () async {
+        await insertComputer(
+          id: 'comp-a',
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          serialNumber: 'SN-12345',
+        );
+
+        final result = await repository.findByHardwareIdentity(
+          manufacturer: '  SHEARWATER  ',
+          model: '  perdix  ',
+          serialNumber: 'SN-12345',
+        );
+        expect(result?.id, equals('comp-a'));
+      },
+    );
+
+    test('trims serialNumber before matching', () async {
+      await insertComputer(
+        id: 'comp-a',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+
+      final result = await repository.findByHardwareIdentity(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: '  SN-12345  ',
+      );
+      expect(result?.id, equals('comp-a'));
+    });
+
+    test('returns null when no computer has a matching serial', () async {
+      final result = await repository.findByHardwareIdentity(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-does-not-exist',
+      );
+      expect(result, isNull);
+    });
+
+    test(
+      'matches a stored serialNumber that itself has stray whitespace',
+      () async {
+        await insertComputer(
+          id: 'comp-a',
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          serialNumber: '  SN-12345  ',
+        );
+
+        final result = await repository.findByHardwareIdentity(
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          serialNumber: 'SN-12345',
+        );
+        expect(result?.id, equals('comp-a'));
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
   // deleteComputer - FK reference clearing
   // ---------------------------------------------------------------------------
 

@@ -22,7 +22,9 @@ class EquipmentPickerSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final equipmentAsync = ref.watch(allEquipmentProvider);
+    // Only active gear belongs in the dive-edit picker; retired items are
+    // reachable from the Equipment page's Retired filter (#636).
+    final equipmentAsync = ref.watch(activeEquipmentProvider);
 
     return Column(
       children: [
@@ -140,6 +142,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
         return Icons.face;
       case EquipmentType.tank:
         return MdiIcons.divingScubaTank;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:

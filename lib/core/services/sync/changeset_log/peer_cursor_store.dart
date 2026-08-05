@@ -28,6 +28,7 @@ class PeerCursorStore {
     required String provider,
     int? baseSeqApplied,
     required int lastSeqApplied,
+    String? appliedHlcHigh,
   }) async {
     await _db
         .into(_db.syncPeerCursors)
@@ -37,6 +38,11 @@ class PeerCursorStore {
             provider: Value(provider),
             baseSeqApplied: Value(baseSeqApplied),
             lastSeqApplied: Value(lastSeqApplied),
+            // Absent (not null) when unknown, so a transport-only upsert never
+            // clears a previously recorded acknowledgment.
+            appliedHlcHigh: appliedHlcHigh == null
+                ? const Value.absent()
+                : Value(appliedHlcHigh),
             updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
           ),
         );

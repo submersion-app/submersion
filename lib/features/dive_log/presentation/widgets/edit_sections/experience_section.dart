@@ -37,6 +37,7 @@ class ExperienceSection extends StatelessWidget {
     final l10n = context.l10n;
     return FormSection(
       label: l10n.diveLog_edit_group_experience,
+      icon: Icons.star_outline,
       expanded: expanded,
       onToggle: onToggle,
       summary: summary,

@@ -10,7 +10,8 @@ import 'package:submersion/core/services/secure_storage/fallback_secure_storage.
 class LightroomAuthData {
   const LightroomAuthData({
     required this.clientId,
-    required this.refreshToken,
+    this.redirectUri,
+    this.refreshToken,
     this.clientSecret,
     this.email,
     this.displayName,
@@ -18,13 +19,23 @@ class LightroomAuthData {
   });
 
   final String clientId;
-  final String refreshToken;
+
+  /// The redirect URI this connection authorized against. For a Native App
+  /// credential this is Adobe's generated custom scheme; null on legacy
+  /// blobs saved before per-connection redirects existed.
+  final String? redirectUri;
+
+  /// Null for a Native App credential (public clients get no refresh token)
+  /// or on a legacy blob; present only when Adobe returned one.
+  final String? refreshToken;
+
   final String? clientSecret;
   final String? email;
   final String? displayName;
   final String? catalogId;
 
   LightroomAuthData copyWith({
+    String? redirectUri,
     String? refreshToken,
     String? email,
     String? displayName,
@@ -32,8 +43,9 @@ class LightroomAuthData {
   }) {
     return LightroomAuthData(
       clientId: clientId,
-      clientSecret: clientSecret,
+      redirectUri: redirectUri ?? this.redirectUri,
       refreshToken: refreshToken ?? this.refreshToken,
+      clientSecret: clientSecret,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
       catalogId: catalogId ?? this.catalogId,
@@ -42,6 +54,7 @@ class LightroomAuthData {
 
   Map<String, Object?> toJson() => {
     'clientId': clientId,
+    'redirectUri': redirectUri,
     'clientSecret': clientSecret,
     'refreshToken': refreshToken,
     'email': email,
@@ -52,8 +65,9 @@ class LightroomAuthData {
   factory LightroomAuthData.fromJson(Map<String, Object?> json) {
     return LightroomAuthData(
       clientId: json['clientId'] as String,
+      redirectUri: json['redirectUri'] as String?,
       clientSecret: json['clientSecret'] as String?,
-      refreshToken: json['refreshToken'] as String,
+      refreshToken: json['refreshToken'] as String?,
       email: json['email'] as String?,
       displayName: json['displayName'] as String?,
       catalogId: json['catalogId'] as String?,

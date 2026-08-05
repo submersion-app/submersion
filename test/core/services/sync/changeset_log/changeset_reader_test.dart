@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dar
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/retirement_marker.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
@@ -244,5 +245,85 @@ void main() {
     ).get(peerId, provider.providerId);
     expect(cursor!.lastSeqApplied, 2);
     expect(cursor.baseSeqApplied, isNull);
+  });
+
+  test('pull records the applied HLC ack on the peer cursor', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'ack-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+
+    await pullAs('reader-self');
+
+    final manifest = SyncManifest.fromBytes(
+      await provider.downloadFile(
+        '$folder/${ChangesetLogLayout.manifestName(peerId)}',
+      ),
+    );
+    final cursor = await PeerCursorStore(
+      DatabaseService.instance.database,
+    ).get(peerId, provider.providerId);
+    expect(cursor!.appliedHlcHigh, isNotNull);
+    expect(cursor.appliedHlcHigh, manifest.publishedHlcHigh);
+  });
+
+  test('pull skips a retired peer and reports it', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'ret-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+    await provider.uploadFile(
+      RetirementMarker(deviceId: peerId, retiredAt: 1).toBytes(),
+      ChangesetLogLayout.retiredMarkerName(peerId),
+      folderId: folder,
+    );
+
+    final result = await pullAs('reader-self');
+
+    expect(applied, isEmpty);
+    expect(result.peersProcessed, 0);
+    expect(result.retiredPeerIds, {peerId});
+    expect(result.retiredPeerHasFiles, isTrue);
+    expect(result.peerManifests, isEmpty);
+    expect(
+      await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get(peerId, provider.providerId),
+      isNull,
+    );
+  });
+
+  test('pull uses a caller-supplied listing instead of re-listing', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'pre-1', diveNumber: 1),
+    );
+    await publishAsPeer();
+
+    // An empty pre-listing must be honored verbatim: the peer's files exist
+    // in the cloud but the reader must not issue its own listFiles call.
+    final result = await reader.pull(
+      provider: provider,
+      selfDeviceId: 'reader-self',
+      folderId: folder,
+      apply: spyApply,
+      applyBaseFile: spyApplyBaseFile(applied),
+      preListedFiles: const [],
+    );
+
+    expect(result.peersProcessed, 0);
+    expect(applied, isEmpty);
+  });
+
+  test('pull returns live peer manifests', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'man-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+
+    final result = await pullAs('reader-self');
+
+    expect(result.peerManifests.map((m) => m.deviceId), [peerId]);
+    expect(result.retiredPeerIds, isEmpty);
+    expect(result.retiredPeerHasFiles, isFalse);
   });
 }

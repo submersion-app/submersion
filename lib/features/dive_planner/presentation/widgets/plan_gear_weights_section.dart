@@ -10,8 +10,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 /// Gear & Weights card in the plan editor: attach equipment to the plan and
 /// show a live weight prediction with an accept action that snapshots it
@@ -77,6 +79,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final prediction = ref.watch(planWeightPredictionProvider);
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     final itemsById = {for (final item in equipment) item.id: item};
+    final buoyancy = ref.watch(planBuoyancyTwinProvider);
 
     return Card(
       child: Padding(
@@ -199,6 +202,19 @@ class PlanGearWeightsSection extends ConsumerWidget {
                   ),
                 ],
               ),
+            if (buoyancy != null) ...[
+              const Divider(height: 24),
+              Text(
+                context.l10n.buoyancy_throughDive,
+                style: theme.textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              TwinSummaryRows(
+                outputs: buoyancy.outputs,
+                units: units,
+                wingLiftCapacityKg: buoyancy.wingLiftCapacityKg,
+              ),
+            ],
           ],
         ),
       ),

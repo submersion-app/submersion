@@ -10,6 +10,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -143,6 +144,9 @@ class CourseDetailPage extends ConsumerWidget {
           // Earned Certification
           if (course.certificationId != null)
             _buildCertificationSection(context, ref, course.certificationId!),
+
+          // Requirement tracker
+          CourseRequirementsSection(courseId: course.id),
 
           // Training dives
           Card(

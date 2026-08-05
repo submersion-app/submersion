@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -80,6 +81,8 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       final outcome = await ref
           .read(diveMergeServiceProvider)
           .apply(widget.diveIds);
+      // Re-scan the combined dives after the merge (fire-and-forget).
+      scheduleQualityScan(widget.diveIds);
       if (mounted) Navigator.of(context).pop(outcome);
     } catch (_) {
       // The transaction rolled back -- nothing changed. Surface the failure

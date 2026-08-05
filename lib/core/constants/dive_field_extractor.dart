@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 /// Extension providing raw value extraction from [Dive] and [DiveSummary]
 /// entities for each [DiveField].
@@ -14,9 +15,16 @@ extension DiveFieldExtractor on DiveField {
   /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
   /// default, so an omitted argument stays consistent with default settings.
   /// Other fields ignore it.
+  ///
+  /// [diveTypeLabel] resolves a dive-type slug to its display label for
+  /// [DiveField.diveTypeName]. On-screen callers pass the localizing resolver
+  /// (`diveTypeLabel` in `dive_log/presentation/formatters/`) so the column
+  /// honors the active locale (issue #643). Omitting it keeps the English slug
+  /// capitalization, which is what locale-independent consumers want.
   dynamic extractFromDive(
     Dive dive, {
     SacUnit sacUnit = SacUnit.pressurePerMin,
+    String Function(String id)? diveTypeLabel,
   }) {
     switch (this) {
       case DiveField.diveNumber:
@@ -108,9 +116,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.setpointDeco:
         return dive.setpointDeco;
       case DiveField.buddy:
-        return dive.buddy;
+        return _buddyColumnValue(dive);
       case DiveField.diveMaster:
-        return dive.diveMaster;
+        return _diveMasterColumnValue(dive);
       case DiveField.siteLocation:
         return dive.site?.locationString;
       case DiveField.diveCenterName:
@@ -132,7 +140,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.importSource:
         return dive.importSource;
       case DiveField.diveTypeName:
-        return dive.diveTypeNames.join(', ');
+        return diveTypeLabel == null
+            ? dive.diveTypeNames.join(', ')
+            : dive.diveTypeIds.map(diveTypeLabel).join(', ');
       case DiveField.surfaceInterval:
         return dive.surfaceInterval;
     }
@@ -141,7 +151,12 @@ extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a [DiveSummary].
   ///
   /// Returns null for fields not available on [DiveSummary].
-  dynamic extractFromSummary(DiveSummary summary) {
+  ///
+  /// See [extractFromDive] for [diveTypeLabel].
+  dynamic extractFromSummary(
+    DiveSummary summary, {
+    String Function(String id)? diveTypeLabel,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return summary.diveNumber;
@@ -166,7 +181,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.isFavorite:
         return summary.isFavorite;
       case DiveField.diveTypeName:
-        return summary.diveTypeIds.map(Dive.diveTypeDisplayName).join(', ');
+        return summary.diveTypeIds
+            .map(diveTypeLabel ?? Dive.diveTypeDisplayName)
+            .join(', ');
       case DiveField.tags:
         return summary.tags.map((t) => t.name).toList();
       case DiveField.siteLocation:
@@ -190,6 +207,46 @@ extension DiveFieldExtractor on DiveField {
 ///   (back gas tank pressure drop; no tank volume required).
 double? _computeSacRate(Dive dive, SacUnit sacUnit) =>
     sacUnit == SacUnit.litersPerMin ? dive.sac : dive.sacPressure;
+
+/// Names shown in the Buddy table column: every recorded participant whose
+/// role is NOT a guide/divemaster (see [_isGuideRole]), comma-joined.
+///
+/// The `dive_buddies` junction (#553) is the source of truth for modern dives.
+/// The legacy free-text [Dive.buddy] scalar is only a whole-dive fallback: it
+/// is used when the junction is empty -- a legacy dive that only ever used the
+/// scalar, or a code path that did not hydrate [Dive.buddies]. Once the
+/// junction holds any participant the dive is treated as junction-authoritative
+/// and the (frozen, never-migrated) scalar is ignored, so stale legacy text
+/// cannot leak onto -- or duplicate a name already shown for -- a modern dive.
+String? _buddyColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.buddy;
+  final names = dive.buddies
+      .where((b) => !_isGuideRole(b.role.id))
+      .map((b) => b.buddy.name.trim())
+      .where((n) => n.isNotEmpty)
+      .toList();
+  return names.isEmpty ? null : names.join(', ');
+}
+
+/// Names shown in the Dive Master table column: recorded participants whose
+/// role is a guide/divemaster, comma-joined.
+///
+/// Uses the same junction-authoritative rule as [_buddyColumnValue]: the legacy
+/// [Dive.diveMaster] scalar is used only when [Dive.buddies] is empty.
+String? _diveMasterColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.diveMaster;
+  final names = dive.buddies
+      .where((b) => _isGuideRole(b.role.id))
+      .map((b) => b.buddy.name.trim())
+      .where((n) => n.isNotEmpty)
+      .toList();
+  return names.isEmpty ? null : names.join(', ');
+}
+
+/// A `dive_roles` id representing someone guiding the dive rather than a peer
+/// buddy: the built-in dive guide or dive master roles (#553).
+bool _isGuideRole(String roleId) =>
+    roleId == DiveRole.diveGuideId || roleId == DiveRole.diveMasterId;
 
 /// Compute the total gas consumed in liters across all tanks of a [Dive].
 double? _computeGasConsumed(Dive dive) {

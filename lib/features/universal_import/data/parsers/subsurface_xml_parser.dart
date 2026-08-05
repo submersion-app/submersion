@@ -461,6 +461,7 @@ class SubsurfaceXmlParser implements ImportParser {
     double? lastCns;
     double? lastSetpoint;
     double? lastPpo2;
+    double? lastStopDepth;
     final lastSensor = List<double?>.filled(6, null);
     bool inDeco = false;
 
@@ -523,6 +524,19 @@ class SubsurfaceXmlParser implements ImportParser {
       final inDecoAttr = _parseInt(sample.getAttribute('in_deco'));
       if (inDecoAttr != null) inDeco = inDecoAttr == 1;
       if (inDeco) point['decoType'] = 2;
+
+      // Computer-reported deco stop depth, mapped to the sample ceiling. This
+      // is the stop depth in effect at this sample and changes over the dive.
+      // Subsurface delta-encodes stopdepth (written only when it changes), so
+      // an omitted attribute means "unchanged" - carry the last value forward
+      // like ndl/tts/in_deco. A value of 0.0 m is a real "no stop" signal, not
+      // missing data: it clears the obligation, and that cleared state is
+      // carried forward too. Values are meters (unit suffix stripped by
+      // `_parseDouble`).
+      final stopDepth =
+          _parseDouble(sample.getAttribute('stopdepth')) ?? lastStopDepth;
+      lastStopDepth = stopDepth;
+      if (stopDepth != null && stopDepth > 0) point['ceiling'] = stopDepth;
 
       // Read pressure0, pressure1, ... for each tank
       for (var tankIdx = 0; tankIdx < 10; tankIdx++) {

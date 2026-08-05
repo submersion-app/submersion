@@ -43,9 +43,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
 
 /// Standard poll-interval choices surfaced in the dropdown. The plan's
@@ -162,10 +162,9 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
     required String subscriptionId,
     required bool deleteSubscription,
   }) async {
-    final mediaRepo = ref.read(mediaRepositoryProvider);
-    for (final id in mediaIds) {
-      await mediaRepo.deleteMedia(id);
-    }
+    await ref
+        .read(mediaDeletionCoordinatorProvider)
+        .deleteMultipleMedia(mediaIds);
     if (deleteSubscription) {
       await ref
           .read(manifestSubscriptionRepositoryProvider)

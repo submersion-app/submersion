@@ -33,6 +33,10 @@ class DiveSummary extends Equatable {
   // Cursor field for pagination: COALESCE(entry_time, dive_date_time)
   final int sortTimestamp;
 
+  /// Count of non-dismissed safety review findings (drives the quiet
+  /// list badge). Zero when unanalyzed or clean.
+  final int safetyFindingCount;
+
   const DiveSummary({
     required this.id,
     this.diveNumber,
@@ -53,6 +57,7 @@ class DiveSummary extends Equatable {
     this.siteLatitude,
     this.siteLongitude,
     required this.sortTimestamp,
+    this.safetyFindingCount = 0,
   });
 
   /// Creates a DiveSummary from a full Dive entity.
@@ -82,6 +87,9 @@ class DiveSummary extends Equatable {
       siteLatitude: dive.site?.location?.latitude,
       siteLongitude: dive.site?.location?.longitude,
       sortTimestamp: ts.millisecondsSinceEpoch,
+      // Optimistic conversions can't know the count; the next DB read
+      // corrects it.
+      safetyFindingCount: 0,
     );
   }
 
@@ -129,6 +137,7 @@ class DiveSummary extends Equatable {
     double? siteLatitude,
     double? siteLongitude,
     int? sortTimestamp,
+    int? safetyFindingCount,
   }) {
     return DiveSummary(
       id: id ?? this.id,
@@ -150,6 +159,7 @@ class DiveSummary extends Equatable {
       siteLatitude: siteLatitude ?? this.siteLatitude,
       siteLongitude: siteLongitude ?? this.siteLongitude,
       sortTimestamp: sortTimestamp ?? this.sortTimestamp,
+      safetyFindingCount: safetyFindingCount ?? this.safetyFindingCount,
     );
   }
 
@@ -174,6 +184,7 @@ class DiveSummary extends Equatable {
     siteLatitude,
     siteLongitude,
     sortTimestamp,
+    safetyFindingCount,
   ];
 }
 

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -45,8 +46,18 @@ class MediaItemView extends ConsumerStatefulWidget {
   ConsumerState<MediaItemView> createState() => _MediaItemViewState();
 }
 
+/// What [_MediaItemViewState._resolve] produced.
+///
+/// [videoPosterMissing] separates "this video has no poster frame here" from
+/// the missing-media reading [MediaSourceData] would otherwise force: the
+/// store holds the item, it simply has no still image to draw, and pulling
+/// the video down to discover that is exactly what the resolver declines to
+/// do. Carried alongside the data rather than folded into it so the resolver
+/// contract stays a plain "bytes or a reason".
+typedef _Resolution = ({MediaSourceData data, bool videoPosterMissing});
+
 class _MediaItemViewState extends ConsumerState<MediaItemView> {
-  late Future<MediaSourceData> _future;
+  late Future<_Resolution> _future;
 
   @override
   void initState() {
@@ -77,7 +88,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   // throwing UnsupportedError when a row's source_type has no registered
   // resolver — becomes a Future error caught by FutureBuilder's hasError
   // branch in [build] instead of escaping initState/didUpdateWidget.
-  Future<MediaSourceData> _resolve() async {
+  Future<_Resolution> _resolve() async {
     final registry = ref.read(mediaSourceResolverRegistryProvider);
     final resolver = registry.resolverFor(widget.item.sourceType);
     final native = widget.thumbnail && widget.targetSize != null
@@ -86,35 +97,63 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             target: widget.targetSize!,
           )
         : await resolver.resolve(widget.item);
-    if (native is! UnavailableData) return native;
+    if (native is! UnavailableData) {
+      return (data: native, videoPosterMissing: false);
+    }
     // Media store fallback (design spec section 10): only engages when the
     // native source cannot produce bytes on this device and the row is
     // confirmed uploaded - for thumbnail requests the thumb stamp alone
     // suffices, since thumbs upload before originals. Rows without any
     // confirmed upload skip the runtime entirely (no keychain read, no
     // store construction). Any store failure keeps the native placeholder.
+    //
+    // The compressed stamp counts as confirmation in its own right: an
+    // upload-quality setting other than "original" uploads a rendition and
+    // leaves remoteUploadedAt null permanently, so gating on the original
+    // alone made every such photo unviewable on other devices even though
+    // MediaStoreResolver.tryResolveRemote can serve the rendition. This
+    // mirrors what MediaRepository already treats as backed up.
     final storeConfirmed =
         widget.item.contentHash != null &&
         (widget.item.remoteUploadedAt != null ||
+            widget.item.remoteCompressedUploadedAt != null ||
             (widget.thumbnail && widget.item.remoteThumbUploadedAt != null));
     if (!storeConfirmed) {
-      return native;
+      return (data: native, videoPosterMissing: false);
     }
     try {
       final runtime = await ref.read(mediaStoreRuntimeProvider.future);
-      final remote = await runtime?.resolver.tryResolveRemote(
+      // No store on this device: the row's stamps say the bytes exist
+      // somewhere, but nothing here can reach them, so the native
+      // placeholder is the honest answer.
+      if (runtime == null) return (data: native, videoPosterMissing: false);
+      final remote = await runtime.resolver.tryResolveRemote(
         widget.item,
         thumbnail: widget.thumbnail,
       );
-      return remote ?? native;
+      if (remote != null) return (data: remote, videoPosterMissing: false);
+      // The movie tile claims something specific -- this video has no poster
+      // frame -- so it is shown only when that is what happened: the store
+      // holds the item, no thumb was ever stamped, and the resolver therefore
+      // declined to download the whole video just to draw an icon. A poster
+      // that IS stamped but failed to fetch is an error, not an absence, and
+      // keeps the native placeholder so a transient failure cannot read as a
+      // video that simply has no preview.
+      return (
+        data: native,
+        videoPosterMissing:
+            widget.thumbnail &&
+            widget.item.isVideo &&
+            widget.item.remoteThumbUploadedAt == null,
+      );
     } catch (_) {
-      return native;
+      return (data: native, videoPosterMissing: false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<MediaSourceData>(
+    return FutureBuilder<_Resolution>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -125,9 +164,25 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         if (!snapshot.hasData) {
           return const _ShimmerThumbnail();
         }
-        final data = snapshot.data!;
+        final resolution = snapshot.data!;
+        if (resolution.videoPosterMissing) {
+          return const _VideoThumbnailPlaceholder();
+        }
+        final data = resolution.data;
         return switch (data) {
-          FileData(file: final f) => Image.file(f, fit: widget.fit),
+          // A video normally resolves to the raw video file, which Image.file
+          // cannot decode. Show a placeholder instead of surfacing an
+          // "Invalid image data" exception. A poster frame is the exception:
+          // it is a JPEG derived from the video, and only its producer can
+          // tell the two apart. (Connector video posters arrive as BytesData
+          // JPEGs below and render normally.)
+          FileData(isPoster: false) when widget.item.isVideo =>
+            const _VideoThumbnailPlaceholder(),
+          FileData(file: final f) => Image.file(
+            f,
+            fit: widget.fit,
+            errorBuilder: _imageError,
+          ),
           NetworkData(url: final u, headers: final h) => CachedNetworkImage(
             imageUrl: u.toString(),
             httpHeaders: h,
@@ -137,7 +192,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
               data: UnavailableData(kind: UnavailableKind.networkError),
             ),
           ),
-          BytesData(bytes: final b) => Image.memory(b, fit: widget.fit),
+          BytesData(bytes: final b) => Image.memory(
+            b,
+            fit: widget.fit,
+            errorBuilder: _imageError,
+          ),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),
         };
       },
@@ -153,4 +212,46 @@ class _ShimmerThumbnail extends StatelessWidget {
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
+}
+
+/// Neutral tile shown in place of a decodable image for local videos (whose
+/// raw bytes Image.file/Image.memory cannot render). The grid stacks its own
+/// videocam badge over this.
+class _VideoThumbnailPlaceholder extends StatelessWidget {
+  const _VideoThumbnailPlaceholder();
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: scheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(Icons.movie_outlined, color: scheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+final _imageErrorLog = LoggerService.forClass(MediaItemView);
+
+/// Graceful fallback when image bytes fail to decode (corrupt/unsupported), so
+/// the raw "Invalid image data" exception never reaches the UI. Shows a
+/// broken-image tile rather than the "file not found" placeholder: the file is
+/// present, it just couldn't be rendered.
+///
+/// The underlying error is logged: `errorBuilder` suppresses the framework's
+/// own console report, so without this a load/decode failure (sandbox denial,
+/// truncated bytes, unsupported codec) leaves no trace anywhere.
+Widget _imageError(BuildContext context, Object error, StackTrace? stack) {
+  _imageErrorLog.warning(
+    'Image failed to load/decode',
+    error: error,
+    stackTrace: stack,
+  );
+  final scheme = Theme.of(context).colorScheme;
+  return ColoredBox(
+    color: scheme.surfaceContainerHighest,
+    child: Center(
+      child: Icon(Icons.broken_image_outlined, color: scheme.onSurfaceVariant),
+    ),
+  );
 }

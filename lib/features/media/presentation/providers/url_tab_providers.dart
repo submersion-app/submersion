@@ -37,6 +37,8 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/domain/entities/extracted_metadata.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Two-mode segmented control for the URL tab. URLs is the bulk paste-and-add
 /// flow (Phase 3a). Manifest mode is a Phase 3b placeholder card.
@@ -118,14 +120,21 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
     required NetworkFetchPipeline pipeline,
     required NetworkCredentialsService credentials,
     required MediaRepository mediaRepository,
+    MediaDeletionCoordinator? deletionCoordinator,
   }) : _pipeline = pipeline,
        _credentials = credentials,
        _mediaRepository = mediaRepository,
+       _deletionCoordinator = deletionCoordinator,
        super(const UrlTabState());
 
   final NetworkFetchPipeline _pipeline;
   final NetworkCredentialsService _credentials;
   final MediaRepository _mediaRepository;
+
+  /// Routes undo deletions through the orphan-prevention fast path when
+  /// wired (production); direct-construction tests fall back to the
+  /// repository.
+  final MediaDeletionCoordinator? _deletionCoordinator;
 
   void setMode(UrlTabMode mode) {
     state = state.copyWith(mode: mode);
@@ -170,8 +179,13 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
   /// `FilesTabNotifier.undoCommit` — the pipeline does not expose a
   /// `deleteIds` helper, so we go through the repository.
   Future<void> undoCommit(List<String> ids) async {
-    for (final id in ids) {
-      await _mediaRepository.deleteMedia(id);
+    final coordinator = _deletionCoordinator;
+    if (coordinator != null) {
+      await coordinator.deleteMultipleMedia(ids);
+    } else {
+      for (final id in ids) {
+        await _mediaRepository.deleteMedia(id);
+      }
     }
     state = state.copyWith(committedIds: const []);
   }
@@ -307,5 +321,6 @@ final urlTabNotifierProvider =
         pipeline: ref.watch(networkFetchPipelineProvider),
         credentials: ref.watch(networkCredentialsServiceProvider),
         mediaRepository: ref.watch(mediaRepositoryProvider),
+        deletionCoordinator: ref.read(mediaDeletionCoordinatorProvider),
       ),
     );

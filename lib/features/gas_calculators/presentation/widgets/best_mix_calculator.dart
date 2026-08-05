@@ -2,40 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
+    show roundDownTo;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
+import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 
-/// Best Mix calculator - finds the ideal O2% for a target depth.
+/// Best Mix calculator - finds the best breathing mix for a target depth.
 ///
-/// Given a target depth and ppO2 limit, calculates the highest safe O2%
-/// to maximize NDL while staying within oxygen toxicity limits.
+/// Oxygen rounds DOWN to a whole percent so the recommended mix's own MOD is
+/// at or beyond the target depth, and the MOD is always shown alongside it.
+/// When the diver's END limit requires helium, the helium-free mix is shown
+/// too so the trade-off is visible.
 class BestMixCalculator extends ConsumerWidget {
   const BestMixCalculator({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(bestMixDepthProvider); // Depth in meters
+    final depth = ref.watch(bestMixDepthProvider); // meters
     final ppO2 = ref.watch(bestMixPpO2Provider);
-    final idealO2 = ref.watch(bestMixResultProvider);
-    final suggestion = ref.watch(bestMixSuggestionProvider);
+    final endLimit = ref.watch(bestMixEndLimitProvider);
+    final result = ref.watch(bestMixResultProvider);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Unit conversion
-    final isMetric = settings.depthUnit == DepthUnit.meters;
-    final depthSymbol = units.depthSymbol;
-    final displayDepth = units.convertDepth(depth);
-    // Slider range in user's unit (6-60m or ~20-200ft)
-    final minDepthDisplay = units.convertDepth(6);
-    final maxDepthDisplay = units.convertDepth(60);
-
-    // Clamp O2 to valid range
-    final clampedO2 = idealO2.clamp(21.0, 100.0);
-    final isAirOk = idealO2 >= 21;
+    final recommended = result.recommended;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -60,21 +57,13 @@ class BestMixCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // Depth slider - displays in user's unit, stores in meters
-                      _buildSliderSection(
-                        context,
+                      UnitSlider(
                         icon: Icons.arrow_downward,
                         label: context.l10n.gasCalculators_bestMix_targetDepth,
-                        value: displayDepth,
-                        unit: depthSymbol,
-                        min: minDepthDisplay,
-                        max: maxDepthDisplay,
-                        divisions: isMetric ? 54 : 180, // 1m or 1ft increments
-                        onChanged: (value) {
-                          // Convert display unit back to meters for storage
-                          ref.read(bestMixDepthProvider.notifier).state = units
-                              .depthToMeters(value);
-                        },
+                        value: depth,
+                        axis: UnitAxis.targetDepth(units),
+                        onChanged: (v) =>
+                            ref.read(bestMixDepthProvider.notifier).state = v,
                       ),
                       const SizedBox(height: 24),
 
@@ -104,6 +93,12 @@ class BestMixCalculator extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      _buildBreakdownRow(
+                        context,
+                        context.l10n.gasCalculators_bestMix_endLimitLabel,
+                        units.formatDepth(endLimit, decimals: 0),
+                      ),
                     ],
                   ),
                 ),
@@ -113,7 +108,8 @@ class BestMixCalculator extends ConsumerWidget {
               // Result card
               Semantics(
                 label:
-                    'Best oxygen mix: ${clampedO2.toStringAsFixed(0)}% O2. $suggestion',
+                    'Recommended mix ${recommended.mix.name}, '
+                    'MOD ${units.formatDepth(recommended.modMeters, decimals: 0)}',
                 child: Card(
                   color: colorScheme.primaryContainer,
                   child: Padding(
@@ -121,75 +117,113 @@ class BestMixCalculator extends ConsumerWidget {
                     child: Column(
                       children: [
                         Text(
-                          context.l10n.gasCalculators_bestMix_bestOxygenMix,
+                          context.l10n.gasCalculators_bestMix_recommendedMix,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '${clampedO2.toStringAsFixed(0)}%',
-                          style: textTheme.displayLarge?.copyWith(
+                          recommended.mix.name,
+                          style: textTheme.displaySmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.onPrimaryContainer.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            suggestion,
-                            style: textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        const SizedBox(height: 16),
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_idealLabel,
+                          '${result.idealO2Percent.toStringAsFixed(1)}%',
+                          onContainer: true,
                         ),
-                        if (!isAirOk) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_modLabel(
+                            ppO2.toStringAsFixed(1),
+                          ),
+                          units.formatDepth(recommended.modMeters, decimals: 0),
+                          onContainer: true,
+                        ),
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_marginLabel,
+                          units.formatDepth(
+                            recommended.marginMeters,
+                            decimals: 0,
+                          ),
+                          onContainer: true,
+                        ),
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_endLabel,
+                          units.formatDepth(recommended.endMeters, decimals: 0),
+                          onContainer: true,
+                        ),
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_densityLabel,
+                          '${recommended.densityGPerL.toStringAsFixed(1)} g/L',
+                          onContainer: true,
+                        ),
+                        if (recommended.mix.isTrimix) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            context.l10n.gasCalculators_bestMix_heliumAdded(
+                              units.formatDepth(endLimit, decimals: 0),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.warning_amber,
-                                  color: Colors.orange,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    context.l10n
-                                        .gasCalculators_bestMix_exceedsAirMod(
-                                          ppO2.toStringAsFixed(1),
-                                        ),
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: Colors.orange.shade900,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                           ),
                         ],
+                        if (recommended.exceedsCriticalDensity)
+                          _buildFlag(
+                            context,
+                            context.l10n.gasCalculators_bestMix_densityCritical(
+                              gasDensityCriticalGPerL.toStringAsFixed(1),
+                            ),
+                            colorScheme.error,
+                          )
+                        else if (recommended.exceedsWarnDensity)
+                          _buildFlag(
+                            context,
+                            context.l10n.gasCalculators_bestMix_densityWarn(
+                              gasDensityWarnGPerL.toStringAsFixed(1),
+                            ),
+                            colorScheme.tertiary,
+                          ),
+                        const SizedBox(height: 12),
+                        Text(
+                          context.l10n.gasCalculators_planningCaveat,
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.8,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Helium-free alternative, shown only when helium was added.
+              if (result.nitroxAlternative != null) ...[
+                _buildAlternativeCard(
+                  context,
+                  units,
+                  result.nitroxAlternative!,
+                  ppO2,
+                  endLimit,
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Common mixes reference
               Card(
@@ -215,6 +249,14 @@ class BestMixCalculator extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
+                      if (result.nearestStandardMix != null)
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_bestMix_nearestStandard,
+                          result.nearestStandardMix!.name,
+                          isHighlight: true,
+                        ),
+                      const SizedBox(height: 4),
                       _buildMixRow(context, 'Air', 21, ppO2, units),
                       _buildMixRow(context, 'EAN32', 32, ppO2, units),
                       _buildMixRow(context, 'EAN36', 36, ppO2, units),
@@ -232,94 +274,111 @@ class BestMixCalculator extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliderSection(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required double value,
-    required String unit,
-    required double min,
-    required double max,
-    required int divisions,
-    required ValueChanged<double> onChanged,
-  }) {
+  Widget _buildAlternativeCard(
+    BuildContext context,
+    UnitFormatter units,
+    MixAssessment alternative,
+    double ppO2,
+    double endLimit,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: colorScheme.primary),
+                Icon(
+                  Icons.science_outlined,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  label,
+                  context.l10n.gasCalculators_bestMix_withoutHelium,
                   style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  alternative.mix.name,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 12),
+            _buildBreakdownRow(
+              context,
+              context.l10n.gasCalculators_bestMix_modLabel(
+                ppO2.toStringAsFixed(1),
               ),
-              child: Text(
-                '${value.toStringAsFixed(0)} $unit',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-              ),
+              units.formatDepth(alternative.modMeters, decimals: 0),
             ),
+            _buildBreakdownRow(
+              context,
+              context.l10n.gasCalculators_bestMix_endLabel,
+              units.formatDepth(alternative.endMeters, decimals: 0),
+            ),
+            _buildBreakdownRow(
+              context,
+              context.l10n.gasCalculators_bestMix_densityLabel,
+              '${alternative.densityGPerL.toStringAsFixed(1)} g/L',
+            ),
+            if (alternative.exceedsEndLimit)
+              _buildFlag(
+                context,
+                context.l10n.gasCalculators_bestMix_endExceeded(
+                  units.formatDepth(endLimit, decimals: 0),
+                ),
+                colorScheme.tertiary,
+              ),
+            if (alternative.exceedsCriticalDensity)
+              _buildFlag(
+                context,
+                context.l10n.gasCalculators_bestMix_densityCritical(
+                  gasDensityCriticalGPerL.toStringAsFixed(1),
+                ),
+                colorScheme.error,
+              )
+            else if (alternative.exceedsWarnDensity)
+              _buildFlag(
+                context,
+                context.l10n.gasCalculators_bestMix_densityWarn(
+                  gasDensityWarnGPerL.toStringAsFixed(1),
+                ),
+                colorScheme.tertiary,
+              ),
           ],
         ),
-        const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: colorScheme.primary,
-            inactiveTrackColor: colorScheme.surfaceContainerHighest,
-            thumbColor: colorScheme.primary,
-            overlayColor: colorScheme.primary.withValues(alpha: 0.12),
-          ),
-          child: Semantics(
-            label: '$label: ${value.toStringAsFixed(0)} $unit',
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _buildFlag(BuildContext context, String text, Color color) {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: textTheme.bodySmall?.copyWith(color: color),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${min.toStringAsFixed(0)} $unit',
-                style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                '${max.toStringAsFixed(0)} $unit',
-                style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -332,6 +391,7 @@ class BestMixCalculator extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return FilterChip(
+      // ppO2 is a physics unit and stays in bar regardless of unit settings.
       label: Text('${value.toStringAsFixed(1)} bar'),
       selected: isSelected,
       onSelected: (_) {
@@ -352,10 +412,9 @@ class BestMixCalculator extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Calculate MOD for this mix (in meters)
+    // MOD rounds DOWN toward the shallower, safer limit.
     final modMeters = ((ppO2Limit / (o2 / 100)) - 1) * 10;
-    // Convert to user's preferred unit
-    final displayMod = units.convertDepth(modMeters);
+    final displayMod = roundDownTo(units.convertDepth(modMeters), 1);
 
     return Semantics(
       label:
@@ -389,6 +448,49 @@ class BestMixCalculator extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isHighlight = false,
+    bool onContainer = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final labelColor = onContainer
+        ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+        : (isHighlight ? colorScheme.primary : colorScheme.onSurfaceVariant);
+    final valueColor = onContainer
+        ? colorScheme.onPrimaryContainer
+        : (isHighlight ? colorScheme.primary : null);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(
+                color: labelColor,
+                fontWeight: isHighlight ? FontWeight.w600 : null,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: valueColor,
+            ),
+          ),
+        ],
       ),
     );
   }

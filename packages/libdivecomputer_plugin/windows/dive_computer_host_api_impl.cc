@@ -42,7 +42,12 @@ void DiveComputerHostApiImpl::GetDeviceDescriptors(
             transports.push_back(
                 flutter::CustomEncodableValue(TransportType::kBle));
         }
-        if (info.transports & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) {
+        // USBHID is deliberately NOT surfaced as USB: no platform build
+        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // advertising it sent HID-only devices (Suunto EON Steel family)
+        // into the serial path's "No USB serial ports found" dead end
+        // (#143). BLE is the working path for those devices.
+        if (info.transports & LIBDC_TRANSPORT_USB) {
             transports.push_back(
                 flutter::CustomEncodableValue(TransportType::kUsb));
         }

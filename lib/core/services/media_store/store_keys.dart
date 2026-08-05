@@ -14,20 +14,46 @@ class StoreKeys {
   static final RegExp _extPattern = RegExp(r'^[a-z0-9]{1,8}$');
 
   static String objectKey(String contentHash, {required String extension}) =>
-      'smv1/objects/${contentHash.substring(0, 2)}/$contentHash.$extension';
+      '${objectKeyPrefix(contentHash)}$extension';
 
   static String thumbKey(String contentHash) =>
       'smv1/thumbs/${contentHash.substring(0, 2)}/$contentHash.jpg';
 
+  /// Compressed rendition, keyed by the ORIGINAL's hash (like [thumbKey]);
+  /// [ext] is the rendition's own output format (jpg for photos, mp4 for
+  /// video), not the original's extension. NOT hash-verified on read.
+  static String renditionKey(String contentHash, {required String ext}) =>
+      '${renditionKeyPrefix(contentHash)}$ext';
+
+  /// Prefix shared by every extension variant of [contentHash] in the
+  /// originals namespace. [extensionFor] is not injective over content:
+  /// `photo.JPG` and `photo.jpeg` hash identically but key differently, and
+  /// a row with no filename lands on `.bin`. Listing this prefix therefore
+  /// finds variants a single recorded extension would miss. The trailing dot
+  /// keeps a 64-hex hash from ever prefix-matching another one.
+  static String objectKeyPrefix(String contentHash) =>
+      'smv1/objects/${contentHash.substring(0, 2)}/$contentHash.';
+
+  /// Rendition-namespace counterpart of [objectKeyPrefix]: photo and video
+  /// renditions of one hash differ only by their `jpg`/`mp4` extension.
+  static String renditionKeyPrefix(String contentHash) =>
+      'smv1/renditions/${contentHash.substring(0, 2)}/$contentHash.';
+
   /// Lowercased extension of [originalFilename] without the dot, or 'bin'
   /// when absent or unusual. Identical bytes imply identical format, so the
   /// hash-to-extension mapping is stable across devices.
+  /// Stand-in extension for a row whose filename yields nothing usable.
+  /// Fine as an addressing suffix, but it names no container format, so
+  /// anything that needs the OS to identify the bytes must treat it as
+  /// "unknown" rather than pass it along.
+  static const String unknownExtension = 'bin';
+
   static String extensionFor(String? originalFilename) {
-    if (originalFilename == null) return 'bin';
+    if (originalFilename == null) return unknownExtension;
     final dot = originalFilename.lastIndexOf('.');
-    if (dot < 0 || dot == originalFilename.length - 1) return 'bin';
+    if (dot < 0 || dot == originalFilename.length - 1) return unknownExtension;
     final ext = originalFilename.substring(dot + 1).toLowerCase();
-    return _extPattern.hasMatch(ext) ? ext : 'bin';
+    return _extPattern.hasMatch(ext) ? ext : unknownExtension;
   }
 
   static String contentTypeFor(String extension) {

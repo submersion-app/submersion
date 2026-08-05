@@ -501,6 +501,8 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.ensureVisible(find.byIcon(Icons.swap_horiz));
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.swap_horiz));
       await tester.pumpAndSettle();
       // Switcher shows both divers.
@@ -538,6 +540,8 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.ensureVisible(find.byIcon(Icons.swap_horiz));
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.swap_horiz));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Diver Two'));

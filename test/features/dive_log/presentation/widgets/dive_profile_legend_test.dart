@@ -221,8 +221,26 @@ void main() {
 
     testWidgets('source-capable metrics have SegmentedButtons', (tester) async {
       await openDialog(tester);
-      // 4 metrics with source selectors: Ceiling, NDL, TTS, CNS%
-      expect(find.byType(SegmentedButton<MetricDataSource>), findsNWidgets(4));
+      // 3 metrics with source selectors: NDL, TTS, CNS%. The ceiling line has
+      // no source toggle (issue #755) -- it always shows the calculated curve.
+      expect(find.byType(SegmentedButton<MetricDataSource>), findsNWidgets(3));
+    });
+
+    testWidgets('Ceiling row has no source SegmentedButton', (tester) async {
+      await openDialog(tester);
+      // The ceiling line always renders the exact calculated curve, so its
+      // legend row is a plain visibility toggle with no Computer/Calculated
+      // selector (issue #755).
+      final ceilingRow = find
+          .ancestor(of: find.text('Ceiling'), matching: find.byType(Row))
+          .first;
+      expect(
+        find.descendant(
+          of: ceilingRow,
+          matching: find.byType(SegmentedButton<MetricDataSource>),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('tapping SegmentedButton changes source state', (tester) async {
@@ -482,6 +500,128 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Photos'), findsNothing);
+    });
+  });
+
+  group('DiveProfileLegend - deco stop band toggle', () {
+    Future<void> pumpLegend(
+      WidgetTester tester,
+      ProfileLegendConfig config,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: config,
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('deco stops toggle appears when hasDecoStopCurve is true', (
+      tester,
+    ) async {
+      await pumpLegend(
+        tester,
+        const ProfileLegendConfig(hasDecoStopCurve: true),
+      );
+      expect(find.text('Deco stops'), findsOneWidget);
+    });
+
+    testWidgets('deco stops toggle is absent when hasDecoStopCurve is false', (
+      tester,
+    ) async {
+      await pumpLegend(
+        tester,
+        const ProfileLegendConfig(hasCeilingCurve: true),
+      );
+      expect(find.text('Deco stops'), findsNothing);
+    });
+
+    testWidgets('deco stops swatch is a filled block, not a line', (
+      tester,
+    ) async {
+      await pumpLegend(
+        tester,
+        const ProfileLegendConfig(hasDecoStopCurve: true),
+      );
+
+      // The band is drawn on the chart as a translucent shaded region, so its
+      // legend swatch must be the taller filled block rather than the 4px line
+      // used for stroked metrics. Locate it by the row containing the label.
+      final swatch = tester.widgetList<Container>(
+        find
+                .ancestor(
+                  of: find.text('Deco stops'),
+                  matching: find.byType(Row),
+                )
+                .first
+                .evaluate()
+                .isEmpty
+            ? find.byType(Container)
+            : find.descendant(
+                of: find
+                    .ancestor(
+                      of: find.text('Deco stops'),
+                      matching: find.byType(Row),
+                    )
+                    .first,
+                matching: find.byType(Container),
+              ),
+      );
+
+      final blocks = swatch.where(
+        (c) => c.constraints?.maxHeight == 12 && c.constraints?.maxWidth == 16,
+      );
+      expect(
+        blocks,
+        isNotEmpty,
+        reason: 'expected a 16x12 filled swatch block for the deco stop band',
+      );
+
+      final decoration = blocks.first.decoration! as BoxDecoration;
+      expect(decoration.border, isNotNull);
+      expect(decoration.color!.a, lessThan(1.0));
+      expect(decoration.color!.a, greaterThan(0.0));
+    });
+
+    testWidgets('ceiling swatch stays a line while deco stops is a block', (
+      tester,
+    ) async {
+      await pumpLegend(
+        tester,
+        const ProfileLegendConfig(hasCeilingCurve: true),
+      );
+
+      final containers = tester
+          .widgetList<Container>(
+            find.descendant(
+              of: find
+                  .ancestor(
+                    of: find.text('Ceiling'),
+                    matching: find.byType(Row),
+                  )
+                  .first,
+              matching: find.byType(Container),
+            ),
+          )
+          .where((c) => c.constraints?.maxWidth == 16);
+
+      expect(containers, isNotEmpty);
+      expect(
+        containers.first.constraints?.maxHeight,
+        4,
+        reason: 'stroked metrics keep the thin line swatch',
+      );
     });
   });
 }

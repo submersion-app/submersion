@@ -182,6 +182,14 @@ class DiverProfileHubPage extends ConsumerWidget {
             const Divider(height: 1),
             _buildSectionTile(
               context,
+              icon: Icons.emergency_outlined,
+              title: context.l10n.safetyHub_emergencyCardLink,
+              subtitle: context.l10n.safetyHub_emergencyCardLink_subtitle,
+              route: '/settings/diver-profile/emergency-card',
+            ),
+            const Divider(height: 1),
+            _buildSectionTile(
+              context,
               icon: Icons.medical_information,
               title: context.l10n.settings_profileHub_medicalInfo,
               subtitle: _medicalInfoSubtitle(context, diver),

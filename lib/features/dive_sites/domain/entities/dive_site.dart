@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 /// Site difficulty levels
 enum SiteDifficulty {
   beginner,
@@ -39,6 +41,7 @@ class DiveSite extends Equatable {
   final double? minDepth; // meters - shallowest point of the site
   final double? maxDepth; // meters - deepest point of the site
   final SiteDifficulty? difficulty; // Site difficulty level
+  final WaterType? waterType; // Salt / fresh / brackish
   final String? country;
   final String? region;
   final String? city;
@@ -65,6 +68,7 @@ class DiveSite extends Equatable {
     this.minDepth,
     this.maxDepth,
     this.difficulty,
+    this.waterType,
     this.country,
     this.region,
     this.city,
@@ -128,6 +132,7 @@ class DiveSite extends Equatable {
     double? minDepth,
     double? maxDepth,
     SiteDifficulty? difficulty,
+    WaterType? waterType,
     String? country,
     String? region,
     String? city,
@@ -153,6 +158,7 @@ class DiveSite extends Equatable {
       minDepth: minDepth ?? this.minDepth,
       maxDepth: maxDepth ?? this.maxDepth,
       difficulty: difficulty ?? this.difficulty,
+      waterType: waterType ?? this.waterType,
       country: country ?? this.country,
       region: region ?? this.region,
       city: city ?? this.city,
@@ -181,6 +187,7 @@ class DiveSite extends Equatable {
     minDepth,
     maxDepth,
     difficulty,
+    waterType,
     country,
     region,
     city,

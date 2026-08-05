@@ -130,6 +130,36 @@ void main() {
     expect(decoded.width, 64);
   });
 
+  // The local-file resolver answers a video's thumbnail request with a
+  // poster frame the OS produced -- a JPEG carried under a row whose
+  // originalFilename ends in .mp4. This is the seam that decides whether a
+  // synced device has anything to render for a video at all, so it is
+  // asserted rather than assumed: `decodeNamedImage` finds no decoder for
+  // .mp4 and falls back to sniffing the bytes, which is what saves it.
+  test('a video poster is resized and uploaded despite its .mp4 '
+      'filename', () async {
+    final poster = img.Image(width: 1920, height: 1080);
+    img.fill(poster, color: img.ColorRgb8(12, 80, 140));
+    resolver.data = BytesData(bytes: img.encodeJpg(poster, quality: 80));
+
+    final file = await generator.generateFor(
+      MediaItem(
+        id: 'v1',
+        mediaType: MediaType.video,
+        sourceType: MediaSourceType.localFile,
+        originalFilename: 'DIVE_001.mp4',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+
+    expect(file, isNotNull);
+    final decoded = img.decodeImage(await file!.readAsBytes());
+    expect(decoded, isNotNull);
+    expect(decoded!.width, 512);
+  });
+
   test('unavailable source and undecodable bytes yield null', () async {
     resolver.data = const UnavailableData(kind: UnavailableKind.notFound);
     expect(await generator.generateFor(item()), isNull);

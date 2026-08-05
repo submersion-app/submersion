@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 
 void main() {
-  setUp(setUpTestDatabase);
-  tearDown(tearDownTestDatabase);
+  setUp(() async {
+    await setUpTestDatabase();
+    // Enabled so the scan-button wiring can be verified; the flag defaults to
+    // false while Lightroom is pending Adobe review.
+    lightroomUiEnabled = true;
+  });
+  tearDown(() async {
+    lightroomUiEnabled = false;
+    await tearDownTestDatabase();
+  });
 
   Future<void> pump(
     WidgetTester tester, {
@@ -50,6 +59,13 @@ void main() {
     tester,
   ) async {
     await pump(tester);
+    expect(find.byTooltip('Scan Lightroom'), findsNothing);
+  });
+
+  testWidgets('hides the Lightroom scan button when lightroomUiEnabled is '
+      'false even with a handler (pending Adobe review)', (tester) async {
+    lightroomUiEnabled = false;
+    await pump(tester, onLightroomScanPressed: () {});
     expect(find.byTooltip('Scan Lightroom'), findsNothing);
   });
 }

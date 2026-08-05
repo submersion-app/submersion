@@ -50,9 +50,67 @@ platform :android do
     UI.success("AAB validation passed!")
   end
 
+  desc "Upload AAB to the beta testing track (PLAY_BETA_TRACK, default alpha), released"
+  lane :upload_beta do
+    aab_path = find_aab
+    track = beta_track
+
+    UI.message("Uploading to the '#{track}' testing track...")
+    upload_to_play_store(
+      aab: aab_path,
+      track: track,
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("AAB released to the '#{track}' track!")
+  end
+
+  desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default alpha) to production"
+  lane :promote_to_production do |options|
+    version_code = options[:version_code] || UI.user_error!("version_code is required")
+    rollout = options[:rollout] || "1.0"
+    track = beta_track
+
+    UI.message("Promoting build #{version_code} from '#{track}' to production (rollout #{rollout})...")
+    upload_to_play_store(
+      track: track,
+      track_promote_to: "production",
+      version_code: version_code,
+      rollout: rollout,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("Build #{version_code} promoted to production!")
+  end
+
   # ============================================================================
   # Helper Methods
   # ============================================================================
+
+  # The Play track carrying beta builds. 'alpha' (closed testing) until Google
+  # grants production access -- open testing ('beta') is gated behind it, and
+  # running a closed test (12+ testers, 14 days) is what earns it. Flip
+  # PLAY_BETA_TRACK to 'beta' in beta.yml/promote.yml (or the default here)
+  # once production access is granted.
+  def beta_track
+    track = ENV["PLAY_BETA_TRACK"] || "alpha"
+    unless ["alpha", "beta"].include?(track)
+      UI.user_error!(
+        "PLAY_BETA_TRACK must be 'alpha' (closed testing) or 'beta' " \
+        "(open testing); got '#{track}'."
+      )
+    end
+    track
+  end
 
   # Finds the AAB file. Checks for the renamed artifact first (CI),
   # then falls back to the default Flutter build output (local).

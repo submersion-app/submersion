@@ -214,13 +214,59 @@ void main() {
     });
 
     test('returns headers in csvHeaders field', () {
+      // Five dive-ish columns so the generic score clears its 0.3 gate --
+      // the old 3-column sample scored below it and the assertion never ran.
       const csv =
-          'Date,Depth,Duration\n'
-          '2024-01-15,25,45\n';
+          'date,depth,duration,location,temperature\n'
+          '2024-01-15,25,45,Reef,28\n';
       final result = detector.detect(_toBytes(csv));
-      if (result.format == ImportFormat.csv) {
-        expect(result.csvHeaders, ['Date', 'Depth', 'Duration']);
-      }
+      expect(result.format, ImportFormat.csv);
+      expect(result.csvHeaders, [
+        'date',
+        'depth',
+        'duration',
+        'location',
+        'temperature',
+      ]);
+    });
+
+    test('parses LF-only CSV into a real header row, not one giant row '
+        '(#190)', () {
+      // MySSI web export: LF line endings, 10 columns, 28 dive rows. The
+      // csv package's default eol is CRLF matched literally, so without
+      // normalization the whole file becomes ONE row and every cell is
+      // reported as a header (9 commas x 29 lines + 1 = 262).
+      final rows = List.generate(
+        28,
+        (i) =>
+            '${i + 1},Coral Garden,Egypt,2026-01-15 09:00,'
+            'Fun Dive,,Open Water,45,18.5,Alice',
+      );
+      final csv =
+          'dive #,Dive Site,Country,Date / Time,Dive Activity,'
+          'Specialty Dive,Dive type,Duration,Depth,'
+          'Dive Buddy / Instructor / Center\n'
+          '${rows.join('\n')}\n';
+      final result = detector.detect(_toBytes(csv));
+      expect(result.format, ImportFormat.csv);
+      expect(
+        result.csvHeaders,
+        hasLength(10),
+        reason: 'LF-only files must not merge every cell into the header row',
+      );
+      expect(result.csvHeaders!.first, 'dive #');
+      expect(result.sourceApp, SourceApp.ssiMyDiveGuide);
+    });
+
+    test('strips the UTF-8 BOM from the first CSV header (#190)', () {
+      const csv =
+          '\u{FEFF}dive #,Dive Site,Country,Date / Time,Dive Activity,'
+          'Specialty Dive,Dive type,Duration,Depth,'
+          'Dive Buddy / Instructor / Center\n'
+          '1,Reef,Egypt,2026-01-15 09:00,Fun Dive,,Open Water,45,18,Bob\n';
+      final result = detector.detect(_toBytes(csv));
+      expect(result.format, ImportFormat.csv);
+      expect(result.csvHeaders!.first, 'dive #');
     });
 
     test('does not detect non-dive CSV', () {
@@ -278,7 +324,7 @@ void main() {
 
     test('a BOM before FSH still detects', () {
       final result = detector.detect(
-        _toBytes('﻿FSH|^~<>{}|X^^|ZXU|20240101120000|\n'),
+        _toBytes('\u{FEFF}FSH|^~<>{}|X^^|ZXU|20240101120000|\n'),
       );
       expect(result.format, ImportFormat.danDl7);
     });

@@ -16,6 +16,7 @@ import 'package:submersion/features/media/domain/value_objects/media_source_meta
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
 import 'files_tab_providers_test.mocks.dart';
 
@@ -52,6 +53,12 @@ void main() {
         mediaRepositoryProvider.overrideWithValue(mockRepo),
         localBookmarkStorageProvider.overrideWithValue(mockBookmarkStorage),
         localMediaPlatformProvider.overrideWithValue(mockPlatform),
+        // The real enqueue reads MediaStorePolicies, which needs
+        // SharedPreferences and therefore a Flutter binding that plain
+        // test() bodies do not have. Enqueue behavior is covered by the
+        // "commit enqueues each created row for upload" group, which
+        // constructs the notifier directly.
+        mediaStoreEnqueueProvider.overrideWithValue((_) {}),
       ],
     );
   });
@@ -160,6 +167,127 @@ void main() {
     });
   });
 
+  // commit() only ever persists files sitting in match.matched, so a file the
+  // date matcher rejected had no route into the database at all: the Link
+  // button is gated on matched being non-empty, and turning the auto-match
+  // checkbox off put EVERY file in unmatched, making the whole tab a no-op.
+  // These mutators are what let a user link photos the matcher didn't claim.
+  group('manual dive assignment', () {
+    test('assignToDive moves an unmatched file into the dive bucket', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles([
+        a,
+        b,
+      ], match: MatchedSelection(matched: const {}, unmatched: [a, b]));
+
+      notifier.assignToDive('/a.jpg', 'd1');
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.match.matched['d1'], [a]);
+      expect(state.match.unmatched, [b]);
+    });
+
+    test('assignToDive appends to an existing dive bucket', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+          },
+          unmatched: [b],
+        ),
+      );
+
+      notifier.assignToDive('/b.jpg', 'd1');
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.match.matched['d1'], [a, b]);
+      expect(state.match.unmatched, isEmpty);
+    });
+
+    test('assignToDive re-homes a file without duplicating it', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      notifier.setFiles(
+        [a],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+          },
+          unmatched: const [],
+        ),
+      );
+
+      notifier.assignToDive('/a.jpg', 'd2');
+
+      final state = container.read(filesTabNotifierProvider);
+      // Emptied groups are dropped, mirroring removeFile.
+      expect(state.match.matched.containsKey('d1'), isFalse);
+      expect(state.match.matched['d2'], [a]);
+      expect(state.match.totalFiles, 1);
+    });
+
+    test('assignToDive ignores a path that is not staged', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      notifier.setFiles([
+        a,
+      ], match: MatchedSelection(matched: const {}, unmatched: [a]));
+
+      notifier.assignToDive('/nope.jpg', 'd1');
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.match.matched, isEmpty);
+      expect(state.match.unmatched, [a]);
+    });
+
+    test('assignAllUnmatched empties the unmatched bucket', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      final c = _ef('/c.jpg');
+      notifier.setFiles(
+        [a, b, c],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+          },
+          unmatched: [b, c],
+        ),
+      );
+
+      notifier.assignAllUnmatched('d1');
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.match.matched['d1'], [a, b, c]);
+      expect(state.match.unmatched, isEmpty);
+    });
+
+    test('assignAllUnmatched on an empty bucket is a no-op', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      notifier.setFiles(
+        [a],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+          },
+          unmatched: const [],
+        ),
+      );
+      final before = container.read(filesTabNotifierProvider);
+
+      notifier.assignAllUnmatched('d1');
+
+      expect(container.read(filesTabNotifierProvider), before);
+    });
+  });
+
   // The platform-conditional branches in _persistOne are exercised on the
   // host platform (macOS in CI / dev box) — the iOS / macOS branch. Coverage
   // for the Android / desktop branches is left to integration testing,
@@ -258,6 +386,46 @@ void main() {
         verify(mockRepo.createMedia(any)).called(1);
       },
     );
+
+    // The Files tab never recorded originalFilename, unlike the other import
+    // path (MediaImportService). A null filename makes
+    // StoreKeys.extensionFor fall back to 'bin', so a linked video uploads
+    // and caches as <hash>.bin -- and AVFoundation, which infers a container
+    // from the path extension, cannot open that. The video plays on the
+    // machine that linked it (local file, real name) and fails everywhere
+    // else, which is what made it look like a sync bug.
+    test('commit records the picked file name', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final clip = _ef(
+        '/Users/somebody/Downloads/dive media/GX015932-2.MP4',
+        metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
+      );
+      notifier.setFiles(
+        [clip],
+        match: MatchedSelection(
+          matched: {
+            'd1': [clip],
+          },
+          unmatched: const [],
+        ),
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      when(mockPlatform.takePersistableUri(any)).thenAnswer((_) async => 'uri');
+      when(
+        mockRepo.createMedia(any),
+      ).thenAnswer((_) async => _saved('saved-video'));
+
+      await notifier.commit();
+
+      final captured =
+          verify(mockRepo.createMedia(captureAny)).captured.single as MediaItem;
+      expect(captured.originalFilename, 'GX015932-2.MP4');
+      expect(captured.mediaType, MediaType.video);
+    });
 
     test(
       'commit on iOS / macOS calls createBookmark + bookmarkStorage.write',
@@ -359,48 +527,46 @@ void main() {
       },
     );
 
-    test(
-      'commit skips video MIME files (Phase 2 photo-only constraint)',
-      () async {
-        // Phase 2 doesn't yet support local-file video playback — videos
-        // are filtered at the picker, but `commit()` defends against pick
-        // bypass by skipping any video MIME inside the loop.
-        final photo = _ef(
-          '/a.jpg',
-          metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
-        );
-        final video = _ef(
-          '/b.mp4',
-          metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
-        );
-        final notifier = container.read(filesTabNotifierProvider.notifier);
-        notifier.setFiles(
-          [photo, video],
-          match: MatchedSelection(
-            matched: {
-              'd1': [photo, video],
-            },
-            unmatched: const [],
-          ),
-        );
+    test('commit persists video MIME files as MediaType.video', () async {
+      // Local-file video import is supported on desktop: the file resolves
+      // by localPath and plays via VideoPlayerController.file, so commit()
+      // persists videos alongside photos and tags the row MediaType.video.
+      final photo = _ef(
+        '/a.jpg',
+        metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+      );
+      final video = _ef(
+        '/b.mp4',
+        metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
+      );
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      notifier.setFiles(
+        [photo, video],
+        match: MatchedSelection(
+          matched: {
+            'd1': [photo, video],
+          },
+          unmatched: const [],
+        ),
+      );
 
-        when(
-          mockPlatform.createBookmark(any),
-        ).thenAnswer((_) async => Uint8List.fromList([1]));
-        when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
-        when(
-          mockRepo.createMedia(any),
-        ).thenAnswer((_) async => _saved('saved-1'));
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      when(
+        mockRepo.createMedia(any),
+      ).thenAnswer((_) async => _saved('saved-1'));
 
-        final created = await notifier.commit();
+      final created = await notifier.commit();
 
-        // Only the photo was persisted — the video MIME entry was dropped.
-        expect(created.length, 1);
-        final captured = verify(mockRepo.createMedia(captureAny)).captured;
-        expect(captured.length, 1);
-        expect((captured.single as MediaItem).mediaType, MediaType.photo);
-      },
-    );
+      // Both the photo and the video were persisted.
+      expect(created.length, 2);
+      final captured = verify(mockRepo.createMedia(captureAny)).captured;
+      expect(captured.length, 2);
+      final types = captured.map((c) => (c as MediaItem).mediaType).toList();
+      expect(types, containsAll([MediaType.photo, MediaType.video]));
+    });
 
     test('commit on empty match returns empty list and clears state', () async {
       final notifier = container.read(filesTabNotifierProvider.notifier);
@@ -413,21 +579,89 @@ void main() {
       expect(container.read(filesTabNotifierProvider), FilesTabState.initial());
     });
 
-    test('undoCommit calls deleteMedia for each id', () async {
-      when(mockRepo.deleteMedia(any)).thenAnswer((_) async {});
+    test('undoCommit deletes the committed rows via the deletion '
+        'coordinator', () async {
+      // The provider-wired notifier routes through the deletion
+      // coordinator, which looks each row up (for a possible remote-blob
+      // delete intent) and then batch-deletes.
+      when(mockRepo.getMediaById(any)).thenAnswer((_) async => null);
+      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
 
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(['id-1', 'id-2', 'id-3']);
 
-      verify(mockRepo.deleteMedia('id-1')).called(1);
-      verify(mockRepo.deleteMedia('id-2')).called(1);
-      verify(mockRepo.deleteMedia('id-3')).called(1);
+      verify(mockRepo.deleteMultipleMedia(['id-1', 'id-2', 'id-3'])).called(1);
     });
 
-    test('undoCommit on empty list is a no-op', () async {
+    test('undoCommit on empty list deletes nothing', () async {
+      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(const []);
       verifyNever(mockRepo.deleteMedia(any));
+    });
+  });
+
+  group('commit enqueues each created row for upload', () {
+    test(
+      'onMediaCreated fires once per persisted row with the saved id',
+      () async {
+        final enqueued = <String>[];
+        when(
+          mockPlatform.createBookmark(any),
+        ).thenAnswer((_) async => Uint8List(0));
+        when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+        when(
+          mockRepo.createMedia(any),
+        ).thenAnswer((_) async => _saved('media-1'));
+
+        final notifier = FilesTabNotifier(
+          mediaRepository: mockRepo,
+          bookmarkStorage: mockBookmarkStorage,
+          platform: mockPlatform,
+          onMediaCreated: enqueued.add,
+        );
+        notifier.setFiles(
+          [_ef('/a.jpg')],
+          match: MatchedSelection(
+            matched: {
+              'dive-1': [_ef('/a.jpg')],
+            },
+            unmatched: const [],
+          ),
+        );
+
+        final ids = await notifier.commit();
+
+        expect(ids, ['media-1']);
+        expect(enqueued, ['media-1']);
+      },
+    );
+
+    test('a null onMediaCreated does not throw', () async {
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List(0));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      when(
+        mockRepo.createMedia(any),
+      ).thenAnswer((_) async => _saved('media-2'));
+
+      final notifier = FilesTabNotifier(
+        mediaRepository: mockRepo,
+        bookmarkStorage: mockBookmarkStorage,
+        platform: mockPlatform,
+      );
+      notifier.setFiles(
+        [_ef('/b.jpg')],
+        match: MatchedSelection(
+          matched: {
+            'dive-1': [_ef('/b.jpg')],
+          },
+          unmatched: const [],
+        ),
+      );
+
+      await expectLater(notifier.commit(), completion(['media-2']));
     });
   });
 }

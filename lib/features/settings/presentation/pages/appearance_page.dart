@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
@@ -61,6 +62,8 @@ class AppearancePage extends ConsumerWidget {
           ),
           const Divider(),
           _buildThemeSelector(context, ref, settings.themeMode),
+          const Divider(),
+          const DisplayZoomSettingsTile(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.language),
@@ -123,6 +126,11 @@ class AppearancePage extends ConsumerWidget {
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_sections,
+          ),
+          ListTile(
+            title: Text(context.l10n.nav_home),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/appearance/home'),
           ),
           for (final route in _sectionRoutes)
             ListTile(

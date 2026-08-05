@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   auto_updater_windows
   connectivity_plus
   desktop_drop
+  desktop_webview_window
   file_selector_windows
   flutter_secure_storage_windows
   gal
@@ -17,7 +18,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   share_plus
   sqlite3_flutter_libs
   submersion_ocr
+  submersion_transcoder
   url_launcher_windows
+  window_to_front
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

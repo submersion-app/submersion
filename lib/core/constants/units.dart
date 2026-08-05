@@ -128,7 +128,8 @@ enum DateFormatPreference {
   ddmmyyyy('DD/MM/YYYY', 'dd/MM/yyyy'),
   yyyymmdd('YYYY-MM-DD', 'yyyy-MM-dd'),
   mmmDYYYY('MMM D, YYYY', 'MMM d, yyyy'),
-  dMMMYYYY('D MMM YYYY', 'd MMM yyyy');
+  dMMMYYYY('D MMM YYYY', 'd MMM yyyy'),
+  ddmmyyyyDots('DD.MM.YYYY', 'dd.MM.yyyy');
 
   final String displayName;
   final String pattern;
@@ -142,5 +143,8 @@ enum DateFormatPreference {
 
   /// Whether this format puts day before month
   bool get isDayFirst =>
-      this == ddmmyyyy || this == dMMMYYYY || this == yyyymmdd;
+      this == ddmmyyyy ||
+      this == dMMMYYYY ||
+      this == yyyymmdd ||
+      this == ddmmyyyyDots;
 }

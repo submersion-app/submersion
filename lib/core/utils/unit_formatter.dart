@@ -303,6 +303,26 @@ class UnitFormatter {
     return '${mbar.toStringAsFixed(decimals)} mbar';
   }
 
+  /// Inches of mercury per bar.
+  static const double _inHgPerBar = 29.5300;
+
+  /// Barometric pressure symbol.
+  ///
+  /// Metric divers expect mbar, imperial divers expect inHg. Derived from the
+  /// depth unit, consistent with wind speed -- the tank pressure unit
+  /// (bar/psi) measures a different quantity and must not drive this.
+  String get surfacePressureSymbol =>
+      settings.depthUnit == DepthUnit.meters ? 'mbar' : 'inHg';
+
+  /// Format a surface (barometric) pressure stored in bar.
+  String formatSurfacePressure(double? bar) {
+    if (bar == null) return '--';
+    if (settings.depthUnit == DepthUnit.meters) {
+      return '${(bar * 1000).toStringAsFixed(0)} $surfacePressureSymbol';
+    }
+    return '${(bar * _inHgPerBar).toStringAsFixed(2)} $surfacePressureSymbol';
+  }
+
   /// Get altitude unit symbol
   String get altitudeSymbol => settings.altitudeUnit.symbol;
 

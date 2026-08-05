@@ -172,21 +172,32 @@ class BackupOperationState {
   final String? message;
   final BackupRecord? lastRecord;
 
+  /// True only while a database *restore* is running (a subset of the
+  /// [BackupOperationStatus.inProgress] states). Restore briefly closes and
+  /// reopens the database, so the whole app must be blocked from interaction
+  /// until it finishes — but routine backups/exports/deletes, which also use
+  /// `inProgress`, must NOT block the app. The global restore barrier keys off
+  /// this flag, not `status`.
+  final bool isRestoring;
+
   const BackupOperationState({
     this.status = BackupOperationStatus.idle,
     this.message,
     this.lastRecord,
+    this.isRestoring = false,
   });
 
   BackupOperationState copyWith({
     BackupOperationStatus? status,
     String? message,
     BackupRecord? lastRecord,
+    bool? isRestoring,
   }) {
     return BackupOperationState(
       status: status ?? this.status,
       message: message ?? this.message,
       lastRecord: lastRecord ?? this.lastRecord,
+      isRestoring: isRestoring ?? this.isRestoring,
     );
   }
 }
@@ -247,6 +258,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     state = const BackupOperationState(
       status: BackupOperationStatus.inProgress,
       message: 'Restoring backup...',
+      isRestoring: true,
     );
 
     try {
@@ -364,6 +376,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     state = const BackupOperationState(
       status: BackupOperationStatus.inProgress,
       message: 'Validating backup file...',
+      isRestoring: true,
     );
 
     try {
@@ -380,6 +393,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       state = const BackupOperationState(
         status: BackupOperationStatus.inProgress,
         message: 'Restoring backup...',
+        isRestoring: true,
       );
 
       await _service.restoreFromFile(

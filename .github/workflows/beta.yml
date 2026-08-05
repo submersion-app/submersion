@@ -1,0 +1,397 @@
+name: Beta
+
+# Per-merge beta pipeline (release-channels spec, Phase 2). Runs after CI/CD
+# succeeds on main, builds the exact validated SHA via build-all.yml, and
+# publishes the artifact set as a release in submersion-app/beta-builds.
+# Store lanes: TestFlight (Public Beta group) and Play open testing (Phase 4).
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip-publish:
+        description: 'Build only; do not publish to beta-builds'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-pipeline
+  cancel-in-progress: true
+
+jobs:
+  precheck:
+    name: Compute version and gate
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+      tag: ${{ steps.version.outputs.tag }}
+      build-number: ${{ steps.version.outputs.build-number }}
+      sha: ${{ steps.version.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Compute beta version
+        id: version
+        run: |
+          set -euo pipefail
+          SEMVER=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          BUILD=$(git rev-list --count HEAD)
+          # Range guard: Inno Setup's VersionInfoVersion parts are 16-bit, so
+          # the Windows installer rejects a build number above 65535 (found
+          # when an early smoke run passed 999999). Fail here, in a job that
+          # takes seconds, rather than deep in the Windows build after the
+          # whole matrix has compiled and with an opaque iscc error.
+          if [ "$BUILD" -gt 65535 ]; then
+            echo "::error::Beta build number ${BUILD} exceeds 65535, the maximum the Windows" \
+              " installer (Inno Setup VersionInfoVersion) accepts. The commit-count scheme has" \
+              " outgrown it; switch to a numbering scheme that stays within 16 bits."
+            exit 1
+          fi
+          # Train-closed guard: a stable tag for this marketing version means
+          # it has shipped; the bump PR from promotion has not landed yet.
+          if [ -n "$(git tag -l "v${SEMVER}.[0-9]*")" ]; then
+            echo "::error::Marketing version ${SEMVER} already has a stable release." \
+              " Land the version bump (scripts/release/bump_version.sh) before the next beta."
+            exit 1
+          fi
+          echo "tag=v${SEMVER}.${BUILD}" >> "$GITHUB_OUTPUT"
+          echo "build-number=${BUILD}" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if nothing shippable changed since the last beta
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+        run: |
+          set -euo pipefail
+          PREV_SHA=""
+          if gh release download --repo submersion-app/beta-builds \
+               --pattern metadata.json --dir /tmp/prev-beta 2>/dev/null; then
+            PREV_SHA=$(python3 -c "import json;print(json.load(open('/tmp/prev-beta/metadata.json'))['sourceSha'])")
+          fi
+          if [ -z "$PREV_SHA" ] || ! git rev-parse --verify --quiet "${PREV_SHA}^{commit}" >/dev/null; then
+            echo "No previous beta baseline; proceeding."
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$PREV_SHA" = "$(git rev-parse HEAD)" ]; then
+            echo "HEAD already published as a beta; skipping."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Same inert-path filter as ci.yaml's changes job: skip when every
+          # file changed since the last beta is docs/CI/image-only.
+          code=false
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              .github/flutter-version.txt) code=true ;;
+              .github/*) ;;
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
+              *) code=true ;;
+            esac
+          done <<< "$(git diff --name-only "${PREV_SHA}..HEAD")"
+          echo "proceed=$code" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: precheck
+    if: needs.precheck.outputs.proceed == 'true'
+    uses: ./.github/workflows/build-all.yml
+    with:
+      version-tag: ${{ needs.precheck.outputs.tag }}
+      build-number: ${{ needs.precheck.outputs.build-number }}
+      ref: ${{ needs.precheck.outputs.sha }}
+    secrets: inherit
+
+  publish-beta:
+    name: Publish to beta-builds
+    needs: [precheck, build]
+    if: needs.precheck.outputs.proceed == 'true' && inputs.skip-publish != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.precheck.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate release notes
+        run: |
+          set -euo pipefail
+          ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
+          ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+
+      - name: Generate checksums and metadata
+        env:
+          TAG_NAME: ${{ needs.precheck.outputs.tag }}
+          BUILD_NUMBER: ${{ needs.precheck.outputs.build-number }}
+          SOURCE_SHA: ${{ needs.precheck.outputs.sha }}
+          EDDSA_SIGNATURE: ${{ needs.build.outputs.eddsa-signature }}
+          DMG_LENGTH: ${{ needs.build.outputs.dmg-length }}
+          WINDOWS_EDDSA_SIGNATURE: ${{ needs.build.outputs.windows-eddsa-signature }}
+          WINDOWS_EXE_LENGTH: ${{ needs.build.outputs.windows-exe-length }}
+        run: |
+          set -euo pipefail
+          cd artifacts
+          # Glob without the hyphen: six artifacts are Submersion-<tag>-<os>.<ext>
+          # but the Mac App Store package is plain Submersion.pkg (release.yml's
+          # upload-macos job consumes it by that fixed name), so Submersion-*
+          # silently omitted it from the checksums.
+          sha256sum Submersion* > ../checksums-sha256.txt
+          cd ..
+          python3 - <<'PYEOF'
+          import json, os
+          tag = os.environ['TAG_NAME']
+          build = os.environ['BUILD_NUMBER']
+          semver = tag[1:]
+          if semver.endswith('.' + build):
+              semver = semver[: -(len(build) + 1)]
+          json.dump({
+              'sourceSha': os.environ['SOURCE_SHA'],
+              'semver': semver,
+              'buildNumber': int(build),
+              'eddsaSignature': os.environ['EDDSA_SIGNATURE'],
+              'dmgLength': int(os.environ['DMG_LENGTH']),
+              'windowsEddsaSignature': os.environ['WINDOWS_EDDSA_SIGNATURE'],
+              'windowsExeLength': int(os.environ['WINDOWS_EXE_LENGTH']),
+          }, open('metadata.json', 'w'), indent=2)
+          PYEOF
+
+      - name: Generate beta appcast
+        env:
+          TAG_NAME: ${{ needs.precheck.outputs.tag }}
+          BUILD_NUMBER: ${{ needs.precheck.outputs.build-number }}
+          SPARKLE_EDDSA_SIGNATURE: ${{ needs.build.outputs.eddsa-signature }}
+          SPARKLE_DMG_LENGTH: ${{ needs.build.outputs.dmg-length }}
+          SPARKLE_WINDOWS_EDDSA_SIGNATURE: ${{ needs.build.outputs.windows-eddsa-signature }}
+          SPARKLE_WINDOWS_EXE_LENGTH: ${{ needs.build.outputs.windows-exe-length }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG_NAME#v}"
+          DATE=$(date -R)
+          BASE="https://github.com/submersion-app/beta-builds/releases/download/${TAG_NAME}"
+          curl -fsSL -o stable-appcast.xml \
+            "https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml" \
+            || : > stable-appcast.xml
+          ./scripts/generate_appcast_beta.sh "$VERSION" "$BUILD_NUMBER" "$DATE" \
+            "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
+            "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \
+            release-notes.html stable-appcast.xml > appcast-beta.xml
+
+      - name: Create beta release
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+          TAG_NAME: ${{ needs.precheck.outputs.tag }}
+          SOURCE_SHA: ${{ needs.precheck.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG_NAME" --repo submersion-app/beta-builds \
+            --title "Beta $TAG_NAME" \
+            --notes-file release-notes.md \
+            artifacts/Submersion* checksums-sha256.txt metadata.json appcast-beta.xml
+          echo "Published beta $TAG_NAME from $SOURCE_SHA"
+
+      - name: Prune old betas
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release list --repo submersion-app/beta-builds \
+            --json tagName --limit 100 -q '.[30:][].tagName' | while read -r tag; do
+            echo "Pruning $tag"
+            gh release delete "$tag" --repo submersion-app/beta-builds --yes --cleanup-tag
+          done
+
+  upload-testflight-ios:
+    name: Upload iOS beta to TestFlight
+    runs-on: macos-15
+    needs: [precheck, build]
+    if: needs.precheck.outputs.proceed == 'true' && inputs.skip-publish != true
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.precheck.outputs.sha }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          mkdir -p ios/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > ios/fastlane/AuthKey.p8
+
+      - name: Download iOS IPA artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ios-ipa
+
+      - name: Upload to TestFlight (Public Beta)
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          BETA_CHANGELOG: "Beta ${{ needs.precheck.outputs.tag }} - automated per-merge build."
+        run: |
+          IPA_PATH=$(ls $GITHUB_WORKSPACE/Submersion-*-iOS.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA_PATH" ]; then
+            echo "Error: No IPA artifact found"
+            exit 1
+          fi
+          for attempt in 1 2; do
+            if bundle exec fastlane upload_testflight_beta ipa:"$IPA_PATH"; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Fastlane upload failed after 2 attempts"
+              exit 1
+            fi
+            echo "Fastlane attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f ios/fastlane/AuthKey.p8
+
+  upload-testflight-macos:
+    name: Upload macOS beta to TestFlight
+    runs-on: macos-15
+    needs: [precheck, build]
+    if: needs.precheck.outputs.proceed == 'true' && inputs.skip-publish != true
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.precheck.outputs.sha }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: macos
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          mkdir -p macos/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > macos/fastlane/AuthKey.p8
+
+      - name: Download Mac App Store pkg artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-pkg
+
+      - name: Upload to TestFlight (Public Beta)
+        working-directory: macos
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          BETA_CHANGELOG: "Beta ${{ needs.precheck.outputs.tag }} - automated per-merge build."
+        run: |
+          # The Mac App Store package keeps its fixed name (no tag prefix).
+          PKG_PATH="$GITHUB_WORKSPACE/Submersion.pkg"
+          if [ ! -f "$PKG_PATH" ]; then
+            echo "Error: No pkg artifact found at $PKG_PATH"
+            exit 1
+          fi
+          for attempt in 1 2; do
+            if bundle exec fastlane upload_testflight_beta pkg:"$PKG_PATH"; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Fastlane upload failed after 2 attempts"
+              exit 1
+            fi
+            echo "Fastlane attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f macos/fastlane/AuthKey.p8
+
+  upload-play:
+    name: Upload Android beta to Play open testing
+    runs-on: ubuntu-latest
+    needs: [precheck, build]
+    if: needs.precheck.outputs.proceed == 'true' && inputs.skip-publish != true
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.precheck.outputs.sha }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: android
+
+      - name: Setup Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        # The secret is stored base64-encoded; release.yml decodes it the same
+        # way and has authenticated against Play in production. Writing it raw
+        # yields base64 text in a .json file and fastlane fails to parse it.
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" | base64 --decode > android/fastlane/play-store-key.json
+          chmod 600 android/fastlane/play-store-key.json
+
+      - name: Download Android AAB artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: android-aab
+
+      - name: Upload to Play open testing
+        working-directory: android
+        env:
+          GOOGLE_PLAY_JSON_KEY_PATH: fastlane/play-store-key.json
+        run: |
+          for attempt in 1 2; do
+            if bundle exec fastlane upload_beta; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Fastlane upload failed after 2 attempts"
+              exit 1
+            fi
+            echo "Fastlane attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f android/fastlane/play-store-key.json

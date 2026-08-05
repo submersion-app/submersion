@@ -113,6 +113,10 @@ class _FakeRepo implements AppSettingsRepository {
   Future<bool> getShareByDefault() async => false;
   @override
   Future<void> setShareByDefault(bool value) async {}
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
 }
 
 void main() {

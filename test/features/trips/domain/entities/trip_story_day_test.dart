@@ -90,6 +90,24 @@ void main() {
       expect(day.siteNames, isEmpty);
       expect(day.hasContent, isFalse);
     });
+
+    test('isSurface is true only for contentless non-future days', () {
+      TripStoryDay make({
+        TripStoryDayKind kind = TripStoryDayKind.past,
+        List<Dive> dives = const [],
+      }) => TripStoryDay(date: date, dayNumber: 1, kind: kind, dives: dives);
+
+      expect(make().isSurface, isTrue);
+      expect(make(kind: TripStoryDayKind.today).isSurface, isTrue);
+      // Planned days render a chapter even without content.
+      expect(make(kind: TripStoryDayKind.future).isSurface, isFalse);
+      expect(
+        make(
+          dives: [_dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+        ).isSurface,
+        isFalse,
+      );
+    });
   });
 
   group('TripStoryMapGeometry', () {

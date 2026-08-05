@@ -13,8 +13,8 @@ GasGearSection _section({required bool showTankControls}) => GasGearSection(
   expanded: true,
   onToggle: () {},
   summary: 'summary',
-  modeSelector: const Text('MODE'),
-  tankCards: const [Text('TANK-CARD')],
+  modeChild: const Text('MODE'),
+  tanks: const [Text('TANK-ROW')],
   onAddTank: () {},
   addTankLabel: 'Add tank',
   equipmentChild: const Text('EQUIP'),
@@ -24,27 +24,29 @@ GasGearSection _section({required bool showTankControls}) => GasGearSection(
 
 void main() {
   testWidgets(
-    'hides tank cards and add-tank row when showTankControls is false',
+    'hides tank rows and add-tank row when showTankControls is false',
     (tester) async {
       await tester.pumpWidget(_host(_section(showTankControls: false)));
       await tester.pumpAndSettle();
 
-      expect(find.text('TANK-CARD'), findsNothing);
-      expect(find.text('+ Add tank'), findsNothing);
-      // Mode selector, equipment, and weights still render for gauge dives.
+      expect(find.text('TANK-ROW'), findsNothing);
+      expect(find.text('Add tank'), findsNothing);
+      expect(find.text('TANKS'), findsNothing);
+      // Mode row, equipment, and weights still render for gauge dives.
       expect(find.text('MODE'), findsOneWidget);
       expect(find.text('EQUIP'), findsOneWidget);
       expect(find.text('WEIGHTS'), findsOneWidget);
     },
   );
 
-  testWidgets('shows tank cards when showTankControls is true (default)', (
+  testWidgets('shows tank rows when showTankControls is true (default)', (
     tester,
   ) async {
     await tester.pumpWidget(_host(_section(showTankControls: true)));
     await tester.pumpAndSettle();
 
-    expect(find.text('TANK-CARD'), findsOneWidget);
-    expect(find.text('+ Add tank'), findsOneWidget);
+    expect(find.text('TANK-ROW'), findsOneWidget);
+    expect(find.text('TANKS'), findsOneWidget);
+    expect(find.text('Add tank'), findsOneWidget);
   });
 }

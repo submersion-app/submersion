@@ -94,6 +94,7 @@ void main() {
     );
     expect(ascentDescent.avgAscent, isNull);
     expect(await container.read(timeAtDepthRangesProvider.future), isEmpty);
+    expect(await container.read(divesBySuitThicknessProvider.future), isEmpty);
     final deco = await container.read(decoObligationStatsProvider.future);
     expect(deco.totalCount, 0);
   });

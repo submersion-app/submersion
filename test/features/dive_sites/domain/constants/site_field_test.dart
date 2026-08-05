@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -21,6 +22,7 @@ void main() {
     minDepth: 5.0,
     altitude: 200.0,
     difficulty: SiteDifficulty.advanced,
+    waterType: WaterType.salt,
     rating: 4.5,
     notes: 'Great site',
     hazards: 'Strong current',
@@ -165,10 +167,10 @@ void main() {
       expect(adapter.extractValue(SiteField.rating, testEntity), equals(4.5));
     });
 
-    test('returns waterType from conditions', () {
+    test('returns waterType displayName from the entity', () {
       expect(
         adapter.extractValue(SiteField.waterType, testEntity),
-        equals('salt'),
+        equals('Salt Water'),
       );
     });
 

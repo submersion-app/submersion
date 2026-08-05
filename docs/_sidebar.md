@@ -35,6 +35,7 @@
   * [Navigation](developer/navigation.md)
   * [Testing](developer/testing.md)
   * [Building](developer/building.md)
+  * [Release Process](developer/release-process.md)
 
 * **Contributing**
   * [How to Contribute](contributing/)

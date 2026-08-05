@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
@@ -6,12 +7,16 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
+import 'package:submersion/core/services/accounts/account_deduplicator.dart';
 import 'package:submersion/core/services/accounts/account_startup_migration.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -25,6 +30,10 @@ import 'package:submersion/features/backup/data/services/pre_migration_backup_se
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
 
 /// Callback signature for the service initializer used by [StartupWrapper].
@@ -349,6 +358,10 @@ class _StartupWrapperState extends State<StartupWrapper>
     await timeStartupStep('accountMigration', () async {
       final prefs = await SharedPreferences.getInstance();
       await AccountStartupMigration(prefs: prefs).run();
+      // After the migration, so rows it seeds are already at their
+      // deterministic ids and the pass finds nothing to do on a fresh
+      // install. Both swallow their own errors: neither can block startup.
+      await AccountDeduplicator(prefs: prefs).run();
     });
     await timeStartupStep(
       'notifications',
@@ -368,6 +381,36 @@ class _StartupWrapperState extends State<StartupWrapper>
       final speciesRepository = SpeciesRepository();
       await speciesRepository.seedBuiltInSpecies();
     });
+
+    // One-time orphaned-media backlog sweep (orphan-prevention spec 4.3).
+    // Fire-and-forget: it must not delay first frame, runs against the
+    // now-open databases, and self-guards with a persisted flag that is
+    // only set on success (a failed run retries next launch).
+    final mediaRepository = MediaRepository();
+    final sweep = MediaOrphanBacklogSweep(
+      mediaRepository: mediaRepository,
+      coordinator: MediaDeletionCoordinator(
+        mediaRepository: mediaRepository,
+        queue: () => MediaTransferQueueRepository(),
+      ),
+      prefs: SharedPreferences.getInstance,
+    );
+    // An async closure rather than `.catchError` on the Future<int>: it
+    // hands `unawaited` a genuine Future<void> instead of a swept-row count
+    // nobody reads, and it keeps the stack trace. Nothing surfaces this
+    // failure to the user and the retry is a whole launch away, so the
+    // trace is the only diagnostic there will be. Untyped catch on purpose:
+    // an uninitialized local cache database throws StateError, not
+    // Exception, and a failed sweep must never take down startup.
+    unawaited(() async {
+      try {
+        await sweep.runIfNeeded();
+      } catch (e, stackTrace) {
+        debugPrint(
+          'Orphaned-media backlog sweep failed (will retry): $e\n$stackTrace',
+        );
+      }
+    }());
     // coverage:ignore-end
   }
 
@@ -467,6 +510,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  static final Uri _latestReleaseUri = Uri.parse(
+    VersionMismatchView.latestReleaseUrl,
+  );
+
+  Future<void> _openLatestRelease() async {
+    try {
+      await launchUrl(_latestReleaseUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Leaving the user on this screen is the only safe fallback: the
+      // database is untouched and must stay that way. VersionMismatchView
+      // renders this same URL beneath the button, so a launch failure still
+      // leaves the user an address they can type in manually.
+    }
+  }
+
   void _quitApp() {
     if (widget.closeAppOverride != null) {
       widget.closeAppOverride!();
@@ -503,7 +561,11 @@ class _StartupWrapperState extends State<StartupWrapper>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final brightness = resolveStartupBrightness(
+      widget.prefs,
+      MediaQuery.platformBrightnessOf(context),
+    );
+    final isDark = brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
@@ -547,6 +609,7 @@ class _StartupWrapperState extends State<StartupWrapper>
                         // Scaffold crossfade.
                         key: const ValueKey('splash'),
                         body: OceanBackground(
+                          brightness: brightness,
                           child: SafeArea(
                             child: Center(child: _buildSplashContent(isDark)),
                           ),
@@ -644,41 +707,13 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
 
     if (_isVersionMismatch) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.update, size: 64, color: Colors.orange),
-            const SizedBox(height: 24),
-            Text(
-              'Update Required',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Your dive data was saved by a newer version of '
-              'Submersion (schema v$_dbVersion). This version '
-              'only supports up to schema v$_appVersion.',
-              style: TextStyle(fontSize: 14, color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Please update Submersion to the latest version. '
-              'Your data is safe and has not been modified.',
-              style: TextStyle(fontSize: 14, color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(onPressed: _closeApp, child: const Text('Close')),
-          ],
-        ),
+      return VersionMismatchView(
+        databaseVersion: _dbVersion,
+        appVersion: _appVersion,
+        textColor: textColor,
+        subtitleColor: subtitleColor,
+        onDownloadLatest: _openLatestRelease,
+        onClose: _closeApp,
       );
     }
 

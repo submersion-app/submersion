@@ -2,9 +2,43 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+
+/// Models cryptography_flutter on Android (#737): the plugin auto-registers
+/// itself as [Cryptography.instance], and its native HMAC rejects empty keys
+/// (javax.crypto SecretKeySpec throws "Empty key"). HKDF keys its extract
+/// HMAC with the salt, and the data-key salt is empty, so any derivation
+/// routed through the registered instance crashes there.
+class _EmptyKeyRejectingCryptography extends DartCryptography {
+  @override
+  Hmac hmac(HashAlgorithm hashAlgorithm) =>
+      _EmptyKeyRejectingHmac(hashAlgorithm);
+}
+
+class _EmptyKeyRejectingHmac extends DartHmac {
+  const _EmptyKeyRejectingHmac(super.hashAlgorithm);
+
+  @override
+  Future<Mac> calculateMac(
+    List<int> bytes, {
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) async {
+    if ((await secretKey.extractBytes()).isEmpty) {
+      throw ArgumentError('Empty key');
+    }
+    return super.calculateMac(
+      bytes,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+  }
+}
 
 Map<String, dynamic> _vectors() =>
     jsonDecode(
@@ -29,6 +63,18 @@ void main() {
     });
 
     test('HKDF data key matches python vector (KAT)', () async {
+      final c = v['hkdfData'] as Map<String, dynamic>;
+      final dataKey = await Keyslots.deriveDataKey(
+        SecretKey(base64Decode(c['ikm'] as String)),
+      );
+      expect(await dataKey.extractBytes(), base64Decode(c['output'] as String));
+    });
+
+    test('data key derivation survives an HMAC that rejects empty keys '
+        '(#737 Android)', () async {
+      final previous = Cryptography.instance;
+      Cryptography.instance = _EmptyKeyRejectingCryptography();
+      addTearDown(() => Cryptography.instance = previous);
       final c = v['hkdfData'] as Map<String, dynamic>;
       final dataKey = await Keyslots.deriveDataKey(
         SecretKey(base64Decode(c['ikm'] as String)),

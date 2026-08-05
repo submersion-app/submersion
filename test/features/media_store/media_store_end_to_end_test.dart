@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
@@ -35,6 +36,7 @@ void main() {
   late InMemoryMediaObjectStore bucket;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
     rootA = await Directory.systemTemp.createTemp('e2e_device_a');
     rootB = await Directory.systemTemp.createTemp('e2e_device_b');

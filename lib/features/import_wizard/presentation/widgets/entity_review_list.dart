@@ -508,6 +508,8 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
       borderColor = colorScheme.tertiary;
     } else if (isImporting) {
       borderColor = Colors.green;
+    } else if (widget.selectedAction == DuplicateAction.consolidate) {
+      borderColor = colorScheme.primary;
     } else {
       borderColor = colorScheme.error;
     }
@@ -589,7 +591,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                     // Action badge — suppressed when no decision has been made.
                     if (widget.selectedAction != null) ...[
                       const SizedBox(width: 8),
-                      _SimpleActionBadge(isImporting: isImporting),
+                      _SimpleActionBadge(action: widget.selectedAction!),
                     ],
                     // Expand/collapse chevron (only when comparison data exists)
                     if (widget.entityMatch != null) ...[
@@ -717,6 +719,17 @@ class _EntityComparisonPanel extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
+                  _EntityActionButton(
+                    label:
+                        context.l10n.universalImport_entityAction_linkExisting,
+                    subtitle: context
+                        .l10n
+                        .universalImport_entityAction_linkExistingSubtitle,
+                    isSelected: selectedAction == DuplicateAction.consolidate,
+                    color: colorScheme.primary,
+                    onPressed: () =>
+                        onActionChanged(DuplicateAction.consolidate),
+                  ),
                   _EntityActionButton(
                     label: 'Skip',
                     subtitle: 'Discard this import',
@@ -881,16 +894,21 @@ class _EntityActionButton extends StatelessWidget {
 }
 
 class _SimpleActionBadge extends StatelessWidget {
-  final bool isImporting;
+  final DuplicateAction action;
 
-  const _SimpleActionBadge({required this.isImporting});
+  const _SimpleActionBadge({required this.action});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (label, color) = isImporting
-        ? ('IMPORT', Colors.green.shade700)
-        : ('SKIP', theme.colorScheme.error);
+    final (label, color) = switch (action) {
+      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
+      DuplicateAction.consolidate => (
+        context.l10n.universalImport_entityAction_linkBadge,
+        theme.colorScheme.primary,
+      ),
+      _ => ('SKIP', theme.colorScheme.error),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

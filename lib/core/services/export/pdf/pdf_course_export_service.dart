@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -36,10 +37,7 @@ class PdfCourseExportService {
     }
 
     // Calculate summary statistics
-    final totalBottomTime = trainingDives.fold<Duration>(
-      Duration.zero,
-      (sum, dive) => sum + (dive.bottomTime ?? Duration.zero),
-    );
+    final totalRuntime = pdfTotalRuntime(trainingDives);
     final maxDepth = trainingDives.fold<double?>(
       null,
       (max, dive) => dive.maxDepth != null
@@ -119,10 +117,7 @@ class PdfCourseExportService {
                 children: [
                   _buildStatBox('${trainingDives.length}', 'Training Dives'),
                   pw.SizedBox(width: 30),
-                  _buildStatBox(
-                    '${totalBottomTime.inMinutes}',
-                    'Total Minutes',
-                  ),
+                  _buildStatBox('${totalRuntime.inMinutes}', 'Total Minutes'),
                   if (maxDepth != null) ...[
                     pw.SizedBox(width: 30),
                     _buildStatBox(
@@ -298,9 +293,12 @@ class PdfCourseExportService {
                   'Max Depth',
                   '${dive.maxDepth!.toStringAsFixed(1)} m',
                 ),
-              if (dive.bottomTime != null) ...[
+              if (dive.effectiveRuntime != null) ...[
                 pw.SizedBox(width: 20),
-                _buildInfoChip('Duration', '${dive.bottomTime!.inMinutes} min'),
+                _buildInfoChip(
+                  'Duration',
+                  '${pdfDiveDurationMinutes(dive)} min',
+                ),
               ],
               if (dive.waterTemp != null) ...[
                 pw.SizedBox(width: 20),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
@@ -11,15 +12,24 @@ import 'package:submersion/features/media/presentation/widgets/file_review_card.
 /// matched-dive group and an "Unmatched" group at the bottom (only when
 /// non-empty). Each group's children are [FileReviewCard]s.
 ///
-/// Stateless because all mutation flows through
-/// [filesTabNotifierProvider]; the pane just renders the current
-/// [FilesTabState] passed in by the parent.
-class FileReviewPane extends StatelessWidget {
+/// Holds no state of its own: the current [FilesTabState] is passed in by the
+/// parent, and the pane's own actions -- the Unmatched group's bulk
+/// "add all to this dive", plus each [FileReviewCard]'s assign and remove --
+/// are dispatched to [filesTabNotifierProvider], which owns every mutation.
+/// It is a [ConsumerWidget] rather than a [StatelessWidget] only to reach
+/// that notifier.
+class FileReviewPane extends ConsumerWidget {
   final FilesTabState state;
-  const FileReviewPane({super.key, required this.state});
+
+  /// The dive files may be manually assigned to, when the picker was opened
+  /// from one. Drives the Unmatched group's bulk action and the per-card
+  /// assign affordance; null hides both.
+  final String? assignableDiveId;
+
+  const FileReviewPane({super.key, required this.state, this.assignableDiveId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     // TODO(media): l10n
     final summary =
@@ -44,7 +54,11 @@ class FileReviewPane extends StatelessWidget {
                   initiallyExpanded: true,
                   children: [
                     for (final f in entry.value)
-                      FileReviewCard(file: f, targetDiveId: entry.key),
+                      FileReviewCard(
+                        file: f,
+                        targetDiveId: entry.key,
+                        assignableDiveId: assignableDiveId,
+                      ),
                   ],
                 ),
               if (state.match.unmatched.isNotEmpty)
@@ -52,9 +66,27 @@ class FileReviewPane extends StatelessWidget {
                   title: const Text('Unmatched'),
                   subtitle: Text('${state.match.unmatched.length} photos'),
                   initiallyExpanded: true,
+                  // Without this the only thing a user could do with a photo
+                  // the matcher rejected was remove it -- commit() never sees
+                  // the unmatched bucket.
+                  trailing: assignableDiveId == null
+                      ? null
+                      : TextButton(
+                          onPressed: () => ref
+                              .read(filesTabNotifierProvider.notifier)
+                              .assignAllUnmatched(assignableDiveId!),
+                          child: Text(
+                            'Add all ${state.match.unmatched.length} '
+                            'to this dive',
+                          ),
+                        ),
                   children: [
                     for (final f in state.match.unmatched)
-                      FileReviewCard(file: f, targetDiveId: null),
+                      FileReviewCard(
+                        file: f,
+                        targetDiveId: null,
+                        assignableDiveId: assignableDiveId,
+                      ),
                   ],
                 ),
             ],

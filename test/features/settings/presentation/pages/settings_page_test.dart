@@ -2,16 +2,23 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
     show DeleteDiverResult;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -32,7 +39,25 @@ typedef Override = riverpod.Override;
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _MockSettingsNotifier() : super(const AppSettings());
+  _MockSettingsNotifier([AppSettings? initial])
+    : super(initial ?? const AppSettings());
+
+  @override
+  Future<void> setChamberHidden(String chamberId, bool hidden) async {
+    final ids = {...state.hiddenChamberIds};
+    if (hidden) {
+      ids.add(chamberId);
+    } else {
+      ids.remove(chamberId);
+    }
+    state = state.copyWith(hiddenChamberIds: ids);
+  }
+
+  @override
+  Future<void> setEmergencyRegion(String? countryCode) async =>
+      state = countryCode == null
+      ? state.copyWith(clearEmergencyRegion: true)
+      : state.copyWith(emergencyRegion: countryCode);
 
   @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>
@@ -125,6 +150,37 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowCeilingOnProfile(bool value) async =>
       state = state.copyWith(showCeilingOnProfile: value);
   @override
+  Future<void> setShowDecoStopsOnProfile(bool value) async =>
+      state = state.copyWith(showDecoStopsOnProfile: value);
+  @override
+  Future<void> setSafetyReviewEnabled(bool value) async =>
+      state = state.copyWith(safetyReviewEnabled: value);
+  @override
+  Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
+      state = state.copyWith(noFlyPreset: preset);
+  @override
+  Future<void> setHomeChipEnabled(String chipId, bool enabled) async {
+    final hidden = {...state.hiddenHomeChips};
+    if (enabled) {
+      hidden.remove(chipId);
+    } else {
+      hidden.add(chipId);
+    }
+    state = state.copyWith(hiddenHomeChips: hidden);
+  }
+
+  @override
+  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
+    final rules = {...state.safetyReviewDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(safetyReviewDisabledRules: rules);
+  }
+
+  @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);
   @override
@@ -136,6 +192,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
+  @override
+  Future<void> setPscrRatio(double value) async =>
+      state = state.copyWith(pscrRatio: value);
   @override
   Future<void> setO2Narcotic(bool value) async =>
       state = state.copyWith(o2Narcotic: value);
@@ -152,11 +211,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
       state = state.copyWith(defaultCeilingSource: value);
   @override
+  Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
+      state = state.copyWith(defaultDecoStopSource: value);
+  @override
   Future<void> setDefaultTtsSource(MetricDataSource value) async =>
       state = state.copyWith(defaultTtsSource: value);
   @override
   Future<void> setDefaultCnsSource(MetricDataSource value) async =>
       state = state.copyWith(defaultCnsSource: value);
+  @override
+  Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async =>
+      state = state.copyWith(cnsCalculationMethod: value);
   @override
   Future<void> setCardColorAttribute(CardColorAttribute attribute) async =>
       state = state.copyWith(cardColorAttribute: attribute);
@@ -242,6 +307,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setReminderTime(TimeOfDay time) async =>
       state = state.copyWith(reminderTime: time);
+  @override
+  Future<void> setTripServiceLeadDays(int days) async =>
+      state = state.copyWith(tripServiceLeadDays: days);
   @override
   Future<void> toggleReminderDay(int days) async {
     final current = List<int>.from(state.serviceReminderDays);
@@ -335,6 +403,19 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
       );
+
+  @override
+  Future<void> setPerdixOverlayEnabled(bool value) async =>
+      state = state.copyWith(perdixOverlayEnabled: value);
+
+  @override
+  Future<void> setPerdixOverlayPosition(double x, double y) async =>
+      state = state.copyWith(
+        // Mirror SettingsNotifier: clamp to the 0..1 fraction contract and
+        // canonicalize non-finite values to the top-right default corner.
+        perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
+        perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
+      );
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database
@@ -395,12 +476,12 @@ void main() {
   });
 
   /// Helper to create common provider overrides for SettingsPage tests
-  List<Override> getOverrides() {
+  List<Override> getOverrides([AppSettings? settings]) {
     return [
       sharedPreferencesProvider.overrideWithValue(prefs),
       logFileServiceProvider.overrideWithValue(logFileService),
       // Mock the settingsProvider to avoid database access
-      settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
       // Mock the currentDiverIdProvider to avoid database access
       currentDiverIdProvider.overrideWith(
         (ref) => _MockCurrentDiverIdNotifier(),
@@ -415,12 +496,13 @@ void main() {
   /// Builds a test widget with mobile screen size to avoid MasterDetailScaffold
   /// which requires GoRouter. The SettingsPage uses MasterDetailScaffold on
   /// desktop (>=800px) which calls GoRouterState.of(context).
-  Widget buildTestWidget(Widget child) {
+  Widget buildTestWidget(Widget child, {Locale? locale}) {
     return MediaQuery(
       data: const MediaQueryData(size: Size(400, 800)),
       child: ProviderScope(
         overrides: getOverrides(),
         child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: child,
@@ -499,6 +581,31 @@ void main() {
 
       expect(find.text('Diver Profile'), findsOneWidget);
       expect(find.text('Active diver & profiles'), findsOneWidget);
+    });
+
+    testWidgets('mobile Safety tile localizes its title and subtitle', (
+      tester,
+    ) async {
+      // Pinned to Spanish so a regression to the hardcoded English fallback
+      // (identical to the English l10n value) would be visible. The mobile
+      // tile must localize the same way the desktop master-detail tile does.
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), locale: const Locale('es')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Seguridad'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Seguridad'), findsOneWidget);
+      expect(
+        find.text('Reglas de revisión y volar tras bucear'),
+        findsOneWidget,
+      );
+      // Never the hardcoded English fallback.
+      expect(find.text('Safety'), findsNothing);
     });
 
     testWidgets('should display About section', (tester) async {
@@ -647,6 +754,256 @@ void main() {
     });
   });
 
+  group('About section updates card', () {
+    /// Renders the About detail page (which hosts the Updates card) via the
+    /// same GoRouter ?selected= mechanism the appearance tests use.
+    Widget buildAboutWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=about',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    /// Seeds prefs so the UpdateStatusNotifier's delayed startup check
+    /// short-circuits; tests still pump 6s to drain the timer itself.
+    Future<List<Override>> aboutOverrides({
+      String? channel,
+      Map<String, Object> extraPrefs = const {},
+      UpdateStatus? status,
+    }) async {
+      SharedPreferences.setMockInitialValues({
+        'auto_update_enabled': false,
+        'update_release_channel': ?channel,
+        ...extraPrefs,
+      });
+      final aboutPrefs = await SharedPreferences.getInstance();
+      // Mirrors getOverrides() but with these prefs; a provider must not be
+      // overridden twice in one container, so the list is built explicitly.
+      return [
+        sharedPreferencesProvider.overrideWithValue(aboutPrefs),
+        logFileServiceProvider.overrideWithValue(logFileService),
+        settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => _MockCurrentDiverIdNotifier(),
+        ),
+        currentDiverProvider.overrideWith((ref) async => null),
+        diverListNotifierProvider.overrideWith(
+          (ref) => _MockDiverListNotifier(),
+        ),
+        // No real update service: channel-switch tests exercise the settings
+        // flow, not Sparkle/GitHub polling.
+        updateServiceProvider.overrideWith((ref) async => null),
+        if (status != null)
+          updateStatusProvider.overrideWith(
+            (ref) => UpdateStatusNotifier(ref)..state = status,
+          ),
+      ];
+    }
+
+    testWidgets('shows the channel selector on stable', (tester) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      expect(find.text('Update channel'), findsOneWidget);
+      expect(find.text('Stable'), findsOneWidget);
+    });
+
+    testWidgets('switching to beta asks for confirmation first', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Beta'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Receive beta updates?'), findsOneWidget);
+    });
+
+    testWidgets('confirming the beta dialog switches the channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Beta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch to Beta'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'beta');
+      expect(find.text('Beta'), findsOneWidget); // channel row subtitle
+    });
+
+    testWidgets('cancelling the beta dialog keeps the stable channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Beta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), isNull);
+    });
+
+    testWidgets('re-selecting the current channel is a no-op', (tester) async {
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Receive beta updates?'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), isNull);
+    });
+
+    testWidgets('switching back to stable shows the ride-forward notice', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'stable');
+      expect(
+        find.textContaining('until the next stable release'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('status text renders the downloading and ready states', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(
+          await aboutOverrides(status: const Downloading(progress: 0.42)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.scrollUntilVisible(find.text('Downloading... 42%'), 100);
+      expect(find.text('Downloading... 42%'), findsOneWidget);
+    });
+
+    testWidgets('status text renders ready-to-install and error states', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(
+          await aboutOverrides(
+            status: const ReadyToInstall(version: '9.9.9', localPath: '/tmp/x'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.scrollUntilVisible(
+        find.text('Version 9.9.9 ready to install'),
+        100,
+      );
+      expect(find.text('Version 9.9.9 ready to install'), findsOneWidget);
+    });
+
+    testWidgets('status text renders the error state', (tester) async {
+      await tester.pumpWidget(
+        buildAboutWidget(
+          await aboutOverrides(status: const UpdateError(message: 'offline')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.scrollUntilVisible(find.text('Error: offline'), 100);
+      expect(find.text('Error: offline'), findsOneWidget);
+    });
+
+    testWidgets('a recorded last-check time is formatted, not Never', (
+      tester,
+    ) async {
+      final lastCheck = DateTime(2026, 7, 4, 9, 5);
+      await tester.pumpWidget(
+        buildAboutWidget(
+          await aboutOverrides(
+            extraPrefs: {
+              'auto_update_last_check': lastCheck.millisecondsSinceEpoch,
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.scrollUntilVisible(find.text('Last checked'), 100);
+      expect(find.text('7/4/2026 09:05'), findsOneWidget);
+      expect(find.text('Never'), findsNothing);
+    });
+
+    testWidgets('version row shows a beta badge on the beta channel', (
+      tester,
+    ) async {
+      PackageInfo.setMockInitialValues(
+        appName: 'Submersion',
+        packageName: 'app.submersion',
+        version: '1.7.2',
+        buildNumber: '119',
+        buildSignature: '',
+        installerStore: null,
+      );
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.textContaining('(Beta)'), findsOneWidget);
+    });
+  });
+
   group('AppearanceSectionContent navigation', () {
     /// Build a widget that renders the SettingsPage via GoRouter with
     /// ?selected=appearance, which renders the _SettingsSectionDetailPage
@@ -674,12 +1031,29 @@ void main() {
       return ProviderScope(
         overrides: overrides,
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),
       );
     }
+
+    testWidgets('tapping Home shows the home chip settings', (tester) async {
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Home'), 100);
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeAppearancePage), findsOneWidget);
+      expect(find.byType(SectionAppearancePage), findsNothing);
+
+      await tester.tap(find.byKey(const Key('sectionBackButton')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeAppearancePage), findsNothing);
+    });
 
     testWidgets('tapping a section entry shows section appearance sub-page', (
       tester,
@@ -688,6 +1062,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // The hub view should show Sections with entries like "Dives"
+      // (scroll down first: the sections card sits below the fold).
+      await tester.scrollUntilVisible(find.text('Dives'), 100);
       expect(find.text('Dives'), findsOneWidget);
       expect(find.text('Sites'), findsOneWidget);
 
@@ -707,7 +1083,8 @@ void main() {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      // Navigate into Dives section
+      // Navigate into Dives section (scroll it into view first)
+      await tester.scrollUntilVisible(find.text('Dives'), 100);
       await tester.tap(find.text('Dives'));
       await tester.pumpAndSettle();
 
@@ -813,6 +1190,7 @@ void main() {
       return ProviderScope(
         overrides: overrides,
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -836,6 +1214,169 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Checklist Templates Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('NotificationsSectionContent trip lead time', () {
+    Widget buildNotificationsWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=notifications',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          // Pin the locale so the English string-based finders below are
+          // deterministic regardless of the host environment locale.
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('dropdown changes the trip service lead days', (tester) async {
+      await tester.pumpWidget(buildNotificationsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.ensureVisible(find.text('Trip service lead time'));
+      await tester.pumpAndSettle();
+      expect(find.text('14 days before a trip'), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownButton<int>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('21').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('21 days before a trip'), findsOneWidget);
+    });
+
+    testWidgets('renders without throwing for a non-standard persisted value', (
+      tester,
+    ) async {
+      // A lead time outside the standard {7, 14, 21, 30} options (from a
+      // migration, manual edit, or future UI) must not trip DropdownButton's
+      // "value must appear in items" assertion.
+      final overrides = getOverrides(
+        const AppSettings(tripServiceLeadDays: 10),
+      );
+      await tester.pumpWidget(buildNotificationsWidget(overrides));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('10 days before a trip'), findsOneWidget);
+      // The persisted value appears in the dropdown's options.
+      expect(find.byType(DropdownButton<int>), findsOneWidget);
+    });
+  });
+
+  group('Section navigation stack (#647)', () {
+    Future<GoRouter> pumpSettingsList(
+      WidgetTester tester, {
+      String initialLocation = '/settings',
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        initialLocation: initialLocation,
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    testWidgets('opening a query-param section pushes a poppable route so the '
+        'system back gesture returns to Settings instead of closing the app', (
+      tester,
+    ) async {
+      final router = await pumpSettingsList(tester);
+
+      await tester.scrollUntilVisible(find.text('Data'), 100);
+      await tester.tap(find.text('Data'));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.canPop(),
+        isTrue,
+        reason:
+            'the section detail must be a pushed route; with nothing to '
+            'pop, the Android back gesture closes the whole app (#647)',
+      );
+
+      router.pop();
+      await tester.pumpAndSettle();
+
+      // Back on the section list.
+      expect(find.text('Units'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('deep-linked section detail falls back to go() because there '
+        'is nothing on the stack to pop', (tester) async {
+      // Opening ?selected= directly (a deep link or a restored location)
+      // makes the detail page the stack root, so the app-bar back button
+      // cannot pop and must navigate to the section list instead.
+      final router = await pumpSettingsList(
+        tester,
+        initialLocation: '/settings?selected=data',
+      );
+
+      expect(router.canPop(), isFalse);
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.state.uri.toString(),
+        '/settings',
+        reason: 'the fallback clears the selected-section query parameter',
+      );
+      expect(find.text('Units'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('detail app-bar back returns to the settings list', (
+      tester,
+    ) async {
+      await pumpSettingsList(tester);
+
+      await tester.scrollUntilVisible(find.text('Data'), 100);
+      await tester.tap(find.text('Data'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Units'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

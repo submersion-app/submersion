@@ -20,6 +20,7 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
@@ -355,6 +356,13 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               const MapAttribution(),
             ],
           ),
+        ),
+
+        // Reset-to-north compass (hidden until the map is rotated)
+        Positioned(
+          top: 16,
+          right: 16,
+          child: MapCompassButton(controller: _mapController),
         ),
 
         // Empty state overlay

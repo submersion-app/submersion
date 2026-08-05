@@ -67,6 +67,7 @@ void main() {
           diverListNotifierProvider.overrideWith((_) => notifier),
         ],
         child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: PriorExperienceEditPage(),

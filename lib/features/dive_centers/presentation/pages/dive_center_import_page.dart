@@ -63,7 +63,10 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
           action: SnackBarAction(
             label: context.l10n.diveCenters_action_view,
             onPressed: () {
-              context.push('/centers/${importedCenter.id}');
+              // Dismiss before navigating so the bar can't linger on the
+              // destination screen if this page is disposed mid-animation.
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              context.push('/dive-centers/${importedCenter.id}');
             },
           ),
         ),
@@ -405,7 +408,7 @@ class _LocalCenterCard extends StatelessWidget {
           center.name,
         ),
         child: InkWell(
-          onTap: () => context.push('/centers/${center.id}'),
+          onTap: () => context.push('/dive-centers/${center.id}'),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),

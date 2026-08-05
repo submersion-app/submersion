@@ -1,8 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Device-local transfer policies (design spec section 9). Stored in
-/// SharedPreferences like the attach state: policies are per-device
-/// choices and must not ride a database restore.
+/// SharedPreferences like the attach state: these are per-device choices about
+/// when this device may spend bandwidth, and must not ride a database restore.
+///
+/// Upload *quality* deliberately does not live here. It decides what bytes the
+/// library permanently contains, not what this device may spend, so it is a
+/// synced setting -- see `MediaUploadQualityPolicy`.
 class MediaStorePolicies {
   MediaStorePolicies({SharedPreferences? prefs}) : _prefs = prefs;
 

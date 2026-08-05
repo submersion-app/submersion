@@ -236,4 +236,131 @@ void main() {
     completer.complete([type('shore', 'Shore')]);
     await tester.pumpAndSettle();
   });
+
+  // Issue #643: built-in names are seeded as English literals, so both the
+  // chips and the sheet had to stop rendering the stored `name` directly.
+  // The cases above all use custom types (isBuiltIn defaults to false), whose
+  // stored name is correct in every locale, so they would not catch this.
+  group('localization', () {
+    DiveTypeEntity builtIn(String id, String name) => DiveTypeEntity(
+      id: id,
+      name: name,
+      isBuiltIn: true,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final mixedTypes = [
+      builtIn('recreational', 'Recreational'),
+      builtIn('wreck', 'Wreck'),
+      type('muck_x1', 'Muck'),
+    ];
+
+    Widget localizedHarness({
+      required Locale locale,
+      required List<String> selected,
+      ValueChanged<List<String>>? onChanged,
+    }) {
+      return ProviderScope(
+        overrides: [diveTypesProvider.overrideWith((ref) async => mixedTypes)],
+        child: MaterialApp(
+          locale: locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: DiveTypeMultiSelectField(
+              selectedTypeIds: selected,
+              onChanged: onChanged ?? (_) {},
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('a built-in chip is localized', (tester) async {
+      await tester.pumpWidget(
+        localizedHarness(locale: const Locale('de'), selected: const ['wreck']),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(Chip, 'Wracktauchen'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Wreck'), findsNothing);
+    });
+
+    testWidgets('English still shows the seeded literal', (tester) async {
+      await tester.pumpWidget(
+        localizedHarness(locale: const Locale('en'), selected: const ['wreck']),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(Chip, 'Wreck'), findsOneWidget);
+    });
+
+    testWidgets('a custom type keeps its own name under German', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedHarness(
+          locale: const Locale('de'),
+          selected: const ['muck_x1'],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(Chip, 'Muck'), findsOneWidget);
+    });
+
+    testWidgets('the sheet lists localized names with no English leak', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedHarness(
+          locale: const Locale('de'),
+          selected: const ['recreational'],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(CheckboxListTile, 'Wracktauchen'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(CheckboxListTile, 'Sporttauchen'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(CheckboxListTile, 'Muck'), findsOneWidget);
+      expect(find.widgetWithText(CheckboxListTile, 'Wreck'), findsNothing);
+      expect(
+        find.widgetWithText(CheckboxListTile, 'Recreational'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('toggling reports the slug id, not the localized label', (
+      tester,
+    ) async {
+      // The label is display-only. Selection must still round-trip the stable
+      // id, or a German user would write a translated string to the database.
+      List<String>? reported;
+      await tester.pumpWidget(
+        localizedHarness(
+          locale: const Locale('de'),
+          selected: const ['recreational'],
+          onChanged: (v) => reported = v,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Wracktauchen'));
+      await tester.pumpAndSettle();
+
+      expect(reported, ['recreational', 'wreck']);
+    });
+  });
 }

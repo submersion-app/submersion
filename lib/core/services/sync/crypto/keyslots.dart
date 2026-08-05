@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import 'package:submersion/core/services/sync/crypto/recovery_code.dart';
 
@@ -184,7 +185,12 @@ abstract final class Keyslots {
   }
 
   static Future<SecretKey> deriveDataKey(SecretKey mlk) async {
-    final hkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
+    // Pinned to the pure-Dart HKDF: the salt is empty (RFC 5869 default),
+    // HKDF keys its extract HMAC with the salt, and the cryptography_flutter
+    // implementation that auto-registers as Cryptography.instance on Android
+    // rejects empty HMAC keys (SecretKeySpec "Empty key", #737). Output is
+    // byte-identical on every platform either way.
+    const hkdf = DartHkdf(hmac: DartHmac(DartSha256()), outputLength: 32);
     return hkdf.deriveKey(
       secretKey: mlk,
       nonce: const <int>[],

@@ -222,7 +222,12 @@ void main() {
     expect(result['src-meta']!.points, isEmpty);
   });
 
-  test('returns empty map when the dive has no data source rows', () async {
+  test('synthesizes a primary source from raw profile rows when the dive has '
+      'no data source metadata row (legacy import)', () async {
+    // Older imports wrote dive_profiles rows without a dive_data_sources
+    // row. The profile is still real and the 2D chart shows it, so the
+    // grouped view must surface it too (otherwise 3D/spatial/compare spin
+    // forever on a null scene).
     await insertProfileRow(
       diveId: 'dive-2',
       timestamp: 0,
@@ -230,7 +235,63 @@ void main() {
       computerId: null,
       isPrimary: true,
     );
+    await insertProfileRow(
+      diveId: 'dive-2',
+      timestamp: 10,
+      depth: 9.0,
+      computerId: null,
+      isPrimary: true,
+    );
 
+    final result = await repository.getProfilesByDataSource('dive-2');
+
+    expect(result, hasLength(1));
+    // Key and sourceId use the deterministic id the beforeOpen backfill
+    // (_backfillMissingDataSources) will persist, so the synthesized-on-read
+    // source and the later backfilled row share one id.
+    expect(result.keys.single, 'legacy-src-dive-2');
+    final source = result.values.single;
+    expect(source.sourceId, 'legacy-src-dive-2');
+    expect(source.points.map((p) => p.depth).toList(), [8.0, 9.0]);
+    // No demoted rows -> not an edited profile. (The edited case, including
+    // point-exclusion of demoted rows, is covered by the next test.)
+    expect(source.isEdited, false);
+  });
+
+  test(
+    'synthesized fallback reports isEdited when a legacy dive (no data source '
+    'row) has demoted original rows from a profile edit',
+    () async {
+      // Edit convention: originals demoted to isPrimary=false, edited rows
+      // isPrimary=true. dive-2 has no dive_data_sources row.
+      await insertProfileRow(
+        diveId: 'dive-2',
+        timestamp: 0,
+        depth: 10.0,
+        computerId: null,
+        isPrimary: false,
+      );
+      await insertProfileRow(
+        diveId: 'dive-2',
+        timestamp: 0,
+        depth: 9.5,
+        computerId: null,
+        isPrimary: true,
+      );
+
+      final result = await repository.getProfilesByDataSource('dive-2');
+
+      expect(result, hasLength(1));
+      final source = result.values.single;
+      expect(source.isEdited, true);
+      // Only the edited (isPrimary=true) rows are surfaced, matching the 2D
+      // chart / getDiveProfile.
+      expect(source.points.map((p) => p.depth).toList(), [9.5]);
+    },
+  );
+
+  test('returns empty map when the dive has neither data sources nor profile '
+      'rows', () async {
     final result = await repository.getProfilesByDataSource('dive-2');
 
     expect(result, isEmpty);

@@ -8,6 +8,7 @@ class RareSection extends StatelessWidget {
   const RareSection({
     super.key,
     required this.label,
+    required this.icon,
     required this.expanded,
     required this.onToggle,
     required this.summary,
@@ -17,6 +18,7 @@ class RareSection extends StatelessWidget {
   });
 
   final String label;
+  final IconData icon;
   final bool expanded;
   final VoidCallback onToggle;
   final String summary;
@@ -28,6 +30,7 @@ class RareSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormSection(
       label: label,
+      icon: icon,
       expanded: expanded,
       onToggle: onToggle,
       summary: summary,

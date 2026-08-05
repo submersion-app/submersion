@@ -626,6 +626,108 @@ void main() {
       expect(profile[5]['decoType'], isNull);
     });
 
+    test('maps delta-encoded stopdepth to ceiling and carries it forward '
+        'across samples that omit it', () async {
+      // Subsurface writes stopdepth only when the computer's stop depth
+      // changes; omission means "unchanged", so the value is sticky like
+      // ndl/tts/cns/in_deco.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='4:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='30.0 m' />
+  <sample time='1:00 min' depth='40.0 m' />
+  <sample time='2:00 min' depth='40.0 m' in_deco='1' stopdepth='6.0 m' />
+  <sample time='3:00 min' depth='38.0 m' />
+  <sample time='4:00 min' depth='30.0 m' stopdepth='9.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      // Before the first stopdepth the ceiling is genuinely unknown.
+      expect(profile[0]['ceiling'], isNull);
+      // Explicit stop depth maps straight to ceiling (meters).
+      expect(profile[1]['ceiling'], 6.0);
+      // A sample that omits stopdepth inherits the previous value.
+      expect(profile[2]['ceiling'], 6.0);
+      // The next explicit value takes over.
+      expect(profile[3]['ceiling'], 9.0);
+    });
+
+    test(
+      "stopdepth '0.0 m' clears the obligation instead of being skipped",
+      () async {
+        // 0.0 m is a real "no stop" value, not missing data, so it maps to no
+        // ceiling and that cleared state carries forward.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='3:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='20.0 m' />
+  <sample time='1:00 min' depth='40.0 m' in_deco='1' stopdepth='6.0 m' />
+  <sample time='2:00 min' depth='6.0 m' in_deco='0' stopdepth='0.0 m' />
+  <sample time='3:00 min' depth='3.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+        expect(profile[0]['ceiling'], 6.0);
+        // 0.0 m resolves to no obligation.
+        expect(profile[1]['ceiling'], isNull);
+        // The cleared state carries forward to samples that omit stopdepth.
+        expect(profile[2]['ceiling'], isNull);
+      },
+    );
+
+    test('re-acquires a ceiling after a stopdepth 0.0 clear', () async {
+      // A sawtooth profile can clear the obligation and then incur it again;
+      // an explicit stopdepth after a 0.0 must restore the ceiling rather than
+      // latch the cleared state.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='4:00 min'>
+  <divecomputer model='Test'>
+  <depth max='40.0 m' mean='25.0 m' />
+  <sample time='1:00 min' depth='40.0 m' in_deco='1' stopdepth='6.0 m' />
+  <sample time='2:00 min' depth='5.0 m' in_deco='0' stopdepth='0.0 m' />
+  <sample time='3:00 min' depth='38.0 m' in_deco='1' stopdepth='9.0 m' />
+  <sample time='4:00 min' depth='36.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+      expect(profile[0]['ceiling'], 6.0);
+      expect(profile[1]['ceiling'], isNull);
+      // Re-acquired after the clear.
+      expect(profile[2]['ceiling'], 9.0);
+      // And the re-acquired value carries forward.
+      expect(profile[3]['ceiling'], 9.0);
+    });
+
     test(
       'maps sample po2 to setpoint (not ppO2) and carries it forward',
       () async {
@@ -2024,6 +2126,30 @@ $diveXml
         expect(profile.any((p) => p.containsKey('ppO2')), isTrue);
         // Individual cells are imported raw.
         expect(profile.any((p) => p.containsKey('o2Sensor1')), isTrue);
+      },
+    );
+
+    test(
+      '003 (deco stop schedule): stopdepth maps to a non-null ceiling from the '
+      'first stop onward with the 6/9/12/15 m schedule intact',
+      () async {
+        final profile = await profileOf(
+          'test/dives/003_ccr_with_setpoint_switch_and_calculated_po2.ssrf.xml',
+        );
+
+        // The opening samples are pre-deco and carry no ceiling.
+        expect(profile.first['ceiling'], isNull);
+        // The computer reports stop depths that reach the app as ceilings.
+        expect(profile.any((p) => p['ceiling'] != null), isTrue);
+        // The full stop schedule survives the import rather than being thrown
+        // away (previously every ceiling was null).
+        final ceilings = profile
+            .map((p) => p['ceiling'] as double?)
+            .whereType<double>()
+            .toSet();
+        expect(ceilings, containsAll(<double>[6.0, 9.0, 12.0, 15.0]));
+        // stopdepth '0.0 m' near the end clears the obligation.
+        expect(profile.last['ceiling'], isNull);
       },
     );
   });

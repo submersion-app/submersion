@@ -9,8 +9,11 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_region.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
+import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_transfer_summary_row.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -40,6 +43,11 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   bool _pathStyleTouched = false;
   bool _secretVisible = false;
   bool _busy = false;
+  bool _verifying = false;
+
+  /// A sweep holds store/DB state a concurrent disconnect or backfill
+  /// would race with; every connected-state action gates on both flags.
+  bool get _actionInFlight => _busy || _verifying;
   bool _syncConfigAvailable = false;
   CloudProviderType _selectedProvider = CloudProviderType.s3;
   // Null until loaded; the switches render only once values are known.
@@ -65,6 +73,52 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       _autoUpload = autoUpload;
       _photosOnCellular = photosOnCellular;
     });
+  }
+
+  /// Persists a quality level, surfacing a failed write rather than letting it
+  /// pass silently. The invalidate runs either way: on success it re-reads the
+  /// new truth, on failure it discards the optimistic value for free.
+  Future<void> _saveQuality(
+    AppLocalizations l10n,
+    Future<void> Function(MediaUploadQualityPolicy policy) write,
+    FutureProvider<MediaUploadQuality> provider,
+  ) async {
+    // Capture the app-level container before the first await. It outlives this
+    // page, so the write and invalidate below still run (and never throw) if
+    // the page is popped during the async gap -- `ref` throws once the
+    // ConsumerState is disposed. Guarding the invalidate with `mounted`
+    // instead would swap the crash for a stale cached level on the next visit,
+    // since these providers are not autoDispose. Mirrors S3ConfigPage's save.
+    final container = ProviderScope.containerOf(context, listen: false);
+    try {
+      await write(container.read(mediaUploadQualityPolicyProvider));
+    } catch (_) {
+      // Only the snackbar needs a live widget; the invalidate does not.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.settings_mediaStorage_quality_saveFailed),
+          ),
+        );
+      }
+    }
+    container.invalidate(provider);
+  }
+
+  List<DropdownMenuItem<MediaUploadQuality>> _qualityItems(
+    AppLocalizations l10n,
+  ) {
+    String label(MediaUploadQuality q) => switch (q) {
+      MediaUploadQuality.original =>
+        l10n.settings_mediaStorage_quality_original,
+      MediaUploadQuality.high => l10n.settings_mediaStorage_quality_high,
+      MediaUploadQuality.balanced =>
+        l10n.settings_mediaStorage_quality_balanced,
+      MediaUploadQuality.small => l10n.settings_mediaStorage_quality_small,
+    };
+    return MediaUploadQuality.values
+        .map((q) => DropdownMenuItem(value: q, child: Text(label(q))))
+        .toList();
   }
 
   void _onRegionChanged() => setState(() {});
@@ -222,7 +276,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).connectS3(_buildConfig());
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
       if (!mounted) return;
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
@@ -249,6 +303,31 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       unawaited(runtime?.worker?.drain());
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Verify Library sweep (orphan-prevention spec 6.3): reconciles the
+  /// attached store against the media table and reports what changed.
+  Future<void> _verify() async {
+    final l10n = context.l10n;
+    setState(() => _verifying = true);
+    try {
+      final report = await ref.read(mediaVerifyRunnerProvider)();
+      if (!mounted) return;
+      _showSnack(
+        l10n.settings_mediaStorage_verify_summary(
+          report.objectsChecked,
+          report.orphansRemoved,
+          report.repairsQueued,
+          report.sessionsAborted,
+        ),
+      );
+    } on MediaStoreException catch (e) {
+      if (mounted) _showSnack(e.message, isError: true);
+    } catch (e) {
+      if (mounted) _showSnack('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
   }
 
@@ -291,7 +370,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await call();
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
       if (!mounted) return;
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
@@ -327,7 +406,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).disconnect();
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -338,6 +417,10 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     final l10n = context.l10n;
     final statusHint = ref.watch(mediaStoreStatusHintProvider).value;
     final connected = statusHint != null;
+    // AsyncValue.value, not .when: an in-flight refresh after a write keeps
+    // the previous level on screen instead of blanking the whole section.
+    final photoQuality = ref.watch(photoUploadQualityProvider).value;
+    final videoQuality = ref.watch(videoUploadQualityProvider).value;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_mediaStorage_entry_title)),
       body: Form(
@@ -596,28 +679,99 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                         .setPhotosOnCellular(value);
                   },
                 ),
+              if (photoQuality != null && videoQuality != null) ...[
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Text(
+                    l10n.settings_mediaStorage_quality_section,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                ListTile(
+                  title: Text(l10n.settings_mediaStorage_quality_photos),
+                  trailing: DropdownButton<MediaUploadQuality>(
+                    key: const Key('media-quality-photos'),
+                    value: photoQuality,
+                    underline: const SizedBox(),
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await _saveQuality(
+                        l10n,
+                        (policy) => policy.setPhotoUploadQuality(value),
+                        photoUploadQualityProvider,
+                      );
+                    },
+                    items: _qualityItems(l10n),
+                  ),
+                ),
+                ListTile(
+                  title: Text(l10n.settings_mediaStorage_quality_video),
+                  trailing: DropdownButton<MediaUploadQuality>(
+                    key: const Key('media-quality-video'),
+                    value: videoQuality,
+                    underline: const SizedBox(),
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await _saveQuality(
+                        l10n,
+                        (policy) => policy.setVideoUploadQuality(value),
+                        videoUploadQualityProvider,
+                      );
+                    },
+                    items: _qualityItems(l10n),
+                  ),
+                ),
+                // A library-wide level can be set from a device that cannot
+                // honour it, so this note is not Linux-specific: any device
+                // without a working engine uploads originals. Only the remedy
+                // differs, which is why the copy branches but the condition
+                // does not. The `?? true` keeps the note hidden while
+                // availability is still resolving, rather than flashing a
+                // warning that then disappears.
+                if (videoQuality != MediaUploadQuality.original &&
+                    !(ref.watch(videoTranscodeAvailableProvider).value ?? true))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      ref.watch(isLinuxPlatformProvider)
+                          ? l10n.settings_mediaStorage_quality_linuxFfmpegHint
+                          : l10n.settings_mediaStorage_quality_noTranscoderHint,
+                      key: const Key('media-quality-transcoder-hint'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    l10n.settings_mediaStorage_quality_caveat,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
               FilledButton.tonal(
                 key: const Key('media-s3-backfill'),
-                onPressed: _busy ? null : _backfill,
+                onPressed: _actionInFlight ? null : _backfill,
                 child: Text(l10n.settings_mediaStorage_backfill_action),
               ),
-              Consumer(
-                builder: (context, ref, _) {
-                  final active =
-                      ref.watch(mediaTransferActiveCountProvider).value ?? 0;
-                  if (active == 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      children: [
-                        const Expanded(child: LinearProgressIndicator()),
-                        const SizedBox(width: 12),
-                        Text('$active'),
-                      ],
-                    ),
-                  );
-                },
+              const SizedBox(height: 8),
+              FilledButton.tonal(
+                key: const Key('media-verify-library'),
+                onPressed: _actionInFlight ? null : _verify,
+                child: Text(
+                  _verifying
+                      ? l10n.settings_mediaStorage_verify_running
+                      : l10n.settings_mediaStorage_verify_action,
+                ),
               ),
+              if (_verifying)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: LinearProgressIndicator(),
+                ),
+              const MediaTransferSummaryRow(),
               ListTile(
                 key: const Key('media-s3-transfers'),
                 leading: const Icon(Icons.swap_vert),
@@ -627,7 +781,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
               ),
               TextButton(
                 key: const Key('media-s3-disconnect'),
-                onPressed: _busy ? null : _disconnect,
+                onPressed: _actionInFlight ? null : _disconnect,
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: Text(l10n.settings_mediaStorage_action_disconnect),
               ),

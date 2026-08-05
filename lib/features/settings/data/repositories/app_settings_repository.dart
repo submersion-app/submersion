@@ -121,4 +121,51 @@ class AppSettingsRepository {
       rethrow;
     }
   }
+
+  /// Returns the raw stored value for [key], or `null` if unset or on a read
+  /// error.
+  ///
+  /// Generic because the backing table is a key-value store; callers own the
+  /// key name and any parsing (same idiom as [getNavPrimaryIdsRaw]). Reads are
+  /// non-throwing so a caller can degrade to its own safe default rather than
+  /// block on a transient DB error.
+  Future<String?> getRawSetting(String key) async {
+    try {
+      final row = await (_db.select(
+        _db.settings,
+      )..where((t) => t.key.equals(key))).getSingleOrNull();
+      return row?.value;
+    } catch (e, stackTrace) {
+      _log.error('Failed to read $key', error: e, stackTrace: stackTrace);
+      return null;
+    }
+  }
+
+  /// Writes [value] under [key] and stages the row for sync.
+  ///
+  /// Writes rethrow (unlike reads) so a caller can tell the user their change
+  /// did not take.
+  Future<void> setRawSetting(String key, String value) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db
+          .into(_db.settings)
+          .insertOnConflictUpdate(
+            SettingsCompanion(
+              key: Value(key),
+              value: Value(value),
+              updatedAt: Value(now),
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'settings',
+        recordId: key,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error('Failed to write $key', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
 }

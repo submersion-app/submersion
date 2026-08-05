@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
-import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/restore_step.dart';
@@ -176,18 +175,7 @@ void main() {
     expect(fake.secretsSeen, [null, 'correct horse']);
   });
 
-  testWidgets('restoreComplete transition shows the completion page', (
-    tester,
-  ) async {
-    final fake = _FakeBackupOp(const BackupOperationState());
-    await tester.pumpWidget(build(fake));
-    await tester.pumpAndSettle();
-
-    fake.push(
-      const BackupOperationState(status: BackupOperationStatus.restoreComplete),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.byType(RestoreCompletePage), findsOneWidget);
-  });
+  // Restore completion (RestoreCompletePage + restartApp) is now handled at the
+  // app root (SubmersionApp), so it fires even if this wizard step is disposed
+  // mid-restore. That hand-off is covered in test/app_test.dart.
 }

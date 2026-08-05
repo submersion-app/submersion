@@ -10,6 +10,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart'
+    as domain;
 
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
@@ -180,6 +183,27 @@ void main() {
     },
   );
 
+  test('resetDatabase wipes user rows (divers), not just re-seeds', () async {
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Old Profile', createdAt: now, updatedAt: now),
+    );
+    expect(await DiverRepository().getAllDivers(), isNotEmpty);
+
+    final backupPath = p.join(tempDir.path, 'reset-backup.db');
+    await DatabaseService.instance.resetDatabase(backupPath: backupPath);
+
+    // After a reset the old profiles must be gone.
+    expect(await DiverRepository().getAllDivers(), isEmpty);
+  });
+
   test('a failing migration ladder closes the migrator and rethrows', () async {
     // Seed a current-schema file, then rewind user_version far back so the
     // upgrade ladder replays historical steps. An early unguarded addColumn
@@ -217,6 +241,165 @@ void main() {
 
     await DatabaseService.instance.restore(backupPath);
 
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+  });
+
+  test('restore stages the backup BEFORE closing the live database', () async {
+    // Regression guard: a restore must copy the (potentially large) backup to
+    // a staging file while the live database is still open, so the window
+    // where the database is unavailable never spans the slow copy. Otherwise a
+    // provider rebuild during the copy hits a null database and caches a fatal
+    // "Database not initialized" error (the DiveCenters red-screen bug).
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    // The seam fires the instant the DB is closed (the unavailable window
+    // opens). By then the staged copy must already exist.
+    var stagingExistedAtWindowOpen = false;
+    DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+      stagingExistedAtWindowOpen = File(stagingPath).existsSync();
+    };
+
+    await DatabaseService.instance.restore(backupPath);
+
+    expect(
+      stagingExistedAtWindowOpen,
+      isTrue,
+      reason: 'backup must be staged before the DB is closed',
+    );
+    // The restored DB is fully usable, and no staging file is left behind.
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+    expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+  });
+
+  test(
+    'a failed swap rolls back to the original database (no data loss)',
+    () async {
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      // Written AFTER the backup so the live database is distinguishable from the
+      // backup copy: this row must survive a failed restore.
+      final now = DateTime.now();
+      await DiverRepository().createDiver(
+        domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+      );
+
+      // Sabotage the swap: delete the staged file the instant the window opens,
+      // so moving it into place fails and the rollback path runs.
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        File(stagingPath).deleteSync();
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      // The original database is reopened and its post-backup row survived.
+      final divers = await DiverRepository().getAllDivers();
+      expect(divers.map((d) => d.name), contains('Keep Me'));
+      // No swap temp files are left behind.
+      expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+      expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+    },
+  );
+
+  test(
+    'the restore window seam is one-shot and does not leak across restores',
+    () async {
+      // The service is a singleton, so a seam left set by one restore must not
+      // fire on the next. restore() captures+clears it, so it fires exactly once.
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      var fireCount = 0;
+      DatabaseService.instance.debugOnRestoreWindowOpen = (_) => fireCount++;
+
+      await DatabaseService.instance.restore(backupPath);
+      await DatabaseService.instance.restore(backupPath);
+
+      expect(fireCount, 1);
+    },
+  );
+
+  test(
+    'a no-op restore sweeps restore temp files stranded by a prior run',
+    () async {
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+
+      // Temp files a prior restore left behind (e.g. a large .pre-restore copy
+      // from a best-effort cleanup that failed) must not accumulate on disk.
+      File('$defaultPath.pre-restore').writeAsStringSync('stale');
+      File('$defaultPath.restore-staging').writeAsStringSync('stale');
+
+      // A restore pointed at a missing file is a no-op, but still sweeps temps.
+      await DatabaseService.instance.restore(
+        p.join(tempDir.path, 'missing.db'),
+      );
+
+      expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+      expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+      // The live database was never touched.
+      final one = await DatabaseService.instance.database
+          .customSelect('SELECT 1 AS v')
+          .getSingle();
+      expect(one.read<int>('v'), 1);
+    },
+  );
+
+  test('restore with a missing backup file leaves the live DB open', () async {
+    // A restore pointed at a nonexistent file must be a true no-op: it must
+    // NOT close the database (which would open an unavailable window for
+    // nothing). The database stays queryable throughout.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+
+    var windowOpened = false;
+    DatabaseService.instance.debugOnRestoreWindowOpen = (_) =>
+        windowOpened = true;
+
+    await DatabaseService.instance.restore(p.join(tempDir.path, 'nope.db'));
+
+    expect(windowOpened, isFalse);
     final one = await DatabaseService.instance.database
         .customSelect('SELECT 1 AS v')
         .getSingle();

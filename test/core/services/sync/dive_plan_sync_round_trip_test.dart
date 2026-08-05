@@ -22,6 +22,7 @@ DivePlansCompanion _plan(String id) {
     mode: const Value('oc'),
     altitude: const Value(700.0),
     waterType: const Value('salt'),
+    startDateTime: const Value(1784000000),
     sacBottom: const Value(16.0),
     summaryMaxDepth: const Value(60.0),
     summaryRuntimeSeconds: const Value(74 * 60),
@@ -61,6 +62,8 @@ DivePlanSegmentsCompanion _segment(
     tankId: tankId,
     gasO2: 18.0,
     gasHe: 45.0,
+    setpointBar: const Value(1.3),
+    diveModeOverride: const Value('ccr'),
     sortOrder: Value(order),
     createdAt: now,
     updatedAt: now,
@@ -118,6 +121,9 @@ void main() {
         );
         expect(decoded.divePlans.single['name'], 'Wreck 60 m');
         expect(decoded.divePlans.single['waterType'], 'salt');
+        expect(decoded.divePlans.single['startDateTime'], 1784000000);
+        expect(decoded.divePlanSegments.first['setpointBar'], 1.3);
+        expect(decoded.divePlanSegments.first['diveModeOverride'], 'ccr');
         expect(decoded.divePlanTanks, hasLength(2));
         expect(decoded.divePlanSegments, hasLength(3));
 

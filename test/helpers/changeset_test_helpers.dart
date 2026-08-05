@@ -166,7 +166,9 @@ Future<void> seedPeerBaseFromPayload(
     publishedHlcHigh: payload.toHlc,
     epochId: epochId,
     uploadNonce: uploadNonce,
-    updatedAt: 0,
+    // A freshly seeded peer must read as LIVE: updatedAt 0 (epoch 1970) would
+    // make the retirement sweep retire it mid-test as a 12-months-idle device.
+    updatedAt: DateTime.now().millisecondsSinceEpoch,
   );
   await cloud.uploadFile(
     manifest.toBytes(),

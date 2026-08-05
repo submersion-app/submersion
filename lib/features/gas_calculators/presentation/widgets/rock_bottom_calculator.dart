@@ -2,25 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
+    show roundUpTo;
+import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 
 /// Rock Bottom calculator.
 ///
 /// Calculates the minimum gas reserve needed for emergency ascent,
-/// accounting for buddy breathing, stressed SAC rates, and safety stops.
+/// accounting for buddy breathing, stressed SAC rates, problem-solving time
+/// at depth, and safety stops.
 class RockBottomCalculator extends ConsumerWidget {
   const RockBottomCalculator({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final depth = ref.watch(rockBottomDepthProvider); // Depth in meters
+    final depth = ref.watch(rockBottomDepthProvider); // meters
     final ascentRate = ref.watch(rockBottomAscentRateProvider); // m/min
     final sac = ref.watch(rockBottomSacProvider); // L/min
     final buddySac = ref.watch(rockBottomBuddySacProvider); // L/min
-    final tankSize = ref.watch(rockBottomTankSizeProvider); // Liters
+    final solveMinutes = ref.watch(rockBottomSolveMinutesProvider);
+    final tank = ref.watch(rockBottomTankProvider);
     final includeSafetyStop = ref.watch(rockBottomSafetyStopProvider);
     final result = ref.watch(rockBottomResultProvider);
     final settings = ref.watch(settingsProvider);
@@ -28,34 +35,26 @@ class RockBottomCalculator extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Unit conversion helpers
-    final isMetricDepth = settings.depthUnit == DepthUnit.meters;
     final isMetricVolume = settings.volumeUnit == VolumeUnit.liters;
     final depthSymbol = units.depthSymbol;
     final volumeSymbol = units.volumeSymbol;
     final pressureSymbol = units.pressureSymbol;
 
-    // Display values for depth
-    final displayDepth = units.convertDepth(depth);
-    final minDepthDisplay = units.convertDepth(10);
-    final maxDepthDisplay = units.convertDepth(50);
-
-    // Ascent rate in user's depth unit per minute
-    final displayAscentRate = units.convertDepth(ascentRate);
-    final minAscentDisplay = units.convertDepth(6);
-    final maxAscentDisplay = units.convertDepth(12);
-
-    // Result values in user's units
-    final displayPressure = units.convertPressure(result.totalBar);
+    // Reserve rounds UP onto a real-world grid: turning the dive early is
+    // safe, turning it late is not.
+    final pressureGrid = settings.pressureUnit == PressureUnit.bar
+        ? 10.0
+        : 250.0;
+    final displayPressure = roundUpTo(
+      units.convertPressure(result.reserveBar),
+      pressureGrid,
+    );
     final displayVolume = units.convertVolume(result.totalLiters);
 
-    // Tank sizes
-    final tankSizes = isMetricVolume
-        ? [10.0, 12.0, 15.0, 18.0]
-        : [63.0, 80.0, 100.0, 120.0];
-    final displayTankSize = units.convertVolume(tankSize);
+    final tankChoices = isMetricVolume
+        ? metricTankChoices()
+        : imperialTankChoices();
 
-    // Safety stop depth display
     final safetyStopDepthDisplay = units.convertDepth(5);
 
     return SingleChildScrollView(
@@ -83,42 +82,51 @@ class RockBottomCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // Depth slider
-                      _buildSliderSection(
-                        context,
+                      UnitSlider(
                         icon: Icons.arrow_downward,
                         label:
                             context.l10n.gasCalculators_rockBottom_maximumDepth,
-                        value: displayDepth,
-                        unit: depthSymbol,
-                        min: minDepthDisplay,
-                        max: maxDepthDisplay,
-                        divisions: isMetricDepth ? 40 : 132,
-                        onChanged: (value) {
-                          ref.read(rockBottomDepthProvider.notifier).state =
-                              units.depthToMeters(value);
-                        },
+                        value: depth,
+                        axis: UnitAxis.depth(units),
+                        onChanged: (v) =>
+                            ref.read(rockBottomDepthProvider.notifier).state =
+                                v,
                       ),
                       const SizedBox(height: 20),
 
-                      // Ascent rate slider
-                      _buildSliderSection(
-                        context,
+                      UnitSlider(
                         icon: Icons.arrow_upward,
                         label:
                             context.l10n.gasCalculators_rockBottom_ascentRate,
-                        value: displayAscentRate,
-                        unit: '$depthSymbol/min',
-                        min: minAscentDisplay,
-                        max: maxAscentDisplay,
-                        divisions: isMetricDepth ? 6 : 20,
-                        onChanged: (value) {
-                          ref
-                              .read(rockBottomAscentRateProvider.notifier)
-                              .state = units.depthToMeters(
-                            value,
-                          );
-                        },
+                        value: ascentRate,
+                        axis: UnitAxis.ascentRate(units),
+                        onChanged: (v) =>
+                            ref
+                                    .read(rockBottomAscentRateProvider.notifier)
+                                    .state =
+                                v,
+                      ),
+                      const SizedBox(height: 20),
+
+                      UnitSlider(
+                        icon: Icons.build_outlined,
+                        label: context.l10n.gasCalculators_rockBottom_solveTime,
+                        value: solveMinutes,
+                        axis: UnitAxis.minutes(min: 0, max: 3),
+                        onChanged: (v) =>
+                            ref
+                                    .read(
+                                      rockBottomSolveMinutesProvider.notifier,
+                                    )
+                                    .state =
+                                v,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        context.l10n.gasCalculators_rockBottom_solveTimeHint,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -156,37 +164,26 @@ class RockBottomCalculator extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // Your SAC
-                      _buildSliderSection(
-                        context,
+                      UnitSlider(
                         icon: Icons.person,
                         label: context.l10n.gasCalculators_rockBottom_yourSac,
                         value: sac,
-                        unit: '$volumeSymbol/min',
-                        min: 15,
-                        max: 35,
-                        divisions: 20,
-                        onChanged: (value) {
-                          ref.read(rockBottomSacProvider.notifier).state =
-                              value;
-                        },
+                        axis: UnitAxis.stressedSac(units),
+                        onChanged: (v) =>
+                            ref.read(rockBottomSacProvider.notifier).state = v,
                       ),
                       const SizedBox(height: 20),
 
-                      // Buddy SAC
-                      _buildSliderSection(
-                        context,
+                      UnitSlider(
                         icon: Icons.people,
                         label: context.l10n.gasCalculators_rockBottom_buddySac,
                         value: buddySac,
-                        unit: '$volumeSymbol/min',
-                        min: 15,
-                        max: 40,
-                        divisions: 25,
-                        onChanged: (value) {
-                          ref.read(rockBottomBuddySacProvider.notifier).state =
-                              value;
-                        },
+                        axis: UnitAxis.stressedSac(units),
+                        onChanged: (v) =>
+                            ref
+                                    .read(rockBottomBuddySacProvider.notifier)
+                                    .state =
+                                v,
                       ),
                     ],
                   ),
@@ -212,14 +209,12 @@ class RockBottomCalculator extends ConsumerWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          for (final size in tankSizes)
+                          for (final choice in tankChoices)
                             _buildTankChip(
                               context,
                               ref,
-                              size,
-                              displayTankSize.round() == size.round(),
-                              volumeSymbol,
-                              isMetricVolume,
+                              choice,
+                              choice == tank,
                               units,
                             ),
                         ],
@@ -240,12 +235,11 @@ class RockBottomCalculator extends ConsumerWidget {
                               ),
                         ),
                         value: includeSafetyStop,
-                        onChanged: (value) {
-                          ref
-                                  .read(rockBottomSafetyStopProvider.notifier)
-                                  .state =
-                              value;
-                        },
+                        onChanged: (value) =>
+                            ref
+                                    .read(rockBottomSafetyStopProvider.notifier)
+                                    .state =
+                                value,
                       ),
                     ],
                   ),
@@ -325,6 +319,16 @@ class RockBottomCalculator extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        Text(
+                          context.l10n.gasCalculators_planningCaveat,
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onErrorContainer.withValues(
+                              alpha: 0.8,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -363,8 +367,18 @@ class RockBottomCalculator extends ConsumerWidget {
                         context
                             .l10n
                             .gasCalculators_rockBottom_combinedStressedSac,
-                        '${(sac + buddySac).toStringAsFixed(0)} $volumeSymbol/min',
+                        '${units.convertVolume(sac + buddySac).toStringAsFixed(isMetricVolume ? 0 : 2)} '
+                        '$volumeSymbol/min',
                       ),
+                      if (solveMinutes > 0)
+                        _buildBreakdownRow(
+                          context,
+                          context.l10n.gasCalculators_rockBottom_solveGas(
+                            units.convertDepth(depth).toStringAsFixed(0),
+                            depthSymbol,
+                          ),
+                          '${units.convertVolume(result.solveGasLiters).toStringAsFixed(0)} $volumeSymbol',
+                        ),
                       _buildBreakdownRow(
                         context,
                         includeSafetyStop
@@ -376,14 +390,14 @@ class RockBottomCalculator extends ConsumerWidget {
                             : context
                                   .l10n
                                   .gasCalculators_rockBottom_ascentTimeToSurface,
-                        '${((depth - (includeSafetyStop ? 5 : 0)) / ascentRate).toStringAsFixed(1)} min',
+                        '${result.ascentMinutes.toStringAsFixed(1)} min',
                       ),
                       _buildBreakdownRow(
                         context,
                         context
                             .l10n
                             .gasCalculators_rockBottom_ascentGasRequired,
-                        '${units.convertVolume(result.ascentGas).toStringAsFixed(0)} $volumeSymbol',
+                        '${units.convertVolume(result.ascentGasLiters + result.finalAscentGasLiters).toStringAsFixed(0)} $volumeSymbol',
                       ),
                       if (includeSafetyStop)
                         _buildBreakdownRow(
@@ -392,7 +406,7 @@ class RockBottomCalculator extends ConsumerWidget {
                             safetyStopDepthDisplay.toStringAsFixed(0),
                             depthSymbol,
                           ),
-                          '${units.convertVolume(result.safetyStopGas).toStringAsFixed(0)} $volumeSymbol',
+                          '${units.convertVolume(result.safetyStopGasLiters).toStringAsFixed(0)} $volumeSymbol',
                         ),
                       const Divider(height: 24),
                       _buildBreakdownRow(
@@ -451,96 +465,25 @@ class RockBottomCalculator extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliderSection(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required double value,
-    required String unit,
-    required double min,
-    required double max,
-    required int divisions,
-    required ValueChanged<double> onChanged,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                '${value.toStringAsFixed(0)} $unit',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: colorScheme.primary,
-            inactiveTrackColor: colorScheme.surfaceContainerHighest,
-            thumbColor: colorScheme.primary,
-            overlayColor: colorScheme.primary.withValues(alpha: 0.12),
-          ),
-          child: Semantics(
-            label: '$label: ${value.toStringAsFixed(0)} $unit',
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildTankChip(
     BuildContext context,
     WidgetRef ref,
-    double size,
+    TankSpec tank,
     bool isSelected,
-    String volumeSymbol,
-    bool isMetricVolume,
     UnitFormatter units,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return FilterChip(
-      label: Text('${size.toStringAsFixed(0)}$volumeSymbol'),
+      label: Text(
+        units.formatTankVolume(
+          tank.waterVolumeLiters,
+          tank.workingPressureBar,
+          ratedCapacityCuft: tank.ratedCapacityCuft,
+        ),
+      ),
       selected: isSelected,
-      onSelected: (_) {
-        // Convert display unit back to liters for storage
-        final sizeInLiters = isMetricVolume ? size : units.volumeToLiters(size);
-        ref.read(rockBottomTankSizeProvider.notifier).state = sizeInLiters;
-      },
+      onSelected: (_) => ref.read(rockBottomTankProvider.notifier).state = tank,
       selectedColor: colorScheme.primaryContainer,
       checkmarkColor: colorScheme.onPrimaryContainer,
     );

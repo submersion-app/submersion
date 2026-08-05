@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -154,15 +155,23 @@ void main() {
     Finder tileFinder(String id) =>
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
-    // Long-press d1 -> enter selection mode with only d1 selected.
+    // Long-press d1 -> enter selection mode with only d1 selected. In the
+    // narrow master-pane bar the Combine action lives in the overflow (...)
+    // menu and is gated on 2+ selected, so it is absent with one dive.
     await tester.longPress(tileFinder('d1'));
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Combine'), findsNothing);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Combine'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
 
-    // Tap d2 -> two dives selected, Combine action appears.
+    // Tap d2 -> two dives selected, Combine action appears in the menu.
     await tester.tap(tileFinder('d2'));
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Combine'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Combine'), findsOneWidget);
   });
 
   testWidgets('successful combine selects the merged dive', (tester) async {
@@ -210,7 +219,9 @@ void main() {
     await tester.tap(tileFinder('d2'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Combine'));
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Combine'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Combine into one dive'));
     await tester.pumpAndSettle();
@@ -274,7 +285,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Combine'));
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Combine'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Combine into one dive'));
     await tester.pumpAndSettle();

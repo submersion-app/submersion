@@ -139,4 +139,41 @@ void main() {
       expect(find.textContaining('2024'), findsNothing);
     });
   });
+
+  group('DiveListTile dive number badge', () {
+    testWidgets('large dive number stays on one line and scales to fit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(const AppSettings()),
+            ),
+            detailedCardConfigProvider.overrideWith(
+              (ref) =>
+                  _TestCardConfigNotifier(CardViewConfig.defaultDetailed()),
+            ),
+          ],
+          child: DiveListTile(
+            diveId: 'd1',
+            diveNumber: 88888,
+            dateTime: DateTime(2024, 6, 1),
+            siteName: 'Blue Hole',
+            summary: summary(siteName: 'Blue Hole'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final badge = find.text('#88888');
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Text>(badge).maxLines, 1);
+      expect(
+        find.ancestor(of: badge, matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

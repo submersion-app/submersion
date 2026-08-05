@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -25,6 +26,67 @@ void main() {
     name: 'Trim pockets',
     type: EquipmentType.weights,
   );
+
+  test('gearFeatureFor feeds attribute traits into the prior', () {
+    final shorty = EquipmentItem(
+      id: 's1',
+      name: 'Tropic suit',
+      type: EquipmentType.wetsuit,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 's1',
+          key: 'thickness_mm',
+          valueText: '5/4',
+          valueNum: 5.0,
+        ),
+        EquipmentAttribute.curated(
+          equipmentId: 's1',
+          key: 'suit_style',
+          valueText: 'shorty',
+        ),
+      ],
+    );
+    final feature = gearFeatureFor(shorty)!;
+    // Panels [5,4] -> effective 4.5 mm; shorty factor 0.55.
+    expect(feature.priorKg, closeTo(4.5 * 0.55, 0.001));
+    expect(feature.priorStrength, 4.0);
+
+    final wing = EquipmentItem(
+      id: 'b1',
+      name: 'Tech wing',
+      type: EquipmentType.bcd,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 'b1',
+          key: 'bcd_style',
+          valueText: 'wing',
+        ),
+        EquipmentAttribute.curated(
+          equipmentId: 'b1',
+          key: 'lift_capacity_kg',
+          valueNum: 20,
+        ),
+      ],
+    );
+    expect(gearFeatureFor(wing)!.priorKg, closeTo(-0.3, 0.001));
+  });
+
+  test('numeric thickness is used without text re-parsing', () {
+    // valueNum present, valueText absent: prior comes from the number.
+    final suit = EquipmentItem(
+      id: 's2',
+      name: 'Suit',
+      type: EquipmentType.wetsuit,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 's2',
+          key: 'thickness_mm',
+          valueNum: 6.5,
+        ),
+      ],
+    );
+    expect(gearFeatureFor(suit)!.priorKg, closeTo(6.5, 0.001));
+  });
 
   final entry = DiverWeightEntry(
     id: 'w1',
@@ -85,7 +147,20 @@ void main() {
 
   test('gearFeatureFor passes user metadata through', () {
     final feature = gearFeatureFor(
-      suitItem.copyWith(buoyancyKg: -2.0, weightKg: 2.5),
+      suitItem.copyWith(
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: suitItem.id,
+            key: 'buoyancy_kg',
+            valueNum: -2.0,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: suitItem.id,
+            key: 'dry_weight_kg',
+            valueNum: 2.5,
+          ),
+        ],
+      ),
     );
     expect(feature!.priorKg, -2.0);
     expect(feature.hasUserSpec, isTrue);

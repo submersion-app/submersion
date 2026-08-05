@@ -73,6 +73,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
+  bool _isNameManuallyEdited = false;
   Certification? _originalCertification;
   String? _instructorId;
 
@@ -91,12 +92,44 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       _prefillFrom(widget.initialCertification!);
     } else if (isEditing) {
       _loadCertification();
+    } else {
+      // New certification: set initial default name
+      _updateNameIfDefault();
     }
     _nameController.addListener(_onFieldChanged);
     _cardNumberController.addListener(_onFieldChanged);
     _instructorNameController.addListener(_onFieldChanged);
     _instructorNumberController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+    _nameController.addListener(_onNameChanged);
+  }
+
+  void _onNameChanged() {
+    final defaultName = _generateDefaultName();
+    if (_nameController.text != defaultName) {
+      _isNameManuallyEdited = true;
+    } else {
+      // If it matches exactly (even if they typed it), we can consider it
+      // "following the default" again.
+      _isNameManuallyEdited = false;
+    }
+    _onFieldChanged();
+  }
+
+  void _updateNameIfDefault() {
+    if (!_isNameManuallyEdited) {
+      final newName = _generateDefaultName();
+      if (_nameController.text != newName) {
+        _nameController.text = newName;
+      }
+    }
+  }
+
+  String _generateDefaultName() {
+    if (_level == null) return '';
+    final agencyPart = _agency.displayName;
+    final levelPart = _level!.displayName;
+    return '$agencyPart : $levelPart';
   }
 
   void _onFieldChanged() {
@@ -116,6 +149,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _notesController.text = cert.notes;
     _agency = cert.agency;
     _level = cert.level;
+
+    // When prefilling/loading an existing cert, we assume the name is intentional
+    // unless it's empty (which shouldn't happen for existing certs but just in case)
+    _isNameManuallyEdited = cert.name.isNotEmpty;
+
     _issueDate = cert.issueDate;
     _expiryDate = cert.expiryDate;
     _photoFront = cert.photoFront;
@@ -139,6 +177,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         setState(() {
           _agency = cert.agency;
           _level = cert.level;
+          _isNameManuallyEdited = cert.name.isNotEmpty;
           _issueDate = cert.issueDate;
           _expiryDate = cert.expiryDate;
           _photoFront = cert.photoFront;
@@ -332,6 +371,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
+    _nameController.removeListener(_onFieldChanged);
     _nameController.dispose();
     _cardNumberController.dispose();
     _instructorNameController.dispose();
@@ -400,6 +441,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                               ).contains(_level)) {
                             _level = null;
                           }
+                          _updateNameIfDefault();
                           _hasChanges = true;
                         });
                       }
@@ -439,6 +481,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                     onChanged: (value) {
                       setState(() {
                         _level = value;
+                        _updateNameIfDefault();
                         _hasChanges = true;
                       });
                     },

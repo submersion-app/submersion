@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -22,6 +23,9 @@ void main() {
         // The search provider awaits this before hitting the repository; a
         // null diver id means "all divers", which the repository query allows.
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        // The search count now excludes disabled safety rules; pin an empty
+        // set so the test does not build the real settings/prefs chain.
+        safetyReviewDisabledRulesProvider.overrideWithValue(const <String>{}),
       ],
     );
     addTearDown(container.dispose);

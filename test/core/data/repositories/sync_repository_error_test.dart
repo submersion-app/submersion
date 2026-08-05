@@ -69,7 +69,13 @@ void main() {
         throwsA(anything),
       );
       await expectLater(repository.getAllDeletions(), throwsA(anything));
-      await expectLater(repository.clearOldDeletions(), throwsA(anything));
+      await expectLater(
+        repository.clearAcknowledgedDeletions(
+          upToHlc: null,
+          floorCutoffMillis: 0,
+        ),
+        throwsA(anything),
+      );
       await expectLater(repository.clearAllDeletions(), throwsA(anything));
       await expectLater(repository.resetSyncState(), throwsA(anything));
     });

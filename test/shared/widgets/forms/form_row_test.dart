@@ -266,4 +266,72 @@ void main() {
       expect(find.text('From Site A (1/2)'), findsOneWidget);
     });
   });
+
+  group('v2 row-shaped editing', () {
+    testWidgets('text row keeps its label visible while editing', (
+      tester,
+    ) async {
+      final controller = TextEditingController(text: '42');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(FormRow.text(label: 'Max depth', controller: controller)),
+      );
+      await tester.tap(find.text('42'));
+      await tester.pumpAndSettle();
+      // Editing: label still rendered as row text, field is bare (no box).
+      expect(find.text('Max depth'), findsOneWidget);
+      expect(find.byType(TextFormField), findsOneWidget);
+      final input = tester.widget<TextField>(find.byType(TextField));
+      expect(input.decoration!.border, InputBorder.none);
+      expect(input.decoration!.filled, isFalse);
+    });
+
+    testWidgets('validator row stays mounted with label and bare field', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final formKey = GlobalKey<FormState>();
+      await tester.pumpWidget(
+        _wrap(
+          Form(
+            key: formKey,
+            child: FormRow.text(
+              label: 'Name',
+              controller: controller,
+              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(TextFormField), findsOneWidget);
+      expect(find.text('Name'), findsOneWidget);
+      final input = tester.widget<TextField>(find.byType(TextField));
+      expect(input.decoration!.border, InputBorder.none);
+      formKey.currentState!.validate();
+      await tester.pump();
+      expect(find.text('Required'), findsOneWidget);
+    });
+
+    testWidgets('rating row shows clear affordance and clears', (tester) async {
+      var value = 3;
+      await tester.pumpWidget(
+        _wrap(
+          StatefulBuilder(
+            builder: (context, setState) => FormRow.rating(
+              label: 'Rating',
+              value: value,
+              onChanged: (v) => setState(() => value = v),
+              onClear: () => setState(() => value = 0),
+            ),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.clear), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.clear));
+      await tester.pumpAndSettle();
+      expect(value, 0);
+      expect(find.byIcon(Icons.clear), findsNothing);
+    });
+  });
 }

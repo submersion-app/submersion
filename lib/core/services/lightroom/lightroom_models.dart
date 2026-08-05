@@ -44,27 +44,45 @@ class LightroomAsset {
 
   bool get isVideo => subtype == 'video';
 
-  factory LightroomAsset.fromResource(Map<String, Object?> resource) {
-    final payload = resource['payload'] as Map<String, Object?>? ?? const {};
-    final rawCapture = payload['captureDate'] as String?;
+  /// Builds an asset from a partner-API resource, or returns null when the
+  /// resource has no usable string `id`.
+  ///
+  /// Tolerant by design: the partner API varies asset shapes and has been
+  /// seen to return a list where a scalar is expected, so every field is
+  /// type-checked rather than cast -- one odd asset (including a missing or
+  /// non-string id) is skipped rather than aborting an entire scan.
+  static LightroomAsset? fromResource(Map<String, Object?> resource) {
+    final id = _asString(resource['id']);
+    if (id == null || id.isEmpty) return null;
+    final payload = _asMap(resource['payload']);
+    final rawCapture = _asString(payload['captureDate']);
     DateTime? captureDate;
     if (rawCapture != null && !rawCapture.startsWith('0000')) {
       captureDate = parseExternalDateAsWallClockUtc(rawCapture);
     }
-    final importSource =
-        payload['importSource'] as Map<String, Object?>? ?? const {};
-    final location = payload['location'] as Map<String, Object?>? ?? const {};
-    final video = payload['video'] as Map<String, Object?>? ?? const {};
+    final importSource = _asMap(payload['importSource']);
+    final location = _asMap(payload['location']);
+    final video = _asMap(payload['video']);
     return LightroomAsset(
-      id: resource['id'] as String,
-      subtype: resource['subtype'] as String? ?? 'image',
+      id: id,
+      subtype: _asString(resource['subtype']) ?? 'image',
       captureDate: captureDate,
-      fileName: importSource['fileName'] as String?,
-      latitude: (location['latitude'] as num?)?.toDouble(),
-      longitude: (location['longitude'] as num?)?.toDouble(),
-      videoDurationSeconds: (video['duration'] as num?)?.round(),
+      fileName: _asString(importSource['fileName']),
+      latitude: _asDouble(location['latitude']),
+      longitude: _asDouble(location['longitude']),
+      videoDurationSeconds: _asInt(video['duration']),
     );
   }
+
+  static Map<String, Object?> _asMap(Object? value) =>
+      value is Map<String, Object?> ? value : const {};
+
+  static String? _asString(Object? value) => value is String ? value : null;
+
+  static double? _asDouble(Object? value) =>
+      value is num ? value.toDouble() : null;
+
+  static int? _asInt(Object? value) => value is num ? value.round() : null;
 }
 
 /// One page of an asset listing plus the absolute URL of the next page

@@ -99,9 +99,10 @@ class _OceanBackgroundState extends State<OceanBackground>
 
     final gradientColors = isDark
         ? [
-            const Color(0xFF00838F),
-            const Color(0xFF00838F).withValues(alpha: 0.9),
-            const Color(0xFF00796B).withValues(alpha: 0.85),
+            // Abyss Blue: the deep-ocean dark palette.
+            const Color(0xFF0B2540),
+            const Color(0xFF08243A).withValues(alpha: 0.9),
+            const Color(0xFF041220).withValues(alpha: 0.85),
           ]
         : [
             const Color(0xFF00ACC1),

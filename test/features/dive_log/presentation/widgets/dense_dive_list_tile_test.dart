@@ -51,6 +51,36 @@ void main() {
       expect(find.textContaining('Mar'), findsWidgets);
     });
 
+    testWidgets('large dive number stays on one line and scales to fit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 88888,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            siteName: 'Blue Corner Wall',
+            maxDepth: 28.5,
+            duration: const Duration(minutes: 52),
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final badge = find.text('#88888');
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Text>(badge).maxLines, 1);
+      expect(
+        find.ancestor(of: badge, matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('shows checkbox in selection mode', (tester) async {
       await tester.pumpWidget(
         testApp(

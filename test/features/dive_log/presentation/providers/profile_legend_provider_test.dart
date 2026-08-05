@@ -89,15 +89,8 @@ void main() {
 
   group('ProfileLegend notifier methods (via state)', () {
     group('explicit source set methods', () {
-      test('setCeilingSource sets to computer', () {
-        const state = ProfileLegendState();
-        expect(state.ceilingSource, MetricDataSource.calculated);
-        final updated = state.copyWith(
-          ceilingSource: MetricDataSource.computer,
-        );
-        expect(updated.ceilingSource, MetricDataSource.computer);
-      });
-
+      // The ceiling line has no source toggle (issue #755); it always uses the
+      // calculated curve, so there is no ceilingSource field or setter to test.
       test('setNdlSource sets to computer', () {
         const state = ProfileLegendState();
         expect(state.ndlSource, MetricDataSource.calculated);
@@ -110,6 +103,7 @@ void main() {
       test('includes showCeiling in count', () {
         const isolatedState = ProfileLegendState(
           showCeiling: true,
+          showDecoStops: false,
           showAscentRateColors: false,
           showEvents: false,
           showMaxDepthMarker: false,
@@ -129,6 +123,7 @@ void main() {
           showGasSwitchMarkers: false,
           showPhotoMarkers: false,
           showCeiling: false,
+          showDecoStops: false,
         );
         expect(state.activeSecondaryCount, 0);
       });
@@ -263,6 +258,7 @@ void main() {
       const state = ProfileLegendState(
         showAscentRateLine: true,
         showCeiling: false,
+        showDecoStops: false,
         showAscentRateColors: false,
         showMaxDepthMarker: false,
         showPressureMarkers: false,

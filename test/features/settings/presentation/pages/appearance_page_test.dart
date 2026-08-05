@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
@@ -19,12 +21,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Backs the display zoom control, which AppearancePage now embeds.
+late SharedPreferences _prefs;
+
 Widget _buildTestWidget() {
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      sharedPreferencesProvider.overrideWithValue(_prefs),
     ],
     child: const MaterialApp(
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: AppearancePage(),
@@ -33,6 +40,11 @@ Widget _buildTestWidget() {
 }
 
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
   group('AppearancePage hub layout', () {
     testWidgets('shows General section header', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
@@ -86,7 +98,7 @@ void main() {
       expect(find.text('Sections'), findsOneWidget);
     });
 
-    testWidgets('shows all 8 section navigation tiles', (tester) async {
+    testWidgets('shows all 9 section navigation tiles', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -94,6 +106,7 @@ void main() {
       await tester.pumpAndSettle();
 
       for (final label in [
+        'Home',
         'Dives',
         'Sites',
         'Buddies',
@@ -109,6 +122,48 @@ void main() {
           reason: 'Missing tile: $label',
         );
       }
+    });
+
+    testWidgets('Home tile opens the home appearance page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      String? pushed;
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const AppearancePage()),
+          GoRoute(
+            path: '/settings/appearance/home',
+            builder: (_, _) => Builder(
+              builder: (context) {
+                pushed = '/settings/appearance/home';
+                return const Scaffold();
+              },
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            sharedPreferencesProvider.overrideWithValue(_prefs),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+
+      expect(pushed, '/settings/appearance/home');
     });
 
     testWidgets('does NOT show old inline settings', (tester) async {

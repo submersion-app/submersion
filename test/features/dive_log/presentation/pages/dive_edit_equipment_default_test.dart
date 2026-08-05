@@ -80,10 +80,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // The default set's item is now selected; expand Gas & Gear if it is
-    // collapsed so the equipment chip/tile is in the tree.
-    final gasGear = find.textContaining('Gas & Gear');
-    if (gasGear.evaluate().isNotEmpty) {
+    // The default set's item is now selected. The v2 header is a toggle, so
+    // only tap it when the section is actually collapsed (its body absent).
+    if (find.text('Apeks XTX50').evaluate().isEmpty) {
+      final gasGear = find.textContaining('Gas & Gear');
       await tester.ensureVisible(gasGear.first);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.tap(gasGear.first, warnIfMissed: false);

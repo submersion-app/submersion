@@ -268,4 +268,84 @@ void main() {
     );
     expect(progress.value, isNull); // indeterminate
   });
+
+  // commit() only persists files in match.matched, and the Link button is
+  // gated on matched being non-empty, so a photo the date matcher rejected
+  // could never be linked. When the picker was opened from a dive, that dive
+  // is an obvious manual target.
+  group('manual assignment to the picker\'s dive', () {
+    Widget wrap(FilesTabState seed, {String? diveId}) => ProviderScope(
+      overrides: [
+        filesTabNotifierProvider.overrideWith(
+          (ref) => _SeededFilesTabNotifier(seed),
+        ),
+      ],
+      child: MaterialApp(
+        home: Scaffold(body: FilesTab(diveId: diveId)),
+      ),
+    );
+
+    FilesTabState withUnmatched(List<ExtractedFile> files) =>
+        FilesTabState.initial().copyWith(
+          files: files,
+          match: MatchedSelection(matched: const {}, unmatched: files),
+        );
+
+    testWidgets('offers a bulk add action when opened from a dive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(withUnmatched([_ef('/a.jpg'), _ef('/b.jpg')]), diveId: 'd1'),
+      );
+
+      expect(find.text('Add all 2 to this dive'), findsOneWidget);
+    });
+
+    testWidgets('offers no bulk add action when opened without a dive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrap(withUnmatched([_ef('/a.jpg')])));
+
+      expect(find.textContaining('Add all'), findsNothing);
+    });
+
+    testWidgets('bulk add routes every unmatched file to the dive', (
+      tester,
+    ) async {
+      final files = [_ef('/a.jpg'), _ef('/b.jpg')];
+      final notifier = _SeededFilesTabNotifier(withUnmatched(files));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
+          child: const MaterialApp(
+            home: Scaffold(body: FilesTab(diveId: 'd1')),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Add all 2 to this dive'));
+      await tester.pump();
+
+      expect(notifier.state.match.matched['d1'], files);
+      expect(notifier.state.match.unmatched, isEmpty);
+      // The Link button was previously unreachable in this state.
+      expect(find.text('Link 2 items'), findsOneWidget);
+    });
+
+    testWidgets('turning auto-match off still leaves files linkable', (
+      tester,
+    ) async {
+      final files = [_ef('/a.jpg')];
+      final seed = FilesTabState.initial().copyWith(
+        autoMatchByDate: false,
+        files: files,
+        match: MatchedSelection(matched: const {}, unmatched: files),
+      );
+      await tester.pumpWidget(wrap(seed, diveId: 'd1'));
+
+      // Without an assign affordance the unchecked checkbox made the whole
+      // tab a no-op: nothing could ever reach commit().
+      expect(find.text('Add all 1 to this dive'), findsOneWidget);
+    });
+  });
 }

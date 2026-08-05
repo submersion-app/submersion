@@ -70,7 +70,10 @@ void main() {
     expect(find.text('Where photos come from'), findsOneWidget);
     expect(find.text('Where copies are kept'), findsOneWidget);
     expect(find.text('Connected Accounts'), findsOneWidget);
-    expect(find.text('Network sources'), findsOneWidget);
+    // Lightroom and Network sources now live inside "Photo library &
+    // sources", not at the hub level.
+    expect(find.text('Adobe Lightroom'), findsNothing);
+    expect(find.text('Network sources'), findsNothing);
   });
 
   testWidgets('setup guide renders three steps with live status', (

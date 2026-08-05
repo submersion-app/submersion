@@ -15,11 +15,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -29,6 +31,17 @@ import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_o
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
+
+/// Opacity of the shaded region between the ceiling and the surface.
+///
+/// Deliberately lighter than [decoStopFillAlpha]. The stop depth is the
+/// ceiling rounded up, so the ceiling region always sits inside the deco stop
+/// band, and for computer-reported profiles the two curves are the same values
+/// and the regions coincide exactly. The fills composite, so this has to be
+/// read as a pair: 0.10 under the band's 0.18 lands the overlap at 0.26, a
+/// perceptible step up from the band rather than the 0.30 that matching the
+/// band's own weight would produce.
+const double ceilingFillAlpha = 0.10;
 
 /// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
 /// can render the tooltip externally (e.g., below the chart).
@@ -77,6 +90,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Ceiling curve in meters, same length as profile
   final List<double>? ceilingCurve;
 
+  /// Deco stop levels in meters, same length as profile. Drawn as a stepped
+  /// band from the stop depth up to the surface.
+  final List<double>? decoStopCurve;
+
   /// Ascent rate data for each profile point
   final List<AscentRatePoint>? ascentRates;
 
@@ -97,6 +114,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether to show ceiling by default
   final bool showCeiling;
+
+  /// Whether to show the stepped deco stop band by default
+  final bool showDecoStops;
 
   /// Whether to color depth line by ascent rate
   final bool showAscentRateColors;
@@ -322,6 +342,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// ([_DiveProfileChartState._buildVelocityColoredDepthLines]) and mapping a
   /// touched depth spot back to its global profile index: a spot on bar `b` at
   /// local `spotIndex` addresses profile point `runs[b].start + spotIndex`.
+  ///
+  /// [_DiveProfileChartState._depthBarStartIndices] applies one further
+  /// adjustment on top of these runs: when a surface lead-in vertex is drawn
+  /// (see [shouldDrawSurfaceLeadIn]) the first run's start is decremented to
+  /// absorb it, so the identity above continues to hold.
   @visibleForTesting
   static List<({int start, int end, AscentRateCategory category})>
   velocityBandRuns(int profileLength, List<AscentRatePoint> ascentRates) {
@@ -387,6 +412,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
         .toList();
   }
 
+  /// Whether the depth line should be extended back to the surface at t=0.
+  ///
   /// Resolve a touched depth spot to an index into [profile].
   ///
   /// fl_chart reports a touched spot as `(barIndex, spotIndex)`, where
@@ -415,7 +442,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     required bool multiComputer,
   }) {
     if (!multiComputer) {
-      return depthBarStarts[barIndex] + spotIndex;
+      // A surface lead-in vertex makes the first bar's start -1 (see
+      // [shouldDrawSurfaceLeadIn]); touching that synthetic vertex resolves to
+      // the first real sample rather than a negative index.
+      return math.max(0, depthBarStarts[barIndex] + spotIndex);
     }
     if (profile.isEmpty) return -1;
     var best = 0;
@@ -439,6 +469,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showPressure = false,
     this.onPointSelected,
     this.ceilingCurve,
+    this.decoStopCurve,
     this.ascentRates,
     this.events,
     this.ndlCurve,
@@ -446,6 +477,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.tankVolume,
     this.sacNormalizationFactor = 1.0,
     this.showCeiling = true,
+    this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
     this.showSac = false,
@@ -499,6 +531,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Decompression visualization toggles
   bool _showCeiling = true;
+  bool _showDecoStops = true;
   bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
@@ -925,6 +958,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showTemperature = widget.showTemperature;
     _showSac = widget.showSac;
     _showCeiling = widget.showCeiling;
+    _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
     _scheduleTankPressureVisibilityInitialization();
@@ -972,16 +1006,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final touched = touchedSpots
         .where((s) => s.barIndex < starts.length)
         .firstOrNull;
+    // Clamped for the same reason as [DiveProfileChart.depthSpotProfileIndex]:
+    // the surface lead-in makes the first bar's start -1, and hovering that
+    // synthetic vertex should read the first sample, not suppress the tooltip.
     final index = touched == null
         ? -1
-        : starts[touched.barIndex] + touched.spotIndex;
+        : math.max(0, starts[touched.barIndex] + touched.spotIndex);
     if (touched == null || index < 0 || index >= widget.profile.length) {
       widget.onTooltipData!(null);
       return;
     }
     final spot = (spotIndex: index);
 
-    final point = widget.profile[spot.spotIndex];
+    // On the lead-in vertex the cursor is before the first sample, so the
+    // readout must describe t=0 rather than repeat the first sample's values.
+    final onLeadIn =
+        touched.spotIndex == 0 &&
+        starts[touched.barIndex] < 0 &&
+        shouldDrawSurfaceLeadIn(widget.profile);
+    final point = onLeadIn
+        ? _surfaceReadoutPoint()
+        : widget.profile[spot.spotIndex];
     final rows = <TooltipRow>[];
     final onSurface = colorScheme.onInverseSurface;
 
@@ -1060,6 +1105,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
+    // Deco stop. Mirrors the in-chart tooltip row so the panel and fullscreen
+    // readouts report the band they are already drawing.
+    if (_showDecoStops &&
+        widget.decoStopCurve != null &&
+        spot.spotIndex < widget.decoStopCurve!.length) {
+      final stop = widget.decoStopCurve![spot.spotIndex];
+      rows.add(
+        TooltipRow(
+          label: 'Deco stop',
+          value: stop > 0 ? units.formatDepth(stop) : '-',
+          bulletColor: decoStopBandColor,
+        ),
+      );
+    }
+
     // Ascent rate
     if ((_showAscentRateColors || _showAscentRateLine) &&
         widget.ascentRates != null &&
@@ -1118,7 +1178,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
       rows.add(
-        TooltipRow(label: 'SAC', value: sacValue, bulletColor: Colors.teal),
+        TooltipRow(
+          label: context.l10n.diveLog_tooltip_sac,
+          value: sacValue,
+          bulletColor: Colors.teal,
+        ),
       );
     }
 
@@ -1155,7 +1219,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: widget.ppO2FromSensorAverage
               ? '${context.l10n.diveLog_tooltip_ppO2} ${context.l10n.diveLog_tooltip_avgCalculated}'
               : context.l10n.diveLog_tooltip_ppO2,
-          value: '${widget.ppO2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          value:
+              '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} bar',
           bulletColor: const Color(0xFF00ACC1),
         ),
       );
@@ -1184,7 +1249,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       rows.add(
         TooltipRow(
           label: 'ppN2',
-          value: '${widget.ppN2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          value:
+              '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} bar',
           bulletColor: Colors.indigo,
         ),
       );
@@ -1199,7 +1265,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         rows.add(
           TooltipRow(
             label: 'ppHe',
-            value: '${ppHe.toStringAsFixed(2)} bar',
+            value: '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} bar',
             bulletColor: Colors.pink.shade300,
           ),
         );
@@ -1230,7 +1296,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: 'Density',
           value:
-              '${widget.densityCurve![spot.spotIndex].toStringAsFixed(2)} g/L',
+              '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} g/L',
           bulletColor: Colors.brown,
         ),
       );
@@ -1379,7 +1445,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    widget.onTooltipData!(rows);
+    widget.onTooltipData!(
+      onLeadIn
+          ? _markInterpolatedRows(rows, _exactAtSurfaceLabels(context))
+          : rows,
+    );
   }
 
   /// The plot-rect insets (reserved axis gutters) for the current build, so a
@@ -1494,6 +1564,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showHeartRate = legendState.showHeartRate;
     _showSac = legendState.showSac;
     _showCeiling = legendState.showCeiling;
+    _showDecoStops = legendState.showDecoStops;
     _showAscentRateColors = legendState.showAscentRateColors;
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
@@ -1545,6 +1616,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _analysisSig = _sigOf([
       commonSig,
       identityHashCode(widget.ceilingCurve),
+      identityHashCode(widget.decoStopCurve),
       identityHashCode(widget.ndlCurve),
       identityHashCode(widget.ppO2Curve),
       identityHashCode(widget.ppN2Curve),
@@ -1593,6 +1665,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasHeartRateData: hasHeartRateData,
       hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
       hasCeilingCurve: widget.ceilingCurve != null,
+      hasDecoStopCurve:
+          widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
       hasEvents: widget.events != null && widget.events!.isNotEmpty,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
@@ -2325,6 +2399,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   'analysis',
                   _analysisSig,
                   () => [
+                    // Deco stop band, drawn before the ceiling line so the
+                    // dashed curve stays legible on top of the fill.
+                    if (_showDecoStops && widget.decoStopCurve != null)
+                      buildDecoStopBand(
+                        decoStopCurve: widget.decoStopCurve!,
+                        timestamps: [
+                          for (final p in widget.profile) p.timestamp,
+                        ],
+                        units: units,
+                      ),
                     // Ceiling line (if showing and data available)
                     if (_showCeiling && widget.ceilingCurve != null)
                       _buildCeilingLine(units),
@@ -2549,6 +2633,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       depthIndex >= 0 &&
                       depthIndex < widget.profile.length;
 
+                  // The cursor is on the lead-in vertex when the resolved bar's
+                  // start is negative and the touched spot is its first: the
+                  // readout must describe t=0, not repeat the first sample.
+                  final onLeadIn =
+                      depthSpot != null &&
+                      depthSpot.spotIndex == 0 &&
+                      depthBarStarts[depthSpot.barIndex] < 0 &&
+                      shouldDrawSurfaceLeadIn(widget.profile);
+
                   // Return cached result if the same sample is touched again.
                   // The cache is keyed on the resolved depth index, but the
                   // cached list length equals the number of touched bars when it
@@ -2575,7 +2668,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
                     final spot = (spotIndex: depthIndex);
 
-                    final point = widget.profile[spot.spotIndex];
+                    final point = onLeadIn
+                        ? _surfaceReadoutPoint()
+                        : widget.profile[spot.spotIndex];
                     final minutes = point.timestamp ~/ 60;
                     final seconds = point.timestamp % 60;
 
@@ -2741,6 +2836,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                     }
 
+                    // Deco stop (if enabled - always show row)
+                    if (_showDecoStops) {
+                      String stopValue = '—';
+                      if (widget.decoStopCurve != null &&
+                          spot.spotIndex < widget.decoStopCurve!.length) {
+                        final stop = widget.decoStopCurve![spot.spotIndex];
+                        if (stop > 0) {
+                          stopValue = units.formatDepth(stop);
+                        }
+                      }
+                      addRow(
+                        context.l10n.diveLog_tooltip_decoStop,
+                        stopValue,
+                        decoStopBandColor,
+                      );
+                    }
+
                     // Ascent rate (if enabled - always show row with fixed format)
                     // Uses distinct colors that don't conflict with gas colors:
                     // - Descent: cyan (distinct from air blue)
@@ -2809,7 +2921,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       String ppO2Value = '—';
                       if (widget.ppO2Curve != null &&
                           spot.spotIndex < widget.ppO2Curve!.length) {
-                        final ppO2 = widget.ppO2Curve![spot.spotIndex];
+                        final ppO2 = _readoutValue(
+                          widget.ppO2Curve![spot.spotIndex],
+                          onLeadIn,
+                        );
                         ppO2Value = '${ppO2.toStringAsFixed(2)} bar';
                       }
                       addRow(
@@ -2840,7 +2955,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       String ppN2Value = '—';
                       if (widget.ppN2Curve != null &&
                           spot.spotIndex < widget.ppN2Curve!.length) {
-                        final ppN2 = widget.ppN2Curve![spot.spotIndex];
+                        final ppN2 = _readoutValue(
+                          widget.ppN2Curve![spot.spotIndex],
+                          onLeadIn,
+                        );
                         ppN2Value = '${ppN2.toStringAsFixed(2)} bar';
                       }
                       addRow(
@@ -2857,7 +2975,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           spot.spotIndex < widget.ppHeCurve!.length) {
                         final ppHe = widget.ppHeCurve![spot.spotIndex];
                         if (ppHe > 0.001) {
-                          ppHeValue = '${ppHe.toStringAsFixed(2)} bar';
+                          ppHeValue =
+                              '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} bar';
                         }
                       }
                       addRow(
@@ -2889,7 +3008,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       String densityValue = '—';
                       if (widget.densityCurve != null &&
                           spot.spotIndex < widget.densityCurve!.length) {
-                        final density = widget.densityCurve![spot.spotIndex];
+                        final density = _readoutValue(
+                          widget.densityCurve![spot.spotIndex],
+                          onLeadIn,
+                        );
                         densityValue = '${density.toStringAsFixed(2)} g/L';
                       }
                       addRow(
@@ -3080,10 +3202,35 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       }
                     }
 
+                    // On the lead-in, mark every carried-over value so a held
+                    // reading is never shown as measured. Exact and computed
+                    // rows (time, depth, the partial pressures, MOD, density)
+                    // are left untouched -- same set as the overlay readout.
+                    final displayRows = onLeadIn
+                        ? [
+                            for (final row in tooltipRows)
+                              if (_exactAtSurfaceLabels(
+                                    context,
+                                  ).contains(row.label) ||
+                                  row.label.startsWith(
+                                    context.l10n.diveLog_tooltip_depth,
+                                  ))
+                                row
+                              else
+                                (
+                                  label: row.label,
+                                  value: '${row.value} (interpolated)',
+                                  bulletColor: row.bulletColor,
+                                  bullet: row.bullet,
+                                  bulletSize: row.bulletSize,
+                                ),
+                          ]
+                        : tooltipRows;
+
                     const rowWidth = labelWidth + valueWidth;
                     final rowFiller = List.filled(rowWidth, '0').join();
                     final lines = <TextSpan>[];
-                    for (final row in tooltipRows) {
+                    for (final row in displayRows) {
                       if (lines.isNotEmpty) {
                         lines.add(const TextSpan(text: '\n'));
                       }
@@ -3470,17 +3617,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// colouring splits it into one bar per band. Mirrors the branching in
   /// [_buildGasColoredDepthLines].
   List<int> _depthBarStartIndices() {
+    // The surface lead-in prepends one synthetic spot to the bar that owns the
+    // first sample, shifting that bar's local spotIndex by one. Reporting a
+    // start of -1 keeps `start + spotIndex` addressing the right sample.
+    final leadIn = shouldDrawSurfaceLeadIn(widget.profile) ? 1 : 0;
     final ascentRates = widget.ascentRates;
     if (_showAscentRateColors &&
         ascentRates != null &&
         ascentRates.length == widget.profile.length &&
         widget.profile.length >= 2) {
-      return DiveProfileChart.velocityBandRuns(
+      final runs = DiveProfileChart.velocityBandRuns(
         widget.profile.length,
         ascentRates,
       ).map((run) => run.start).toList();
+      if (leadIn > 0 && runs.isNotEmpty) runs[0] -= leadIn;
+      return runs;
     }
-    return const [0];
+    return [0 - leadIn];
   }
 
   /// Whether the built-in focus indicator for [barData]'s spot at [index]
@@ -3528,17 +3681,31 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         overlay.points,
         (p) => p.depth,
       );
+      // Keyed on the overlay's OWN points, not the active profile: an overlaid
+      // computer has its own first sample and sampling interval, so the active
+      // dive cannot decide whether this trace needs a lead-in. Without that,
+      // an overlay starting at t=10 stays gapped whenever the active profile
+      // starts at t=0.
+      final overlayDepthSpots = [
+        for (final i in depthKeep)
+          FlSpot(
+            overlay.points[i].timestamp.toDouble(),
+            -units.convertDepth(overlay.points[i].depth),
+          ),
+      ];
       lines.add(
         LineChartBarData(
-          spots: [
-            for (final i in depthKeep)
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -units.convertDepth(overlay.points[i].depth),
-              ),
-          ],
+          spots: _withSurfaceLeadIn(
+            overlayDepthSpots,
+            0,
+            owner: overlay.points,
+          ),
           isCurved: true,
           curveSmoothness: 0.2,
+          preventCurveOverShooting: _seriesGetsLeadIn(
+            overlayDepthSpots,
+            overlay.points,
+          ),
           color: overlay.color,
           barWidth: 2,
           isStrokeCapRound: true,
@@ -3656,6 +3823,122 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return lines;
   }
 
+  /// Extend a curve back to the t=0 axis origin with a lead-in vertex at
+  /// [surfaceY] (already in chart y-space, i.e. negated/normalised the same way
+  /// the curve's own points are).
+  ///
+  /// Computers do not sample at t=0, so without this every line starts one
+  /// sample interval inside the chart and the left edge reads as ragged
+  /// (issue #684). No-ops when the profile already starts at zero, when the gap
+  /// is too wide to attribute to the sampling rate, or when the curve drew no
+  /// points at all.
+  /// Whether [spots] is eligible for a lead-in against [owner], the profile the
+  /// series was built from.
+  ///
+  /// [owner] is passed rather than assumed to be [widget.profile]: an overlaid
+  /// source has its own samples and its own sampling interval, so keying an
+  /// overlay's lead-in off the active profile would test the wrong dive.
+  ///
+  /// A curve that is only drawn where it has data (the ceiling line skips
+  /// ceiling <= 0, a deco bottle's pressure starts when it is first breathed)
+  /// may legitimately start mid-dive; only a curve whose own first point is its
+  /// profile's first sample is bridged back to t=0.
+  bool _seriesGetsLeadIn(List<FlSpot> spots, List<DiveProfilePoint> owner) =>
+      spots.isNotEmpty &&
+      owner.isNotEmpty &&
+      shouldDrawSurfaceLeadIn(owner) &&
+      spots.first.x == owner.first.timestamp.toDouble();
+
+  List<FlSpot> _withSurfaceLeadIn(
+    List<FlSpot> spots,
+    double surfaceY, {
+    List<DiveProfilePoint>? owner,
+  }) {
+    final source = owner ?? widget.profile;
+    if (!_seriesGetsLeadIn(spots, source)) return spots;
+    return [FlSpot(0, surfaceY), ...spots];
+  }
+
+  /// Lead-in for curves that barely change across one sample interval
+  /// (temperature, partial pressures, MOD, density, SAC, tank pressure, heart
+  /// rate): hold the first reading flat back to t=0.
+  /// The sample the readout describes when the cursor sits on the lead-in.
+  ///
+  /// Time and depth are exact rather than interpolated: the dive begins at
+  /// t=0 with the diver at the surface. Temperature carries over from the
+  /// first reading and is marked interpolated by [_markInterpolatedRows].
+  DiveProfilePoint _surfaceReadoutPoint() => DiveProfilePoint(
+    timestamp: 0,
+    depth: 0,
+    temperature: widget.profile.isEmpty
+        ? null
+        : widget.profile.first.temperature,
+  );
+
+  /// Labels whose value at t=0 is known or calculated rather than carried over
+  /// from the first sample, and so must not be marked interpolated.
+  ///
+  /// Time and depth are exact. The partial pressures and gas density are
+  /// computed from the ambient pressure at the surface (see
+  /// [surfaceValueAtOneBar]). MOD is a property of the gas, so it does not
+  /// change between the surface and the first sample.
+  /// Built at the call site because some labels are localized: matching
+  /// hardcoded English would silently mark them interpolated in other locales.
+  Set<String> _exactAtSurfaceLabels(BuildContext context) => {
+    // The overlay readout uses hardcoded labels; the inline (fl_chart) readout
+    // uses localized ones. Both forms are exempt so neither is mislabelled.
+    'Time',
+    'Depth',
+    'ppN2',
+    'ppHe',
+    'Density',
+    'MOD',
+    context.l10n.diveLog_tooltip_time,
+    context.l10n.diveLog_tooltip_depth,
+    context.l10n.diveLog_tooltip_ppN2,
+    context.l10n.diveLog_tooltip_ppHe,
+    context.l10n.diveLog_tooltip_mod,
+    context.l10n.diveLog_tooltip_density,
+    context.l10n.diveLog_tooltip_ppO2,
+    '${context.l10n.diveLog_tooltip_ppO2} '
+        '${context.l10n.diveLog_tooltip_avgCalculated}',
+  };
+
+  /// Mark every readout row whose value was carried over from the first sample
+  /// rather than known or calculated at t=0, so the lead-in never presents a
+  /// held value as if it had been measured there.
+  List<TooltipRow> _markInterpolatedRows(
+    List<TooltipRow> rows,
+    Set<String> exactLabels,
+  ) => [
+    for (final row in rows)
+      if (exactLabels.contains(row.label) || row.label.startsWith('Depth ·'))
+        row
+      else
+        TooltipRow(
+          label: row.label,
+          value: '${row.value} (interpolated)',
+          bulletColor: row.bulletColor,
+        ),
+  ];
+
+  /// A readout value for a pressure-proportional quantity: computed at the
+  /// surface while on the lead-in, otherwise the sampled value as-is.
+  double _readoutValue(double sampled, bool onLeadIn) =>
+      onLeadIn ? _surfaceValueOf(sampled) : sampled;
+
+  /// [surfaceValueAtOneBar] applied at the dive's first sample.
+  double _surfaceValueOf(double valueAtFirstSample) => widget.profile.isEmpty
+      ? valueAtFirstSample
+      : surfaceValueAtOneBar(valueAtFirstSample, widget.profile.first.depth);
+
+  List<FlSpot> _withFlatSurfaceLeadIn(
+    List<FlSpot> spots, {
+    List<DiveProfilePoint>? owner,
+  }) => spots.isEmpty
+      ? spots
+      : _withSurfaceLeadIn(spots, spots.first.y, owner: owner);
+
   /// Build a single depth line segment with the given color
   LineChartBarData _buildSingleDepthSegment(
     Color color,
@@ -3665,14 +3948,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     bool showFill = false,
   }) {
     return LineChartBarData(
-      spots: widget.profile
-          .sublist(startIndex, endIndex)
-          .map(
-            (p) => FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
-          )
-          .toList(),
+      spots: [
+        // Close the gap between the t=0 axis origin and the first sample by
+        // descending from the surface. Only the bar that owns the first sample
+        // carries it, so the later velocity-band bars are untouched.
+        if (startIndex == 0 && shouldDrawSurfaceLeadIn(widget.profile))
+          const FlSpot(0, 0),
+        ...widget.profile
+            .sublist(startIndex, endIndex)
+            .map(
+              (p) =>
+                  FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
+            ),
+      ],
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting:
+          startIndex == 0 && shouldDrawSurfaceLeadIn(widget.profile),
       color: color,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -3769,24 +4065,33 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     double maxTemp,
     UnitFormatter units,
   ) {
-    return LineChartBarData(
-      spots: widget.profile
-          .where((p) => p.temperature != null)
-          .map(
-            (p) => FlSpot(
-              p.timestamp.toDouble(),
-              // Convert temp to user's unit, then map to depth axis
-              -_mapTempToDepth(
-                units.convertTemperature(p.temperature!),
-                chartMaxDepth,
-                minTemp,
-                maxTemp,
-              ),
+    // Built first so the smoothing flag below can ask whether this series
+    // actually receives a lead-in: samples without a temperature are skipped,
+    // so the curve can legitimately start after the dive's first sample.
+    final tempSpots = widget.profile
+        .where((p) => p.temperature != null)
+        .map(
+          (p) => FlSpot(
+            p.timestamp.toDouble(),
+            // Convert temp to user's unit, then map to depth axis
+            -_mapTempToDepth(
+              units.convertTemperature(p.temperature!),
+              chartMaxDepth,
+              minTemp,
+              maxTemp,
             ),
-          )
-          .toList(),
+          ),
+        )
+        .toList();
+    return LineChartBarData(
+      spots: _withFlatSurfaceLeadIn(tempSpots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(tempSpots, widget.profile),
       color: colorScheme.tertiary,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -3857,25 +4162,35 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           : _getTankColor(i);
       final dashPattern = _getTankDashPattern(i);
 
+      // A tank first breathed mid-dive keeps its own start: the lead-in only
+      // bridges a series that begins at the dive's first sample. Built first so
+      // the smoothing flag below reflects whether THIS tank got one.
+      final tankSpots = pressurePoints
+          .map(
+            (p) => FlSpot(
+              p.timestamp.toDouble(),
+              -_mapValueToDepth(
+                p.pressure,
+                chartMaxDepth,
+                minPressure,
+                maxPressure,
+              ),
+            ),
+          )
+          .toList();
       lines.add(
         LineChartBarData(
-          spots: pressurePoints
-              .map(
-                (p) => FlSpot(
-                  p.timestamp.toDouble(),
-                  -_mapValueToDepth(
-                    p.pressure,
-                    chartMaxDepth,
-                    minPressure,
-                    maxPressure,
-                  ),
-                ),
-              )
-              .toList(),
+          spots: _withFlatSurfaceLeadIn(tankSpots),
           // Synthesized estimates are straight (flat-drop-flat); curve
           // smoothing would round their corners. Real AI data stays curved.
           isCurved: !(widget.estimatedTankIds?.contains(tankId) ?? false),
           curveSmoothness: 0.2,
+          // The lead-in vertex is a sharp direction change; without this the
+          // spline overshoots it and hooks below the curve at the left edge.
+          preventCurveOverShooting: _seriesGetsLeadIn(
+            tankSpots,
+            widget.profile,
+          ),
           color: color,
           barWidth: 2,
           isStrokeCapRound: true,
@@ -3943,9 +4258,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.3,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: sacColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -3978,9 +4298,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: Colors.lime,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4039,34 +4364,54 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       0xFFD32F2F,
     ); // Red 700 - distinct from pressure orange
 
-    // Build spots only where ceiling > 0
+    // Build spots only where ceiling > 0, breaking the curve wherever the
+    // obligation clears. fl_chart splits a bar on null spots and gives each
+    // section its own fill, so without the break a profile that re-enters deco
+    // would join its two runs and shade the ceiling-free stretch between them.
+    // The break is deferred to the next real spot so no null leads or trails.
     final spots = <FlSpot>[];
+    var pendingBreak = false;
     for (final i in _decimatedCurveIndices(ceilingData)) {
       final ceiling = ceilingData[i];
-      if (ceiling > 0) {
-        spots.add(
-          FlSpot(
-            widget.profile[i].timestamp.toDouble(),
-            -units.convertDepth(
-              ceiling,
-            ), // Convert and negate for inverted axis
-          ),
-        );
+      if (ceiling <= 0) {
+        if (spots.isNotEmpty) pendingBreak = true;
+        continue;
       }
+      if (pendingBreak) {
+        spots.add(FlSpot.nullSpot);
+        pendingBreak = false;
+      }
+      spots.add(
+        FlSpot(
+          widget.profile[i].timestamp.toDouble(),
+          -units.convertDepth(ceiling), // Convert and negate for inverted axis
+        ),
+      );
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: ceilingColor,
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       dashArray: [4, 4],
-      belowBarData: BarAreaData(
+      // The shaded region runs from the ceiling UP to the surface, so it is an
+      // aboveBarData. Negated depths put the surface (y = 0) above the ceiling
+      // (y = -4.2), and a below-bar fill cannot express that: fl_chart's
+      // painter draws the below-bar area and then erases the entire above-line
+      // region to clean up the cut-off overdraw, wiping exactly this fill. Same
+      // defect, and same fix, as the deco stop band in deco_stop_band.dart.
+      aboveBarData: BarAreaData(
         show: true,
-        color: ceilingColor.withValues(alpha: 0.15),
+        color: ceilingColor.withValues(alpha: ceilingFillAlpha),
         cutOffY: 0, // Fill to surface
         applyCutOffY: true,
       ),
@@ -4093,7 +4438,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // Held flat, not forced to maximum: on a repetitive dive the NDL at the
+      // surface is already cut short by residual loading, which the first
+      // sample reflects and a synthetic maximum would not.
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
       preventCurveOverShooting: true,
@@ -4123,9 +4471,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // ppO2 scales with ambient pressure, so its surface value is computed,
+      // not held flat: at 1 bar it is simply the oxygen fraction.
+      spots: _withSurfaceLeadIn(
+        spots,
+        -_mapValueToDepth(
+          _surfaceValueOf(ppO2Data.first).clamp(minPpO2, maxPpO2),
+          chartMaxDepth,
+          minPpO2,
+          maxPpO2,
+        ),
+      ),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: ppO2Color,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4151,9 +4514,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // Computed, not held flat: at 1 bar ppN2 is the nitrogen fraction.
+      spots: _withSurfaceLeadIn(
+        spots,
+        -_mapValueToDepth(
+          _surfaceValueOf(ppN2Data.first).clamp(minPpN2, maxPpN2),
+          chartMaxDepth,
+          minPpN2,
+          maxPpN2,
+        ),
+      ),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: ppN2Color,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4187,9 +4564,25 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // Computed, not held flat: at 1 bar ppHe is the helium fraction. The
+      // ppHe > 0.001 filter above means a non-trimix dive draws nothing at all,
+      // and the lead-in is skipped with it.
+      spots: _withSurfaceLeadIn(
+        spots,
+        -_mapValueToDepth(
+          _surfaceValueOf(ppHeData.first).clamp(minPpHe, maxPpHe),
+          chartMaxDepth,
+          minPpHe,
+          maxPpHe,
+        ),
+      ),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: ppHeColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4219,7 +4612,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // Held flat, and that is the calculated value: MOD is a property of the
+      // gas, not of depth, so it does not change between the surface and the
+      // first sample. Only a gas switch moves it.
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: false,
       color: modColor,
       barWidth: 2,
@@ -4252,9 +4648,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      // Gas density scales with ambient pressure, so the surface value is
+      // computed rather than held flat.
+      spots: _withSurfaceLeadIn(
+        spots,
+        -_mapValueToDepth(
+          _surfaceValueOf(densityData.first).clamp(minDensity, maxDensity),
+          chartMaxDepth,
+          minDensity,
+          maxDensity,
+        ),
+      ),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: densityColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4281,9 +4692,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: gfColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4310,9 +4726,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: surfaceGfColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4337,9 +4758,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: meanDepthColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4368,9 +4794,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: ttsColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4409,9 +4840,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: cnsColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4436,9 +4872,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return LineChartBarData(
-      spots: spots,
+      spots: _withFlatSurfaceLeadIn(spots),
       isCurved: true,
       curveSmoothness: 0.2,
+      // Only while a lead-in is drawn: that vertex is a sharp direction
+      // change and the spline would otherwise overshoot it and hook below
+      // the curve at the left edge. Dives already starting at t=0 keep
+      // their existing smoothing untouched.
+      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
       color: otuColor,
       barWidth: 2,
       isStrokeCapRound: true,
@@ -4922,11 +5363,14 @@ class DiveProfileMiniChart extends StatelessWidget {
           lineTouchData: const LineTouchData(enabled: false),
           lineBarsData: [
             LineChartBarData(
-              spots: profile
-                  .map(
-                    (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
-                  ) // Negate for inverted axis
-                  .toList(),
+              spots: [
+                // Descend from the surface so the silhouette reaches the left
+                // edge, matching the full chart (issue #684).
+                if (shouldDrawSurfaceLeadIn(profile)) const FlSpot(0, 0),
+                ...profile.map(
+                  (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
+                ), // Negate for inverted axis
+              ],
               // Straight segments preserve the actual sample-to-sample shape
               // (safety stops, multilevel ledges, abrupt descents). Catmull-
               // Rom smoothing flattens those short features into rounded

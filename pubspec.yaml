@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.6.1+116
+version: 1.7.3+120
 
 environment:
   sdk: ^3.10.0
@@ -73,6 +73,8 @@ dependencies:
     path: packages/submersion_saf
   submersion_ocr:
     path: packages/submersion_ocr
+  submersion_transcoder:
+    path: packages/submersion_transcoder
   permission_handler: ^12.0.1
   file_picker: ^11.0.2
   image_picker: ^1.1.2
@@ -126,6 +128,7 @@ dependencies:
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
+  flutter_web_auth_2: ^5.0.3
 
 dev_dependencies:
   flutter_test:
@@ -144,6 +147,7 @@ dev_dependencies:
   mockito: ^5.6.1
   plugin_platform_interface: ^2.1.8
   path_provider_platform_interface: ^2.1.3  # mock docs dir in db service tests
+  flutter_web_auth_2_platform_interface: ^5.0.0  # mock auth in redirect-capture test
   fake_async: ^1.3.3  # synthetic clock + Timer driving for unit tests
 
 dependency_overrides:

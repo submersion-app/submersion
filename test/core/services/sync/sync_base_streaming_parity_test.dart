@@ -127,6 +127,48 @@ Future<void> _seedRichLibrary() async {
     'rawFingerprint': Uint8List.fromList([0x01, 0x02, 0x03, 0xFE, 0xFF]),
   });
 
+  // Safety review marker + finding: covers the in-memory mergeOrder entries
+  // for both tables (a type missing from mergeOrder is dropped by the
+  // in-memory apply and would make the byte-for-byte comparison fail).
+  await serializer.upsertRecord('diveSafetyReviews', {
+    'diveId': 'd1',
+    'engineVersion': 1,
+    'reviewedAt': 1700000000000,
+  });
+  await serializer.upsertRecord('diveSafetyFindings', {
+    'id': 'sf-1',
+    'diveId': 'd1',
+    'ruleId': 'rapidAscent',
+    'severity': 'caution',
+    'startTimestamp': 100,
+    'endTimestamp': 140,
+    'value': 14.2,
+    'engineVersion': 1,
+    'createdAt': 1700000000000,
+  });
+
+  // User-added emergency chamber (HLC parent added in safety phase 3).
+  await serializer.upsertRecord('emergencyChambers', {
+    'id': 'chamber-1',
+    'name': 'Test Hyperbaric Unit',
+    'country': 'US',
+    'phone': '+1-555-0100',
+    'createdAt': 1700000000000,
+    'updatedAt': 1700000000000,
+  });
+
+  // Near-miss incident (HLC parent added in safety phase 4).
+  await serializer.upsertRecord('incidents', {
+    'id': 'incident-1',
+    'diveId': 'd1',
+    'occurredAt': 1700000000000,
+    'category': 'buoyancy',
+    'severity': 'minor',
+    'narrative': 'Runaway ascent from 5 m caught by buddy.',
+    'createdAt': 1700000000000,
+    'updatedAt': 1700000000000,
+  });
+
   // A tombstone so the deletions pass is exercised (best-effort: deleteDive
   // logs a deletion if the repository does so).
   await dives.createDive(

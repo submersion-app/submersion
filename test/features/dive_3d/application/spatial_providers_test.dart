@@ -76,10 +76,13 @@ void main() {
       dive: diveWithHeadings(),
       profile: headingProfile(),
     );
-    final scene = await container.read(spatialGeometryProvider('d1').future);
-    expect(scene, isNotNull);
-    expect(scene!.layers.length, 5);
+    final result = await container.read(spatialGeometryProvider('d1').future);
+    expect(result, isNotNull);
+    final scene = result!.scene;
+    expect(scene.layers.length, 5);
     expect(scene.scrubPath!.zs, isNotNull);
+    // No coordinates anywhere in this fixture -> synthesized terrain.
+    expect(result.bathymetrySourceId, isNull);
   });
 
   test('null when the dive has no profile', () async {

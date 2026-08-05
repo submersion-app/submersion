@@ -74,6 +74,45 @@ class MediaRepository {
     }
   }
 
+  /// Newest photos across all dives, ordered by takenAt descending.
+  /// Videos and signatures are excluded, as are photos not attached to a
+  /// dive (the dashboard ribbon links each tile to its dive, so an
+  /// unattached photo would render as a dead tile). Backs the dashboard
+  /// photo ribbon.
+  Future<List<domain.MediaItem>> getRecentPhotos({int limit = 12}) async {
+    try {
+      final query =
+          _db.select(_db.media).join([
+              leftOuterJoin(
+                _db.mediaEnrichment,
+                _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+              ),
+            ])
+            ..where(
+              _db.media.fileType.equals(
+                    _mediaTypeToString(domain.MediaType.photo),
+                  ) &
+                  _db.media.diveId.isNotNull(),
+            )
+            ..orderBy([OrderingTerm.desc(_db.media.takenAt)])
+            ..limit(limit);
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get recent photos',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Returns the device ID to record on a new MediaItem, or null if the
   /// source type is device-portable (gallery, URL, manifest, signature).
   ///
@@ -145,6 +184,11 @@ class MediaRepository {
               ),
               remoteThumbUploadedAt: Value(
                 item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
+              ),
+              compressedLevel: Value(item.compressedLevel),
+              compressedSizeBytes: Value(item.compressedSizeBytes),
+              remoteCompressedUploadedAt: Value(
+                item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
               ),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
@@ -221,6 +265,11 @@ class MediaRepository {
           ),
           remoteThumbUploadedAt: Value(
             item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
+          ),
+          compressedLevel: Value(item.compressedLevel),
+          compressedSizeBytes: Value(item.compressedSizeBytes),
+          remoteCompressedUploadedAt: Value(
+            item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
           ),
           updatedAt: Value(now),
         ),
@@ -656,6 +705,34 @@ class MediaRepository {
     }
   }
 
+  /// Get the set of local file paths already linked to a specific dive.
+  ///
+  /// The desktop counterpart to [getLinkedAssetIdsForDive]: Windows / Linux
+  /// imports are `localFile` rows with a null `platform_asset_id`, so the
+  /// asset-id query cannot see them and duplicate detection has to key on the
+  /// path instead. The path is also the more stable key -- the desktop
+  /// picker's synthetic asset id embeds the file's mtime, so it changes
+  /// whenever the file is touched.
+  Future<Set<String>> getLinkedLocalPathsForDive(String diveId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT local_path FROM media '
+            'WHERE dive_id = ? AND local_path IS NOT NULL',
+            variables: [Variable.withString(diveId)],
+          )
+          .get();
+      return result.map((row) => row.data['local_path'] as String).toSet();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get linked local paths for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get GPS coordinates from media attached to a dive.
   ///
   /// Returns a list of (latitude, longitude, takenAt) tuples from photos
@@ -896,26 +973,211 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// A media row is linked to the logbook when it references a dive or a
+  /// site (orphan-prevention spec section 3). Single definition shared by
+  /// backfill scoping, the dive-deletion cascade, and the orphan backlog
+  /// sweep so the three predicates cannot drift apart.
+  static Expression<bool> isLinkedToDiveOrSite($MediaTable m) =>
+      m.diveId.isNotNull() | m.siteId.isNotNull();
+
+  /// Source types whose rows are legitimate as library-level media with no
+  /// dive/site linkage (orphan-prevention spec section 3, gate audit
+  /// 2026-07-23): URL-tab and manifest-subscription imports. Auto-match is
+  /// additive for them, so unlinkedness is a normal permanent state - the
+  /// dive-deletion cascade unlinks instead of deleting, and the backlog
+  /// sweep never touches them.
+  static const List<String> libraryLevelSourceTypes = [
+    'networkUrl',
+    'manifestEntry',
+  ];
+
+  /// Splits a dying dive's media (orphan-prevention spec 4.2): `doomed`
+  /// rows die with the dive (dive-only, non-library; full items because
+  /// the blob-delete intent needs contentHash/filename/type), `unlinkIds`
+  /// survive as site-linked or library-level rows with diveId nulled.
+  Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
+  partitionMediaForDiveDeletion(List<String> diveIds) async {
+    // Not a correctness guard - SQLite accepts the `IN ()` an empty list
+    // compiles to and matches nothing - but bulk callers legitimately hand
+    // over empty collections (e.g. consolidation's secondary-dive set), and
+    // there is no reason to make the database prove that nothing matches.
+    // Matches [unlinkMediaFromDeletedDives]'s guard below.
+    if (diveIds.isEmpty) {
+      return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    final doomed = <domain.MediaItem>[];
+    final unlinkIds = <String>[];
+    for (final row in rows) {
+      final keep =
+          row.siteId != null ||
+          libraryLevelSourceTypes.contains(row.sourceType);
+      if (keep) {
+        unlinkIds.add(row.id);
+      } else {
+        doomed.add(_mapRowToMediaItem(row));
+      }
+    }
+    return (doomed: doomed, unlinkIds: unlinkIds);
+  }
+
+  /// Explicitly unlinks surviving media from deleted dives, with the HLC
+  /// stamp the old silent FK SET NULL never produced - so the unlink
+  /// propagates to other devices instead of diverging.
+  Future<void> unlinkMediaFromDeletedDives(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Backlog-sweep candidates (orphan-prevention spec 4.3): unlinked,
+  /// non-library, and created before [olderThan] (the 24h age guard
+  /// protects any future add-then-link creator the gate audit could not
+  /// foresee).
+  Future<List<String>> getSweepableOrphanIds({
+    required DateTime olderThan,
+  }) async {
+    final id = _db.media.id;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([id])
+      ..where(
+        isLinkedToDiveOrSite(_db.media).not() &
+            _db.media.sourceType.isNotIn(libraryLevelSourceTypes) &
+            _db.media.createdAt.isSmallerThanValue(
+              olderThan.millisecondsSinceEpoch,
+            ),
+      );
+    final rows = await query.get();
+    return rows.map((r) => r.read(id)!).toList();
+  }
+
+  /// Every distinct non-null content hash - the verify sweep's referenced
+  /// set (orphan-prevention spec 6.1). Same conservative rule as
+  /// [countRowsWithHash]: a hash counts whether or not its rows uploaded.
+  Future<Set<String>> getAllContentHashes() async {
+    final hash = _db.media.contentHash;
+    final query = _db.selectOnly(_db.media, distinct: true)
+      ..addColumns([hash])
+      ..where(hash.isNotNull());
+    final rows = await query.get();
+    return rows.map((r) => r.read(hash)!).toSet();
+  }
+
+  /// Rows with a content hash and at least one remote stamp, for the
+  /// verify sweep's reverse repair (orphan-prevention spec 6.2).
+  Future<
+    List<
+      ({
+        String id,
+        String contentHash,
+        bool hasOriginal,
+        bool hasThumb,
+        bool hasRendition,
+      })
+    >
+  >
+  getRemoteStampedSummaries() async {
+    // selectOnly projection: full rows would drag the imageData BLOB
+    // (signature bytes) into memory for every stamped row, and the verify
+    // sweep only needs five scalars.
+    final id = _db.media.id;
+    final hash = _db.media.contentHash;
+    final original = _db.media.remoteUploadedAt;
+    final thumb = _db.media.remoteThumbUploadedAt;
+    final rendition = _db.media.remoteCompressedUploadedAt;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([id, hash, original, thumb, rendition])
+      ..where(
+        hash.isNotNull() &
+            (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()),
+      );
+    final rows = await query.get();
+    return [
+      for (final row in rows)
+        (
+          id: row.read(id)!,
+          contentHash: row.read(hash)!,
+          hasOriginal: row.read(original) != null,
+          hasThumb: row.read(thumb) != null,
+          hasRendition: row.read(rendition) != null,
+        ),
+    ];
+  }
+
+  /// Clears a stale thumb stamp (verify sweep reverse repair). Mirrors
+  /// [clearRemoteUploaded].
+  Future<void> clearRemoteThumbUploaded(String mediaId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteThumbUploadedAt: const Value<int?>(null),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Backfill candidates (design spec section 9): device-resident photos
   /// not yet confirmed in the media store, newest first so recent dives
-  /// gain protection soonest.
+  /// gain protection soonest. Scoped to rows linked to a dive or site so
+  /// orphaned rows are never uploaded (orphan-prevention spec section 4.1).
   Future<List<String>> getBackfillCandidateIds() async {
     final id = _db.media.id;
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        (_db.media.remoteUploadedAt.isNull() &
-                _db.media.fileType.equals('photo') &
-                _db.media.sourceType.isIn([
-                  'platformGallery',
-                  'localFile',
-                  'serviceConnector',
-                ])) |
-            // Connector videos are thumb-only (no original in the store by
-            // design), so their backfill signal is the missing thumb stamp.
-            (_db.media.remoteThumbUploadedAt.isNull() &
-                _db.media.fileType.equals('video') &
-                _db.media.sourceType.equals('serviceConnector')),
+        isLinkedToDiveOrSite(_db.media) &
+            // Photos from any uploadable source.
+            ((_db.media.remoteUploadedAt.isNull() &
+                    _db.media.remoteCompressedUploadedAt.isNull() &
+                    _db.media.fileType.equals('photo') &
+                    _db.media.sourceType.isIn([
+                      'platformGallery',
+                      'localFile',
+                      'serviceConnector',
+                    ])) |
+                // Gallery and local videos upload their original, so a
+                // missing original stamp is their backfill signal. Without
+                // this branch a local video could never be uploaded after
+                // the fact and would show a permanent not-backed-up badge.
+                //
+                // serviceConnector is deliberately absent: connector videos
+                // are thumb-only and never get remoteUploadedAt, so
+                // including them here would re-enqueue them on every
+                // backfill run forever. They are covered by the thumb
+                // branch below.
+                (_db.media.remoteUploadedAt.isNull() &
+                    _db.media.remoteCompressedUploadedAt.isNull() &
+                    _db.media.fileType.equals('video') &
+                    _db.media.sourceType.isIn([
+                      'platformGallery',
+                      'localFile',
+                    ])) |
+                // Connector videos are thumb-only (no original in the store
+                // by design), so their backfill signal is the missing thumb
+                // stamp.
+                (_db.media.remoteThumbUploadedAt.isNull() &
+                    _db.media.fileType.equals('video') &
+                    _db.media.sourceType.equals('serviceConnector'))),
       )
       ..orderBy([OrderingTerm.desc(_db.media.takenAt)]);
     final rows = await query.get();
@@ -942,6 +1204,105 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Confirms a compressed rendition exists in the store, recording which
+  /// level produced it (first-writer-wins) and its byte size.
+  Future<void> stampRemoteCompressedUploaded(
+    String mediaId, {
+    required DateTime uploadedAt,
+    required String level,
+    required int sizeBytes,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+        compressedLevel: Value(level),
+        compressedSizeBytes: Value(sizeBytes),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Clears the original-upload stamp (used when a re-upload override
+  /// switches an item from original to compressed).
+  Future<void> clearRemoteUploaded(String mediaId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteUploadedAt: const Value<int?>(null),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Clears the compressed-rendition stamps (override switching to original).
+  Future<void> clearRemoteCompressed(String mediaId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteCompressedUploadedAt: const Value<int?>(null),
+        compressedLevel: const Value<String?>(null),
+        compressedSizeBytes: const Value<int?>(null),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Number of media rows sharing [contentHash] that still want the original
+  /// object (remote_uploaded_at set). Guards a targeted delete.
+  Future<int> countRowsWithOriginal(String contentHash) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(
+        _db.media.contentHash.equals(contentHash) &
+            _db.media.remoteUploadedAt.isNotNull(),
+      );
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
+  /// Number of media rows sharing [contentHash] that still want the rendition.
+  Future<int> countRowsWithRendition(String contentHash) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(
+        _db.media.contentHash.equals(contentHash) &
+            _db.media.remoteCompressedUploadedAt.isNotNull(),
+      );
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
+  /// Number of media rows referencing [contentHash] at all - uploaded or
+  /// not. The delete fast path's drain-time refcount (orphan-prevention
+  /// spec 5.3): deliberately broader than [countRowsWithOriginal] because
+  /// skipping a blob delete is free while a wrong delete costs a re-upload.
+  Future<int> countRowsWithHash(String contentHash) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.contentHash.equals(contentHash));
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
   domain.MediaItem _mapRowToMediaItem(
     MediaData row, [
     MediaEnrichmentData? enrichmentRow,
@@ -956,8 +1317,13 @@ class MediaRepository {
       mediaType: _parseMediaType(row.fileType),
       latitude: row.latitude,
       longitude: row.longitude,
+      // taken_at is stored as wall-clock-UTC millis (see the write path and the
+      // dive side, which reads entry_time with isUtc: true). Hydrate it as UTC
+      // so downstream normalisation (TripMediaScanner.toWallClockUtc, invoked by
+      // EnrichmentService.calculateEnrichment) is a no-op instead of shifting the
+      // photo time by the host's UTC offset.
       takenAt: row.takenAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.takenAt!)
+          ? DateTime.fromMillisecondsSinceEpoch(row.takenAt!, isUtc: true)
           : _defaultTakenAt(row.id),
       width: row.width,
       height: row.height,
@@ -993,6 +1359,11 @@ class MediaRepository {
           : null,
       remoteThumbUploadedAt: row.remoteThumbUploadedAt != null
           ? DateTime.fromMillisecondsSinceEpoch(row.remoteThumbUploadedAt!)
+          : null,
+      compressedLevel: row.compressedLevel,
+      compressedSizeBytes: row.compressedSizeBytes,
+      remoteCompressedUploadedAt: row.remoteCompressedUploadedAt != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.remoteCompressedUploadedAt!)
           : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

@@ -1,14 +1,21 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/display_zoom.dart';
+import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
+import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
+import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
@@ -78,6 +85,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     WidgetsBinding.instance.addObserver(this);
     _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
+    registerDisplayZoomMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
       onFileReceived: _handleIncomingFile,
       onError: (_) {
@@ -111,12 +119,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// NSApplicationDelegate.applicationShouldTerminate: on macOS) which is
   /// async and fires before the Dart VM begins isolate/FFI teardown. Without
   /// this, the Drift background isolate can outlive the FFI subsystem and
-  /// crash in sqlite3_close_v2 → functionDestroy.
+  /// crash in sqlite3_close_v2 → functionDestroy ("GetFfiCallbackMetadata
+  /// called after shutdown"), which stalls the quit. The close() calls run
+  /// sequentially — awaiting the databases in parallel is not worth racing
+  /// two shutdown sequences, and each one is bounded by its own timeouts
+  /// (see closeDatabaseForAppShutdown).
   Future<AppExitResponse> _closeDatabases() async {
-    await Future.wait([
-      DatabaseService.instance.close(),
-      LocalCacheDatabaseService.instance.close(),
-    ]);
+    await DatabaseService.instance.close();
+    await LocalCacheDatabaseService.instance.close();
     return AppExitResponse.exit;
   }
 
@@ -233,6 +243,21 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
+  void _onBackupOperationChanged(
+    BackupOperationState? prev,
+    BackupOperationState next,
+  ) {
+    // Fire once, on the transition into restoreComplete.
+    if (next.status != BackupOperationStatus.restoreComplete) return;
+    if (prev?.status == BackupOperationStatus.restoreComplete) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext == null) return;
+      RestoreCompletePage.show(navContext);
+    });
+  }
+
   Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
@@ -281,6 +306,17 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // post-restore "syncing" notice, and the replaced-library adopt prompt.
     ref.listen<SyncState>(syncStateProvider, _onSyncStateChanged);
 
+    // App-level restore completion: hand off to RestoreCompletePage from here
+    // rather than from whichever page triggered the restore. That page may be
+    // disposed (the user navigated away) by the time the restore finishes, in
+    // which case its own listener would never fire and the app would be
+    // stranded on a stale screen. Listening at the app root guarantees the
+    // hand-off -- and its restartApp() -- always happens.
+    ref.listen<BackupOperationState>(
+      backupOperationProvider,
+      _onBackupOperationChanged,
+    );
+
     return MaterialApp.router(
       scaffoldMessengerKey: _scaffoldMessengerKey,
       title: 'Submersion',
@@ -297,7 +333,40 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       routerConfig: router,
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
-        return child!;
+        // Block all interaction while a database restore runs, so no data page
+        // can rebuild against the transient null database mid-restore. Kept
+        // outside the zoom scope so the barrier stays a full-screen, unscaled
+        // overlay.
+        return RestoreBarrier(
+          child: Consumer(
+            builder: (context, ref, _) {
+              // Watched here rather than in build() so dragging the zoom
+              // slider rebuilds only this subtree, not all of MaterialApp.
+              final zoom = ref.watch(displayZoomNotifierProvider);
+              final notifier = ref.read(displayZoomNotifierProvider.notifier);
+              final useMeta =
+                  defaultTargetPlatform == TargetPlatform.macOS ||
+                  defaultTargetPlatform == TargetPlatform.iOS;
+
+              return CallbackShortcuts(
+                bindings: displayZoomShortcuts(
+                  onZoomIn: () => notifier.stepBy(1),
+                  onZoomOut: () => notifier.stepBy(-1),
+                  onReset: notifier.reset,
+                  useMetaModifier: useMeta,
+                ),
+                // CallbackShortcuts only fires for keystrokes inside its
+                // focused subtree, and nothing has focus on desktop
+                // cold-start, so the shortcuts would otherwise be dead until
+                // the user clicks something.
+                child: Focus(
+                  autofocus: true,
+                  child: DisplayZoomScope(zoom: zoom, child: child!),
+                ),
+              );
+            },
+          ),
+        );
       },
     );
   }

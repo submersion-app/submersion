@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -64,6 +65,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   bool _isSelectionMode = false;
   Set<int> _selectedIndices = {};
 
+  /// Media ids whose enrichment backfill we've already kicked off, so the
+  /// post-frame trigger fires once per item rather than on every rebuild.
+  final Set<String> _enrichAttempted = {};
+
   Future<void> _scanLightroom(BuildContext context) async {
     final dive = await ref
         .read(diveRepositoryProvider)
@@ -71,6 +76,47 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     if (dive == null || !context.mounted) return;
     await runLightroomScan(context, ref, [dive]);
   }
+
+  // coverage:ignore-start
+  // Post-frame provider glue: schedules a best-effort enrichment backfill so
+  // locally-linked media (which the file/folder picker links WITHOUT an
+  // enrichment row) gets positioned on the dive profile chart. The logic lives
+  // in DiveMediaEnricher (dive_media_enricher_test); this wiring — a post-frame
+  // callback plus a provider round-trip — is exercised by manual smoke tests,
+  // as flutter_test can't deterministically pump it. Idempotent and guarded by
+  // [_enrichAttempted] so it runs once per item, not on every rebuild.
+  void _scheduleEnrichmentBackfill(List<MediaItem>? items) {
+    if (items == null) return;
+    final missing = items
+        .where((m) => m.enrichment == null)
+        .map((m) => m.id)
+        .toSet();
+    if (missing.difference(_enrichAttempted).isEmpty) return;
+    _enrichAttempted.addAll(missing);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _runEnrichmentBackfill(),
+    );
+  }
+
+  Future<void> _runEnrichmentBackfill() async {
+    // The post-frame callback can fire after this state is disposed; touching
+    // `ref` then throws, so bail before using it rather than leaning on the
+    // catch-all below.
+    if (!mounted) return;
+    try {
+      final enriched = await ref
+          .read(diveMediaEnricherProvider)
+          .enrichMissingForDive(widget.diveId);
+      // Re-read so the grid and the profile chart (both watch
+      // mediaForDiveProvider) pick up the new markers.
+      if (enriched > 0 && mounted) {
+        ref.invalidate(mediaForDiveProvider(widget.diveId));
+      }
+    } catch (_) {
+      // Best-effort: a failure just leaves those markers absent this session.
+    }
+  }
+  // coverage:ignore-end
 
   void _exitSelectionMode() {
     setState(() {
@@ -258,6 +304,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   @override
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
+    _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
     final settings = ref.watch(settingsProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -305,7 +352,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.media_diveScan_scanTooltip,
                       onPressed: widget.onScanPressed,
                     ),
-                  if (ref.watch(lightroomAccountProvider).value != null)
+                  // Lightroom scan hidden pending Adobe review
+                  // (lightroomUiEnabled).
+                  if (lightroomUiEnabled &&
+                      ref.watch(lightroomAccountProvider).value != null)
                     IconButton(
                       icon: Icon(
                         Icons.cloud_sync_outlined,
@@ -402,7 +452,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
-            LightroomSuggestionsRow(diveId: widget.diveId),
+            // Lightroom suggestions hidden pending Adobe review
+            // (lightroomUiEnabled).
+            if (lightroomUiEnabled)
+              LightroomSuggestionsRow(diveId: widget.diveId),
           ],
         ),
       ),

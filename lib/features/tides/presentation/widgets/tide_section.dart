@@ -366,17 +366,17 @@ class _TideSectionContent extends ConsumerWidget {
       windowEnd = now.add(const Duration(hours: 12));
     }
 
-    final startLocal = windowStart.toLocal();
-    final endLocal = windowEnd.toLocal();
-    final dateStr = DateFormat('EEE, MMM d').format(startLocal);
-    final startTimeStr = DateFormat(timeFormat.pattern).format(startLocal);
-    final endTimeStr = DateFormat(timeFormat.pattern).format(endLocal);
+    // Window bounds are stored wall-clock instants, not device-local times:
+    // format them verbatim without any timezone conversion.
+    final dateStr = DateFormat('EEE, MMM d').format(windowStart);
+    final startTimeStr = DateFormat(timeFormat.pattern).format(windowStart);
+    final endTimeStr = DateFormat(timeFormat.pattern).format(windowEnd);
     final spansNewDay =
-        startLocal.year != endLocal.year ||
-        startLocal.month != endLocal.month ||
-        startLocal.day != endLocal.day;
+        windowStart.year != windowEnd.year ||
+        windowStart.month != windowEnd.month ||
+        windowStart.day != windowEnd.day;
     final timeRange = spansNewDay
-        ? '$startTimeStr - $endTimeStr (${DateFormat('MMM d').format(endLocal)})'
+        ? '$startTimeStr - $endTimeStr (${DateFormat('MMM d').format(windowEnd)})'
         : '$startTimeStr - $endTimeStr';
 
     return Text(

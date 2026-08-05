@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_startup_migration.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
@@ -250,5 +251,35 @@ void main() {
     await (await migration(prefs)).run();
 
     expect((await accounts.getAll()).length, countAfterFirst);
+  });
+
+  test('migrated iCloud sync account lands on the deterministic id', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await SyncRepository().setCloudProvider(CloudProviderType.icloud);
+
+    await (await migration(prefs)).run();
+
+    final all = await accounts.getAll();
+    expect(all.length, 1);
+    expect(
+      all.single.id,
+      accountIdFor(kind: AccountKind.icloud, naturalKey: 'icloud'),
+    );
+  });
+
+  test('a fresh connect after migration reuses the migrated row', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await SyncRepository().setCloudProvider(CloudProviderType.icloud);
+    await (await migration(prefs)).run();
+
+    await accounts.ensure(
+      kind: AccountKind.icloud,
+      naturalKey: 'icloud',
+      label: 'iCloud',
+    );
+
+    expect((await accounts.getAll()).length, 1);
   });
 }

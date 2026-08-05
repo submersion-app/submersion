@@ -389,6 +389,24 @@ class ShearwaterDiveMapper {
       if (s.ppo2 != null) {
         sampleMap['ppO2'] = s.ppo2;
       }
+      // Per-cell CCR ppO2. libdivecomputer reports DC_SAMPLE_PPO2 once per
+      // cell plus optionally once for the aggregate, and the native callback
+      // keeps them apart; carry both, as the download path does. A dive whose
+      // computer logs cells but no aggregate has its loop value averaged from
+      // these downstream (resolveRebreatherPpO2), so they must survive alone.
+      final cells = <double?>[
+        s.o2Sensor1,
+        s.o2Sensor2,
+        s.o2Sensor3,
+        s.o2Sensor4,
+        s.o2Sensor5,
+        s.o2Sensor6,
+      ];
+      for (var cell = 0; cell < cells.length; cell++) {
+        if (cells[cell] != null) {
+          sampleMap['o2Sensor${cell + 1}'] = cells[cell];
+        }
+      }
       if (s.heartRate != null) {
         sampleMap['heartRate'] = s.heartRate;
       }

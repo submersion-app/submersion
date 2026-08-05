@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart'
     show DiveListTile;
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -46,10 +47,19 @@ class DiveListItem extends ConsumerWidget {
   final bool isSelected;
   final bool isHighlighted;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Required rather than optional: every list that renders dives must build
+  /// one via [watchDiveTypeLabelResolver], once above its item builder. Making
+  /// it optional would let a new list silently fall back to English dive-type
+  /// names, which is the bug #643 fixed.
+  final DiveTypeLabelResolver diveTypeLabelResolver;
+
   const DiveListItem({
     super.key,
     required this.summary,
     required this.diveNumber,
+    required this.diveTypeLabelResolver,
     this.fullDive,
     this.colorValue,
     this.minValueInList,
@@ -109,6 +119,7 @@ class DiveListItem extends ConsumerWidget {
           dateField: _slotField(slots, 'date', DiveField.dateTime),
           stat1Field: _slotField(slots, 'stat1', DiveField.maxDepth),
           stat2Field: _slotField(slots, 'stat2', DiveField.bottomTime),
+          diveTypeLabelResolver: diveTypeLabelResolver,
           onTap: onTap,
           onLongPress: onLongPress,
         );
@@ -141,6 +152,7 @@ class DiveListItem extends ConsumerWidget {
           onLongPress: onLongPress,
           summary: summary,
           fullDive: fullDive,
+          diveTypeLabelResolver: diveTypeLabelResolver,
         );
     }
   }

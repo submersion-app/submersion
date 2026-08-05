@@ -163,22 +163,49 @@ class AssetResolutionService {
       );
     }
 
-    // Tier 2: timestamp + dimensions
-    final tier2Match = matchByTimestampAndDimensions(item, candidates);
-    if (tier2Match != null) {
+    // Tier 2: exact capture second + dimensions. This runs BEFORE the fuzzy
+    // window below because widening the window destroys the signal for an
+    // interval/burst sequence: frames shot every two seconds share their
+    // dimensions and carry no usable filename, so +-2s sees the neighbours and
+    // gives up, while the exact second identifies the frame outright. Capture
+    // timestamps survive an iCloud round-trip unchanged, so an exact hit is
+    // trustworthy even when the asset ID came from another device.
+    final exactMatch = matchByTimestampAndDimensions(
+      item,
+      candidates,
+      tolerance: Duration.zero,
+    );
+    if (exactMatch != null) {
       await _cacheRepository.cacheResolution(
         mediaId: item.id,
-        localAssetId: tier2Match,
-        method: 'timestamp_dimensions',
+        localAssetId: exactMatch,
+        method: 'exact_timestamp_dimensions',
       );
-      _log.info('Resolved via timestamp+dimensions: $tier2Match');
+      _log.info('Resolved via exact timestamp+dimensions: $exactMatch');
       return ResolutionResult(
-        localAssetId: tier2Match,
+        localAssetId: exactMatch,
         status: ResolutionStatus.resolved,
       );
     }
 
-    // Tier 3: unresolved
+    // Tier 3: timestamp within +-2s + dimensions, for rows whose stored
+    // capture time drifted from the gallery's (re-imports, editors that
+    // rewrite EXIF).
+    final tier3Match = matchByTimestampAndDimensions(item, candidates);
+    if (tier3Match != null) {
+      await _cacheRepository.cacheResolution(
+        mediaId: item.id,
+        localAssetId: tier3Match,
+        method: 'timestamp_dimensions',
+      );
+      _log.info('Resolved via timestamp+dimensions: $tier3Match');
+      return ResolutionResult(
+        localAssetId: tier3Match,
+        status: ResolutionStatus.resolved,
+      );
+    }
+
+    // Tier 4: unresolved
     await _cacheUnresolved(item.id);
     _log.info('Could not resolve media ${item.id} -- marked unresolved');
     return const ResolutionResult(status: ResolutionStatus.unavailable);
@@ -264,14 +291,24 @@ class AssetResolutionService {
 
   /// Tier 1: Match by original filename and timestamp within +/-5 seconds.
   /// Returns the matching asset ID, or null if zero or multiple matches.
+  ///
+  /// An EMPTY filename counts as absent, on either side. photo_manager's
+  /// darwin layer serializes an asset title as "" (not null) unless
+  /// FilterOption.needTitle is set, and imports store that "" verbatim, so
+  /// without this guard a null-only check lets '' == '' satisfy the filename
+  /// test and quietly degrades this tier into a timestamp-only match that can
+  /// bind the wrong asset.
   static String? matchByFilenameAndTimestamp(
     MediaItem item,
     List<AssetInfo> candidates,
   ) {
-    if (item.originalFilename == null) return null;
+    final filename = item.originalFilename;
+    if (filename == null || filename.isEmpty) return null;
 
     final matches = candidates.where((c) {
-      if (c.filename != item.originalFilename) return false;
+      final candidateName = c.filename;
+      if (candidateName == null || candidateName.isEmpty) return false;
+      if (candidateName != filename) return false;
       final diff = c.createDateTime.difference(item.takenAt).abs();
       return diff <= const Duration(seconds: 5);
     }).toList();
@@ -279,21 +316,52 @@ class AssetResolutionService {
     return matches.length == 1 ? matches.first.id : null;
   }
 
-  /// Tier 2: Match by dimensions and timestamp within +/-2 seconds.
+  /// Tier 2/3: Match by dimensions and timestamp within [tolerance].
   /// Returns the matching asset ID, or null if zero or multiple matches.
+  ///
+  /// [tolerance] is caller-supplied because the two useful widths trade off
+  /// against each other. [Duration.zero] demands the exact capture second,
+  /// which is what separates the frames of an interval/burst sequence
+  /// (identical dimensions, no usable filename, neighbours a second or two
+  /// away); the default +-2s absorbs clock drift between the stored row and
+  /// the gallery but sees those neighbours and refuses to guess.
   static String? matchByTimestampAndDimensions(
     MediaItem item,
-    List<AssetInfo> candidates,
-  ) {
+    List<AssetInfo> candidates, {
+    Duration tolerance = const Duration(seconds: 2),
+  }) {
     if (item.width == null || item.height == null) return null;
 
+    final itemSecond = _truncateToSecond(item.takenAt);
     final matches = candidates.where((c) {
       if (c.width != item.width || c.height != item.height) return false;
-      final diff = c.createDateTime.difference(item.takenAt).abs();
-      return diff <= const Duration(seconds: 2);
+      final diff = _truncateToSecond(
+        c.createDateTime,
+      ).difference(itemSecond).abs();
+      return diff <= tolerance;
     }).toList();
 
     return matches.length == 1 ? matches.first.id : null;
+  }
+
+  /// Both sides are compared at second granularity so [Duration.zero] means
+  /// "the same capture second" rather than "the same instant".
+  ///
+  /// The two sides do not carry the same precision: photo_manager derives
+  /// createDateTime from an integer `createDateSecond`, so a gallery candidate
+  /// can never have a sub-second component, while a stored takenAt is epoch
+  /// MILLISECONDS and could acquire one from a non-gallery import path. Without
+  /// this, such a row could never satisfy the exact tier - no candidate would
+  /// be reachable - and it would silently fall through to the ambiguous fuzzy
+  /// window that this tier exists to bypass.
+  static DateTime _truncateToSecond(DateTime t) {
+    final micros = t.microsecondsSinceEpoch;
+    // Dart's % is non-negative for a positive divisor, so this floors
+    // correctly on both sides of the epoch.
+    return DateTime.fromMicrosecondsSinceEpoch(
+      micros - (micros % Duration.microsecondsPerSecond),
+      isUtc: t.isUtc,
+    );
   }
 }
 
