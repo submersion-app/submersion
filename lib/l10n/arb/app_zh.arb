@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "从 Garmin 设备导入",
   "diveSites_list_menu_select": "选择潜水点",
   "diveLog_edit_geofenceSuggestion_near": "靠近 {location}",
   "diveLog_edit_geofenceSuggestion_title": "装备建议",

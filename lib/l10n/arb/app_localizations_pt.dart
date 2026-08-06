@@ -18070,6 +18070,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'Escolher pasta';
 
   @override
+  String get universalImport_action_importFromGarmin =>
+      'Importar do dispositivo Garmin';
+
+  @override
   String get universalImport_triage_title => 'Arquivos a importar';
 
   @override

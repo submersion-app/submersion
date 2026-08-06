@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "Importeren vanaf Garmin-apparaat",
   "diveSites_list_menu_select": "Duikstekken selecteren",
   "diveLog_edit_geofenceSuggestion_near": "Bij {location}",
   "diveLog_edit_geofenceSuggestion_title": "Uitrustingssuggestie",

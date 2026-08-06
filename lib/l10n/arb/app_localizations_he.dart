@@ -17608,6 +17608,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'בחירת תיקייה';
 
   @override
+  String get universalImport_action_importFromGarmin => 'ייבוא מהתקן Garmin';
+
+  @override
   String get universalImport_triage_title => 'קבצים לייבוא';
 
   @override

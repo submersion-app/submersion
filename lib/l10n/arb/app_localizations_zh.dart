@@ -17158,6 +17158,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_action_chooseFolder => '选择文件夹';
 
   @override
+  String get universalImport_action_importFromGarmin => '从 Garmin 设备导入';
+
+  @override
   String get universalImport_triage_title => '要导入的文件';
 
   @override

@@ -18009,6 +18009,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'Mappa kiválasztása';
 
   @override
+  String get universalImport_action_importFromGarmin =>
+      'Importálás Garmin eszközről';
+
+  @override
   String get universalImport_triage_title => 'Importálandó fájlok';
 
   @override

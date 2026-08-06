@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "Importer depuis l'appareil Garmin",
   "diveSites_list_menu_select": "Sélectionner des sites",
   "diveLog_edit_geofenceSuggestion_near": "Près de {location}",
   "diveLog_edit_geofenceSuggestion_title": "Suggestion d'équipement",

@@ -18076,6 +18076,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'Elegir carpeta';
 
   @override
+  String get universalImport_action_importFromGarmin =>
+      'Importar desde dispositivo Garmin';
+
+  @override
   String get universalImport_triage_title => 'Archivos a importar';
 
   @override

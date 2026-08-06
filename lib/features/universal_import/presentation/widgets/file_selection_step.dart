@@ -66,6 +66,21 @@ class FileSelectionStep extends ConsumerWidget {
                           .pickFolder(),
               ),
             ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.watch),
+                label: Text(
+                  context.l10n.universalImport_action_importFromGarmin,
+                ),
+                onPressed: state.isLoading
+                    ? null
+                    : () => ref
+                          .read(universalImportNotifierProvider.notifier)
+                          .importFromGarminDevice(),
+              ),
+            ),
           ],
           if (state.error != null) ...[
             const SizedBox(height: 16),

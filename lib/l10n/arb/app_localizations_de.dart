@@ -18029,6 +18029,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'Ordner auswählen';
 
   @override
+  String get universalImport_action_importFromGarmin =>
+      'Von Garmin-Gerät importieren';
+
+  @override
   String get universalImport_triage_title => 'Zu importierende Dateien';
 
   @override
