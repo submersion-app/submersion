@@ -297,6 +297,23 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
             }
           }
         }
+
+        // First-sync cutoff default (tier-1 filter): a downloaded dive at or
+        // before the diver's cutoff is pre-selected to skip and never left
+        // for review, using the exact same mechanism as the
+        // matchedExistingSource default above. An index that is both
+        // matched and auto-skipped is idempotent here -- setting the same
+        // map entry and removing from the same sets twice has no additional
+        // effect -- so it ends up skipped once, not double-handled.
+        final autoSkipIndices = group.autoSkipIndices;
+        if (autoSkipIndices != null) {
+          for (final index in autoSkipIndices) {
+            duplicateActions.putIfAbsent(type, () => {})[index] =
+                DuplicateAction.skip;
+            selections[type] = selections[type]!.difference({index});
+            pendingForType = pendingForType.difference({index});
+          }
+        }
       }
 
       if (pendingForType.isNotEmpty) {
@@ -319,24 +336,43 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // -------------------------------------------------------------------------
 
   /// Toggle the selection of a single item.
+  ///
+  /// When [index] is being turned on and it is NOT a genuine duplicate (i.e.
+  /// it is absent from [EntityGroup.duplicateIndices]), this also clears any
+  /// [DuplicateAction.skip] seeded for it by [setBundle]'s first-sync-cutoff
+  /// auto-skip default. Without this, re-selecting a rescued row from the
+  /// collapsed "older dives" section would leave the stale skip action in
+  /// place, and [ImportSourceAdapter.performImport] would silently drop the
+  /// dive even though the UI shows it as selected for import. Genuine
+  /// duplicate rows never reach this path with a meaningful action — their
+  /// action is set via [setDuplicateAction] from `DuplicateActionCard` — so
+  /// this can't clobber a user's duplicate-resolution choice.
   void toggleSelection(ImportEntityType type, int index) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
-    if (updated.contains(index)) {
-      updated.remove(index);
-    } else {
+    final isSelecting = !updated.contains(index);
+    if (isSelecting) {
       updated.add(index);
+    } else {
+      updated.remove(index);
     }
 
     final updatedPending = _drainPending(type, {index});
+    final updatedActions = _clearSeededSkip(type, {index}, isSelecting);
 
     state = state.copyWith(
       selections: {...state.selections, type: updated},
+      duplicateActions: updatedActions,
       pendingDuplicateReview: updatedPending,
     );
   }
 
   /// Select all non-duplicate items for [type].
+  ///
+  /// Also clears any [DuplicateAction.skip] seeded by the first-sync-cutoff
+  /// auto-skip default (see [toggleSelection]) for every newly-selected
+  /// index, so a bulk "Select All" rescues auto-skipped rows the same way a
+  /// single tap does.
   void selectAll(ImportEntityType type) {
     final group = state.bundle?.groups[type];
     if (group == null) return;
@@ -345,10 +381,49 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       List.generate(group.items.length, (i) => i),
     );
     final nonDuplicates = allIndices.difference(group.duplicateIndices);
+    final updatedActions = _clearSeededSkip(type, nonDuplicates, true);
 
     state = state.copyWith(
       selections: {...state.selections, type: nonDuplicates},
+      duplicateActions: updatedActions,
     );
+  }
+
+  /// Removes a seeded [DuplicateAction.skip] for any of [indices] that are
+  /// NOT genuine duplicates, when [isSelecting] is true.
+  ///
+  /// Used by [toggleSelection] and [selectAll] to undo the first-sync-cutoff
+  /// auto-skip default (see [setBundle]) the moment the user re-selects one
+  /// of those rows. Indices in `group.duplicateIndices` are always left
+  /// alone -- their action is owned by [setDuplicateAction] via
+  /// `DuplicateActionCard`, never by this selection path.
+  Map<ImportEntityType, Map<int, DuplicateAction>> _clearSeededSkip(
+    ImportEntityType type,
+    Set<int> indices,
+    bool isSelecting,
+  ) {
+    if (!isSelecting) return state.duplicateActions;
+
+    final group = state.bundle?.groups[type];
+    if (group == null) return state.duplicateActions;
+
+    final actionsForType = state.duplicateActions[type];
+    if (actionsForType == null || actionsForType.isEmpty) {
+      return state.duplicateActions;
+    }
+
+    final toClear = indices.where(
+      (i) =>
+          !group.duplicateIndices.contains(i) &&
+          actionsForType[i] == DuplicateAction.skip,
+    );
+    if (toClear.isEmpty) return state.duplicateActions;
+
+    final updated = Map<int, DuplicateAction>.from(actionsForType);
+    for (final i in toClear) {
+      updated.remove(i);
+    }
+    return {...state.duplicateActions, type: updated};
   }
 
   /// Deselect all items for [type].

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show Platform, HttpClient;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -35,6 +35,58 @@ class LocationResult {
 
 /// Service for handling device GPS location and geocoding
 class LocationService {
+  /// Nominatim reverse-geocode URI. accept-language pins results to English
+  /// so country/region strings group consistently in statistics (#214).
+  static Uri buildReverseGeocodeUri(double latitude, double longitude) =>
+      Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?format=json'
+        '&lat=$latitude&lon=$longitude&zoom=10&accept-language=en',
+      );
+
+  /// Nominatim forward-geocode URI, English-pinned like the reverse path.
+  static Uri buildForwardGeocodeUri(String address) => Uri.parse(
+    'https://nominatim.openstreetmap.org/search?format=json'
+    '&q=${Uri.encodeComponent(address)}&limit=1&addressdetails=1'
+    '&accept-language=en',
+  );
+
+  /// The platform geocoder answers in the DEVICE locale unless pinned,
+  /// which stored 'Spanien' on German phones and 'España' on Spanish ones
+  /// for the same country (#214). Pin once per process.
+  ///
+  /// Memoizes the in-flight future rather than a bool so concurrent callers
+  /// share one `setLocaleIdentifier` call instead of racing past a flag that
+  /// is only set after the await.
+  static Future<void>? _geocoderLocalePin;
+
+  /// Routes reverse geocoding through the platform geocoder.
+  ///
+  /// True on mobile in production. `Platform.isIOS`/`isAndroid` are
+  /// natively-resolved statics with no override hook, so the mobile branch
+  /// is otherwise unreachable on a desktop test host -- including the
+  /// locale pin below, whose single-call and retry-after-failure contracts
+  /// are the part of #214 most worth asserting.
+  @visibleForTesting
+  static bool debugForceNativeGeocoder = false;
+
+  static bool get _useNativeGeocoder => debugForceNativeGeocoder || _isMobile;
+
+  /// Resets the memoized locale pin. Tests only.
+  @visibleForTesting
+  static void debugResetGeocoderLocalePin() => _geocoderLocalePin = null;
+
+  /// Pin the platform geocoder to English, at most once per process.
+  ///
+  /// A failed attempt clears the memo so a later call retries. Callers treat
+  /// a failed pin as non-fatal: geocoding still runs, just unpinned.
+  static Future<void> _pinGeocoderLocale() {
+    return _geocoderLocalePin ??= Future<void>(() => setLocaleIdentifier('en'))
+        .onError<Object>((error, stackTrace) {
+          _geocoderLocalePin = null;
+          Error.throwWithStackTrace(error, stackTrace);
+        });
+  }
+
   static final _log = LoggerService.forClass(LocationService);
   static LocationService? _instance;
 
@@ -193,8 +245,9 @@ class LocationService {
       _log.info('Reverse geocoding: $latitude, $longitude');
 
       // Try native geocoding first (works on iOS/Android)
-      if (_isMobile) {
+      if (_useNativeGeocoder) {
         try {
+          await _pinGeocoderLocale();
           final placemarks = await placemarkFromCoordinates(
             latitude,
             longitude,
@@ -227,38 +280,43 @@ class LocationService {
   Future<({String? country, String? region, String? locality})>
   _reverseGeocodeWeb(double latitude, double longitude) async {
     try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=10',
-      );
+      final url = buildReverseGeocodeUri(latitude, longitude);
 
       final client = HttpClient();
       client.userAgent = 'Submersion Dive Log App';
 
-      final request = await client.getUrl(url);
-      final response = await request.close();
+      // Close in a finally so the client's sockets are released even when
+      // the response body or JSON decode throws.
+      try {
+        final request = await client.getUrl(url);
+        request.headers.set('Accept-Language', 'en');
+        final response = await request.close();
 
-      if (response.statusCode == 200) {
-        final body = await response.transform(utf8.decoder).join();
-        final json = jsonDecode(body) as Map<String, dynamic>;
-        final address = json['address'] as Map<String, dynamic>?;
+        if (response.statusCode == 200) {
+          final body = await response.transform(utf8.decoder).join();
+          final json = jsonDecode(body) as Map<String, dynamic>;
+          final address = json['address'] as Map<String, dynamic>?;
 
-        if (address != null) {
-          final country = address['country'] as String?;
-          final region =
-              address['state'] as String? ??
-              address['province'] as String? ??
-              address['region'] as String?;
-          final locality =
-              address['city'] as String? ??
-              address['town'] as String? ??
-              address['village'] as String?;
+          if (address != null) {
+            final country = address['country'] as String?;
+            final region =
+                address['state'] as String? ??
+                address['province'] as String? ??
+                address['region'] as String?;
+            final locality =
+                address['city'] as String? ??
+                address['town'] as String? ??
+                address['village'] as String?;
 
-          _log.info('Web geocoded: $locality, $region, $country');
-          return (country: country, region: region, locality: locality);
+            _log.info('Web geocoded: $locality, $region, $country');
+            return (country: country, region: region, locality: locality);
+          }
         }
-      }
 
-      return (country: null, region: null, locality: null);
+        return (country: null, region: null, locality: null);
+      } finally {
+        client.close();
+      }
     } catch (e) {
       _log.warning('Web reverse geocoding failed: $e');
       return (country: null, region: null, locality: null);
@@ -275,50 +333,55 @@ class LocationService {
     try {
       _log.info('Forward geocoding address: $address');
 
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}&limit=1&addressdetails=1',
-      );
+      final url = buildForwardGeocodeUri(address);
 
       final client = HttpClient();
       client.userAgent = 'Submersion Dive Log App';
 
-      final request = await client.getUrl(url);
-      final response = await request.close();
+      // Close in a finally so the client's sockets are released even when
+      // the response body or JSON decode throws.
+      try {
+        final request = await client.getUrl(url);
+        request.headers.set('Accept-Language', 'en');
+        final response = await request.close();
 
-      if (response.statusCode == 200) {
-        final body = await response.transform(utf8.decoder).join();
-        final json = jsonDecode(body) as List<dynamic>;
+        if (response.statusCode == 200) {
+          final body = await response.transform(utf8.decoder).join();
+          final json = jsonDecode(body) as List<dynamic>;
 
-        if (json.isNotEmpty) {
-          final result = json.first as Map<String, dynamic>;
-          final lat = double.tryParse(result['lat'] as String? ?? '');
-          final lon = double.tryParse(result['lon'] as String? ?? '');
+          if (json.isNotEmpty) {
+            final result = json.first as Map<String, dynamic>;
+            final lat = double.tryParse(result['lat'] as String? ?? '');
+            final lon = double.tryParse(result['lon'] as String? ?? '');
 
-          if (lat != null && lon != null) {
-            final addressDetails =
-                result['address'] as Map<String, dynamic>? ?? {};
-            final country = addressDetails['country'] as String?;
-            final region =
-                addressDetails['state'] as String? ??
-                addressDetails['province'] as String? ??
-                addressDetails['region'] as String?;
-            final locality =
-                addressDetails['city'] as String? ??
-                addressDetails['town'] as String? ??
-                addressDetails['village'] as String?;
+            if (lat != null && lon != null) {
+              final addressDetails =
+                  result['address'] as Map<String, dynamic>? ?? {};
+              final country = addressDetails['country'] as String?;
+              final region =
+                  addressDetails['state'] as String? ??
+                  addressDetails['province'] as String? ??
+                  addressDetails['region'] as String?;
+              final locality =
+                  addressDetails['city'] as String? ??
+                  addressDetails['town'] as String? ??
+                  addressDetails['village'] as String?;
 
-            _log.info(
-              'Forward geocoded: $lat, $lon ($locality, $region, $country)',
-            );
-            return LocationResult(
-              latitude: lat,
-              longitude: lon,
-              country: country,
-              region: region,
-              locality: locality,
-            );
+              _log.info(
+                'Forward geocoded: $lat, $lon ($locality, $region, $country)',
+              );
+              return LocationResult(
+                latitude: lat,
+                longitude: lon,
+                country: country,
+                region: region,
+                locality: locality,
+              );
+            }
           }
         }
+      } finally {
+        client.close();
       }
 
       _log.warning('Forward geocoding returned no results for: $address');

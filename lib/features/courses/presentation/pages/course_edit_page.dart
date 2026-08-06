@@ -13,6 +13,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -393,13 +394,21 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
     BuildContext context, {
     required bool isStart,
   }) async {
-    final initialDate = isStart
+    final firstDate = isStart ? DateTime(1950) : _startDate;
+    final lastDate = DateTime(2100);
+    // Clamp into [firstDate, lastDate]: a completion date defaults to today,
+    // which precedes a future start date and would trip showDatePicker's
+    // initialDate assertion.
+    var initialDate = isStart
         ? _startDate
         : (_completionDate ?? DateTime.now());
-    final firstDate = isStart ? DateTime(1950) : _startDate;
-    final lastDate = DateTime.now().add(const Duration(days: 365));
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
 
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,

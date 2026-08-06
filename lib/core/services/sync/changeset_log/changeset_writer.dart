@@ -123,6 +123,7 @@ class ChangesetWriter {
           uploadNonce: uploadNonce,
           appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
+          schemaVersion: AppDatabase.currentSchemaVersion,
         );
         await _writeManifest(provider, folderId, deviceId, manifest);
         await _publishState.upsert(
@@ -181,6 +182,7 @@ class ChangesetWriter {
           uploadNonce: ownManifest.uploadNonce,
           appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
+          schemaVersion: AppDatabase.currentSchemaVersion,
         );
         await _writeManifest(provider, folderId, deviceId, beat);
         return ChangesetWriteResult(
@@ -211,6 +213,7 @@ class ChangesetWriter {
       uploadNonce: uploadNonce,
       appliedPeerHlc: appliedPeerHlc,
       updatedAt: now,
+      schemaVersion: AppDatabase.currentSchemaVersion,
     );
     await _writeManifest(provider, folderId, deviceId, manifest);
     await _publishState.upsert(
@@ -359,6 +362,7 @@ class ChangesetWriter {
       uploadNonce: uploadNonce,
       appliedPeerHlc: appliedPeerHlc,
       updatedAt: now,
+      schemaVersion: AppDatabase.currentSchemaVersion,
     );
     await _writeManifest(provider, folderId, deviceId, manifest);
     await _publishState.upsert(

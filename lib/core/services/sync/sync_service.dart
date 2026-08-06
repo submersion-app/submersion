@@ -65,6 +65,10 @@ class SyncResult {
   /// can be safely merged.
   final Set<String> skippedPeerDeviceIds;
 
+  /// Peers held because they publish from a newer database schema than this
+  /// build understands. Their data applies after this device updates.
+  final Set<String> newerSchemaPeerDeviceIds;
+
   /// Set with [SyncResultStatus.awaitingAdoption]: the cloud library was
   /// replaced under this marker's epoch and the user must adopt (or defer)
   /// before any sync can proceed.
@@ -78,6 +82,7 @@ class SyncResult {
     this.lastSyncTime,
     this.adoptedFreshIdentity = false,
     this.skippedPeerDeviceIds = const {},
+    this.newerSchemaPeerDeviceIds = const {},
     this.replaceMarker,
   });
 
@@ -370,6 +375,49 @@ class SyncService {
   /// pull peers (epoch-filtered) -> publish our delta (epoch-stamped) ->
   /// advance state. Re-pulls are idempotent (upsert + HLC), so a partial apply
   /// leaves state unadvanced and retries next sync rather than losing records.
+  /// Builds the user-facing result messages for a completed pull. Extracted
+  /// so the phrasing and precedence (failures suppress peer notices) are
+  /// unit-testable without a full sync.
+  @visibleForTesting
+  static List<String> pullResultMessages({
+    required int recordsFailed,
+    required Set<String> skippedPeerDeviceIds,
+    required Set<String> newerSchemaPeerDeviceIds,
+    required bool adoptedFreshIdentity,
+  }) {
+    final resultMessages = <String>[];
+    if (recordsFailed > 0) {
+      final recordWord = recordsFailed == 1 ? 'record' : 'records';
+      resultMessages.add('$recordsFailed $recordWord failed to apply');
+      return resultMessages;
+    }
+    final skippedCount = skippedPeerDeviceIds.length;
+    if (skippedCount > 0) {
+      final deviceWord = skippedCount == 1 ? 'device' : 'devices';
+      final verb = skippedCount == 1 ? 'has' : 'have';
+      resultMessages.add(
+        '$skippedCount $deviceWord still $verb an older or unknown '
+        'library version and were not merged. Those devices must adopt '
+        'the current library.',
+      );
+    }
+    final newerCount = newerSchemaPeerDeviceIds.length;
+    if (newerCount > 0) {
+      final phrase = newerCount == 1 ? 'device runs' : 'devices run';
+      resultMessages.add(
+        '$newerCount $phrase a newer version of Submersion; their latest '
+        'changes were not merged. Update this device to receive them.',
+      );
+    }
+    if (adoptedFreshIdentity) {
+      resultMessages.add(
+        'Another device was syncing with this device\'s identity. '
+        'This device adopted a new identity and merged the cloud data.',
+      );
+    }
+    return resultMessages;
+  }
+
   Future<SyncResult> performSync() async {
     final provider = _cloudProvider;
     if (provider == null) {
@@ -618,28 +666,12 @@ class SyncService {
       }
 
       _reportProgress(SyncPhase.complete, 1.0, 'Sync complete');
-      final resultMessages = <String>[];
-      if (recordsFailed > 0) {
-        final recordWord = recordsFailed == 1 ? 'record' : 'records';
-        resultMessages.add('$recordsFailed $recordWord failed to apply');
-      } else {
-        final skippedCount = pullResult.skippedPeerDeviceIds.length;
-        if (skippedCount > 0) {
-          final deviceWord = skippedCount == 1 ? 'device' : 'devices';
-          final verb = skippedCount == 1 ? 'has' : 'have';
-          resultMessages.add(
-            '$skippedCount $deviceWord still $verb an older or unknown '
-            'library version and were not merged. Those devices must adopt '
-            'the current library.',
-          );
-        }
-        if (adoptedFreshIdentity) {
-          resultMessages.add(
-            'Another device was syncing with this device\'s identity. '
-            'This device adopted a new identity and merged the cloud data.',
-          );
-        }
-      }
+      final resultMessages = pullResultMessages(
+        recordsFailed: recordsFailed,
+        skippedPeerDeviceIds: pullResult.skippedPeerDeviceIds,
+        newerSchemaPeerDeviceIds: pullResult.newerSchemaPeerDeviceIds,
+        adoptedFreshIdentity: adoptedFreshIdentity,
+      );
       final resultMessage = resultMessages.isEmpty
           ? null
           : resultMessages.join(' ');
@@ -655,6 +687,7 @@ class SyncService {
         lastSyncTime: recordsFailed == 0 ? now : null,
         adoptedFreshIdentity: adoptedFreshIdentity,
         skippedPeerDeviceIds: pullResult.skippedPeerDeviceIds,
+        newerSchemaPeerDeviceIds: pullResult.newerSchemaPeerDeviceIds,
       );
     } on TimeoutException {
       _log.warning('Sync timed out');

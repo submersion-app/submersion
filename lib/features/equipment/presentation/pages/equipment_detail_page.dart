@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -1445,7 +1446,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   }
 
   Future<void> _pickServiceDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _serviceDate,
       firstDate: DateTime(1950),
@@ -1457,7 +1458,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   }
 
   Future<void> _pickNextServiceDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate:
           _nextServiceDue ?? DateTime.now().add(const Duration(days: 365)),

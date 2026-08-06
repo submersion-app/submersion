@@ -9,7 +9,10 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 /// Branch coverage for the service badge on both equipment list tiles:
 /// ledger worst-clock, legacy overdue fallback, days-until, and status.
@@ -45,6 +48,9 @@ void main() {
     return ProviderScope(
       overrides: [
         equipmentWorstClockProvider.overrideWith((ref) async => worst),
+        // The tile reads the color-accent toggle, so settings must be
+        // stubbed: the real notifier reaches for SharedPreferences.
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       ],
       child: MaterialApp(
         locale: const Locale('en'),

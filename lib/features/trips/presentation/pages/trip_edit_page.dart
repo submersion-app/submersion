@@ -14,6 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -681,7 +682,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     final firstDate = isStartDate ? DateTime(1950) : _startDate;
     final lastDate = DateTime(2100);
 
-    final pickedDate = await showDatePicker(
+    final pickedDate = await showAppDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,

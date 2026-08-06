@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Invalidate every provider that reflects clock state for [equipmentId].
 void invalidateServiceClockProviders(WidgetRef ref, String equipmentId) {
@@ -222,7 +223,7 @@ class _ScheduleOverrideDialogState extends State<_ScheduleOverrideDialog> {
               label: l10n.equipment_scheduleDialog_anchorDate,
               child: InkWell(
                 onTap: () async {
-                  final picked = await showDatePicker(
+                  final picked = await showAppDatePicker(
                     context: context,
                     initialDate: _anchorDate ?? DateTime.now(),
                     firstDate: DateTime(1950),

@@ -1473,6 +1473,13 @@ class DiverSettings extends Table {
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   TextColumn get themePreset =>
       text().withDefault(const Constant('submersion'))();
+  // Color accents (optional per-surface icon tinting; all default off)
+  BoolColumn get accentNavIcons =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get accentSectionHeaders =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get accentListIcons =>
+      boolean().withDefault(const Constant(false))();
   // Locale (language preference: 'system', 'en', 'es', 'fr', etc.)
   TextColumn get locale => text().withDefault(const Constant('system'))();
   // Defaults
@@ -3017,6 +3024,8 @@ class AppDatabase extends _$AppDatabase {
     // v134: media compressed-rendition columns (adjustable upload quality
     // Phase A). Renumbered from v130 as main advanced past it at merge time.
     134,
+    // v135: color accent toggle columns on diver_settings.
+    135,
     136,
     // v137: dives.weather_code, plus a one-time clear of the English weather
     // prose this app generated itself so it can be re-rendered localized.
@@ -3555,6 +3564,28 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE diver_settings ADD COLUMN default_deco_stop_source '
         'INTEGER NOT NULL DEFAULT 1',
       );
+    }
+  }
+
+  /// v135: color accent toggle columns on diver_settings. Idempotent; safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertAccentColorSettingsColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    for (final column in const [
+      'accent_nav_icons',
+      'accent_section_headers',
+      'accent_list_icons',
+    ]) {
+      if (!names.contains(column)) {
+        await customStatement(
+          'ALTER TABLE diver_settings ADD COLUMN $column '
+          'INTEGER NOT NULL DEFAULT 0 CHECK ($column IN (0, 1))',
+        );
+      }
     }
   }
 
@@ -7109,9 +7140,16 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaCompressedRenditionColumns();
         }
         if (from < 134) await reportProgress();
+        // v135: color accent toggle columns on diver_settings. Devices that
+        // upgraded through main's v136/v137 before this merge skipped 135;
+        // the beforeOpen backstop re-asserts the columns for them.
+        if (from < 135) {
+          await _assertAccentColorSettingsColumns();
+        }
+        if (from < 135) await reportProgress();
         // v136: media_stores.last_sweep_at (Verify Library fleet cadence).
-        // v135 is reserved by a parallel branch; deliberately skipped here,
-        // mirroring the v132-over-v131 precedent.
+        // v136 shipped while v135 was still on its branch, so a DB can be at
+        // 136+ without the accent columns; see the v135 note above.
         if (from < 136) {
           await _assertMediaStoresLastSweepColumn();
         }
@@ -7227,6 +7265,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v133 backstop: re-assert the deco stop band settings columns.
         await _assertDecoStopSettingsColumns();
+
+        // v135 backstop: re-assert color accent toggle columns.
+        await _assertAccentColorSettingsColumns();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

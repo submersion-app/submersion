@@ -621,6 +621,57 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // getNewestDiveDateTime
+  // ---------------------------------------------------------------------------
+
+  group('getNewestDiveDateTime', () {
+    test(
+      'returns the newest dive time for the diver, scoped strictly to '
+      'diverId (excludes legacy null-diverId dives and other divers'
+      "' dives -- matching this repository's established equals()-only "
+      'diverId scoping convention, e.g. getAllDives/getDivesInRange)',
+      () async {
+        await insertTestDiver('diver-1');
+        await insertTestDiver('diver-2');
+        await insertTestDive(
+          id: 'dive-a',
+          diverId: 'diver-1',
+          diveDateTime: DateTime.utc(2026, 1, 10).millisecondsSinceEpoch,
+        );
+        await insertTestDive(
+          id: 'dive-b',
+          diverId: 'diver-1',
+          diveDateTime: DateTime.utc(2026, 3, 5).millisecondsSinceEpoch,
+        );
+        // Legacy null-diverId dive, newer than diver-1's newest: must NOT
+        // leak into diver-1's result under strict equals() scoping.
+        await insertTestDive(
+          id: 'dive-c',
+          diverId: null,
+          diveDateTime: DateTime.utc(2026, 5, 1).millisecondsSinceEpoch,
+        );
+        await insertTestDive(
+          id: 'dive-d',
+          diverId: 'diver-2',
+          diveDateTime: DateTime.utc(2026, 6, 1).millisecondsSinceEpoch,
+        );
+
+        final result = await repository.getNewestDiveDateTime(
+          diverId: 'diver-1',
+        );
+
+        expect(result, DateTime.utc(2026, 3, 5));
+      },
+    );
+
+    test('returns null when the diver has no dives', () async {
+      final result = await repository.getNewestDiveDateTime(diverId: 'nobody');
+
+      expect(result, isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // getSourceKeysByDiveId
   // ---------------------------------------------------------------------------
 

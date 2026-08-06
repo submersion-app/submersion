@@ -82,19 +82,46 @@ class BathymetryCache extends Table {
   Set<Column> get primaryKey => {cacheKey};
 }
 
+/// Cached third-party reef data, keyed by quantized coordinate. Never synced
+/// and never backed up: any device can re-derive this from a site's
+/// coordinates, so a restored database re-fetches rather than carrying
+/// another device's stale results.
+class ReefDataCache extends Table {
+  /// A `ReefProviderId.name`.
+  TextColumn get provider => text()();
+
+  /// `ReefCoordinateKey.format` output, e.g. "12.160,-68.280".
+  TextColumn get coordKey => text()();
+
+  /// Dive date as `yyyy-MM-dd` for historical reef health; empty otherwise.
+  TextColumn get variant => text().withDefault(const Constant(''))();
+
+  /// Provider-specific JSON. Empty object when status is not `ok`.
+  TextColumn get payloadJson => text()();
+
+  /// A `ReefDataStatus.name`.
+  TextColumn get status => text()();
+
+  IntColumn get fetchedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {provider, coordKey, variant};
+}
+
 @DriftDatabase(
   tables: [
     LocalAssetCache,
     MediaTransferQueue,
     MediaCacheEntries,
     BathymetryCache,
+    ReefDataCache,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -123,19 +150,26 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from >= 2 && from < 6) {
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.payloadJson);
       }
-      // v7: bathymetry grid cache. NOTE: the reef-data branch (PR #728)
-      // also claims v7 on its own branch — whichever merges second
-      // renumbers. from < 7 covers both the v1 path and v2..v6 upgrades.
+      // v7: bathymetry grid cache. from < 7 covers both the v1 path and
+      // v2..v6 upgrades.
       if (from < 7) {
         await m.createTable(bathymetryCache);
       }
+      // v8: reef data cache. Renumbered from v7 at merge time because the
+      // bathymetry branch claimed v7 first. Every stored schema below 8
+      // lacks this table, including v1, because the from<2 branch above
+      // predates it. Drift's createTable is CREATE TABLE IF NOT EXISTS, so
+      // a dev DB that already ran the reef branch at v7 upgrades cleanly.
+      if (from < 8) {
+        await m.createTable(reefDataCache);
+      }
     },
     beforeOpen: (details) async {
-      // Ladder-collision self-heal: a parallel branch that also claims v7
-      // (e.g. reef data) may have stamped user_version first on a shared
-      // dev machine, so onUpgrade never runs here and this table would be
-      // missing. Idempotent re-assert, mirroring the main DB's pattern.
-      // Keep the column shape in sync with the BathymetryCache table.
+      // Ladder-collision self-heal: a parallel branch that also claimed v7
+      // may have stamped user_version first on a shared dev machine, so
+      // onUpgrade never runs here and a table would be missing. Idempotent
+      // re-assert, mirroring the main DB's pattern. Keep the column shapes
+      // in sync with the BathymetryCache and ReefDataCache tables.
       await customStatement('''
         CREATE TABLE IF NOT EXISTS bathymetry_cache (
           cache_key TEXT NOT NULL,
@@ -147,6 +181,17 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           grid_json TEXT NULL,
           fetched_at INTEGER NOT NULL,
           PRIMARY KEY (cache_key)
+        )
+      ''');
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS reef_data_cache (
+          provider TEXT NOT NULL,
+          coord_key TEXT NOT NULL,
+          variant TEXT NOT NULL DEFAULT '',
+          payload_json TEXT NOT NULL,
+          status TEXT NOT NULL,
+          fetched_at INTEGER NOT NULL,
+          PRIMARY KEY (provider, coord_key, variant)
         )
       ''');
     },

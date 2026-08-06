@@ -24,7 +24,13 @@ class EquipmentRepository {
   Future<List<EquipmentItem>> getActiveEquipment({String? diverId}) async {
     try {
       final query = _db.select(_db.equipment)
-        ..where((t) => t.isActive.equals(true))
+        // status is the user-visible retirement flag; legacy rows can carry
+        // status=retired with isActive still true, so filter on both (#636).
+        ..where(
+          (t) =>
+              t.isActive.equals(true) &
+              t.status.isNotValue(EquipmentStatus.retired.name),
+        )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
           (t) => OrderingTerm.asc(t.name),
@@ -49,8 +55,14 @@ class EquipmentRepository {
   /// Get all retired equipment
   Future<List<EquipmentItem>> getRetiredEquipment({String? diverId}) async {
     try {
+      // Either retirement marker counts, so items retired before the two
+      // fields were kept in sync are still listed (#636).
       final query = _db.select(_db.equipment)
-        ..where((t) => t.isActive.equals(false))
+        ..where(
+          (t) =>
+              t.isActive.equals(false) |
+              t.status.equals(EquipmentStatus.retired.name),
+        )
         ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
       if (diverId != null) {
@@ -105,8 +117,14 @@ class EquipmentRepository {
     String? diverId,
   }) async {
     try {
+      // The Retired filter also matches legacy rows that only ever had
+      // isActive flipped, so nothing becomes unreachable in the UI (#636).
       final query = _db.select(_db.equipment)
-        ..where((t) => t.status.equals(status.name))
+        ..where(
+          (t) => status == EquipmentStatus.retired
+              ? t.status.equals(status.name) | t.isActive.equals(false)
+              : t.status.equals(status.name),
+        )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
           (t) => OrderingTerm.asc(t.name),
@@ -375,9 +393,26 @@ class EquipmentRepository {
   Future<void> retireEquipment(String id) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      // Write BOTH retirement fields: status is the user-visible flag and
+      // what the Retired filter and getActiveEquipment read, isActive is
+      // the legacy one. Flipping only isActive left items invisible under
+      // the Retired filter (#636).
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(isActive: const Value(false), updatedAt: Value(now)),
+        EquipmentCompanion(
+          isActive: const Value(false),
+          status: Value(EquipmentStatus.retired.name),
+          updatedAt: Value(now),
+        ),
       );
+      // Retiring is a real edit to the row, so it has to be staged for sync
+      // like create/update -- otherwise the item stays active on every other
+      // device, which now also hides it from the active-gear queries.
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to retire equipment: $id',
@@ -392,9 +427,29 @@ class EquipmentRepository {
   Future<void> reactivateEquipment(String id) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      // Clear a retired status on the way back in, but leave any other
+      // status (needsService, inService, loaned) alone -- reactivating is
+      // not the same as declaring the item serviceable (#636).
+      final current = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      final clearsRetiredStatus =
+          current?.status == EquipmentStatus.retired.name;
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(isActive: const Value(true), updatedAt: Value(now)),
+        EquipmentCompanion(
+          isActive: const Value(true),
+          status: clearsRetiredStatus
+              ? Value(EquipmentStatus.active.name)
+              : const Value.absent(),
+          updatedAt: Value(now),
+        ),
       );
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to reactivate equipment: $id',

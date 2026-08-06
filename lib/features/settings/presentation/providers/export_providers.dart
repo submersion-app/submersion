@@ -254,47 +254,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
-      // Load signatures for all dives
-      state = state.copyWith(message: 'Loading signatures...');
-      final signatureService = SignatureStorageService();
-      final diveSignatures = <String, List<Signature>>{};
-      for (final dive in dives) {
-        final sigs = await signatureService.getAllSignaturesForDive(dive.id);
-        if (sigs.isNotEmpty) {
-          diveSignatures[dive.id] = sigs;
-        }
-      }
-
-      // Load certifications if requested
-      List<Certification>? certifications;
-      if (exportOptions.includeCertificationCards) {
-        state = state.copyWith(message: 'Loading certifications...');
-        certifications = await _ref.read(allCertificationsProvider.future);
-      }
-
-      // Get current diver for personalization
-      final diver = await _ref.read(currentDiverProvider.future);
-
-      // Initialize fonts for proper Unicode support
-      state = state.copyWith(message: 'Loading fonts...');
-      await PdfFonts.instance.initialize();
-
-      // Get the appropriate template builder
-      state = state.copyWith(
-        message: 'Generating ${exportOptions.template.displayName} PDF...',
-      );
-      final factory = PdfTemplateFactory();
-      final builder = factory.getBuilder(exportOptions.template);
-
-      // Build the PDF
-      final pdfBytes = await builder.buildPdf(
-        dives: dives,
-        pageSize: exportOptions.pageSize,
-        title: 'Dive Logbook',
-        diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
-        certifications: certifications,
-        diver: diver,
-      );
+      final pdfBytes = await _buildLogbookPdfBytes(exportOptions, dives);
 
       // Save and share the PDF
       final path = await _exportService.sharePdfBytes(
@@ -313,6 +273,55 @@ class ExportNotifier extends StateNotifier<ExportState> {
         message: 'Export failed: $e',
       );
     }
+  }
+
+  /// Build logbook PDF bytes honoring [exportOptions] (template, page size,
+  /// certification cards, diver personalization). Shared by the share and
+  /// save-to-file paths so both respect the selected detail level (#644).
+  Future<List<int>> _buildLogbookPdfBytes(
+    PdfExportOptions exportOptions,
+    List<Dive> dives,
+  ) async {
+    // Load signatures for all dives
+    state = state.copyWith(message: 'Loading signatures...');
+    final signatureService = SignatureStorageService();
+    final diveSignatures = <String, List<Signature>>{};
+    for (final dive in dives) {
+      final sigs = await signatureService.getAllSignaturesForDive(dive.id);
+      if (sigs.isNotEmpty) {
+        diveSignatures[dive.id] = sigs;
+      }
+    }
+
+    // Load certifications if requested
+    List<Certification>? certifications;
+    if (exportOptions.includeCertificationCards) {
+      state = state.copyWith(message: 'Loading certifications...');
+      certifications = await _ref.read(allCertificationsProvider.future);
+    }
+
+    // Get current diver for personalization
+    final diver = await _ref.read(currentDiverProvider.future);
+
+    // Initialize fonts for proper Unicode support
+    state = state.copyWith(message: 'Loading fonts...');
+    await PdfFonts.instance.initialize();
+
+    // Get the appropriate template builder
+    state = state.copyWith(
+      message: 'Generating ${exportOptions.template.displayName} PDF...',
+    );
+    final factory = PdfTemplateFactory();
+    final builder = factory.getBuilder(exportOptions.template);
+
+    return builder.buildPdf(
+      dives: dives,
+      pageSize: exportOptions.pageSize,
+      title: 'Dive Logbook',
+      diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
+      certifications: certifications,
+      diver: diver,
+    );
   }
 
   Future<void> exportDivesToUddf() async {
@@ -957,11 +966,16 @@ class ExportNotifier extends StateNotifier<ExportState> {
         return;
       }
 
+      // Build with the SAME template-aware path as the share flow, so the
+      // selected detail level, page size, and diver personalization are
+      // honored (#644: options were previously dropped here and the legacy
+      // single-layout builder produced identical PDFs for every level).
+      final pdfBytes = await _buildLogbookPdfBytes(options, dives);
+
       state = state.copyWith(message: 'Choose save location...');
-      final path = await _exportService.saveDivesToPdfFile(
-        dives,
-        title: 'Dive Logbook',
-      );
+      final fileName =
+          'dive_logbook_${options.template.name}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
+      final path = await _exportService.savePdfBytesToFile(pdfBytes, fileName);
 
       if (path == null) {
         state = state.copyWith(

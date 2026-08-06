@@ -2491,17 +2491,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_dashboard_start => 'Merülés előtti ellenőrzés indítása';
 
   @override
-  String get tools_preDive_title => 'Merülés előtti ellenőrzőlisták';
-
-  @override
-  String get tools_preDive_subtitle =>
-      'Ellenőrzőlista-munkamenetek futtatása és áttekintése';
-
-  @override
-  String get tools_preDive_description =>
-      'Társellenőrzések, CCR összeszerelési listák és felszereléscsomagolás naplózott előzményekkel';
-
-  @override
   String get trips_detail_preDive_action => 'Merülés előtti ellenőrzőlista';
 
   @override
@@ -3211,7 +3200,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String dashboard_gauges_dataIssues(int count) {
-    return '$count adatprobléma';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adatprobléma',
+      one: '1 adatprobléma',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -8414,6 +8409,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importalas';
 
   @override
+  String get diveSites_list_menu_select => 'Merülőhelyek kiválasztása';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Vissza';
 
   @override
@@ -12953,6 +12951,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Árapály-ciklus grafikon és időzítés';
 
   @override
+  String get diveDetailSection_reefHealth_name => 'Zátony állapota';
+
+  @override
+  String get diveDetailSection_reefHealth_description =>
+      'Korallfehéredési hőstressz a merülés napján';
+
+  @override
   String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
 
   @override
@@ -13554,6 +13559,19 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count függo valtoztatas',
       one: '1 függo valtoztatas',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count eszköz a Submersion újabb verziójából szinkronizál. Frissítsd ezt az eszközt, hogy megkapd a legújabb változtatásaikat.',
+      one:
+          '1 eszköz a Submersion újabb verziójából szinkronizál. Frissítsd ezt az eszközt, hogy megkapd a legújabb változtatásait.',
     );
     return '$_temp0';
   }
@@ -15076,6 +15094,94 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_weight_pounds => 'Font (lbs)';
 
   @override
+  String get settings_updates_automaticUpdates => 'Automatikus frissítések';
+
+  @override
+  String get settings_updates_automaticUpdatesSubtitle =>
+      'Frissítések rendszeres keresése';
+
+  @override
+  String get settings_updates_betaDialogBody =>
+      'A béta buildek minden változtatásból megjelennek, és a merülési napló adatbázisát a stabil kiadás előtt frissíthetik. Ha később visszaváltasz a stabil csatornára, az alkalmazás nem áll vissza korábbi verzióra, és az együtt szinkronizáló eszközöknek ugyanazt a csatornát érdemes használniuk. Minden adatbázis-frissítés előtt automatikusan biztonsági mentés készül.';
+
+  @override
+  String get settings_updates_betaDialogConfirm => 'Váltás bétára';
+
+  @override
+  String get settings_updates_betaDialogTitle =>
+      'Szeretnél béta frissítéseket kapni?';
+
+  @override
+  String get settings_updates_channel => 'Frissítési csatorna';
+
+  @override
+  String settings_updates_channelBadgeBeta(String version) {
+    return '$version (Béta)';
+  }
+
+  @override
+  String get settings_updates_channelBeta => 'Béta';
+
+  @override
+  String get settings_updates_channelBetaSubtitle =>
+      'Új buildek minden változtatásból, a stabil előtt';
+
+  @override
+  String get settings_updates_channelStable => 'Stabil';
+
+  @override
+  String get settings_updates_channelStableSubtitle => 'Csak tesztelt kiadások';
+
+  @override
+  String get settings_updates_checkForUpdates => 'Frissítések keresése';
+
+  @override
+  String get settings_updates_checking => 'Keresés...';
+
+  @override
+  String settings_updates_downloading(String progress) {
+    return 'Letöltés... $progress%';
+  }
+
+  @override
+  String settings_updates_error(String message) {
+    return 'Hiba: $message';
+  }
+
+  @override
+  String get settings_updates_header => 'Frissítések';
+
+  @override
+  String get settings_updates_joinBeta => 'Csatlakozz a bétához';
+
+  @override
+  String get settings_updates_joinBetaSubtitle =>
+      'Kapd meg korábban az új funkciókat a bétaprogramon keresztül';
+
+  @override
+  String get settings_updates_lastChecked => 'Utolsó ellenőrzés';
+
+  @override
+  String get settings_updates_never => 'Soha';
+
+  @override
+  String settings_updates_readyToInstall(String version) {
+    return 'A(z) $version verzió telepítésre kész';
+  }
+
+  @override
+  String get settings_updates_stableSwitchNotice =>
+      'Ezen a bétán maradsz, amíg a következő stabil kiadás nem lesz nála újabb.';
+
+  @override
+  String get settings_updates_upToDate => 'Naprakész';
+
+  @override
+  String settings_updates_versionAvailable(String version) {
+    return 'A(z) $version verzió elérhető';
+  }
+
+  @override
   String get signatures_action_clear => 'Törlés';
 
   @override
@@ -16376,6 +16482,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get importWizard_tagsLabel => 'Tags';
 
   @override
+  String importWizard_review_olderDivesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count régebbi merülés kihagyva — már szerepel a naplódban',
+      one: '1 régebbi merülés kihagyva — már szerepel a naplódban',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_hint_addTags => 'Címkék hozzáadása...';
 
   @override
@@ -16728,6 +16845,49 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transfer_computers_noComputersSaved =>
       'Nincsenek mentett szamitogepek';
+
+  @override
+  String transfer_computers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transfer_computers_downloadTooltip => 'Merülések letöltése';
+
+  @override
+  String get transfer_computers_knownComputersHeader => 'Ismert számítógépek';
+
+  @override
+  String transfer_computers_lastDownloadDaysAgo(int days) {
+    return '$days napja';
+  }
+
+  @override
+  String transfer_computers_lastDownloadHoursAgo(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours órája',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transfer_computers_lastDownloadMinutesAgo(int minutes) {
+    return '$minutes perce';
+  }
+
+  @override
+  String get transfer_computers_lastDownloadNever => 'Soha';
+
+  @override
+  String get transfer_computers_lastDownloadYesterday => 'Tegnap';
 
   @override
   String transfer_computers_savedCount(int count) {
@@ -18054,6 +18214,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_entityAction_linkBadge => 'CSATOL';
+
+  @override
+  String get universalImport_entityAction_linkExisting =>
+      'Összekapcsolás a meglévővel';
+
+  @override
+  String get universalImport_entityAction_linkExistingSubtitle =>
+      'A talált rekord használata';
+
+  @override
   String get universalImport_pending_chooseAction => 'Valassz muveletet';
 
   @override
@@ -18535,8 +18706,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_downloadStep_downloadAll =>
+      'Összes merülés letöltése';
+
+  @override
   String get diveComputer_downloadStep_downloadFailed =>
       'A letoltes sikertelen';
+
+  @override
+  String get diveComputer_downloadStep_downloadNew => 'Új merülések letöltése';
 
   @override
   String get diveComputer_downloadStep_downloadedDives => 'Letoltott merulesek';
@@ -18552,6 +18730,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveComputer_downloadStep_errorSemanticLabel(Object error) {
     return 'Letoltesi hiba: $error';
+  }
+
+  @override
+  String get diveComputer_downloadStep_firstSyncBody =>
+      'A naplód már tartalmaz merüléseket. Kihagyhatod a már meglévő merülések letöltését.';
+
+  @override
+  String get diveComputer_downloadStep_firstSyncTitle =>
+      'Első letöltés erről a merülésszámítógépről';
+
+  @override
+  String diveComputer_downloadStep_onlyAfterDate(String date) {
+    return 'Csak a $date utáni merülések letöltése';
   }
 
   @override
@@ -19939,32 +20130,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tankPresets_title => 'Palacksablonok';
 
   @override
-  String get tools_deco_description =>
-      'Szamitsa ki a dekompresszio nelküli limiteket, szukseges deko megalokat es a CNS/OTU terhelest többszintu merülesi profilokhoz.';
-
-  @override
-  String get tools_deco_subtitle =>
-      'Merulesek tervezese dekompressziós megalokkal';
-
-  @override
-  String get tools_deco_title => 'Deko szamologep';
-
-  @override
-  String get tools_disclaimer =>
-      'Ezek a szamologepek csak tervezesi celokat szolgalnak. Mindig ellenorizze a szamitasokat es kovesse a merulesi kepzeset.';
-
-  @override
-  String get tools_gas_description =>
-      'Negy specialis gaz szamologep:\n- MOD - Maximalis üzemi melyseg egy gazkeverekhez\n- Legjobb keverek - Idealis O₂% egy cel melyseghez\n- Fogyasztas - Gaz felhasznalasi becsles\n- Rock Bottom - Veszhelyzeti tartalek szamitas';
-
-  @override
-  String get tools_gas_subtitle =>
-      'MOD, Legjobb keverek, Fogyasztas, Rock Bottom';
-
-  @override
-  String get tools_gas_title => 'Gaz szamologepek';
-
-  @override
   String get tools_gpsLogger_description =>
       'Rögzítsd a pozíciódat a merülőnap során, és párosítsd automatikusan az importált merüléseket GPS-helyekhez.';
 
@@ -19973,9 +20138,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_gpsLogger_title => 'GPS-naplózó';
-
-  @override
-  String get tools_title => 'Eszkozok';
 
   @override
   String get tools_weight_aluminumImperial => 'Uresbben pozitivabb (+4 lbs)';
@@ -19991,10 +20153,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_weight_carbonFiberMetric => 'Nagyon pozitiv (+3 kg)';
-
-  @override
-  String get tools_weight_description =>
-      'Becsülje meg a szükseges sülyt az expoziciós ruha, palackanyag, viztipus es testtomeg alapjan.';
 
   @override
   String get tools_weight_disclaimer =>
@@ -20032,9 +20190,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_weight_steelMetric => 'Negativ felhajtoeroe (-2 kg)';
-
-  @override
-  String get tools_weight_subtitle => 'Ajanlott suly az összeallitasahoz';
 
   @override
   String get tools_weight_tankMaterial => 'Palack anyag';
@@ -20381,6 +20536,31 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_sections => 'Szekciók';
+
+  @override
+  String get settings_appearance_colorAccents => 'Színes kiemelések';
+
+  @override
+  String get settings_appearance_accentNavIcons => 'Színes navigációs ikonok';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'A főmenü ikonjainak színezése az egyes területek színével';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'Színes szekciófejlécek';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Színes szekcióikon megjelenítése az oldalcímek mellett';
+
+  @override
+  String get settings_appearance_accentListIcons => 'Színes listaikonok';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Ikonok színezése a listákban és a beállítási oldalakon';
 
   @override
   String get settings_appearance_showDetailsPane =>
@@ -22439,4 +22619,124 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_noTranscoderHint =>
       'Ez az eszköz nem tud videót tömöríteni. Róla az eredetik töltődnek fel.';
+
+  @override
+  String get reef_section_title => 'Zátony';
+
+  @override
+  String get reef_section_sourcesTooltip => 'Adatforrások';
+
+  @override
+  String get reef_section_loadError => 'A zátonyadatok most nem tölthetők be';
+
+  @override
+  String get reef_habitat_title => 'Zátony élőhely';
+
+  @override
+  String get reef_habitat_onReef => 'Korallzátonyon';
+
+  @override
+  String reef_habitat_onReefWithThreat(String threat) {
+    return 'Korallzátonyon, veszélyeztetettségi szint: $threat';
+  }
+
+  @override
+  String get reef_habitat_noReef =>
+      'Nincs térképezett korallzátony ezen a helyen';
+
+  @override
+  String get reef_habitat_unavailable =>
+      'A zátony élőhelye most nem ellenőrizhető';
+
+  @override
+  String get reef_health_title => 'Zátony állapota';
+
+  @override
+  String get reef_health_unavailable =>
+      'A zátony állapota most nem ellenőrizhető';
+
+  @override
+  String get reef_health_noData => 'Nincs zátonyállapot-adat ehhez a helyhez';
+
+  @override
+  String reef_health_degreeHeatingWeeks(String value) {
+    return 'Hőterhelési hetek $value C-hét';
+  }
+
+  @override
+  String reef_health_seaSurface(String value) {
+    return 'Tengerfelszín $value';
+  }
+
+  @override
+  String reef_health_asOf(String date) {
+    return 'Dátum: $date';
+  }
+
+  @override
+  String get reef_health_levelNoStress => 'Nincs hőstressz';
+
+  @override
+  String get reef_health_levelWatch => 'Fehéredési megfigyelés';
+
+  @override
+  String get reef_health_levelWarning => 'Fehéredési figyelmeztetés';
+
+  @override
+  String get reef_health_levelAlert1 => 'Fehéredési riasztás 1. szint';
+
+  @override
+  String get reef_health_levelAlert2 => 'Fehéredési riasztás 2. szint';
+
+  @override
+  String get reef_health_levelAlert3 => 'Fehéredési riasztás 3. szint';
+
+  @override
+  String get reef_health_levelAlert4 => 'Fehéredési riasztás 4. szint';
+
+  @override
+  String get reef_health_levelAlert5 => 'Fehéredési riasztás 5. szint';
+
+  @override
+  String get reef_protection_title => 'Védett terület';
+
+  @override
+  String get reef_protection_none => 'Nem védett tengeri területen';
+
+  @override
+  String get reef_protection_unavailable =>
+      'A védettségi állapot most nem ellenőrizhető';
+
+  @override
+  String get reef_protection_viewRegulations => 'Szabályok megtekintése';
+
+  @override
+  String reef_protection_iucn(String category) {
+    return 'IUCN $category';
+  }
+
+  @override
+  String get reef_species_recordedNearby => 'Közelben rögzítve';
+
+  @override
+  String get reef_species_addToExpected => 'Hozzáadás a várható fajokhoz';
+
+  @override
+  String get reef_attribution_title => 'Zátony adatforrásai';
+
+  @override
+  String get reef_attribution_wri =>
+      'Zátony jelenléte és veszélyeztetettsége. CC BY 3.0.';
+
+  @override
+  String get reef_attribution_noaa =>
+      'Tengerfelszíni hőmérséklet és hőstressz. Közkincs.';
+
+  @override
+  String get reef_attribution_gbif =>
+      'Fajelőfordulási adatok, CC0 és CC BY 4.0 szűrve.';
+
+  @override
+  String get reef_attribution_protectedSeas =>
+      'Védett tengeri területek határai. CC BY 4.0.';
 }

@@ -33,9 +33,17 @@ cat <<HTML_TEMPLATE
     margin: 16px;
     font-size: 14px;
     color: #222;
+    background-color: #fff;
     line-height: 1.5;
   }
   h2 { font-size: 18px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  @media (prefers-color-scheme: dark) {
+    body {
+      color: #e8e8e8;
+      background-color: #1e1e1e;
+    }
+    h2 { border-bottom-color: #444; }
+  }
   h3 { font-size: 15px; margin-top: 16px; margin-bottom: 4px; }
   ul { padding-left: 24px; margin-top: 4px; }
   li { margin: 3px 0; }

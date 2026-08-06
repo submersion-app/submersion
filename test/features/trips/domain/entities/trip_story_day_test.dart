@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
@@ -9,6 +10,9 @@ Dive _dive({
   Duration? bottomTime,
   double? maxDepth,
   DiveSite? site,
+  double? airTemp,
+  CloudCover? cloudCover,
+  Precipitation? precipitation,
 }) {
   return Dive(
     id: id,
@@ -16,6 +20,9 @@ Dive _dive({
     bottomTime: bottomTime,
     maxDepth: maxDepth,
     site: site,
+    airTemp: airTemp,
+    cloudCover: cloudCover,
+    precipitation: precipitation,
   );
 }
 
@@ -106,6 +113,76 @@ void main() {
           dives: [_dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
         ).isSurface,
         isFalse,
+      );
+    });
+  });
+
+  group('weather summary', () {
+    test('null when no dive carries any weather data', () {
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [_dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+      );
+      expect(day.weather, isNull);
+    });
+
+    test('null for a day with no dives', () {
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+      );
+      expect(day.weather, isNull);
+    });
+
+    test('takes the first non-null value per field across dives', () {
+      // Morning dive logged only air temperature, afternoon dive only cloud
+      // cover and precipitation: the day summary combines all three.
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9), airTemp: 22),
+          _dive(
+            id: 'd2',
+            dateTime: DateTime(2026, 3, 8, 14),
+            airTemp: 27,
+            cloudCover: CloudCover.partlyCloudy,
+            precipitation: Precipitation.drizzle,
+          ),
+        ],
+      );
+
+      expect(
+        day.weather,
+        const TripStoryDayWeather(
+          airTemp: 22,
+          cloudCover: CloudCover.partlyCloudy,
+          precipitation: Precipitation.drizzle,
+        ),
+      );
+    });
+
+    test('a single weather field is enough to produce a summary', () {
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(
+            id: 'd1',
+            dateTime: DateTime(2026, 3, 8, 9),
+            cloudCover: CloudCover.overcast,
+          ),
+        ],
+      );
+
+      expect(
+        day.weather,
+        const TripStoryDayWeather(cloudCover: CloudCover.overcast),
       );
     });
   });

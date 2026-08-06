@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_detai
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -221,7 +223,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.equipment_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'equipment',
+          title: context.l10n.equipment_appBar_title,
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -686,7 +691,7 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
   }
 
   Future<void> _selectPurchaseDate() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: _purchaseDate ?? DateTime.now(),
       firstDate: DateTime(1950),

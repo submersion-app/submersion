@@ -460,6 +460,11 @@ class SyncState {
   final DateTime? lastSync;
   final int pendingChanges;
   final int conflicts;
+
+  /// How many peers were held during the last pull because they publish from
+  /// a newer database schema than this build. Drives the "update this
+  /// device" banner; cleared when a fresh sync starts.
+  final int newerSchemaPeerCount;
   final bool isAuthenticated;
   final bool firstSyncAwaitingConfirmation;
 
@@ -501,6 +506,7 @@ class SyncState {
     this.lastSync,
     this.pendingChanges = 0,
     this.conflicts = 0,
+    this.newerSchemaPeerCount = 0,
     this.isAuthenticated = false,
     this.firstSyncAwaitingConfirmation = false,
     this.postRestoreSyncing = false,
@@ -518,6 +524,7 @@ class SyncState {
     DateTime? lastSync,
     int? pendingChanges,
     int? conflicts,
+    int? newerSchemaPeerCount,
     bool? isAuthenticated,
     bool? firstSyncAwaitingConfirmation,
     bool? postRestoreSyncing,
@@ -536,6 +543,7 @@ class SyncState {
       lastSync: lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,
       conflicts: conflicts ?? this.conflicts,
+      newerSchemaPeerCount: newerSchemaPeerCount ?? this.newerSchemaPeerCount,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       firstSyncAwaitingConfirmation:
           firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
@@ -999,6 +1007,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         status: SyncStatus.syncing,
         message: 'Starting sync...',
         progress: 0.0,
+        newerSchemaPeerCount: 0,
         firstSyncAwaitingConfirmation: false,
         replaceAwaitingAdoption: false,
         needsPassphrase: false,
@@ -1072,6 +1081,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
             message: result.message ?? defaultMessage,
             lastSync: result.lastSyncTime,
             conflicts: result.conflictsFound,
+            newerSchemaPeerCount: result.newerSchemaPeerDeviceIds.length,
             progress: 1.0,
           );
           // Mark this provider established and consume any post-restore intent:

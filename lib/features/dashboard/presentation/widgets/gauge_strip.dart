@@ -323,7 +323,10 @@ class GaugeStrip extends ConsumerWidget {
           icon: Icons.fact_check_outlined,
           label: l10n.dashboard_gauges_dataIssues(g.dataQualityFindings),
           tone: _Tone.warn,
-          onTap: () => context.push('/settings/data-quality'),
+          // The findings inbox lists the actual issues (with per-dive detail
+          // and repair actions); the settings page only toggles which checks
+          // run.
+          onTap: () => context.push('/dives/quality'),
         ),
       );
     }

@@ -541,6 +541,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newBuddy',
+                // Bulk dive editing opens the buddy picker inside a
+                // showDialog (root navigator by default); "Add New Buddy"
+                // must land on that same root navigator or it renders
+                // underneath the still-open dialog/bottom sheet instead of
+                // in the foreground (see app_router_test.dart and
+                // buddy_picker_navigation_render_test.dart).
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) {
                   final extra = state.extra as Map<String, dynamic>?;
                   return BuddyEditPage(

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Riverpod [StateProvider] signalling whether HealthKit permissions have been
 /// granted and the wizard may advance to the date range step.
@@ -223,7 +224,7 @@ class _HealthKitDateRangeStepState
   }
 
   Future<void> _selectStartDate() async {
-    final selected = await showDatePicker(
+    final selected = await showAppDatePicker(
       context: context,
       initialDate: _startDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
@@ -240,7 +241,7 @@ class _HealthKitDateRangeStepState
   }
 
   Future<void> _selectEndDate() async {
-    final selected = await showDatePicker(
+    final selected = await showAppDatePicker(
       context: context,
       initialDate: _endDate,
       firstDate: _startDate,

@@ -110,5 +110,50 @@ void main() {
       }
       FlutterError.onError = FlutterError.presentError;
     });
+
+    testWidgets('tapping the start-date button opens the date picker (#765)', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveRepositoryProvider.overrideWithValue(repository),
+            diveListNotifierProvider.overrideWith((ref) {
+              return DiveListNotifier(repository, ref);
+            }),
+          ].cast(),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: DiveSearchPage()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dateButtons = find.widgetWithIcon(
+        OutlinedButton,
+        Icons.calendar_today,
+      );
+      expect(dateButtons, findsNWidgets(2));
+
+      await tester.tap(dateButtons.first);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+
+      // The search page has its own Cancel action, so scope to the dialog.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+    });
   });
 }

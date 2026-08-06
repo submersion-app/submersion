@@ -152,6 +152,7 @@ void main() {
       List<EntityItem>? diveItems,
       Set<int> diveDuplicateIndices = const {},
       Map<int, DiveMatchResult>? diveMatchResults,
+      Set<int>? diveAutoSkipIndices,
       List<EntityItem>? siteItems,
       Set<int> siteDuplicateIndices = const {},
       String? currentComputerId,
@@ -163,6 +164,7 @@ void main() {
           items: diveItems,
           duplicateIndices: diveDuplicateIndices,
           matchResults: diveMatchResults,
+          autoSkipIndices: diveAutoSkipIndices,
         );
       }
 
@@ -433,6 +435,71 @@ void main() {
         );
       });
 
+      // -----------------------------------------------------------------
+      // Tier-1 first-sync cutoff auto-skip (Task 6)
+      // -----------------------------------------------------------------
+
+      test('an index in autoSkipIndices is seeded with DuplicateAction.skip '
+          'and drained from pending', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
+          diveAutoSkipIndices: {0},
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+        // The unaffected index is untouched: selected, no action, not pending.
+        expect(notifier.state.selections[ImportEntityType.dives], contains(1));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[1],
+          isNull,
+        );
+      });
+
+      test('an index that is both matchedExistingSource AND in autoSkipIndices '
+          'ends up skipped once, not double-handled', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: const DiveMatchResult(
+              diveId: 'existing-dive',
+              score: 1.0,
+              timeDifferenceMs: 0,
+              matchedExistingSource: true,
+            ),
+          },
+          diveAutoSkipIndices: {0},
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+      });
+
       test('handles bundle with no duplicates — empty duplicateActions', () {
         final bundle = buildBundle(
           diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
@@ -502,6 +569,88 @@ void main() {
 
         expect(notifier.state.selections[ImportEntityType.sites], contains(0));
       });
+
+      // -----------------------------------------------------------------
+      // First-sync cutoff rescue: re-selecting an auto-skipped
+      // NON-duplicate dive must clear the seeded skip action, or
+      // DiveComputerAdapter.performImport silently drops it even though
+      // the review list shows it selected with a green IMPORT badge.
+      // -----------------------------------------------------------------
+
+      test('toggling on an auto-skipped non-duplicate index clears its '
+          'seeded skip action so it is not silently dropped from import', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
+          diveAutoSkipIndices: {0},
+        );
+        notifier.setBundle(bundle);
+        // Sanity: setBundle seeded the first-sync-cutoff auto-skip default.
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+
+        notifier.toggleSelection(ImportEntityType.dives, 0);
+
+        expect(notifier.state.selections[ImportEntityType.dives], contains(0));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          isNull,
+          reason:
+              'A stale DuplicateAction.skip left in place after '
+              're-selecting would make performImport silently skip this '
+              'dive even though it shows an IMPORT badge.',
+        );
+      });
+
+      test('toggling an auto-skipped index off then back on ends up selected '
+          'with no skip action', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveAutoSkipIndices: {0},
+        );
+        notifier.setBundle(bundle);
+
+        notifier.toggleSelection(ImportEntityType.dives, 0); // rescue
+        notifier.toggleSelection(ImportEntityType.dives, 0); // re-skip
+        notifier.toggleSelection(ImportEntityType.dives, 0); // rescue again
+
+        expect(notifier.state.selections[ImportEntityType.dives], contains(0));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          isNull,
+        );
+      });
+
+      test('toggling a genuine duplicate index does not touch its recorded '
+          'action', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {0: makeMatchResult(0.9)},
+        );
+        notifier.setBundle(bundle);
+        notifier.setDuplicateAction(
+          ImportEntityType.dives,
+          0,
+          DuplicateAction.importAsNew,
+        );
+
+        notifier.toggleSelection(ImportEntityType.dives, 0);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.importAsNew,
+          reason:
+              'toggleSelection must never clobber a user-chosen '
+              'duplicate action -- only the seeded auto-skip default on '
+              'NON-duplicate indices is cleared.',
+        );
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -530,6 +679,40 @@ void main() {
         expect(selections, contains(0));
         expect(selections, isNot(contains(1))); // duplicate excluded
         expect(selections, contains(2));
+      });
+
+      test('selectAll clears seeded skip actions for auto-skipped indices', () {
+        final bundle = buildBundle(
+          diveItems: [
+            makeItem('Dive 1'),
+            makeItem('Dive 2'),
+            makeItem('Dive 3'),
+          ],
+          diveDuplicateIndices: {1},
+          diveMatchResults: {1: makeMatchResult(0.9)},
+          diveAutoSkipIndices: {2},
+        );
+        notifier.setBundle(bundle);
+        // Sanity: setBundle seeded the auto-skip default for index 2.
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[2],
+          DuplicateAction.skip,
+        );
+
+        notifier.selectAll(ImportEntityType.dives);
+
+        final selections = notifier.state.selections[ImportEntityType.dives]!;
+        expect(selections, contains(0));
+        expect(selections, isNot(contains(1))); // genuine duplicate
+        expect(selections, contains(2)); // rescued auto-skip row
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[2],
+          isNull,
+          reason:
+              'selectAll must clear the seeded skip action for the '
+              'rescued auto-skip row, or performImport would silently '
+              'drop it despite it showing as selected.',
+        );
       });
     });
 

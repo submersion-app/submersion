@@ -130,6 +130,32 @@ class AssetResolutionService {
       );
     }
 
+    // A gallery query against a library the app cannot access yet returns
+    // zero candidates -- indistinguishable from "genuinely no matching
+    // photo" unless permission is checked directly. Skip the query (and,
+    // critically, skip caching an unresolved result) when permission isn't
+    // in place: caching would apply the 24h+ backoff to a transient,
+    // user-recoverable condition, leaving the item stuck as unavailable
+    // long after permission is granted.
+    final PhotoPermissionStatus permission;
+    try {
+      permission = await _photoPickerService.checkPermission();
+    } catch (e) {
+      // checkPermission() ultimately hits platform code; treat a
+      // platform-channel failure like any other gallery failure rather than
+      // letting it bubble out of resolveAssetId() and break a Riverpod
+      // provider watching it.
+      _log.error('Permission check failed for media ${item.id}', error: e);
+      return const ResolutionResult(status: ResolutionStatus.unavailable);
+    }
+    if (permission != PhotoPermissionStatus.authorized &&
+        permission != PhotoPermissionStatus.limited) {
+      _log.info(
+        'Skipping gallery search for media ${item.id}: permission is $permission',
+      );
+      return const ResolutionResult(status: ResolutionStatus.unavailable);
+    }
+
     // Step 3: Search gallery by metadata (with query coalescing)
     const timeWindow = Duration(seconds: 5);
     final start = item.takenAt.subtract(timeWindow);

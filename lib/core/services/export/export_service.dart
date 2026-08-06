@@ -116,6 +116,9 @@ class ExportService {
   }) =>
       _pdf.saveDivesToPdfFile(dives, title: title, allSightings: allSightings);
 
+  Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>
+      _pdf.savePdfBytesToFile(bytes, fileName);
+
   // ==================== PDF Course Export ====================
 
   Future<String> exportCourseTrainingLogToPdf(

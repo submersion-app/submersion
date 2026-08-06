@@ -940,6 +940,76 @@ void main() {
       ).called(1);
     });
 
+    test('preResolvedBuddyIds links a skipped duplicate buddy to the existing '
+        'record without creating a twin (#756)', () async {
+      when(
+        mockBuddyRepo.addBuddyToDive(any, any, any),
+      ).thenAnswer((_) async {});
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        buddies: [
+          {'name': 'Nathalie', 'uddfId': 'Nathalie'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'buddyRefs': ['Nathalie'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The buddy index is NOT selected: the reviewer chose Skip (or
+        // Link to existing) for the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedBuddyIds: const {'Nathalie': 'existing-1'},
+      );
+
+      verifyNever(mockBuddyRepo.createBuddy(any));
+      verify(
+        mockBuddyRepo.addBuddyToDive(any, 'existing-1', DiveRole.buddyId),
+      ).called(1);
+    });
+
+    test('preResolvedTagIds links a skipped duplicate tag to the existing '
+        'record without creating a twin (#756)', () async {
+      when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        tags: [
+          {'name': 'Night', 'uddfId': 'Night'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'tagRefs': ['Night'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedTagIds: const {'Night': 'existing-tag-1'},
+      );
+
+      verifyNever(mockTagRepo.createTag(any));
+      verify(mockTagRepo.addTagToDive(any, 'existing-tag-1')).called(1);
+    });
+
     test('creates inline buddies for unmatched names', () async {
       final inlineBuddy = Buddy(
         id: 'inline-1',

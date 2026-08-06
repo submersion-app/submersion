@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/compact_site
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -402,7 +403,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(sitesAsync.valueOrNull ?? [])
           : AppBar(
-              title: Text(context.l10n.diveSites_list_appBar_title),
+              title: FeatureAppBarTitle(
+                featureId: 'sites',
+                title: context.l10n.diveSites_list_appBar_title,
+              ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.map),
@@ -441,7 +445,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
-                    if (value == 'import') {
+                    if (value == 'select') {
+                      _enterSelectionMode(null);
+                    } else if (value == 'import') {
                       context.push('/sites/import');
                     } else if (value.startsWith('view_')) {
                       final mode = ListViewMode.fromName(
@@ -463,6 +469,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                         ],
                       ),
                       const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'select',
+                        child: ListTile(
+                          leading: const Icon(Icons.checklist),
+                          title: Text(context.l10n.diveSites_list_menu_select),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
                       PopupMenuItem(
                         value: 'import',
                         child: ListTile(
@@ -588,8 +602,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveSites_list_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'sites',
+            title: context.l10n.diveSites_list_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -637,7 +652,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
-              if (value == 'import') {
+              if (value == 'select') {
+                _enterSelectionMode(null);
+              } else if (value == 'import') {
                 context.push('/sites/import');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
@@ -659,6 +676,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   ],
                 ),
                 const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'select',
+                  child: Text(context.l10n.diveSites_list_menu_select),
+                ),
                 PopupMenuItem(
                   value: 'import',
                   child: Text(context.l10n.diveSites_list_menu_import),

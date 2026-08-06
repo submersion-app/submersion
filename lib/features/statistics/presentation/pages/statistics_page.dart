@@ -20,6 +20,7 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_pro
 import 'package:submersion/features/statistics/presentation/pages/statistics_social_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Main statistics page with master-detail layout on desktop.
 ///
@@ -88,7 +89,10 @@ class StatisticsMobileContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'statistics',
+          title: context.l10n.statistics_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events),

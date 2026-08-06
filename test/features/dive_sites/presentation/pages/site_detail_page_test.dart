@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_3d/application/career_providers.dart';
+import 'package:submersion/features/dive_3d/domain/career/career_geometry_service.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -245,6 +248,64 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byTooltip('Site Seascape'), findsNothing);
+    });
+  });
+
+  group('SiteDetailPage embedded 3D history action', () {
+    const bareSite = DiveSite(id: 'history-site', name: 'Mystery');
+
+    testWidgets('embedded header shows the 3D history button even without '
+        'coordinates', (tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(bareSite.id).overrideWith((ref) async => bareSite),
+            siteDiveCountProvider(bareSite.id).overrideWith((ref) async => 0),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: bareSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('3D History'), findsOneWidget);
+    });
+
+    testWidgets('embedded 3D history button opens the career terrain page', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(bareSite.id).overrideWith((ref) async => bareSite),
+            siteDiveCountProvider(bareSite.id).overrideWith((ref) async => 0),
+            careerGeometryProvider((
+              query: careerSiteQuery(bareSite.id),
+              colorMode: CareerColorMode.recency,
+            )).overrideWith((ref) async => null),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: bareSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('3D History'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CareerTerrainPage), findsOneWidget);
+      expect(find.text('No dives with profiles to show'), findsOneWidget);
     });
   });
 

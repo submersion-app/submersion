@@ -54,6 +54,33 @@ void main() {
       },
     );
 
+    test('detects MySSI from its export headers (#190)', () {
+      const myssiHeaders = [
+        'dive #',
+        'Dive Site',
+        'Country',
+        'Date / Time',
+        'Dive Activity',
+        'Specialty Dive',
+        'Dive type',
+        'Duration',
+        'Depth',
+        'Dive Buddy / Instructor / Center',
+      ];
+
+      final matches = registry.detectPreset(myssiHeaders);
+
+      expect(matches, isNotEmpty);
+      expect(matches.first.preset.id, 'myssi');
+      expect(
+        matches.first.preset.primaryMapping!.columns,
+        hasLength(6),
+        reason:
+            'dive #, Dive Site, Date / Time, Duration, Depth, and Buddy map; '
+            'Country/Activity/Specialty/Dive type have no target field',
+      );
+    });
+
     test('detects MacDive from its headers', () {
       const macdiveHeaders = [
         'Dive No',

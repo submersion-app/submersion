@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -83,6 +82,9 @@ void main() {
         when(
           mockPicker.getThumbnail('original-asset-id', size: 50),
         ).thenAnswer((_) async => null);
+        when(
+          mockPicker.checkPermission(),
+        ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
         // Gallery search returns a match
         when(mockPicker.getAssetsInDateRange(any, any)).thenAnswer(
           (_) async => [
@@ -151,6 +153,128 @@ void main() {
     });
   });
 
+  // A gallery query against a library the app cannot access yet returns
+  // zero candidates -- indistinguishable from "genuinely no matching
+  // photo" unless permission is checked directly. Caching that as a long
+  // (24h+) backoff means granting permission moments later doesn't help:
+  // the item stays stuck showing unavailable until the backoff expires.
+  // Permission is a transient, user-recoverable condition, so a resolution
+  // attempt blocked by it must not be cached at all.
+  group('resolveAssetId permission handling', () {
+    void stubMissingPermission(PhotoPermissionStatus status) {
+      when(mockPicker.supportsGalleryBrowsing).thenReturn(true);
+      when(mockCache.getCachedAssetId('media-1')).thenAnswer((_) async => null);
+      when(mockCache.getCacheEntry('media-1')).thenAnswer((_) async => null);
+      when(
+        mockPicker.getThumbnail('original-asset-id', size: 50),
+      ).thenAnswer((_) async => null);
+      when(mockPicker.checkPermission()).thenAnswer((_) async => status);
+    }
+
+    test(
+      'does not cache or query the gallery when permission is not determined',
+      () async {
+        stubMissingPermission(PhotoPermissionStatus.notDetermined);
+
+        final result = await service.resolveAssetId(createTestItem());
+
+        expect(result.status, equals(ResolutionStatus.unavailable));
+        expect(result.localAssetId, isNull);
+        verifyNever(mockPicker.getAssetsInDateRange(any, any));
+        verifyNever(
+          mockCache.cacheResolution(
+            mediaId: anyNamed('mediaId'),
+            localAssetId: anyNamed('localAssetId'),
+            method: anyNamed('method'),
+          ),
+        );
+        verifyNever(mockCache.incrementAttempt(any));
+      },
+    );
+
+    test('does not cache when permission is denied', () async {
+      stubMissingPermission(PhotoPermissionStatus.denied);
+
+      final result = await service.resolveAssetId(createTestItem());
+
+      expect(result.status, equals(ResolutionStatus.unavailable));
+      verifyNever(mockPicker.getAssetsInDateRange(any, any));
+      verifyNever(
+        mockCache.cacheResolution(
+          mediaId: anyNamed('mediaId'),
+          localAssetId: anyNamed('localAssetId'),
+          method: anyNamed('method'),
+        ),
+      );
+    });
+
+    test(
+      'still searches the gallery when permission is only limited',
+      () async {
+        stubMissingPermission(PhotoPermissionStatus.limited);
+        when(mockPicker.getAssetsInDateRange(any, any)).thenAnswer(
+          (_) async => [
+            AssetInfo(
+              id: 'matched-id',
+              type: AssetType.image,
+              createDateTime: DateTime(2025, 6, 15, 10, 30, 1),
+              width: 4032,
+              height: 3024,
+              filename: 'IMG_001.jpg',
+            ),
+          ],
+        );
+        when(
+          mockCache.cacheResolution(
+            mediaId: anyNamed('mediaId'),
+            localAssetId: anyNamed('localAssetId'),
+            method: anyNamed('method'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await service.resolveAssetId(createTestItem());
+
+        expect(result.status, equals(ResolutionStatus.resolved));
+        expect(result.localAssetId, equals('matched-id'));
+      },
+    );
+
+    // checkPermission() ultimately hits platform code (see
+    // PhotoPickerServiceMobile.checkPermission()); a platform-channel
+    // exception must not bubble out of resolveAssetId() and break a
+    // Riverpod provider watching it. It should be treated like any other
+    // gallery failure: log and report unavailable without caching.
+    test(
+      'returns unavailable without caching when checkPermission throws',
+      () async {
+        when(mockPicker.supportsGalleryBrowsing).thenReturn(true);
+        when(
+          mockCache.getCachedAssetId('media-1'),
+        ).thenAnswer((_) async => null);
+        when(mockCache.getCacheEntry('media-1')).thenAnswer((_) async => null);
+        when(
+          mockPicker.getThumbnail('original-asset-id', size: 50),
+        ).thenAnswer((_) async => null);
+        when(
+          mockPicker.checkPermission(),
+        ).thenThrow(PlatformException(code: 'permission_check_failed'));
+
+        final result = await service.resolveAssetId(createTestItem());
+
+        expect(result.status, equals(ResolutionStatus.unavailable));
+        expect(result.localAssetId, isNull);
+        verifyNever(mockPicker.getAssetsInDateRange(any, any));
+        verifyNever(
+          mockCache.cacheResolution(
+            mediaId: anyNamed('mediaId'),
+            localAssetId: anyNamed('localAssetId'),
+            method: anyNamed('method'),
+          ),
+        );
+      },
+    );
+  });
+
   /// Drives the full tier ladder rather than the matchers in isolation, so
   /// the order the tiers run in is pinned: the exact-second tier must be
   /// reached before the fuzzy window, which is the whole point of adding it.
@@ -164,6 +288,9 @@ void main() {
       when(
         mockPicker.getThumbnail('original-asset-id', size: 50),
       ).thenAnswer((_) async => null);
+      when(
+        mockPicker.checkPermission(),
+      ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
       when(
         mockPicker.getAssetsInDateRange(any, any),
       ).thenAnswer((_) async => candidates);

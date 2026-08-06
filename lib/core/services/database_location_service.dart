@@ -17,6 +17,38 @@ import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 /// - Resolving the actual database path based on configuration
 /// - Platform-specific folder selection
 /// - Verifying folder accessibility
+/// The folder picker itself failed (as opposed to the user cancelling).
+class FolderPickException implements Exception {
+  final String message;
+  const FolderPickException(this.message);
+
+  @override
+  String toString() => 'FolderPickException: $message';
+}
+
+/// Outcome of the startup accessibility check for a custom DB location.
+enum StartupLocationCheck {
+  /// No custom location configured; nothing to check.
+  defaultLocation,
+
+  /// Custom database exists and is readable.
+  accessible,
+
+  /// The folder is configured but holds no database yet -- the normal
+  /// first launch after choosing a location. The configuration is KEPT on
+  /// every platform; the database is created at the chosen path.
+  keptDatabaseMissing,
+
+  /// Custom database is not accessible, but the configuration is KEPT
+  /// (non-sandbox platforms; the open will create the file or surface a
+  /// real error instead of silently discarding the user's choice, #218).
+  keptInaccessible,
+
+  /// Custom database is not accessible and the configuration was reset
+  /// (sandbox platforms, where folder access can be permanently revoked).
+  resetToDefault,
+}
+
 class DatabaseLocationService {
   final SharedPreferences _prefs;
 
@@ -174,9 +206,12 @@ class DatabaseLocationService {
 
       if (result == null) return null;
       return FolderPickResultWithBookmark(path: result);
-    } catch (e) {
-      // Handle any errors from file picker
-      return null;
+    } catch (e, stackTrace) {
+      // A thrown picker (e.g. a missing/broken XDG desktop portal on
+      // Linux) must be distinguishable from a user cancel, or the setting
+      // silently appears to do nothing (#218). Rethrow on the original
+      // stack so logs point at the failing portal/DBus call.
+      Error.throwWithStackTrace(FolderPickException('$e'), stackTrace);
     }
   }
 
@@ -229,6 +264,64 @@ class DatabaseLocationService {
   }
 
   /// Clear the storage configuration and reset to default
+  /// Verifies a configured custom database location at startup (#218).
+  ///
+  /// On bookmark platforms (macOS/iOS) an inaccessible custom database
+  /// resets to the default location: the sandbox may permanently revoke
+  /// folder access, and opening at the default path beats crashing. On
+  /// every other platform the user's choice is KEPT -- there is no sandbox
+  /// to lose access to, a missing file is created by the open, and the old
+  /// unconditional reset made the setting appear to never persist on
+  /// Linux.
+  Future<StartupLocationCheck> validateCustomLocationAtStartup({
+    bool? isBookmarkPlatform,
+  }) async {
+    final bookmarkPlatform =
+        isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
+    final config = await getStorageConfig();
+    if (config.mode != StorageLocationMode.customFolder ||
+        config.customFolderPath == null) {
+      return StartupLocationCheck.defaultLocation;
+    }
+
+    if (bookmarkPlatform && hasStoredBookmark()) {
+      await resolveStoredBookmark();
+    }
+
+    final dbPath = await getDatabasePath();
+    final file = File(dbPath);
+
+    // Nothing at the path is NOT an access failure: it is the first launch
+    // after choosing a folder. Resetting here would wipe a freshly-chosen
+    // location before the database was ever created (#218). Anything that
+    // DOES occupy the path (including a directory) has to be opened to
+    // decide, so test the entity type rather than File.exists().
+    if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
+      return StartupLocationCheck.keptDatabaseMissing;
+    }
+
+    var canAccess = false;
+    RandomAccessFile? handle;
+    try {
+      handle = await file.open(mode: FileMode.read);
+      await handle.read(16);
+      canAccess = true;
+    } catch (_) {
+      canAccess = false;
+    } finally {
+      // Close even when the read throws, or the handle leaks on every
+      // launch that hits a revoked-permission folder.
+      await handle?.close();
+    }
+
+    if (canAccess) return StartupLocationCheck.accessible;
+    if (bookmarkPlatform) {
+      await resetToDefault();
+      return StartupLocationCheck.resetToDefault;
+    }
+    return StartupLocationCheck.keptInaccessible;
+  }
+
   Future<void> resetToDefault() async {
     // Stop accessing any security-scoped resource first
     await SecurityScopedBookmarkService.stopAccessingSecurityScopedResource();

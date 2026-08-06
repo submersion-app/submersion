@@ -5,6 +5,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/data/services/dive_time_migration_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
   const FixDiveTimesPage({super.key});
@@ -98,7 +99,7 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   Future<void> _pickRangeStart(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _rangeStart ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -114,7 +115,7 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   Future<void> _pickRangeEnd(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _rangeEnd ?? DateTime.now(),
       firstDate: DateTime(1950),

@@ -1040,8 +1040,11 @@ class ProfileAnalysisService {
   ///
   /// Three-layer detection:
   /// 1. Max depth gate: skip dives shallower than 10m
-  /// 2. Ascent-phase restriction: only scan after max depth point
-  /// 3. Consolidation: merge stops separated by gaps <= 30s
+  /// 2. Ascent-phase scan with hysteresis: only samples after the max depth
+  ///    point are considered; a stop opens when depth enters the 3-6m band
+  ///    and closes only on a clear departure (shallower than 1.5m or deeper
+  ///    than 8m), so small drifts across the band edges do not split it
+  /// 3. Consolidation: merge stops separated by gaps <= 120s
   void _detectSafetyStops(
     String diveId,
     List<double> depths,
@@ -1053,8 +1056,16 @@ class ProfileAnalysisService {
     const minDiveDepth = 10.0;
     const minStopDepth = 3.0;
     const maxStopDepth = 6.0;
+    // Once a stop has opened, brief drifts just outside the 3-6 m band
+    // (buoyancy wobble, small level changes) must not end it. The stop closes
+    // only on a *clear* departure: surfacing (shallower than [stopExitShallow])
+    // or descending back down (deeper than [stopExitDeep]). Without this
+    // hysteresis a long, gently varying shallow phase gets chopped into many
+    // spurious start/end pairs as the depth repeatedly crosses 3 m or 6 m.
+    const stopExitShallow = 1.5; // m -- heading to the surface
+    const stopExitDeep = 8.0; // m -- descending away from the stop
     const minStopDuration = 120; // 2 minutes
-    const maxConsolidationGap = 30; // seconds
+    const maxConsolidationGap = 120; // seconds -- bridge brief clear departures
 
     // Layer 1: Skip shallow dives
     if (depths[maxDepthIndex] < minDiveDepth) return;
@@ -1065,47 +1076,43 @@ class ProfileAnalysisService {
           ({int startIndex, int startTimestamp, int endIndex, int endTimestamp})
         >[];
 
+    void addRawStop(int startIndex, int startTimestamp, int endIndex) {
+      final duration = timestamps[endIndex] - startTimestamp;
+      if (duration >= minStopDuration) {
+        rawStops.add((
+          startIndex: startIndex,
+          startTimestamp: startTimestamp,
+          endIndex: endIndex,
+          endTimestamp: timestamps[endIndex],
+        ));
+      }
+    }
+
     int? stopStartIndex;
     int? stopStartTimestamp;
 
     // Layer 2: Only scan ascent phase (after max depth point)
     for (int i = maxDepthIndex + 1; i < depths.length; i++) {
       final depth = depths[i];
-      final timestamp = timestamps[i];
 
-      if (depth >= minStopDepth && depth <= maxStopDepth) {
-        if (stopStartIndex == null) {
+      if (stopStartIndex == null) {
+        // Open a stop when the diver settles into the safety-stop band.
+        if (depth >= minStopDepth && depth <= maxStopDepth) {
           stopStartIndex = i;
-          stopStartTimestamp = timestamp;
+          stopStartTimestamp = timestamps[i];
         }
-      } else {
-        if (stopStartIndex != null && stopStartTimestamp != null) {
-          final duration = timestamps[i - 1] - stopStartTimestamp;
-          if (duration >= minStopDuration) {
-            rawStops.add((
-              startIndex: stopStartIndex,
-              startTimestamp: stopStartTimestamp,
-              endIndex: i - 1,
-              endTimestamp: timestamps[i - 1],
-            ));
-          }
-          stopStartIndex = null;
-          stopStartTimestamp = null;
-        }
+      } else if (depth < stopExitShallow || depth > stopExitDeep) {
+        // Clear departure: close at the previous sample (which may sit
+        // between the band edge and the hysteresis threshold, e.g. 7m).
+        addRawStop(stopStartIndex, stopStartTimestamp!, i - 1);
+        stopStartIndex = null;
+        stopStartTimestamp = null;
       }
     }
 
     // Handle stop that extends to end of profile
-    if (stopStartIndex != null && stopStartTimestamp != null) {
-      final duration = timestamps.last - stopStartTimestamp;
-      if (duration >= minStopDuration) {
-        rawStops.add((
-          startIndex: stopStartIndex,
-          startTimestamp: stopStartTimestamp,
-          endIndex: depths.length - 1,
-          endTimestamp: timestamps.last,
-        ));
-      }
+    if (stopStartIndex != null) {
+      addRawStop(stopStartIndex, stopStartTimestamp!, depths.length - 1);
     }
 
     if (rawStops.isEmpty) return;

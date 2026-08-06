@@ -107,6 +107,41 @@ static int strcasecmp_nospace(const char *a, const char *b) {
     return 0;
 }
 
+// Number of NON-SPACE characters of `product` matched as a space/case-
+// insensitive PREFIX of `name`, or 0 when `name` does not start with the
+// whole product (or the match ends mid-word in `name`). Spaces are skipped
+// in both strings and do not count, so the score compares like for like
+// across spacing variants ("OSTC 4" and "OSTC4" both score 5) and stays
+// usable as a longest-match tiebreaker. Some vendors append a serial to
+// the advertised BLE name (e.g. an OSTC4 advertising "OSTC4 12345"):
+// dc_filter_hw accepts any "OSTC*" name for EVERY hw_ostc3-family
+// descriptor and the exact-name tiebreaker cannot bridge the suffix, so
+// the first family row ("OSTC 2") used to win. Issue #590.
+static size_t product_prefix_len(const char *name, const char *product) {
+    const char *a = name;
+    const char *b = product;
+    size_t matched = 0;
+    while (1) {
+        while (*a == ' ') a++;
+        while (*b == ' ') b++;
+        if (*b == '\0') break;
+        if (*a == '\0' ||
+            tolower((unsigned char)*a) != tolower((unsigned char)*b)) {
+            return 0;
+        }
+        a++;
+        b++;
+        matched++;
+    }
+    // The name must not continue with a letter: "OSTC 2 TR..." is not a
+    // prefix match for "OSTC 2" (the longer product row should win).
+    while (*a == ' ') a++;
+    if (isalpha((unsigned char)*a)) {
+        return 0;
+    }
+    return matched;
+}
+
 // Some Scubapro/Uwatec dive computers advertise a short BLE name that differs
 // from the libdivecomputer product string. dc_filter_uwatec matches each such
 // alias against EVERY Uwatec/Scubapro descriptor, so the family-level fallback
@@ -196,6 +231,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
 
     dc_descriptor_t *desc = NULL;
     int found = 0;
+    size_t best_prefix_len = 0;
     while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
         if (dc_descriptor_filter(desc, (dc_transport_t)transport, name)) {
             // Keep first family-level match as fallback.
@@ -229,6 +265,23 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                     info->transports = dc_descriptor_get_transports(desc);
                     dc_descriptor_free(desc);
                     break;
+                }
+
+                // No exact match: prefer the descriptor whose product is
+                // the LONGEST prefix of the advertised name, so a
+                // serial-suffixed name resolves to its own model instead
+                // of the first family row (issue #590). The descriptor
+                // table's strings are static, so the pointers stay valid
+                // after dc_descriptor_free.
+                if (product) {
+                    size_t plen = product_prefix_len(name, product);
+                    if (plen > best_prefix_len) {
+                        best_prefix_len = plen;
+                        info->vendor = dc_descriptor_get_vendor(desc);
+                        info->product = product;
+                        info->model = dc_descriptor_get_model(desc);
+                        info->transports = dc_descriptor_get_transports(desc);
+                    }
                 }
             }
         }

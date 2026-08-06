@@ -306,7 +306,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     ),
                     _buildPadiField(
                       'Time',
-                      '${dive.bottomTime?.inMinutes ?? '-'}min',
+                      '${pdfDiveDurationMinutes(dive)}min',
                     ),
                     _buildPadiField(
                       'Temp',

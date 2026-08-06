@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -68,6 +69,31 @@ class TripStoryDay extends Equatable {
     return ids.length;
   }
 
+  /// Day-level weather summary, or null when no dive logged any weather.
+  ///
+  /// Each field is the first non-null value across the day's dives in dive
+  /// order, so a morning dive that logged only air temperature and an
+  /// afternoon dive that logged only sky conditions still combine into one
+  /// complete summary.
+  TripStoryDayWeather? get weather {
+    double? airTemp;
+    CloudCover? cloudCover;
+    Precipitation? precipitation;
+    for (final dive in dives) {
+      airTemp ??= dive.airTemp;
+      cloudCover ??= dive.cloudCover;
+      precipitation ??= dive.precipitation;
+    }
+    if (airTemp == null && cloudCover == null && precipitation == null) {
+      return null;
+    }
+    return TripStoryDayWeather(
+      airTemp: airTemp,
+      cloudCover: cloudCover,
+      precipitation: precipitation,
+    );
+  }
+
   bool get hasContent =>
       dives.isNotEmpty || media.isNotEmpty || itineraryDay != null;
 
@@ -85,6 +111,22 @@ class TripStoryDay extends Equatable {
     sightings,
     kind,
   ];
+}
+
+/// Compact weather summary for one story day, shown in the day header.
+class TripStoryDayWeather extends Equatable {
+  final double? airTemp; // celsius
+  final CloudCover? cloudCover;
+  final Precipitation? precipitation;
+
+  const TripStoryDayWeather({
+    this.airTemp,
+    this.cloudCover,
+    this.precipitation,
+  });
+
+  @override
+  List<Object?> get props => [airTemp, cloudCover, precipitation];
 }
 
 /// A mappable point contributed by a story day (dive site or itinerary port).

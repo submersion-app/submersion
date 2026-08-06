@@ -23,9 +23,15 @@ class SyncManifest {
     this.uploadNonce,
     this.appliedPeerHlc = const {},
     this.formatVersion = 1,
+    this.schemaVersion,
   });
 
   final int formatVersion;
+
+  /// The database schema version of the publishing device, used by readers to
+  /// hold data from newer-schema peers rather than lossily merging it.
+  /// Null on manifests written before this field existed.
+  final int? schemaVersion;
   final String deviceId;
   final String provider;
   final int? baseSeq;
@@ -46,6 +52,7 @@ class SyncManifest {
 
   Map<String, dynamic> toJson() => {
     'formatVersion': formatVersion,
+    'schemaVersion': schemaVersion,
     'deviceId': deviceId,
     'provider': provider,
     'baseSeq': baseSeq,
@@ -63,6 +70,7 @@ class SyncManifest {
 
   factory SyncManifest.fromJson(Map<String, dynamic> json) => SyncManifest(
     formatVersion: (json['formatVersion'] as int?) ?? 1,
+    schemaVersion: json['schemaVersion'] as int?,
     deviceId: json['deviceId'] as String,
     provider: json['provider'] as String,
     baseSeq: json['baseSeq'] as int?,

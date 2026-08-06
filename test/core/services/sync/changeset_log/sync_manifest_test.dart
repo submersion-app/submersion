@@ -17,6 +17,31 @@ void main() {
     updatedAt: 999,
   );
 
+  test('round-trips schemaVersion', () {
+    const manifest = SyncManifest(
+      deviceId: 'dev-1',
+      provider: 'icloud',
+      headSeq: 3,
+      updatedAt: 1234,
+      schemaVersion: 136,
+    );
+
+    final back = SyncManifest.fromJson(manifest.toJson());
+
+    expect(back.schemaVersion, 136);
+  });
+
+  test('legacy manifest without schemaVersion parses as null', () {
+    final back = SyncManifest.fromJson({
+      'deviceId': 'dev-1',
+      'provider': 'icloud',
+      'headSeq': 3,
+      'updatedAt': 1234,
+    });
+
+    expect(back.schemaVersion, isNull);
+  });
+
   test('toBytes -> fromBytes round-trips every field', () {
     final m = sample();
     final back = SyncManifest.fromBytes(m.toBytes());

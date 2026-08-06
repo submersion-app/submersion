@@ -1,3 +1,4 @@
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
@@ -23,6 +24,7 @@ class ChangesetReadResult {
     required this.payloadsApplied,
     this.peerManifests = const [],
     this.skippedPeerDeviceIds = const {},
+    this.newerSchemaPeerDeviceIds = const {},
     this.retiredPeerIds = const {},
     this.retiredPeerHasFiles = false,
   });
@@ -37,6 +39,13 @@ class ChangesetReadResult {
   /// belong to the current library epoch. The caller should surface these to
   /// the user rather than reporting a misleadingly clean sync.
   final Set<String> skippedPeerDeviceIds;
+
+  /// Peers held because their manifests were published from a newer database
+  /// schema than this build understands. Merging them would silently drop the
+  /// fields this build does not know and republish the rows without them.
+  /// Their cursors are not advanced; the data applies after this device
+  /// updates.
+  final Set<String> newerSchemaPeerDeviceIds;
   final Set<String> retiredPeerIds;
 
   /// True when a retired peer still has non-marker files in the bucket (a
@@ -63,6 +72,7 @@ class ChangesetReader {
     required ApplyPayload apply,
     required ApplyBaseFile applyBaseFile,
     String? currentEpochId,
+    int localSchemaVersion = AppDatabase.currentSchemaVersion,
     List<CloudFileInfo>? preListedFiles,
   }) async {
     final providerId = provider.providerId;
@@ -97,6 +107,7 @@ class ChangesetReader {
     );
     final peerManifests = <SyncManifest>[];
     final skippedPeerDeviceIds = <String>{};
+    final newerSchemaPeerDeviceIds = <String>{};
 
     var peersProcessed = 0;
     var payloadsApplied = 0;
@@ -120,6 +131,16 @@ class ChangesetReader {
         // heartbeats rewrite updatedAt without changing the library epoch.
         if (currentEpochId != null && manifest.epochId != currentEpochId) {
           skippedPeerDeviceIds.add(peerId);
+          continue;
+        }
+
+        // Newer-schema filter: hold peers publishing from a newer database
+        // schema. Applying them would silently drop the columns and tables
+        // this build does not know, then republish those rows without them.
+        // The cursor stays put, so the data applies once this device updates.
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null && peerSchema > localSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(peerId);
           continue;
         }
         peersProcessed++;
@@ -199,6 +220,7 @@ class ChangesetReader {
       payloadsApplied: payloadsApplied,
       peerManifests: peerManifests,
       skippedPeerDeviceIds: skippedPeerDeviceIds,
+      newerSchemaPeerDeviceIds: newerSchemaPeerDeviceIds,
       retiredPeerIds: retiredPeerIds,
       retiredPeerHasFiles: retiredPeerHasFiles,
     );

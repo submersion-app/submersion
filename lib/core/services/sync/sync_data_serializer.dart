@@ -2143,7 +2143,10 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
-    data = _withoutDeviceLocalFields(data, entityType: entityType);
+    data = _withSchemaDefaults(
+      entityType,
+      _withoutDeviceLocalFields(data, entityType: entityType),
+    );
     switch (entityType) {
       case 'divers':
         await _db
@@ -2620,7 +2623,10 @@ class SyncDataSerializer {
     if (records.isEmpty) return;
     records = records
         .map(
-          (record) => _withoutDeviceLocalFields(record, entityType: entityType),
+          (record) => _withSchemaDefaults(
+            entityType,
+            _withoutDeviceLocalFields(record, entityType: entityType),
+          ),
         )
         .toList();
     switch (entityType) {
@@ -5100,6 +5106,88 @@ class SyncDataSerializer {
   // Default Value Helpers
   // ============================================================================
 
+  /// Cached (jsonKey, fill) pairs per entity type: one entry for every
+  /// non-nullable column of the entity's table whose schema-level default can
+  /// be reconstructed at replay time (a primitive [Constant]). Built lazily
+  /// from the live table metadata so new columns are covered without touching
+  /// this file.
+  final Map<String, List<MapEntry<String, Object? Function()>>>
+  _schemaDefaultFills = {};
+
+  /// Hydrates missing (or explicitly null) non-nullable columns in [data]
+  /// with their schema defaults before the generated `fromJson` runs (#858).
+  ///
+  /// A record exported before a schema change lacks the newer columns, and
+  /// Drift's `fromJson` does a straight cast per column -- `null` where a
+  /// non-nullable `bool`/`int`/`String` is expected throws, which permanently
+  /// blocked library adoption (the only path that replays full changeset
+  /// history through `fromJson`). Filling the column's own default mirrors
+  /// what the `ALTER TABLE ... DEFAULT` migration produced for that row on
+  /// the exporting device, so this is a faithful reconstruction, not a guess.
+  Map<String, dynamic> _withSchemaDefaults(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    final fills = _schemaDefaultFills.putIfAbsent(
+      entityType,
+      () => _buildSchemaDefaultFills(entityType),
+    );
+    if (fills.isEmpty) return data;
+    Map<String, dynamic>? patched;
+    for (final fill in fills) {
+      if (data[fill.key] != null) continue;
+      final value = fill.value();
+      if (value == null) continue;
+      (patched ??= Map.of(data))[fill.key] = value;
+    }
+    return patched ?? data;
+  }
+
+  List<MapEntry<String, Object? Function()>> _buildSchemaDefaultFills(
+    String entityType,
+  ) {
+    final TableInfo<Table, dynamic> table;
+    try {
+      table = _syncTableFor(entityType);
+    } on ArgumentError {
+      // upsertRecord silently ignores unknown entity types; mirror that.
+      return const [];
+    }
+    final fills = <MapEntry<String, Object? Function()>>[];
+    for (final column in table.$columns) {
+      if (column.$nullable) continue;
+      final defaultValue = column.defaultValue;
+      if (defaultValue is! Constant<Object>) continue;
+      final value = defaultValue.value;
+      // Primitive constants only: they match the wire format for plain and
+      // enum columns, and cover every replay-relevant column -- SQLite
+      // requires a constant DEFAULT to add a NOT NULL column, so a column
+      // that old records can be missing always has one. Non-constant SQL
+      // defaults (e.g. currentDateAndTime) can't be evaluated here and keep
+      // today's behavior.
+      if (value is bool || value is num || value is String) {
+        fills.add(MapEntry(_jsonKeyForSqlColumn(column.name), () => value));
+      }
+    }
+    return fills;
+  }
+
+  /// Maps a Drift SQL column name (snake_case of the Dart getter) back to the
+  /// getter name, which is the generated `fromJson`/`toJson` key. The project
+  /// has no build.yaml renames and no `named()` overrides, so the mapping is
+  /// mechanical; a wrong key would only add an ignored extra entry, never
+  /// overwrite a real one (fills skip keys already present).
+  static String _jsonKeyForSqlColumn(String sqlName) {
+    final parts = sqlName.split('_');
+    final buffer = StringBuffer(parts.first);
+    for (final part in parts.skip(1)) {
+      if (part.isEmpty) continue;
+      buffer.write(part[0].toUpperCase());
+      buffer.write(part.substring(1));
+    }
+    return buffer.toString();
+  }
+
   /// Applies default values for DiverSettings fields that may be missing
   /// from older sync data or incomplete conflict records.
   /// Defensive back-compat for the entities most recently added to SyncData:
@@ -5128,6 +5216,11 @@ class SyncDataSerializer {
       // Theme
       'themeMode': 'system',
       'themePreset': 'submersion',
+      // Color accents. Non-nullable bools added in v135; seed payloads
+      // predating the columns so fromJson hydrates instead of throwing.
+      'accentNavIcons': false,
+      'accentSectionHeaders': false,
+      'accentListIcons': false,
       // Locale (language preference: 'system', 'en', 'es', 'fr', etc.)
       'locale': 'system',
       // Defaults

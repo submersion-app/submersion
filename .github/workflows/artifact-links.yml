@@ -155,7 +155,9 @@ jobs:
               rows,
               '',
               'Artifacts expire in 7 days. Downloading requires being signed in to GitHub. ' +
-              'The macOS build is ad-hoc signed — right-click → Open on first launch.',
+              'macOS needs two extractions: unzip the downloaded artifact, then unzip the ' +
+              '`submersion-macos.zip` inside it to get a runnable `submersion.app`. ' +
+              'The build is ad-hoc signed — right-click → Open on first launch.',
               '',
               '<sub>Updated automatically on each push.</sub>',
               '',

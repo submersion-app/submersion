@@ -78,8 +78,8 @@ Future<NavSpy> pumpStrip(
         builder: (_, _) => stub('/settings/backup'),
       ),
       GoRoute(
-        path: '/settings/data-quality',
-        builder: (_, _) => stub('/settings/data-quality'),
+        path: '/dives/quality',
+        builder: (_, _) => stub('/dives/quality'),
       ),
       GoRoute(
         path: '/settings/diver-profile/insurance',
@@ -547,7 +547,25 @@ void main() {
       );
       expect(find.text('4 data issues'), findsOneWidget);
       await tapChip(tester, '4 data issues');
-      expect(spy.location, '/settings/data-quality');
+      expect(spy.location, '/dives/quality');
+    });
+
+    testWidgets('the data-issues chip is singular for a count of one', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        const DashboardGauges(
+          gearGauges: [],
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          dataQualityFindings: 1,
+        ),
+      );
+      expect(find.text('1 data issue'), findsOneWidget);
+      expect(find.text('1 data issues'), findsNothing);
     });
 
     testWidgets('event chips stay hidden when they have no data', (

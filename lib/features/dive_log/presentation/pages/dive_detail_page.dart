@@ -98,6 +98,8 @@ import 'package:submersion/features/signatures/presentation/widgets/buddy_signat
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
+import 'package:submersion/features/reef/presentation/widgets/reef_health_card.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -215,8 +217,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // On desktop, redirect standalone detail pages to master-detail view.
     // Skip in table mode -- table view has no master-detail split to redirect into.
+    // Skip when this page was PUSHED (trip/buddy/site drill-through, "Open
+    // Full Page"): the redirect uses go(), which would wipe the stack and
+    // lose the browse context and back button (#764). Only redirect
+    // root-level details (deep links, tab navigation).
     if (!widget.embedded &&
         !_hasRedirected &&
+        !(GoRouter.maybeOf(context)?.canPop() ?? false) &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
       final viewMode = ref.read(diveListViewModeProvider);
       if (viewMode != ListViewMode.table) {
@@ -363,6 +370,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.tide: () {
         // _buildTideSection includes its own internal spacing
         return [_buildTideSection(context, ref, dive)];
+      },
+      DiveDetailSectionId.reefHealth: () {
+        return [_buildReefHealthSection(context, ref, dive)];
       },
       DiveDetailSectionId.surfaceGps: () {
         if (dive.entryLocation == null && dive.exitLocation == null) return [];
@@ -836,12 +846,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           CircleAvatar(
             radius: 16,
             backgroundColor: colorScheme.primaryContainer,
-            child: Text(
-              '#${dive.diveNumber ?? '-'}',
-              style: TextStyle(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '#${dive.diveNumber ?? '-'}',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
               ),
             ),
           ),
@@ -928,8 +945,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   _showDeleteConfirmation(context, ref);
                   break;
                 case 'open':
-                  // Open in full page mode
-                  context.go('/dives/$diveId');
+                  // Open in full-page mode. push (not go) so there's a back
+                  // button and the pushed page skips the master-detail
+                  // redirect above instead of bouncing straight back into
+                  // the pane it was opened from.
+                  context.push('/dives/$diveId');
                   break;
               }
             },
@@ -1012,11 +1032,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  '#${dive.diveNumber ?? '-'}',
-                  style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '#${dive.diveNumber ?? '-'}',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        // Pin the pre-scale size (CircleAvatar's implicit
+                        // titleMedium default) so FittedBox scales from a
+                        // theme-independent baseline.
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -2048,21 +2079,34 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         .map((t) => t.volume!)
         .firstOrNull;
 
-    // Determine if we can show L/min (need tank volume)
-    final showLitersPerMin =
-        sacUnit == SacUnit.litersPerMin && tankVolume != null;
-
     // Use the top-level normalization function
     final normalizationFactor = calculateSacNormalizationFactor(dive, analysis);
 
-    // Format SAC value based on unit setting, applying normalization
-    String formatSacValue(double sacBarPerMin) {
+    // Format SAC value based on unit setting, applying normalization.
+    // [segmentTankId] selects that segment's own cylinder volume for the
+    // L/min conversion -- sidemount tanks can differ in size, so one shared
+    // volume misconverts half the segments (#110). Falls back to the first
+    // tank with a volume when the segment carries no attribution.
+    String formatSacValue(double sacBarPerMin, {String? segmentTankId}) {
       // Apply normalization to align with overall dive SAC
       final normalizedSac = sacBarPerMin * normalizationFactor;
 
-      if (showLitersPerMin) {
+      final segmentVolume = segmentTankId == null
+          ? null
+          : dive.tanks
+                .where(
+                  (t) =>
+                      t.id == segmentTankId &&
+                      t.volume != null &&
+                      t.volume! > 0,
+                )
+                .map((t) => t.volume!)
+                .firstOrNull;
+      final effectiveVolume = segmentVolume ?? tankVolume;
+
+      if (sacUnit == SacUnit.litersPerMin && effectiveVolume != null) {
         // Convert bar/min to L/min: sacLPerMin = sacBarPerMin * tankVolume
-        final sacLPerMin = normalizedSac * tankVolume;
+        final sacLPerMin = normalizedSac * effectiveVolume;
         return '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
       } else {
         // Convert to user's pressure unit (bar or psi)
@@ -2208,7 +2252,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         SizedBox(
                           width: 90,
                           child: Text(
-                            formatSacValue(segment.sacRate),
+                            formatSacValue(
+                              segment.sacRate,
+                              segmentTankId: segment.tankId,
+                            ),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.end,
@@ -3345,6 +3392,39 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  /// Reef thermal stress on the date of this dive.
+  ///
+  /// Historical NOAA readings are immutable, so this is fetched once and
+  /// cached permanently. Hidden when the dive has no site coordinates.
+  Widget _buildReefHealthSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    if (dive.site?.hasCoordinates != true) return const SizedBox.shrink();
+
+    final healthAsync = ref.watch(
+      reefHealthForDiveProvider(
+        ReefHealthRequest(
+          location: dive.site!.location!,
+          date: dive.effectiveEntryTime,
+        ),
+      ),
+    );
+
+    return healthAsync.when(
+      data: (part) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 24),
+          Card(child: ReefHealthCard(part: part)),
+        ],
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
   /// Build the tide conditions section for a dive.
   ///
   /// Shows tide data from:
@@ -3464,21 +3544,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
     final dateStr = dateRef != null
-        ? DateFormat('EEE, MMM d').format(dateRef.toLocal())
+        ? DateFormat('EEE, MMM d').format(dateRef)
         : '';
+    // Cycle bounds are stored wall-clock instants, not device-local times:
+    // format them verbatim without any timezone conversion.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
-            final startLocal = cycleStart.toLocal();
-            final endLocal = cycleEnd.toLocal();
             final timeFmt = DateFormat(settings.timeFormat.pattern);
-            final startStr = timeFmt.format(startLocal);
-            final endStr = timeFmt.format(endLocal);
+            final startStr = timeFmt.format(cycleStart);
+            final endStr = timeFmt.format(cycleEnd);
             final spansNewDay =
-                startLocal.year != endLocal.year ||
-                startLocal.month != endLocal.month ||
-                startLocal.day != endLocal.day;
+                cycleStart.year != cycleEnd.year ||
+                cycleStart.month != cycleEnd.month ||
+                cycleStart.day != cycleEnd.day;
             if (spansNewDay) {
-              final endDateStr = DateFormat('MMM d').format(endLocal);
+              final endDateStr = DateFormat('MMM d').format(cycleEnd);
               return '$startStr - $endStr ($endDateStr)';
             }
             return '$startStr - $endStr';
@@ -3595,7 +3675,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Format a DateTime as a time string using the given time format.
   String _formatTime(DateTime time, TimeFormat timeFormat) {
-    return DateFormat(timeFormat.pattern).format(time.toLocal());
+    return DateFormat(timeFormat.pattern).format(time);
   }
 
   Widget _buildWeightSection(

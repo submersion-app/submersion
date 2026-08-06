@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -881,6 +882,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Map<String, int> _buddyCounts = {};
   final Map<String, Buddy> _buddyById = {};
+  final Map<String, DiveRole> _buddyRoleById = {};
   List<BulkMembershipItem> _buddyMembers = [];
   MembershipDelta _buddyDelta = MembershipDelta.empty;
 
@@ -3303,6 +3305,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final existing = _buddyMembers.map((e) => e.id).toSet();
       for (final bwr in buddies) {
         _buddyById[bwr.buddy.id] = bwr.buddy;
+        _buddyRoleById[bwr.buddy.id] = bwr.role;
       }
       _buddyMembers = [
         ..._buddyMembers,
@@ -3326,7 +3329,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
-    role: DiveRole.builtInBuddy(),
+    role: _buddyRoleById[id] ?? DiveRole.builtInBuddy(),
   );
 
   void _saveEquipmentAsSet() {
@@ -3817,19 +3820,38 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               SegmentedButton<WeightingFeedback>(
                 emptySelectionAllowed: true,
                 segments: [
+                  // Labels like "Overweighted" are wider than a third of the
+                  // row on a phone; scale them down to stay on one line rather
+                  // than wrapping mid-word.
                   ButtonSegment(
                     value: WeightingFeedback.correct,
-                    label: Text(
-                      context.l10n.diveLog_edit_weightFeedback_correct,
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        context.l10n.diveLog_edit_weightFeedback_correct,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                   ButtonSegment(
                     value: WeightingFeedback.overweighted,
-                    label: Text(context.l10n.diveLog_edit_weightFeedback_over),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        context.l10n.diveLog_edit_weightFeedback_over,
+                        maxLines: 1,
+                      ),
+                    ),
                   ),
                   ButtonSegment(
                     value: WeightingFeedback.underweighted,
-                    label: Text(context.l10n.diveLog_edit_weightFeedback_under),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        context.l10n.diveLog_edit_weightFeedback_under,
+                        maxLines: 1,
+                      ),
+                    ),
                   ),
                 ],
                 selected: {?_weightingFeedback},
@@ -4149,7 +4171,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _selectEntryDate() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: _entryDate,
       firstDate: DateTime(1950),
@@ -4204,7 +4226,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       initialDate = lastDate;
     }
 
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,

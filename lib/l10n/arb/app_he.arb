@@ -1,5 +1,6 @@
 {
   "universalImport_action_importFromGarmin": "ייבוא מהתקן Garmin",
+  "diveSites_list_menu_select": "בחירת אתרים",
   "diveLog_edit_geofenceSuggestion_near": "ליד {location}",
   "diveLog_edit_geofenceSuggestion_title": "הצעת ציוד",
   "diveLog_edit_geofenceSuggestion_body": "להחיל את ערכת \"{setName}\"?",
@@ -848,9 +849,6 @@
     }
   },
   "preDive_dashboard_start": "התחל בדיקה לפני צלילה",
-  "tools_preDive_title": "רשימות בדיקה לפני צלילה",
-  "tools_preDive_subtitle": "הרץ וסקור הרצות של רשימות בדיקה",
-  "tools_preDive_description": "בדיקות באדי, רשימות הרכבת CCR ואריזת ציוד עם תיעוד ביקורת",
   "trips_detail_preDive_action": "רשימת בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists": "רשימות בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists_subtitle": "בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד",
@@ -1229,11 +1227,16 @@
   "diveComputer_downloadStep_cancel": "ביטול",
   "diveComputer_downloadStep_cancelled": "ההורדה בוטלה",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
+  "diveComputer_downloadStep_downloadAll": "הורדת כל הצלילות",
   "diveComputer_downloadStep_downloadFailed": "ההורדה נכשלה",
+  "diveComputer_downloadStep_downloadNew": "הורדת צלילות חדשות",
   "diveComputer_downloadStep_downloadedDives": "צלילות שהורדו",
   "diveComputer_downloadStep_durationMin": "{duration} min",
   "diveComputer_downloadStep_errorOccurred": "אירעה שגיאה",
   "diveComputer_downloadStep_errorSemanticLabel": "שגיאת הורדה: {error}",
+  "diveComputer_downloadStep_firstSyncBody": "ביומן הצלילות שלך כבר יש צלילות. אפשר לדלג על הורדת הצלילות שכבר יש לך.",
+  "diveComputer_downloadStep_firstSyncTitle": "הורדה ראשונה ממחשב הצלילה הזה",
+  "diveComputer_downloadStep_onlyAfterDate": "הורדת צלילות אחרי {date} בלבד",
   "diveComputer_downloadStep_percentAccessibility": ", {percent} אחוז",
   "diveComputer_downloadStep_preparing": "מכין...",
   "diveComputer_downloadStep_progressPercent": "{percent}%",
@@ -3981,6 +3984,8 @@
   "diveDetailSection_tanks_description": "רשימת בלונים, תערובות גז, לחצים, SAC לבלון",
   "diveDetailSection_tanks_name": "בלונים",
   "diveDetailSection_tide_description": "גרף מחזור גאות ושפל וזמן",
+  "diveDetailSection_reefHealth_name": "בריאות השונית",
+  "diveDetailSection_reefHealth_description": "עקת חום מהלבנת אלמוגים בתאריך הצלילה",
   "diveDetailSection_tide_name": "גאות ושפל",
   "diveDetailSection_weights_description": "פירוט משקולות, משקל כולל",
   "diveDetailSection_buoyancy_name": "ציפה",
@@ -4104,6 +4109,7 @@
   "settings_cloudSync_header_syncBehavior": "התנהגות סנכרון",
   "settings_cloudSync_lastSynced": "סנכרון אחרון: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{שינוי ממתין אחד} other{{count} שינויים ממתינים}}",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{מכשיר אחד מסתנכרן מגרסה חדשה יותר של Submersion. עדכן מכשיר זה כדי לקבל את השינויים האחרונים שלו.} other{{count} מכשירים מסתנכרנים מגרסה חדשה יותר של Submersion. עדכן מכשיר זה כדי לקבל את השינויים האחרונים שלהם.}}",
   "settings_cloudSync_provider_connected": "מחובר",
   "settings_cloudSync_provider_connectedTo": "מחובר אל {providerName}",
   "settings_cloudSync_provider_connectionFailed": "החיבור אל {providerName} נכשל: {error}",
@@ -4527,6 +4533,65 @@
   "settings_units_weight": "משקל",
   "settings_units_weight_kilograms": "קילוגרם (kg)",
   "settings_units_weight_pounds": "ליברות (lbs)",
+  "settings_updates_automaticUpdates": "עדכונים אוטומטיים",
+  "settings_updates_automaticUpdatesSubtitle": "בדיקת עדכונים מעת לעת",
+  "settings_updates_betaDialogBody": "גרסאות בטא מתפרסמות מכל שינוי ועשויות לשדרג את מסד הנתונים של יומן הצלילה שלך לפני הגרסה היציבה. חזרה מאוחר יותר לערוץ היציב לא תחזיר את האפליקציה לגרסה קודמת, וכל המכשירים שמסתנכרנים יחד צריכים להשתמש באותו ערוץ. גיבוי נוצר אוטומטית לפני כל שדרוג של מסד הנתונים.",
+  "settings_updates_betaDialogConfirm": "מעבר לבטא",
+  "settings_updates_betaDialogTitle": "לקבל עדכוני בטא?",
+  "settings_updates_channel": "ערוץ עדכונים",
+  "settings_updates_channelBadgeBeta": "{version} (בטא)",
+  "@settings_updates_channelBadgeBeta": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_channelBeta": "בטא",
+  "settings_updates_channelBetaSubtitle": "גרסאות חדשות מכל שינוי, לפני היציבה",
+  "settings_updates_channelStable": "יציב",
+  "settings_updates_channelStableSubtitle": "גרסאות שנבדקו בלבד",
+  "settings_updates_checkForUpdates": "בדוק אם יש עדכונים",
+  "settings_updates_checking": "בודק...",
+  "settings_updates_downloading": "מוריד... {progress}%",
+  "@settings_updates_downloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_error": "שגיאה: {message}",
+  "@settings_updates_error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_header": "עדכונים",
+  "settings_updates_joinBeta": "הצטרפות לבטא",
+  "settings_updates_joinBetaSubtitle": "קבל תכונות חדשות מוקדם דרך תוכנית הבטא",
+  "settings_updates_lastChecked": "בדיקה אחרונה",
+  "settings_updates_never": "אף פעם",
+  "settings_updates_readyToInstall": "גרסה {version} מוכנה להתקנה",
+  "@settings_updates_readyToInstall": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_stableSwitchNotice": "תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.",
+  "settings_updates_upToDate": "מעודכן",
+  "settings_updates_versionAvailable": "גרסה {version} זמינה",
+  "@settings_updates_versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "signatures_action_clear": "נקה",
   "signatures_action_closeSignatureView": "סגור תצוגת חתימה",
   "signatures_action_deleteSignature": "מחק חתימה",
@@ -4869,6 +4934,7 @@
   "tags_empty": "עדיין אין תגיות. צור תגיות בעת עריכת צלילות.",
   "tags_hint_addMoreTags": "הוסף תגיות נוספות...",
   "importWizard_tagsLabel": "Tags",
+  "importWizard_review_olderDivesSkipped": "{count, plural, one{צלילה ישנה אחת דולגה — כבר ביומן שלך} other{{count} צלילות ישנות דולגו — כבר ביומן שלך}}",
   "tags_hint_addTags": "הוסף תגיות...",
   "tags_manage_bulkDeleteMessage": "תגיות אלו יוסרו מ-{diveCount, plural, =0{0 צלילות} =1{צלילה אחת} other{{diveCount} צלילות}} בסך הכל. לא ניתן לבטל פעולה זו.",
   "tags_manage_bulkDeleteTitle": "למחוק {count} תגיות?",
@@ -5007,23 +5073,14 @@
   "tides_semantic_tideCycle": "מחזור גאות, מצב: {state}, גובה: {height}",
   "tides_semantic_tideState": "מצב גאות: {state}",
   "tides_title": "גאות",
-  "tools_deco_description": "חשב מגבלות ללא-דקומפרסיה, עצירות דקו נדרשות, וחשיפת CNS/OTU לפרופילי צלילה מרובי-שכבות.",
-  "tools_deco_subtitle": "תכנן צלילות עם עצירות דקומפרסיה",
-  "tools_deco_title": "מחשבון דקו",
-  "tools_disclaimer": "מחשבונים אלו מיועדים לתכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.",
-  "tools_gas_description": "ארבעה מחשבוני גז מתמחים:\n• MOD - עומק פעולה מרבי לתערובת גז\n• Best Mix - אחוז O₂ אידיאלי לעומק יעד\n• Consumption - הערכת צריכת גז\n• Rock Bottom - חישוב עתודה לחירום",
-  "tools_gas_subtitle": "MOD, Best Mix, צריכה, Rock Bottom",
-  "tools_gas_title": "מחשבוני גז",
   "tools_gpsLogger_description": "הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.",
   "tools_gpsLogger_subtitle": "הקלטת מסלול פני המים",
   "tools_gpsLogger_title": "מקליט GPS",
-  "tools_title": "כלים",
   "tools_weight_aluminumImperial": "ציפה יותר כשריק (+4 lbs)",
   "tools_weight_aluminumMetric": "ציפה יותר כשריק (+2 kg)",
   "tools_weight_bodyWeightOptional": "משקל גוף (אופציונלי)",
   "tools_weight_carbonFiberImperial": "ציפה מאוד (+7 lbs)",
   "tools_weight_carbonFiberMetric": "ציפה מאוד (+3 kg)",
-  "tools_weight_description": "הערך את המשקל הנדרש על סמך חליפת החשיפה, חומר המיכל, סוג המים ומשקל הגוף.",
   "tools_weight_disclaimer": "זוהי הערכה בלבד. תמיד בצע בדיקת ציפה בתחילת הצלילה והתאם לפי הצורך. גורמים כמו BCD, ציפה אישית ודפוסי נשימה ישפיעו על דרישות המשקל בפועל.",
   "tools_weight_exposureSuit": "חליפת חשיפה",
   "tools_weight_gasCapacity": "• קיבולת גז: {capacity} cuft",
@@ -5034,7 +5091,6 @@
   "tools_weight_resultAccessibility": "משקל מומלץ: {weight} {unit}",
   "tools_weight_steelImperial": "שלילי ציפה (-4 lbs)",
   "tools_weight_steelMetric": "שלילי ציפה (-2 kg)",
-  "tools_weight_subtitle": "משקל מומלץ להתקנה שלך",
   "tools_weight_tankMaterial": "חומר מיכל",
   "tools_weight_tankSpecifications": "מפרט מיכל",
   "tools_weight_title": "מחשבון משקל",
@@ -5054,6 +5110,14 @@
   "transfer_computers_loading": "טוען...",
   "transfer_computers_manageTitle": "ניהול מחשבים",
   "transfer_computers_noComputersSaved": "לא נשמרו מחשבים",
+  "transfer_computers_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "transfer_computers_downloadTooltip": "הורדת צלילות",
+  "transfer_computers_knownComputersHeader": "מחשבים מוכרים",
+  "transfer_computers_lastDownloadDaysAgo": "לפני {days} ימים",
+  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{לפני שעה} other{לפני {hours} שעות}}",
+  "transfer_computers_lastDownloadMinutesAgo": "לפני {minutes} דק'",
+  "transfer_computers_lastDownloadNever": "אף פעם",
+  "transfer_computers_lastDownloadYesterday": "אתמול",
   "transfer_computers_savedCount": "{count} {count, plural, =1{מחשב שמור} other{מחשבים שמורים}}",
   "transfer_computers_sectionHeader": "מחשבי צלילה",
   "transfer_csvExport_cancelButton": "ביטול",
@@ -5685,7 +5749,7 @@
   "dashboard_gauges_backupDays": "גיבוי לפני {days} ימים",
   "dashboard_gauges_syncPending": "{count} לא מסונכרנים",
   "dashboard_gauges_synced": "מסונכרן",
-  "dashboard_gauges_dataIssues": "{count} בעיות נתונים",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{בעיית נתונים אחת} other{{count} בעיות נתונים}}",
   "dashboard_gauges_retry": "הסטטוס אינו זמין - הקש לניסיון חוזר",
   "dashboard_urgent_title": "דורש תשומת לב",
   "dashboard_photos_title": "תמונות אחרונות",
@@ -5734,6 +5798,13 @@
   "listViewMode_table": "טבלה",
   "settings_appearance_general": "כללי",
   "settings_appearance_sections": "חלקים",
+  "settings_appearance_colorAccents": "הדגשות צבע",
+  "settings_appearance_accentNavIcons": "סמלי ניווט צבעוניים",
+  "settings_appearance_accentNavIcons_subtitle": "צביעת סמלי התפריט הראשי בצבע של כל מדור",
+  "settings_appearance_accentSectionHeaders": "כותרות מדורים צבעוניות",
+  "settings_appearance_accentSectionHeaders_subtitle": "הצגת סמל מדור צבעוני לצד כותרות הדפים",
+  "settings_appearance_accentListIcons": "סמלי רשימה צבעוניים",
+  "settings_appearance_accentListIcons_subtitle": "צביעת סמלים ברשימות ובדפי ההגדרות",
   "settings_appearance_showDetailsPane": "הצג חלונית פרטים",
   "settings_appearance_showDetailsPane_subtitle": "הצג חלונית פרטים לצד הטבלה",
   "settings_appearance_showProfilePanel": "הצג חלונית פרופיל בתצוגת טבלה",
@@ -5749,6 +5820,9 @@
   "universalImport_dive_decideAction": "החלט",
   "universalImport_label_consolidate": "איחוד",
   "universalImport_label_importAsNew": "ייבוא כחדש",
+  "universalImport_entityAction_linkBadge": "קישור",
+  "universalImport_entityAction_linkExisting": "קישור לקיים",
+  "universalImport_entityAction_linkExistingSubtitle": "שימוש ברשומה התואמת",
   "universalImport_pending_chooseAction": "בחר פעולה",
   "universalImport_pending_gateHint": "{count} כפילויות דורשות החלטה",
   "universalImport_pending_needsDecision": "נדרשת החלטה",
@@ -6705,5 +6779,39 @@
   "settings_mediaStorage_quality_reuploadQueued": "העלאה מחדש בתור",
   "settings_mediaStorage_quality_linuxFfmpegHint": "התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.",
   "settings_mediaStorage_quality_saveFailed": "לא ניתן היה לשמור את איכות ההעלאה. נסה שוב.",
-  "settings_mediaStorage_quality_noTranscoderHint": "מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים."
+  "settings_mediaStorage_quality_noTranscoderHint": "מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים.",
+  "reef_section_title": "שונית",
+  "reef_section_sourcesTooltip": "מקורות נתונים",
+  "reef_section_loadError": "לא ניתן לטעון כעת את נתוני השונית",
+  "reef_habitat_title": "בית גידול השונית",
+  "reef_habitat_onReef": "על שונית אלמוגים",
+  "reef_habitat_onReefWithThreat": "על שונית אלמוגים, רמת איום {threat}",
+  "reef_habitat_noReef": "אין שונית אלמוגים ממופה במיקום זה",
+  "reef_habitat_unavailable": "לא ניתן לבדוק כעת את בית הגידול",
+  "reef_health_title": "בריאות השונית",
+  "reef_health_unavailable": "לא ניתן לבדוק כעת את בריאות השונית",
+  "reef_health_noData": "אין נתוני בריאות שונית למיקום זה",
+  "reef_health_degreeHeatingWeeks": "שבועות חום מצטברים {value} מעלות-שבוע",
+  "reef_health_seaSurface": "פני הים {value}",
+  "reef_health_asOf": "נכון ל-{date}",
+  "reef_health_levelNoStress": "אין עקת חום",
+  "reef_health_levelWatch": "תצפית הלבנה",
+  "reef_health_levelWarning": "אזהרת הלבנה",
+  "reef_health_levelAlert1": "התראת הלבנה רמה 1",
+  "reef_health_levelAlert2": "התראת הלבנה רמה 2",
+  "reef_health_levelAlert3": "התראת הלבנה רמה 3",
+  "reef_health_levelAlert4": "התראת הלבנה רמה 4",
+  "reef_health_levelAlert5": "התראת הלבנה רמה 5",
+  "reef_protection_title": "אזור מוגן",
+  "reef_protection_none": "לא נמצא באזור ימי מוגן",
+  "reef_protection_unavailable": "לא ניתן לבדוק כעת את מצב ההגנה",
+  "reef_protection_viewRegulations": "הצגת תקנות",
+  "reef_protection_iucn": "IUCN {category}",
+  "reef_species_recordedNearby": "תועד בסביבה",
+  "reef_species_addToExpected": "הוספה למינים צפויים",
+  "reef_attribution_title": "מקורות נתוני השונית",
+  "reef_attribution_wri": "נוכחות שונית ורמת איום. CC BY 3.0.",
+  "reef_attribution_noaa": "טמפרטורת פני הים ועקת חום. נחלת הכלל.",
+  "reef_attribution_gbif": "רשומות תצפית מינים, מסוננות ל-CC0 ו-CC BY 4.0.",
+  "reef_attribution_protectedSeas": "גבולות אזורים ימיים מוגנים. CC BY 4.0."
 }

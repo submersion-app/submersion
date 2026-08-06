@@ -1,5 +1,6 @@
 {
   "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
+  "diveSites_list_menu_select": "تحديد المواقع",
   "diveLog_edit_geofenceSuggestion_near": "بالقرب من {location}",
   "diveLog_edit_geofenceSuggestion_title": "اقتراح المعدات",
   "diveLog_edit_geofenceSuggestion_body": "تطبيق مجموعة \"{setName}\"؟",
@@ -848,9 +849,6 @@
     }
   },
   "preDive_dashboard_start": "بدء فحص ما قبل الغوص",
-  "tools_preDive_title": "قوائم تحقق ما قبل الغوص",
-  "tools_preDive_subtitle": "تشغيل جلسات قوائم التحقق ومراجعتها",
-  "tools_preDive_description": "فحوصات رفيق الغوص، وقوائم تجهيز CCR، وتوضيب المعدات مع سجل تدقيق",
   "trips_detail_preDive_action": "قائمة تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists": "قوائم تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists_subtitle": "فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات",
@@ -1226,6 +1224,8 @@
   "diveDetailSection_tanks_description": "قائمة الأسطوانات، خلطات الغاز، الضغوط، SAC لكل أسطوانة",
   "diveDetailSection_tanks_name": "الأسطوانات",
   "diveDetailSection_tide_description": "رسم بياني لدورة المد والجزر والتوقيت",
+  "diveDetailSection_reefHealth_name": "صحة الشعاب المرجانية",
+  "diveDetailSection_reefHealth_description": "الإجهاد الحراري لابيضاض المرجان في تاريخ الغوص",
   "diveDetailSection_tide_name": "المد والجزر",
   "diveDetailSection_weights_description": "تفصيل الأوزان، إجمالي الوزن",
   "diveDetailSection_buoyancy_name": "الطفو",
@@ -1299,11 +1299,16 @@
   "diveComputer_downloadStep_cancel": "إلغاء",
   "diveComputer_downloadStep_cancelled": "تم إلغاء التنزيل",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
+  "diveComputer_downloadStep_downloadAll": "تنزيل جميع الغطسات",
   "diveComputer_downloadStep_downloadFailed": "فشل التنزيل",
+  "diveComputer_downloadStep_downloadNew": "تنزيل الغطسات الجديدة",
   "diveComputer_downloadStep_downloadedDives": "الغطسات المنزّلة",
   "diveComputer_downloadStep_durationMin": "{duration} min",
   "diveComputer_downloadStep_errorOccurred": "حدث خطأ",
   "diveComputer_downloadStep_errorSemanticLabel": "خطأ في التنزيل: {error}",
+  "diveComputer_downloadStep_firstSyncBody": "يحتوي سجل الغطسات الخاص بك بالفعل على غطسات. يمكنك تخطي تنزيل الغطسات التي لديك بالفعل.",
+  "diveComputer_downloadStep_firstSyncTitle": "أول تنزيل من كمبيوتر الغوص هذا",
+  "diveComputer_downloadStep_onlyAfterDate": "تنزيل الغطسات بعد {date} فقط",
   "diveComputer_downloadStep_percentAccessibility": "، {percent} بالمئة",
   "diveComputer_downloadStep_preparing": "جارٍ التحضير...",
   "diveComputer_downloadStep_progressPercent": "{percent}%",
@@ -4100,6 +4105,7 @@
   "settings_cloudSync_header_syncBehavior": "سلوك المزامنة",
   "settings_cloudSync_lastSynced": "آخر مزامنة: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{تغيير معلق واحد} other{{count} تغييرات معلقة}}",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{جهاز واحد يتزامن من إصدار أحدث من Submersion. حدّث هذا الجهاز لتلقي أحدث تغييراته.} other{{count} أجهزة تتزامن من إصدار أحدث من Submersion. حدّث هذا الجهاز لتلقي أحدث تغييراتها.}}",
   "settings_cloudSync_provider_connected": "متصل",
   "settings_cloudSync_provider_connectedTo": "متصل بـ {providerName}",
   "settings_cloudSync_provider_connectionFailed": "فشل الاتصال بـ {providerName}: {error}",
@@ -4527,6 +4533,65 @@
   "settings_units_weight": "الوزن",
   "settings_units_weight_kilograms": "كيلوغرام (kg)",
   "settings_units_weight_pounds": "أرطال (lbs)",
+  "settings_updates_automaticUpdates": "التحديثات التلقائية",
+  "settings_updates_automaticUpdatesSubtitle": "التحقق من التحديثات بشكل دوري",
+  "settings_updates_betaDialogBody": "تُنشر إصدارات البيتا مع كل تغيير وقد تقوم بترقية قاعدة بيانات سجل الغوص قبل الإصدار المستقر. العودة لاحقًا إلى القناة المستقرة لن تعيد التطبيق إلى إصدار أقدم، وينبغي أن تستخدم جميع الأجهزة التي تتزامن معًا القناة نفسها. يتم إنشاء نسخة احتياطية تلقائيًا قبل أي ترقية لقاعدة البيانات.",
+  "settings_updates_betaDialogConfirm": "التبديل إلى البيتا",
+  "settings_updates_betaDialogTitle": "هل تريد تلقي تحديثات البيتا؟",
+  "settings_updates_channel": "قناة التحديث",
+  "settings_updates_channelBadgeBeta": "{version} (بيتا)",
+  "@settings_updates_channelBadgeBeta": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_channelBeta": "بيتا",
+  "settings_updates_channelBetaSubtitle": "إصدارات جديدة مع كل تغيير، قبل الإصدار المستقر",
+  "settings_updates_channelStable": "مستقر",
+  "settings_updates_channelStableSubtitle": "الإصدارات المختبرة فقط",
+  "settings_updates_checkForUpdates": "التحقق من التحديثات",
+  "settings_updates_checking": "جارٍ التحقق...",
+  "settings_updates_downloading": "جارٍ التنزيل... {progress}%",
+  "@settings_updates_downloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_error": "خطأ: {message}",
+  "@settings_updates_error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_header": "التحديثات",
+  "settings_updates_joinBeta": "الانضمام إلى البيتا",
+  "settings_updates_joinBetaSubtitle": "احصل على الميزات الجديدة مبكرًا من خلال برنامج البيتا",
+  "settings_updates_lastChecked": "آخر تحقق",
+  "settings_updates_never": "أبدًا",
+  "settings_updates_readyToInstall": "الإصدار {version} جاهز للتثبيت",
+  "@settings_updates_readyToInstall": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_stableSwitchNotice": "ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.",
+  "settings_updates_upToDate": "محدّث",
+  "settings_updates_versionAvailable": "الإصدار {version} متاح",
+  "@settings_updates_versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "signatures_action_clear": "مسح",
   "signatures_action_closeSignatureView": "إغلاق عرض التوقيع",
   "signatures_action_deleteSignature": "حذف التوقيع",
@@ -4869,6 +4934,7 @@
   "tags_empty": "لا توجد وسوم بعد. أنشئ وسوماً عند تعديل الغطسات.",
   "tags_hint_addMoreTags": "إضافة المزيد من الوسوم...",
   "importWizard_tagsLabel": "Tags",
+  "importWizard_review_olderDivesSkipped": "{count, plural, one{تم تخطي غطسة واحدة أقدم — موجودة بالفعل في سجلك} other{تم تخطي {count} غطسات أقدم — موجودة بالفعل في سجلك}}",
   "tags_hint_addTags": "إضافة وسوم...",
   "tags_manage_bulkDeleteMessage": "سيتم إزالة هذه الوسوم من {diveCount, plural, =0{0 غوصات} =1{غوصة واحدة} other{{diveCount} غوصة}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteTitle": "حذف {count} وسم؟",
@@ -5007,23 +5073,14 @@
   "tides_semantic_tideCycle": "دورة المد والجزر، الحالة: {state}، الارتفاع: {height}",
   "tides_semantic_tideState": "حالة المد والجزر: {state}",
   "tides_title": "المد والجزر",
-  "tools_deco_description": "احسب حدود عدم تخفيف الضغط، ووقفات التخفيف المطلوبة، والتعرض لـ CNS/OTU لملفات الغطسات متعددة المستويات.",
-  "tools_deco_subtitle": "خطط للغطسات مع وقفات تخفيف الضغط",
-  "tools_deco_title": "حاسبة تخفيف الضغط",
-  "tools_disclaimer": "هذه الحاسبات للتخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.",
-  "tools_gas_description": "أربع حاسبات غاز متخصصة:\n- MOD - أقصى عمق تشغيلي لخليط غاز\n- Best Mix - نسبة O₂ المثالية لعمق مستهدف\n- الاستهلاك - تقدير استخدام الغاز\n- الحد الأدنى - حساب احتياطي الطوارئ",
-  "tools_gas_subtitle": "MOD، Best Mix، الاستهلاك، الحد الأدنى",
-  "tools_gas_title": "حاسبات الغاز",
   "tools_gpsLogger_description": "سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.",
   "tools_gpsLogger_subtitle": "تسجيل مسار السطح",
   "tools_gpsLogger_title": "مسجّل GPS",
-  "tools_title": "الأدوات",
   "tools_weight_aluminumImperial": "أكثر طفوًا عند الفراغ (+4 lbs)",
   "tools_weight_aluminumMetric": "أكثر طفوًا عند الفراغ (+2 kg)",
   "tools_weight_bodyWeightOptional": "وزن الجسم (اختياري)",
   "tools_weight_carbonFiberImperial": "طفو عالٍ جدًا (+7 lbs)",
   "tools_weight_carbonFiberMetric": "طفو عالٍ جدًا (+3 kg)",
-  "tools_weight_description": "قدّر الوزن المطلوب بناءً على بدلة الغوص ومادة الأسطوانة ونوع الماء ووزن الجسم.",
   "tools_weight_disclaimer": "هذا تقدير فقط. قم دائمًا بفحص الطفو في بداية الغطسة واضبط حسب الحاجة. عوامل مثل BCD والطفو الشخصي وأنماط التنفس تؤثر على متطلبات الوزن الفعلية.",
   "tools_weight_exposureSuit": "بدلة الغوص",
   "tools_weight_gasCapacity": "سعة الغاز: {capacity} cuft •",
@@ -5034,7 +5091,6 @@
   "tools_weight_resultAccessibility": "الوزن الموصى به: {weight} {unit}",
   "tools_weight_steelImperial": "طفو سلبي (-4 lbs)",
   "tools_weight_steelMetric": "طفو سلبي (-2 kg)",
-  "tools_weight_subtitle": "الوزن الموصى به لإعدادك",
   "tools_weight_tankMaterial": "مادة الأسطوانة",
   "tools_weight_tankSpecifications": "مواصفات الأسطوانة",
   "tools_weight_title": "حاسبة الوزن",
@@ -5054,6 +5110,14 @@
   "transfer_computers_loading": "جارٍ التحميل...",
   "transfer_computers_manageTitle": "إدارة الحواسيب",
   "transfer_computers_noComputersSaved": "لا توجد حواسيب محفوظة",
+  "transfer_computers_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "transfer_computers_downloadTooltip": "تنزيل الغوصات",
+  "transfer_computers_knownComputersHeader": "أجهزة الكمبيوتر المعروفة",
+  "transfer_computers_lastDownloadDaysAgo": "قبل {days} أيام",
+  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{قبل ساعة} other{قبل {hours} ساعات}}",
+  "transfer_computers_lastDownloadMinutesAgo": "قبل {minutes} دقيقة",
+  "transfer_computers_lastDownloadNever": "أبدًا",
+  "transfer_computers_lastDownloadYesterday": "أمس",
   "transfer_computers_savedCount": "{count} {count, plural, =1{حاسوب محفوظ} other{حواسيب محفوظة}}",
   "transfer_computers_sectionHeader": "حواسيب الغوص",
   "transfer_csvExport_cancelButton": "إلغاء",
@@ -5685,7 +5749,7 @@
   "dashboard_gauges_backupDays": "نسخ احتياطي منذ {days} يوم",
   "dashboard_gauges_syncPending": "{count} غير متزامنة",
   "dashboard_gauges_synced": "متزامن",
-  "dashboard_gauges_dataIssues": "{count} مشاكل في البيانات",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{مشكلة واحدة في البيانات} other{{count} مشاكل في البيانات}}",
   "dashboard_gauges_retry": "الحالة غير متاحة - انقر لإعادة المحاولة",
   "dashboard_urgent_title": "يتطلب الانتباه",
   "dashboard_photos_title": "أحدث الصور",
@@ -5734,6 +5798,13 @@
   "listViewMode_table": "جدول",
   "settings_appearance_general": "عام",
   "settings_appearance_sections": "الأقسام",
+  "settings_appearance_colorAccents": "التمييز اللوني",
+  "settings_appearance_accentNavIcons": "أيقونات تنقل ملونة",
+  "settings_appearance_accentNavIcons_subtitle": "تلوين أيقونات القائمة الرئيسية بلون كل قسم",
+  "settings_appearance_accentSectionHeaders": "عناوين أقسام ملونة",
+  "settings_appearance_accentSectionHeaders_subtitle": "إظهار أيقونة قسم ملونة بجانب عناوين الصفحات",
+  "settings_appearance_accentListIcons": "أيقونات قوائم ملونة",
+  "settings_appearance_accentListIcons_subtitle": "تلوين الأيقونات في القوائم وصفحات الإعدادات",
   "settings_appearance_showDetailsPane": "إظهار لوحة التفاصيل",
   "settings_appearance_showDetailsPane_subtitle": "عرض لوحة التفاصيل بجانب الجدول",
   "settings_appearance_showProfilePanel": "إظهار لوحة الملف الشخصي في عرض الجدول",
@@ -5749,6 +5820,9 @@
   "universalImport_dive_decideAction": "قرر",
   "universalImport_label_consolidate": "دمج",
   "universalImport_label_importAsNew": "استيراد كجديد",
+  "universalImport_entityAction_linkBadge": "ربط",
+  "universalImport_entityAction_linkExisting": "الربط بالموجود",
+  "universalImport_entityAction_linkExistingSubtitle": "استخدام السجل المطابق",
   "universalImport_pending_chooseAction": "اختر إجراء",
   "universalImport_pending_gateHint": "{count} نسخة مكررة تحتاج إلى قرار",
   "universalImport_pending_needsDecision": "يتطلب قرارا",
@@ -6705,5 +6779,39 @@
   "settings_mediaStorage_quality_reuploadQueued": "تمت إضافة إعادة الرفع إلى قائمة الانتظار",
   "settings_mediaStorage_quality_linuxFfmpegHint": "ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.",
   "settings_mediaStorage_quality_saveFailed": "تعذّر حفظ جودة الرفع. حاول مرة أخرى.",
-  "settings_mediaStorage_quality_noTranscoderHint": "لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه."
+  "settings_mediaStorage_quality_noTranscoderHint": "لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه.",
+  "reef_section_title": "الشعاب المرجانية",
+  "reef_section_sourcesTooltip": "مصادر البيانات",
+  "reef_section_loadError": "تعذر تحميل بيانات الشعاب الآن",
+  "reef_habitat_title": "موئل الشعاب",
+  "reef_habitat_onReef": "على شعاب مرجانية",
+  "reef_habitat_onReefWithThreat": "على شعاب مرجانية، مستوى التهديد {threat}",
+  "reef_habitat_noReef": "لا توجد شعاب مرجانية مرسومة في هذا الموقع",
+  "reef_habitat_unavailable": "تعذر التحقق من موئل الشعاب الآن",
+  "reef_health_title": "صحة الشعاب المرجانية",
+  "reef_health_unavailable": "تعذر التحقق من صحة الشعاب الآن",
+  "reef_health_noData": "لا توجد بيانات عن صحة الشعاب لهذا الموقع",
+  "reef_health_degreeHeatingWeeks": "أسابيع الحرارة المتراكمة {value} درجة-أسبوع",
+  "reef_health_seaSurface": "سطح البحر {value}",
+  "reef_health_asOf": "حتى {date}",
+  "reef_health_levelNoStress": "لا يوجد إجهاد حراري",
+  "reef_health_levelWatch": "مراقبة الابيضاض",
+  "reef_health_levelWarning": "تحذير من الابيضاض",
+  "reef_health_levelAlert1": "إنذار ابيضاض المستوى 1",
+  "reef_health_levelAlert2": "إنذار ابيضاض المستوى 2",
+  "reef_health_levelAlert3": "إنذار ابيضاض المستوى 3",
+  "reef_health_levelAlert4": "إنذار ابيضاض المستوى 4",
+  "reef_health_levelAlert5": "إنذار ابيضاض المستوى 5",
+  "reef_protection_title": "منطقة محمية",
+  "reef_protection_none": "ليست ضمن منطقة بحرية محمية",
+  "reef_protection_unavailable": "تعذر التحقق من حالة الحماية الآن",
+  "reef_protection_viewRegulations": "عرض اللوائح",
+  "reef_protection_iucn": "IUCN {category}",
+  "reef_species_recordedNearby": "مسجل في الجوار",
+  "reef_species_addToExpected": "إضافة إلى الأنواع المتوقعة",
+  "reef_attribution_title": "مصادر بيانات الشعاب",
+  "reef_attribution_wri": "وجود الشعاب ومستوى التهديد. CC BY 3.0.",
+  "reef_attribution_noaa": "درجة حرارة سطح البحر والإجهاد الحراري. ملكية عامة.",
+  "reef_attribution_gbif": "سجلات تواجد الأنواع، مصفاة على CC0 و CC BY 4.0.",
+  "reef_attribution_protectedSeas": "حدود المناطق البحرية المحمية. CC BY 4.0."
 }

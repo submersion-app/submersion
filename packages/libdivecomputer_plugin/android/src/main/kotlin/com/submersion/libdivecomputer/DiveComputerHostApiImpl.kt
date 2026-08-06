@@ -15,6 +15,7 @@ import java.util.concurrent.Executors
 // Transport bitmask values matching libdc_wrapper.h.
 private const val LIBDC_TRANSPORT_SERIAL = 1 shl 0
 private const val LIBDC_TRANSPORT_USB = 1 shl 1
+@Suppress("unused") // kept so the bitmask table matches libdc_wrapper.h
 private const val LIBDC_TRANSPORT_USBHID = 1 shl 2
 private const val LIBDC_TRANSPORT_IRDA = 1 shl 3
 private const val LIBDC_TRANSPORT_BLE = 1 shl 5
@@ -116,9 +117,12 @@ class DiveComputerHostApiImpl(
     private fun mapTransports(bitmask: Int): List<TransportType> {
         val transports = mutableListOf<TransportType>()
         if (bitmask and LIBDC_TRANSPORT_BLE != 0) transports.add(TransportType.BLE)
-        if (bitmask and LIBDC_TRANSPORT_USB != 0 ||
-            bitmask and LIBDC_TRANSPORT_USBHID != 0
-        ) {
+        // USBHID is deliberately NOT surfaced as USB: no platform build
+        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // advertising it sent HID-only devices (Suunto EON Steel family)
+        // into the serial path's "No USB serial ports found" dead end
+        // (#143). BLE is the working path for those devices.
+        if (bitmask and LIBDC_TRANSPORT_USB != 0) {
             transports.add(TransportType.USB)
         }
         if (bitmask and LIBDC_TRANSPORT_SERIAL != 0) transports.add(TransportType.SERIAL)

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/services/accounts/account_deduplicator.dart';
 import 'package:submersion/core/services/accounts/account_startup_migration.dart';
 import 'package:submersion/core/services/background_service.dart';
@@ -508,6 +510,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  static final Uri _latestReleaseUri = Uri.parse(
+    VersionMismatchView.latestReleaseUrl,
+  );
+
+  Future<void> _openLatestRelease() async {
+    try {
+      await launchUrl(_latestReleaseUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Leaving the user on this screen is the only safe fallback: the
+      // database is untouched and must stay that way. VersionMismatchView
+      // renders this same URL beneath the button, so a launch failure still
+      // leaves the user an address they can type in manually.
+    }
+  }
+
   void _quitApp() {
     if (widget.closeAppOverride != null) {
       widget.closeAppOverride!();
@@ -690,41 +707,13 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
 
     if (_isVersionMismatch) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.update, size: 64, color: Colors.orange),
-            const SizedBox(height: 24),
-            Text(
-              'Update Required',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Your dive data was saved by a newer version of '
-              'Submersion (schema v$_dbVersion). This version '
-              'only supports up to schema v$_appVersion.',
-              style: TextStyle(fontSize: 14, color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Please update Submersion to the latest version. '
-              'Your data is safe and has not been modified.',
-              style: TextStyle(fontSize: 14, color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(onPressed: _closeApp, child: const Text('Close')),
-          ],
-        ),
+      return VersionMismatchView(
+        databaseVersion: _dbVersion,
+        appVersion: _appVersion,
+        textColor: textColor,
+        subtitleColor: subtitleColor,
+        onDownloadLatest: _openLatestRelease,
+        onClose: _closeApp,
       );
     }
 

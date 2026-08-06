@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
@@ -72,6 +73,7 @@ Widget _buildTestWidget({
   required Dive dive,
   required AppSettings settings,
   List<Override> extraOverrides = const [],
+  bool embedded = false,
 }) {
   return ProviderScope(
     overrides: [
@@ -85,7 +87,7 @@ Widget _buildTestWidget({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: DiveDetailPage(diveId: dive.id),
+      home: DiveDetailPage(diveId: dive.id, embedded: embedded),
     ),
   );
 }
@@ -664,6 +666,67 @@ void main() {
 
       expect(find.text('Me'), findsOneWidget);
       expect(find.text('mysterySlug'), findsOneWidget);
+    });
+  });
+
+  group('DiveDetailPage dive number badge', () {
+    /// A dive whose 5-digit number previously wrapped mid-word (#744 / #801).
+    final bigNumberDive = Dive(
+      id: 'test-dive-big-number',
+      dateTime: DateTime(2026, 3, 15, 10, 0),
+      diveNumber: 28466,
+    );
+
+    /// Overrides for the embedded header's nav buttons, which derive
+    /// prev/next from the ordered dive id list.
+    List<Override> embeddedOverrides() => [
+      orderedDiveIdsProvider.overrideWith((ref) async => <String>[]),
+    ];
+
+    /// Number of distinct rendered lines for the badge [text] rendered by
+    /// the paragraph matched by [finder].
+    int lineCountOf(WidgetTester tester, Finder finder, String text) {
+      final paragraph = tester.renderObject<RenderParagraph>(finder);
+      final boxes = paragraph.getBoxesForSelection(
+        TextSelection(baseOffset: 0, extentOffset: text.length),
+      );
+      return boxes.map((box) => box.top).toSet().length;
+    }
+
+    testWidgets('embedded mode shows the dive number in the pinned header '
+        'and the hero card, each on a single line', (tester) async {
+      final settings = _settingsWithVisibleSections([]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: bigNumberDive,
+          settings: settings,
+          extraOverrides: embeddedOverrides(),
+          embedded: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Embedded header badge plus the hero card badge.
+      final badges = find.text('#28466');
+      expect(badges, findsNWidgets(2));
+      expect(lineCountOf(tester, badges.at(0), '#28466'), 1);
+      expect(lineCountOf(tester, badges.at(1), '#28466'), 1);
+    });
+
+    testWidgets('standalone page shows the dive number exactly once, '
+        'on a single line', (tester) async {
+      final settings = _settingsWithVisibleSections([]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: bigNumberDive, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // Hero card badge only — there is no embedded header here.
+      final badge = find.text('#28466');
+      expect(badge, findsOneWidget);
+      expect(lineCountOf(tester, badge, '#28466'), 1);
     });
   });
 }

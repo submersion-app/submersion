@@ -35,11 +35,14 @@ import 'package:submersion/features/settings/presentation/widgets/settings_summa
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
+import 'package:submersion/features/auto_update/domain/beta_program_links.dart';
+import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
@@ -183,7 +186,6 @@ class SettingsMobileContent extends ConsumerWidget {
           icon: Icons.bug_report_outlined,
           title: 'Debug',
           subtitle: 'Logs & diagnostics',
-          color: Colors.grey,
         ),
       );
     }
@@ -228,7 +230,15 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: context.l10n.settings_backToSettings_tooltip,
-          onPressed: () => context.go('/settings'),
+          // Pop the pushed section route; fall back to go() for deep links
+          // where the detail page is the root of the stack.
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/settings');
+            }
+          },
         ),
       ),
       body: _buildContent(context, ref),
@@ -292,7 +302,7 @@ class _MobileSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = section.color ?? colorScheme.primary;
+    final color = settingsSectionColor(context, section.id);
 
     return ListTile(
       leading: Container(
@@ -365,11 +375,13 @@ class _MobileSettingsTile extends StatelessWidget {
         context.push('/settings/appearance');
         break;
       default:
-        // For sections that don't have dedicated pages,
-        // show them in a detail page using query params
+        // For sections that don't have dedicated pages, show them in a
+        // detail page using query params. PUSH (not go): go() replaces the
+        // location in place, leaving nothing on the stack for the system
+        // back gesture to pop, so Android closed the whole app (#647).
         final state = GoRouterState.of(context);
         final currentPath = state.uri.path;
-        context.go('$currentPath?selected=$sectionId');
+        context.push('$currentPath?selected=$sectionId');
     }
   }
 }
@@ -1595,6 +1607,70 @@ class _AppearanceSectionContentState
             ),
           ),
           const SizedBox(height: 24),
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.format_paint_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentNavIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentNavIcons_subtitle,
+                  ),
+                  value: settings.accentNavIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentNavIcons(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.title_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(
+                    context.l10n.settings_appearance_accentSectionHeaders,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_accentSectionHeaders_subtitle,
+                  ),
+                  value: settings.accentSectionHeaders,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentSectionHeaders(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.list_alt_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentListIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentListIcons_subtitle,
+                  ),
+                  value: settings.accentListIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentListIcons(value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           // -- Sections --
           _buildSectionHeader(context, 'Sections'),
           const SizedBox(height: 8),
@@ -2680,12 +2756,18 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   @override
   Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
+    final isBetaChannel =
+        UpdateChannelConfig.isAutoUpdateEnabled &&
+        ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
     final versionString = packageInfoAsync.when(
       data: (info) {
         final version = info.version.endsWith('.${info.buildNumber}')
             ? info.version
             : '${info.version}.${info.buildNumber}';
-        return context.l10n.settings_about_version(version);
+        final base = context.l10n.settings_about_version(version);
+        return isBetaChannel
+            ? context.l10n.settings_updates_channelBadgeBeta(base)
+            : base;
       },
       loading: () => '',
       error: (_, _) => '',
@@ -2718,6 +2800,24 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                     );
                   },
                 ),
+                // Beta enrollment signpost for store builds: the app cannot
+                // switch channels itself there, so link to the store's beta
+                // program. Hidden until the enrollment links exist.
+                if (!UpdateChannelConfig.isAutoUpdateEnabled &&
+                    _betaEnrollUrl.isNotEmpty) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.science_outlined),
+                    title: Text(context.l10n.settings_updates_joinBeta),
+                    subtitle: Text(
+                      context.l10n.settings_updates_joinBetaSubtitle,
+                    ),
+                    onTap: () => launchUrl(
+                      Uri.parse(_betaEnrollUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                ],
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.bug_report),
@@ -2740,7 +2840,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           // Auto-update section (only for non-store builds)
           if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Updates'),
+            _buildSectionHeader(context, context.l10n.settings_updates_header),
             const SizedBox(height: 8),
             _buildUpdatesCard(context),
           ],
@@ -2795,15 +2895,21 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   Widget _buildUpdatesCard(BuildContext context) {
     final updateStatus = ref.watch(updateStatusProvider);
     final prefs = ref.watch(updatePreferencesProvider);
+    final channel = ref.watch(releaseChannelProvider);
 
     final statusText = switch (updateStatus) {
-      UpToDate() => 'Up to date',
-      Checking() => 'Checking...',
-      UpdateAvailable(:final version) => 'Version $version available',
-      Downloading(:final progress) =>
-        'Downloading... ${(progress * 100).toInt()}%',
-      ReadyToInstall(:final version) => 'Version $version ready to install',
-      UpdateError(:final message) => 'Error: $message',
+      UpToDate() => context.l10n.settings_updates_upToDate,
+      Checking() => context.l10n.settings_updates_checking,
+      UpdateAvailable(:final version) =>
+        context.l10n.settings_updates_versionAvailable(version),
+      Downloading(:final progress) => context.l10n.settings_updates_downloading(
+        (progress * 100).toInt().toString(),
+      ),
+      ReadyToInstall(:final version) =>
+        context.l10n.settings_updates_readyToInstall(version),
+      UpdateError(:final message) => context.l10n.settings_updates_error(
+        message,
+      ),
     };
 
     final lastCheck = prefs.lastCheckTime;
@@ -2811,14 +2917,14 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ? '${lastCheck.month}/${lastCheck.day}/${lastCheck.year} '
               '${lastCheck.hour.toString().padLeft(2, '0')}:'
               '${lastCheck.minute.toString().padLeft(2, '0')}'
-        : 'Never';
+        : context.l10n.settings_updates_never;
 
     return Card(
       child: Column(
         children: [
           ListTile(
             leading: const Icon(Icons.refresh),
-            title: const Text('Check for Updates'),
+            title: Text(context.l10n.settings_updates_checkForUpdates),
             subtitle: Text(statusText),
             onTap: updateStatus is Checking
                 ? null
@@ -2829,8 +2935,10 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           const Divider(height: 1),
           SwitchListTile(
             secondary: const Icon(Icons.auto_mode),
-            title: const Text('Automatic updates'),
-            subtitle: const Text('Check for updates periodically'),
+            title: Text(context.l10n.settings_updates_automaticUpdates),
+            subtitle: Text(
+              context.l10n.settings_updates_automaticUpdatesSubtitle,
+            ),
             value: prefs.autoUpdateEnabled,
             onChanged: (value) async {
               await prefs.setAutoUpdateEnabled(value);
@@ -2839,13 +2947,105 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           ),
           const Divider(height: 1),
           ListTile(
+            leading: const Icon(Icons.alt_route),
+            title: Text(context.l10n.settings_updates_channel),
+            subtitle: Text(
+              channel == ReleaseChannel.beta
+                  ? context.l10n.settings_updates_channelBeta
+                  : context.l10n.settings_updates_channelStable,
+            ),
+            onTap: () => _showChannelPicker(context),
+          ),
+          const Divider(height: 1),
+          ListTile(
             leading: const Icon(Icons.schedule),
-            title: const Text('Last checked'),
+            title: Text(context.l10n.settings_updates_lastChecked),
             subtitle: Text(lastCheckText),
           ),
         ],
       ),
     );
+  }
+
+  /// The store beta-program URL for this platform ('' hides the signpost).
+  String get _betaEnrollUrl {
+    if (Platform.isIOS || Platform.isMacOS) return kTestFlightBetaUrl;
+    if (Platform.isAndroid) return kPlayBetaOptInUrl;
+    return '';
+  }
+
+  Future<void> _showChannelPicker(BuildContext context) async {
+    final current = ref.read(releaseChannelProvider);
+    final selected = await showDialog<ReleaseChannel>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.settings_updates_channel),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final channel in ReleaseChannel.values)
+              ListTile(
+                title: Text(switch (channel) {
+                  ReleaseChannel.stable =>
+                    ctx.l10n.settings_updates_channelStable,
+                  ReleaseChannel.beta => ctx.l10n.settings_updates_channelBeta,
+                }),
+                subtitle: Text(switch (channel) {
+                  ReleaseChannel.stable =>
+                    ctx.l10n.settings_updates_channelStableSubtitle,
+                  ReleaseChannel.beta =>
+                    ctx.l10n.settings_updates_channelBetaSubtitle,
+                }),
+                trailing: channel == current
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(ctx).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () => Navigator.of(ctx).pop(channel),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == current || !context.mounted) return;
+
+    if (selected == ReleaseChannel.beta) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.settings_updates_betaDialogTitle),
+          content: Text(ctx.l10n.settings_updates_betaDialogBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ctx.l10n.settings_updates_betaDialogConfirm),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
+    final prefs = ref.read(updatePreferencesProvider);
+    await prefs.setReleaseChannel(selected);
+    ref.invalidate(updatePreferencesProvider);
+    // releaseChannelProvider and updateServiceProvider re-derive from the
+    // invalidated preferences; the fresh service applies the new feed on
+    // its next check.
+    if (!mounted || !context.mounted) return;
+    if (selected == ReleaseChannel.stable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.settings_updates_stableSwitchNotice),
+        ),
+      );
+    }
+    await ref.read(updateStatusProvider.notifier).checkForUpdate();
   }
 
   void _showAboutDialog(BuildContext context, String versionString) {

@@ -172,6 +172,74 @@ void main() {
   );
 
   // ---------------------------------------------------------------------------
+  // Overflow-menu entry into selection mode (discoverable merge)
+  // ---------------------------------------------------------------------------
+
+  group('overflow menu "Select sites"', () {
+    testWidgets('enters selection mode from the compact app bar', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [
+          _makeSite(id: 's1', name: 'Alpha Site'),
+          _makeSite(id: 's2', name: 'Bravo Site'),
+        ],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // No selection UI before opening the menu.
+      expect(find.byIcon(Icons.select_all), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Select sites'));
+      await tester.pumpAndSettle();
+
+      // Selection app bar is now shown (select-all affordance present).
+      expect(find.byIcon(Icons.select_all), findsOneWidget);
+    });
+
+    testWidgets('enters selection mode from the wide app bar', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 900);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final overrides = await _buildPhoneOverrides(
+        sites: [
+          _makeSite(id: 's1', name: 'Alpha Site'),
+          _makeSite(id: 's2', name: 'Bravo Site'),
+        ],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const SiteListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.select_all), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Select sites'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.select_all), findsOneWidget);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Phone-mode highlight
   // ---------------------------------------------------------------------------
 

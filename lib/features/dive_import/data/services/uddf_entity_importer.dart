@@ -241,12 +241,20 @@ class UddfEntityImporter {
   /// If [cancelToken] is non-null, the dive-import loop polls
   /// [ImportCancellationToken.isCancelled] between each dive and returns the
   /// partial result already persisted when cancellation is observed.
+  ///
+  /// [preResolvedBuddyIds] and [preResolvedTagIds] map source refs
+  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
+  /// reviewer chose not to import as new rows. Seeding the id mappings with
+  /// them makes dive linking resolve to the existing record instead of
+  /// silently dropping the association (#756).
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
     required ImportRepositories repositories,
     required String diverId,
     bool retainSourceDiveNumbers = false,
+    Map<String, String> preResolvedBuddyIds = const {},
+    Map<String, String> preResolvedTagIds = const {},
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
@@ -255,9 +263,9 @@ class UddfEntityImporter {
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
     final equipmentIdMapping = <String, String>{};
-    final buddyIdMapping = <String, String>{};
+    final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
     final diveCenterIdMapping = <String, String>{};
-    final tagIdMapping = <String, String>{};
+    final tagIdMapping = <String, String>{...preResolvedTagIds};
     final siteIdMapping = <String, DiveSite>{};
     final courseIdMapping = <String, String>{};
 

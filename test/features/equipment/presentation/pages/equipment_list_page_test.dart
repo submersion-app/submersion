@@ -100,6 +100,7 @@ Future<List<Override>> _buildOverrides({
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => <EquipmentItem>[]),
+    activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListNotifierProvider.overrideWith((ref) => _MockEquipNotifier()),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
@@ -587,6 +588,53 @@ void main() {
       tester.takeException();
 
       expect(find.byType(EquipmentEditPage), findsOneWidget);
+    });
+  });
+
+  group('AddEquipmentSheet purchase date (#765)', () {
+    testWidgets('the purchase-date button opens the date picker', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1600);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            // The sheet normally gets its Material from showModalBottomSheet.
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => AddEquipmentSheet(ref: ref),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dateButton = find.widgetWithText(OutlinedButton, 'Date');
+      await tester.scrollUntilVisible(
+        dateButton,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(dateButton);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
     });
   });
 }

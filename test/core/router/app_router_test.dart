@@ -698,6 +698,35 @@ void main() {
     });
   });
 
+  group('newBuddy route escapes to the root navigator', () {
+    // Regression: bulk-editing dives opens "Add buddies" via showDialog
+    // (useRootNavigator: true by default), then BuddyPicker opens a
+    // showModalBottomSheet (which resolves to that same root navigator,
+    // since its default useRootNavigator: false picks the nearest
+    // navigator ancestor -- the dialog's). Tapping "Add New Buddy" pushes
+    // 'newBuddy', which -- absent a parentNavigatorKey -- mounts on the
+    // ShellRoute's nested navigator instead. That nested navigator's
+    // overlay paints underneath the root navigator's, so the new-buddy
+    // screen renders hidden behind the still-open dialog and bottom sheet
+    // until both are dismissed. See buddy_picker_navigation_render_test.dart
+    // for the full render-level reproduction, including confirmation that
+    // the dialog/sheet correctly reappear (with state intact) once the
+    // new-buddy page is popped -- pushing onto the root navigator does not
+    // evict them, it only elides their (harmless, Flutter-standard)
+    // rendering while a fully opaque route covers them.
+    test('newBuddy has parentNavigatorKey set to the root navigator', () {
+      final route = _findRouteByName(router.configuration.routes, 'newBuddy');
+      expect(route, isNotNull);
+      expect(
+        route!.parentNavigatorKey,
+        same(rootNavigatorKey),
+        reason:
+            'Without this, "Add New Buddy" pushed from the bulk-edit '
+            'dialog renders underneath it instead of in the foreground.',
+      );
+    });
+  });
+
   group('app_router lightroom route (pending Adobe review)', () {
     test('lightroom route stays defined so navigation degrades gracefully', () {
       // The route is intentionally kept (not removed) while the UI is hidden so

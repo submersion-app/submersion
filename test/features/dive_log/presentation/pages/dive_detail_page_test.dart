@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -1245,5 +1246,97 @@ void main() {
         );
       },
     );
+
+    testWidgets('converts each segment with its own cylinder volume (#110)', (
+      tester,
+    ) async {
+      // Sidemount: two cylinders of different sizes. Both segments carry the
+      // same bar/min rate, so any difference between the rendered L/min values
+      // can only come from the per-segment volume lookup. Before #110 every
+      // segment reused the first tank with a volume, printing 8.8 L/min twice.
+      final dive = diveWithProfile().copyWith(
+        tanks: const [
+          // No start/end pressures: dive.sacPressure stays null, so the SAC
+          // normalization factor is exactly 1.0 and the expected value is just
+          // sacRate * volume.
+          DiveTank(id: 'tank-a', name: 'Left', volume: 11.0),
+          DiveTank(id: 'tank-b', name: 'Right', volume: 7.0),
+        ],
+      );
+      final analysis = ProfileAnalysis.empty().copyWith(
+        sacSegments: const [
+          SacSegment(
+            startTimestamp: 0,
+            endTimestamp: 300,
+            avgDepth: 18.0,
+            minDepth: 0.0,
+            maxDepth: 24.0,
+            sacRate: 0.8,
+            gasConsumed: 4.0,
+            tankId: 'tank-a',
+            segmentationType: SacSegmentationType.timeInterval,
+          ),
+          SacSegment(
+            startTimestamp: 300,
+            endTimestamp: 600,
+            avgDepth: 18.0,
+            minDepth: 0.0,
+            maxDepth: 24.0,
+            sacRate: 0.8,
+            gasConsumed: 4.0,
+            tankId: 'tank-b',
+            segmentationType: SacSegmentationType.timeInterval,
+          ),
+        ],
+      );
+
+      // The L/min display is what exercises the volume conversion at all; the
+      // default pressurePerMin renders bar/min and ignores tank volume.
+      final settings = MockSettingsNotifier();
+      await settings.setSacUnit(SacUnit.litersPerMin);
+      final base = await getBaseOverrides(settingsNotifier: settings);
+      final originalOnError = FlutterError.onError;
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...sacOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysis),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final card = sacCardFinder(tester);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.text('8.8 L/min')),
+        findsOneWidget,
+        reason: '0.8 bar/min converted on the 11.0 L cylinder',
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('5.6 L/min')),
+        findsOneWidget,
+        reason:
+            '0.8 bar/min converted on the 7.0 L cylinder -- a single shared '
+            'volume would print 8.8 L/min here too',
+      );
+    });
   });
 }

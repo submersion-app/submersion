@@ -1548,9 +1548,6 @@
     }
   },
   "preDive_dashboard_start": "Start pre-dive check",
-  "tools_preDive_title": "Pre-Dive Checklists",
-  "tools_preDive_subtitle": "Run and review checklist sessions",
-  "tools_preDive_description": "Buddy checks, CCR build lists, and gear packing with an audit trail",
   "trips_detail_preDive_action": "Pre-dive checklist",
   "settings_manage_preDiveChecklists": "Pre-Dive Checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddy checks, CCR build lists, gear packing",
@@ -2003,7 +2000,7 @@
     }
   },
   "dashboard_gauges_synced": "Synced",
-  "dashboard_gauges_dataIssues": "{count} data issues",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{1 data issue} other{{count} data issues}}",
   "@dashboard_gauges_dataIssues": {
     "placeholders": {
       "count": {
@@ -4705,6 +4702,7 @@
   "diveSites_list_error_loadingSites": "Error loading sites: {error}",
   "diveSites_list_error_retry": "Retry",
   "diveSites_list_menu_import": "Import",
+  "diveSites_list_menu_select": "Select sites",
   "diveSites_list_search_backTooltip": "Back",
   "diveSites_list_search_clearTooltip": "Clear Search",
   "diveSites_list_search_emptyHint": "Search by site name, country, or region",
@@ -7543,6 +7541,8 @@
   "diveDetailSection_altitude_description": "Altitude value, category, deco requirement",
   "diveDetailSection_tide_name": "Tide",
   "diveDetailSection_tide_description": "Tide cycle graph and timing",
+  "diveDetailSection_reefHealth_name": "Reef Health",
+  "diveDetailSection_reefHealth_description": "Coral bleaching heat stress on the dive date",
   "diveDetailSection_surfaceGps_name": "Surface GPS",
   "diveDetailSection_surfaceGps_description": "GPS entry/exit points and surface drift",
   "diveLog_detail_section_surfaceGps": "Surface GPS",
@@ -7861,6 +7861,7 @@
   "settings_cloudSync_header_syncBehavior": "Sync Behavior",
   "settings_cloudSync_lastSynced": "Last synced: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 pending change} other{{count} pending changes}}",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{1 device syncs from a newer version of Submersion. Update this device to receive its latest changes.} other{{count} devices sync from a newer version of Submersion. Update this device to receive their latest changes.}}",
   "settings_cloudSync_provider_connected": "Connected",
   "settings_cloudSync_provider_connectedTo": "Connected to {providerName}",
   "settings_cloudSync_provider_connectionFailed": "{providerName} connection failed: {error}",
@@ -8343,6 +8344,65 @@
   "settings_units_weight": "Weight",
   "settings_units_weight_kilograms": "Kilograms (kg)",
   "settings_units_weight_pounds": "Pounds (lbs)",
+  "settings_updates_automaticUpdates": "Automatic updates",
+  "settings_updates_automaticUpdatesSubtitle": "Check for updates periodically",
+  "settings_updates_betaDialogBody": "Beta builds are published from every change and may upgrade your dive log's database before the stable release does. Switching back to stable later will not downgrade the app, and all devices that sync together should use the same channel. A backup is taken automatically before any database upgrade.",
+  "settings_updates_betaDialogConfirm": "Switch to Beta",
+  "settings_updates_betaDialogTitle": "Receive beta updates?",
+  "settings_updates_channel": "Update channel",
+  "settings_updates_channelBadgeBeta": "{version} (Beta)",
+  "@settings_updates_channelBadgeBeta": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_channelBeta": "Beta",
+  "settings_updates_channelBetaSubtitle": "New builds from every change, ahead of stable",
+  "settings_updates_channelStable": "Stable",
+  "settings_updates_channelStableSubtitle": "Tested releases only",
+  "settings_updates_checkForUpdates": "Check for Updates",
+  "settings_updates_checking": "Checking...",
+  "settings_updates_downloading": "Downloading... {progress}%",
+  "@settings_updates_downloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_error": "Error: {message}",
+  "@settings_updates_error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_header": "Updates",
+  "settings_updates_joinBeta": "Join the Beta",
+  "settings_updates_joinBetaSubtitle": "Get new features early through the beta program",
+  "settings_updates_lastChecked": "Last checked",
+  "settings_updates_never": "Never",
+  "settings_updates_readyToInstall": "Version {version} ready to install",
+  "@settings_updates_readyToInstall": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_stableSwitchNotice": "You will stay on this beta until the next stable release is newer than it.",
+  "settings_updates_upToDate": "Up to date",
+  "settings_updates_versionAvailable": "Version {version} available",
+  "@settings_updates_versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "@settings_cloudSync_conflictItems": {
     "placeholders": {
       "count": {
@@ -9666,6 +9726,15 @@
   "tags_empty": "No tags yet. Create tags when editing dives.",
   "tags_hint_addMoreTags": "Add more tags...",
   "importWizard_tagsLabel": "Tags",
+  "importWizard_review_olderDivesSkipped": "{count, plural, one{1 older dive skipped — already in your log} other{{count} older dives skipped — already in your log}}",
+  "@importWizard_review_olderDivesSkipped": {
+    "description": "Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
   "tags_manage_searchHint": "Search tags...",
@@ -9809,6 +9878,14 @@
   "transfer_computers_loading": "Loading...",
   "transfer_computers_manageTitle": "Manage Computers",
   "transfer_computers_noComputersSaved": "No computers saved",
+  "transfer_computers_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "transfer_computers_downloadTooltip": "Download dives",
+  "transfer_computers_knownComputersHeader": "Known Computers",
+  "transfer_computers_lastDownloadDaysAgo": "{days} days ago",
+  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{1 hour ago} other{{hours} hours ago}}",
+  "transfer_computers_lastDownloadMinutesAgo": "{minutes} min ago",
+  "transfer_computers_lastDownloadNever": "Never",
+  "transfer_computers_lastDownloadYesterday": "Yesterday",
   "transfer_computers_savedCount": "{count} saved {count, plural, =1{computer} other{computers}}",
   "transfer_computers_sectionHeader": "Dive Computers",
   "transfer_csvExport_cancelButton": "Cancel",
@@ -10545,6 +10622,9 @@
   "universalImport_label_unnamed": "Unnamed",
   "universalImport_label_xOfY": "{current} of {total}",
   "universalImport_label_xOfYSelected": "{selected} of {total} selected",
+  "universalImport_entityAction_linkBadge": "LINK",
+  "universalImport_entityAction_linkExisting": "Link to existing",
+  "universalImport_entityAction_linkExistingSubtitle": "Use the matched record",
   "universalImport_pending_chooseAction": "Choose an action",
   "universalImport_pending_gateHint": "{count} duplicate(s) need a decision",
   "universalImport_pending_needsDecision": "Needs decision",
@@ -10854,6 +10934,23 @@
         "example": "5"
       }
     }
+  },
+  "@transfer_computers_diveCount": {"description": "Dive count on a known-computer card", "placeholders": {"count": {"type": "num"}}},
+  "@transfer_computers_downloadTooltip": {"description": "Tooltip on the per-computer download button"},
+  "@transfer_computers_knownComputersHeader": {"description": "Section header above previously used dive computers"},
+  "@transfer_computers_lastDownloadDaysAgo": {"description": "Relative last-download label, days", "placeholders": {"days": {"type": "int"}}},
+  "@transfer_computers_lastDownloadHoursAgo": {"description": "Relative last-download label, hours", "placeholders": {"hours": {"type": "int"}}},
+  "@transfer_computers_lastDownloadMinutesAgo": {"description": "Relative last-download label, minutes", "placeholders": {"minutes": {"type": "int"}}},
+  "@transfer_computers_lastDownloadNever": {"description": "Shown when a computer has never been downloaded from"},
+  "@transfer_computers_lastDownloadYesterday": {"description": "Relative last-download label, yesterday"},
+  "@universalImport_entityAction_linkBadge": {
+    "description": "Collapsed-header badge on a duplicate row whose action is link-to-existing"
+  },
+  "@universalImport_entityAction_linkExisting": {
+    "description": "Action button on a duplicate buddy/tag row: link the import to the matched existing record instead of skipping or creating a twin"
+  },
+  "@universalImport_entityAction_linkExistingSubtitle": {
+    "description": "Subtitle under the link-to-existing action button"
   },
   "@universalImport_pending_chooseAction": {
     "description": "Prompt shown above the action buttons on an expanded pending duplicate row, telling the user to pick an action"
@@ -11613,7 +11710,9 @@
       }
     }
   },
+  "diveComputer_downloadStep_downloadAll": "Download all dives",
   "diveComputer_downloadStep_downloadFailed": "Download failed",
+  "diveComputer_downloadStep_downloadNew": "Download new dives",
   "diveComputer_downloadStep_downloadedDives": "Downloaded Dives",
   "diveComputer_downloadStep_durationMin": "{duration} min",
   "@diveComputer_downloadStep_durationMin": {
@@ -11629,6 +11728,16 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "diveComputer_downloadStep_firstSyncBody": "Your logbook already has dives. You can skip downloading dives you already have.",
+  "diveComputer_downloadStep_firstSyncTitle": "First download from this computer",
+  "diveComputer_downloadStep_onlyAfterDate": "Only download dives after {date}",
+  "@diveComputer_downloadStep_onlyAfterDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
       }
     }
   },
@@ -12623,23 +12732,14 @@
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
   "tankPresets_title": "Tank Presets",
-  "tools_deco_description": "Calculate no-decompression limits, required deco stops, and CNS/OTU exposure for multi-level dive profiles.",
-  "tools_deco_subtitle": "Plan dives with decompression stops",
-  "tools_deco_title": "Deco Calculator",
-  "tools_disclaimer": "These calculators are for planning purposes only. Always verify calculations and follow your dive training.",
-  "tools_gas_description": "Four specialized gas calculators:\n• MOD - Maximum operating depth for a gas mix\n• Best Mix - Ideal O₂% for a target depth\n• Consumption - Gas usage estimation\n• Rock Bottom - Emergency reserve calculation",
-  "tools_gas_subtitle": "MOD, Best Mix, Consumption, Rock Bottom",
-  "tools_gas_title": "Gas Calculators",
   "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
   "tools_gpsLogger_subtitle": "Record a surface track",
   "tools_gpsLogger_title": "GPS Logger",
-  "tools_title": "Tools",
   "tools_weight_aluminumImperial": "More buoyant when empty (+4 lbs)",
   "tools_weight_aluminumMetric": "More buoyant when empty (+2 kg)",
   "tools_weight_bodyWeightOptional": "Body Weight (optional)",
   "tools_weight_carbonFiberImperial": "Very buoyant (+7 lbs)",
   "tools_weight_carbonFiberMetric": "Very buoyant (+3 kg)",
-  "tools_weight_description": "Estimate the weight you need based on your exposure suit, tank material, water type, and body weight.",
   "tools_weight_disclaimer": "This is an estimate only. Always perform a buoyancy check at the start of your dive and adjust as needed. Factors like BCD, personal buoyancy, and breathing patterns will affect your actual weight requirements.",
   "tools_weight_exposureSuit": "Exposure Suit",
   "tools_weight_gasCapacity": "• Gas capacity: {capacity} cuft",
@@ -12667,7 +12767,6 @@
   },
   "tools_weight_steelImperial": "Negatively buoyant (-4 lbs)",
   "tools_weight_steelMetric": "Negatively buoyant (-2 kg)",
-  "tools_weight_subtitle": "Recommended weight for your setup",
   "tools_weight_tankMaterial": "Tank Material",
   "tools_weight_tankSpecifications": "Tank Specifications",
   "tools_weight_title": "Weight Calculator",
@@ -12789,6 +12888,13 @@
   "listViewMode_table": "Table",
   "settings_appearance_general": "General",
   "settings_appearance_sections": "Sections",
+  "settings_appearance_colorAccents": "Color accents",
+  "settings_appearance_accentNavIcons": "Colored navigation icons",
+  "settings_appearance_accentNavIcons_subtitle": "Tint main menu icons with each feature's color",
+  "settings_appearance_accentSectionHeaders": "Colored section headers",
+  "settings_appearance_accentSectionHeaders_subtitle": "Show a colored feature icon next to page titles",
+  "settings_appearance_accentListIcons": "Colored list icons",
+  "settings_appearance_accentListIcons_subtitle": "Tint icons in lists and settings pages",
   "settings_appearance_showDetailsPane": "Show Details Pane",
   "settings_appearance_showDetailsPane_subtitle": "Display details pane alongside table",
   "settings_appearance_showProfilePanel": "Show Profile Panel in Table View",
@@ -14291,5 +14397,44 @@
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
   "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
-  "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it."
+  "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",
+  "reef_section_title": "Reef",
+  "reef_section_sourcesTooltip": "Data sources",
+  "reef_section_loadError": "Could not load reef data right now",
+  "reef_habitat_title": "Reef habitat",
+  "reef_habitat_onReef": "On a coral reef",
+  "reef_habitat_onReefWithThreat": "On a coral reef, threat level {threat}",
+  "@reef_habitat_onReefWithThreat": {"placeholders": {"threat": {"type": "String"}}},
+  "reef_habitat_noReef": "No mapped coral reef at this location",
+  "reef_habitat_unavailable": "Could not check reef habitat right now",
+  "reef_health_title": "Reef health",
+  "reef_health_unavailable": "Could not check reef health right now",
+  "reef_health_noData": "No reef health data for this location",
+  "reef_health_degreeHeatingWeeks": "Degree Heating Weeks {value} C-weeks",
+  "@reef_health_degreeHeatingWeeks": {"placeholders": {"value": {"type": "String"}}},
+  "reef_health_seaSurface": "Sea surface {value}",
+  "@reef_health_seaSurface": {"placeholders": {"value": {"type": "String"}}},
+  "reef_health_asOf": "As of {date}",
+  "@reef_health_asOf": {"placeholders": {"date": {"type": "String"}}},
+  "reef_health_levelNoStress": "No thermal stress",
+  "reef_health_levelWatch": "Bleaching watch",
+  "reef_health_levelWarning": "Bleaching warning",
+  "reef_health_levelAlert1": "Bleaching alert level 1",
+  "reef_health_levelAlert2": "Bleaching alert level 2",
+  "reef_health_levelAlert3": "Bleaching alert level 3",
+  "reef_health_levelAlert4": "Bleaching alert level 4",
+  "reef_health_levelAlert5": "Bleaching alert level 5",
+  "reef_protection_title": "Protected area",
+  "reef_protection_none": "Not in a marine protected area",
+  "reef_protection_unavailable": "Could not check protected status right now",
+  "reef_protection_viewRegulations": "View regulations",
+  "reef_protection_iucn": "IUCN {category}",
+  "@reef_protection_iucn": {"placeholders": {"category": {"type": "String"}}},
+  "reef_species_recordedNearby": "Recorded nearby",
+  "reef_species_addToExpected": "Add to expected species",
+  "reef_attribution_title": "Reef data sources",
+  "reef_attribution_wri": "Reef presence and threat level. CC BY 3.0.",
+  "reef_attribution_noaa": "Sea surface temperature and bleaching heat stress. Public domain.",
+  "reef_attribution_gbif": "Species occurrence records, filtered to CC0 and CC BY 4.0.",
+  "reef_attribution_protectedSeas": "Marine protected area boundaries. CC BY 4.0."
 }

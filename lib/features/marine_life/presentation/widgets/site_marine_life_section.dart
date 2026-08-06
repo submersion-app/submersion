@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -13,10 +15,14 @@ class SiteMarineLifeSection extends ConsumerWidget {
   final String siteId;
   final bool readOnly;
 
+  /// When present, a "Recorded nearby" tier is shown from online sources.
+  final GeoPoint? location;
+
   const SiteMarineLifeSection({
     super.key,
     required this.siteId,
     this.readOnly = false,
+    this.location,
   });
 
   @override
@@ -35,6 +41,10 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildSpottedSection(context, ref, spottedAsync),
             const SizedBox(height: 16),
             _buildExpectedSection(context, ref, expectedAsync),
+            if (location != null) ...[
+              const SizedBox(height: 16),
+              NearbySpeciesTier(siteId: siteId, location: location!),
+            ],
           ],
         ),
       ),

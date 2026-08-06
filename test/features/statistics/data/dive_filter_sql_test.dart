@@ -96,6 +96,32 @@ void main() {
         );
   }
 
+  Future<void> insertBuddy(String id, String name) async {
+    await db
+        .into(db.buddies)
+        .insert(
+          BuddiesCompanion(
+            id: Value(id),
+            name: Value(name),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> linkBuddy(String diveId, String buddyId) async {
+    await db
+        .into(db.diveBuddies)
+        .insert(
+          DiveBuddiesCompanion(
+            id: Value('$diveId-$buddyId'),
+            diveId: Value(diveId),
+            buddyId: Value(buddyId),
+            createdAt: Value(now),
+          ),
+        );
+  }
+
   Future<void> insertDiveCenter(String id) async {
     await db
         .into(db.diveCenters)
@@ -446,6 +472,13 @@ void main() {
     await linkTag('d5', 'dry');
     await linkTag('d7', 'night');
 
+    // buddies: d6 has NO legacy dives.buddy text, only a junction-table
+    // buddy whose name matches the 'alice' filter. The modern dive editor
+    // writes only the junction, so the buddy filter must match through it
+    // (#757); d1 covers the legacy scalar column.
+    await insertBuddy('b1', 'Alice Junction');
+    await linkBuddy('d6', 'b1');
+
     // equipment: ANY-match axis.
     await linkEquipment('d1', 'eq1');
     await linkEquipment('d2', 'eq1');
@@ -561,6 +594,27 @@ void main() {
       reason: 'ANY-tank semantics: d5 matches via its second (100%) tank',
     );
     expect(await idsMatching(battery['computerSerial']!), {'d4'});
+    expect(
+      await idsMatching(battery['buddyNameFilter']!),
+      {'d1', 'd6'},
+      reason:
+          'buddy filter must match junction-table buddies (d6, no legacy '
+          'scalar) as well as the legacy dives.buddy column (d1) -- #757',
+    );
+    expect(
+      battery['buddyNameFilter']!.apply(domainDives).map((d) => d.id).toSet(),
+      {'d1', 'd6'},
+      reason: 'apply() must consult dive.buddies, not only dive.buddy',
+    );
+    expect(
+      (await DiveRepository().getDiveSummaries(
+        filter: battery['buddyNameFilter']!,
+      )).map((s) => s.id).toSet(),
+      {'d1', 'd6'},
+      reason:
+          'repository SQL filter (getDiveSummaries) must match junction '
+          'buddies too',
+    );
     expect(
       await idsMatching(battery['customFieldKey + value substring']!),
       {'d6'},

@@ -168,7 +168,7 @@ class TideTimesTable extends StatelessWidget {
     } else if (isTomorrow) {
       dateLabel = context.l10n.tides_label_tomorrow;
     } else {
-      dateLabel = dateFormat.format(extreme.time.toLocal());
+      dateLabel = dateFormat.format(extreme.time);
     }
 
     // Colors based on type
@@ -180,7 +180,7 @@ class TideTimesTable extends StatelessWidget {
     final tideTypeLabel = isHigh
         ? context.l10n.tides_label_highTide
         : context.l10n.tides_label_lowTide;
-    final timeLabel = timeFormatter.format(extreme.time.toLocal());
+    final timeLabel = timeFormatter.format(extreme.time);
     final durationLabel = isPast
         ? context.l10n.tides_label_ago(_formatDuration(duration))
         : context.l10n.tides_label_fromNow(_formatDuration(duration));
@@ -227,7 +227,7 @@ class TideTimesTable extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      timeFormatter.format(extreme.time.toLocal()),
+                      timeFormatter.format(extreme.time),
                       style:
                           (compact
                                   ? textTheme.titleMedium
@@ -388,7 +388,7 @@ class NextTideTimes extends StatelessWidget {
           Icon(Icons.arrow_upward, size: 14, color: Colors.red.shade600),
           const SizedBox(width: 4),
           Text(
-            timeFormatter.format(nextHigh.time.toLocal()),
+            timeFormatter.format(nextHigh.time),
             style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           Text(
@@ -410,7 +410,7 @@ class NextTideTimes extends StatelessWidget {
           Icon(Icons.arrow_downward, size: 14, color: Colors.blue.shade600),
           const SizedBox(width: 4),
           Text(
-            timeFormatter.format(nextLow.time.toLocal()),
+            timeFormatter.format(nextLow.time),
             style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           Text(

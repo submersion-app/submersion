@@ -430,6 +430,41 @@ class UniversalAdapter implements ImportSourceAdapter {
         _resolveSelections(type, selections, duplicateActions);
 
     final uddfData = _payloadToUddfResult(payload);
+
+    // #756: flagged duplicates whose action is skip (or explicit link via
+    // consolidate) must LINK the dive to the matched existing record rather
+    // than dropping the association or creating a twin. Build source-ref ->
+    // existing-id seeds for the importer's id mappings.
+    Map<String, String> preResolvedIdsFor(
+      wizard.ImportEntityType type,
+      List<Map<String, dynamic>> items,
+    ) {
+      final matches = bundle.groups[type]?.entityMatches;
+      if (matches == null || matches.isEmpty) return const {};
+      final actions = duplicateActions[type] ?? const {};
+      final map = <String, String>{};
+      for (final entry in matches.entries) {
+        final action = actions[entry.key];
+        // Seed for skip and consolidate (both mean "do not create a new
+        // row"), and for an undecided duplicate as a safety net -- the
+        // wizard gates advancement on pending decisions, so that state is
+        // not reachable today, but dropping the association silently is the
+        // exact defect this fix exists to prevent. A seed is harmless when
+        // the entity IS imported: _importBuddies/_importTags overwrite the
+        // mapping with the newly created id.
+        final links =
+            action == null ||
+            action == DuplicateAction.skip ||
+            action == DuplicateAction.consolidate;
+        if (!links) continue;
+        if (entry.key < 0 || entry.key >= items.length) continue;
+        final item = items[entry.key];
+        final ref = (item['uddfId'] as String?) ?? (item['name'] as String?);
+        if (ref != null) map[ref] = entry.value.existingId;
+      }
+      return map;
+    }
+
     final uddfSelections = UddfImportSelections(
       dives: resolve(wizard.ImportEntityType.dives),
       sites: resolve(wizard.ImportEntityType.sites),
@@ -479,6 +514,14 @@ class UniversalAdapter implements ImportSourceAdapter {
       repositories: repos,
       diverId: currentDiver.id,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
+      preResolvedBuddyIds: preResolvedIdsFor(
+        wizard.ImportEntityType.buddies,
+        uddfData.buddies,
+      ),
+      preResolvedTagIds: preResolvedIdsFor(
+        wizard.ImportEntityType.tags,
+        uddfData.tags,
+      ),
       onProgress: onProgress,
       cancelToken: cancelToken,
     );
@@ -909,16 +952,27 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     for (final index in baseSelections) {
       final action = actions[index];
-      if (action != DuplicateAction.skip) {
-        resolved.add(index);
+      if (action == DuplicateAction.skip) continue;
+      // For non-dive entities consolidate means "link to the existing
+      // record": nothing is imported. It has to be excluded here too, or a
+      // duplicate that is ALSO in the base selection set gets imported as a
+      // new row anyway -- the twin the action exists to avoid (#756).
+      if (action == DuplicateAction.consolidate &&
+          type != wizard.ImportEntityType.dives) {
+        continue;
       }
+      resolved.add(index);
     }
 
     for (final entry in actions.entries) {
-      // Consolidate-flagged items are imported as standalone dives first (like
-      // importAsNew); performImport folds them into their match afterwards.
+      // Consolidate-flagged DIVES are imported as standalone dives first
+      // (like importAsNew); performImport folds them into their match
+      // afterwards. For non-dive entities, consolidate means "link to the
+      // existing record" (#756): nothing is imported, the association is
+      // resolved through the pre-seeded id mappings instead.
       if (entry.value == DuplicateAction.importAsNew ||
-          entry.value == DuplicateAction.consolidate) {
+          (type == wizard.ImportEntityType.dives &&
+              entry.value == DuplicateAction.consolidate)) {
         resolved.add(entry.key);
       }
     }

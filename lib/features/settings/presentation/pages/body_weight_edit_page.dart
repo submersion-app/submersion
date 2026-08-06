@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Dated body-weight history for the active diver (weight prediction v104):
 /// a list of measurements with add/delete.
@@ -94,7 +95,7 @@ class BodyWeightEditPage extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.calendar_today),
                     onPressed: () async {
-                      final picked = await showDatePicker(
+                      final picked = await showAppDatePicker(
                         context: dialogContext,
                         initialDate: measuredAt,
                         firstDate: DateTime(1950),

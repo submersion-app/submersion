@@ -124,6 +124,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   List<DownloadedDive> _downloadedDives = [];
   DiveComputer? _computer;
   String? _customDeviceName;
+  DateTime? _sinceCutoff;
 
   // Session-level descriptor fields captured from the discovered device.
   String? _descriptorVendor;
@@ -151,6 +152,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// Must be called before [buildBundle].
   void setDownloadedDives(List<DownloadedDive> dives) {
     _downloadedDives = List.unmodifiable(dives);
+  }
+
+  /// Set the first-sync cutoff captured from the download state.
+  ///
+  /// Dives at or before it default to skip in the review step (tier-1
+  /// filter for backends that transferred them anyway). Pass null to clear
+  /// it -- also done by [resetState].
+  void setSinceCutoff(DateTime? cutoff) {
+    _sinceCutoff = cutoff;
   }
 
   /// Set the computer after discovery completes.
@@ -276,6 +286,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   @override
   void resetState() {
+    _sinceCutoff = null;
     final ref = _ref;
     if (ref == null) return;
     ref.invalidate(dcAdapterScanCanAdvanceProvider);
@@ -364,13 +375,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   Future<ImportBundle> buildBundle() async {
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
+    final cutoff = _sinceCutoff;
+    final autoSkip = <int>{
+      if (cutoff != null)
+        for (var i = 0; i < _downloadedDives.length; i++)
+          if (!_downloadedDives[i].startTime.isAfter(cutoff)) i,
+    };
+
     return ImportBundle(
       source: ImportSourceInfo(
         type: ImportSourceType.diveComputer,
         displayName: _displayName,
         currentComputerId: computer?.id,
       ),
-      groups: {ImportEntityType.dives: EntityGroup(items: items)},
+      groups: {
+        ImportEntityType.dives: EntityGroup(
+          items: items,
+          autoSkipIndices: autoSkip.isEmpty ? null : autoSkip,
+        ),
+      },
     );
   }
 
@@ -421,6 +444,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           items: diveGroup.items,
           duplicateIndices: duplicateIndices,
           matchResults: matchResults,
+          autoSkipIndices: diveGroup.autoSkipIndices,
         ),
       },
     );

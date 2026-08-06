@@ -1940,7 +1940,14 @@ class DiveRepository {
       }
     }
     if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
-      clauses.add('d.buddy LIKE ?');
+      // The dive editor writes buddies only to the dive_buddies junction;
+      // d.buddy is a legacy text column kept for old data (#757).
+      clauses.add(
+        '(LOWER(d.buddy) LIKE LOWER(?) OR EXISTS (SELECT 1 FROM dive_buddies db '
+        'JOIN buddies b ON b.id = db.buddy_id '
+        'WHERE db.dive_id = d.id AND LOWER(b.name) LIKE LOWER(?)))',
+      );
+      args.add(Variable('%${filter.buddyNameFilter}%'));
       args.add(Variable('%${filter.buddyNameFilter}%'));
     }
     if (filter.buddyId != null) {
@@ -2093,6 +2100,27 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Newest dive start time for [diverId], or null when the log is empty.
+  ///
+  /// Scoped strictly to [diverId]: `t.diverId.equals(diverId)` only, no
+  /// `isNull()` fallback for legacy null-diverId dives. This matches every
+  /// other diverId-scoped query against the `dives` table in this
+  /// repository (see [getAllDives], [getDivesInRange], [getNextDiveNumber]),
+  /// none of which OR in an isNull() arm. (Some other repositories -- e.g.
+  /// pre-dive templates, checklists, safety records -- do fall back to
+  /// isNull() for their own diverId columns, but that convention was never
+  /// applied to the dives table itself.)
+  Future<DateTime?> getNewestDiveDateTime({required String diverId}) async {
+    final row =
+        await (_db.select(_db.dives)
+              ..where((t) => t.diverId.equals(diverId))
+              ..orderBy([(t) => OrderingTerm.desc(t.diveDateTime)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(row.diveDateTime, isUtc: true);
   }
 
   /// Get the next dive number based on MAX(dive_number) + 1

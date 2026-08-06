@@ -1,5 +1,6 @@
 {
   "universalImport_action_importFromGarmin": "Von Garmin-Gerät importieren",
+  "diveSites_list_menu_select": "Tauchplätze auswählen",
   "diveLog_edit_geofenceSuggestion_near": "In der Nähe von {location}",
   "diveLog_edit_geofenceSuggestion_title": "Ausrüstungsvorschlag",
   "diveLog_edit_geofenceSuggestion_body": "Set \"{setName}\" übernehmen?",
@@ -848,9 +849,6 @@
     }
   },
   "preDive_dashboard_start": "Check vor dem Tauchgang starten",
-  "tools_preDive_title": "Checklisten vor dem Tauchgang",
-  "tools_preDive_subtitle": "Checklisten-Durchläufe starten und einsehen",
-  "tools_preDive_description": "Buddy-Checks, CCR-Aufbaulisten und Ausrüstungspacken mit Prüfprotokoll",
   "trips_detail_preDive_action": "Checkliste vor dem Tauchgang",
   "settings_manage_preDiveChecklists": "Checklisten vor dem Tauchgang",
   "settings_manage_preDiveChecklists_subtitle": "Buddy-Checks, CCR-Aufbaulisten, Ausrüstungspacken",
@@ -1229,11 +1227,16 @@
   "diveComputer_downloadStep_cancel": "Abbrechen",
   "diveComputer_downloadStep_cancelled": "Download abgebrochen",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
+  "diveComputer_downloadStep_downloadAll": "Alle Tauchgänge herunterladen",
   "diveComputer_downloadStep_downloadFailed": "Download fehlgeschlagen",
+  "diveComputer_downloadStep_downloadNew": "Neue Tauchgänge herunterladen",
   "diveComputer_downloadStep_downloadedDives": "Heruntergeladene Tauchgänge",
   "diveComputer_downloadStep_durationMin": "{duration} min",
   "diveComputer_downloadStep_errorOccurred": "Ein Fehler ist aufgetreten",
   "diveComputer_downloadStep_errorSemanticLabel": "Download-Fehler: {error}",
+  "diveComputer_downloadStep_firstSyncBody": "Dein Logbuch enthält bereits Tauchgänge. Du kannst das Herunterladen von Tauchgängen überspringen, die du bereits hast.",
+  "diveComputer_downloadStep_firstSyncTitle": "Erster Download von diesem Tauchcomputer",
+  "diveComputer_downloadStep_onlyAfterDate": "Nur Tauchgänge nach dem {date} herunterladen",
   "diveComputer_downloadStep_percentAccessibility": ", {percent} Prozent",
   "diveComputer_downloadStep_preparing": "Wird vorbereitet...",
   "diveComputer_downloadStep_progressPercent": "{percent}%",
@@ -1342,6 +1345,8 @@
   "diveDetailSection_tanks_description": "Flaschenliste, Gasmischungen, Drucke, Flaschen-AMV",
   "diveDetailSection_tanks_name": "Flaschen",
   "diveDetailSection_tide_description": "Gezeitenzyklusdiagramm und Zeiten",
+  "diveDetailSection_reefHealth_name": "Riffgesundheit",
+  "diveDetailSection_reefHealth_description": "Korallenbleiche-Hitzestress am Tauchtag",
   "diveDetailSection_tide_name": "Gezeiten",
   "diveDetailSection_weights_description": "Gewichtsaufteilung, Gesamtgewicht",
   "diveDetailSection_buoyancy_name": "Auftrieb",
@@ -4100,6 +4105,7 @@
   "settings_cloudSync_header_syncBehavior": "Synchronisierungsverhalten",
   "settings_cloudSync_lastSynced": "Zuletzt synchronisiert: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 ausstehende Änderung} other{{count} ausstehende Änderungen}}",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{1 Gerät synchronisiert von einer neueren Version von Submersion. Aktualisieren Sie dieses Gerät, um dessen neueste Änderungen zu erhalten.} other{{count} Geräte synchronisieren von einer neueren Version von Submersion. Aktualisieren Sie dieses Gerät, um deren neueste Änderungen zu erhalten.}}",
   "settings_cloudSync_provider_connected": "Verbunden",
   "settings_cloudSync_provider_connectedTo": "Verbunden mit {providerName}",
   "settings_cloudSync_provider_connectionFailed": "Verbindung zu {providerName} fehlgeschlagen: {error}",
@@ -4527,6 +4533,65 @@
   "settings_units_weight": "Gewicht",
   "settings_units_weight_kilograms": "Kilogramm (kg)",
   "settings_units_weight_pounds": "Pfund (lbs)",
+  "settings_updates_automaticUpdates": "Automatische Updates",
+  "settings_updates_automaticUpdatesSubtitle": "Regelmäßig nach Updates suchen",
+  "settings_updates_betaDialogBody": "Beta-Builds werden aus jeder Änderung veröffentlicht und können die Datenbank Ihres Tauchlogbuchs vor der stabilen Version aktualisieren. Ein späterer Wechsel zurück zu Stabil stuft die App nicht herab, und alle Geräte, die miteinander synchronisieren, sollten denselben Kanal verwenden. Vor jedem Datenbank-Upgrade wird automatisch ein Backup erstellt.",
+  "settings_updates_betaDialogConfirm": "Zu Beta wechseln",
+  "settings_updates_betaDialogTitle": "Beta-Updates erhalten?",
+  "settings_updates_channel": "Update-Kanal",
+  "settings_updates_channelBadgeBeta": "{version} (Beta)",
+  "@settings_updates_channelBadgeBeta": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_channelBeta": "Beta",
+  "settings_updates_channelBetaSubtitle": "Neue Builds aus jeder Änderung, vor der stabilen Version",
+  "settings_updates_channelStable": "Stabil",
+  "settings_updates_channelStableSubtitle": "Nur getestete Versionen",
+  "settings_updates_checkForUpdates": "Nach Updates suchen",
+  "settings_updates_checking": "Wird geprüft...",
+  "settings_updates_downloading": "Wird heruntergeladen... {progress}%",
+  "@settings_updates_downloading": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_error": "Fehler: {message}",
+  "@settings_updates_error": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_header": "Updates",
+  "settings_updates_joinBeta": "An der Beta teilnehmen",
+  "settings_updates_joinBetaSubtitle": "Erhalten Sie neue Funktionen frühzeitig über das Beta-Programm",
+  "settings_updates_lastChecked": "Zuletzt geprüft",
+  "settings_updates_never": "Nie",
+  "settings_updates_readyToInstall": "Version {version} bereit zur Installation",
+  "@settings_updates_readyToInstall": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_stableSwitchNotice": "Sie bleiben auf dieser Beta, bis die nächste stabile Version neuer ist als diese.",
+  "settings_updates_upToDate": "Auf dem neuesten Stand",
+  "settings_updates_versionAvailable": "Version {version} verfügbar",
+  "@settings_updates_versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "signatures_action_clear": "Löschen",
   "signatures_action_closeSignatureView": "Signaturansicht schließen",
   "signatures_action_deleteSignature": "Signatur löschen",
@@ -4869,6 +4934,7 @@
   "tags_empty": "Noch keine Tags. Erstellen Sie Tags beim Bearbeiten von Tauchgängen.",
   "tags_hint_addMoreTags": "Weitere Tags hinzufügen...",
   "importWizard_tagsLabel": "Tags",
+  "importWizard_review_olderDivesSkipped": "{count, plural, one{1 älterer Tauchgang übersprungen — bereits in deinem Logbuch} other{{count} ältere Tauchgänge übersprungen — bereits in deinem Logbuch}}",
   "tags_hint_addTags": "Tags hinzufügen...",
   "tags_manage_bulkDeleteMessage": "Diese Tags werden von insgesamt {diveCount, plural, =0{0 Tauchgängen} =1{1 Tauchgang} other{{diveCount} Tauchgängen}} entfernt. Dies kann nicht rückgängig gemacht werden.",
   "tags_manage_bulkDeleteTitle": "{count} Tags löschen?",
@@ -5007,23 +5073,14 @@
   "tides_semantic_tideCycle": "Gezeitenzyklus, Status: {state}, Höhe: {height}",
   "tides_semantic_tideState": "Gezeitenstatus: {state}",
   "tides_title": "Gezeiten",
-  "tools_deco_description": "Berechnen Sie Nullzeitgrenzen, erforderliche Dekostopps und CNS/OTU-Belastung für mehrstufige Tauchprofile.",
-  "tools_deco_subtitle": "Tauchgänge mit Dekostopps planen",
-  "tools_deco_title": "Deko-Rechner",
-  "tools_disclaimer": "Diese Rechner dienen nur der Planung. Überprüfen Sie die Berechnungen immer und folgen Sie Ihrer Tauchausbildung.",
-  "tools_gas_description": "Vier spezialisierte Gasrechner:\n- MOD - Maximale Einsatztiefe für ein Gasgemisch\n- Best Mix - Idealer O2-Anteil für eine Zieltiefe\n- Verbrauch - Gasverbrauchsschätzung\n- Rock Bottom - Notreserve-Berechnung",
-  "tools_gas_subtitle": "MOD, Best Mix, Verbrauch, Rock Bottom",
-  "tools_gas_title": "Gasrechner",
   "tools_gpsLogger_description": "Zeichne deine Position während eines Tauchtags auf und ordne importierte Tauchgänge automatisch GPS-Positionen zu.",
   "tools_gpsLogger_subtitle": "Oberflächen-Track aufzeichnen",
   "tools_gpsLogger_title": "GPS-Logger",
-  "tools_title": "Werkzeuge",
   "tools_weight_aluminumImperial": "Auftriebspositiver wenn leer (+4 lbs)",
   "tools_weight_aluminumMetric": "Auftriebspositiver wenn leer (+2 kg)",
   "tools_weight_bodyWeightOptional": "Körpergewicht (optional)",
   "tools_weight_carbonFiberImperial": "Sehr auftriebspositiv (+7 lbs)",
   "tools_weight_carbonFiberMetric": "Sehr auftriebspositiv (+3 kg)",
-  "tools_weight_description": "Schätzen Sie das benötigte Blei basierend auf Tauchanzug, Flaschenmaterial, Wassertyp und Körpergewicht.",
   "tools_weight_disclaimer": "Dies ist nur eine Schätzung. Führen Sie immer einen Tarierungscheck zu Beginn des Tauchgangs durch und passen Sie bei Bedarf an. Faktoren wie Jacket, persönlicher Auftrieb und Atemverhalten beeinflussen Ihren tatsächlichen Bleibedarf.",
   "tools_weight_exposureSuit": "Tauchanzug",
   "tools_weight_gasCapacity": "- Gaskapazität: {capacity} cuft",
@@ -5034,7 +5091,6 @@
   "tools_weight_resultAccessibility": "Empfohlenes Gewicht: {weight} {unit}",
   "tools_weight_steelImperial": "Auftriebsnegativ (-4 lbs)",
   "tools_weight_steelMetric": "Auftriebsnegativ (-2 kg)",
-  "tools_weight_subtitle": "Empfohlenes Gewicht für Ihre Konfiguration",
   "tools_weight_tankMaterial": "Flaschenmaterial",
   "tools_weight_tankSpecifications": "Flaschenspezifikationen",
   "tools_weight_title": "Gewichtsrechner",
@@ -5054,6 +5110,14 @@
   "transfer_computers_loading": "Laden...",
   "transfer_computers_manageTitle": "Computer verwalten",
   "transfer_computers_noComputersSaved": "Keine Computer gespeichert",
+  "transfer_computers_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
+  "transfer_computers_downloadTooltip": "Tauchgänge herunterladen",
+  "transfer_computers_knownComputersHeader": "Bekannte Computer",
+  "transfer_computers_lastDownloadDaysAgo": "vor {days} Tagen",
+  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{vor 1 Stunde} other{vor {hours} Stunden}}",
+  "transfer_computers_lastDownloadMinutesAgo": "vor {minutes} Min.",
+  "transfer_computers_lastDownloadNever": "Nie",
+  "transfer_computers_lastDownloadYesterday": "Gestern",
   "transfer_computers_savedCount": "{count} gespeicherte {count, plural, =1{Computer} other{Computer}}",
   "transfer_computers_sectionHeader": "Tauchcomputer",
   "transfer_csvExport_cancelButton": "Abbrechen",
@@ -5685,7 +5749,7 @@
   "dashboard_gauges_backupDays": "Backup vor {days}T",
   "dashboard_gauges_syncPending": "{count} nicht synchronisiert",
   "dashboard_gauges_synced": "Synchronisiert",
-  "dashboard_gauges_dataIssues": "{count} Datenprobleme",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{1 Datenproblem} other{{count} Datenprobleme}}",
   "dashboard_gauges_retry": "Status nicht verfügbar - zum Wiederholen tippen",
   "dashboard_urgent_title": "Braucht Aufmerksamkeit",
   "dashboard_photos_title": "Aktuelle Fotos",
@@ -5734,6 +5798,13 @@
   "listViewMode_table": "Tabelle",
   "settings_appearance_general": "Allgemein",
   "settings_appearance_sections": "Bereiche",
+  "settings_appearance_colorAccents": "Farbakzente",
+  "settings_appearance_accentNavIcons": "Farbige Navigationssymbole",
+  "settings_appearance_accentNavIcons_subtitle": "Hauptmenü-Symbole in der Farbe des jeweiligen Bereichs einfärben",
+  "settings_appearance_accentSectionHeaders": "Farbige Bereichsüberschriften",
+  "settings_appearance_accentSectionHeaders_subtitle": "Farbiges Bereichssymbol neben Seitentiteln anzeigen",
+  "settings_appearance_accentListIcons": "Farbige Listensymbole",
+  "settings_appearance_accentListIcons_subtitle": "Symbole in Listen und Einstellungsseiten einfärben",
   "settings_appearance_showDetailsPane": "Detailbereich anzeigen",
   "settings_appearance_showDetailsPane_subtitle": "Detailbereich neben der Tabelle anzeigen",
   "settings_appearance_showProfilePanel": "Profilbereich in Tabellenansicht anzeigen",
@@ -5749,6 +5820,9 @@
   "universalImport_dive_decideAction": "Entscheiden",
   "universalImport_label_consolidate": "Zusammenführen",
   "universalImport_label_importAsNew": "Als neu importieren",
+  "universalImport_entityAction_linkBadge": "VERKNÜPFEN",
+  "universalImport_entityAction_linkExisting": "Mit vorhandenem Eintrag verknüpfen",
+  "universalImport_entityAction_linkExistingSubtitle": "Vorhandenen Eintrag verwenden",
   "universalImport_pending_chooseAction": "Aktion auswählen",
   "universalImport_pending_gateHint": "{count} Duplikat(e) erfordern eine Entscheidung",
   "universalImport_pending_needsDecision": "Entscheidung erforderlich",
@@ -6705,5 +6779,39 @@
   "settings_mediaStorage_quality_reuploadQueued": "Erneuter Upload in Warteschlange",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Installieren Sie ffmpeg, um Videokomprimierung zu aktivieren. Bis dahin werden Originale hochgeladen.",
   "settings_mediaStorage_quality_saveFailed": "Die Upload-Qualität konnte nicht gespeichert werden. Bitte erneut versuchen.",
-  "settings_mediaStorage_quality_noTranscoderHint": "Dieses Gerät kann keine Videos komprimieren. Von ihm werden Originale hochgeladen."
+  "settings_mediaStorage_quality_noTranscoderHint": "Dieses Gerät kann keine Videos komprimieren. Von ihm werden Originale hochgeladen.",
+  "reef_section_title": "Riff",
+  "reef_section_sourcesTooltip": "Datenquellen",
+  "reef_section_loadError": "Riffdaten konnten gerade nicht geladen werden",
+  "reef_habitat_title": "Riff-Lebensraum",
+  "reef_habitat_onReef": "Auf einem Korallenriff",
+  "reef_habitat_onReefWithThreat": "Auf einem Korallenriff, Gefährdungsstufe {threat}",
+  "reef_habitat_noReef": "Kein kartiertes Korallenriff an diesem Ort",
+  "reef_habitat_unavailable": "Riff-Lebensraum konnte gerade nicht geprüft werden",
+  "reef_health_title": "Riffgesundheit",
+  "reef_health_unavailable": "Riffgesundheit konnte gerade nicht geprüft werden",
+  "reef_health_noData": "Keine Riffgesundheitsdaten für diesen Ort",
+  "reef_health_degreeHeatingWeeks": "Degree Heating Weeks {value} C-Wochen",
+  "reef_health_seaSurface": "Wasseroberfläche {value}",
+  "reef_health_asOf": "Stand {date}",
+  "reef_health_levelNoStress": "Kein Hitzestress",
+  "reef_health_levelWatch": "Bleiche-Beobachtung",
+  "reef_health_levelWarning": "Bleiche-Warnung",
+  "reef_health_levelAlert1": "Bleiche-Alarmstufe 1",
+  "reef_health_levelAlert2": "Bleiche-Alarmstufe 2",
+  "reef_health_levelAlert3": "Bleiche-Alarmstufe 3",
+  "reef_health_levelAlert4": "Bleiche-Alarmstufe 4",
+  "reef_health_levelAlert5": "Bleiche-Alarmstufe 5",
+  "reef_protection_title": "Schutzgebiet",
+  "reef_protection_none": "Nicht in einem Meeresschutzgebiet",
+  "reef_protection_unavailable": "Schutzstatus konnte gerade nicht geprüft werden",
+  "reef_protection_viewRegulations": "Vorschriften ansehen",
+  "reef_protection_iucn": "IUCN {category}",
+  "reef_species_recordedNearby": "In der Nähe erfasst",
+  "reef_species_addToExpected": "Zu erwarteten Arten hinzufügen",
+  "reef_attribution_title": "Riff-Datenquellen",
+  "reef_attribution_wri": "Riffvorkommen und Gefährdungsstufe. CC BY 3.0.",
+  "reef_attribution_noaa": "Wasseroberflächentemperatur und Bleiche-Hitzestress. Gemeinfrei.",
+  "reef_attribution_gbif": "Artnachweise, gefiltert auf CC0 und CC BY 4.0.",
+  "reef_attribution_protectedSeas": "Grenzen von Meeresschutzgebieten. CC BY 4.0."
 }

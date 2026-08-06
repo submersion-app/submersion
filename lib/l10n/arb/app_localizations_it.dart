@@ -2501,17 +2501,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get preDive_dashboard_start => 'Avvia controllo pre-immersione';
 
   @override
-  String get tools_preDive_title => 'Checklist pre-immersione';
-
-  @override
-  String get tools_preDive_subtitle =>
-      'Esegui e rivedi le sessioni di checklist';
-
-  @override
-  String get tools_preDive_description =>
-      'Buddy check, liste di montaggio CCR e preparazione dell\'attrezzatura con registro delle verifiche';
-
-  @override
   String get trips_detail_preDive_action => 'Checklist pre-immersione';
 
   @override
@@ -3224,7 +3213,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String dashboard_gauges_dataIssues(int count) {
-    return '$count problemi nei dati';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count problemi nei dati',
+      one: '1 problema nei dati',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -8435,6 +8430,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importa';
 
   @override
+  String get diveSites_list_menu_select => 'Seleziona siti';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Indietro';
 
   @override
@@ -12993,6 +12991,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Grafico ciclo marea e tempi';
 
   @override
+  String get diveDetailSection_reefHealth_name => 'Salute della barriera';
+
+  @override
+  String get diveDetailSection_reefHealth_description =>
+      'Stress termico da sbiancamento dei coralli alla data dell\'immersione';
+
+  @override
   String get diveDetailSection_surfaceGps_name => 'GPS di superficie';
 
   @override
@@ -13595,6 +13600,19 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other: '$count modifiche in sospeso',
       one: '1 modifica in sospeso',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dispositivi si sincronizzano da una versione più recente di Submersion. Aggiorna questo dispositivo per ricevere le loro ultime modifiche.',
+      one:
+          '1 dispositivo si sincronizza da una versione più recente di Submersion. Aggiorna questo dispositivo per ricevere le sue ultime modifiche.',
     );
     return '$_temp0';
   }
@@ -15116,6 +15134,93 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_units_weight_pounds => 'Libbre (lbs)';
 
   @override
+  String get settings_updates_automaticUpdates => 'Aggiornamenti automatici';
+
+  @override
+  String get settings_updates_automaticUpdatesSubtitle =>
+      'Controlla periodicamente gli aggiornamenti';
+
+  @override
+  String get settings_updates_betaDialogBody =>
+      'Le build beta vengono pubblicate a ogni modifica e possono aggiornare il database del tuo diario immersioni prima della versione stabile. Tornare in seguito al canale stabile non riporterà l\'app a una versione precedente, e tutti i dispositivi che si sincronizzano tra loro dovrebbero usare lo stesso canale. Prima di ogni aggiornamento del database viene eseguito automaticamente un backup.';
+
+  @override
+  String get settings_updates_betaDialogConfirm => 'Passa alla Beta';
+
+  @override
+  String get settings_updates_betaDialogTitle => 'Ricevere aggiornamenti beta?';
+
+  @override
+  String get settings_updates_channel => 'Canale di aggiornamento';
+
+  @override
+  String settings_updates_channelBadgeBeta(String version) {
+    return '$version (Beta)';
+  }
+
+  @override
+  String get settings_updates_channelBeta => 'Beta';
+
+  @override
+  String get settings_updates_channelBetaSubtitle =>
+      'Nuove build a ogni modifica, in anticipo sulla stabile';
+
+  @override
+  String get settings_updates_channelStable => 'Stabile';
+
+  @override
+  String get settings_updates_channelStableSubtitle => 'Solo versioni testate';
+
+  @override
+  String get settings_updates_checkForUpdates => 'Controlla aggiornamenti';
+
+  @override
+  String get settings_updates_checking => 'Controllo in corso...';
+
+  @override
+  String settings_updates_downloading(String progress) {
+    return 'Download in corso... $progress%';
+  }
+
+  @override
+  String settings_updates_error(String message) {
+    return 'Errore: $message';
+  }
+
+  @override
+  String get settings_updates_header => 'Aggiornamenti';
+
+  @override
+  String get settings_updates_joinBeta => 'Partecipa alla Beta';
+
+  @override
+  String get settings_updates_joinBetaSubtitle =>
+      'Ricevi in anteprima le nuove funzionalità tramite il programma beta';
+
+  @override
+  String get settings_updates_lastChecked => 'Ultimo controllo';
+
+  @override
+  String get settings_updates_never => 'Mai';
+
+  @override
+  String settings_updates_readyToInstall(String version) {
+    return 'Versione $version pronta per l\'installazione';
+  }
+
+  @override
+  String get settings_updates_stableSwitchNotice =>
+      'Rimarrai su questa beta finché la prossima versione stabile non sarà più recente di essa.';
+
+  @override
+  String get settings_updates_upToDate => 'Aggiornato';
+
+  @override
+  String settings_updates_versionAvailable(String version) {
+    return 'Versione $version disponibile';
+  }
+
+  @override
   String get signatures_action_clear => 'Cancella';
 
   @override
@@ -16425,6 +16530,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get importWizard_tagsLabel => 'Tags';
 
   @override
+  String importWizard_review_olderDivesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni precedenti ignorate — già nel tuo libro',
+      one: '1 immersione precedente ignorata — già nel tuo libro',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_hint_addTags => 'Aggiungi tag...';
 
   @override
@@ -16777,6 +16893,50 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_computers_noComputersSaved => 'Nessun computer salvato';
+
+  @override
+  String transfer_computers_diveCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transfer_computers_downloadTooltip => 'Scarica immersioni';
+
+  @override
+  String get transfer_computers_knownComputersHeader => 'Computer conosciuti';
+
+  @override
+  String transfer_computers_lastDownloadDaysAgo(int days) {
+    return '$days giorni fa';
+  }
+
+  @override
+  String transfer_computers_lastDownloadHoursAgo(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours ore fa',
+      one: '1 ora fa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transfer_computers_lastDownloadMinutesAgo(int minutes) {
+    return '$minutes min fa';
+  }
+
+  @override
+  String get transfer_computers_lastDownloadNever => 'Mai';
+
+  @override
+  String get transfer_computers_lastDownloadYesterday => 'Ieri';
 
   @override
   String transfer_computers_savedCount(int count) {
@@ -18105,6 +18265,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_entityAction_linkBadge => 'COLLEGA';
+
+  @override
+  String get universalImport_entityAction_linkExisting =>
+      'Collega all\'esistente';
+
+  @override
+  String get universalImport_entityAction_linkExistingSubtitle =>
+      'Usa il record corrispondente';
+
+  @override
   String get universalImport_pending_chooseAction => 'Scegli un\'azione';
 
   @override
@@ -18587,7 +18758,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_downloadStep_downloadAll =>
+      'Scarica tutte le immersioni';
+
+  @override
   String get diveComputer_downloadStep_downloadFailed => 'Download fallito';
+
+  @override
+  String get diveComputer_downloadStep_downloadNew =>
+      'Scarica le nuove immersioni';
 
   @override
   String get diveComputer_downloadStep_downloadedDives =>
@@ -18605,6 +18784,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveComputer_downloadStep_errorSemanticLabel(Object error) {
     return 'Errore di download: $error';
+  }
+
+  @override
+  String get diveComputer_downloadStep_firstSyncBody =>
+      'Il tuo diario ha già delle immersioni. Puoi saltare il download delle immersioni che hai già.';
+
+  @override
+  String get diveComputer_downloadStep_firstSyncTitle =>
+      'Primo download da questo computer subacqueo';
+
+  @override
+  String diveComputer_downloadStep_onlyAfterDate(String date) {
+    return 'Scarica solo le immersioni dopo il $date';
   }
 
   @override
@@ -19995,30 +20187,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tankPresets_title => 'Preset bombole';
 
   @override
-  String get tools_deco_description =>
-      'Calcola i limiti di non decompressione, le tappe deco richieste e l\'esposizione CNS/OTU per profili multilivello.';
-
-  @override
-  String get tools_deco_subtitle => 'Pianifica immersioni con tappe deco';
-
-  @override
-  String get tools_deco_title => 'Calcolatore deco';
-
-  @override
-  String get tools_disclaimer =>
-      'Questi calcolatori sono solo a scopo di pianificazione. Verifica sempre i calcoli e segui la tua formazione subacquea.';
-
-  @override
-  String get tools_gas_description =>
-      'Quattro calcolatori gas specializzati:\n• MOD - Profondità massima operativa per una miscela\n• Best Mix - O₂% ideale per una profondità target\n• Consumo - Stima del consumo di gas\n• Rock Bottom - Calcolo della riserva di emergenza';
-
-  @override
-  String get tools_gas_subtitle => 'MOD, Best Mix, Consumo, Rock Bottom';
-
-  @override
-  String get tools_gas_title => 'Calcolatori gas';
-
-  @override
   String get tools_gpsLogger_description =>
       'Registra la tua posizione durante una giornata di immersioni e abbina automaticamente le immersioni importate alle posizioni GPS.';
 
@@ -20027,9 +20195,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tools_gpsLogger_title => 'Registratore GPS';
-
-  @override
-  String get tools_title => 'Strumenti';
 
   @override
   String get tools_weight_aluminumImperial =>
@@ -20046,10 +20211,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tools_weight_carbonFiberMetric => 'Molto galleggiante (+3 kg)';
-
-  @override
-  String get tools_weight_description =>
-      'Stima la zavorra necessaria in base a muta, materiale della bombola, tipo di acqua e peso corporeo.';
 
   @override
   String get tools_weight_disclaimer =>
@@ -20087,10 +20248,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tools_weight_steelMetric => 'Galleggiabilità negativa (-2 kg)';
-
-  @override
-  String get tools_weight_subtitle =>
-      'Zavorra consigliata per la tua configurazione';
 
   @override
   String get tools_weight_tankMaterial => 'Materiale bombola';
@@ -20440,6 +20597,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_sections => 'Sezioni';
+
+  @override
+  String get settings_appearance_colorAccents => 'Accenti di colore';
+
+  @override
+  String get settings_appearance_accentNavIcons =>
+      'Icone di navigazione colorate';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'Colora le icone del menu principale con il colore di ogni sezione';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'Intestazioni di sezione colorate';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Mostra un\'icona di sezione colorata accanto ai titoli delle pagine';
+
+  @override
+  String get settings_appearance_accentListIcons =>
+      'Icone degli elenchi colorate';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Colora le icone negli elenchi e nelle pagine delle impostazioni';
 
   @override
   String get settings_appearance_showDetailsPane => 'Mostra pannello dettagli';
@@ -22507,4 +22691,126 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_noTranscoderHint =>
       'Questo dispositivo non può comprimere i video. Da esso vengono caricati gli originali.';
+
+  @override
+  String get reef_section_title => 'Barriera';
+
+  @override
+  String get reef_section_sourcesTooltip => 'Fonti dei dati';
+
+  @override
+  String get reef_section_loadError =>
+      'Impossibile caricare i dati della barriera in questo momento';
+
+  @override
+  String get reef_habitat_title => 'Habitat della barriera';
+
+  @override
+  String get reef_habitat_onReef => 'Su una barriera corallina';
+
+  @override
+  String reef_habitat_onReefWithThreat(String threat) {
+    return 'Su una barriera corallina, livello di minaccia $threat';
+  }
+
+  @override
+  String get reef_habitat_noReef =>
+      'Nessuna barriera corallina mappata in questa posizione';
+
+  @override
+  String get reef_habitat_unavailable =>
+      'Impossibile verificare l\'habitat della barriera in questo momento';
+
+  @override
+  String get reef_health_title => 'Salute della barriera';
+
+  @override
+  String get reef_health_unavailable =>
+      'Impossibile verificare la salute della barriera in questo momento';
+
+  @override
+  String get reef_health_noData =>
+      'Nessun dato sulla salute della barriera per questa posizione';
+
+  @override
+  String reef_health_degreeHeatingWeeks(String value) {
+    return 'Settimane di riscaldamento $value C-settimane';
+  }
+
+  @override
+  String reef_health_seaSurface(String value) {
+    return 'Superficie del mare $value';
+  }
+
+  @override
+  String reef_health_asOf(String date) {
+    return 'Al $date';
+  }
+
+  @override
+  String get reef_health_levelNoStress => 'Nessuno stress termico';
+
+  @override
+  String get reef_health_levelWatch => 'Sorveglianza sbiancamento';
+
+  @override
+  String get reef_health_levelWarning => 'Avviso di sbiancamento';
+
+  @override
+  String get reef_health_levelAlert1 => 'Allerta sbiancamento livello 1';
+
+  @override
+  String get reef_health_levelAlert2 => 'Allerta sbiancamento livello 2';
+
+  @override
+  String get reef_health_levelAlert3 => 'Allerta sbiancamento livello 3';
+
+  @override
+  String get reef_health_levelAlert4 => 'Allerta sbiancamento livello 4';
+
+  @override
+  String get reef_health_levelAlert5 => 'Allerta sbiancamento livello 5';
+
+  @override
+  String get reef_protection_title => 'Area protetta';
+
+  @override
+  String get reef_protection_none => 'Non in un\'area marina protetta';
+
+  @override
+  String get reef_protection_unavailable =>
+      'Impossibile verificare lo stato di protezione in questo momento';
+
+  @override
+  String get reef_protection_viewRegulations => 'Vedi normativa';
+
+  @override
+  String reef_protection_iucn(String category) {
+    return 'IUCN $category';
+  }
+
+  @override
+  String get reef_species_recordedNearby => 'Registrato nelle vicinanze';
+
+  @override
+  String get reef_species_addToExpected => 'Aggiungi alle specie attese';
+
+  @override
+  String get reef_attribution_title => 'Fonti dei dati sulla barriera';
+
+  @override
+  String get reef_attribution_wri =>
+      'Presenza della barriera e livello di minaccia. CC BY 3.0.';
+
+  @override
+  String get reef_attribution_noaa =>
+      'Temperatura superficiale del mare e stress termico. Dominio pubblico.';
+
+  @override
+  String get reef_attribution_gbif =>
+      'Dati di presenza delle specie, filtrati a CC0 e CC BY 4.0.';
+
+  @override
+  String get reef_attribution_protectedSeas =>
+      'Confini delle aree marine protette. CC BY 4.0.';
 }

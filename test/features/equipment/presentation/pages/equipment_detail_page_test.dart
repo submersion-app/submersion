@@ -227,6 +227,79 @@ void main() {
       expect(find.text('patched left knee'), findsOneWidget);
     });
   });
+
+  group('ServiceRecordDialog date pickers (#765)', () {
+    Future<void> pumpDialog(WidgetTester tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1600);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            serviceKindsProvider.overrideWith((ref) async => const []),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ServiceRecordDialog(
+                equipmentId: 'equip-3',
+                onSave: (_) async {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the service-date field opens the date picker', (tester) async {
+      await pumpDialog(tester);
+
+      await tester.tap(find.byIcon(Icons.calendar_today));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+
+      // The service dialog has its own Cancel action, so scope to the picker.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+    });
+
+    testWidgets('the next-service-due field opens the date picker', (
+      tester,
+    ) async {
+      await pumpDialog(tester);
+
+      await tester.tap(find.byIcon(Icons.event));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+
+      // The service dialog has its own Cancel action, so scope to the picker.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+    });
+  });
 }
 
 class _MockServiceRecordNotifier

@@ -50,11 +50,16 @@ class DiveModeSelector extends StatelessWidget {
     final selector = SegmentedButton<DiveMode>(
       style: const ButtonStyle(visualDensity: VisualDensity.compact),
       segments: DiveMode.values.map((mode) {
+        // Text-only: an icon plus a label (up to "GAUGE") does not fit four
+        // segments on a phone and wraps the label mid-word. The caption below
+        // and the tooltip already convey what each mode is.
         return ButtonSegment<DiveMode>(
           value: mode,
-          label: Text(mode.name.toUpperCase()),
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(mode.name.toUpperCase(), maxLines: 1),
+          ),
           tooltip: mode.displayName,
-          icon: Icon(_getIconForMode(mode), size: 18),
         );
       }).toList(),
       selected: {selectedMode},
@@ -90,18 +95,5 @@ class DiveModeSelector extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  IconData _getIconForMode(DiveMode mode) {
-    switch (mode) {
-      case DiveMode.oc:
-        return Icons.air; // Open circuit - breathing from tanks
-      case DiveMode.ccr:
-        return Icons.loop; // Closed circuit - loop symbol
-      case DiveMode.scr:
-        return Icons.sync_alt; // Semi-closed - partial loop
-      case DiveMode.gauge:
-        return Icons.timer_outlined; // Gauge / bottom timer - depth & time only
-    }
   }
 }

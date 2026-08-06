@@ -370,10 +370,41 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       );
     }
 
+    // The first-sync cutoff prompt only ever applies when this computer has
+    // no stored fingerprint yet and the caller isn't forcing a full
+    // re-download -- in every other case the default's value is irrelevant.
+    // Only wait on the provider when it could matter: firstSyncCutoffDefault
+    // is a FutureProvider backed by a real Drift query, so the very first
+    // watch always yields AsyncLoading (valueOrNull == null) synchronously.
+    // If DownloadStepWidget were constructed immediately with that
+    // transient null, its initState would read "no cutoff" and
+    // unconditionally auto-start the download before the query resolves;
+    // the later rebuild with the real value could arrive after the
+    // download already started (or, worse, after this widget's state
+    // already decided not to show the prompt), silently skipping it.
+    // Gating here -- the same pattern already used above for
+    // _computerResolved and deviceDescriptorsProvider -- ensures
+    // DownloadStepWidget only ever sees the final, settled value.
+    final promptCouldApply =
+        computer?.lastDiveFingerprint == null &&
+        !widget.adapter.forceFullDownload;
+    DateTime? cutoffDefault;
+    if (promptCouldApply) {
+      final cutoffAsync = ref.watch(firstSyncCutoffDefaultProvider);
+      if (cutoffAsync.isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      // A diver with an empty log (or no active diver) resolves to null
+      // here and falls through to the normal auto-start path below --
+      // this branch never hangs once the future settles, error or not.
+      cutoffDefault = cutoffAsync.valueOrNull;
+    }
+
     return DownloadStepWidget(
       device: device,
       computer: computer,
       forceFullDownload: widget.adapter.forceFullDownload,
+      firstSyncCutoffDefault: cutoffDefault,
       onComplete: () {
         // Handled by the state watcher above.
       },
@@ -397,6 +428,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   void _captureAndAdvance(DownloadState state) {
     if (_captured) return;
     _captured = true;
+    widget.adapter.setSinceCutoff(state.sinceCutoff);
     widget.adapter.setDownloadedDives(state.downloadedDives);
 
     // No dives — show an informational message instead of advancing to an

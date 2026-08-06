@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Planning hub page: the planner (new plan + recent saved plans) front and
 /// center, calculators as a tools list below.
@@ -20,7 +21,12 @@ class PlanningPage extends ConsumerWidget {
     final tools = _planningToolsOf(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.planning_appBar_title)),
+      appBar: AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'planning',
+          title: context.l10n.planning_appBar_title,
+        ),
+      ),
       body: ListView(
         children: [
           const SizedBox(height: 8),

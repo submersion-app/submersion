@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -181,7 +182,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.diveCenters_title),
+        title: FeatureAppBarTitle(
+          featureId: 'dive-centers',
+          title: context.l10n.diveCenters_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
@@ -327,8 +331,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveCenters_title,
+          FeatureAppBarTitle(
+            featureId: 'dive-centers',
+            title: context.l10n.diveCenters_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -718,17 +723,31 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
           itemBuilder: (context, index) {
             final center = centers[index];
             return ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.store,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              leading: Builder(
+                builder: (context) {
+                  final accent = resolveFeatureAccent(
+                    context,
+                    ref,
+                    surface: AccentSurface.list,
+                    featureId: 'dive-centers',
+                  );
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color:
+                          accent?.withValues(alpha: 0.15) ??
+                          Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.store,
+                      color:
+                          accent ??
+                          Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                },
               ),
               title: Text(center.name),
               subtitle: center.fullLocationString != null

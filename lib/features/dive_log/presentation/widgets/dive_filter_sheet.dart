@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Filter sheet for dive list
 class DiveFilterSheet extends ConsumerStatefulWidget {
@@ -762,7 +763,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     final firstDate = DateTime(1950);
     final lastDate = DateTime.now().add(const Duration(days: 365));
 
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: initialDate ?? DateTime.now(),
       firstDate: firstDate,

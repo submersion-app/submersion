@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -237,7 +238,7 @@ class DeviceDetailPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     Icons.download,
-                    computer.lastDownloadFormatted,
+                    formatLastDownload(context, computer.lastDownload),
                     context.l10n.diveComputer_detail_lastDownload,
                     colorScheme,
                   ),

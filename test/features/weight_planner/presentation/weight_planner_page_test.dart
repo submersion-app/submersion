@@ -78,6 +78,10 @@ void main() {
           allEquipmentProvider.overrideWith(
             (ref) async => const [suitItem, bcdItem],
           ),
+
+          activeEquipmentProvider.overrideWith(
+            (ref) async => const [suitItem, bcdItem],
+          ),
           latestDiverWeightProvider.overrideWith(
             (ref) async => latestWeight ?? entry,
           ),

@@ -633,6 +633,28 @@ class MultiTrendLineChart extends StatelessWidget {
               LineChartData(
                 minY: minY - padding,
                 maxY: maxY + padding,
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final point = dataSeries[spot.barIndex][spot.spotIndex];
+                        final formattedValue =
+                            valueFormatter?.call(point.value) ??
+                            point.value.toStringAsFixed(1);
+                        final isFirst = identical(spot, touchedSpots.first);
+                        return LineTooltipItem(
+                          isFirst
+                              ? '${point.label}\n$formattedValue'
+                              : formattedValue,
+                          TextStyle(
+                            color: colors[spot.barIndex % colors.length],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   show: true,
                   bottomTitles: AxisTitles(

@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Edits a diver's pre-app diving experience (prior dive count, prior bottom
 /// time, and the year they started diving). These totals fold into the
@@ -106,7 +108,7 @@ class _PriorExperienceEditPageState
 
   Future<void> _pickDivingSince() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _divingSince ?? DateTime(now.year - 10),
       firstDate: DateTime(1900),
@@ -196,9 +198,9 @@ class _PriorExperienceEditPageState
                 ),
               )
             else
-              TextButton(
+              AppBarTextAction(
+                label: context.l10n.divers_edit_saveButton,
                 onPressed: () => _save(diver),
-                child: Text(context.l10n.divers_edit_saveButton),
               ),
           ],
         ),

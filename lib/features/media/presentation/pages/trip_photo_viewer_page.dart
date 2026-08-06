@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
@@ -11,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -220,20 +218,14 @@ class _TripPhotoViewerPageState extends ConsumerState<TripPhotoViewerPage> {
         return;
       }
 
-      final bytes = resolvedResult.bytes!;
-
-      // Save to temp file
-      final tempDir = await getTemporaryDirectory();
-      final filename = item.originalFilename ?? 'dive_photo.jpg';
-      final file = File('${tempDir.path}/$filename');
-      await file.writeAsBytes(bytes);
+      final file = await writeShareTempFile(item, resolvedResult.bytes!);
 
       // Dismiss loading - use rootNavigator to match where showDialog placed it
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       // Share
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: 'image/jpeg')]),
+        ShareParams(files: [XFile(file.path, mimeType: item.shareMimeType)]),
       );
     } catch (e) {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();

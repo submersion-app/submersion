@@ -256,8 +256,12 @@ class DiveFilterState {
         }
       }
       if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
-        final buddyLower = dive.buddy?.toLowerCase() ?? '';
-        if (!buddyLower.contains(buddyNameFilter!.toLowerCase())) {
+        final query = buddyNameFilter!.toLowerCase();
+        final matchesLegacy = (dive.buddy?.toLowerCase() ?? '').contains(query);
+        final matchesJunction = dive.buddies.any(
+          (b) => b.buddy.name.toLowerCase().contains(query),
+        );
+        if (!matchesLegacy && !matchesJunction) {
           return false;
         }
       }

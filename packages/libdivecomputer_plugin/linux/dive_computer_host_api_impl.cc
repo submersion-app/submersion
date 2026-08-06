@@ -67,7 +67,12 @@ static FlValue* transports_to_fl_value(unsigned int transports) {
             129, fl_value_new_int(LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE),
             (GDestroyNotify)fl_value_unref));
   }
-  if (transports & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) {
+  // USBHID is deliberately NOT surfaced as USB: no platform build
+  // implements a USB HID transport (HAVE_HIDAPI is off), so
+  // advertising it sent HID-only devices (Suunto EON Steel family)
+  // into the serial path's "No USB serial ports found" dead end
+  // (#143). BLE is the working path for those devices.
+  if (transports & LIBDC_TRANSPORT_USB) {
     fl_value_append_take(
         list,
         fl_value_new_custom(

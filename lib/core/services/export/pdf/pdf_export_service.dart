@@ -116,8 +116,10 @@ class PdfExportService {
                     pw.Text(
                       'Max Depth: ${dive.maxDepth!.toStringAsFixed(1)} m',
                     ),
-                  if (dive.bottomTime != null)
-                    pw.Text('Duration: ${dive.bottomTime!.inMinutes} min'),
+                  if (dive.effectiveRuntime != null)
+                    pw.Text(
+                      'Duration: ${dive.effectiveRuntime!.inMinutes} min',
+                    ),
                 ],
               ),
               if (dive.waterTemp != null)
@@ -197,20 +199,28 @@ class PdfExportService {
       title: title,
       allSightings: allSightings,
     );
+    return savePdfBytesToFile(result.bytes, result.fileName);
+  }
 
+  /// Save already-built PDF bytes to a user-selected location.
+  ///
+  /// Used by the template-aware export path so the save-to-file flow honors
+  /// the selected detail level instead of falling back to the legacy
+  /// single-layout builder (#644).
+  Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) async {
     final saveResult = await FilePicker.saveFile(
       dialogTitle: 'Save PDF File',
-      fileName: result.fileName,
+      fileName: fileName,
       type: FileType.custom,
       allowedExtensions: ['pdf'],
-      bytes: Uint8List.fromList(result.bytes),
+      bytes: Uint8List.fromList(bytes),
     );
 
     if (saveResult == null) return null;
 
     if (!Platform.isAndroid) {
       final file = File(saveResult);
-      await file.writeAsBytes(result.bytes);
+      await file.writeAsBytes(bytes);
     }
 
     return saveResult;
@@ -270,8 +280,8 @@ class PdfExportService {
     // Summary page
     if (dives.isNotEmpty) {
       final totalDiveTime = dives
-          .where((d) => d.bottomTime != null)
-          .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
+          .where((d) => d.effectiveRuntime != null)
+          .fold<Duration>(Duration.zero, (sum, d) => sum + d.effectiveRuntime!);
       final maxDepth = dives
           .where((d) => d.maxDepth != null)
           .map((d) => d.maxDepth!)
@@ -414,7 +424,7 @@ class PdfExportService {
               pw.SizedBox(width: 16),
               _buildPdfInfoChip(
                 'Duration',
-                '${dive.bottomTime?.inMinutes ?? '-'} min',
+                '${dive.effectiveRuntime?.inMinutes ?? '-'} min',
               ),
               pw.SizedBox(width: 16),
               _buildPdfInfoChip(

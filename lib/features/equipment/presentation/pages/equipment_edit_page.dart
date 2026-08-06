@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -108,7 +109,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _purchaseCurrencyController.text = equipment.purchaseCurrency;
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
-    _selectedStatus = equipment.status;
+    // A legacy row can carry isActive=false with a non-retired status.
+    // Show it as Retired so the form states the item's real condition --
+    // otherwise saving would silently reactivate it (#636).
+    _selectedStatus = !equipment.isActive
+        ? EquipmentStatus.retired
+        : equipment.status;
     _purchaseDate = equipment.purchaseDate;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
@@ -714,7 +720,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   }
 
   Future<void> _selectPurchaseDate() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: _purchaseDate ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -781,7 +787,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         lastServiceDate: existingEquipment?.lastServiceDate,
         serviceIntervalDays: existingEquipment?.serviceIntervalDays,
         notes: _notesController.text.trim(),
-        isActive: existingEquipment?.isActive ?? true,
+        // Retiring via the status dropdown must deactivate the item, or it
+        // keeps appearing in active-gear pickers (#636).
+        isActive: _selectedStatus != EquipmentStatus.retired,
         // Only attributes in the SELECTED type's catalog are kept: switching
         // type drops out-of-catalog values at save time (form = source of
         // truth), plus non-empty custom fields with re-packed sort order.

@@ -106,6 +106,21 @@ Most dive logging software falls into two categories: desktop applications stuck
 - **macOS / Windows / Linux / Android** — [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 - **iOS** — [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
 
+### Beta channel
+
+Want fixes and features weeks early? Every change merged into Submersion is
+published as a beta build. Betas may upgrade your dive log's database ahead
+of the stable release; downgrading is not supported, and devices that sync
+together should all use the same channel. A backup is taken automatically
+before any database upgrade.
+
+- **Desktop** — Settings > About > Update channel > Beta (updates then arrive
+  through the normal auto-updater), or download directly from
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
+- **Android** — [join the open test](https://play.google.com/apps/testing/app.submersion),
+  then Play delivers beta updates automatically
+- **iOS / Mac App Store** — [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
+
 ## Data Philosophy
 
 Submersion is built on these principles:

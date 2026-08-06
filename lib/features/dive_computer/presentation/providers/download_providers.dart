@@ -13,7 +13,9 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_computer/domain/services/first_sync_cutoff.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 
 /// Provider for the dive computer repository.
@@ -52,6 +54,7 @@ class DownloadState {
   final bool newDivesOnly;
   final String? serialNumber;
   final String? firmwareVersion;
+  final DateTime? sinceCutoff;
 
   const DownloadState({
     this.phase = DownloadPhase.initializing,
@@ -62,6 +65,7 @@ class DownloadState {
     this.newDivesOnly = true,
     this.serialNumber,
     this.firmwareVersion,
+    this.sinceCutoff,
   });
 
   DownloadState copyWith({
@@ -73,6 +77,7 @@ class DownloadState {
     bool? newDivesOnly,
     String? serialNumber,
     String? firmwareVersion,
+    DateTime? sinceCutoff,
     bool clearError = false,
   }) {
     return DownloadState(
@@ -84,6 +89,7 @@ class DownloadState {
       newDivesOnly: newDivesOnly ?? this.newDivesOnly,
       serialNumber: serialNumber ?? this.serialNumber,
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
+      sinceCutoff: sinceCutoff ?? this.sinceCutoff,
     );
   }
 
@@ -136,6 +142,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     state = state.copyWith(newDivesOnly: value);
   }
 
+  /// Set the first-sync cutoff. Dives at or before this time are excluded
+  /// from the download for backends that support the timestamp floor.
+  /// Cleared by [reset]; must be set after reset and before [startDownload],
+  /// like the forceFullDownload flag.
+  void setSinceCutoff(DateTime? value) {
+    state = state.copyWith(sinceCutoff: value);
+  }
+
   /// Start downloading dives from the selected device.
   ///
   /// When [computer] is provided, the notifier persists device info
@@ -158,10 +172,25 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       _downloadSubscription?.cancel();
       _downloadSubscription = _service.downloadEvents.listen(_onDownloadEvent);
 
-      // Determine fingerprint for incremental download.
+      // Determine fingerprint for incremental download. A stored fingerprint
+      // (from a completed prior download) always wins. With none stored, a
+      // first-sync cutoff is synthesized into a timestamp-floor fingerprint
+      // for Shearwater petrel-family devices (the fork treats an unmatched
+      // fingerprint as a timestamp floor; other backends never receive a
+      // synthesized value).
       String? fingerprint;
-      if (state.newDivesOnly && _computer?.lastDiveFingerprint != null) {
-        fingerprint = _computer!.lastDiveFingerprint;
+      if (state.newDivesOnly) {
+        fingerprint = _computer?.lastDiveFingerprint;
+        final cutoff = state.sinceCutoff;
+        final model = device.recognizedModel;
+        if (fingerprint == null &&
+            cutoff != null &&
+            supportsTimestampFingerprintFloor(
+              vendor: model?.manufacturer,
+              product: model?.model,
+            )) {
+          fingerprint = synthesizeShearwaterFingerprint(cutoff);
+        }
       }
 
       await _service.startDownload(device.toPigeon(), fingerprint: fingerprint);
@@ -311,4 +340,29 @@ final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
 ) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
   return repository.getDiveIdsForComputer(computerId);
+});
+
+/// Default first-sync cutoff: the newest dive in the active diver's log.
+///
+/// Null when there is no active diver or the log is empty (no cutoff
+/// prompt is shown then).
+///
+/// `autoDispose`: this is only ever watched by `DcAdapterDownloadStep` while
+/// the cutoff prompt could apply, and only for as long as that step widget
+/// stays mounted. Without `autoDispose` a plain `FutureProvider` caches its
+/// first resolved value (e.g. `null` from an empty log) for the app's
+/// lifetime, so a later cutoff-eligible reconnect (after an intervening file
+/// import populates the log) would never re-fetch and the prompt would stay
+/// stuck showing stale data until app restart. `autoDispose` tears the
+/// provider down once its last listener unmounts, so the next watch always
+/// re-fetches. The download step watches it continuously while it's on
+/// screen, so there's no risk of a mid-session refetch under an active
+/// listener.
+final firstSyncCutoffDefaultProvider = FutureProvider.autoDispose<DateTime?>((
+  ref,
+) async {
+  final diverId = ref.watch(currentDiverIdProvider);
+  if (diverId == null || diverId.isEmpty) return null;
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getNewestDiveDateTime(diverId: diverId);
 });

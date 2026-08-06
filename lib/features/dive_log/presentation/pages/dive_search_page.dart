@@ -13,6 +13,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
 ///
@@ -723,7 +724,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     final firstDate = DateTime(1950);
     final lastDate = DateTime.now().add(const Duration(days: 365));
 
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: initialDate ?? DateTime.now(),
       firstDate: firstDate,

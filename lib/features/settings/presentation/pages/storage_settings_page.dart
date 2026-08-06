@@ -521,9 +521,23 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   Future<void> _selectAndMigrateToCustomFolder() async {
     // Pick a folder
     final notifier = ref.read(storageConfigNotifierProvider.notifier);
-    final pickResult = await notifier.pickCustomFolder(
-      chooser: _chooseStorageVolume,
-    );
+    final FolderPickResultWithBookmark? pickResult;
+    try {
+      pickResult = await notifier.pickCustomFolder(
+        chooser: _chooseStorageVolume,
+      );
+    } on FolderPickException catch (e) {
+      // The picker itself failed (e.g. no XDG desktop portal on Linux):
+      // silently doing nothing made the setting look broken (#218).
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${context.l10n.common_label_error}: ${e.message}'),
+          ),
+        );
+      }
+      return;
+    }
 
     if (pickResult == null || !mounted) return;
 

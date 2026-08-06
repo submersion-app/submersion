@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Special filter value for computed "service due" items
 const String _serviceDueFilter = '_service_due_';
@@ -104,12 +105,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     }
   }
 
+  /// Invalidate whatever provider the visible list is actually reading.
+  /// Must mirror the selection in [build]: the default (no filter) view
+  /// reads activeEquipmentProvider, so invalidating only the status family
+  /// would leave pull-to-refresh and error-retry showing stale rows.
   void _invalidateCurrentProvider(WidgetRef ref) {
     if (_selectedFilter == _serviceDueFilter) {
       ref.invalidate(serviceDueEquipmentProvider);
+    } else if (_selectedFilter == null) {
+      ref.invalidate(activeEquipmentProvider);
     } else {
-      final status = _selectedFilter as EquipmentStatus?;
-      ref.invalidate(equipmentByStatusProvider(status));
+      ref.invalidate(
+        equipmentByStatusProvider(_selectedFilter as EquipmentStatus),
+      );
     }
   }
 
@@ -131,8 +139,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
     if (_selectedFilter == _serviceDueFilter) {
       equipmentAsync = ref.watch(serviceDueEquipmentProvider);
+    } else if (_selectedFilter == null) {
+      // The default view hides retired gear; the Retired status filter is
+      // the way to see it (#636).
+      equipmentAsync = ref.watch(activeEquipmentProvider);
     } else {
-      final status = _selectedFilter as EquipmentStatus?;
+      final status = _selectedFilter as EquipmentStatus;
       equipmentAsync = ref.watch(equipmentByStatusProvider(status));
     }
 
@@ -176,7 +188,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.equipment_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'equipment',
+          title: context.l10n.equipment_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),
@@ -302,8 +317,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.equipment_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'equipment',
+            title: context.l10n.equipment_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -581,6 +597,12 @@ class EquipmentListTile extends ConsumerWidget {
     final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
     final isOverdue =
         worstClock?.status.severity == ServiceClockSeverity.overdue;
+    final accent = resolveFeatureAccent(
+      context,
+      ref,
+      surface: AccentSurface.list,
+      featureId: 'equipment',
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -590,14 +612,18 @@ class EquipmentListTile extends ConsumerWidget {
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
+          // An overdue service is a status signal, so it keeps the error
+          // colors even with accents on -- a cosmetic preference must not
+          // hide a service warning.
           backgroundColor: isOverdue
               ? theme.colorScheme.errorContainer
-              : theme.colorScheme.tertiaryContainer,
+              : accent?.withValues(alpha: 0.15) ??
+                    theme.colorScheme.tertiaryContainer,
           child: Icon(
             _getIconForType(item.type),
             color: isOverdue
                 ? theme.colorScheme.onErrorContainer
-                : theme.colorScheme.onTertiaryContainer,
+                : accent ?? theme.colorScheme.onTertiaryContainer,
           ),
         ),
         title: Text(item.name),

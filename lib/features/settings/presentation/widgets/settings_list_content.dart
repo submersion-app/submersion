@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
@@ -8,20 +9,30 @@ import 'package:submersion/features/settings/presentation/providers/debug_mode_p
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings section data model.
+///
+/// Row colors are not stored here: they resolve at build time from the
+/// [FeatureAccentColors] palette under the `settings-<id>` key, so the
+/// settings root and the rest of the app share one source of truth.
 class SettingsSection {
   final String id;
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color? color;
 
   const SettingsSection({
     required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.color,
   });
+}
+
+/// Resolves a settings row's accent, falling back to the theme's primary
+/// color when the palette has no entry for the section.
+Color settingsSectionColor(BuildContext context, String sectionId) {
+  final accents = Theme.of(context).extension<FeatureAccentColors>();
+  return accents?.of('settings-$sectionId') ??
+      Theme.of(context).colorScheme.primary;
 }
 
 /// List of all settings sections.
@@ -31,77 +42,66 @@ const settingsSections = [
     icon: Icons.info_outline,
     title: 'About',
     subtitle: 'App info & licenses',
-    color: Colors.blueGrey,
   ),
   SettingsSection(
     id: 'appearance',
     icon: Icons.palette,
     title: 'Appearance',
     subtitle: 'Theme & display',
-    color: Colors.pink,
   ),
   SettingsSection(
     id: 'data',
     icon: Icons.storage,
     title: 'Data',
     subtitle: 'Backup, restore & storage',
-    color: Colors.green,
   ),
   SettingsSection(
     id: 'dataSources',
     icon: Icons.favorite,
     title: 'Apple HealthKit',
     subtitle: 'Health data integration',
-    color: Colors.red,
   ),
   SettingsSection(
     id: 'decompression',
     icon: Icons.timeline,
     title: 'Decompression',
     subtitle: 'GF, data sources & narcosis',
-    color: Colors.deepPurple,
   ),
   SettingsSection(
     id: 'profile',
     icon: Icons.person,
     title: 'Diver Profile',
     subtitle: 'Active diver & profiles',
-    color: Colors.blue,
   ),
   SettingsSection(
     id: 'safety',
     icon: Icons.health_and_safety_outlined,
     title: 'Safety',
     subtitle: 'Review rules & flying after diving',
-    color: Colors.redAccent,
   ),
   SettingsSection(
     id: 'manage',
     icon: Icons.folder_shared,
     title: 'Manage',
     subtitle: 'Dive types & tank presets',
-    color: Colors.indigo,
   ),
   SettingsSection(
     id: 'notifications',
     icon: Icons.notifications_outlined,
     title: 'Notifications',
     subtitle: 'Service reminders',
-    color: Colors.orange,
   ),
   SettingsSection(
     id: 'sharedData',
     icon: Icons.share,
     title: 'Shared data',
     subtitle: 'Share sites and trips across profiles',
-    color: Colors.cyan,
   ),
   SettingsSection(
     id: 'units',
     icon: Icons.straighten,
     title: 'Units',
     subtitle: 'Measurement preferences',
-    color: Colors.teal,
   ),
 ];
 
@@ -140,7 +140,6 @@ class SettingsListContent extends ConsumerWidget {
           icon: Icons.bug_report_outlined,
           title: 'Debug',
           subtitle: 'Logs & diagnostics',
-          color: Colors.grey,
         ),
       );
     }
@@ -226,7 +225,7 @@ class _SettingsSectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = section.color ?? colorScheme.primary;
+    final color = settingsSectionColor(context, section.id);
     final localizedTitle = _getLocalizedTitle(context, section.id);
     final localizedSubtitle = _getLocalizedSubtitle(context, section.id);
 
