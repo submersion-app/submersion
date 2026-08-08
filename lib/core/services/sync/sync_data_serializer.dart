@@ -227,6 +227,7 @@ class SyncData {
   final List<Map<String, dynamic>> cylinderConfigItems;
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
+  final List<Map<String, dynamic>> mediaSmartAlbums;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> mediaEnrichment;
   final List<Map<String, dynamic>> buddies;
@@ -301,6 +302,7 @@ class SyncData {
     this.cylinderConfigItems = const [],
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
+    this.mediaSmartAlbums = const [],
     this.media = const [],
     this.mediaEnrichment = const [],
     this.buddies = const [],
@@ -376,6 +378,7 @@ class SyncData {
     'cylinderConfigItems': cylinderConfigItems,
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
+    'mediaSmartAlbums': mediaSmartAlbums,
     'media': media,
     'mediaEnrichment': mediaEnrichment,
     'buddies': buddies,
@@ -452,6 +455,7 @@ class SyncData {
       cylinderConfigItems: _parseList(json['cylinderConfigItems']),
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
+      mediaSmartAlbums: _parseList(json['mediaSmartAlbums']),
       media: _parseList(json['media']),
       mediaEnrichment: _parseList(json['mediaEnrichment']),
       buddies: _parseList(json['buddies']),
@@ -684,6 +688,12 @@ class SyncDataSerializer {
     (
       key: 'equipmentAttributes',
       table: _db.equipmentAttributes,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'mediaSmartAlbums',
+      table: _db.mediaSmartAlbums,
       blob: false,
       full: null,
     ),
@@ -1192,6 +1202,10 @@ class SyncDataSerializer {
       equipmentAttributes: await _safeExport(
         'equipmentAttributes',
         () => _exportEquipmentAttributes(hlcSince),
+      ),
+      mediaSmartAlbums: await _safeExport(
+        'mediaSmartAlbums',
+        () => _exportMediaSmartAlbums(hlcSince),
       ),
       media: await _safeExport('media', () => _exportMedia(hlcSince)),
       mediaEnrichment: await _safeExport(
@@ -3616,6 +3630,8 @@ class SyncDataSerializer {
         return plain(_db.serviceSchedules, _db.serviceSchedules.id);
       case 'media':
         return plain(_db.media, _db.media.id);
+      case 'mediaSmartAlbums':
+        return plain(_db.mediaSmartAlbums, _db.mediaSmartAlbums.id);
       default:
         // Fail loud: a synced entity without a case here would silently
         // enumerate zero local ids, so streaming adopt would never delete its
@@ -3841,6 +3857,8 @@ class SyncDataSerializer {
         return _db.serviceSchedules;
       case 'media':
         return _db.media;
+      case 'mediaSmartAlbums':
+        return _db.mediaSmartAlbums;
       default:
         throw ArgumentError.value(
           entityType,
@@ -4433,6 +4451,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.qualityFindings);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportMediaSmartAlbums(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaSmartAlbums);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

@@ -11835,6 +11835,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_diveMediaSection_title => 'Photos et video';
 
   @override
+  String get media_diveMediaSection_deleteButton => 'Supprimer';
+
+  @override
+  String media_diveMediaSection_deleteError(Object error) {
+    return 'Echec de la suppression : $error';
+  }
+
+  @override
+  String get media_diveMediaSection_deleteSelectedContent =>
+      'Cela les supprime de l\'application et de tout stockage multimédia. Cette action est irréversible.';
+
+  @override
+  String media_diveMediaSection_deleteSelectedSuccess(int count) {
+    return '$count éléments supprimés';
+  }
+
+  @override
+  String media_diveMediaSection_deleteSelectedTitle(int count) {
+    return 'Supprimer $count éléments ?';
+  }
+
+  @override
+  String get media_diveMediaSection_replaceButton => 'Relier';
+
+  @override
+  String get media_diveMediaSection_replaceEditedContent =>
+      'Le contenu de ce fichier diffère de l\'original. Le relier entraînera son renvoi vers votre stockage multimédia.';
+
+  @override
+  String get media_diveMediaSection_replaceEditedTitle =>
+      'Le contenu du fichier diffère';
+
+  @override
   String get media_diveMediaSection_unlinkButton => 'Dissocier';
 
   @override
@@ -12388,7 +12421,314 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_gpsLog => 'Journal GPS';
 
   @override
+  String get media_console_library => 'Bibliothèque';
+
+  @override
+  String get media_console_transfers => 'Transferts';
+
+  @override
+  String get media_console_import => 'Importer';
+
+  @override
+  String get media_import_launch => 'Importer des médias...';
+
+  @override
+  String get media_import_intro =>
+      'Les médias importés sont conservés dans votre bibliothèque et peuvent être liés automatiquement aux plongées.';
+
+  @override
+  String get media_console_sources => 'Sources';
+
+  @override
+  String get media_sources_browseHeader => 'Parcourir par source';
+
+  @override
+  String get media_sources_watchedHeader => 'Dossiers surveillés';
+
+  @override
+  String get media_sources_addWatched => 'Ajouter un dossier...';
+
+  @override
+  String get media_sources_scanFailed => 'Échec de l\'analyse';
+
+  @override
+  String get media_sources_scanNow => 'Analyser maintenant';
+
+  @override
+  String get media_sources_autoApply =>
+      'Relier automatiquement les correspondances exactes';
+
+  @override
+  String get media_sources_neverScanned => 'Jamais analysé';
+
+  @override
+  String get media_source_gallery => 'Photothèque';
+
+  @override
+  String get media_source_localFile => 'Fichiers locaux';
+
+  @override
+  String get media_source_networkUrl => 'Liens web';
+
+  @override
+  String get media_source_manifest => 'Abonnements';
+
+  @override
+  String get media_source_connector => 'Services connectés';
+
+  @override
+  String get media_source_mediaStore => 'Stockage multimédia cloud';
+
+  @override
+  String get media_source_signature => 'Signatures';
+
+  @override
+  String get media_repairHistory_title => 'Historique des réparations';
+
+  @override
+  String get media_repairHistory_empty => 'Aucune réparation';
+
+  @override
+  String get media_repairHistory_action_relink => 'Relié';
+
+  @override
+  String get media_repairHistory_action_cloudBacked => 'Sur le cloud';
+
+  @override
+  String get media_repairHistory_action_autoRelink => 'Relié automatiquement';
+
+  @override
+  String get media_smartAlbum_save => 'Enregistrer comme album';
+
+  @override
+  String get media_smartAlbum_saveTitle => 'Nommer cet album';
+
+  @override
+  String get media_smartAlbum_albums => 'Albums';
+
+  @override
+  String get media_smartAlbum_delete => 'Supprimer l\'album';
+
+  @override
+  String get media_smartAlbum_deleteFailed =>
+      'Impossible de supprimer l\'album';
+
+  @override
+  String get media_smartAlbum_saved => 'Album enregistré';
+
+  @override
+  String media_sources_lastScanned(String date) {
+    return 'Dernière analyse $date';
+  }
+
+  @override
+  String media_sources_scanResult(int indexed, int repaired) {
+    return '$indexed fichiers indexés, $repaired reliés';
+  }
+
+  @override
+  String get media_repairHistory_sourceFolder => 'analyse de dossier';
+
+  @override
+  String get media_repairHistory_sourcePhotoLibrary => 'photothèque';
+
+  @override
+  String get media_repairHistory_sourceStore => 'stockage multimédia cloud';
+
+  @override
+  String get media_repairHistory_sourceWatcher => 'dossiers surveillés';
+
+  @override
+  String get media_repairHistory_sourceManual => 'reliaison manuelle';
+
+  @override
+  String media_repairHistory_source(String source) {
+    return 'via $source';
+  }
+
+  @override
+  String get media_console_missing => 'Manquants';
+
+  @override
+  String get media_missing_empty => 'Aucun fichier manquant';
+
+  @override
+  String media_missing_offlineVolumes(int count) {
+    return '$count sur des volumes hors ligne';
+  }
+
+  @override
+  String get media_missing_repair => 'Réparer...';
+
+  @override
+  String get media_repair_title => 'Réparer les fichiers manquants';
+
+  @override
+  String get media_repair_addFolder => 'Ajouter un dossier...';
+
+  @override
+  String get media_repair_usePhotoLibrary => 'Rechercher dans la photothèque';
+
+  @override
+  String get media_repair_useStore => 'Utiliser le stockage multimédia cloud';
+
+  @override
+  String get media_repair_scan => 'Analyser';
+
+  @override
+  String media_repair_prefixMove(String from, String to, int count) {
+    return 'Déplacement de dossier détecté : $from vers $to couvre $count fichiers';
+  }
+
+  @override
+  String get media_repair_confidence_exact => 'Exact';
+
+  @override
+  String get media_repair_confidence_probable => 'Nom et taille';
+
+  @override
+  String get media_repair_confidence_edited => 'Fichier modifié';
+
+  @override
+  String get media_repair_confidence_unmatched => 'Aucun candidat';
+
+  @override
+  String get media_repair_unverified => 'Non vérifié auprès du stockage';
+
+  @override
+  String media_repair_apply(int count) {
+    return 'Relier $count fichiers';
+  }
+
+  @override
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
+    return '$relinked reliés, $cloudBacked sur le cloud, $reuploads renvois en file, $failed échoués, $skipped ignorés';
+  }
+
+  @override
+  String get media_console_unlinked => 'Non liés';
+
+  @override
+  String get media_import_linkTitle => 'Lier les médias importés';
+
+  @override
+  String media_import_linkConfirm(int count) {
+    return 'Lier $count éléments';
+  }
+
+  @override
+  String get media_import_staysUnlinked => 'Reste dans Non liés';
+
+  @override
+  String media_import_linkedResult(int count) {
+    return '$count éléments liés';
+  }
+
+  @override
+  String get media_inbox_chooseDive => 'Choisir la plongée';
+
+  @override
+  String get media_inbox_empty => 'Aucun média non lié';
+
+  @override
+  String get media_inbox_keep => 'Conserver';
+
+  @override
+  String media_inbox_linkChip(int number) {
+    return 'Lier à #$number';
+  }
+
+  @override
+  String get media_inbox_linkToDive => 'Lier à une plongée';
+
+  @override
+  String get media_inbox_linkToSite => 'Lier à un site';
+
+  @override
+  String get media_library_empty => 'Aucun média pour le moment';
+
+  @override
+  String get media_library_filter_all => 'Tous';
+
+  @override
+  String get media_library_filter_photos => 'Photos';
+
+  @override
+  String get media_library_filter_videos => 'Vidéos';
+
+  @override
+  String get media_library_filter_site => 'Site';
+
+  @override
+  String get media_library_filter_trip => 'Voyage';
+
+  @override
+  String get media_library_filter_dates => 'Dates';
+
+  @override
+  String get media_library_filter_clear => 'Effacer les filtres';
+
+  @override
+  String get media_divePicker_title => 'Déplacer vers une plongée';
+
+  @override
+  String get media_divePicker_search => 'Rechercher des plongées';
+
+  @override
+  String get media_library_deleteConfirmBody =>
+      'Cela les supprime de l\'application et de tout stockage multimédia. Cette action est irréversible.';
+
+  @override
+  String media_library_deleteConfirmTitle(int count) {
+    return 'Supprimer $count éléments ?';
+  }
+
+  @override
+  String get media_library_moveToDive => 'Déplacer vers une plongée';
+
+  @override
+  String get media_library_unlinkFromSite => 'Dissocier du site';
+
+  @override
+  String get media_library_unlinkSelected => 'Dissocier';
+
+  @override
+  String media_library_selectedCount(int count) {
+    return '$count sélectionnés';
+  }
+
+  @override
+  String get media_library_unlinkedHeader => 'Non liés';
+
+  @override
+  String get media_library_diveHeaderHint => 'Ouvrir cette plongée';
+
+  @override
+  String get media_library_untitledDiveHeader => 'Plongée sans titre';
+
+  @override
+  String get media_library_viewMode_byDive => 'Par plongée';
+
+  @override
+  String get media_library_viewMode_grid => 'Grille';
+
+  @override
+  String get media_library_viewMode_timeline => 'Chronologie';
+
+  @override
+  String get media_viewer_goToDive => 'Aller à la plongée';
+
+  @override
   String get nav_home => 'Accueil';
+
+  @override
+  String get nav_media => 'Médias';
 
   @override
   String get nav_more => 'Plus';

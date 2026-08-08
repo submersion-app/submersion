@@ -561,10 +561,19 @@ void main() {
       await bootApp(tester);
       await openNavCustomization(tester);
 
-      final moveEquipmentUp = find.byTooltip('Move Equipment up');
-      expect(moveEquipmentUp, findsOneWidget);
-      await tester.tap(moveEquipmentUp);
-      await _settle(tester);
+      expect(find.byTooltip('Move Equipment up'), findsOneWidget);
+      // Equipment has to climb into the first three (primary) slots. How far
+      // that is depends on how many destinations precede it in the canonical
+      // order, and that grows as sections are added -- the Media destination
+      // pushed it one further down, which is what made a single tap stop
+      // working. Climb until it can go no higher rather than hard-coding a
+      // tap count that any future destination would invalidate.
+      for (var i = 0; i < 20; i++) {
+        final up = find.byTooltip('Move Equipment up');
+        if (up.evaluate().isEmpty) break;
+        await tester.tap(up.first);
+        await _settle(tester);
+      }
 
       await popToBottomNav(tester);
 

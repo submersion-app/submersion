@@ -12,6 +12,8 @@
 /// * [asWallClockUtc] — reinterpret a local `DateTime`'s components as
 ///   UTC verbatim, used for filesystem mtimes that arrive in local time
 ///   but should match wall-clock-UTC dive times.
+/// * [fromWallClockUtc] — the inverse, for reading a stored wall-clock-UTC
+///   value back into the local `DateTime` the UI works in.
 library;
 
 /// Matches a trailing `Z` or `+hh:mm` / `-hh:mm` / `+hhmm` / `-hhmm` offset
@@ -64,3 +66,27 @@ DateTime asWallClockUtc(DateTime local) => DateTime.utc(
   local.second,
   local.millisecond,
 );
+
+/// Reads a wall-clock-UTC `DateTime` back as a local one with the same
+/// digits -- the inverse of [asWallClockUtc].
+///
+/// Use this when a stored wall-clock-UTC value has to re-enter code that
+/// thinks in local time (pickers, formatters, filter bounds). Because both
+/// directions copy components rather than shifting by an offset, a value
+/// written on one device reads back with the same calendar digits on a
+/// device in any other timezone.
+///
+/// A `DateTime` that is already local is returned unchanged, so callers do
+/// not have to track which flavor they are holding.
+DateTime fromWallClockUtc(DateTime wallClockUtc) {
+  if (!wallClockUtc.isUtc) return wallClockUtc;
+  return DateTime(
+    wallClockUtc.year,
+    wallClockUtc.month,
+    wallClockUtc.day,
+    wallClockUtc.hour,
+    wallClockUtc.minute,
+    wallClockUtc.second,
+    wallClockUtc.millisecond,
+  );
+}

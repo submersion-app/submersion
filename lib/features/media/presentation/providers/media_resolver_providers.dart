@@ -20,10 +20,12 @@ import 'package:submersion/features/media/data/services/subscription_poller.dart
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Singleton [PlatformGalleryResolver].
 ///
@@ -128,6 +130,11 @@ final mediaSourceResolverRegistryProvider =
         MediaSourceType.networkUrl: ref.watch(networkUrlMediaResolverProvider),
         MediaSourceType.serviceConnector: ref.watch(
           connectorMediaResolverProvider,
+        ),
+        // read (not watch) inside the closure: store connect/disconnect
+        // takes effect per resolution without rebuilding registry consumers.
+        MediaSourceType.mediaStore: MediaStoreSourceResolver(
+          remote: () => ref.read(mediaStoreResolverProvider)?.tryResolveRemote,
         ),
       });
     });

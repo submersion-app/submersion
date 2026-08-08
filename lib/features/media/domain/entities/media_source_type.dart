@@ -19,7 +19,12 @@ enum MediaSourceType {
   serviceConnector,
 
   /// Instructor or buddy signature (existing v1.5 feature).
-  signature;
+  signature,
+
+  /// Cloud media store is the source of truth: no local pointer. The row
+  /// resolves through the store cache on every device (Media section
+  /// Phase 3 cloud-backed repair).
+  mediaStore;
 
   /// Parse from a stored string, returning null if no match is found.
   static MediaSourceType? fromString(String? value) {

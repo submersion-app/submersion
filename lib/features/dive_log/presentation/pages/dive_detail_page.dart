@@ -4969,8 +4969,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 if (widget.embedded && widget.onDeleted != null) {
                   // In embedded mode, call the callback to clear selection
                   widget.onDeleted!();
+                } else if (context.canPop()) {
+                  // The dive is gone, so this page has to go too -- but pop
+                  // back to whoever pushed it rather than `go`ing to the list,
+                  // which would discard the section the user came from.
+                  context.pop();
                 } else {
-                  // In standalone mode, navigate back to list
+                  // Nothing underneath (deep link / fresh start): fall back to
+                  // the list.
                   context.go('/dives');
                 }
               }

@@ -1295,6 +1295,14 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
+          // Smart albums reference sites/trips/dives only inside their
+          // serialized filter, so they carry no FK and can apply
+          // anywhere in the order.
+          (
+            type: 'mediaSmartAlbums',
+            records: data.mediaSmartAlbums,
+            hasUpdatedAt: true,
+          ),
           (type: 'media', records: data.media, hasUpdatedAt: false),
           (
             type: 'mediaEnrichment',
@@ -1832,6 +1840,7 @@ class SyncService {
     'cylinderConfigItems': true,
     'qualityFindings': true,
     'equipmentAttributes': true,
+    'mediaSmartAlbums': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
     'diveTypes': true,

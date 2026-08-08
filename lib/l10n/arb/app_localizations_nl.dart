@@ -11711,6 +11711,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_diveMediaSection_title => 'Foto\'s & video';
 
   @override
+  String get media_diveMediaSection_deleteButton => 'Verwijderen';
+
+  @override
+  String media_diveMediaSection_deleteError(Object error) {
+    return 'Verwijderen mislukt: $error';
+  }
+
+  @override
+  String get media_diveMediaSection_deleteSelectedContent =>
+      'Dit verwijdert ze uit de app en elke mediaopslag. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String media_diveMediaSection_deleteSelectedSuccess(int count) {
+    return '$count items verwijderd';
+  }
+
+  @override
+  String media_diveMediaSection_deleteSelectedTitle(int count) {
+    return '$count items verwijderen?';
+  }
+
+  @override
+  String get media_diveMediaSection_replaceButton => 'Opnieuw koppelen';
+
+  @override
+  String get media_diveMediaSection_replaceEditedContent =>
+      'De inhoud van dit bestand verschilt van het origineel. Opnieuw koppelen uploadt het opnieuw naar je mediaopslag.';
+
+  @override
+  String get media_diveMediaSection_replaceEditedTitle =>
+      'Bestandsinhoud verschilt';
+
+  @override
   String get media_diveMediaSection_unlinkButton => 'Ontkoppelen';
 
   @override
@@ -12255,7 +12288,314 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_gpsLog => 'GPS-log';
 
   @override
+  String get media_console_library => 'Bibliotheek';
+
+  @override
+  String get media_console_transfers => 'Overdrachten';
+
+  @override
+  String get media_console_import => 'Importeren';
+
+  @override
+  String get media_import_launch => 'Media importeren...';
+
+  @override
+  String get media_import_intro =>
+      'Geïmporteerde media blijft in je bibliotheek en kan automatisch aan duiken worden gekoppeld.';
+
+  @override
+  String get media_console_sources => 'Bronnen';
+
+  @override
+  String get media_sources_browseHeader => 'Bladeren op bron';
+
+  @override
+  String get media_sources_watchedHeader => 'Bewaakte mappen';
+
+  @override
+  String get media_sources_addWatched => 'Map toevoegen...';
+
+  @override
+  String get media_sources_scanFailed => 'Scannen mislukt';
+
+  @override
+  String get media_sources_scanNow => 'Nu scannen';
+
+  @override
+  String get media_sources_autoApply =>
+      'Exacte overeenkomsten automatisch opnieuw koppelen';
+
+  @override
+  String get media_sources_neverScanned => 'Nooit gescand';
+
+  @override
+  String get media_source_gallery => 'Fotobibliotheek';
+
+  @override
+  String get media_source_localFile => 'Lokale bestanden';
+
+  @override
+  String get media_source_networkUrl => 'Weblinks';
+
+  @override
+  String get media_source_manifest => 'Abonnementen';
+
+  @override
+  String get media_source_connector => 'Verbonden services';
+
+  @override
+  String get media_source_mediaStore => 'Cloudmediaopslag';
+
+  @override
+  String get media_source_signature => 'Handtekeningen';
+
+  @override
+  String get media_repairHistory_title => 'Herstelgeschiedenis';
+
+  @override
+  String get media_repairHistory_empty => 'Nog geen herstelacties';
+
+  @override
+  String get media_repairHistory_action_relink => 'Opnieuw gekoppeld';
+
+  @override
+  String get media_repairHistory_action_cloudBacked => 'Cloudgebaseerd';
+
+  @override
+  String get media_repairHistory_action_autoRelink =>
+      'Automatisch opnieuw gekoppeld';
+
+  @override
+  String get media_smartAlbum_save => 'Opslaan als album';
+
+  @override
+  String get media_smartAlbum_saveTitle => 'Naam dit album';
+
+  @override
+  String get media_smartAlbum_albums => 'Albums';
+
+  @override
+  String get media_smartAlbum_delete => 'Album verwijderen';
+
+  @override
+  String get media_smartAlbum_deleteFailed => 'Album verwijderen mislukt';
+
+  @override
+  String get media_smartAlbum_saved => 'Album opgeslagen';
+
+  @override
+  String media_sources_lastScanned(String date) {
+    return 'Laatst gescand $date';
+  }
+
+  @override
+  String media_sources_scanResult(int indexed, int repaired) {
+    return '$indexed bestanden geïndexeerd, $repaired opnieuw gekoppeld';
+  }
+
+  @override
+  String get media_repairHistory_sourceFolder => 'mapscan';
+
+  @override
+  String get media_repairHistory_sourcePhotoLibrary => 'fotobibliotheek';
+
+  @override
+  String get media_repairHistory_sourceStore => 'cloudmediaopslag';
+
+  @override
+  String get media_repairHistory_sourceWatcher => 'bewaakte mappen';
+
+  @override
+  String get media_repairHistory_sourceManual => 'handmatig opnieuw koppelen';
+
+  @override
+  String media_repairHistory_source(String source) {
+    return 'via $source';
+  }
+
+  @override
+  String get media_console_missing => 'Ontbrekend';
+
+  @override
+  String get media_missing_empty => 'Geen ontbrekende bestanden';
+
+  @override
+  String media_missing_offlineVolumes(int count) {
+    return '$count op offline volumes';
+  }
+
+  @override
+  String get media_missing_repair => 'Herstellen...';
+
+  @override
+  String get media_repair_title => 'Ontbrekende bestanden herstellen';
+
+  @override
+  String get media_repair_addFolder => 'Map toevoegen...';
+
+  @override
+  String get media_repair_usePhotoLibrary => 'Fotobibliotheek doorzoeken';
+
+  @override
+  String get media_repair_useStore => 'Cloudmediaopslag gebruiken';
+
+  @override
+  String get media_repair_scan => 'Scannen';
+
+  @override
+  String media_repair_prefixMove(String from, String to, int count) {
+    return 'Mapverplaatsing gedetecteerd: $from naar $to dekt $count bestanden';
+  }
+
+  @override
+  String get media_repair_confidence_exact => 'Exact';
+
+  @override
+  String get media_repair_confidence_probable => 'Naam en grootte';
+
+  @override
+  String get media_repair_confidence_edited => 'Bewerkt bestand';
+
+  @override
+  String get media_repair_confidence_unmatched => 'Geen kandidaat';
+
+  @override
+  String get media_repair_unverified => 'Niet geverifieerd tegen de opslag';
+
+  @override
+  String media_repair_apply(int count) {
+    return '$count bestanden opnieuw koppelen';
+  }
+
+  @override
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
+    return '$relinked opnieuw gekoppeld, $cloudBacked cloudgebaseerd, $reuploads heruploads in wachtrij, $failed mislukt, $skipped overgeslagen';
+  }
+
+  @override
+  String get media_console_unlinked => 'Niet gekoppeld';
+
+  @override
+  String get media_import_linkTitle => 'Geïmporteerde media koppelen';
+
+  @override
+  String media_import_linkConfirm(int count) {
+    return '$count items koppelen';
+  }
+
+  @override
+  String get media_import_staysUnlinked => 'Blijft bij Niet gekoppeld';
+
+  @override
+  String media_import_linkedResult(int count) {
+    return '$count items gekoppeld';
+  }
+
+  @override
+  String get media_inbox_chooseDive => 'Duik kiezen';
+
+  @override
+  String get media_inbox_empty => 'Geen niet-gekoppelde media';
+
+  @override
+  String get media_inbox_keep => 'Behouden';
+
+  @override
+  String media_inbox_linkChip(int number) {
+    return 'Koppelen aan #$number';
+  }
+
+  @override
+  String get media_inbox_linkToDive => 'Aan duik koppelen';
+
+  @override
+  String get media_inbox_linkToSite => 'Aan duikstek koppelen';
+
+  @override
+  String get media_library_empty => 'Nog geen media';
+
+  @override
+  String get media_library_filter_all => 'Alles';
+
+  @override
+  String get media_library_filter_photos => 'Foto\'s';
+
+  @override
+  String get media_library_filter_videos => 'Video\'s';
+
+  @override
+  String get media_library_filter_site => 'Duikstek';
+
+  @override
+  String get media_library_filter_trip => 'Reis';
+
+  @override
+  String get media_library_filter_dates => 'Datums';
+
+  @override
+  String get media_library_filter_clear => 'Filters wissen';
+
+  @override
+  String get media_divePicker_title => 'Naar duik verplaatsen';
+
+  @override
+  String get media_divePicker_search => 'Duiken zoeken';
+
+  @override
+  String get media_library_deleteConfirmBody =>
+      'Dit verwijdert ze uit de app en elke mediaopslag. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String media_library_deleteConfirmTitle(int count) {
+    return '$count items verwijderen?';
+  }
+
+  @override
+  String get media_library_moveToDive => 'Naar duik verplaatsen';
+
+  @override
+  String get media_library_unlinkFromSite => 'Loskoppelen van duikstek';
+
+  @override
+  String get media_library_unlinkSelected => 'Loskoppelen';
+
+  @override
+  String media_library_selectedCount(int count) {
+    return '$count geselecteerd';
+  }
+
+  @override
+  String get media_library_unlinkedHeader => 'Niet gekoppeld';
+
+  @override
+  String get media_library_diveHeaderHint => 'Deze duik openen';
+
+  @override
+  String get media_library_untitledDiveHeader => 'Naamloze duik';
+
+  @override
+  String get media_library_viewMode_byDive => 'Per duik';
+
+  @override
+  String get media_library_viewMode_grid => 'Raster';
+
+  @override
+  String get media_library_viewMode_timeline => 'Tijdlijn';
+
+  @override
+  String get media_viewer_goToDive => 'Naar duik';
+
+  @override
   String get nav_home => 'Home';
+
+  @override
+  String get nav_media => 'Media';
 
   @override
   String get nav_more => 'Meer';

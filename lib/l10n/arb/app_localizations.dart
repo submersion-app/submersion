@@ -20108,6 +20108,54 @@ abstract class AppLocalizations {
   /// **'Photos & Video'**
   String get media_diveMediaSection_title;
 
+  /// Dive media selection: destructive delete action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get media_diveMediaSection_deleteButton;
+
+  /// Error snackbar when the dive media bulk delete fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete: {error}'**
+  String media_diveMediaSection_deleteError(Object error);
+
+  /// Body of the dive media bulk delete confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'This removes them from the app and any media store. This cannot be undone.'**
+  String get media_diveMediaSection_deleteSelectedContent;
+
+  /// No description provided for @media_diveMediaSection_deleteSelectedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {count} items'**
+  String media_diveMediaSection_deleteSelectedSuccess(int count);
+
+  /// No description provided for @media_diveMediaSection_deleteSelectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} items?'**
+  String media_diveMediaSection_deleteSelectedTitle(int count);
+
+  /// Replace-link confirm action for a changed file
+  ///
+  /// In en, this message translates to:
+  /// **'Re-link'**
+  String get media_diveMediaSection_replaceButton;
+
+  /// Body of the changed-bytes replace-link confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'This file\'s contents differ from the original. Re-linking will re-upload it to your media store.'**
+  String get media_diveMediaSection_replaceEditedContent;
+
+  /// Title of the changed-bytes replace-link confirmation
+  ///
+  /// In en, this message translates to:
+  /// **'File contents differ'**
+  String get media_diveMediaSection_replaceEditedTitle;
+
   /// No description provided for @media_diveMediaSection_unlinkButton.
   ///
   /// In en, this message translates to:
@@ -20929,11 +20977,563 @@ abstract class AppLocalizations {
   /// **'GPS Log'**
   String get nav_gpsLog;
 
+  /// Media console sidebar/tab label for the library view
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get media_console_library;
+
+  /// Media console sidebar/tab label for the transfers view
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers'**
+  String get media_console_transfers;
+
+  /// Media console sidebar/tab label for the import section
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get media_console_import;
+
+  /// Import section: open the picker
+  ///
+  /// In en, this message translates to:
+  /// **'Import media...'**
+  String get media_import_launch;
+
+  /// Import section intro text
+  ///
+  /// In en, this message translates to:
+  /// **'Imported media is kept in your library and can be linked to dives automatically.'**
+  String get media_import_intro;
+
+  /// Media console label for the sources section
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get media_console_sources;
+
+  /// Sources section: per-source browse list header
+  ///
+  /// In en, this message translates to:
+  /// **'Browse by source'**
+  String get media_sources_browseHeader;
+
+  /// Sources section: watcher folder list header
+  ///
+  /// In en, this message translates to:
+  /// **'Watched folders'**
+  String get media_sources_watchedHeader;
+
+  /// Sources section: register a watched folder
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder...'**
+  String get media_sources_addWatched;
+
+  /// Sources section: the watcher scan threw
+  ///
+  /// In en, this message translates to:
+  /// **'Scan failed'**
+  String get media_sources_scanFailed;
+
+  /// Sources section: run the watcher immediately
+  ///
+  /// In en, this message translates to:
+  /// **'Scan now'**
+  String get media_sources_scanNow;
+
+  /// Sources section: watcher auto-apply toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically re-link exact matches'**
+  String get media_sources_autoApply;
+
+  /// Sources section: a root with no scan yet
+  ///
+  /// In en, this message translates to:
+  /// **'Never scanned'**
+  String get media_sources_neverScanned;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library'**
+  String get media_source_gallery;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Local files'**
+  String get media_source_localFile;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Web links'**
+  String get media_source_networkUrl;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get media_source_manifest;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Connected services'**
+  String get media_source_connector;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud media store'**
+  String get media_source_mediaStore;
+
+  /// Source type name
+  ///
+  /// In en, this message translates to:
+  /// **'Signatures'**
+  String get media_source_signature;
+
+  /// Repair audit view title
+  ///
+  /// In en, this message translates to:
+  /// **'Repair history'**
+  String get media_repairHistory_title;
+
+  /// Repair audit view empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No repairs yet'**
+  String get media_repairHistory_empty;
+
+  /// Repair audit action label
+  ///
+  /// In en, this message translates to:
+  /// **'Re-linked'**
+  String get media_repairHistory_action_relink;
+
+  /// Repair audit action label
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud-backed'**
+  String get media_repairHistory_action_cloudBacked;
+
+  /// Repair audit action label
+  ///
+  /// In en, this message translates to:
+  /// **'Auto re-linked'**
+  String get media_repairHistory_action_autoRelink;
+
+  /// Filter bar: save the current filter
+  ///
+  /// In en, this message translates to:
+  /// **'Save as album'**
+  String get media_smartAlbum_save;
+
+  /// Filter bar: album name dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Name this album'**
+  String get media_smartAlbum_saveTitle;
+
+  /// Filter bar: smart album menu
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get media_smartAlbum_albums;
+
+  /// Filter bar: remove a smart album
+  ///
+  /// In en, this message translates to:
+  /// **'Delete album'**
+  String get media_smartAlbum_delete;
+
+  /// Filter bar: the smart album delete did not go through
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete album'**
+  String get media_smartAlbum_deleteFailed;
+
+  /// Filter bar: confirmation snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Album saved'**
+  String get media_smartAlbum_saved;
+
+  /// No description provided for @media_sources_lastScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scanned {date}'**
+  String media_sources_lastScanned(String date);
+
+  /// No description provided for @media_sources_scanResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{indexed} files indexed, {repaired} re-linked'**
+  String media_sources_scanResult(int indexed, int repaired);
+
+  /// Repair history: candidate came from a folder scan
+  ///
+  /// In en, this message translates to:
+  /// **'folder scan'**
+  String get media_repairHistory_sourceFolder;
+
+  /// Repair history: candidate came from the gallery
+  ///
+  /// In en, this message translates to:
+  /// **'photo library'**
+  String get media_repairHistory_sourcePhotoLibrary;
+
+  /// Repair history: row was made cloud-backed from the store
+  ///
+  /// In en, this message translates to:
+  /// **'cloud media store'**
+  String get media_repairHistory_sourceStore;
+
+  /// Repair history: applied automatically by the folder watcher
+  ///
+  /// In en, this message translates to:
+  /// **'watched folders'**
+  String get media_repairHistory_sourceWatcher;
+
+  /// Repair history: the user picked the file by hand
+  ///
+  /// In en, this message translates to:
+  /// **'manual re-link'**
+  String get media_repairHistory_sourceManual;
+
+  /// No description provided for @media_repairHistory_source.
+  ///
+  /// In en, this message translates to:
+  /// **'via {source}'**
+  String media_repairHistory_source(String source);
+
+  /// Media console sidebar/tab label for the missing-files view
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get media_console_missing;
+
+  /// Empty state for the missing-files view
+  ///
+  /// In en, this message translates to:
+  /// **'No missing files'**
+  String get media_missing_empty;
+
+  /// Informational banner: rows whose volume is unmounted
+  ///
+  /// In en, this message translates to:
+  /// **'{count} on offline volumes'**
+  String media_missing_offlineVolumes(int count);
+
+  /// Button opening the repair wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Repair...'**
+  String get media_missing_repair;
+
+  /// Repair wizard page title
+  ///
+  /// In en, this message translates to:
+  /// **'Repair missing files'**
+  String get media_repair_title;
+
+  /// Wizard scope step: pick a folder to scan
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder...'**
+  String get media_repair_addFolder;
+
+  /// Wizard scope step: photo library source toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Search photo library'**
+  String get media_repair_usePhotoLibrary;
+
+  /// Wizard scope step: cloud store source toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Use cloud media store'**
+  String get media_repair_useStore;
+
+  /// Wizard scope step: start the candidate scan
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get media_repair_scan;
+
+  /// Review step callout for a detected whole-tree move
+  ///
+  /// In en, this message translates to:
+  /// **'Folder move detected: {from} to {to} covers {count} files'**
+  String media_repair_prefixMove(String from, String to, int count);
+
+  /// Review group: content hash matches
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get media_repair_confidence_exact;
+
+  /// Review group: filename and size agree
+  ///
+  /// In en, this message translates to:
+  /// **'Name and size'**
+  String get media_repair_confidence_probable;
+
+  /// Review group: bytes differ; accepting re-uploads
+  ///
+  /// In en, this message translates to:
+  /// **'Edited file'**
+  String get media_repair_confidence_edited;
+
+  /// Review group: nothing found
+  ///
+  /// In en, this message translates to:
+  /// **'No candidate'**
+  String get media_repair_confidence_unmatched;
+
+  /// Subtitle for a store candidate the HEAD check could not confirm
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified against the store'**
+  String get media_repair_unverified;
+
+  /// Review step apply button
+  ///
+  /// In en, this message translates to:
+  /// **'Re-link {count} files'**
+  String media_repair_apply(int count);
+
+  /// Apply step summary line
+  ///
+  /// In en, this message translates to:
+  /// **'{relinked} re-linked, {cloudBacked} cloud-backed, {reuploads} re-uploads queued, {failed} failed, {skipped} skipped'**
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  );
+
+  /// Media console sidebar/tab label for the unlinked inbox
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get media_console_unlinked;
+
+  /// Title of the post-import batch link screen
+  ///
+  /// In en, this message translates to:
+  /// **'Link imported media'**
+  String get media_import_linkTitle;
+
+  /// Confirm button on the post-import batch link screen
+  ///
+  /// In en, this message translates to:
+  /// **'Link {count} items'**
+  String media_import_linkConfirm(int count);
+
+  /// Row subtitle for imports without a confident dive match
+  ///
+  /// In en, this message translates to:
+  /// **'Stays in Unlinked'**
+  String get media_import_staysUnlinked;
+
+  /// Snackbar after the batch link applies
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items linked'**
+  String media_import_linkedResult(int count);
+
+  /// Inbox chip for an ambiguous auto-match
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get media_inbox_chooseDive;
+
+  /// Empty state for the unlinked inbox
+  ///
+  /// In en, this message translates to:
+  /// **'No unlinked media'**
+  String get media_inbox_empty;
+
+  /// Inbox action: keep the item in the library unlinked
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get media_inbox_keep;
+
+  /// Inbox chip for a confident auto-match
+  ///
+  /// In en, this message translates to:
+  /// **'Link to #{number}'**
+  String media_inbox_linkChip(int number);
+
+  /// Inbox menu action: pick a dive manually
+  ///
+  /// In en, this message translates to:
+  /// **'Link to dive'**
+  String get media_inbox_linkToDive;
+
+  /// Inbox menu action: pick a site manually
+  ///
+  /// In en, this message translates to:
+  /// **'Link to site'**
+  String get media_inbox_linkToSite;
+
+  /// Empty state for the media library
+  ///
+  /// In en, this message translates to:
+  /// **'No media yet'**
+  String get media_library_empty;
+
+  /// Library filter chip: no type filter
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get media_library_filter_all;
+
+  /// Library filter chip: photos only
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get media_library_filter_photos;
+
+  /// Library filter chip: videos only
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get media_library_filter_videos;
+
+  /// Library filter chip: pick a dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get media_library_filter_site;
+
+  /// Library filter chip: pick a trip
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get media_library_filter_trip;
+
+  /// Library filter chip: pick a date range
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get media_library_filter_dates;
+
+  /// Library filter chip: reset every filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get media_library_filter_clear;
+
+  /// Title of the dive picker sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Move to dive'**
+  String get media_divePicker_title;
+
+  /// Search hint in the dive picker sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Search dives'**
+  String get media_divePicker_search;
+
+  /// Body of the bulk delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This removes them from the app and any media store. This cannot be undone.'**
+  String get media_library_deleteConfirmBody;
+
+  /// Title of the bulk delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} items?'**
+  String media_library_deleteConfirmTitle(int count);
+
+  /// Library selection action: reassign media to a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Move to dive'**
+  String get media_library_moveToDive;
+
+  /// Library selection action: clear the site link
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from site'**
+  String get media_library_unlinkFromSite;
+
+  /// Library selection action: clear the dive link
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get media_library_unlinkSelected;
+
+  /// Selection bar count label
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String media_library_selectedCount(int count);
+
+  /// By-dive view header for media attached to no dive
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get media_library_unlinkedHeader;
+
+  /// Accessibility hint for the by-dive group header, which opens the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Open this dive'**
+  String get media_library_diveHeaderHint;
+
+  /// By-dive view header for a linked dive with no number, site or date
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled dive'**
+  String get media_library_untitledDiveHeader;
+
+  /// Library view mode: grouped by dive
+  ///
+  /// In en, this message translates to:
+  /// **'By dive'**
+  String get media_library_viewMode_byDive;
+
+  /// Library view mode: flat grid
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get media_library_viewMode_grid;
+
+  /// Library view mode: date-grouped timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get media_library_viewMode_timeline;
+
+  /// Viewer action: navigate to the dive owning this media
+  ///
+  /// In en, this message translates to:
+  /// **'Go to dive'**
+  String get media_viewer_goToDive;
+
   /// Navigation label for home/dashboard
   ///
   /// In en, this message translates to:
   /// **'Home'**
   String get nav_home;
+
+  /// Navigation label for the media section
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get nav_media;
 
   /// Navigation label for the 'more' menu on mobile
   ///

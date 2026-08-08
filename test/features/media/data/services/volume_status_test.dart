@@ -144,4 +144,61 @@ void main() {
       );
     });
   });
+
+  group('pass probe', () {
+    test('probes each mount root once per pass', () async {
+      final probed = <String>[];
+      final s = VolumeStatus(
+        directoryExists: (p) async {
+          probed.add(p);
+          return p == '/Volumes/NAS';
+        },
+      );
+      final probe = s.newPassProbe(platformOverride: 'macos');
+
+      expect(await probe('/Volumes/NAS/a.jpg'), isTrue);
+      expect(await probe('/Volumes/NAS/b.jpg'), isTrue);
+      expect(await probe('/Volumes/NAS/deep/c.jpg'), isTrue);
+      expect(await probe('/Volumes/Gone/d.jpg'), isFalse);
+      expect(await probe('/Volumes/Gone/e.jpg'), isFalse);
+      expect(await probe('/Users/eric/f.jpg'), isTrue);
+
+      expect(probed, ['/Volumes/NAS', '/Volumes/Gone']);
+    });
+
+    test(
+      'concurrent probes of one root share a single filesystem call',
+      () async {
+        var calls = 0;
+        final s = VolumeStatus(
+          directoryExists: (p) async {
+            calls++;
+            return true;
+          },
+        );
+        final probe = s.newPassProbe(platformOverride: 'macos');
+
+        await Future.wait([
+          probe('/Volumes/NAS/a.jpg'),
+          probe('/Volumes/NAS/b.jpg'),
+          probe('/Volumes/NAS/c.jpg'),
+        ]);
+
+        expect(calls, 1);
+      },
+    );
+
+    test('a fresh probe sees a remount', () async {
+      var mounted = false;
+      final s = VolumeStatus(directoryExists: (p) async => mounted);
+
+      final first = s.newPassProbe(platformOverride: 'macos');
+      expect(await first('/Volumes/NAS/a.jpg'), isFalse);
+
+      mounted = true;
+      expect(await first('/Volumes/NAS/a.jpg'), isFalse, reason: 'same pass');
+      final second = s.newPassProbe(platformOverride: 'macos');
+      expect(await second('/Volumes/NAS/a.jpg'), isTrue);
+    });
+  });
 }

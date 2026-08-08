@@ -6705,6 +6705,51 @@
   "media_diveMediaSection_selectedCount": "{count} selected",
   "media_diveMediaSection_thumbnailLabel": "View photo. Long press to select",
   "media_diveMediaSection_title": "Photos & Video",
+  "media_diveMediaSection_deleteButton": "Delete",
+  "@media_diveMediaSection_deleteButton": {
+    "description": "Dive media selection: destructive delete action"
+  },
+  "media_diveMediaSection_deleteError": "Failed to delete: {error}",
+  "@media_diveMediaSection_deleteError": {
+    "description": "Error snackbar when the dive media bulk delete fails",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "media_diveMediaSection_deleteSelectedContent": "This removes them from the app and any media store. This cannot be undone.",
+  "@media_diveMediaSection_deleteSelectedContent": {
+    "description": "Body of the dive media bulk delete confirmation"
+  },
+  "media_diveMediaSection_deleteSelectedSuccess": "Deleted {count} items",
+  "@media_diveMediaSection_deleteSelectedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveMediaSection_deleteSelectedTitle": "Delete {count} items?",
+  "@media_diveMediaSection_deleteSelectedTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_diveMediaSection_replaceButton": "Re-link",
+  "@media_diveMediaSection_replaceButton": {
+    "description": "Replace-link confirm action for a changed file"
+  },
+  "media_diveMediaSection_replaceEditedContent": "This file's contents differ from the original. Re-linking will re-upload it to your media store.",
+  "@media_diveMediaSection_replaceEditedContent": {
+    "description": "Body of the changed-bytes replace-link confirmation"
+  },
+  "media_diveMediaSection_replaceEditedTitle": "File contents differ",
+  "@media_diveMediaSection_replaceEditedTitle": {
+    "description": "Title of the changed-bytes replace-link confirmation"
+  },
   "media_diveMediaSection_unlinkButton": "Unlink",
   "media_diveMediaSection_unlinkDialogContent": "Remove this photo from the dive? The photo will remain in your gallery.",
   "media_diveMediaSection_unlinkDialogTitle": "Unlink Photo",
@@ -7086,7 +7131,438 @@
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
   "nav_gpsLog": "GPS Log",
+  "media_console_library": "Library",
+  "@media_console_library": {
+    "description": "Media console sidebar/tab label for the library view"
+  },
+  "media_console_transfers": "Transfers",
+  "@media_console_transfers": {
+    "description": "Media console sidebar/tab label for the transfers view"
+  },
+  "media_console_import": "Import",
+  "@media_console_import": {
+    "description": "Media console sidebar/tab label for the import section"
+  },
+  "media_import_launch": "Import media...",
+  "@media_import_launch": {
+    "description": "Import section: open the picker"
+  },
+  "media_import_intro": "Imported media is kept in your library and can be linked to dives automatically.",
+  "@media_import_intro": {
+    "description": "Import section intro text"
+  },
+  "media_console_sources": "Sources",
+  "@media_console_sources": {
+    "description": "Media console label for the sources section"
+  },
+  "media_sources_browseHeader": "Browse by source",
+  "@media_sources_browseHeader": {
+    "description": "Sources section: per-source browse list header"
+  },
+  "media_sources_watchedHeader": "Watched folders",
+  "@media_sources_watchedHeader": {
+    "description": "Sources section: watcher folder list header"
+  },
+  "media_sources_addWatched": "Add folder...",
+  "@media_sources_addWatched": {
+    "description": "Sources section: register a watched folder"
+  },
+  "media_sources_scanFailed": "Scan failed",
+  "@media_sources_scanFailed": {
+    "description": "Sources section: the watcher scan threw"
+  },
+  "media_sources_scanNow": "Scan now",
+  "@media_sources_scanNow": {
+    "description": "Sources section: run the watcher immediately"
+  },
+  "media_sources_autoApply": "Automatically re-link exact matches",
+  "@media_sources_autoApply": {
+    "description": "Sources section: watcher auto-apply toggle"
+  },
+  "media_sources_neverScanned": "Never scanned",
+  "@media_sources_neverScanned": {
+    "description": "Sources section: a root with no scan yet"
+  },
+  "media_source_gallery": "Photo library",
+  "@media_source_gallery": {
+    "description": "Source type name"
+  },
+  "media_source_localFile": "Local files",
+  "@media_source_localFile": {
+    "description": "Source type name"
+  },
+  "media_source_networkUrl": "Web links",
+  "@media_source_networkUrl": {
+    "description": "Source type name"
+  },
+  "media_source_manifest": "Subscriptions",
+  "@media_source_manifest": {
+    "description": "Source type name"
+  },
+  "media_source_connector": "Connected services",
+  "@media_source_connector": {
+    "description": "Source type name"
+  },
+  "media_source_mediaStore": "Cloud media store",
+  "@media_source_mediaStore": {
+    "description": "Source type name"
+  },
+  "media_source_signature": "Signatures",
+  "@media_source_signature": {
+    "description": "Source type name"
+  },
+  "media_repairHistory_title": "Repair history",
+  "@media_repairHistory_title": {
+    "description": "Repair audit view title"
+  },
+  "media_repairHistory_empty": "No repairs yet",
+  "@media_repairHistory_empty": {
+    "description": "Repair audit view empty state"
+  },
+  "media_repairHistory_action_relink": "Re-linked",
+  "@media_repairHistory_action_relink": {
+    "description": "Repair audit action label"
+  },
+  "media_repairHistory_action_cloudBacked": "Cloud-backed",
+  "@media_repairHistory_action_cloudBacked": {
+    "description": "Repair audit action label"
+  },
+  "media_repairHistory_action_autoRelink": "Auto re-linked",
+  "@media_repairHistory_action_autoRelink": {
+    "description": "Repair audit action label"
+  },
+  "media_smartAlbum_save": "Save as album",
+  "@media_smartAlbum_save": {
+    "description": "Filter bar: save the current filter"
+  },
+  "media_smartAlbum_saveTitle": "Name this album",
+  "@media_smartAlbum_saveTitle": {
+    "description": "Filter bar: album name dialog title"
+  },
+  "media_smartAlbum_albums": "Albums",
+  "@media_smartAlbum_albums": {
+    "description": "Filter bar: smart album menu"
+  },
+  "media_smartAlbum_delete": "Delete album",
+  "@media_smartAlbum_delete": {
+    "description": "Filter bar: remove a smart album"
+  },
+  "media_smartAlbum_deleteFailed": "Could not delete album",
+  "@media_smartAlbum_deleteFailed": {
+    "description": "Filter bar: the smart album delete did not go through"
+  },
+  "media_smartAlbum_saved": "Album saved",
+  "@media_smartAlbum_saved": {
+    "description": "Filter bar: confirmation snackbar"
+  },
+  "media_sources_lastScanned": "Last scanned {date}",
+  "@media_sources_lastScanned": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "media_sources_scanResult": "{indexed} files indexed, {repaired} re-linked",
+  "@media_sources_scanResult": {
+    "placeholders": {
+      "indexed": { "type": "int" },
+      "repaired": { "type": "int" }
+    }
+  },
+  "media_repairHistory_sourceFolder": "folder scan",
+  "@media_repairHistory_sourceFolder": {
+    "description": "Repair history: candidate came from a folder scan"
+  },
+  "media_repairHistory_sourcePhotoLibrary": "photo library",
+  "@media_repairHistory_sourcePhotoLibrary": {
+    "description": "Repair history: candidate came from the gallery"
+  },
+  "media_repairHistory_sourceStore": "cloud media store",
+  "@media_repairHistory_sourceStore": {
+    "description": "Repair history: row was made cloud-backed from the store"
+  },
+  "media_repairHistory_sourceWatcher": "watched folders",
+  "@media_repairHistory_sourceWatcher": {
+    "description": "Repair history: applied automatically by the folder watcher"
+  },
+  "media_repairHistory_sourceManual": "manual re-link",
+  "@media_repairHistory_sourceManual": {
+    "description": "Repair history: the user picked the file by hand"
+  },
+  "media_repairHistory_source": "via {source}",
+  "@media_repairHistory_source": {
+    "placeholders": {
+      "source": { "type": "String" }
+    }
+  },
+  "media_console_missing": "Missing",
+  "@media_console_missing": {
+    "description": "Media console sidebar/tab label for the missing-files view"
+  },
+  "media_missing_empty": "No missing files",
+  "@media_missing_empty": {
+    "description": "Empty state for the missing-files view"
+  },
+  "media_missing_offlineVolumes": "{count} on offline volumes",
+  "@media_missing_offlineVolumes": {
+    "description": "Informational banner: rows whose volume is unmounted",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_missing_repair": "Repair...",
+  "@media_missing_repair": {
+    "description": "Button opening the repair wizard"
+  },
+  "media_repair_title": "Repair missing files",
+  "@media_repair_title": {
+    "description": "Repair wizard page title"
+  },
+  "media_repair_addFolder": "Add folder...",
+  "@media_repair_addFolder": {
+    "description": "Wizard scope step: pick a folder to scan"
+  },
+  "media_repair_usePhotoLibrary": "Search photo library",
+  "@media_repair_usePhotoLibrary": {
+    "description": "Wizard scope step: photo library source toggle"
+  },
+  "media_repair_useStore": "Use cloud media store",
+  "@media_repair_useStore": {
+    "description": "Wizard scope step: cloud store source toggle"
+  },
+  "media_repair_scan": "Scan",
+  "@media_repair_scan": {
+    "description": "Wizard scope step: start the candidate scan"
+  },
+  "media_repair_prefixMove": "Folder move detected: {from} to {to} covers {count} files",
+  "@media_repair_prefixMove": {
+    "description": "Review step callout for a detected whole-tree move",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_repair_confidence_exact": "Exact",
+  "@media_repair_confidence_exact": {
+    "description": "Review group: content hash matches"
+  },
+  "media_repair_confidence_probable": "Name and size",
+  "@media_repair_confidence_probable": {
+    "description": "Review group: filename and size agree"
+  },
+  "media_repair_confidence_edited": "Edited file",
+  "@media_repair_confidence_edited": {
+    "description": "Review group: bytes differ; accepting re-uploads"
+  },
+  "media_repair_confidence_unmatched": "No candidate",
+  "@media_repair_confidence_unmatched": {
+    "description": "Review group: nothing found"
+  },
+  "media_repair_unverified": "Not verified against the store",
+  "@media_repair_unverified": {
+    "description": "Subtitle for a store candidate the HEAD check could not confirm"
+  },
+  "media_repair_apply": "Re-link {count} files",
+  "@media_repair_apply": {
+    "description": "Review step apply button",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_repair_summary": "{relinked} re-linked, {cloudBacked} cloud-backed, {reuploads} re-uploads queued, {failed} failed, {skipped} skipped",
+  "@media_repair_summary": {
+    "description": "Apply step summary line",
+    "placeholders": {
+      "relinked": {
+        "type": "int"
+      },
+      "cloudBacked": {
+        "type": "int"
+      },
+      "reuploads": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "media_console_unlinked": "Unlinked",
+  "@media_console_unlinked": {
+    "description": "Media console sidebar/tab label for the unlinked inbox"
+  },
+  "media_import_linkTitle": "Link imported media",
+  "@media_import_linkTitle": {
+    "description": "Title of the post-import batch link screen"
+  },
+  "media_import_linkConfirm": "Link {count} items",
+  "@media_import_linkConfirm": {
+    "description": "Confirm button on the post-import batch link screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_import_staysUnlinked": "Stays in Unlinked",
+  "@media_import_staysUnlinked": {
+    "description": "Row subtitle for imports without a confident dive match"
+  },
+  "media_import_linkedResult": "{count} items linked",
+  "@media_import_linkedResult": {
+    "description": "Snackbar after the batch link applies",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_inbox_chooseDive": "Choose dive",
+  "@media_inbox_chooseDive": {
+    "description": "Inbox chip for an ambiguous auto-match"
+  },
+  "media_inbox_empty": "No unlinked media",
+  "@media_inbox_empty": {
+    "description": "Empty state for the unlinked inbox"
+  },
+  "media_inbox_keep": "Keep",
+  "@media_inbox_keep": {
+    "description": "Inbox action: keep the item in the library unlinked"
+  },
+  "media_inbox_linkChip": "Link to #{number}",
+  "@media_inbox_linkChip": {
+    "description": "Inbox chip for a confident auto-match",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "media_inbox_linkToDive": "Link to dive",
+  "@media_inbox_linkToDive": {
+    "description": "Inbox menu action: pick a dive manually"
+  },
+  "media_inbox_linkToSite": "Link to site",
+  "@media_inbox_linkToSite": {
+    "description": "Inbox menu action: pick a site manually"
+  },
+  "media_library_empty": "No media yet",
+  "@media_library_empty": {
+    "description": "Empty state for the media library"
+  },
+  "media_library_filter_all": "All",
+  "@media_library_filter_all": {
+    "description": "Library filter chip: no type filter"
+  },
+  "media_library_filter_photos": "Photos",
+  "@media_library_filter_photos": {
+    "description": "Library filter chip: photos only"
+  },
+  "media_library_filter_videos": "Videos",
+  "@media_library_filter_videos": {
+    "description": "Library filter chip: videos only"
+  },
+  "media_library_filter_site": "Site",
+  "@media_library_filter_site": {
+    "description": "Library filter chip: pick a dive site"
+  },
+  "media_library_filter_trip": "Trip",
+  "@media_library_filter_trip": {
+    "description": "Library filter chip: pick a trip"
+  },
+  "media_library_filter_dates": "Dates",
+  "@media_library_filter_dates": {
+    "description": "Library filter chip: pick a date range"
+  },
+  "media_library_filter_clear": "Clear filters",
+  "@media_library_filter_clear": {
+    "description": "Library filter chip: reset every filter"
+  },
+  "media_divePicker_title": "Move to dive",
+  "@media_divePicker_title": {
+    "description": "Title of the dive picker sheet"
+  },
+  "media_divePicker_search": "Search dives",
+  "@media_divePicker_search": {
+    "description": "Search hint in the dive picker sheet"
+  },
+  "media_library_deleteConfirmBody": "This removes them from the app and any media store. This cannot be undone.",
+  "@media_library_deleteConfirmBody": {
+    "description": "Body of the bulk delete confirmation dialog"
+  },
+  "media_library_deleteConfirmTitle": "Delete {count} items?",
+  "@media_library_deleteConfirmTitle": {
+    "description": "Title of the bulk delete confirmation dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_moveToDive": "Move to dive",
+  "@media_library_moveToDive": {
+    "description": "Library selection action: reassign media to a dive"
+  },
+  "media_library_unlinkFromSite": "Unlink from site",
+  "@media_library_unlinkFromSite": {
+    "description": "Library selection action: clear the site link"
+  },
+  "media_library_unlinkSelected": "Unlink",
+  "@media_library_unlinkSelected": {
+    "description": "Library selection action: clear the dive link"
+  },
+  "media_library_selectedCount": "{count} selected",
+  "@media_library_selectedCount": {
+    "description": "Selection bar count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_unlinkedHeader": "Unlinked",
+  "@media_library_unlinkedHeader": {
+    "description": "By-dive view header for media attached to no dive"
+  },
+  "media_library_diveHeaderHint": "Open this dive",
+  "@media_library_diveHeaderHint": {
+    "description": "Accessibility hint for the by-dive group header, which opens the dive"
+  },
+  "media_library_untitledDiveHeader": "Untitled dive",
+  "@media_library_untitledDiveHeader": {
+    "description": "By-dive view header for a linked dive with no number, site or date"
+  },
+  "media_library_viewMode_byDive": "By dive",
+  "@media_library_viewMode_byDive": {
+    "description": "Library view mode: grouped by dive"
+  },
+  "media_library_viewMode_grid": "Grid",
+  "@media_library_viewMode_grid": {
+    "description": "Library view mode: flat grid"
+  },
+  "media_library_viewMode_timeline": "Timeline",
+  "@media_library_viewMode_timeline": {
+    "description": "Library view mode: date-grouped timeline"
+  },
+  "media_viewer_goToDive": "Go to dive",
+  "@media_viewer_goToDive": {
+    "description": "Viewer action: navigate to the dive owning this media"
+  },
   "nav_home": "Home",
+  "nav_media": "Media",
   "nav_more": "More",
   "nav_planning": "Planning",
   "nav_planningSubtitle": "Dive Planner, Calculators",
@@ -7121,6 +7597,9 @@
   },
   "@nav_home": {
     "description": "Navigation label for home/dashboard"
+  },
+  "@nav_media": {
+    "description": "Navigation label for the media section"
   },
   "@nav_more": {
     "description": "Navigation label for the 'more' menu on mobile"

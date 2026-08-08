@@ -152,6 +152,8 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   path_provider_platform_interface: ^2.1.3  # mock docs dir in db service tests
   flutter_web_auth_2_platform_interface: ^5.0.0  # mock auth in redirect-capture test
+  share_plus_platform_interface: ^6.1.0  # fake share sheet in media share tests
+  video_player_platform_interface: ^6.7.0  # fake player in media viewer tests
   fake_async: ^1.3.3  # synthetic clock + Timer driving for unit tests
 
 dependency_overrides:

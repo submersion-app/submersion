@@ -11762,6 +11762,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_diveMediaSection_title => 'Fotok es videok';
 
   @override
+  String get media_diveMediaSection_deleteButton => 'Törlés';
+
+  @override
+  String media_diveMediaSection_deleteError(Object error) {
+    return 'Nem sikerult a torles: $error';
+  }
+
+  @override
+  String get media_diveMediaSection_deleteSelectedContent =>
+      'Ez eltávolítja őket az alkalmazásból és minden médiatárból. Nem vonható vissza.';
+
+  @override
+  String media_diveMediaSection_deleteSelectedSuccess(int count) {
+    return '$count elem törölve';
+  }
+
+  @override
+  String media_diveMediaSection_deleteSelectedTitle(int count) {
+    return '$count elem törlése?';
+  }
+
+  @override
+  String get media_diveMediaSection_replaceButton => 'Újracsatolás';
+
+  @override
+  String get media_diveMediaSection_replaceEditedContent =>
+      'A fájl tartalma eltér az eredetitől. Az újracsatolás újra feltölti a médiatárba.';
+
+  @override
+  String get media_diveMediaSection_replaceEditedTitle =>
+      'A fájl tartalma eltér';
+
+  @override
   String get media_diveMediaSection_unlinkButton => 'Levalasztas';
 
   @override
@@ -12310,7 +12343,314 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_gpsLog => 'GPS-napló';
 
   @override
+  String get media_console_library => 'Könyvtár';
+
+  @override
+  String get media_console_transfers => 'Átvitelek';
+
+  @override
+  String get media_console_import => 'Importálás';
+
+  @override
+  String get media_import_launch => 'Média importálása...';
+
+  @override
+  String get media_import_intro =>
+      'Az importált média a könyvtáradban marad, és automatikusan csatolható a merülésekhez.';
+
+  @override
+  String get media_console_sources => 'Források';
+
+  @override
+  String get media_sources_browseHeader => 'Böngészés forrás szerint';
+
+  @override
+  String get media_sources_watchedHeader => 'Figyelt mappák';
+
+  @override
+  String get media_sources_addWatched => 'Mappa hozzáadása...';
+
+  @override
+  String get media_sources_scanFailed => 'A keresés sikertelen';
+
+  @override
+  String get media_sources_scanNow => 'Keresés most';
+
+  @override
+  String get media_sources_autoApply =>
+      'Pontos egyezések automatikus újracsatolása';
+
+  @override
+  String get media_sources_neverScanned => 'Még nem vizsgált';
+
+  @override
+  String get media_source_gallery => 'Fotókönyvtár';
+
+  @override
+  String get media_source_localFile => 'Helyi fájlok';
+
+  @override
+  String get media_source_networkUrl => 'Webhivatkozások';
+
+  @override
+  String get media_source_manifest => 'Feliratkozások';
+
+  @override
+  String get media_source_connector => 'Csatlakoztatott szolgáltatások';
+
+  @override
+  String get media_source_mediaStore => 'Felhő médiatár';
+
+  @override
+  String get media_source_signature => 'Aláírások';
+
+  @override
+  String get media_repairHistory_title => 'Javítási előzmények';
+
+  @override
+  String get media_repairHistory_empty => 'Még nincs javítás';
+
+  @override
+  String get media_repairHistory_action_relink => 'Újracsatolva';
+
+  @override
+  String get media_repairHistory_action_cloudBacked => 'Felhőalapú';
+
+  @override
+  String get media_repairHistory_action_autoRelink =>
+      'Automatikusan újracsatolva';
+
+  @override
+  String get media_smartAlbum_save => 'Mentés albumként';
+
+  @override
+  String get media_smartAlbum_saveTitle => 'Album elnevezése';
+
+  @override
+  String get media_smartAlbum_albums => 'Albumok';
+
+  @override
+  String get media_smartAlbum_delete => 'Album törlése';
+
+  @override
+  String get media_smartAlbum_deleteFailed => 'Az album törlése nem sikerült';
+
+  @override
+  String get media_smartAlbum_saved => 'Album mentve';
+
+  @override
+  String media_sources_lastScanned(String date) {
+    return 'Utoljára vizsgálva: $date';
+  }
+
+  @override
+  String media_sources_scanResult(int indexed, int repaired) {
+    return '$indexed fájl indexelve, $repaired újracsatolva';
+  }
+
+  @override
+  String get media_repairHistory_sourceFolder => 'mappavizsgálat';
+
+  @override
+  String get media_repairHistory_sourcePhotoLibrary => 'fotókönyvtár';
+
+  @override
+  String get media_repairHistory_sourceStore => 'felhőalapú médiatár';
+
+  @override
+  String get media_repairHistory_sourceWatcher => 'figyelt mappák';
+
+  @override
+  String get media_repairHistory_sourceManual => 'kézi újracsatolás';
+
+  @override
+  String media_repairHistory_source(String source) {
+    return 'forrás: $source';
+  }
+
+  @override
+  String get media_console_missing => 'Hiányzó';
+
+  @override
+  String get media_missing_empty => 'Nincs hiányzó fájl';
+
+  @override
+  String media_missing_offlineVolumes(int count) {
+    return '$count offline köteten';
+  }
+
+  @override
+  String get media_missing_repair => 'Javítás...';
+
+  @override
+  String get media_repair_title => 'Hiányzó fájlok javítása';
+
+  @override
+  String get media_repair_addFolder => 'Mappa hozzáadása...';
+
+  @override
+  String get media_repair_usePhotoLibrary => 'Keresés a fotókönyvtárban';
+
+  @override
+  String get media_repair_useStore => 'Felhő médiatár használata';
+
+  @override
+  String get media_repair_scan => 'Keresés';
+
+  @override
+  String media_repair_prefixMove(String from, String to, int count) {
+    return 'Mappaáthelyezés észlelve: $from -> $to, $count fájlt fed le';
+  }
+
+  @override
+  String get media_repair_confidence_exact => 'Pontos';
+
+  @override
+  String get media_repair_confidence_probable => 'Név és méret';
+
+  @override
+  String get media_repair_confidence_edited => 'Szerkesztett fájl';
+
+  @override
+  String get media_repair_confidence_unmatched => 'Nincs jelölt';
+
+  @override
+  String get media_repair_unverified => 'Nincs ellenőrizve a tár ellen';
+
+  @override
+  String media_repair_apply(int count) {
+    return '$count fájl újracsatolása';
+  }
+
+  @override
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
+    return '$relinked újracsatolva, $cloudBacked felhőalapú, $reuploads újrafeltöltés sorban, $failed sikertelen, $skipped kihagyva';
+  }
+
+  @override
+  String get media_console_unlinked => 'Nem csatolt';
+
+  @override
+  String get media_import_linkTitle => 'Importált média csatolása';
+
+  @override
+  String media_import_linkConfirm(int count) {
+    return '$count elem csatolása';
+  }
+
+  @override
+  String get media_import_staysUnlinked => 'A Nem csatolt között marad';
+
+  @override
+  String media_import_linkedResult(int count) {
+    return '$count elem csatolva';
+  }
+
+  @override
+  String get media_inbox_chooseDive => 'Merülés kiválasztása';
+
+  @override
+  String get media_inbox_empty => 'Nincs nem csatolt média';
+
+  @override
+  String get media_inbox_keep => 'Megtartás';
+
+  @override
+  String media_inbox_linkChip(int number) {
+    return 'Csatolás: #$number';
+  }
+
+  @override
+  String get media_inbox_linkToDive => 'Csatolás merüléshez';
+
+  @override
+  String get media_inbox_linkToSite => 'Csatolás merülőhelyhez';
+
+  @override
+  String get media_library_empty => 'Még nincs média';
+
+  @override
+  String get media_library_filter_all => 'Összes';
+
+  @override
+  String get media_library_filter_photos => 'Fotók';
+
+  @override
+  String get media_library_filter_videos => 'Videók';
+
+  @override
+  String get media_library_filter_site => 'Merülőhely';
+
+  @override
+  String get media_library_filter_trip => 'Utazás';
+
+  @override
+  String get media_library_filter_dates => 'Dátumok';
+
+  @override
+  String get media_library_filter_clear => 'Szűrők törlése';
+
+  @override
+  String get media_divePicker_title => 'Áthelyezés merüléshez';
+
+  @override
+  String get media_divePicker_search => 'Merülések keresése';
+
+  @override
+  String get media_library_deleteConfirmBody =>
+      'Ez eltávolítja őket az alkalmazásból és minden médiatárból. Nem vonható vissza.';
+
+  @override
+  String media_library_deleteConfirmTitle(int count) {
+    return '$count elem törlése?';
+  }
+
+  @override
+  String get media_library_moveToDive => 'Áthelyezés merüléshez';
+
+  @override
+  String get media_library_unlinkFromSite => 'Leválasztás a merülőhelyről';
+
+  @override
+  String get media_library_unlinkSelected => 'Leválasztás';
+
+  @override
+  String media_library_selectedCount(int count) {
+    return '$count kiválasztva';
+  }
+
+  @override
+  String get media_library_unlinkedHeader => 'Nem csatolt';
+
+  @override
+  String get media_library_diveHeaderHint => 'Merülés megnyitása';
+
+  @override
+  String get media_library_untitledDiveHeader => 'Névtelen merülés';
+
+  @override
+  String get media_library_viewMode_byDive => 'Merülés szerint';
+
+  @override
+  String get media_library_viewMode_grid => 'Rács';
+
+  @override
+  String get media_library_viewMode_timeline => 'Idővonal';
+
+  @override
+  String get media_viewer_goToDive => 'Ugrás a merüléshez';
+
+  @override
   String get nav_home => 'Fooldal';
+
+  @override
+  String get nav_media => 'Média';
 
   @override
   String get nav_more => 'Tovabb';

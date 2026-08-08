@@ -169,6 +169,20 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           return const _VideoThumbnailPlaceholder();
         }
         final data = resolution.data;
+        // Bound the DECODE, not just the layout. Photo resolvers hand back the
+        // original file, so an unbounded Image.file holds a full-resolution
+        // bitmap (a 12 MP JPEG is ~48 MB RGBA) for as long as the tile has a
+        // listener -- and ImageCache cannot evict an image that still has one.
+        // Grouped views build every tile of every group eagerly (shrinkWrap),
+        // and the library page now stays mounted underneath a pushed dive, so
+        // those decodes would otherwise stay resident for the whole visit.
+        // Width only: passing both dimensions decodes to exact bounds and
+        // distorts the aspect ratio.
+        final target = widget.targetSize;
+        final cacheWidth = target == null
+            ? null
+            : (target.longestSide * MediaQuery.devicePixelRatioOf(context))
+                  .round();
         return switch (data) {
           // A video normally resolves to the raw video file, which Image.file
           // cannot decode. Show a placeholder instead of surfacing an
@@ -181,6 +195,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           FileData(file: final f) => Image.file(
             f,
             fit: widget.fit,
+            cacheWidth: cacheWidth,
             errorBuilder: _imageError,
           ),
           NetworkData(url: final u, headers: final h) => CachedNetworkImage(
@@ -195,6 +210,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           BytesData(bytes: final b) => Image.memory(
             b,
             fit: widget.fit,
+            cacheWidth: cacheWidth,
             errorBuilder: _imageError,
           ),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),

@@ -69,6 +69,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_l
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
@@ -760,6 +761,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ],
               ),
             ],
+          ),
+
+          // Media section (DAM console)
+          GoRoute(
+            path: '/media',
+            name: 'media',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const MediaSectionPage(),
+            ),
           ),
 
           // Statistics

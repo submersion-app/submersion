@@ -13,6 +13,7 @@ void main() {
       ('dives', '/dives'),
       ('sites', '/sites'),
       ('trips', '/trips'),
+      ('media', '/media'),
       ('equipment', '/equipment'),
       ('buddies', '/buddies'),
       ('dive-centers', '/dive-centers'),

@@ -11507,6 +11507,38 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_diveMediaSection_title => 'תמונות וסרטונים';
 
   @override
+  String get media_diveMediaSection_deleteButton => 'מחיקה';
+
+  @override
+  String media_diveMediaSection_deleteError(Object error) {
+    return 'המחיקה נכשלה: $error';
+  }
+
+  @override
+  String get media_diveMediaSection_deleteSelectedContent =>
+      'פעולה זו מסירה אותם מהאפליקציה ומכל מאגר מדיה. לא ניתן לבטל זאת.';
+
+  @override
+  String media_diveMediaSection_deleteSelectedSuccess(int count) {
+    return '$count פריטים נמחקו';
+  }
+
+  @override
+  String media_diveMediaSection_deleteSelectedTitle(int count) {
+    return 'למחוק $count פריטים?';
+  }
+
+  @override
+  String get media_diveMediaSection_replaceButton => 'קישור מחדש';
+
+  @override
+  String get media_diveMediaSection_replaceEditedContent =>
+      'תוכן הקובץ שונה מהמקור. קישור מחדש יעלה אותו שוב למאגר המדיה שלך.';
+
+  @override
+  String get media_diveMediaSection_replaceEditedTitle => 'תוכן הקובץ שונה';
+
+  @override
   String get media_diveMediaSection_unlinkButton => 'בטל קישור';
 
   @override
@@ -12043,7 +12075,312 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_gpsLog => 'יומן GPS';
 
   @override
+  String get media_console_library => 'ספרייה';
+
+  @override
+  String get media_console_transfers => 'העברות';
+
+  @override
+  String get media_console_import => 'ייבוא';
+
+  @override
+  String get media_import_launch => 'ייבוא מדיה...';
+
+  @override
+  String get media_import_intro =>
+      'מדיה מיובאת נשמרת בספרייה שלך וניתן לקשר אותה לצלילות באופן אוטומטי.';
+
+  @override
+  String get media_console_sources => 'מקורות';
+
+  @override
+  String get media_sources_browseHeader => 'עיון לפי מקור';
+
+  @override
+  String get media_sources_watchedHeader => 'תיקיות במעקב';
+
+  @override
+  String get media_sources_addWatched => 'הוספת תיקייה...';
+
+  @override
+  String get media_sources_scanFailed => 'הסריקה נכשלה';
+
+  @override
+  String get media_sources_scanNow => 'סריקה עכשיו';
+
+  @override
+  String get media_sources_autoApply => 'קישור אוטומטי של התאמות מדויקות';
+
+  @override
+  String get media_sources_neverScanned => 'לא נסרק מעולם';
+
+  @override
+  String get media_source_gallery => 'ספריית תמונות';
+
+  @override
+  String get media_source_localFile => 'קבצים מקומיים';
+
+  @override
+  String get media_source_networkUrl => 'קישורי אינטרנט';
+
+  @override
+  String get media_source_manifest => 'מנויים';
+
+  @override
+  String get media_source_connector => 'שירותים מחוברים';
+
+  @override
+  String get media_source_mediaStore => 'מאגר מדיה בענן';
+
+  @override
+  String get media_source_signature => 'חתימות';
+
+  @override
+  String get media_repairHistory_title => 'היסטוריית תיקונים';
+
+  @override
+  String get media_repairHistory_empty => 'אין תיקונים עדיין';
+
+  @override
+  String get media_repairHistory_action_relink => 'קושר מחדש';
+
+  @override
+  String get media_repairHistory_action_cloudBacked => 'מגובה בענן';
+
+  @override
+  String get media_repairHistory_action_autoRelink => 'קושר מחדש אוטומטית';
+
+  @override
+  String get media_smartAlbum_save => 'שמירה כאלבום';
+
+  @override
+  String get media_smartAlbum_saveTitle => 'שם לאלבום';
+
+  @override
+  String get media_smartAlbum_albums => 'אלבומים';
+
+  @override
+  String get media_smartAlbum_delete => 'מחיקת אלבום';
+
+  @override
+  String get media_smartAlbum_deleteFailed => 'מחיקת האלבום נכשלה';
+
+  @override
+  String get media_smartAlbum_saved => 'האלבום נשמר';
+
+  @override
+  String media_sources_lastScanned(String date) {
+    return 'נסרק לאחרונה $date';
+  }
+
+  @override
+  String media_sources_scanResult(int indexed, int repaired) {
+    return '$indexed קבצים נסרקו, $repaired קושרו מחדש';
+  }
+
+  @override
+  String get media_repairHistory_sourceFolder => 'סריקת תיקיות';
+
+  @override
+  String get media_repairHistory_sourcePhotoLibrary => 'ספריית התמונות';
+
+  @override
+  String get media_repairHistory_sourceStore => 'אחסון מדיה בענן';
+
+  @override
+  String get media_repairHistory_sourceWatcher => 'תיקיות במעקב';
+
+  @override
+  String get media_repairHistory_sourceManual => 'קישור ידני';
+
+  @override
+  String media_repairHistory_source(String source) {
+    return 'דרך $source';
+  }
+
+  @override
+  String get media_console_missing => 'חסרים';
+
+  @override
+  String get media_missing_empty => 'אין קבצים חסרים';
+
+  @override
+  String media_missing_offlineVolumes(int count) {
+    return '$count בכוננים לא מחוברים';
+  }
+
+  @override
+  String get media_missing_repair => 'תיקון...';
+
+  @override
+  String get media_repair_title => 'תיקון קבצים חסרים';
+
+  @override
+  String get media_repair_addFolder => 'הוספת תיקייה...';
+
+  @override
+  String get media_repair_usePhotoLibrary => 'חיפוש בספריית התמונות';
+
+  @override
+  String get media_repair_useStore => 'שימוש במאגר המדיה בענן';
+
+  @override
+  String get media_repair_scan => 'סריקה';
+
+  @override
+  String media_repair_prefixMove(String from, String to, int count) {
+    return 'זוהתה העברת תיקייה: $from אל $to מכסה $count קבצים';
+  }
+
+  @override
+  String get media_repair_confidence_exact => 'מדויק';
+
+  @override
+  String get media_repair_confidence_probable => 'שם וגודל';
+
+  @override
+  String get media_repair_confidence_edited => 'קובץ ערוך';
+
+  @override
+  String get media_repair_confidence_unmatched => 'אין מועמד';
+
+  @override
+  String get media_repair_unverified => 'לא אומת מול המאגר';
+
+  @override
+  String media_repair_apply(int count) {
+    return 'קישור מחדש של $count קבצים';
+  }
+
+  @override
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
+    return '$relinked קושרו מחדש, $cloudBacked מגובים בענן, $reuploads העלאות חוזרות בתור, $failed נכשלו, $skipped דולגו';
+  }
+
+  @override
+  String get media_console_unlinked => 'לא מקושרים';
+
+  @override
+  String get media_import_linkTitle => 'קישור מדיה מיובאת';
+
+  @override
+  String media_import_linkConfirm(int count) {
+    return 'קישור $count פריטים';
+  }
+
+  @override
+  String get media_import_staysUnlinked => 'נשאר בלא מקושרים';
+
+  @override
+  String media_import_linkedResult(int count) {
+    return '$count פריטים קושרו';
+  }
+
+  @override
+  String get media_inbox_chooseDive => 'בחירת צלילה';
+
+  @override
+  String get media_inbox_empty => 'אין מדיה לא מקושרת';
+
+  @override
+  String get media_inbox_keep => 'שמירה';
+
+  @override
+  String media_inbox_linkChip(int number) {
+    return 'קישור אל #$number';
+  }
+
+  @override
+  String get media_inbox_linkToDive => 'קישור לצלילה';
+
+  @override
+  String get media_inbox_linkToSite => 'קישור לאתר';
+
+  @override
+  String get media_library_empty => 'אין מדיה עדיין';
+
+  @override
+  String get media_library_filter_all => 'הכול';
+
+  @override
+  String get media_library_filter_photos => 'תמונות';
+
+  @override
+  String get media_library_filter_videos => 'סרטונים';
+
+  @override
+  String get media_library_filter_site => 'אתר';
+
+  @override
+  String get media_library_filter_trip => 'טיול';
+
+  @override
+  String get media_library_filter_dates => 'תאריכים';
+
+  @override
+  String get media_library_filter_clear => 'ניקוי מסננים';
+
+  @override
+  String get media_divePicker_title => 'העברה לצלילה';
+
+  @override
+  String get media_divePicker_search => 'חיפוש צלילות';
+
+  @override
+  String get media_library_deleteConfirmBody =>
+      'פעולה זו מסירה אותם מהאפליקציה ומכל מאגר מדיה. לא ניתן לבטל זאת.';
+
+  @override
+  String media_library_deleteConfirmTitle(int count) {
+    return 'למחוק $count פריטים?';
+  }
+
+  @override
+  String get media_library_moveToDive => 'העברה לצלילה';
+
+  @override
+  String get media_library_unlinkFromSite => 'ניתוק מהאתר';
+
+  @override
+  String get media_library_unlinkSelected => 'ניתוק';
+
+  @override
+  String media_library_selectedCount(int count) {
+    return '$count נבחרו';
+  }
+
+  @override
+  String get media_library_unlinkedHeader => 'לא מקושרים';
+
+  @override
+  String get media_library_diveHeaderHint => 'פתיחת צלילה זו';
+
+  @override
+  String get media_library_untitledDiveHeader => 'צלילה ללא שם';
+
+  @override
+  String get media_library_viewMode_byDive => 'לפי צלילה';
+
+  @override
+  String get media_library_viewMode_grid => 'רשת';
+
+  @override
+  String get media_library_viewMode_timeline => 'ציר זמן';
+
+  @override
+  String get media_viewer_goToDive => 'מעבר לצלילה';
+
+  @override
   String get nav_home => 'בית';
+
+  @override
+  String get nav_media => 'מדיה';
 
   @override
   String get nav_more => 'עוד';

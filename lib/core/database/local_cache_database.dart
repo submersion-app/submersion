@@ -108,6 +108,35 @@ class ReefDataCache extends Table {
   Set<Column> get primaryKey => {provider, coordKey, variant};
 }
 
+/// Folders the repair watcher scans (Media section Phase 5). Per-device by
+/// construction: a path from another machine is meaningless here, and a
+/// cache wipe costs a re-add, never user data.
+class WatchedRoots extends Table {
+  TextColumn get path => text()();
+  IntColumn get addedAt => integer()();
+  IntColumn get lastScanAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {path};
+}
+
+/// The watcher's file index (Media section Phase 5). Size and mtime are the
+/// change detector: a rescan re-hashes only files whose stat differs, so a
+/// NAS full of unchanged photos costs one stat each instead of one full
+/// read each.
+class WatchedFolderIndex extends Table {
+  TextColumn get rootPath => text()();
+  TextColumn get relativePath => text()();
+  IntColumn get sizeBytes => integer()();
+  IntColumn get mtimeMillis => integer()();
+
+  /// Null until first hashed.
+  TextColumn get contentHash => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {rootPath, relativePath};
+}
+
 @DriftDatabase(
   tables: [
     LocalAssetCache,
@@ -115,13 +144,15 @@ class ReefDataCache extends Table {
     MediaCacheEntries,
     BathymetryCache,
     ReefDataCache,
+    WatchedRoots,
+    WatchedFolderIndex,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -163,6 +194,11 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 8) {
         await m.createTable(reefDataCache);
       }
+      // v9: repair watcher state (Media section Phase 5).
+      if (from < 9) {
+        await m.createTable(watchedRoots);
+        await m.createTable(watchedFolderIndex);
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -192,6 +228,24 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           status TEXT NOT NULL,
           fetched_at INTEGER NOT NULL,
           PRIMARY KEY (provider, coord_key, variant)
+        )
+      ''');
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS watched_roots (
+          path TEXT NOT NULL,
+          added_at INTEGER NOT NULL,
+          last_scan_at INTEGER,
+          PRIMARY KEY (path)
+        )
+      ''');
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS watched_folder_index (
+          root_path TEXT NOT NULL,
+          relative_path TEXT NOT NULL,
+          size_bytes INTEGER NOT NULL,
+          mtime_millis INTEGER NOT NULL,
+          content_hash TEXT,
+          PRIMARY KEY (root_path, relative_path)
         )
       ''');
     },

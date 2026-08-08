@@ -65,6 +65,7 @@ void main() {
     'settings': 'settings',
     'media': 'media',
     'media_enrichment': 'mediaEnrichment',
+    'media_smart_albums': 'mediaSmartAlbums',
     'course_requirements': 'courseRequirements',
     'course_requirement_dives': 'courseRequirementDives',
     'emergency_chambers': 'emergencyChambers',

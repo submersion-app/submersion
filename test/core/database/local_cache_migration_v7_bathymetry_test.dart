@@ -154,4 +154,92 @@ void main() {
     final rows = await db.select(db.reefDataCache).get();
     expect(rows.single.status, 'ok');
   });
+
+  test('upgrade from a stored v8 schema creates the watcher tables', () async {
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw
+            ..execute(
+              'CREATE TABLE local_asset_cache '
+              '(media_id TEXT PRIMARY KEY, local_asset_id TEXT, '
+              'resolved_at INTEGER, resolution_method TEXT, '
+              'attempt_count INTEGER)',
+            )
+            ..execute(
+              'CREATE TABLE media_transfer_queue '
+              '(id INTEGER PRIMARY KEY AUTOINCREMENT, media_id TEXT)',
+            )
+            ..execute(
+              'CREATE TABLE media_cache_entries '
+              '(content_hash TEXT, kind TEXT, '
+              'PRIMARY KEY (content_hash, kind))',
+            )
+            ..execute('PRAGMA user_version = 8');
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    expect(db.schemaVersion, greaterThanOrEqualTo(9));
+    await db
+        .into(db.watchedRoots)
+        .insert(WatchedRootsCompanion.insert(path: '/nas/Dives', addedAt: 1));
+    await db
+        .into(db.watchedFolderIndex)
+        .insert(
+          WatchedFolderIndexCompanion.insert(
+            rootPath: '/nas/Dives',
+            relativePath: '2026/a.jpg',
+            sizeBytes: 4,
+            mtimeMillis: 2,
+            contentHash: const Value('H'),
+          ),
+        );
+    expect((await db.select(db.watchedRoots).get()).single.path, '/nas/Dives');
+  });
+
+  test('self-heals a v9-stamped database missing the watcher tables', () async {
+    // Same ladder collision as the v7/v8 cases: a parallel branch claiming
+    // v9 stamps user_version first, so the from<9 block never runs here.
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw
+            ..execute(
+              'CREATE TABLE local_asset_cache '
+              '(media_id TEXT PRIMARY KEY, local_asset_id TEXT, '
+              'resolved_at INTEGER, resolution_method TEXT, '
+              'attempt_count INTEGER)',
+            )
+            ..execute(
+              'CREATE TABLE media_transfer_queue '
+              '(id INTEGER PRIMARY KEY AUTOINCREMENT, media_id TEXT)',
+            )
+            ..execute(
+              'CREATE TABLE media_cache_entries '
+              '(content_hash TEXT, kind TEXT, '
+              'PRIMARY KEY (content_hash, kind))',
+            )
+            ..execute('PRAGMA user_version = 9');
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    await db
+        .into(db.watchedFolderIndex)
+        .insert(
+          WatchedFolderIndexCompanion.insert(
+            rootPath: '/nas/Dives',
+            relativePath: '2026/a.jpg',
+            sizeBytes: 4,
+            mtimeMillis: 2,
+          ),
+        );
+    final rows = await db.select(db.watchedFolderIndex).get();
+    expect(rows.single.relativePath, '2026/a.jpg');
+    // Not yet hashed: the scanner fills this in on its first pass.
+    expect(rows.single.contentHash, null);
+  });
 }

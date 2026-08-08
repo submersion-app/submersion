@@ -130,9 +130,15 @@ class AppShortcuts {
     ensureRegistered();
 
     return {
-      // Navigation
+      // Navigation.
+      //
+      // The numbered section shortcuts below use `go` deliberately: switching
+      // top-level sections SHOULD reset the stack. The child routes here use
+      // `push`, because these bindings are mounted around the entire shell and
+      // `go` into a `/dives` child would rebuild the stack as [dive list, X],
+      // stranding a user who pressed the key from Media or Statistics.
       platformShortcut(LogicalKeyboardKey.keyN): () {
-        context.go('/dives/new');
+        context.push('/dives/new');
       },
       platformShortcut(LogicalKeyboardKey.digit1): () {
         context.go('/dives');
@@ -157,7 +163,7 @@ class AppShortcuts {
 
       // Search
       platformShortcut(LogicalKeyboardKey.keyF): () {
-        context.go('/dives/search');
+        context.push('/dives/search');
       },
 
       // Settings

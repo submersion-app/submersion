@@ -679,7 +679,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         content: Text(context.l10n.plannerCanvas_convert_success),
         action: SnackBarAction(
           label: context.l10n.plannerCanvas_convert_view,
-          onPressed: () => context.go('/dives/${created.id}'),
+          // push, not go: `go` into the `/dives` child route would rebuild
+          // the stack as [dive list, dive detail] and discard this canvas
+          // and its editable plan state.
+          onPressed: () => context.push('/dives/${created.id}'),
         ),
       ),
     );

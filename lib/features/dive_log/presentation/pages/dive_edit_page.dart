@@ -4864,9 +4864,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         if (widget.embedded && widget.onSaved != null) {
           // In embedded mode, call the callback to update selection
           widget.onSaved!(savedDiveId);
+        } else if (widget.diveId != null && context.canPop()) {
+          // Editing an existing dive: return to whatever pushed this form
+          // (normally that dive's own detail page). `go` would rebuild the
+          // stack from `/dives` and discard the section the user came from --
+          // Media, Statistics, a trip -- stranding them on the dive list.
+          context.pop();
         } else {
-          // In standalone mode, navigate to the detail page
-          context.go('/dives/$savedDiveId');
+          // A new dive has no page to return to, so take the form's place
+          // rather than replacing the whole stack.
+          context.pushReplacement('/dives/$savedDiveId');
         }
       }
     } catch (e) {

@@ -1246,6 +1246,11 @@ class Media extends Table {
   TextColumn get compressedLevel => text().nullable()();
   IntColumn get compressedSizeBytes => integer().nullable()();
   IntColumn get remoteCompressedUploadedAt => integer().nullable()();
+  // Media section Phase 1 (v140): kept-in-library marker. Dormant until the
+  // Phase 2 link-management UI sets it; the orphan sweep will exclude rows
+  // where it is true. Synced with the row like every other media column.
+  BoolColumn get retainInLibrary =>
+      boolean().withDefault(const Constant(false))();
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -1300,6 +1305,56 @@ class MediaSpecies extends Table {
   RealColumn get bboxHeight => real().nullable()();
   TextColumn get notes => text().nullable()();
   IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Repair history (Media section Phase 5, v143).
+///
+/// Deliberately NOT synced and NOT registered in [SyncRepository]: every
+/// row records a device-specific path change, so replaying one device's
+/// history onto another would describe files that never existed there.
+/// Same per-device reasoning as [PendingPhotoSuggestions]. Pruned to the
+/// newest 500 rows by MediaRepairLogRepository.
+class MediaRepairLog extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId => text()();
+
+  /// Groups every row written by one apply pass.
+  TextColumn get batchId => text()();
+  IntColumn get occurredAt => integer()();
+
+  /// A `RepairLogAction.name`: relink | cloudBacked | autoRelink.
+  TextColumn get action => text()();
+
+  /// The pointer before and after the repair (path, asset id, or null for
+  /// a cloud-backed conversion's new value).
+  TextColumn get oldValue => text().nullable()();
+  TextColumn get newValue => text().nullable()();
+
+  /// A `RepairLogSource.name`: folder | photoLibrary | store | watcher |
+  /// manual.
+  TextColumn get source => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A named saved library filter (Media section Phase 5, v143).
+///
+/// Synced like any other user data: the filter is expressed in ids and
+/// enum names that mean the same thing on every device.
+class MediaSmartAlbums extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+
+  /// A serialized `MediaLibraryFilter`.
+  TextColumn get filterJson => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -2848,6 +2903,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaEnrichment,
     MediaSpecies,
     PendingPhotoSuggestions,
+    MediaRepairLog,
+    MediaSmartAlbums,
     Settings,
     Buddies,
     DiveBuddies,
@@ -2932,7 +2989,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 142;
+  static const int currentSchemaVersion = 143;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3105,13 +3162,17 @@ class AppDatabase extends _$AppDatabase {
     // v139: cylinder_configs + cylinder_config_items (reusable diluent and
     // bailout setups).
     139,
-    // v140 is reserved by the media-section branch (media.retain_in_library).
+    // v140: media.retain_in_library (Media section Phase 1).
+    140,
     // v141: diver_settings.default_currency (default currency for priced
     // items). Renumbered from v138 and then v139 as those went to the
     // divelogs.de branch and the cylinder configs respectively.
     141,
     // v142: trips.return_flight_at (return-flight dive-window countdown).
     142,
+    // v143: media_repair_log (per-device) + media_smart_albums (synced),
+    // Media section Phase 5.
+    143,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3732,6 +3793,28 @@ class AppDatabase extends _$AppDatabase {
           'INTEGER NOT NULL DEFAULT 0 CHECK ($column IN (0, 1))',
         );
       }
+    }
+  }
+
+  /// v143: Media section Phase 5 tables. createTable is CREATE TABLE IF NOT
+  /// EXISTS, so this is safe to call from both onUpgrade and the beforeOpen
+  /// backstop (parallel-branch collision self-heal).
+  Future<void> _assertMediaPhase5Schema() async {
+    await createMigrator().createTable(mediaRepairLog);
+    await createMigrator().createTable(mediaSmartAlbums);
+  }
+
+  /// v140: media.retain_in_library (Media section Phase 1). Idempotent; safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertMediaRetainInLibraryColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('retain_in_library')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN retain_in_library '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (retain_in_library IN (0, 1))',
+      );
     }
   }
 
@@ -7343,6 +7426,14 @@ class AppDatabase extends _$AppDatabase {
           await _assertCylinderConfigSchema();
           await reportProgress();
         }
+        // v140: media.retain_in_library (Media section Phase 1). v138
+        // (divelogs) lives on a parallel branch; a DB arriving here from 137
+        // runs the v139 cylinder block then this one, and the beforeOpen
+        // backstop self-heals any DB a parallel branch strands in between.
+        if (from < 140) {
+          await _assertMediaRetainInLibraryColumn();
+        }
+        if (from < 140) await reportProgress();
         // v141: default currency for priced items (e.g. equipment). A DB
         // that upgraded past 141 on a parallel branch never enters this block;
         // the beforeOpen backstop below is its only path to the column.
@@ -7351,12 +7442,17 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 141) await reportProgress();
         // v142: trips.return_flight_at (return-flight dive-window countdown).
-        // v138 (#603) and v140 (media section) are reserved by parallel
-        // branches; the beforeOpen backstop heals any DB stranded between.
+        // v138 (#603) is reserved by a parallel branch; the beforeOpen
+        // backstop heals any DB stranded between.
         if (from < 142) {
           await _assertTripReturnFlightColumn();
         }
         if (from < 142) await reportProgress();
+        // v143: repair history + smart albums (Media section Phase 5).
+        if (from < 143) {
+          await _assertMediaPhase5Schema();
+        }
+        if (from < 143) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -7378,8 +7474,19 @@ class AppDatabase extends _$AppDatabase {
         // v137 backstop: re-assert dives.weather_code.
         await _assertWeatherCodeColumn();
 
+        // v140 backstop: re-assert media.retain_in_library. A device
+        // already at 141/142 never enters the `from < 140` block above, so
+        // this is the ONLY path that gives it the column.
+        await _assertMediaRetainInLibraryColumn();
+
         // v141 backstop: re-assert diver_settings.default_currency.
         await _assertDefaultCurrencyColumn();
+
+        // v143 backstop: re-assert the Phase 5 tables. Same reason as the
+        // v140 backstop above -- a parallel branch that claims 143 or higher
+        // for something else would carry a device past the `from < 143`
+        // block without ever creating these tables.
+        await _assertMediaPhase5Schema();
 
         // v106 backstop: re-assert connector-suggestion columns (the helper
         // is self-guarding when the suggestions table is absent).

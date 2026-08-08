@@ -78,4 +78,23 @@ class VolumeStatus {
     if (root == null) return true;
     return _directoryExists(root);
   }
+
+  /// An [isVolumeOnline] that memoizes per mount root, for callers
+  /// classifying MANY paths in one pass (the Missing count, the wizard's
+  /// harvest). Without it a library with hundreds of rows on one
+  /// unreachable share pays that share's stat timeout once per row.
+  ///
+  /// The memo holds the in-flight future, so concurrent probes of the same
+  /// root also collapse into one call. Deliberately per-pass rather than
+  /// per-[VolumeStatus]: a long-lived cache would keep reporting a volume
+  /// offline after the user plugged it back in. Create a fresh probe for
+  /// each pass.
+  Future<bool> Function(String path) newPassProbe({String? platformOverride}) {
+    final byRoot = <String, Future<bool>>{};
+    return (path) {
+      final root = volumeRootOf(path, platformOverride: platformOverride);
+      if (root == null) return Future.value(true);
+      return byRoot.putIfAbsent(root, () => _directoryExists(root));
+    };
+  }
 }

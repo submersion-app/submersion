@@ -11606,6 +11606,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_diveMediaSection_title => 'Photos & Video';
 
   @override
+  String get media_diveMediaSection_deleteButton => 'Delete';
+
+  @override
+  String media_diveMediaSection_deleteError(Object error) {
+    return 'Failed to delete: $error';
+  }
+
+  @override
+  String get media_diveMediaSection_deleteSelectedContent =>
+      'This removes them from the app and any media store. This cannot be undone.';
+
+  @override
+  String media_diveMediaSection_deleteSelectedSuccess(int count) {
+    return 'Deleted $count items';
+  }
+
+  @override
+  String media_diveMediaSection_deleteSelectedTitle(int count) {
+    return 'Delete $count items?';
+  }
+
+  @override
+  String get media_diveMediaSection_replaceButton => 'Re-link';
+
+  @override
+  String get media_diveMediaSection_replaceEditedContent =>
+      'This file\'s contents differ from the original. Re-linking will re-upload it to your media store.';
+
+  @override
+  String get media_diveMediaSection_replaceEditedTitle =>
+      'File contents differ';
+
+  @override
   String get media_diveMediaSection_unlinkButton => 'Unlink';
 
   @override
@@ -12149,7 +12182,312 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_gpsLog => 'GPS Log';
 
   @override
+  String get media_console_library => 'Library';
+
+  @override
+  String get media_console_transfers => 'Transfers';
+
+  @override
+  String get media_console_import => 'Import';
+
+  @override
+  String get media_import_launch => 'Import media...';
+
+  @override
+  String get media_import_intro =>
+      'Imported media is kept in your library and can be linked to dives automatically.';
+
+  @override
+  String get media_console_sources => 'Sources';
+
+  @override
+  String get media_sources_browseHeader => 'Browse by source';
+
+  @override
+  String get media_sources_watchedHeader => 'Watched folders';
+
+  @override
+  String get media_sources_addWatched => 'Add folder...';
+
+  @override
+  String get media_sources_scanFailed => 'Scan failed';
+
+  @override
+  String get media_sources_scanNow => 'Scan now';
+
+  @override
+  String get media_sources_autoApply => 'Automatically re-link exact matches';
+
+  @override
+  String get media_sources_neverScanned => 'Never scanned';
+
+  @override
+  String get media_source_gallery => 'Photo library';
+
+  @override
+  String get media_source_localFile => 'Local files';
+
+  @override
+  String get media_source_networkUrl => 'Web links';
+
+  @override
+  String get media_source_manifest => 'Subscriptions';
+
+  @override
+  String get media_source_connector => 'Connected services';
+
+  @override
+  String get media_source_mediaStore => 'Cloud media store';
+
+  @override
+  String get media_source_signature => 'Signatures';
+
+  @override
+  String get media_repairHistory_title => 'Repair history';
+
+  @override
+  String get media_repairHistory_empty => 'No repairs yet';
+
+  @override
+  String get media_repairHistory_action_relink => 'Re-linked';
+
+  @override
+  String get media_repairHistory_action_cloudBacked => 'Cloud-backed';
+
+  @override
+  String get media_repairHistory_action_autoRelink => 'Auto re-linked';
+
+  @override
+  String get media_smartAlbum_save => 'Save as album';
+
+  @override
+  String get media_smartAlbum_saveTitle => 'Name this album';
+
+  @override
+  String get media_smartAlbum_albums => 'Albums';
+
+  @override
+  String get media_smartAlbum_delete => 'Delete album';
+
+  @override
+  String get media_smartAlbum_deleteFailed => 'Could not delete album';
+
+  @override
+  String get media_smartAlbum_saved => 'Album saved';
+
+  @override
+  String media_sources_lastScanned(String date) {
+    return 'Last scanned $date';
+  }
+
+  @override
+  String media_sources_scanResult(int indexed, int repaired) {
+    return '$indexed files indexed, $repaired re-linked';
+  }
+
+  @override
+  String get media_repairHistory_sourceFolder => 'folder scan';
+
+  @override
+  String get media_repairHistory_sourcePhotoLibrary => 'photo library';
+
+  @override
+  String get media_repairHistory_sourceStore => 'cloud media store';
+
+  @override
+  String get media_repairHistory_sourceWatcher => 'watched folders';
+
+  @override
+  String get media_repairHistory_sourceManual => 'manual re-link';
+
+  @override
+  String media_repairHistory_source(String source) {
+    return 'via $source';
+  }
+
+  @override
+  String get media_console_missing => 'Missing';
+
+  @override
+  String get media_missing_empty => 'No missing files';
+
+  @override
+  String media_missing_offlineVolumes(int count) {
+    return '$count on offline volumes';
+  }
+
+  @override
+  String get media_missing_repair => 'Repair...';
+
+  @override
+  String get media_repair_title => 'Repair missing files';
+
+  @override
+  String get media_repair_addFolder => 'Add folder...';
+
+  @override
+  String get media_repair_usePhotoLibrary => 'Search photo library';
+
+  @override
+  String get media_repair_useStore => 'Use cloud media store';
+
+  @override
+  String get media_repair_scan => 'Scan';
+
+  @override
+  String media_repair_prefixMove(String from, String to, int count) {
+    return 'Folder move detected: $from to $to covers $count files';
+  }
+
+  @override
+  String get media_repair_confidence_exact => 'Exact';
+
+  @override
+  String get media_repair_confidence_probable => 'Name and size';
+
+  @override
+  String get media_repair_confidence_edited => 'Edited file';
+
+  @override
+  String get media_repair_confidence_unmatched => 'No candidate';
+
+  @override
+  String get media_repair_unverified => 'Not verified against the store';
+
+  @override
+  String media_repair_apply(int count) {
+    return 'Re-link $count files';
+  }
+
+  @override
+  String media_repair_summary(
+    int relinked,
+    int cloudBacked,
+    int reuploads,
+    int failed,
+    int skipped,
+  ) {
+    return '$relinked re-linked, $cloudBacked cloud-backed, $reuploads re-uploads queued, $failed failed, $skipped skipped';
+  }
+
+  @override
+  String get media_console_unlinked => 'Unlinked';
+
+  @override
+  String get media_import_linkTitle => 'Link imported media';
+
+  @override
+  String media_import_linkConfirm(int count) {
+    return 'Link $count items';
+  }
+
+  @override
+  String get media_import_staysUnlinked => 'Stays in Unlinked';
+
+  @override
+  String media_import_linkedResult(int count) {
+    return '$count items linked';
+  }
+
+  @override
+  String get media_inbox_chooseDive => 'Choose dive';
+
+  @override
+  String get media_inbox_empty => 'No unlinked media';
+
+  @override
+  String get media_inbox_keep => 'Keep';
+
+  @override
+  String media_inbox_linkChip(int number) {
+    return 'Link to #$number';
+  }
+
+  @override
+  String get media_inbox_linkToDive => 'Link to dive';
+
+  @override
+  String get media_inbox_linkToSite => 'Link to site';
+
+  @override
+  String get media_library_empty => 'No media yet';
+
+  @override
+  String get media_library_filter_all => 'All';
+
+  @override
+  String get media_library_filter_photos => 'Photos';
+
+  @override
+  String get media_library_filter_videos => 'Videos';
+
+  @override
+  String get media_library_filter_site => 'Site';
+
+  @override
+  String get media_library_filter_trip => 'Trip';
+
+  @override
+  String get media_library_filter_dates => 'Dates';
+
+  @override
+  String get media_library_filter_clear => 'Clear filters';
+
+  @override
+  String get media_divePicker_title => 'Move to dive';
+
+  @override
+  String get media_divePicker_search => 'Search dives';
+
+  @override
+  String get media_library_deleteConfirmBody =>
+      'This removes them from the app and any media store. This cannot be undone.';
+
+  @override
+  String media_library_deleteConfirmTitle(int count) {
+    return 'Delete $count items?';
+  }
+
+  @override
+  String get media_library_moveToDive => 'Move to dive';
+
+  @override
+  String get media_library_unlinkFromSite => 'Unlink from site';
+
+  @override
+  String get media_library_unlinkSelected => 'Unlink';
+
+  @override
+  String media_library_selectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get media_library_unlinkedHeader => 'Unlinked';
+
+  @override
+  String get media_library_diveHeaderHint => 'Open this dive';
+
+  @override
+  String get media_library_untitledDiveHeader => 'Untitled dive';
+
+  @override
+  String get media_library_viewMode_byDive => 'By dive';
+
+  @override
+  String get media_library_viewMode_grid => 'Grid';
+
+  @override
+  String get media_library_viewMode_timeline => 'Timeline';
+
+  @override
+  String get media_viewer_goToDive => 'Go to dive';
+
+  @override
   String get nav_home => 'Home';
+
+  @override
+  String get nav_media => 'Media';
 
   @override
   String get nav_more => 'More';

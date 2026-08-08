@@ -207,9 +207,9 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // GPS Log is rail index 12 (after Transfer, before Settings).
+      // GPS Log is rail index 13 (after Transfer, before Settings).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(12);
+      rail.onDestinationSelected!(13);
       await tester.pumpAndSettle();
 
       expect(find.text('GPS Log Page'), findsOneWidget);
@@ -217,7 +217,7 @@ void main() {
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
-      expect(selected, 12);
+      expect(selected, 13);
     });
 
     testWidgets('recording strip appears while a GPS session is active', (
@@ -439,7 +439,7 @@ void main() {
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 14 default destinations', (
+    testWidgets('wide-screen rail still shows all 15 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -453,11 +453,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // The wide-screen rail is NOT customized, so it keeps the default
-      // 14-entry order regardless of stored primary-ids customization.
+      // 15-entry order regardless of stored primary-ids customization.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(14));
+      expect(rail.destinations, hasLength(15));
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
@@ -471,6 +471,7 @@ void main() {
         'Dives',
         'Sites',
         'Trips',
+        'Media',
         'Equipment',
         'Buddies',
         'Dive Centers',

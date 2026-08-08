@@ -246,6 +246,24 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON media(origin_device_id)',
   ),
   (
+    name: 'idx_media_local_path',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_local_path '
+        'ON media(local_path)',
+  ),
+  (
+    name: 'idx_media_file_path',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_file_path '
+        'ON media(file_path)',
+  ),
+  (
+    name: 'idx_media_is_orphaned',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_is_orphaned '
+        'ON media(is_orphaned)',
+  ),
+  (
     name: 'idx_checklist_template_items_template_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_checklist_template_items_template_id '

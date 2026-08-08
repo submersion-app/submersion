@@ -146,6 +146,13 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
     await refresh();
   }
 
+  /// True unlink (Media section Phase 2): clears the dive link and keeps
+  /// the rows in the library. The destructive path is [deleteMultipleMedia].
+  Future<void> unlinkMultipleMedia(List<String> ids) async {
+    await _repository.unlinkFromDive(ids);
+    await refresh();
+  }
+
   /// Mark a media item as orphaned (photo deleted from gallery)
   Future<void> markAsOrphaned(String id) async {
     await _repository.markAsOrphaned(id);

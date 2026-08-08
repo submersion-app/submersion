@@ -34,7 +34,9 @@ class QuickActionsCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => showAddDiveBottomSheet(
                   context: context,
-                  onLogManually: () => context.go('/dives/new'),
+                  // push, not go, matching recent_dives_card for the same
+                  // callback: `go` would strand the user on the dive list.
+                  onLogManually: () => context.push('/dives/new'),
                 ),
                 icon: const Icon(Icons.add),
                 label: Text(context.l10n.dashboard_quickActions_logDive),
