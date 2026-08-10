@@ -121,10 +121,11 @@ class ChartAxis {
     final magnitude = _magnitudeOf(interval);
     final normalized = interval / magnitude;
     final steps = wholeSteps ? _wholeSteps : _fractionalSteps;
-    for (final step in steps) {
-      if (step > normalized * (1 + _epsilon)) return step * magnitude;
-    }
-    return 10 * magnitude;
+    // _magnitudeOf floors the exponent, so normalized is in [1, 10) and the
+    // trailing 10 in both ladders always matches. A throw here would mean that
+    // invariant broke, which is worth hearing about rather than papering over.
+    return steps.firstWhere((step) => step > normalized * (1 + _epsilon)) *
+        magnitude;
   }
 
   static double _magnitudeOf(double value) {
@@ -141,17 +142,4 @@ class ChartAxis {
 
   static double _ceilTo(double value, double interval) =>
       (value / interval - _epsilon).ceilToDouble() * interval;
-
-  @override
-  bool operator ==(Object other) =>
-      other is ChartAxis &&
-      other.min == min &&
-      other.max == max &&
-      other.interval == interval;
-
-  @override
-  int get hashCode => Object.hash(min, max, interval);
-
-  @override
-  String toString() => 'ChartAxis(min: $min, max: $max, interval: $interval)';
 }

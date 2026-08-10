@@ -72,6 +72,15 @@ void main() {
       expect(axis.interval, greaterThan(0));
     });
 
+    test('stays drawable when handed no values at all', () {
+      final axis = ChartAxis.forTrend(const []);
+
+      expect(axis.max, greaterThan(axis.min));
+      expect(axis.interval, greaterThan(0));
+      expect(_isOnTick(axis.min, axis.interval), isTrue);
+      expect(_isOnTick(axis.max, axis.interval), isTrue);
+    });
+
     test('handles sub-unit SAC pressure values without collapsing', () {
       // bar/min SAC lives well under 1; the interval must scale down with it.
       final axis = ChartAxis.forTrend(const [0.52, 0.61, 0.58, 0.74]);
