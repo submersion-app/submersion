@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "Importer depuis l'appareil Garmin",
+  "certifications_edit_label_agencyCustom": "Nom de l'organisme",
+  "certifications_edit_label_levelCustom": "Nom de la certification",
   "diveLog_tank_saveAsPreset": "Enregistrer comme preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Saisissez d'abord un volume et une pression de service",
   "diveLog_tank_saveAsPreset_nameTitle": "Enregistrer le preset de bloc",

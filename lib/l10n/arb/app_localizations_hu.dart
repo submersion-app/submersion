@@ -1794,6 +1794,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_agency => 'Szervezet *';
 
   @override
+  String get certifications_edit_label_agencyCustom => 'Ügynökség neve';
+
+  @override
+  String get certifications_edit_label_levelCustom => 'Minősítés neve';
+
+  @override
   String get certifications_edit_label_cardNumber => 'Kartyaszam';
 
   @override

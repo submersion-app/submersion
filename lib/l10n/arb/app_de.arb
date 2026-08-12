@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "Von Garmin-Gerät importieren",
+  "certifications_edit_label_agencyCustom": "Name der Agentur",
+  "certifications_edit_label_levelCustom": "Name der Zertifizierung",
   "diveLog_tank_saveAsPreset": "Als Vorlage speichern",
   "diveLog_tank_saveAsPreset_needSpecs": "Zuerst Volumen und Arbeitsdruck eingeben",
   "diveLog_tank_saveAsPreset_nameTitle": "Flaschenvorlage speichern",

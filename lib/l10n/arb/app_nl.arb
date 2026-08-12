@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "Importeren vanaf Garmin-apparaat",
+  "certifications_edit_label_agencyCustom": "Naam van de organisatie",
+  "certifications_edit_label_levelCustom": "Naam van de certificering",
   "diveLog_tank_saveAsPreset": "Als voorinstelling opslaan",
   "diveLog_tank_saveAsPreset_needSpecs": "Voer eerst een volume en werkdruk in",
   "diveLog_tank_saveAsPreset_nameTitle": "Flesvoorinstelling opslaan",

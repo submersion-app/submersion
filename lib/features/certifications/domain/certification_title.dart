@@ -19,10 +19,36 @@ import 'package:submersion/features/certifications/domain/entities/certification
 /// detail page's Agency row, the picker's subtitle, the PDF's agency line, the
 /// list's Agency column -- so prefixing here would just trade one duplication
 /// for another.
+/// The agency label to show: the free-text custom agency when [agency] is
+/// [CertificationAgency.other] and a custom name was entered, otherwise the
+/// enum's display name.
+String effectiveAgencyLabel(CertificationAgency agency, String? agencyCustom) {
+  if (agency == CertificationAgency.other) {
+    final custom = agencyCustom?.trim();
+    if (custom != null && custom.isNotEmpty) return custom;
+  }
+  return agency.displayName;
+}
+
+/// The level label to show: the free-text custom level when [level] is
+/// [CertificationLevel.other] and a custom name was entered, otherwise the
+/// enum's display name. Null when there is no level.
+String? effectiveLevelLabel(CertificationLevel? level, String? levelCustom) {
+  if (level == CertificationLevel.other) {
+    final custom = levelCustom?.trim();
+    if (custom != null && custom.isNotEmpty) return custom;
+  }
+  return level?.displayName;
+}
+
 String derivedCertificationTitle(
   CertificationAgency agency,
-  CertificationLevel? level,
-) => level?.displayName ?? agency.displayName;
+  CertificationLevel? level, {
+  String? agencyCustom,
+  String? levelCustom,
+}) =>
+    effectiveLevelLabel(level, levelCustom) ??
+    effectiveAgencyLabel(agency, agencyCustom);
 
 String _normalized(String value) =>
     value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
@@ -33,15 +59,15 @@ bool hasDerivedName(Certification cert) {
   final stored = _normalized(cert.name);
   if (stored.isEmpty) return true;
 
-  final agencyName = cert.agency.displayName;
-  final level = cert.level;
+  final agencyName = effectiveAgencyLabel(cert.agency, cert.agencyCustom);
+  final level = effectiveLevelLabel(cert.level, cert.levelCustom);
   final candidates = <String>[
     agencyName,
     if (level != null) ...[
-      '$agencyName ${level.displayName}',
-      '$agencyName: ${level.displayName}',
-      '$agencyName : ${level.displayName}',
-      level.displayName,
+      '$agencyName $level',
+      '$agencyName: $level',
+      '$agencyName : $level',
+      level,
     ],
   ];
   return candidates.map(_normalized).contains(stored);
@@ -55,11 +81,18 @@ String? customNameOrNull(Certification cert) =>
 /// The title to show for [cert] anywhere one is needed. Never empty.
 String certificationTitle(Certification cert) =>
     customNameOrNull(cert) ??
-    derivedCertificationTitle(cert.agency, cert.level);
+    derivedCertificationTitle(
+      cert.agency,
+      cert.level,
+      agencyCustom: cert.agencyCustom,
+      levelCustom: cert.levelCustom,
+    );
 
 /// The secondary line beneath [certificationTitle]: the level, but only when
 /// the title is a custom name. When the title is derived it already contains
 /// the level, and showing it again is the duplication this module exists to
 /// remove.
 String? certificationSubtitle(Certification cert) =>
-    customNameOrNull(cert) == null ? null : cert.level?.displayName;
+    customNameOrNull(cert) == null
+    ? null
+    : effectiveLevelLabel(cert.level, cert.levelCustom);

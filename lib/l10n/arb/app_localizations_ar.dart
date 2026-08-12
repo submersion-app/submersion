@@ -1773,6 +1773,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_agency => 'الجهة المانحة *';
 
   @override
+  String get certifications_edit_label_agencyCustom => 'اسم جهة الإصدار';
+
+  @override
+  String get certifications_edit_label_levelCustom => 'اسم الشهادة';
+
+  @override
   String get certifications_edit_label_cardNumber => 'رقم البطاقة';
 
   @override

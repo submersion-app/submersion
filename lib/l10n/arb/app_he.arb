@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "ייבוא מהתקן Garmin",
+  "certifications_edit_label_agencyCustom": "שם הסוכנות",
+  "certifications_edit_label_levelCustom": "שם ההסמכה",
   "diveLog_tank_saveAsPreset": "שמור כתבנית",
   "diveLog_tank_saveAsPreset_needSpecs": "הזן תחילה נפח ולחץ עבודה",
   "diveLog_tank_saveAsPreset_nameTitle": "שמור תבנית בלון",

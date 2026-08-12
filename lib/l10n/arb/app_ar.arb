@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
+  "certifications_edit_label_agencyCustom": "اسم جهة الإصدار",
+  "certifications_edit_label_levelCustom": "اسم الشهادة",
   "diveLog_tank_saveAsPreset": "حفظ كإعداد مسبق",
   "diveLog_tank_saveAsPreset_needSpecs": "أدخل الحجم وضغط العمل أولاً",
   "diveLog_tank_saveAsPreset_nameTitle": "حفظ إعداد الأسطوانة المسبق",

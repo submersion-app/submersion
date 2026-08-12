@@ -225,4 +225,96 @@ void main() {
     expect(selectedCertification('Not specified'), findsOneWidget);
     expect(find.text('Progression'), findsNothing);
   });
+
+  group('custom agency/level free-text', () {
+    testWidgets('an "Other" cert prefills the custom fields with its values', (
+      tester,
+    ) async {
+      final now = DateTime(2024);
+      final cert = await repository.createCertification(
+        Certification(
+          id: '',
+          name: '',
+          agency: CertificationAgency.other,
+          agencyCustom: 'TSA',
+          level: CertificationLevel.other,
+          levelCustom: 'Full Cave',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await tester.pumpWidget(
+        await buildHarness(tester, certificationId: cert.id),
+      );
+      await tester.pumpAndSettle();
+
+      // Both free-text fields are shown (agency + level are "Other") and
+      // prefilled with the stored custom values. Scope to the field keys:
+      // the level label also renders in the derived-title name hint.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('cert-agency-custom')),
+          matching: find.text('TSA'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('cert-level-custom')),
+          matching: find.text('Full Cave'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a known agency hides the custom agency field', (tester) async {
+      await tester.pumpWidget(await buildHarness(tester));
+      await tester.pumpAndSettle();
+
+      // Default agency is PADI -> no custom field.
+      expect(find.byKey(const Key('cert-agency-custom')), findsNothing);
+
+      await selectFromDropdown(tester, agencyDropdown(), 'Other');
+      expect(find.byKey(const Key('cert-agency-custom')), findsOneWidget);
+    });
+
+    testWidgets('typing custom agency/level persists on save', (tester) async {
+      final now = DateTime(2024);
+      final cert = await repository.createCertification(
+        Certification(
+          id: '',
+          name: '',
+          agency: CertificationAgency.other,
+          level: CertificationLevel.other,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await tester.pumpWidget(
+        await buildHarness(tester, certificationId: cert.id),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('cert-agency-custom')),
+        'TSA',
+      );
+      await tester.enterText(
+        find.byKey(const Key('cert-level-custom')),
+        'Full Cave',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pump(const Duration(seconds: 1));
+
+      final saved = await tester.runAsync(
+        () => repository.getCertificationById(cert.id),
+      );
+      expect(saved!.agencyCustom, 'TSA');
+      expect(saved.levelCustom, 'Full Cave');
+    });
+  });
 }

@@ -1698,6 +1698,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_agency => '机构 *';
 
   @override
+  String get certifications_edit_label_agencyCustom => '机构名称';
+
+  @override
+  String get certifications_edit_label_levelCustom => '认证名称';
+
+  @override
   String get certifications_edit_label_cardNumber => '卡号';
 
   @override

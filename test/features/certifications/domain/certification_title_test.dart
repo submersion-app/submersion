@@ -123,4 +123,85 @@ void main() {
       expect(certificationSubtitle(cert(name: 'Bali OW', level: null)), isNull);
     });
   });
+
+  group('custom agency/level (free-text "Other")', () {
+    Certification customCert({
+      String name = '',
+      String? agencyCustom,
+      String? levelCustom,
+    }) {
+      final now = DateTime(2026);
+      return Certification(
+        id: 'c1',
+        name: name,
+        agency: CertificationAgency.other,
+        agencyCustom: agencyCustom,
+        level: CertificationLevel.other,
+        levelCustom: levelCustom,
+        createdAt: now,
+        updatedAt: now,
+      );
+    }
+
+    test('effectiveAgencyLabel uses the custom text for Other', () {
+      expect(effectiveAgencyLabel(CertificationAgency.other, 'TSA'), 'TSA');
+    });
+
+    test('effectiveAgencyLabel falls back to display name without custom', () {
+      expect(effectiveAgencyLabel(CertificationAgency.other, null), 'Other');
+      expect(effectiveAgencyLabel(CertificationAgency.other, '  '), 'Other');
+    });
+
+    test('effectiveLevelLabel uses the custom text for Other', () {
+      expect(
+        effectiveLevelLabel(CertificationLevel.other, 'Full Cave'),
+        'Full Cave',
+      );
+    });
+
+    test('a known agency ignores any stray custom text', () {
+      expect(effectiveAgencyLabel(CertificationAgency.padi, 'TSA'), 'PADI');
+    });
+
+    test('derived title is the custom level', () {
+      expect(
+        derivedCertificationTitle(
+          CertificationAgency.other,
+          CertificationLevel.other,
+          agencyCustom: 'TSA',
+          levelCustom: 'Full Cave',
+        ),
+        'Full Cave',
+      );
+    });
+
+    test('title of a custom cert uses the custom level', () {
+      expect(
+        certificationTitle(
+          customCert(agencyCustom: 'TSA', levelCustom: 'Full Cave'),
+        ),
+        'Full Cave',
+      );
+    });
+
+    test('a name that just repeats the custom label is treated as derived', () {
+      final c = customCert(
+        name: 'Full Cave',
+        agencyCustom: 'TSA',
+        levelCustom: 'Full Cave',
+      );
+      expect(hasDerivedName(c), isTrue);
+      expect(customNameOrNull(c), isNull);
+    });
+
+    test('a genuinely custom name is kept', () {
+      final c = customCert(
+        name: 'Full Cave (Mexico)',
+        agencyCustom: 'TSA',
+        levelCustom: 'Full Cave',
+      );
+      expect(hasDerivedName(c), isFalse);
+      expect(certificationTitle(c), 'Full Cave (Mexico)');
+    });
+  });
 }

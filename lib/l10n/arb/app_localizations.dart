@@ -3074,6 +3074,18 @@ abstract class AppLocalizations {
   /// **'Agency *'**
   String get certifications_edit_label_agency;
 
+  /// No description provided for @certifications_edit_label_agencyCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Agency name'**
+  String get certifications_edit_label_agencyCustom;
+
+  /// No description provided for @certifications_edit_label_levelCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification name'**
+  String get certifications_edit_label_levelCustom;
+
   /// No description provided for @certifications_edit_label_cardNumber.
   ///
   /// In en, this message translates to:

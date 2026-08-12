@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "Importar desde dispositivo Garmin",
+  "certifications_edit_label_agencyCustom": "Nombre de la agencia",
+  "certifications_edit_label_levelCustom": "Nombre de la certificación",
   "diveLog_tank_saveAsPreset": "Guardar como preajuste",
   "diveLog_tank_saveAsPreset_needSpecs": "Introduce primero un volumen y una presión de trabajo",
   "diveLog_tank_saveAsPreset_nameTitle": "Guardar preajuste de tanque",

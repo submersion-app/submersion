@@ -1755,6 +1755,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_label_agency => 'סוכנות *';
 
   @override
+  String get certifications_edit_label_agencyCustom => 'שם הסוכנות';
+
+  @override
+  String get certifications_edit_label_levelCustom => 'שם ההסמכה';
+
+  @override
   String get certifications_edit_label_cardNumber => 'מספר כרטיס';
 
   @override

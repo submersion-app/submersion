@@ -1106,6 +1106,8 @@
   "certifications_edit_hint_instructorNumber": "Instructor certification number",
   "certifications_edit_hint_notes": "Any additional notes",
   "certifications_edit_label_agency": "Agency *",
+  "certifications_edit_label_agencyCustom": "Agency name",
+  "certifications_edit_label_levelCustom": "Certification name",
   "certifications_edit_label_cardNumber": "Card Number",
   "certifications_edit_label_certification": "Certification",
   "certifications_edit_label_expiryDate": "Expiry Date",

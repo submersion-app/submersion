@@ -1772,7 +1772,12 @@ class Certifications extends Table {
   TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()(); // e.g., "Open Water Diver"
   TextColumn get agency => text()(); // PADI, SSI, etc.
+  // Free-text agency when `agency` == 'other' and the diver's agency isn't in
+  // the list (issue #806-style escape hatch).
+  TextColumn get agencyCustom => text().nullable()();
   TextColumn get level => text().nullable()(); // For more specific level info
+  // Free-text level/certification when `level` == 'other'.
+  TextColumn get levelCustom => text().nullable()();
   TextColumn get cardNumber => text().nullable()();
   IntColumn get issueDate => integer().nullable()();
   IntColumn get expiryDate => integer().nullable()(); // For certs that expire
@@ -2952,7 +2957,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 148;
+  static const int currentSchemaVersion = 149;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3153,6 +3158,8 @@ class AppDatabase extends _$AppDatabase {
     // index plus the site-side dedupe cleanup and partial unique index
     // mirroring the dive-side v38 pair.
     148,
+    // v149: free-text agency/level escape hatch for certifications.
+    149,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4382,6 +4389,27 @@ class AppDatabase extends _$AppDatabase {
     if (!names.contains('trim_end_time')) {
       await customStatement(
         'ALTER TABLE gps_tracks ADD COLUMN trim_end_time INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v149 certifications free-text agency/level columns.
+  /// Called from the v149 onUpgrade step and the beforeOpen backstop, and
+  /// self-guarding when the table is absent (minimal migration-test fixtures).
+  Future<void> _assertCertificationCustomColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('certifications')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('agency_custom')) {
+      await customStatement(
+        'ALTER TABLE certifications ADD COLUMN agency_custom TEXT',
+      );
+    }
+    if (!names.contains('level_custom')) {
+      await customStatement(
+        'ALTER TABLE certifications ADD COLUMN level_custom TEXT',
       );
     }
   }
@@ -7771,6 +7799,11 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 148) await reportProgress();
+        if (from < 149) {
+          // Free-text agency/level escape hatch for certifications.
+          await _assertCertificationCustomColumns();
+        }
+        if (from < 149) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -7794,6 +7827,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v141 backstop: re-assert diver_settings.default_currency.
         await _assertDefaultCurrencyColumn();
+
+        // v148 backstop: re-assert certifications.agency_custom/level_custom.
+        await _assertCertificationCustomColumns();
 
         // v106 backstop: re-assert connector-suggestion columns (the helper
         // is self-guarding when the suggestions table is absent).

@@ -1807,6 +1807,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_label_agency => 'Agencia *';
 
   @override
+  String get certifications_edit_label_agencyCustom => 'Nombre de la agencia';
+
+  @override
+  String get certifications_edit_label_levelCustom =>
+      'Nombre de la certificación';
+
+  @override
   String get certifications_edit_label_cardNumber => 'Numero de tarjeta';
 
   @override

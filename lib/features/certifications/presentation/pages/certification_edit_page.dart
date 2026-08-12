@@ -63,6 +63,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   final _instructorNameController = TextEditingController();
   final _instructorNumberController = TextEditingController();
   final _notesController = TextEditingController();
+  // Free-text agency/level, shown only when the respective dropdown is "Other".
+  final _agencyCustomController = TextEditingController();
+  final _levelCustomController = TextEditingController();
 
   CertificationAgency _agency = CertificationAgency.padi;
   CertificationLevel? _level;
@@ -100,12 +103,28 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _instructorNameController.addListener(_onFieldChanged);
     _instructorNumberController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+    _agencyCustomController.addListener(_onFieldChanged);
+    _levelCustomController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
     if (!_hasChanges) {
       setState(() => _hasChanges = true);
     }
+  }
+
+  /// The custom agency text, only when the agency is "Other" and non-blank.
+  String? get _agencyCustomValue {
+    if (_agency != CertificationAgency.other) return null;
+    final text = _agencyCustomController.text.trim();
+    return text.isEmpty ? null : text;
+  }
+
+  /// The custom level text, only when the level is "Other" and non-blank.
+  String? get _levelCustomValue {
+    if (_level != CertificationLevel.other) return null;
+    final text = _levelCustomController.text.trim();
+    return text.isEmpty ? null : text;
   }
 
   /// Prefill the form from an in-memory (possibly unpersisted) certification,
@@ -119,6 +138,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _instructorNameController.text = cert.instructorName ?? '';
     _instructorNumberController.text = cert.instructorNumber ?? '';
     _notesController.text = cert.notes;
+    _agencyCustomController.text = cert.agencyCustom ?? '';
+    _levelCustomController.text = cert.levelCustom ?? '';
     _agency = cert.agency;
     _level = cert.level;
 
@@ -143,6 +164,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         _instructorNameController.text = cert.instructorName ?? '';
         _instructorNumberController.text = cert.instructorNumber ?? '';
         _notesController.text = cert.notes;
+        _agencyCustomController.text = cert.agencyCustom ?? '';
+        _levelCustomController.text = cert.levelCustom ?? '';
         setState(() {
           _agency = cert.agency;
           _level = cert.level;
@@ -345,6 +368,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _instructorNameController.dispose();
     _instructorNumberController.dispose();
     _notesController.dispose();
+    _agencyCustomController.dispose();
+    _levelCustomController.dispose();
     super.dispose();
   }
 
@@ -450,6 +475,22 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Free-text agency when "Other" is selected.
+                  if (_agency == CertificationAgency.other) ...[
+                    TextFormField(
+                      key: const Key('cert-agency-custom'),
+                      controller: _agencyCustomController,
+                      decoration: InputDecoration(
+                        labelText:
+                            context.l10n.certifications_edit_label_agencyCustom,
+                        prefixIcon: const Icon(Icons.edit_outlined),
+                      ),
+                      textCapitalization: TextCapitalization.characters,
+                      onChanged: (_) => setState(() => _hasChanges = true),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Certification dropdown (options depend on the agency)
                   DropdownButtonFormField<CertificationOption>(
                     // DropdownButtonFormField keeps its selection in its own
@@ -473,6 +514,22 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Free-text level/certification when "Other" is selected.
+                  if (_level == CertificationLevel.other) ...[
+                    TextFormField(
+                      key: const Key('cert-level-custom'),
+                      controller: _levelCustomController,
+                      decoration: InputDecoration(
+                        labelText:
+                            context.l10n.certifications_edit_label_levelCustom,
+                        prefixIcon: const Icon(Icons.edit_outlined),
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (_) => setState(() => _hasChanges = true),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Name on card: optional. Blank means "use the derived
                   // title", which the hint shows live.
                   TextFormField(
@@ -481,7 +538,12 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       labelText:
                           context.l10n.certifications_edit_label_nameOnCard,
                       prefixIcon: const Icon(Icons.card_membership),
-                      hintText: derivedCertificationTitle(_agency, _level),
+                      hintText: derivedCertificationTitle(
+                        _agency,
+                        _level,
+                        agencyCustom: _agencyCustomController.text,
+                        levelCustom: _levelCustomController.text,
+                      ),
                       helperText:
                           context.l10n.certifications_edit_helper_nameOnCard,
                     ),
@@ -893,7 +955,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         buddyId: widget.initialCertification?.buddyId,
         name: _nameController.text.trim(),
         agency: _agency,
+        agencyCustom: _agencyCustomValue,
         level: _level,
+        levelCustom: _levelCustomValue,
         cardNumber: _cardNumberController.text.trim().isEmpty
             ? null
             : _cardNumberController.text.trim(),
@@ -939,7 +1003,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         diverId: diverId,
         name: _nameController.text.trim(),
         agency: _agency,
+        agencyCustom: _agencyCustomValue,
         level: _level,
+        levelCustom: _levelCustomValue,
         cardNumber: _cardNumberController.text.trim().isEmpty
             ? null
             : _cardNumberController.text.trim(),

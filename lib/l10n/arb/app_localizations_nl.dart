@@ -1794,6 +1794,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_label_agency => 'Organisatie *';
 
   @override
+  String get certifications_edit_label_agencyCustom =>
+      'Naam van de organisatie';
+
+  @override
+  String get certifications_edit_label_levelCustom =>
+      'Naam van de certificering';
+
+  @override
   String get certifications_edit_label_cardNumber => 'Kaartnummer';
 
   @override

@@ -15,7 +15,15 @@ class Certification extends Equatable {
   final String? buddyId;
   final String name;
   final CertificationAgency agency;
+
+  /// Free-text agency name when [agency] is [CertificationAgency.other] and the
+  /// diver's agency isn't in the list. Null otherwise.
+  final String? agencyCustom;
   final CertificationLevel? level;
+
+  /// Free-text level/certification name when [level] is
+  /// [CertificationLevel.other]. Null otherwise.
+  final String? levelCustom;
   final String? cardNumber;
   final DateTime? issueDate;
   final DateTime? expiryDate;
@@ -34,7 +42,9 @@ class Certification extends Equatable {
     this.buddyId,
     required this.name,
     required this.agency,
+    this.agencyCustom,
     this.level,
+    this.levelCustom,
     this.cardNumber,
     this.issueDate,
     this.expiryDate,
@@ -88,7 +98,9 @@ class Certification extends Equatable {
     String? buddyId,
     String? name,
     CertificationAgency? agency,
+    String? agencyCustom,
     CertificationLevel? level,
+    String? levelCustom,
     String? cardNumber,
     DateTime? issueDate,
     DateTime? expiryDate,
@@ -107,7 +119,9 @@ class Certification extends Equatable {
       buddyId: buddyId ?? this.buddyId,
       name: name ?? this.name,
       agency: agency ?? this.agency,
+      agencyCustom: agencyCustom ?? this.agencyCustom,
       level: level ?? this.level,
+      levelCustom: levelCustom ?? this.levelCustom,
       cardNumber: cardNumber ?? this.cardNumber,
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
@@ -130,7 +144,9 @@ class Certification extends Equatable {
       buddyId: buddyId,
       name: name,
       agency: agency,
+      agencyCustom: agencyCustom,
       level: level,
+      levelCustom: levelCustom,
       cardNumber: cardNumber,
       issueDate: issueDate,
       expiryDate: expiryDate,
@@ -164,7 +180,9 @@ class Certification extends Equatable {
     buddyId,
     name,
     agency,
+    agencyCustom,
     level,
+    levelCustom,
     cardNumber,
     issueDate,
     expiryDate,

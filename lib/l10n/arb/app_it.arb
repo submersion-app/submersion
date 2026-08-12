@@ -1,5 +1,7 @@
 {
   "universalImport_action_importFromGarmin": "Importa da dispositivo Garmin",
+  "certifications_edit_label_agencyCustom": "Nome dell'agenzia",
+  "certifications_edit_label_levelCustom": "Nome della certificazione",
   "diveLog_tank_saveAsPreset": "Salva come preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Inserisci prima volume e pressione di esercizio",
   "diveLog_tank_saveAsPreset_nameTitle": "Salva preset bombola",
