@@ -549,7 +549,7 @@ class TripMediaScanner {
 
       final path = await photoPickerService.getFilePath(asset.id);
       if (path == null) return null;
-      return ExifExtractor().extract(File(path));
+      return await ExifExtractor().extract(File(path));
     } on Object catch (error, stackTrace) {
       _log.debug(
         'Failed to extract EXIF fallback for gallery asset ${asset.id}',

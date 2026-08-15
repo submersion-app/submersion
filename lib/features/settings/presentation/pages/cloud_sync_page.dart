@@ -16,9 +16,9 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/replace_cloud_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
@@ -54,11 +54,28 @@ String connectionErrorMessage(
   return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
 }
 
-class CloudSyncPage extends ConsumerWidget {
+class CloudSyncPage extends ConsumerStatefulWidget {
   const CloudSyncPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CloudSyncPage> createState() => _CloudSyncPageState();
+}
+
+class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Recompute on entry. SyncState's counts and cursor are otherwise only
+    // written by a sync, so without this the page could report the state as of
+    // whenever the notifier was built -- the stale reading behind issue #990.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(syncStateProvider.notifier).refreshState();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final syncState = ref.watch(syncStateProvider);
     // Google Drive is hidden until its integration is implemented, but a
     // persisted selection or SyncRepository's fallback can still surface
@@ -340,16 +357,18 @@ class CloudSyncPage extends ConsumerWidget {
     SyncState syncState,
   ) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Semantics(
-      label:
-          _getStatusTitle(syncState.status) +
-          (syncState.lastSync != null
-              ? ', last synced ${_formatDateTime(syncState.lastSync!)}'
-              : '') +
-          (syncState.pendingChanges > 0
-              ? ', ${syncState.pendingChanges} pending changes'
-              : ''),
+      label: [
+        _getStatusTitle(l10n, syncState.status),
+        if (syncState.lastSync != null)
+          l10n.settings_cloudSync_lastSynced(
+            _formatDateTime(l10n, syncState.lastSync!),
+          ),
+        if (syncState.pendingChanges > 0)
+          l10n.settings_cloudSync_pendingChanges(syncState.pendingChanges),
+      ].join(', '),
       liveRegion: syncState.status == SyncStatus.syncing,
       child: Card(
         margin: const EdgeInsets.all(16),
@@ -377,7 +396,7 @@ class CloudSyncPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _getStatusTitle(syncState.status),
+                            _getStatusTitle(l10n, syncState.status),
                             style: theme.textTheme.titleMedium,
                           ),
                           if (syncState.message != null)
@@ -404,7 +423,9 @@ class CloudSyncPage extends ConsumerWidget {
                 if (syncState.lastSync != null) ...[
                   const SizedBox(height: 12),
                   Text(
-                    'Last synced: ${_formatDateTime(syncState.lastSync!)}',
+                    l10n.settings_cloudSync_lastSynced(
+                      _formatDateTime(l10n, syncState.lastSync!),
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -413,7 +434,9 @@ class CloudSyncPage extends ConsumerWidget {
                 if (syncState.pendingChanges > 0) ...[
                   const SizedBox(height: 4),
                   Text(
-                    '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
+                    l10n.settings_cloudSync_pendingChanges(
+                      syncState.pendingChanges,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -446,18 +469,18 @@ class CloudSyncPage extends ConsumerWidget {
     }
   }
 
-  String _getStatusTitle(SyncStatus status) {
+  String _getStatusTitle(AppLocalizations l10n, SyncStatus status) {
     switch (status) {
       case SyncStatus.idle:
-        return 'Ready to sync';
+        return l10n.settings_cloudSync_status_readyToSync;
       case SyncStatus.syncing:
-        return 'Syncing...';
+        return l10n.settings_cloudSync_status_syncing;
       case SyncStatus.success:
-        return 'Sync complete';
+        return l10n.settings_cloudSync_status_syncComplete;
       case SyncStatus.error:
-        return 'Sync error';
+        return l10n.settings_cloudSync_status_syncError;
       case SyncStatus.hasConflicts:
-        return 'Conflicts detected';
+        return l10n.settings_cloudSync_status_conflictsDetected;
     }
   }
 
@@ -1383,63 +1406,9 @@ class CloudSyncPage extends ConsumerWidget {
     await showReplaceCloudLibraryDialog(context, ref, preflight);
   }
 
-  /// Run a sync, first handling the two gated cases: a replaced cloud
-  /// library awaiting adoption, and the device's first library-combining
-  /// contact with existing cloud data.
-  Future<void> _onSyncNowPressed(BuildContext context, WidgetRef ref) async {
-    final notifier = ref.read(syncStateProvider.notifier);
-    final replaceInfo = await notifier.libraryReplaceInfo();
-    if (replaceInfo != null) {
-      if (!context.mounted) return;
-      await showAdoptReplacedLibraryDialog(context, ref, replaceInfo);
-      return;
-    }
-    final info = await notifier.firstSyncMergeInfo();
-    if (info == null) {
-      await notifier.performSync();
-      return;
-    }
-    if (!context.mounted) return;
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.settings_cloudSync_firstSync_dialogTitle),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.settings_cloudSync_firstSync_dialogContent(
-                  info.peerFileCount,
-                  info.localDiveCount,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Merge is the only action here on purpose; the alternative is
-              // a fleet-wide wipe and does not belong one tap away in a
-              // dialog that appears routinely. Name where it lives instead.
-              Text(l10n.settings_cloudSync_firstSync_replaceHint),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.settings_cloudSync_firstSync_dialogConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await notifier.performSync();
-    }
-  }
+  /// The gated sync flow lives in [runSyncNow]: the Home sync chip runs it too.
+  Future<void> _onSyncNowPressed(BuildContext context, WidgetRef ref) =>
+      runSyncNow(context, ref);
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
     // Cloud backup uploads ride on the sync provider; losing it changes
@@ -1479,18 +1448,17 @@ class CloudSyncPage extends ConsumerWidget {
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+  String _formatDateTime(AppLocalizations l10n, DateTime dateTime) {
+    final difference = DateTime.now().difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return l10n.settings_cloudSync_time_justNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_minutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_hoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_daysAgo(difference.inDays);
     } else {
       return DateFormat.yMMMd().format(dateTime);
     }

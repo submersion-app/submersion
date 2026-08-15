@@ -4,11 +4,13 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -131,6 +133,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     // Default to a world view if no initial location
     final initialCenter = widget.initialLocation ?? const LatLng(20.0, 0.0);
@@ -285,10 +288,14 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                 left: 16,
                 right: 16,
                 child: Semantics(
+                  // Per-axis rather than the combined grid reference: this is
+                  // read aloud, and "16Q DH 96898 51535" is far harder to
+                  // follow by ear than degrees. Grid formats degrade to
+                  // decimal degrees here by design.
                   label: context.l10n
                       .diveSites_locationPicker_semantics_coordinates(
-                        _selectedLocation!.latitude.toStringAsFixed(6),
-                        _selectedLocation!.longitude.toStringAsFixed(6),
+                        units.formatLatitude(_selectedLocation!.latitude),
+                        units.formatLongitude(_selectedLocation!.longitude),
                       ),
                   child: Card(
                     child: Padding(
@@ -314,8 +321,9 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                                           ),
                                     ),
                                     Text(
-                                      _selectedLocation!.latitude
-                                          .toStringAsFixed(6),
+                                      units.formatLatitude(
+                                        _selectedLocation!.latitude,
+                                      ),
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
@@ -340,8 +348,9 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                                           ),
                                     ),
                                     Text(
-                                      _selectedLocation!.longitude
-                                          .toStringAsFixed(6),
+                                      units.formatLongitude(
+                                        _selectedLocation!.longitude,
+                                      ),
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium

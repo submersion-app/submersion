@@ -13,12 +13,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared unlock flow: prompt for the passphrase/recovery code, unwrap the
 /// key from the cloud keyslot file, activate the session, and re-run sync.
-/// Used by the section's locked tile, the sync-page banner, and the
-/// Troubleshoot screen. Returns true when unlocked.
+/// Used by the section's locked tile, the sync-page banner, the Troubleshoot
+/// screen, and the setup wizard. Returns true when unlocked.
+///
+/// [resync] fires the follow-up sync here, which is what the settings callers
+/// want: they unlock in place and let the sync page report progress. A caller
+/// that must OBSERVE the pull's outcome (the wizard decides which step to show
+/// from it) passes false and runs its own awaited sync -- the unawaited one
+/// would otherwise win the race and the caller's call would return immediately
+/// against SyncNotifier's in-flight guard, reading a half-finished state.
 Future<bool> runEncryptionUnlockFlow(
   BuildContext context,
-  WidgetRef ref,
-) async {
+  WidgetRef ref, {
+  bool resync = true,
+}) async {
   // Resolve the provider up front and capture it for the closure. With no
   // provider there is nothing to unlock against, so bail before showing the
   // dialog rather than letting onSubmit succeed silently (which would close
@@ -38,7 +46,9 @@ Future<bool> runEncryptionUnlockFlow(
     },
   );
   if (unlocked != null) {
-    unawaited(ref.read(syncStateProvider.notifier).performSync());
+    if (resync) {
+      unawaited(ref.read(syncStateProvider.notifier).performSync());
+    }
     return true;
   }
   return false;

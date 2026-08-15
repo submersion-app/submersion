@@ -16,6 +16,7 @@ import 'package:submersion/features/media/data/services/local_media_platform.dar
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
+import 'package:submersion/features/media/data/services/pdf_thumbnail_service.dart';
 import 'package:submersion/features/media/data/services/subscription_poller.dart';
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
@@ -61,6 +62,17 @@ final videoThumbnailServiceProvider = Provider<VideoThumbnailService>(
     cacheDir: () async {
       final support = await getApplicationSupportDirectory();
       return Directory(p.join(support.path, 'Submersion', 'video_thumbnails'));
+    },
+  ),
+);
+
+/// Renders and caches page-1 images of PDF attachments so a document tile
+/// shows the document rather than a generic icon.
+final pdfThumbnailServiceProvider = Provider<PdfThumbnailService>(
+  (ref) => PdfThumbnailService(
+    cacheDir: () async {
+      final support = await getApplicationSupportDirectory();
+      return Directory(p.join(support.path, 'Submersion', 'pdf_thumbnails'));
     },
   ),
 );

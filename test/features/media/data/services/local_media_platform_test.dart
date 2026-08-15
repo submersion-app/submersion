@@ -88,4 +88,32 @@ void main() {
     );
     expect(result, [4, 5, 6]);
   });
+
+  group('isPersistableUri', () {
+    test('accepts a SAF content URI', () {
+      expect(
+        LocalMediaPlatform.isPersistableUri(
+          'content://com.android.providers.downloads.documents/document/42',
+        ),
+        isTrue,
+      );
+    });
+
+    test('rejects a file_picker cache path (issue #1002)', () {
+      expect(
+        LocalMediaPlatform.isPersistableUri(
+          '/data/user/0/app.submersion/cache/file_picker/1/reef.pdf',
+        ),
+        isFalse,
+      );
+    });
+
+    test('rejects a file:// URI and null', () {
+      expect(
+        LocalMediaPlatform.isPersistableUri('file:///tmp/reef.pdf'),
+        false,
+      );
+      expect(LocalMediaPlatform.isPersistableUri(null), isFalse);
+    });
+  });
 }

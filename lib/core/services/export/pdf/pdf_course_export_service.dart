@@ -60,7 +60,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Training Log',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 32,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -69,7 +69,7 @@ class PdfCourseExportService {
               pw.SizedBox(height: 30),
               pw.Text(
                 course.name,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 28,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -146,7 +146,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Training Dives',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -181,7 +181,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Course Notes',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -216,7 +216,10 @@ class PdfCourseExportService {
           ),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -234,7 +237,7 @@ class PdfCourseExportService {
         children: [
           pw.Text(
             value,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 24,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blue800,
@@ -269,7 +272,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Dive ${dive.diveNumber ?? "-"}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -287,7 +290,10 @@ class PdfCourseExportService {
           if (dive.site != null)
             pw.Text(
               dive.site!.name,
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+              style: const pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
           pw.SizedBox(height: 8),
           pw.Row(
@@ -329,7 +335,7 @@ class PdfCourseExportService {
               children: [
                 pw.Text(
                   'Verified by: ',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
                     color: PdfColors.grey600,
@@ -393,7 +399,10 @@ class PdfCourseExportService {
           pw.SizedBox(height: 2),
           pw.Text(
             signature.signerName,
-            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              fontWeight: pw.FontWeight.bold,
+            ),
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
@@ -421,7 +430,10 @@ class PdfCourseExportService {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );

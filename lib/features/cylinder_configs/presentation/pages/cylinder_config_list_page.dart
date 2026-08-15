@@ -8,7 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
@@ -134,15 +134,12 @@ class _CylinderConfigListPageState
 
   /// A config row that can carry a checkbox while selecting.
   Widget _selectable(CylinderConfig config) {
-    return SelectableRow(
+    return _ConfigTile(
+      config: config,
       isSelectionMode: _isSelectionMode,
       isChecked: _selectedIds.contains(config.id),
-      onChanged: (_) => _selection.toggle(config.id),
-      child: _ConfigTile(
-        config: config,
-        isSelectionMode: _isSelectionMode,
-        onSelectToggle: () => _selection.toggle(config.id),
-      ),
+      onSelectToggle: () => _selection.toggle(config.id),
+      onCheckChanged: (_) => _selection.toggle(config.id),
     );
   }
 
@@ -249,19 +246,34 @@ class _ConfigTile extends StatelessWidget {
   const _ConfigTile({
     required this.config,
     this.isSelectionMode = false,
+    this.isChecked = false,
     this.onSelectToggle,
+    this.onCheckChanged,
   });
 
   final CylinderConfig config;
 
   /// While selecting, a tap toggles the row rather than opening the editor.
   final bool isSelectionMode;
+  final bool isChecked;
   final VoidCallback? onSelectToggle;
+  final ValueChanged<bool>? onCheckChanged;
 
   @override
   Widget build(BuildContext context) {
     final roles = config.items.map((i) => i.tankRole.displayName).join(', ');
     return ListTile(
+      // ListTile reserves leading width for any non-null child, however wide
+      // that child actually draws, so a zero-width slot would still indent the
+      // title. Hand it null outside selection mode instead.
+      leading: isSelectionMode
+          ? SelectionCheckboxSlot(
+              isSelectionMode: isSelectionMode,
+              isChecked: isChecked,
+              onChanged: onCheckChanged,
+              gap: 0,
+            )
+          : null,
       title: Text(config.name),
       subtitle: roles.isEmpty ? null : Text(roles),
       trailing: Text('${config.cylinderCount}'),

@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -124,6 +125,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setTimeFormat(TimeFormat format) async =>
       state = state.copyWith(timeFormat: format);

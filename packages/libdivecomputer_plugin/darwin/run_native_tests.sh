@@ -22,6 +22,16 @@ swiftc -o "$BUILD_DIR/ble_characteristic_selector_tests" \
 
 "$BUILD_DIR/ble_characteristic_selector_tests"
 
+# BLE connect-failure classification (issue #865): a dive computer whose
+# pairing record has gone stale cannot be repaired from inside the app on Apple
+# platforms, so the failure has to be recognised and handed to the user rather
+# than retried.
+swiftc -o "$BUILD_DIR/ble_connect_failure_tests" \
+    Sources/LibDCDarwin/BleConnectFailure.swift \
+    Tests/BleConnectFailureTests/main.swift
+
+"$BUILD_DIR/ble_connect_failure_tests"
+
 # Telit Terminal I/O credit accounting (issue #923). The OSTC4's BlueMod+SR
 # module keeps its UART bridge closed until the client grants credits, and
 # spends one per notification, so the balance has to be topped up mid-transfer.

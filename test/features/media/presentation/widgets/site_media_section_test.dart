@@ -272,29 +272,23 @@ void main() {
       expect(find.text('0 selected'), findsOneWidget);
     });
 
-    testWidgets('a long-press selection emptied by hand exits the mode', (
+    testWidgets('a long-press on a tile does not enter selection mode', (
       tester,
     ) async {
       await tester.pumpWidget(await host(attachments: [photoA]));
       await tester.pumpAndSettle();
 
-      // Long-press is an implicit entry, so unchecking the last item must
-      // evaporate the mode. Bridging the grid with selectAll would have
-      // declared the entry explicit and stranded the bar at "0 selected";
-      // letting the grid own exitOnEmptySelection would have had the two
-      // fight instead.
       await tester.longPress(find.byType(MediaThumbnailTile).first);
-      await tester.pumpAndSettle();
-      expect(find.text('1 selected'), findsOneWidget);
-
-      await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
 
       expect(
         find.byKey(const ValueKey('selection_exit')),
         findsNothing,
-        reason: 'an implicit entry must not survive at zero checked',
+        reason: 'selection mode is reachable only through the Select control',
       );
+      // With no long-press handler left, the hold resolves as an ordinary tap
+      // on release and opens the viewer, exactly as a tap would.
+      expect(find.byType(SiteMediaViewerPage), findsOneWidget);
     });
 
     testWidgets('Escape leaves selection mode', (tester) async {
@@ -311,18 +305,18 @@ void main() {
   });
 
   group('selection mode', () {
-    /// Long-presses the first attachment tile to enter selection mode.
+    /// Enters selection mode and checks the first attachment tile.
     Future<void> enterSelection(WidgetTester tester) async {
-      await tester.longPress(find.byType(MediaThumbnailTile).first);
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
     }
 
-    testWidgets('long-pressing a tile shows the selection header', (
-      tester,
-    ) async {
+    testWidgets('selecting a tile shows the selection header', (tester) async {
       await tester.pumpWidget(await host(attachments: [photoA, photoB]));
       await tester.pumpAndSettle();
-      // Normal header before the long press.
+      // Normal header before entering selection.
       expect(find.text('Site Media'), findsOneWidget);
 
       await enterSelection(tester);
@@ -400,7 +394,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.longPress(find.byType(MediaThumbnailTile).first);
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();

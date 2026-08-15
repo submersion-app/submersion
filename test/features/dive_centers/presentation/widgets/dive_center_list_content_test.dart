@@ -234,6 +234,10 @@ void main() {
           child: const DiveCenterListContent(showAppBar: true),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa Center'),
+          matching: find.byType(DiveCenterListTile),
+        ),
         firstRow: find.text('Aaa Center'),
         applyFilter: (tester) async {
           notifier.showOnly([all.first]);

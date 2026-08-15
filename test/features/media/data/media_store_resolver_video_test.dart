@@ -172,6 +172,63 @@ void main() {
     expect((data! as FileData).isPoster, isFalse);
   });
 
+  // A document's thumb is a page-1 render: an image standing in for bytes no
+  // Image widget can decode, exactly like a video's poster. Without the flag
+  // MediaItemView cannot tell it apart from the PDF the same call returns
+  // when no thumb was stamped, and draws a broken tile for one of the two.
+  test('a document thumb from the store is flagged as a stand-in', () async {
+    final render = 'jpeg-page-1-bytes'.codeUnits;
+    final hash = 'd7${'3' * 62}';
+    store.objects[StoreKeys.thumbKey(hash)] = render;
+
+    final data = await resolver.tryResolveRemote(
+      MediaItem(
+        id: 'd1',
+        siteId: 'site-1',
+        mediaType: MediaType.document,
+        sourceType: MediaSourceType.localFile,
+        originalFilename: 'reef-map.pdf',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: hash,
+        remoteThumbUploadedAt: DateTime(2026),
+      ),
+      thumbnail: true,
+    );
+
+    expect(data, isA<FileData>());
+    expect((data! as FileData).isPoster, isTrue);
+  });
+
+  // The other half of the pair: no thumb stamp, so the same call degrades to
+  // the document itself, which must NOT be flagged.
+  test('a document served as its original is not flagged', () async {
+    final pdf = '%PDF-1.7 not an image'.codeUnits;
+    final seed = File('${root.path}/reef-map.pdf')..writeAsBytesSync(pdf);
+    final digest = await sha256OfFile(seed);
+    store.objects[StoreKeys.objectKey(digest.hash, extension: 'pdf')] = pdf;
+
+    final data = await resolver.tryResolveRemote(
+      MediaItem(
+        id: 'd2',
+        siteId: 'site-1',
+        mediaType: MediaType.document,
+        sourceType: MediaSourceType.localFile,
+        originalFilename: 'reef-map.pdf',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: digest.hash,
+        remoteUploadedAt: DateTime(2026),
+      ),
+      thumbnail: true,
+    );
+
+    expect(data, isA<FileData>());
+    expect((data! as FileData).isPoster, isFalse);
+  });
+
   // Rows created by the Files tab before it recorded a filename have
   // originalFilename == null, so StoreKeys.extensionFor yields 'bin' and the
   // object was UPLOADED under `<hash>.bin`. That key must not change -- it is

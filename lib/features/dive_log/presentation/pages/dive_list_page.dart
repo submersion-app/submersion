@@ -659,7 +659,6 @@ class DiveListTile extends ConsumerWidget {
   final bool isFavorite;
   final List<Tag> tags;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final VoidCallback? onDoubleTap;
 
   /// Currently open in the detail pane. Renders as a leading edge stripe.
@@ -725,7 +724,6 @@ class DiveListTile extends ConsumerWidget {
     this.isFavorite = false,
     this.tags = const [],
     this.onTap,
-    this.onLongPress,
     this.onDoubleTap,
     this.isHighlighted = false,
     this.isSelectionMode = false,
@@ -778,18 +776,23 @@ class DiveListTile extends ConsumerWidget {
     // Check if map background is enabled
     final showMapBackground = ref.watch(showMapBackgroundOnDiveCardsProvider);
 
+    // The active row carries a fill tint: checked in the bulk selection, or --
+    // outside selection mode -- open in the detail pane. Inside selection mode
+    // the fill belongs to the checked channel alone, so a highlighted but
+    // unchecked row stays plain instead of reading as selected.
+    final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
+
     // Determine if we should show the map (setting enabled + location available)
-    final shouldShowMap = showMapBackground && _hasLocation && !isChecked;
+    final shouldShowMap =
+        showMapBackground && _hasLocation && !showsSelectionFill;
 
     // Determine card background: selection takes priority, then attribute coloring
     // When map is shown, we don't use attribute coloring on the card itself
     final attributeColor = (showCardColors && !shouldShowMap)
         ? _getAttributeBackgroundColor()
         : null;
-    final cardColor = isChecked
+    final cardColor = showsSelectionFill
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     // Determine text colors based on background luminance
@@ -1133,7 +1136,6 @@ class DiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             child: Stack(
               children: [
                 // Static map tile background (cached)
@@ -1178,18 +1180,11 @@ class DiveListTile extends ConsumerWidget {
       );
     }
 
-    // Standard card without map
+    // Standard card without map. The highlight is the fill above, not an edge
+    // stripe -- the key marks the row for tests without decorating it.
     return Container(
       key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: isHighlighted
-          ? BoxDecoration(
-              border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
@@ -1199,7 +1194,6 @@ class DiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(12),
             child: buildContent(),
           ),

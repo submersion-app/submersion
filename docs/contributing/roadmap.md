@@ -288,7 +288,7 @@ When planning features, we consider:
 |----------|--------|---------|
 | iOS | :white_check_mark: | iOS 15+ |
 | Android | :white_check_mark: | Android 7+ |
-| macOS | :white_check_mark: | macOS 11+ |
+| macOS | :white_check_mark: | macOS 12+ |
 | Windows | :white_check_mark: | Windows 10+ |
 | Linux | :white_check_mark: | Desktop |
 | Web | :clipboard: v2.0 | Requires sync |

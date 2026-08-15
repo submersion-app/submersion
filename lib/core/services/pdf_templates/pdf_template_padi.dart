@@ -124,7 +124,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
             child: pw.Center(
               child: pw.Text(
                 'DIVE LOG',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.white,
@@ -137,7 +137,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
           if (diver != null) ...[
             pw.Text(
               diver.name,
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 24,
                 fontWeight: pw.FontWeight.bold,
                 color: _padiBlue,
@@ -155,7 +155,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   '$diveCount',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 48,
                     fontWeight: pw.FontWeight.bold,
                     color: _padiBlue,
@@ -199,7 +199,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             'DIVE LOG',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white,
@@ -245,7 +245,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                   children: [
                     pw.Text(
                       'Dive #${dive.diveNumber ?? '-'}',
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         fontSize: 11,
                         fontWeight: pw.FontWeight.bold,
                         color: _padiBlue,
@@ -264,7 +264,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                         ),
                         child: pw.Text(
                           'TRAINING',
-                          style: pw.TextStyle(
+                          style: const pw.TextStyle(
                             fontSize: 7,
                             fontWeight: pw.FontWeight.bold,
                             color: PdfColors.white,
@@ -290,7 +290,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 // Site name
                 pw.Text(
                   dive.site?.name ?? 'Unknown Site',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 10,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -404,7 +404,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             label,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 7,
               fontWeight: pw.FontWeight.bold,
               color: _padiBlue,
@@ -427,7 +427,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             '$label: ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 7,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,

@@ -528,11 +528,10 @@ void main() {
 
       final second = await service.reverseGeocode(36.0, -5.6);
 
-      expect(
-        platform.localeIdentifiers,
-        ['en', 'en'],
-        reason: 'clearing the memo on failure lets a later call retry',
-      );
+      expect(platform.localeIdentifiers, [
+        'en',
+        'en',
+      ], reason: 'clearing the memo on failure lets a later call retry');
       expect(second.country, 'Spain');
     });
   });

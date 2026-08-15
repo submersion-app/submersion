@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
@@ -214,25 +214,23 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       itemCount: computers.length,
       itemBuilder: (context, index) {
         final computer = computers[index];
-        return SelectableRow(
+        return _ComputerCard(
+          computer: computer,
+          onTap: () {
+            if (SelectableListScope.isModifierPressed()) {
+              _selection.enterImplicit(computer.id);
+              return;
+            }
+            if (_isSelectionMode) {
+              _selection.toggle(computer.id);
+              return;
+            }
+            context.push('/dive-computers/${computer.id}');
+          },
+          onDownload: () => _startQuickDownload(context, ref, computer),
           isSelectionMode: _isSelectionMode,
           isChecked: _selectedIds.contains(computer.id),
-          onChanged: (_) => _selection.toggle(computer.id),
-          child: _ComputerCard(
-            computer: computer,
-            onTap: () {
-              if (SelectableListScope.isModifierPressed()) {
-                _selection.enterImplicit(computer.id);
-                return;
-              }
-              if (_isSelectionMode) {
-                _selection.toggle(computer.id);
-                return;
-              }
-              context.push('/dive-computers/${computer.id}');
-            },
-            onDownload: () => _startQuickDownload(context, ref, computer),
-          ),
+          onCheckChanged: (_) => _selection.toggle(computer.id),
         );
       },
     );
@@ -300,11 +298,17 @@ class _ComputerCard extends StatelessWidget {
   final DiveComputer computer;
   final VoidCallback onTap;
   final VoidCallback onDownload;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const _ComputerCard({
     required this.computer,
     required this.onTap,
     required this.onDownload,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -326,21 +330,26 @@ class _ComputerCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: computer.isFavorite
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getConnectionIcon(computer.connectionType),
-                    color: computer.isFavorite
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
+                // Icon, which becomes the checkbox in selection mode.
+                SelectionLeading(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: computer.isFavorite
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getConnectionIcon(computer.connectionType),
+                      color: computer.isFavorite
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),

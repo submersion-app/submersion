@@ -64,28 +64,41 @@ void main() {
       expect(item1.color, Colors.grey);
     });
 
-    testWidgets('long press enters selection mode', (tester) async {
-      bool selectionModeActive = false;
+    testWidgets('long press does not enter selection mode', (tester) async {
+      bool? selectionModeChangedTo;
+      Set<int> selection = {};
       await tester.pumpWidget(
         buildTestGrid(
-          onSelectionModeChanged: (active) => selectionModeActive = active,
+          onSelectionModeChanged: (active) => selectionModeChangedTo = active,
+          onSelectionChanged: (s) => selection = s,
         ),
       );
 
       await tester.longPress(find.text('0'));
       await tester.pumpAndSettle();
-      expect(selectionModeActive, isTrue);
+
+      expect(selectionModeChangedTo, isNull);
+      expect(selection, isEmpty);
     });
 
-    testWidgets('long press selects the pressed item', (tester) async {
+    testWidgets('long press inside selection mode checks the anchor', (
+      tester,
+    ) async {
       Set<int> selection = {};
       await tester.pumpWidget(
-        buildTestGrid(onSelectionChanged: (s) => selection = s),
+        buildTestGrid(
+          initialSelection: {1},
+          startInSelectionMode: true,
+          onSelectionChanged: (s) => selection = s,
+        ),
       );
 
       await tester.longPress(find.text('3'));
       await tester.pumpAndSettle();
-      expect(selection, contains(3));
+
+      // The drag anchor joins the selection rather than replacing it, so an
+      // accidental hold cannot wipe out what the user already checked.
+      expect(selection, containsAll(<int>[1, 3]));
     });
 
     testWidgets('tap toggles selection when in selection mode', (tester) async {

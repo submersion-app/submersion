@@ -36,13 +36,7 @@ class SerialScanner {
         matchingDict[kIOSerialBSDTypeKey] = kIOSerialBSDAllTypes
         var iterator: io_iterator_t = 0
 
-        let mainPort: mach_port_t
-        if #available(macOS 12.0, *) {
-            mainPort = kIOMainPortDefault
-        } else {
-            mainPort = kIOMasterPortDefault
-        }
-        let kr = IOServiceGetMatchingServices(mainPort, matchingDict, &iterator)
+        let kr = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
         guard kr == KERN_SUCCESS else { return }
         defer { IOObjectRelease(iterator) }
 

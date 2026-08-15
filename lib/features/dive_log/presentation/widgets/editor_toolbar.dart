@@ -4,8 +4,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_edit
 
 /// Mode selector toolbar for the profile editor.
 ///
-/// Displays a segmented button with four editing modes:
-/// Select, Smooth, Outlier, and Draw.
+/// Displays a segmented button with five editing modes:
+/// Select, Smooth, Outlier, Draw, and Trim.
 class EditorToolbar extends StatelessWidget {
   final EditorMode mode;
   final void Function(EditorMode) onModeChanged;
@@ -41,6 +41,11 @@ class EditorToolbar extends StatelessWidget {
             value: EditorMode.draw,
             icon: Icon(Icons.draw),
             label: Text('Draw'),
+          ),
+          ButtonSegment(
+            value: EditorMode.trim,
+            icon: Icon(Icons.content_cut),
+            label: Text('Trim'),
           ),
         ],
         selected: {mode},

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
@@ -19,6 +21,7 @@ class LocationSection extends StatelessWidget {
     this.errorCount = 0,
     required this.latitudeController,
     required this.longitudeController,
+    required this.coordinateFormat,
     required this.altitudeController,
     required this.latValidator,
     required this.lonValidator,
@@ -38,6 +41,9 @@ class LocationSection extends StatelessWidget {
   final int errorCount;
   final TextEditingController latitudeController;
   final TextEditingController longitudeController;
+
+  /// The notation the coordinate fields render and accept.
+  final CoordinateFormat coordinateFormat;
   final TextEditingController altitudeController;
   final String? Function(String?) latValidator;
   final String? Function(String?) lonValidator;
@@ -70,25 +76,21 @@ class LocationSection extends StatelessWidget {
                 sourceLabel: coordinatesExtras!.sourceLabel,
                 onCycle: coordinatesExtras!.onCycle,
               ),
-            FormRow.text(
-              label: l10n.diveSites_edit_gps_latitude_label,
-              controller: latitudeController,
-              placeholder: l10n.diveSites_edit_gps_latitude_hint,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              validator: latValidator,
-            ),
-            FormRow.text(
-              label: l10n.diveSites_edit_gps_longitude_label,
-              controller: longitudeController,
-              placeholder: l10n.diveSites_edit_gps_longitude_hint,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              validator: lonValidator,
+            CoordinateFieldGroup(
+              latitudeController: latitudeController,
+              longitudeController: longitudeController,
+              format: coordinateFormat,
+              latitudeLabel: l10n.diveSites_edit_gps_latitude_label,
+              longitudeLabel: l10n.diveSites_edit_gps_longitude_label,
+              // The group covers both axes, so a single message carries
+              // whichever axis is wrong.
+              errorText:
+                  latValidator(latitudeController.text) ??
+                  lonValidator(longitudeController.text),
+              // Shown while what is typed is not a position at all. The
+              // controllers keep the last good value in that state, so the
+              // range validators above have nothing to complain about.
+              invalidMessage: l10n.diveSites_edit_gps_latitude_validation,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),

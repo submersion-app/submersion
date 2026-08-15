@@ -338,4 +338,36 @@ class ProfileEditingService {
 
     return result;
   }
+
+  /// Trim trailing zero-depth points from the profile, keeping the last one.
+  ///
+  /// Removes all consecutive points with depth 0 from the end of the profile,
+  /// but preserves the last zero-depth point to mark the surface.
+  /// Returns the original profile if it has fewer than 2 points.
+  List<DiveProfilePoint> trimEndZeros(List<DiveProfilePoint> profile) {
+    if (profile.length < 2) return List.of(profile);
+
+    // Find the index of the last non-zero point
+    int lastNonZeroIndex = -1;
+    for (int i = profile.length - 1; i >= 0; i--) {
+      if (profile[i].depth != 0) {
+        lastNonZeroIndex = i;
+        break;
+      }
+    }
+
+    // If all points are zero, keep at least the last one
+    if (lastNonZeroIndex == -1) {
+      return [profile.last];
+    }
+
+    // Keep all points up to and including the first zero after the last non-zero
+    // to preserve at least one zero-depth point
+    if (lastNonZeroIndex < profile.length - 1) {
+      return profile.sublist(0, lastNonZeroIndex + 2);
+    }
+
+    // No trailing zeros exist
+    return List.of(profile);
+  }
 }

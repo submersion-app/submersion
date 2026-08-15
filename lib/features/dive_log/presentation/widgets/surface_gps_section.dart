@@ -110,7 +110,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
       // Build the (heavy) map content only when expanded so the page never
       // holds a second offscreen FlutterMap.
       contentBuilder: (context) => isExpanded
-          ? _content(context, entry, exit, site, driftText)
+          ? _content(context, units, entry, exit, site, driftText)
           : const SizedBox.shrink(),
     );
   }
@@ -147,6 +147,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
 
   Widget _content(
     BuildContext context,
+    UnitFormatter units,
     GeoPoint? entry,
     GeoPoint? exit,
     GeoPoint? site,
@@ -205,6 +206,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: kGpsEntryColor,
               label: context.l10n.diveLog_detail_surfaceGps_entry,
               point: entry,
+              units: units,
               coordKey: const ValueKey('gps-coord-entry'),
               copyKey: const ValueKey('gps-copy-entry'),
               sourceName: widget.sourceName,
@@ -216,6 +218,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: kGpsExitColor,
               label: context.l10n.diveLog_detail_surfaceGps_exit,
               point: exit,
+              units: units,
               coordKey: const ValueKey('gps-coord-exit'),
               copyKey: const ValueKey('gps-copy-exit'),
               sourceName: widget.sourceName,
@@ -227,6 +230,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: colorScheme.primary,
               label: context.l10n.diveLog_detail_surfaceGps_site,
               point: site,
+              units: units,
               coordKey: const ValueKey('gps-coord-site'),
               copyKey: const ValueKey('gps-copy-site'),
               onFocus: () => _focusOn(site),
@@ -305,6 +309,7 @@ class _GpsCoordinateRow extends StatelessWidget {
     required this.dotColor,
     required this.label,
     required this.point,
+    required this.units,
     required this.coordKey,
     required this.copyKey,
     required this.onFocus,
@@ -315,6 +320,7 @@ class _GpsCoordinateRow extends StatelessWidget {
   final Color dotColor;
   final String label;
   final GeoPoint point;
+  final UnitFormatter units;
   final Key coordKey;
   final Key copyKey;
   final VoidCallback onFocus;
@@ -325,8 +331,7 @@ class _GpsCoordinateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final coordText =
-        '${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}';
+    final coordText = units.formatCoordinates(point.latitude, point.longitude);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

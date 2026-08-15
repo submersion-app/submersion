@@ -125,7 +125,7 @@ class MacDiveDialect extends UddfDialect {
       if (equip == null) continue;
       var before = dive.findElements('informationbeforedive').firstOrNull;
       if (before == null) {
-        before = XmlElement(XmlName('informationbeforedive'));
+        before = XmlElement(const XmlName.parts('informationbeforedive'));
         dive.children.add(before);
       }
       // Skip if informationbeforedive already has equipmentused (idempotency).

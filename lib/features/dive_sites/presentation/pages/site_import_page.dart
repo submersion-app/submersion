@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for searching and importing dive sites from online sources.
@@ -194,6 +196,8 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
+
     // Error state
     if (state.hasError) {
       return Center(
@@ -361,6 +365,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             return _DiveSiteCard(
               site: site,
               isImported: isImported,
+              units: units,
               onImport: () => _importSite(site),
             );
           }),
@@ -530,11 +535,13 @@ class _LocalSiteCard extends StatelessWidget {
 class _DiveSiteCard extends StatelessWidget {
   final ExternalDiveSite site;
   final bool isImported;
+  final UnitFormatter units;
   final VoidCallback onImport;
 
   const _DiveSiteCard({
     required this.site,
     required this.isImported,
+    required this.units,
     required this.onImport,
   });
 
@@ -795,8 +802,10 @@ class _DiveSiteCard extends StatelessWidget {
                         Chip(
                           avatar: const Icon(Icons.location_on, size: 18),
                           label: Text(
-                            '${site.latitude!.toStringAsFixed(4)}, '
-                            '${site.longitude!.toStringAsFixed(4)}',
+                            units.formatCoordinates(
+                              site.latitude,
+                              site.longitude,
+                            ),
                           ),
                         ),
                       ...site.features.map((f) => Chip(label: Text(f))),

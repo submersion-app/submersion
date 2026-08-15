@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
 import 'package:submersion/features/maps/presentation/pages/region_picker_page.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for managing offline map regions.
@@ -411,6 +413,7 @@ class OfflineMapsPage extends ConsumerWidget {
     CachedRegion region,
   ) {
     final theme = Theme.of(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Semantics(
       label: listItemLabel(
@@ -443,13 +446,17 @@ class OfflineMapsPage extends ConsumerWidget {
             tooltip: context.l10n.maps_offline_deleteRegion(region.name),
             onPressed: () => _confirmDeleteRegion(context, ref, region),
           ),
-          onTap: () => _showRegionDetails(context, region),
+          onTap: () => _showRegionDetails(context, units, region),
         ),
       ),
     );
   }
 
-  void _showRegionDetails(BuildContext context, CachedRegion region) {
+  void _showRegionDetails(
+    BuildContext context,
+    UnitFormatter units,
+    CachedRegion region,
+  ) {
     final theme = Theme.of(context);
 
     showModalBottomSheet(
@@ -496,10 +503,8 @@ class OfflineMapsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'SW: ${region.minLat.toStringAsFixed(4)}, '
-              '${region.minLng.toStringAsFixed(4)}\n'
-              'NE: ${region.maxLat.toStringAsFixed(4)}, '
-              '${region.maxLng.toStringAsFixed(4)}',
+              'SW: ${units.formatCoordinates(region.minLat, region.minLng)}\n'
+              'NE: ${units.formatCoordinates(region.maxLat, region.maxLng)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontFamily: 'monospace',
                 color: theme.colorScheme.onSurfaceVariant,

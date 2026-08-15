@@ -217,17 +217,24 @@ void main() {
         ),
       );
 
-      // The outer Container should have a highlight border decoration
-      final container = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byType(CompactDiveListTile),
-              matching: find.byType(Container),
-            )
-            .first,
+      // A highlighted row is filled, the same way a checked row is -- see
+      // dive_tile_highlight_fill_test.dart for the full channel matrix.
+      final context = tester.element(find.byType(CompactDiveListTile));
+      final card = tester.widget<Card>(
+        find.descendant(
+          of: find.byType(CompactDiveListTile),
+          matching: find.byType(Card),
+        ),
       );
-      final decoration = container.decoration;
-      expect(decoration, isNotNull);
+      expect(
+        card.color,
+        Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+      );
+      expect(
+        find.byKey(const ValueKey('dive_row_highlight')),
+        findsOneWidget,
+        reason: 'the highlighted row stays identifiable',
+      );
     });
 
     testWidgets('renders with null depth and duration shows fallback', (
@@ -343,30 +350,6 @@ void main() {
       // Should render without crash when selected
       expect(find.text('#3'), findsOneWidget);
       expect(find.text('Deep Wall'), findsOneWidget);
-    });
-
-    testWidgets('fires onLongPress callback', (tester) async {
-      bool longPressed = false;
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-          child: CompactDiveListTile(
-            diveId: 'lp-id',
-            diveNumber: 8,
-            dateTime: DateTime(2026, 3, 15),
-            siteName: 'Reef Point',
-            onTap: () {},
-            onLongPress: () => longPressed = true,
-          ),
-        ),
-      );
-
-      await tester.longPress(find.text('Reef Point'));
-      await tester.pumpAndSettle();
-
-      expect(longPressed, isTrue);
     });
 
     testWidgets('renders stat slot with icon when field has icon', (

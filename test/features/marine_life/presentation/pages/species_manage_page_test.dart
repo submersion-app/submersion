@@ -56,6 +56,12 @@ void main() {
         tester,
         build: () => host(species: all),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        // Non-selectable species render no checkbox, so pin to the row the
+        // contract already drives rather than whichever sorts first.
+        rowRoot: find.ancestor(
+          of: find.text('Aaa fish'),
+          matching: find.byType(ListTile),
+        ),
         firstRow: find.text('Aaa fish'),
         applyFilter: (tester) async {
           final container = ProviderScope.containerOf(
@@ -152,6 +158,31 @@ void main() {
         findsOneWidget,
         reason: 'only the custom species is selectable',
       );
+    });
+
+    testWidgets('selection mode hides the per-row edit and delete actions', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          species: [_species(id: 'c1', name: 'Custom fish')],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Normal mode offers both row actions.
+      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // In selection mode the only delete is the bulk one, which the shared
+      // bar keeps behind its overflow menu. A live per-row trash beside the
+      // checkbox would undo that.
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
     });
 
     testWidgets('a species with sightings renders no checkbox and is '

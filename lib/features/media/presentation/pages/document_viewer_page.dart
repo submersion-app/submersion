@@ -5,15 +5,15 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen in-app viewer for PDF document attachments.
 ///
-/// Bytes come through [resolvedFullResolutionProvider], which already
-/// handles every source type plus the media-store fallback, so a PDF views
-/// identically whether it lives behind a local bookmark, a SAF URI, a
-/// plain path, or only in the cloud store.
+/// Bytes come through [mediaBytesProvider], which resolves the row against
+/// the source it points at and falls back to the media store, so a PDF views
+/// identically whether it lives behind a local bookmark, a SAF URI, a plain
+/// path, or only in the cloud store.
 class DocumentViewerPage extends ConsumerStatefulWidget {
   final MediaItem item;
 
@@ -30,9 +30,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedAsync = ref.watch(
-      resolvedFullResolutionProvider(widget.item),
-    );
+    final resolvedAsync = ref.watch(mediaBytesProvider(widget.item));
 
     return Scaffold(
       appBar: AppBar(
@@ -85,9 +83,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   Future<void> _share(BuildContext context) async {
     final l10n = context.l10n;
     try {
-      final resolved = await ref.read(
-        resolvedFullResolutionProvider(widget.item).future,
-      );
+      final resolved = await ref.read(mediaBytesProvider(widget.item).future);
       if (resolved.isUnavailable || resolved.bytes == null) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

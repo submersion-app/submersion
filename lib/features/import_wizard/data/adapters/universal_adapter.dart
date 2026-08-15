@@ -343,6 +343,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       existingDiveTypes: existingDiveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
+      units: UnitFormatter(_ref.read(settingsProvider)),
     );
 
     final updatedGroups = Map<wizard.ImportEntityType, EntityGroup>.from(
@@ -733,7 +734,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     if (location != null && location.isNotEmpty) {
       subtitle = location;
     } else if (lat != null && lon != null) {
-      subtitle = '${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}';
+      subtitle = UnitFormatter(
+        _ref.read(settingsProvider),
+      ).formatCoordinates(lat, lon);
     } else {
       subtitle = '';
     }

@@ -7,7 +7,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
@@ -114,23 +114,24 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                     separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final entry = rows[index];
-                      return SelectableRow(
+                      final tile = _TransferTile(
+                        entry: entry,
                         isSelectionMode: _isSelectionMode,
                         isChecked: _selectedIds.contains(entry.id.toString()),
-                        onChanged: (_) =>
+                        onCheckChanged: (_) =>
                             _selection.toggle(entry.id.toString()),
-                        // The tile has no tap handler of its own, so while
-                        // selecting the whole row has to toggle -- otherwise
-                        // the checkbox is the only target.
-                        child: _isSelectionMode
-                            ? GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () =>
-                                    _selection.toggle(entry.id.toString()),
-                                child: _TransferTile(entry: entry),
-                              )
-                            : _TransferTile(entry: entry),
                       );
+                      // The tile has no tap handler of its own, so while
+                      // selecting the whole row has to toggle -- otherwise
+                      // the checkbox is the only target.
+                      return _isSelectionMode
+                          ? GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () =>
+                                  _selection.toggle(entry.id.toString()),
+                              child: tile,
+                            )
+                          : tile;
                     },
                   ),
           ),
@@ -201,9 +202,17 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
 }
 
 class _TransferTile extends ConsumerWidget {
-  const _TransferTile({required this.entry});
+  const _TransferTile({
+    required this.entry,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
+  });
 
   final MediaTransferQueueEntry entry;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -236,11 +245,17 @@ class _TransferTile extends ConsumerWidget {
       ),
     };
     return ListTile(
-      leading: Icon(
-        icon,
-        color: entry.state == 'failed'
-            ? Theme.of(context).colorScheme.error
-            : null,
+      // The state icon becomes the checkbox in selection mode.
+      leading: SelectionLeading(
+        isSelectionMode: isSelectionMode,
+        isChecked: isChecked,
+        onChanged: onCheckChanged,
+        child: Icon(
+          icon,
+          color: entry.state == 'failed'
+              ? Theme.of(context).colorScheme.error
+              : null,
+        ),
       ),
       title: Text(label),
       subtitle: Column(

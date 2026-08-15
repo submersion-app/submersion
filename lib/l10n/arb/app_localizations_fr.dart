@@ -2444,6 +2444,52 @@ class AppLocalizationsFr extends AppLocalizations {
       'Supprimer cet enregistrement de checklist ?';
 
   @override
+  String get preDive_sessions_filter => 'Filtrer';
+
+  @override
+  String get preDive_sessions_filterTitle =>
+      'Filtrer les checklists effectuées';
+
+  @override
+  String get preDive_sessions_filterChecklist => 'Checklist';
+
+  @override
+  String get preDive_sessions_filterStatus => 'Statut';
+
+  @override
+  String get preDive_sessions_filterFlaggedOnly => 'Uniquement les anomalies';
+
+  @override
+  String get preDive_sessions_filterDateRange => 'Période';
+
+  @override
+  String get preDive_sessions_filterAnyDate => 'Toutes les dates';
+
+  @override
+  String get preDive_sessions_filterClearAll => 'Tout effacer';
+
+  @override
+  String get preDive_sessions_filterApply => 'Appliquer';
+
+  @override
+  String get preDive_sessions_filterFlaggedChip => 'Anomalies uniquement';
+
+  @override
+  String get preDive_sessions_emptyFiltered =>
+      'Aucune checklist ne correspond à ces filtres';
+
+  @override
+  String get preDive_sessions_export => 'Exporter vers Excel';
+
+  @override
+  String get preDive_sessions_exportEmpty => 'Aucune checklist à exporter';
+
+  @override
+  String preDive_sessions_exportFailed(String error) {
+    return 'Échec de l\'export : $error';
+  }
+
+  @override
   String get preDive_start_title => 'Démarrer la checklist pré-plongée';
 
   @override
@@ -6250,6 +6296,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_syncPull_continue => 'Continuer';
+
+  @override
+  String get setup_syncPull_incomplete_message =>
+      'Ce compte contient une bibliothèque Submersion dont l\'envoi n\'a jamais été terminé. Laissez votre autre appareil finir la synchronisation, puis réessayez.';
+
+  @override
+  String get setup_syncPull_incomplete_retry => 'Vérifier à nouveau';
+
+  @override
+  String get setup_syncPull_incomplete_title =>
+      'Envoi de la bibliothèque inachevé';
+
+  @override
+  String get setup_syncPull_locked_message =>
+      'Saisissez la phrase secrète de chiffrement pour déverrouiller cette bibliothèque et la télécharger sur cet appareil.';
+
+  @override
+  String get setup_syncPull_locked_title => 'Cette bibliothèque est chiffrée';
 
   @override
   String get setup_syncPull_noLibrary_message =>
@@ -11912,8 +11976,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_gpsBanner_addToSiteButton => 'Ajouter au site';
 
   @override
-  String media_gpsBanner_coordinates(Object latitude, Object longitude) {
-    return 'Coordonnees : $latitude, $longitude';
+  String media_gpsBanner_coordinates(Object coordinates) {
+    return 'Coordonnees : $coordinates';
   }
 
   @override
@@ -19323,6 +19387,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun port série USB trouvé. L\'ordinateur de plongée est-il connecté et allumé ?';
 
   @override
+  String get diveComputer_download_stalePairing =>
+      'L\'appairage Bluetooth de cet ordinateur de plongée n\'est plus valide. Oubliez l\'ordinateur de plongée dans les réglages Bluetooth de votre appareil, puis appairez-le à nouveau depuis le menu Bluetooth de l\'ordinateur de plongée.';
+
+  @override
+  String get diveComputer_download_discoveryStalled =>
+      'Connexion établie avec l\'ordinateur de plongée, mais il a cessé de répondre avant le début du téléchargement. Cela signifie généralement que l\'appairage Bluetooth n\'est plus valide : oubliez l\'ordinateur de plongée dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Impossible de se connecter à l\'ordinateur de plongée.\n\nDétails de diagnostic (à partager avec les développeurs) :\n$details';
   }
@@ -23232,6 +23304,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_repair_applied => 'Correction appliquée';
 
   @override
+  String get dataQuality_repair_noChange => 'Rien à corriger ici';
+
+  @override
   String get dataQuality_repair_failed => 'Échec de la correction';
 
   @override
@@ -23446,6 +23521,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_despike => 'Supprimer le pic';
+
+  @override
+  String get dataQuality_repairLabel_clampNegative =>
+      'Ramener les profondeurs négatives à zéro';
+
+  @override
+  String get dataQuality_repairLabel_smoothRates =>
+      'Lisser les vitesses impossibles';
 
   @override
   String get dataQuality_repairLabel_fillGaps => 'Combler les trous';
@@ -23714,6 +23797,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String visibility_range_under(String max, String unit) {
     return 'moins de $max $unit';
   }
+
+  @override
+  String get settings_coordinateFormat_title => 'Format des coordonnées';
+
+  @override
+  String get settings_coordinateFormat_subtitle =>
+      'Comment les positions GPS sont affichées et saisies';
+
+  @override
+  String get settings_coordinateFormat_decimalDegrees => 'Degrés décimaux';
+
+  @override
+  String get settings_coordinateFormat_degreesDecimalMinutes =>
+      'Degrés et minutes décimales';
+
+  @override
+  String get settings_coordinateFormat_degreesMinutesSeconds =>
+      'Degrés, minutes, secondes';
+
+  @override
+  String get settings_coordinateFormat_utm => 'UTM';
+
+  @override
+  String get settings_coordinateFormat_mgrs => 'MGRS';
 
   @override
   String get settings_visibilityScale_title => 'Échelle de visibilité';

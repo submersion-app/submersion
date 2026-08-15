@@ -43,6 +43,72 @@ double normalizeUddfTankVolumeToLiters(
 class UddfImportParsers {
   UddfImportParsers._();
 
+  // An integer followed by a fractional part of nothing but zeros, e.g.
+  // "15.0" or "15.000". Captures the integer so it can be parsed exactly.
+  static final RegExp _zeroFractionPattern = RegExp(r'^([+-]?\d+)\.0*$');
+
+  /// Parses a UDDF integer-semantics value, tolerating the float
+  /// serialization several exporters emit.
+  ///
+  /// UDDF types fields like `<divetime>` and `<diveduration>` as integers,
+  /// but exporters built on JavaScript runtimes write them as floats
+  /// (Oceanic Plus emits `<divetime>15.0</divetime>`; MacDive emits
+  /// `<diveduration>60.00</diveduration>`), because 15 and 15.0 are the
+  /// same value there. [int.tryParse] rejects any decimal point, so those
+  /// fields silently fell back to 0 or were dropped entirely -- a profile
+  /// imported from Oceanic Plus had every waypoint stamped at t=0.
+  ///
+  /// Parsing leniently here fixes the whole class of defect without
+  /// requiring the file to be attributed to a known vendor first, which
+  /// matters because vendor fingerprints fail silently: Oceanic Plus omits
+  /// `<generator><name>`, leaving only a locale-dependent homepage URL to
+  /// match on.
+  ///
+  /// Returns null when [text] is null, blank, non-numeric, or non-finite.
+  /// Genuinely fractional input is rounded to nearest.
+  static int? parseUddfInt(String? text) {
+    if (text == null) return null;
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+
+    final asInt = int.tryParse(trimmed);
+    if (asInt != null) return asInt;
+
+    // Strip a fractional part that is nothing but zeros, so the value keeps
+    // exact integer semantics. Going through a double would lose precision
+    // above 2^53 ("9007199254740993.0" comes back as ...992) for values Dart
+    // ints represent exactly. Anything with a real fraction, an exponent or
+    // stray characters falls through to the double path below.
+    final zeroFraction = _zeroFractionPattern.firstMatch(trimmed);
+    if (zeroFraction != null) {
+      final exact = int.tryParse(zeroFraction.group(1)!);
+      if (exact != null) return exact;
+    }
+
+    final asDouble = double.tryParse(trimmed);
+    // double.tryParse succeeds on "NaN" and "Infinity", and calling round()
+    // on either throws UnsupportedError. Guarding here keeps one malformed
+    // element from aborting the entire import.
+    if (asDouble == null || !asDouble.isFinite) return null;
+    return asDouble.round();
+  }
+
+  /// Parses a UDDF decimal value, rejecting non-finite input.
+  ///
+  /// [double.tryParse] succeeds on "NaN", "Infinity" and "-Infinity", so a
+  /// value that is only null-checked reaches the database intact. NaN is the
+  /// dangerous one: it compares false against everything including itself,
+  /// so it silently poisons totals, averages and range checks downstream
+  /// rather than failing where it was introduced.
+  ///
+  /// Returns null when [text] is null, blank, non-numeric or non-finite.
+  static double? parseUddfDouble(String? text) {
+    if (text == null) return null;
+    final value = double.tryParse(text.trim());
+    if (value == null || !value.isFinite) return null;
+    return value;
+  }
+
   static void assignGasMixToTankIfMissing({
     required List<Map<String, dynamic>> tanks,
     required int tankIndex,
@@ -383,7 +449,7 @@ class UddfImportParsers {
 
     final sortOrder = getElementText(typeElement, 'sortorder');
     if (sortOrder != null) {
-      diveType['sortOrder'] = int.tryParse(sortOrder) ?? 0;
+      diveType['sortOrder'] = parseUddfInt(sortOrder) ?? 0;
     }
 
     final isBuiltIn = getElementText(typeElement, 'isbuiltin');
@@ -403,7 +469,7 @@ class UddfImportParsers {
 
     final sortOrder = getElementText(roleElement, 'sortorder');
     if (sortOrder != null) {
-      diveRole['sortOrder'] = int.tryParse(sortOrder) ?? 0;
+      diveRole['sortOrder'] = parseUddfInt(sortOrder) ?? 0;
     }
 
     final isBuiltIn = getElementText(roleElement, 'isbuiltin');
@@ -634,7 +700,7 @@ class UddfImportParsers {
 
     final serviceInterval = getElementText(itemElement, 'serviceintervaldays');
     if (serviceInterval != null) {
-      item['serviceIntervalDays'] = int.tryParse(serviceInterval);
+      item['serviceIntervalDays'] = parseUddfInt(serviceInterval);
     }
 
     final isActive = getElementText(itemElement, 'isactive');

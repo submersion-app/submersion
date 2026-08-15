@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
+    as coords;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -25,6 +27,32 @@ class UnitFormatter {
 
   /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
+
+  // ============================================================================
+  // Coordinates
+  // ============================================================================
+
+  /// Format a coordinate pair in the diver's chosen notation.
+  ///
+  /// Returns the standard '--' placeholder unless both axes are present: half
+  /// a coordinate is not a position.
+  String formatCoordinates(double? latitude, double? longitude) {
+    if (latitude == null || longitude == null) return '--';
+    return coords.formatCoordinates(
+      latitude,
+      longitude,
+      settings.coordinateFormat,
+    );
+  }
+
+  /// Format a single latitude. Grid formats degrade to decimal degrees, since
+  /// one axis of a grid reference means nothing on its own.
+  String formatLatitude(double latitude) =>
+      coords.formatLatitude(latitude, settings.coordinateFormat);
+
+  /// Format a single longitude. See [formatLatitude] on grid formats.
+  String formatLongitude(double longitude) =>
+      coords.formatLongitude(longitude, settings.coordinateFormat);
 
   /// Convert depth from meters to user's preferred unit
   double convertDepth(double meters) {

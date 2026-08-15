@@ -801,8 +801,18 @@ class UddfEntityImporter {
       if (name == null || name.isEmpty) continue;
 
       final uddfId = tagData['uddfId'] as String?;
-      final newId = _uuid.v4();
 
+      // Reuse the tag this diver already has by that name rather than minting
+      // a second uuid for it -- the same guard _importDiveTypes applies to
+      // colliding slugs. `tags` is uniquely indexed on (diver scope,
+      // case-folded name) since v149, so a blind mint would collide (#1032).
+      final existing = await repository.getTagByName(name, diverId: diverId);
+      if (existing != null) {
+        if (uddfId != null) idMapping[uddfId] = existing.id;
+        continue;
+      }
+
+      final newId = _uuid.v4();
       final tag = Tag(
         id: newId,
         diverId: diverId,

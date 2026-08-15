@@ -41,7 +41,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 trip.name,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -75,7 +75,7 @@ class PdfExportService {
               pw.SizedBox(height: 30),
               pw.Text(
                 '${dives.length} Dives',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -103,7 +103,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 'Dive ${dive.diveNumber ?? ""}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -256,7 +256,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 title,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -312,7 +312,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 'Summary',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -387,7 +387,10 @@ class PdfExportService {
           pw.Text(label, style: const pw.TextStyle(fontSize: 14)),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -415,7 +418,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - ${dive.site?.name ?? 'Unknown Site'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -476,7 +479,7 @@ class PdfExportService {
                         children: [
                           pw.Text(
                             '${field.key}: ',
-                            style: pw.TextStyle(
+                            style: const pw.TextStyle(
                               fontSize: 9,
                               fontWeight: pw.FontWeight.bold,
                               color: PdfColors.grey700,
@@ -509,7 +512,7 @@ class PdfExportService {
             pw.SizedBox(height: 8),
             pw.Text(
               'Verified by:',
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColors.grey700,
@@ -573,7 +576,10 @@ class PdfExportService {
           pw.SizedBox(height: 2),
           pw.Text(
             signature.signerName,
-            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              fontWeight: pw.FontWeight.bold,
+            ),
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
@@ -601,7 +607,10 @@ class PdfExportService {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );

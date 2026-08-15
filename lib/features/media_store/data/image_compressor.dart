@@ -60,11 +60,11 @@ class ImageCompressor implements MediaCompressor {
                 preset.maxDimension.toDouble(),
               ),
             );
-        if (data is BytesData) return _writeJpeg(data.bytes);
+        if (data is BytesData) return await _writeJpeg(data.bytes);
         return null;
       }
       final bytes = await source.readAsBytes();
-      return _encode(bytes, item.originalFilename, preset);
+      return await _encode(bytes, item.originalFilename, preset);
     } on Exception catch (e) {
       _log.warning('Image compression failed for ${item.id}: $e');
       return null;

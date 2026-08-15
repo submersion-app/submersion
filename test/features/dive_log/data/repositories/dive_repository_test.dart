@@ -281,11 +281,11 @@ void main() {
 
         expect(result, hasLength(1));
         final attrs = result.single.equipment.single.attributes;
-        expect(
-          attrs.map((a) => a.sortOrder),
-          [0, 1, 2],
-          reason: 'attributes come back ascending by sortOrder',
-        );
+        expect(attrs.map((a) => a.sortOrder), [
+          0,
+          1,
+          2,
+        ], reason: 'attributes come back ascending by sortOrder');
         expect(attrs.map((a) => a.key), [
           'thickness_mm',
           'buoyancy_kg',

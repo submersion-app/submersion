@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 
 class SampleGapDetector extends QualityDetector {
@@ -11,7 +12,7 @@ class SampleGapDetector extends QualityDetector {
   @override
   String get id => 'sample_gap';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.profile;
 
@@ -31,6 +32,7 @@ class SampleGapDetector extends QualityDetector {
       QualityThresholds.gapMinSeconds.toDouble(),
     );
     var gapCount = 0;
+    var fillableGapCount = 0;
     var totalGap = 0;
     var longest = 0;
     for (final iv in intervals) {
@@ -38,6 +40,9 @@ class SampleGapDetector extends QualityDetector {
         gapCount++;
         totalGap += iv;
         longest = math.max(longest, iv);
+        // Holes past gapFillMaxSeconds are honest data loss; fillGaps leaves
+        // them, so a dive with only long holes gets no fill-gaps button.
+        if (RepairPredicates.gapIsFillable(iv, threshold)) fillableGapCount++;
       }
     }
     if (gapCount == 0) return const [];
@@ -53,6 +58,7 @@ class SampleGapDetector extends QualityDetector {
         severity: severity,
         params: {
           'gapCount': gapCount,
+          'fillableGapCount': fillableGapCount,
           'totalGapSeconds': totalGap,
           'longestGapSeconds': longest,
           'medianIntervalSeconds': median,

@@ -4121,6 +4121,90 @@ abstract class AppLocalizations {
   /// **'Delete this checklist record?'**
   String get preDive_sessions_deleteConfirm;
 
+  /// No description provided for @preDive_sessions_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get preDive_sessions_filter;
+
+  /// No description provided for @preDive_sessions_filterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter checklist runs'**
+  String get preDive_sessions_filterTitle;
+
+  /// No description provided for @preDive_sessions_filterChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get preDive_sessions_filterChecklist;
+
+  /// No description provided for @preDive_sessions_filterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get preDive_sessions_filterStatus;
+
+  /// No description provided for @preDive_sessions_filterFlaggedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Flagged runs only'**
+  String get preDive_sessions_filterFlaggedOnly;
+
+  /// No description provided for @preDive_sessions_filterDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get preDive_sessions_filterDateRange;
+
+  /// No description provided for @preDive_sessions_filterAnyDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Any date'**
+  String get preDive_sessions_filterAnyDate;
+
+  /// No description provided for @preDive_sessions_filterClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get preDive_sessions_filterClearAll;
+
+  /// No description provided for @preDive_sessions_filterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get preDive_sessions_filterApply;
+
+  /// No description provided for @preDive_sessions_filterFlaggedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Flagged only'**
+  String get preDive_sessions_filterFlaggedChip;
+
+  /// No description provided for @preDive_sessions_emptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklist runs match these filters'**
+  String get preDive_sessions_emptyFiltered;
+
+  /// No description provided for @preDive_sessions_export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Excel'**
+  String get preDive_sessions_export;
+
+  /// No description provided for @preDive_sessions_exportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklist runs to export'**
+  String get preDive_sessions_exportEmpty;
+
+  /// No description provided for @preDive_sessions_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String preDive_sessions_exportFailed(String error);
+
   /// No description provided for @preDive_start_title.
   ///
   /// In en, this message translates to:
@@ -10440,6 +10524,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get setup_syncPull_continue;
+
+  /// No description provided for @setup_syncPull_incomplete_message.
+  ///
+  /// In en, this message translates to:
+  /// **'This account holds a Submersion library that was never finished uploading. Let your other device finish syncing, then try again.'**
+  String get setup_syncPull_incomplete_message;
+
+  /// No description provided for @setup_syncPull_incomplete_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get setup_syncPull_incomplete_retry;
+
+  /// No description provided for @setup_syncPull_incomplete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Library upload unfinished'**
+  String get setup_syncPull_incomplete_title;
+
+  /// No description provided for @setup_syncPull_locked_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the encryption passphrase to unlock this library and download it to this device.'**
+  String get setup_syncPull_locked_message;
+
+  /// No description provided for @setup_syncPull_locked_title.
+  ///
+  /// In en, this message translates to:
+  /// **'This library is encrypted'**
+  String get setup_syncPull_locked_title;
 
   /// No description provided for @setup_syncPull_noLibrary_message.
   ///
@@ -20189,8 +20303,8 @@ abstract class AppLocalizations {
   /// No description provided for @media_gpsBanner_coordinates.
   ///
   /// In en, this message translates to:
-  /// **'Coordinates: {latitude}, {longitude}'**
-  String media_gpsBanner_coordinates(Object latitude, Object longitude);
+  /// **'Coordinates: {coordinates}'**
+  String media_gpsBanner_coordinates(Object coordinates);
 
   /// No description provided for @media_gpsBanner_createSiteButton.
   ///
@@ -32116,6 +32230,18 @@ abstract class AppLocalizations {
   /// **'No USB serial ports found. Is the dive computer connected and powered on?'**
   String get diveComputer_download_noSerialPortsFound;
 
+  /// No description provided for @diveComputer_download_stalePairing.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive computer\'s Bluetooth pairing is out of date. Forget the dive computer in your device\'s Bluetooth settings, then pair it again from the dive computer\'s Bluetooth menu.'**
+  String get diveComputer_download_stalePairing;
+
+  /// No description provided for @diveComputer_download_discoveryStalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device\'s Bluetooth settings, then try again.'**
+  String get diveComputer_download_discoveryStalled;
+
   /// No description provided for @diveComputer_download_serialConnectFailedWithDetails.
   ///
   /// In en, this message translates to:
@@ -38589,6 +38715,12 @@ abstract class AppLocalizations {
   /// **'Repair applied'**
   String get dataQuality_repair_applied;
 
+  /// No description provided for @dataQuality_repair_noChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to repair here'**
+  String get dataQuality_repair_noChange;
+
   /// No description provided for @dataQuality_repair_failed.
   ///
   /// In en, this message translates to:
@@ -38900,6 +39032,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove spike'**
   String get dataQuality_repairLabel_despike;
+
+  /// No description provided for @dataQuality_repairLabel_clampNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Clamp above-surface depths'**
+  String get dataQuality_repairLabel_clampNegative;
+
+  /// No description provided for @dataQuality_repairLabel_smoothRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth impossible rates'**
+  String get dataQuality_repairLabel_smoothRates;
 
   /// No description provided for @dataQuality_repairLabel_fillGaps.
   ///
@@ -39332,6 +39476,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'under {max} {unit}'**
   String visibility_range_under(String max, String unit);
+
+  /// No description provided for @settings_coordinateFormat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate format'**
+  String get settings_coordinateFormat_title;
+
+  /// No description provided for @settings_coordinateFormat_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How GPS positions are shown and entered'**
+  String get settings_coordinateFormat_subtitle;
+
+  /// No description provided for @settings_coordinateFormat_decimalDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal degrees'**
+  String get settings_coordinateFormat_decimalDegrees;
+
+  /// No description provided for @settings_coordinateFormat_degreesDecimalMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Degrees and decimal minutes'**
+  String get settings_coordinateFormat_degreesDecimalMinutes;
+
+  /// No description provided for @settings_coordinateFormat_degreesMinutesSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Degrees, minutes, seconds'**
+  String get settings_coordinateFormat_degreesMinutesSeconds;
+
+  /// No description provided for @settings_coordinateFormat_utm.
+  ///
+  /// In en, this message translates to:
+  /// **'UTM'**
+  String get settings_coordinateFormat_utm;
+
+  /// No description provided for @settings_coordinateFormat_mgrs.
+  ///
+  /// In en, this message translates to:
+  /// **'MGRS'**
+  String get settings_coordinateFormat_mgrs;
 
   /// No description provided for @settings_visibilityScale_title.
   ///

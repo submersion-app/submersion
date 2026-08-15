@@ -190,7 +190,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       onTap: _isSelectionMode
           ? () => _toggleSelection(tag.id)
           : () => _showEditDialog(tag),
-      onLongPress: _isSelectionMode ? null : () => _enterSelectionMode(tag.id),
     );
   }
 
@@ -428,15 +427,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
 
     if (merged == true) {
       _exitSelectionMode();
-    }
-  }
-
-  /// Enter selection mode implicitly, from a long-press.
-  void _enterSelectionMode(String? initialId) {
-    if (initialId == null) {
-      _selection.enterExplicit();
-    } else {
-      _selection.enterImplicit(initialId);
     }
   }
 

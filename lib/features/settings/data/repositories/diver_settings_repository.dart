@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -74,6 +75,7 @@ class DiverSettingsRepository {
               visibilityScaleExcellentM: Value(s.visibilityScaleExcellentM),
               visibilityScaleGoodM: Value(s.visibilityScaleGoodM),
               visibilityScaleModerateM: Value(s.visibilityScaleModerateM),
+              coordinateFormat: Value(s.coordinateFormat.name),
               timeFormat: Value(s.timeFormat.name),
               dateFormat: Value(s.dateFormat.name),
               themeMode: Value(_themeModeToString(s.themeMode)),
@@ -230,6 +232,7 @@ class DiverSettingsRepository {
           visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
           visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
           visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
+          coordinateFormat: Value(settings.coordinateFormat.name),
           timeFormat: Value(settings.timeFormat.name),
           dateFormat: Value(settings.dateFormat.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
@@ -430,6 +433,7 @@ class DiverSettingsRepository {
       visibilityScaleExcellentM: row.visibilityScaleExcellentM,
       visibilityScaleGoodM: row.visibilityScaleGoodM,
       visibilityScaleModerateM: row.visibilityScaleModerateM,
+      coordinateFormat: _parseCoordinateFormat(row.coordinateFormat),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
       themeMode: _parseThemeMode(row.themeMode),
@@ -602,6 +606,16 @@ class DiverSettingsRepository {
     return VisibilityScalePreset.values.firstWhere(
       (e) => e.name == value,
       orElse: () => VisibilityScalePreset.tropical,
+    );
+  }
+
+  /// Falls back to decimal degrees, which is what the app rendered before
+  /// v150, so an unrecognized stored value degrades to the previous
+  /// behaviour rather than throwing.
+  CoordinateFormat _parseCoordinateFormat(String value) {
+    return CoordinateFormat.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => CoordinateFormat.decimalDegrees,
     );
   }
 

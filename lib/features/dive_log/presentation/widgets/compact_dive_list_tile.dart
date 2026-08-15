@@ -22,7 +22,6 @@ class CompactDiveListTile extends ConsumerWidget {
   final double? maxDepth;
   final Duration? duration;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
 
   /// In the current bulk selection. Renders as a fill tint plus the leading
@@ -66,7 +65,6 @@ class CompactDiveListTile extends ConsumerWidget {
     this.maxDepth,
     this.duration,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
     this.isChecked = false,
     this.isHighlighted = false,
@@ -197,10 +195,13 @@ class CompactDiveListTile extends ConsumerWidget {
     final attributeColor = showCardColors
         ? _getAttributeBackgroundColor()
         : null;
-    final cardColor = isChecked
+    // The active row carries a fill tint: checked in the bulk selection, or --
+    // outside selection mode -- open in the detail pane. Inside selection mode
+    // the fill belongs to the checked channel alone, so a highlighted but
+    // unchecked row stays plain instead of reading as selected.
+    final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
+    final cardColor = showsSelectionFill
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     final effectiveBackground =
@@ -241,17 +242,11 @@ class CompactDiveListTile extends ConsumerWidget {
               ? duration != null
               : maxDepth != null);
 
+    // The highlight is the fill above, not an edge stripe -- the key marks the
+    // row for tests without decorating it.
     return Container(
       key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      decoration: isHighlighted
-          ? BoxDecoration(
-              border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
@@ -261,7 +256,6 @@ class CompactDiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(10),

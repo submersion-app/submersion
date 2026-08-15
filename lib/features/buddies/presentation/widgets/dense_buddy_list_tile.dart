@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the buddy list (maximum density).
 ///
@@ -52,25 +53,14 @@ class DenseBuddyListTile extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.only(
-              left: 8,
-              right: 16,
-              top: 10,
-              bottom: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
-                Visibility(
-                  visible: isSelectionMode,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: Checkbox(
-                    value: isChecked,
-                    onChanged: (_) => onTap?.call(),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: (_) => onTap?.call(),
+                  gap: 8,
                 ),
                 // Buddy name (expanded)
                 Expanded(

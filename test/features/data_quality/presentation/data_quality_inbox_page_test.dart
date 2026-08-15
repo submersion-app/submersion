@@ -255,7 +255,7 @@ void main() {
             id: 'm-temp',
             detectorId: 'temp_anomaly',
             category: QualityCategory.temperature,
-            params: const {'deltaC': 6.0},
+            params: const {'deltaC': 6.0, 'spikeShaped': true},
           ),
           _f(
             id: 'm-sac',
@@ -615,13 +615,29 @@ void main() {
       id: 'r-smooth',
       detectorId: 'temp_anomaly',
       category: QualityCategory.temperature,
-      params: const {'deltaC': 6.0},
+      params: const {'deltaC': 6.0, 'spikeShaped': true},
     ),
     'convert temperature': _f(
       id: 'r-convert',
       detectorId: 'temp_anomaly',
       category: QualityCategory.temperature,
-      params: const {'minTempC': 250.0, 'maxTempC': 260.0},
+      params: const {
+        'minTempC': 285.0,
+        'maxTempC': 290.0,
+        'fahrenheitAsKelvinSuspected': true,
+      },
+    ),
+    'smooth impossible rates': _f(
+      id: 'r-rates',
+      detectorId: 'impossible_rate',
+      category: QualityCategory.profile,
+      params: const {'startSeconds': 120, 'interpolatable': true},
+    ),
+    'clamp negative depths': _f(
+      id: 'r-clamp',
+      detectorId: 'depth_spike',
+      category: QualityCategory.profile,
+      params: const {'sampleCount': 3, 'minDepth': -2.0},
     ),
     'swap tank pressures': _f(
       id: 'r-swapp',

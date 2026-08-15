@@ -166,6 +166,25 @@ if(WIN32)
     target_link_libraries(test_parse_raw_dive PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# Regression test for issue #810: the Shearwater parser must report the raw O2
+# cell output even when the logged calibration value cannot be trusted. Exercises
+# the parser through the public API only, so it needs the full library but not
+# the wrapper.
+add_executable(test_shearwater_o2_millivolt
+    test_shearwater_o2_millivolt.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_shearwater_o2_millivolt PRIVATE
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_shearwater_o2_millivolt PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_shearwater_o2_millivolt PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_shearwater_o2_millivolt PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 enable_testing()
 add_test(NAME test_dive_converter COMMAND test_dive_converter)
 add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
@@ -175,5 +194,8 @@ add_test(NAME test_hw_ostc3_read COMMAND test_hw_ostc3_read)
 add_test(NAME test_shearwater_petrel_foreach COMMAND test_shearwater_petrel_foreach)
 add_test(NAME test_shearwater_common_download COMMAND test_shearwater_common_download)
 add_test(NAME test_parse_raw_dive COMMAND test_parse_raw_dive
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+add_test(NAME test_shearwater_o2_millivolt COMMAND test_shearwater_o2_millivolt
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )

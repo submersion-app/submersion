@@ -47,7 +47,8 @@ String showInOsFileManagerLabel() {
 
 /// Section widget displaying media (photos/videos) for a dive.
 ///
-/// Supports multi-select mode via long-press and drag, with bulk unlink.
+/// Supports multi-select mode via the Select control, with drag-to-range
+/// inside it and bulk unlink.
 class DiveMediaSection extends ConsumerStatefulWidget {
   final String diveId;
   final VoidCallback? onAddPressed;
@@ -408,8 +409,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       style: textTheme.titleMedium,
                     ),
                   ),
-                  // Discoverability: selecting media required a long-press
-                  // on a thumbnail, which nothing on screen advertised.
+                  // The only way into selection: entry by long-press was
+                  // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
                         data: (media) => media.isEmpty
                             ? const SizedBox.shrink()
@@ -508,17 +509,17 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   initialSelection: _indicesFor(media),
                   // The controller owns the mode, because only it knows how the
                   // mode was entered: a Select-button entry must survive at
-                  // zero checked, a long-press must evaporate. Letting the grid
-                  // also decide had the two fight -- its exit callback cleared
-                  // the controller and the selection callback immediately
-                  // reactivated it, so a long-press selection emptied by hand
-                  // left the bar stranded at "0 selected".
+                  // zero checked, an incidental one must evaporate. Letting the
+                  // grid also decide had the two fight -- its exit callback
+                  // cleared the controller and the selection callback
+                  // immediately reactivated it, leaving the bar stranded at
+                  // "0 selected".
                   exitOnEmptySelection: false,
                   onSelectionChanged: (indices) {
                     // The grid reports its complete selection, not a delta, so
                     // this replaces rather than toggles. Not selectAll: that
-                    // declares the mode explicit, which would launder the
-                    // grid's own long-press into a deliberate entry.
+                    // declares the mode explicit, which would launder a
+                    // grid gesture into a deliberate entry.
                     _selection.replaceChecked(_idsFor(media, indices));
                   },
                   // Entry and exit both travel through onSelectionChanged

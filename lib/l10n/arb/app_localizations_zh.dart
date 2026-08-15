@@ -2298,6 +2298,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_sessions_deleteConfirm => '要删除此检查清单记录吗？';
 
   @override
+  String get preDive_sessions_filter => '筛选';
+
+  @override
+  String get preDive_sessions_filterTitle => '筛选检查清单记录';
+
+  @override
+  String get preDive_sessions_filterChecklist => '检查清单';
+
+  @override
+  String get preDive_sessions_filterStatus => '状态';
+
+  @override
+  String get preDive_sessions_filterFlaggedOnly => '仅显示有标记的记录';
+
+  @override
+  String get preDive_sessions_filterDateRange => '日期范围';
+
+  @override
+  String get preDive_sessions_filterAnyDate => '任意日期';
+
+  @override
+  String get preDive_sessions_filterClearAll => '全部清除';
+
+  @override
+  String get preDive_sessions_filterApply => '应用';
+
+  @override
+  String get preDive_sessions_filterFlaggedChip => '仅有标记';
+
+  @override
+  String get preDive_sessions_emptyFiltered => '没有符合这些筛选条件的检查清单记录';
+
+  @override
+  String get preDive_sessions_export => '导出到 Excel';
+
+  @override
+  String get preDive_sessions_exportEmpty => '没有可导出的检查清单记录';
+
+  @override
+  String preDive_sessions_exportFailed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
   String get preDive_start_title => '开始潜前检查清单';
 
   @override
@@ -5911,6 +5955,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_syncPull_continue => '继续';
+
+  @override
+  String get setup_syncPull_incomplete_message =>
+      '此账户中的 Submersion 资料库尚未上传完成。请让另一台设备完成同步后重试。';
+
+  @override
+  String get setup_syncPull_incomplete_retry => '重新检查';
+
+  @override
+  String get setup_syncPull_incomplete_title => '资料库上传未完成';
+
+  @override
+  String get setup_syncPull_locked_message => '输入加密口令以解锁此资料库并下载到此设备。';
+
+  @override
+  String get setup_syncPull_locked_title => '此资料库已加密';
 
   @override
   String get setup_syncPull_noLibrary_message =>
@@ -11340,8 +11400,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_gpsBanner_addToSiteButton => '添加到潜水点';
 
   @override
-  String media_gpsBanner_coordinates(Object latitude, Object longitude) {
-    return '坐标: $latitude, $longitude';
+  String media_gpsBanner_coordinates(Object coordinates) {
+    return '坐标: $coordinates';
   }
 
   @override
@@ -18267,6 +18327,14 @@ class AppLocalizationsZh extends AppLocalizations {
       '未找到 USB 串行端口。潜水电脑是否已连接并开机？';
 
   @override
+  String get diveComputer_download_stalePairing =>
+      '此潜水电脑的蓝牙配对已失效。请在设备的蓝牙设置中忽略该潜水电脑，然后从潜水电脑的蓝牙菜单重新配对。';
+
+  @override
+  String get diveComputer_download_discoveryStalled =>
+      '已连接到潜水电脑，但在下载开始前它停止响应。这通常表示蓝牙配对已失效：请在设备的蓝牙设置中忽略该潜水电脑，然后重试。';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return '无法连接到潜水电脑。\n\n诊断详情（请分享给开发人员）：\n$details';
   }
@@ -21986,6 +22054,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_repair_applied => '已应用修复';
 
   @override
+  String get dataQuality_repair_noChange => '这里没有需要修正的内容';
+
+  @override
   String get dataQuality_repair_failed => '修复失败';
 
   @override
@@ -22194,6 +22265,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_despike => '移除尖峰';
+
+  @override
+  String get dataQuality_repairLabel_clampNegative => '将水面以上深度归零';
+
+  @override
+  String get dataQuality_repairLabel_smoothRates => '平滑异常速率';
 
   @override
   String get dataQuality_repairLabel_fillGaps => '填补缺口';
@@ -22441,6 +22518,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String visibility_range_under(String max, String unit) {
     return '不足 $max $unit';
   }
+
+  @override
+  String get settings_coordinateFormat_title => '坐标格式';
+
+  @override
+  String get settings_coordinateFormat_subtitle => 'GPS 位置的显示和输入方式';
+
+  @override
+  String get settings_coordinateFormat_decimalDegrees => '十进制度';
+
+  @override
+  String get settings_coordinateFormat_degreesDecimalMinutes => '度和十进制分';
+
+  @override
+  String get settings_coordinateFormat_degreesMinutesSeconds => '度分秒';
+
+  @override
+  String get settings_coordinateFormat_utm => 'UTM';
+
+  @override
+  String get settings_coordinateFormat_mgrs => 'MGRS';
 
   @override
   String get settings_visibilityScale_title => '能见度标准';

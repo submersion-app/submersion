@@ -27,7 +27,6 @@ class DiveTableView extends ConsumerStatefulWidget {
   final List<Dive> dives;
   final void Function(String diveId) onDiveTap;
   final void Function(String diveId)? onDiveTapDown;
-  final void Function(String diveId)? onDiveLongPress;
   final void Function(String diveId)? onDiveDoubleTap;
   final Set<String> selectedIds;
   final bool isSelectionMode;
@@ -38,7 +37,6 @@ class DiveTableView extends ConsumerStatefulWidget {
     required this.dives,
     required this.onDiveTap,
     this.onDiveTapDown,
-    this.onDiveLongPress,
     this.onDiveDoubleTap,
     this.selectedIds = const {},
     this.isSelectionMode = false,
@@ -413,9 +411,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                           onDoubleTap: widget.onDiveDoubleTap != null
                               ? () => widget.onDiveDoubleTap!(dive.id)
                               : null,
-                          onLongPress: widget.onDiveLongPress != null
-                              ? () => widget.onDiveLongPress!(dive.id)
-                              : null,
                           child: ColoredBox(
                             color: _rowBackground(
                               index: index,
@@ -501,9 +496,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                               onTap: () => widget.onDiveTap(dive.id),
                               onDoubleTap: widget.onDiveDoubleTap != null
                                   ? () => widget.onDiveDoubleTap!(dive.id)
-                                  : null,
-                              onLongPress: widget.onDiveLongPress != null
-                                  ? () => widget.onDiveLongPress!(dive.id)
                                   : null,
                               child: ColoredBox(
                                 color: _rowBackground(

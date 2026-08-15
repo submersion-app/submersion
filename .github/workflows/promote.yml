@@ -251,11 +251,27 @@ jobs:
         if: always()
         run: rm -f android/fastlane/play-store-key.json
 
+  # One job per Apple platform, not one job doing both in sequence. They were
+  # sequential steps until run 31859359618, where the iOS step succeeded, the
+  # macOS step failed, and re-running meant redoing the iOS submission that had
+  # already worked - which then failed too, because a version Apple already has
+  # cannot be resubmitted. Independent jobs make each platform separately
+  # retryable, matching how promote / promote-play / bump-pr already behave.
+  #
+  # fail-fast: false is the part that does the decoupling: without it, one leg
+  # failing cancels the other, which is the behavior being fixed.
+  #
+  # notify-failures still says `needs: submit-appstore` and needs no change: a
+  # matrix rolls up to its job id, and the roll-up fails if either leg fails.
   submit-appstore:
-    name: Submit existing builds for App Review
+    name: Submit ${{ matrix.platform }} build for App Review
     runs-on: macos-15
     needs: promote
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, macos]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -278,52 +294,35 @@ jobs:
           # the sanitizer. Truncated afterwards, in CHARACTERS (not bytes,
           # which could split a multi-byte UTF-8 sequence and produce invalid
           # text) below Apple's 4000-char limit.
-          mkdir -p ios/fastlane/metadata/en-US macos/fastlane/metadata/en-US
+          mkdir -p ${{ matrix.platform }}/fastlane/metadata/en-US
           gh release view "$TAG_NAME" --repo ${{ github.repository }} \
             --json body -q .body \
             | ./scripts/release/sanitize_apple_store_notes.py --report \
                 --fallback 'This release includes bug fixes and improvements.' \
             | python3 -c 'import sys; sys.stdout.write(sys.stdin.read()[:3900])' \
-            > ios/fastlane/metadata/en-US/release_notes.txt
-          cp ios/fastlane/metadata/en-US/release_notes.txt \
-            macos/fastlane/metadata/en-US/release_notes.txt
-          test -s ios/fastlane/metadata/en-US/release_notes.txt
+            > ${{ matrix.platform }}/fastlane/metadata/en-US/release_notes.txt
+          test -s ${{ matrix.platform }}/fastlane/metadata/en-US/release_notes.txt
 
-      - name: Setup Ruby (iOS)
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true
-          working-directory: ios
+          working-directory: ${{ matrix.platform }}
 
       - name: Setup App Store Connect API Key
         env:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
         run: |
-          mkdir -p ios/fastlane macos/fastlane
-          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > ios/fastlane/AuthKey.p8
-          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > macos/fastlane/AuthKey.p8
+          mkdir -p ${{ matrix.platform }}/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode \
+            > ${{ matrix.platform }}/fastlane/AuthKey.p8
 
-      - name: Submit iOS build
-        working-directory: ios
-        env:
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
-        run: |
-          bundle exec fastlane submit_existing \
-            app_version:"${{ needs.promote.outputs.semver }}" \
-            build_number:"${{ needs.promote.outputs.build-number }}"
-
-      - name: Setup Ruby (macOS)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: macos
-
-      - name: Submit macOS build
-        working-directory: macos
+      # The lane is a no-op when Apple already has this version, so a
+      # re-dispatched promotion skips the platform that already succeeded
+      # instead of failing on it. See already_submitted_state in the Fastfile.
+      - name: Submit build
+        working-directory: ${{ matrix.platform }}
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
@@ -335,7 +334,7 @@ jobs:
 
       - name: Cleanup sensitive files
         if: always()
-        run: rm -f ios/fastlane/AuthKey.p8 macos/fastlane/AuthKey.p8
+        run: rm -f ${{ matrix.platform }}/fastlane/AuthKey.p8
 
   bump-pr:
     name: Open the version bump PR

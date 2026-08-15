@@ -130,7 +130,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - ${dive.site?.name ?? 'Unknown Site'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -190,7 +190,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             pw.SizedBox(height: 8),
             pw.Text(
               'Verified by:',
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColors.grey700,

@@ -40,7 +40,6 @@ class DiveListItem extends ConsumerWidget {
   final EdgeInsetsGeometry? margin;
 
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
 
   /// Selection / highlight state (defaults suit read-only lists like Recent).
   ///
@@ -73,7 +72,6 @@ class DiveListItem extends ConsumerWidget {
     this.gradientEndColor,
     this.margin,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
     this.isChecked = false,
     this.isHighlighted = false,
@@ -121,7 +119,6 @@ class DiveListItem extends ConsumerWidget {
           stat2Field: _slotField(slots, 'stat2', DiveField.bottomTime),
           diveTypeLabelResolver: diveTypeLabelResolver,
           onTap: onTap,
-          onLongPress: onLongPress,
         );
       case ListViewMode.detailed:
       case ListViewMode.dense:
@@ -150,7 +147,6 @@ class DiveListItem extends ConsumerWidget {
           siteLongitude: summary.siteLongitude,
           margin: margin,
           onTap: onTap,
-          onLongPress: onLongPress,
           summary: summary,
           fullDive: fullDive,
           diveTypeLabelResolver: diveTypeLabelResolver,

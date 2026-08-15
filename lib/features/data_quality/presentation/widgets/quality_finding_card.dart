@@ -60,6 +60,8 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       SetPrimarySourceRepair() => l10n.dataQuality_repairLabel_setPrimary,
       SplitSourceRepair() => l10n.dataQuality_repairLabel_split,
       DespikeRepair() => l10n.dataQuality_repairLabel_despike,
+      SmoothRatesRepair() => l10n.dataQuality_repairLabel_smoothRates,
+      ClampNegativeDepthsRepair() => l10n.dataQuality_repairLabel_clampNegative,
       FillGapsRepair() => l10n.dataQuality_repairLabel_fillGaps,
       SmoothTemperatureRepair() => l10n.dataQuality_repairLabel_smoothTemp,
       ConvertTemperatureRepair() => l10n.dataQuality_repairLabel_convertTemp,

@@ -6,6 +6,20 @@ import 'package:pdfrx/pdfrx.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 
+/// Signature of the PDF page-1 render seam, injectable so tests do not need
+/// a pdfium binary. Matches [PdfPageRenderer.renderFirstPageJpeg].
+///
+/// Declared here rather than beside either consumer: both the upload
+/// pipeline's `ThumbnailGenerator` and the grid's `PdfThumbnailService` take
+/// the seam, and neither feature should have to import the other to name it.
+typedef PdfThumbRenderer =
+    Future<Uint8List?> Function({
+      File? file,
+      Uint8List? bytes,
+      int maxDimension,
+      int quality,
+    });
+
 /// Renders the first page of a PDF to JPEG bytes for thumbnails.
 ///
 /// Every failure path returns null: thumbnail absence must never block an

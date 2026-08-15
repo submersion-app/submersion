@@ -2387,6 +2387,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل تريد حذف سجل قائمة التحقق هذا؟';
 
   @override
+  String get preDive_sessions_filter => 'تصفية';
+
+  @override
+  String get preDive_sessions_filterTitle => 'تصفية عمليات قوائم التحقق';
+
+  @override
+  String get preDive_sessions_filterChecklist => 'قائمة التحقق';
+
+  @override
+  String get preDive_sessions_filterStatus => 'الحالة';
+
+  @override
+  String get preDive_sessions_filterFlaggedOnly => 'العمليات المعلَّمة فقط';
+
+  @override
+  String get preDive_sessions_filterDateRange => 'النطاق الزمني';
+
+  @override
+  String get preDive_sessions_filterAnyDate => 'أي تاريخ';
+
+  @override
+  String get preDive_sessions_filterClearAll => 'مسح الكل';
+
+  @override
+  String get preDive_sessions_filterApply => 'تطبيق';
+
+  @override
+  String get preDive_sessions_filterFlaggedChip => 'المعلَّمة فقط';
+
+  @override
+  String get preDive_sessions_emptyFiltered =>
+      'لا توجد عمليات قوائم تحقق تطابق هذه المرشحات';
+
+  @override
+  String get preDive_sessions_export => 'تصدير إلى Excel';
+
+  @override
+  String get preDive_sessions_exportEmpty =>
+      'لا توجد عمليات قوائم تحقق للتصدير';
+
+  @override
+  String preDive_sessions_exportFailed(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
   String get preDive_start_title => 'بدء قائمة تحقق ما قبل الغوص';
 
   @override
@@ -6097,6 +6143,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_continue => 'متابعة';
+
+  @override
+  String get setup_syncPull_incomplete_message =>
+      'يحتوي هذا الحساب على مكتبة Submersion لم يكتمل رفعها. دع جهازك الآخر ينهي المزامنة ثم أعد المحاولة.';
+
+  @override
+  String get setup_syncPull_incomplete_retry => 'تحقق مرة أخرى';
+
+  @override
+  String get setup_syncPull_incomplete_title => 'لم يكتمل رفع المكتبة';
+
+  @override
+  String get setup_syncPull_locked_message =>
+      'أدخل عبارة مرور التشفير لفتح هذه المكتبة وتنزيلها على هذا الجهاز.';
+
+  @override
+  String get setup_syncPull_locked_title => 'هذه المكتبة مشفّرة';
 
   @override
   String get setup_syncPull_noLibrary_message =>
@@ -11664,8 +11727,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_gpsBanner_addToSiteButton => 'إضافة إلى الموقع';
 
   @override
-  String media_gpsBanner_coordinates(Object latitude, Object longitude) {
-    return 'الإحداثيات: $latitude، $longitude';
+  String media_gpsBanner_coordinates(Object coordinates) {
+    return 'الإحداثيات: $coordinates';
   }
 
   @override
@@ -18904,6 +18967,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟';
 
   @override
+  String get diveComputer_download_stalePairing =>
+      'إقران البلوتوث لكمبيوتر الغوص هذا لم يعد صالحًا. انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك، ثم أعد إقرانه من قائمة البلوتوث في كمبيوتر الغوص.';
+
+  @override
+  String get diveComputer_download_discoveryStalled =>
+      'تم الاتصال بكمبيوتر الغوص، لكنه توقف عن الاستجابة قبل بدء التنزيل. يعني هذا عادةً أن إقران البلوتوث لم يعد صالحًا: انسَ كمبيوتر الغوص من إعدادات البلوتوث في جهازك ثم حاول مرة أخرى.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'تعذر الاتصال بحاسوب الغوص.\n\nتفاصيل التشخيص (شاركها مع المطورين):\n$details';
   }
@@ -22749,6 +22820,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repair_applied => 'تم تطبيق الإصلاح';
 
   @override
+  String get dataQuality_repair_noChange => 'لا يوجد ما يمكن إصلاحه هنا';
+
+  @override
   String get dataQuality_repair_failed => 'فشل الإصلاح';
 
   @override
@@ -22961,6 +23035,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_despike => 'إزالة القفزة';
+
+  @override
+  String get dataQuality_repairLabel_clampNegative => 'تثبيت الأعماق فوق السطح';
+
+  @override
+  String get dataQuality_repairLabel_smoothRates => 'تنعيم المعدلات المستحيلة';
 
   @override
   String get dataQuality_repairLabel_fillGaps => 'ملء الفجوات';
@@ -23219,6 +23299,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String visibility_range_under(String max, String unit) {
     return 'أقل من $max $unit';
   }
+
+  @override
+  String get settings_coordinateFormat_title => 'تنسيق الإحداثيات';
+
+  @override
+  String get settings_coordinateFormat_subtitle =>
+      'كيفية عرض مواقع GPS وإدخالها';
+
+  @override
+  String get settings_coordinateFormat_decimalDegrees => 'درجات عشرية';
+
+  @override
+  String get settings_coordinateFormat_degreesDecimalMinutes =>
+      'درجات ودقائق عشرية';
+
+  @override
+  String get settings_coordinateFormat_degreesMinutesSeconds =>
+      'درجات ودقائق وثوانٍ';
+
+  @override
+  String get settings_coordinateFormat_utm => 'UTM';
+
+  @override
+  String get settings_coordinateFormat_mgrs => 'MGRS';
 
   @override
   String get settings_visibilityScale_title => 'مقياس الرؤية';

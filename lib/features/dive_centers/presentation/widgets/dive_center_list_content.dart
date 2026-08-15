@@ -5,8 +5,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -250,8 +251,8 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                       tooltip: context.l10n.diveCenters_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // Discoverability: bulk actions must not be reachable only by a
-                    // long-press that nothing on screen advertises.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -398,9 +399,42 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     BuildContext context,
     AsyncValue<List<DiveCenter>> centersAsync,
   ) {
-    final tableContent = _buildTableView(context, centersAsync);
+    final visibleIds = (centersAsync.value ?? const <DiveCenter>[])
+        .map((c) => c.id)
+        .toList();
 
-    return tableContent;
+    // Same pruning the list path does: drop checked centers that fell out of
+    // the visible list, so the count matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final centers = centersAsync.value ?? const <DiveCenter>[];
+          // Table mode has no app bar of its own, so both bars live here: the
+          // contextual one while selecting, and the Select affordance while
+          // not. They share a slot and a height, so the table does not shift
+          // as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(centers, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: _buildTableView(context, centersAsync)),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for dive center table mode.
@@ -446,9 +480,6 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
           },
-          onEntityLongPress: _isSelectionMode
-              ? null
-              : (id) => _selection.enterImplicit(id),
           selectedIds: _selectedIds,
           isSelectionMode: _isSelectionMode,
           onEntityDoubleTap: (id) {
@@ -517,8 +548,8 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             tooltip: context.l10n.diveCenters_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
-          // Discoverability: bulk actions must not be reachable only by a
-          // long-press that nothing on screen advertises.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -605,31 +636,36 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             diveCenterDiveCountProvider(center.id),
           );
           final diveCount = diveCountAsync.valueOrNull ?? 0;
-          final tile = switch (viewMode) {
+          final isChecked = _selectedIds.contains(center.id);
+          void onCheckChanged(bool _) => _selection.toggle(center.id);
+          return switch (viewMode) {
             ListViewMode.detailed => DiveCenterListTile(
               center: center,
               isSelected: isSelected,
               onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
             ListViewMode.compact => CompactDiveCenterListTile(
               center: center,
               diveCount: diveCount,
               isSelected: isSelected,
               onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
             ListViewMode.dense || ListViewMode.table => DenseDiveCenterListTile(
               center: center,
               diveCount: diveCount,
               isSelected: isSelected,
               onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
           };
-          return SelectableRow(
-            isSelectionMode: _isSelectionMode,
-            isChecked: _selectedIds.contains(center.id),
-            onChanged: (_) => _selection.toggle(center.id),
-            child: tile,
-          );
         },
       ),
     );
@@ -713,12 +749,18 @@ class DiveCenterListTile extends ConsumerWidget {
   final DiveCenter center;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DiveCenterListTile({
     super.key,
     required this.center,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -738,16 +780,22 @@ class DiveCenterListTile extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.store,
-                  color: theme.colorScheme.onPrimaryContainer,
+              // Store icon, which becomes the checkbox in selection mode.
+              SelectionLeading(
+                isSelectionMode: isSelectionMode,
+                isChecked: isChecked,
+                onChanged: onCheckChanged,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.store,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),

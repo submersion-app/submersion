@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libdivecomputer/parser.h>
+#include "checksum.h"
 #include "libdc_wrapper.h"
 
 /* Load a binary file into a malloc'd buffer. On success returns the byte count
@@ -358,6 +360,246 @@ static void test_parse_ratio_ix3m_late_fix_is_exit(void) {
     free(blob);
 }
 
+/* --- Divesoft Liberty synthetic dive --------------------------------------
+   The Divesoft log is a stream of 16-byte records, each stamped with its own
+   second. Only LREC_POINT records carry a depth; measurement records (O2
+   cells, battery, AI pressure, GPS) and tissue-state records advance the clock
+   without one. libdivecomputer opens a new sample for every distinct
+   timestamp, so a second holding only a measurement record reaches the wrapper
+   as DC_SAMPLE_TIME with no DC_SAMPLE_DEPTH behind it. A CCR like the Liberty
+   logs those constantly. Layout constants mirror divesoft_freedom_parser.c. */
+
+#define DS_HEADER_SIZE 64
+#define DS_RECORD_SIZE 16
+#define DS_SIGNATURE_V2 0x45566944 /* "DiVE" */
+#define DS_LREC_POINT 0
+#define DS_LREC_MEASURE 7
+#define DS_POINT_1 0
+#define DS_MEASURE_ID_BATTERY 1
+#define DS_MEASURE_ID_GPS 4
+#define DS_STMODE_CCR 2
+#define DIVESOFT_LIBERTY_MODEL 10
+
+/* Record header word: type in bits 0-3, timestamp in bits 4-20, id in 21-30. */
+static unsigned int ds_flags(unsigned int type, unsigned int timestamp,
+                             unsigned int id) {
+    return (type & 0x0F) | ((timestamp & 0x1FFFF) << 4) | ((id & 0x3FF) << 21);
+}
+
+static unsigned char *ds_record(unsigned char *blob, unsigned int idx) {
+    return blob + DS_HEADER_SIZE + idx * DS_RECORD_SIZE;
+}
+
+static void ds_put_header(unsigned char *blob, unsigned int divetime_s,
+                          unsigned int maxdepth_cm) {
+    put_u32le(blob + 0, DS_SIGNATURE_V2);
+    put_u32le(blob + 12, divetime_s);
+    blob[18] = DS_STMODE_CCR;
+    put_u16le(blob + 24, 200);          /* minimum temperature, 0.1 C */
+    put_u16le(blob + 28, maxdepth_cm);
+    put_u16le(blob + 32, 1013);         /* surface pressure, mbar */
+    put_u16le(blob + 38, maxdepth_cm / 2);
+    put_u16le(blob + 4, checksum_crc16r_ansi(blob + 6, DS_HEADER_SIZE - 6,
+                                             0xFFFF, 0x0000));
+}
+
+/* A general log record: depth, plus the deco state carried by POINT_1. */
+static void ds_put_point(unsigned char *blob, unsigned int idx,
+                         unsigned int time_s, unsigned int depth_cm,
+                         unsigned int ceiling_cm, unsigned int ndl_min) {
+    unsigned char *rec = ds_record(blob, idx);
+    put_u32le(rec + 0, ds_flags(DS_LREC_POINT, time_s, DS_POINT_1));
+    put_u16le(rec + 4, depth_cm);
+    put_u16le(rec + 6, 0);  /* ppO2 */
+    /* misc: NDL in bits 0-9, TTS in 10-19, temperature (0.1 C) in 20-29. */
+    put_u32le(rec + 8, (ndl_min & 0x3FF) | ((200u & 0x3FF) << 20));
+    put_u16le(rec + 12, ceiling_cm);
+}
+
+/* A measurement record the parser reads no sample values from: it only moves
+   the clock, which is exactly the case that used to fabricate a 0 m sample. */
+static void ds_put_measure_battery(unsigned char *blob, unsigned int idx,
+                                   unsigned int time_s) {
+    unsigned char *rec = ds_record(blob, idx);
+    put_u32le(rec + 0, ds_flags(DS_LREC_MEASURE, time_s, DS_MEASURE_ID_BATTERY));
+}
+
+/* Seconds logged without a depth must be filled from the surrounding samples,
+   never reported as 0 m. A fabricated surface sample mid-dive both draws a
+   spike to the surface on the profile and, because the ascent-rate smoother
+   spreads it across a 15 s window, invents rapid-ascent violations. The deco
+   state is likewise only reported on POINT_1 records and has to persist across
+   the gap, or the dive stops showing as being in deco. */
+static void test_parse_divesoft_liberty_depth_gap(void) {
+    const unsigned int nrecords = 6;
+    const unsigned int size = DS_HEADER_SIZE + nrecords * DS_RECORD_SIZE;
+    unsigned char *blob = (unsigned char *)calloc(1, size);
+    assert(blob != NULL);
+
+    ds_put_header(blob, 20, 2000);
+    ds_put_point(blob, 0, 0, 0, 0, 99);        /* surface, no deco */
+    ds_put_point(blob, 1, 10, 1000, 300, 0);   /* 10 m, deco stop at 3 m */
+    ds_put_measure_battery(blob, 2, 11);       /* no depth, no deco */
+    ds_put_point(blob, 3, 12, 1200, 300, 0);   /* 12 m */
+    ds_put_measure_battery(blob, 4, 13);       /* no depth, no deco */
+    ds_put_point(blob, 5, 20, 2000, 300, 0);   /* 20 m */
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+
+    int rc = libdc_parse_raw_dive("Divesoft", "Liberty", DIVESOFT_LIBERTY_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    if (rc != 0) {
+        fprintf(stderr, "FAIL: parse returned %d: %s\n", rc, err);
+        free(blob);
+        assert(0 && "libdc_parse_raw_dive failed for Divesoft Liberty");
+    }
+
+    assert(result.sample_count == 6);
+    assert(result.samples[2].time_ms == 11000);
+    assert(result.samples[4].time_ms == 13000);
+
+    /* Interpolated from the neighbouring points, not zeroed: 10 m -> 12 m over
+       two seconds puts the missing second at 11 m, and 12 m -> 20 m over eight
+       seconds puts the next one at 13 m. */
+    assert(fabs(result.samples[2].depth - 11.0) < 1e-6);
+    assert(fabs(result.samples[4].depth - 13.0) < 1e-6);
+
+    /* Reported depths stay untouched. */
+    assert(fabs(result.samples[1].depth - 10.0) < 1e-6);
+    assert(fabs(result.samples[3].depth - 12.0) < 1e-6);
+    assert(fabs(result.samples[5].depth - 20.0) < 1e-6);
+
+    /* Deco obligation persists across the gap. */
+    assert(result.samples[2].deco_type == DC_DECO_DECOSTOP);
+    assert(fabs(result.samples[2].deco_depth - 3.0) < 1e-6);
+    assert(result.samples[4].deco_type == DC_DECO_DECOSTOP);
+
+    /* ...but is not invented before the computer first reports one. */
+    assert(result.samples[0].deco_type == DC_DECO_NDL);
+
+    printf("PASS: test_parse_divesoft_liberty_depth_gap\n");
+
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
+/* Gaps at the ends of the profile have only one neighbour to work from, so
+   they hold that neighbour's depth. A dive whose log opens or closes with a
+   measurement record must not begin or end with a phantom 0 m sample. */
+static void test_parse_divesoft_liberty_edge_gaps(void) {
+    const unsigned int nrecords = 4;
+    const unsigned int size = DS_HEADER_SIZE + nrecords * DS_RECORD_SIZE;
+    unsigned char *blob = (unsigned char *)calloc(1, size);
+    assert(blob != NULL);
+
+    ds_put_header(blob, 30, 1800);
+    ds_put_measure_battery(blob, 0, 0);        /* leading gap */
+    ds_put_point(blob, 1, 10, 1500, 0, 5);     /* 15 m */
+    ds_put_point(blob, 2, 20, 1800, 0, 5);     /* 18 m */
+    ds_put_measure_battery(blob, 3, 30);       /* trailing gap */
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+
+    int rc = libdc_parse_raw_dive("Divesoft", "Liberty", DIVESOFT_LIBERTY_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    assert(rc == 0);
+
+    assert(result.sample_count == 4);
+    assert(fabs(result.samples[0].depth - 15.0) < 1e-6);
+    assert(fabs(result.samples[3].depth - 18.0) < 1e-6);
+
+    printf("PASS: test_parse_divesoft_liberty_edge_gaps\n");
+
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
+/* A profile that never reports a depth has nothing to interpolate from. It
+   must still produce finite depths -- NAN is an internal marker, and letting
+   one reach the platform layers would store a NULL depth or crash a chart. */
+static void test_parse_divesoft_liberty_no_depth_at_all(void) {
+    const unsigned int nrecords = 2;
+    const unsigned int size = DS_HEADER_SIZE + nrecords * DS_RECORD_SIZE;
+    unsigned char *blob = (unsigned char *)calloc(1, size);
+    assert(blob != NULL);
+
+    ds_put_header(blob, 10, 0);
+    ds_put_measure_battery(blob, 0, 0);
+    ds_put_measure_battery(blob, 1, 10);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+
+    int rc = libdc_parse_raw_dive("Divesoft", "Liberty", DIVESOFT_LIBERTY_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    assert(rc == 0);
+
+    assert(result.sample_count == 2);
+    for (unsigned int i = 0; i < result.sample_count; i++) {
+        assert(!isnan(result.samples[i].depth));
+        assert(result.samples[i].depth == 0.0);
+    }
+
+    printf("PASS: test_parse_divesoft_liberty_no_depth_at_all\n");
+
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
+/* The Liberty logs a satellite fix as a measurement record inside the profile
+   (DC_SAMPLE_LOCATION), the same channel as Ratio, OSTC 4 and Halcyon, and
+   never as DC_FIELD_LOCATION. Coordinates are microdegrees. */
+static void ds_put_measure_gps(unsigned char *blob, unsigned int idx,
+                               unsigned int time_s, int latitude_e6,
+                               int longitude_e6) {
+    unsigned char *rec = ds_record(blob, idx);
+    put_u32le(rec + 0, ds_flags(DS_LREC_MEASURE, time_s, DS_MEASURE_ID_GPS));
+    put_u32le(rec + 4, (unsigned int)latitude_e6);
+    put_u32le(rec + 8, (unsigned int)longitude_e6);
+}
+
+/* A Liberty's GPS fixes must reach the dive-level entry/exit positions, which
+   is what dive-site matching reads. This is the same wiring issue #926 fixed
+   for Ratio; the Divesoft family shares it. */
+static void test_parse_divesoft_liberty_gps(void) {
+    const unsigned int nrecords = 5;
+    const unsigned int size = DS_HEADER_SIZE + nrecords * DS_RECORD_SIZE;
+    unsigned char *blob = (unsigned char *)calloc(1, size);
+    assert(blob != NULL);
+
+    ds_put_header(blob, 20, 2000);
+    ds_put_measure_gps(blob, 0, 0, 36040000, 14320000);
+    ds_put_point(blob, 1, 0, 0, 0, 99);
+    ds_put_point(blob, 2, 10, 2000, 0, 20);
+    ds_put_measure_gps(blob, 3, 19, 36045000, 14325000);
+    ds_put_point(blob, 4, 20, 100, 0, 99);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+
+    int rc = libdc_parse_raw_dive("Divesoft", "Liberty", DIVESOFT_LIBERTY_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    assert(rc == 0);
+
+    assert(fabs(result.entry_latitude - 36.04) < 1e-7);
+    assert(fabs(result.entry_longitude - 14.32) < 1e-7);
+    assert(fabs(result.exit_latitude - 36.045) < 1e-7);
+    assert(fabs(result.exit_longitude - 14.325) < 1e-7);
+
+    printf("PASS: test_parse_divesoft_liberty_gps (entry=%.5f,%.5f exit=%.5f,%.5f)\n",
+           result.entry_latitude, result.entry_longitude,
+           result.exit_latitude, result.exit_longitude);
+
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
 int main(void) {
     test_null_args();
     test_load_fixture_missing();
@@ -368,6 +610,10 @@ int main(void) {
     test_parse_ratio_ix3m_null_island_ignored();
     test_parse_ratio_ix3m_returns_to_entry();
     test_parse_ratio_ix3m_late_fix_is_exit();
+    test_parse_divesoft_liberty_depth_gap();
+    test_parse_divesoft_liberty_edge_gaps();
+    test_parse_divesoft_liberty_no_depth_at_all();
+    test_parse_divesoft_liberty_gps();
     printf("\nAll parse_raw_dive tests passed.\n");
     return 0;
 }

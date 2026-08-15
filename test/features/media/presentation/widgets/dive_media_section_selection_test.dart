@@ -193,11 +193,9 @@ void main() {
       await tester.tap(find.text('Unlink'));
       await tester.pumpAndSettle();
 
-      expect(
-        notifier.unlinkedIds,
-        ['c'],
-        reason: 'unlink must act on the checked id, not the checked position',
-      );
+      expect(notifier.unlinkedIds, [
+        'c',
+      ], reason: 'unlink must act on the checked id, not the checked position');
     });
 
     testWidgets('an explicit entry survives unchecking the last thumbnail', (
@@ -231,7 +229,7 @@ void main() {
       expect(find.text('0 selected'), findsOneWidget);
     });
 
-    testWidgets('a long-press entry evaporates when unchecked by hand', (
+    testWidgets('a long-press on a thumbnail does not enter selection mode', (
       tester,
     ) async {
       await tester.pumpWidget(host([_item('a'), _item('b')]));
@@ -246,52 +244,12 @@ void main() {
 
       await tester.longPress(thumb, warnIfMissed: false);
       await tester.pumpAndSettle();
-      expect(find.text('1 selected'), findsOneWidget);
 
-      await tester.tap(thumb, warnIfMissed: false);
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const ValueKey('selection_exit')),
-        findsNothing,
-        reason: 'unchecking the last item must end a long-press selection',
-      );
-    });
-
-    testWidgets('a long-press entry stays implicit and evaporates on prune', (
-      tester,
-    ) async {
-      final a = _item('a');
-      final b = _item('b');
-      await tester.pumpWidget(host([a, b]));
-      await tester.pumpAndSettle();
-
-      // Long-press is the grid's own gesture, so it must register as implicit
-      // entry rather than being laundered into an explicit one.
-      await tester.longPress(
-        find
-            .descendant(
-              of: find.byType(DragSelectGridView<MediaItem>),
-              matching: find.byType(GestureDetector),
-            )
-            .first,
-        warnIfMissed: false,
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('1 selected'), findsOneWidget);
-
-      // Detaching the only checked item empties the selection by pruning.
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DiveMediaSection)),
-      );
-      container.read(_mediaProvider.notifier).state = [b];
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const ValueKey('selection_exit')),
-        findsNothing,
-        reason: 'an implicitly entered mode must evaporate at zero checked',
-      );
+      // The grid's long-press now only anchors a range drag inside an already
+      // active selection, so from the normal header it cannot open the mode.
+      // The hold falls through to the tile's tap, which opens the viewer.
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+      expect(find.text('1 selected'), findsNothing);
     });
 
     testWidgets('removing an item prunes it from the selection', (

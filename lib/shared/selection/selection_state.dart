@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// [enteredExplicitly] records how selection mode began, because that decides
 /// how it ends: a mode the user asked for with the Select button survives at
-/// zero checked items, while one entered by long-press or modifier-click
+/// zero checked items, while one entered incidentally by modifier-click
 /// evaporates when the last item is unchecked.
 @immutable
 class SelectionState {

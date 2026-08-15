@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the trip list (maximum density).
 ///
@@ -14,6 +15,9 @@ class DenseTripListTile extends ConsumerWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final bool showSharedBadge;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DenseTripListTile({
     super.key,
@@ -21,6 +25,9 @@ class DenseTripListTile extends ConsumerWidget {
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -58,6 +65,12 @@ class DenseTripListTile extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  gap: 8,
+                ),
                 // Trip name (expanded)
                 Expanded(
                   child: Text(

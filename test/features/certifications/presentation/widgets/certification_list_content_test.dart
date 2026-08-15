@@ -230,6 +230,10 @@ void main() {
           child: const CertificationListContent(showAppBar: true),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa Cert'),
+          matching: find.byType(CertificationListTile),
+        ),
         firstRow: find.text('Aaa Cert'),
         applyFilter: (tester) async {
           notifier.showOnly([all.first]);

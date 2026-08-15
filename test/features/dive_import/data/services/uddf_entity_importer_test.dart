@@ -105,6 +105,13 @@ void main() {
     // importer consults this to avoid duplicating a built-in slug.
     when(mockDiveTypeRepo.getDiveTypeById(any)).thenAnswer((_) async => null);
 
+    // No tag exists yet, so every imported tag is created. The importer
+    // consults this to reuse a tag the diver already has by that name
+    // instead of minting a second uuid for it (#1032).
+    when(
+      mockTagRepo.getTagByName(any, diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => null);
+
     // Stub getNextDiveNumber for auto-numbering during import.
     when(
       mockDiveRepo.getNextDiveNumber(diverId: anyNamed('diverId')),
@@ -550,6 +557,47 @@ void main() {
 
       final captured = verify(mockTagRepo.createTag(captureAny)).captured;
       expect((captured[0] as Tag).colorHex, '#FF0000');
+    });
+
+    test('reuses a tag the diver already has by that name (#1032)', () async {
+      final existing = Tag(
+        id: 'existing-night',
+        diverId: diverId,
+        name: 'Night Dive',
+        createdAt: now,
+        updatedAt: now,
+      );
+      when(
+        mockTagRepo.getTagByName('Night Dive', diverId: diverId),
+      ).thenAnswer((_) async => existing);
+      when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        tags: [
+          {'name': 'Night Dive', 'uddfId': 'tag-1'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'tagRefs': ['tag-1'],
+          },
+        ],
+      );
+
+      final result = await importer.import(
+        data: data,
+        selections: const UddfImportSelections(tags: {0}, dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      expect(result.tags, 0, reason: 'nothing new was created');
+      verifyNever(mockTagRepo.createTag(any));
+      verify(mockTagRepo.addTagToDive(any, 'existing-night')).called(1);
     });
   });
 

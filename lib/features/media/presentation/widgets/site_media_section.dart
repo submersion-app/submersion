@@ -225,8 +225,8 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                       style: textTheme.titleMedium,
                     ),
                   ),
-                  // Discoverability: selecting media required a long-press
-                  // on a thumbnail, which nothing on screen advertised.
+                  // The only way into selection: entry by long-press was
+                  // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
                         data: (media) => media.isEmpty
                             ? const SizedBox.shrink()
@@ -297,14 +297,14 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   // The controller owns the mode. Letting the grid also
                   // decide had the two fight -- its exit callback cleared the
                   // controller and the selection callback immediately
-                  // reactivated it, so a long-press selection emptied by hand
-                  // left the bar stranded at "0 selected".
+                  // reactivated it, leaving a selection emptied by hand
+                  // stranded at "0 selected".
                   exitOnEmptySelection: false,
                   onSelectionChanged: (indices) {
                     // The grid reports its complete selection, not a delta, so
                     // this replaces rather than toggles. Not selectAll: that
-                    // declares the mode explicit, which would launder the
-                    // grid's own long-press into a deliberate entry.
+                    // declares the mode explicit, which would launder a
+                    // grid gesture into a deliberate entry.
                     _selection.replaceChecked(_idsFor(media, indices));
                   },
                   // Entry and exit both travel through onSelectionChanged

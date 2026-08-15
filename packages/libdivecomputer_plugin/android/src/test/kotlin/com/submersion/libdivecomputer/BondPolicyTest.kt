@@ -33,4 +33,25 @@ class BondPolicyTest {
         assertTrue(BondPolicy.requiresProactiveBond(""))
         assertTrue(BondPolicy.requiresProactiveBond("NoSuchVendor"))
     }
+
+    // A tester saw eleven consecutive downloads end at "bond_failed" on a
+    // connection that had already been established and had its services
+    // discovered (issue #1029). No other backend (Apple, Linux, Windows)
+    // bonds at all and the same computers download there, so a bond that
+    // will not complete must not be allowed to end the download.
+    @Test
+    fun aFailedProactiveBondNeverAbortsTheDownload() {
+        assertFalse(BondPolicy.bondFailureAbortsDownload("Aqualung"))
+        assertFalse(BondPolicy.bondFailureAbortsDownload("Mares"))
+        assertFalse(BondPolicy.bondFailureAbortsDownload("Suunto"))
+        assertFalse(BondPolicy.bondFailureAbortsDownload("NoSuchVendor"))
+        assertFalse(BondPolicy.bondFailureAbortsDownload(""))
+    }
+
+    // Vendors that never bond proactively cannot reach the failure path at
+    // all, so the answer has to hold for them too.
+    @Test
+    fun exemptVendorsAlsoNeverAbortOnBondFailure() {
+        assertFalse(BondPolicy.bondFailureAbortsDownload("Shearwater"))
+    }
 }

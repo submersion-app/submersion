@@ -129,6 +129,47 @@ void main() {
     expect(inDateRange(summary('c', DateTime(2026, 5, 31)), r), isFalse);
   });
 
+  testWidgets('long-press on a dive row does not enter selection mode', (
+    tester,
+  ) async {
+    final summaries = [
+      _makeDive(
+        id: 'd1',
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+    ].map(DiveSummary.fromDive).toList();
+    final base = await getBaseOverrides();
+    final opened = <String?>[];
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+          paginatedDiveListProvider.overrideWith(
+            (ref) => _MockPaginatedNotifier(summaries),
+          ),
+        ],
+        // Routed through the callback rather than context.push so the row's
+        // tap has somewhere to land: with no long-press handler the hold now
+        // resolves as an ordinary tap on release, which is the point.
+        child: DiveListContent(showAppBar: false, onItemSelected: opened.add),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(
+      find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == 'd1'),
+    );
+    await tester.pumpAndSettle();
+
+    // The contextual bar is the tell: it only exists in selection mode, and
+    // the Select control is still offered because we never left normal mode.
+    expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+    expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    expect(opened, ['d1']);
+  });
+
   testWidgets('Combine action appears only with 2+ selected', (tester) async {
     final dives = [
       _makeDive(
@@ -161,11 +202,13 @@ void main() {
     Finder tileFinder(String id) =>
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
-    // Long-press d1 -> selection mode with only d1 checked. Combine is a
-    // baseline-adjacent extra rendered as an inline icon; below its minCount
+    // Select, then check d1 -> selection mode with only d1 checked. Combine is
+    // a baseline-adjacent extra rendered as an inline icon; below its minCount
     // of 2 it is disabled rather than hidden, so the user can see the action
     // exists and learn what it needs.
-    await tester.longPress(tileFinder('d1'));
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
     expect(combineButton, findsOneWidget);
     expect(
@@ -224,7 +267,9 @@ void main() {
     Finder tileFinder(String id) =>
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
-    await tester.longPress(tileFinder('d1'));
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d2'));
     await tester.pumpAndSettle();
@@ -289,7 +334,9 @@ void main() {
     // Merged dive not present / off-screen before the combine.
     expect(tileFinder('merged-1'), findsNothing);
 
-    await tester.longPress(tileFinder('d0'));
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d0'));
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();

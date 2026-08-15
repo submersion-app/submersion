@@ -79,6 +79,31 @@ void main() {
       expect(controller.value.anchorId, 'b');
     });
 
+    test('enterImplicit checks the seed alongside the given id', () {
+      final controller = SelectionController();
+      controller.enterImplicit('c', seedId: 'a');
+      expect(controller.value.checkedIds, {'a', 'c'});
+      expect(
+        controller.value.anchorId,
+        'c',
+        reason: 'the modifier-clicked row becomes the anchor, not the seed',
+      );
+      expect(controller.value.enteredExplicitly, isFalse);
+    });
+
+    test('enterImplicit ignores a seed equal to the id', () {
+      final controller = SelectionController();
+      controller.enterImplicit('a', seedId: 'a');
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    test('enterImplicit ignores the seed once the mode is active', () {
+      final controller = SelectionController();
+      controller.enterImplicit('a');
+      controller.enterImplicit('b', seedId: 'z');
+      expect(controller.value.checkedIds, {'a', 'b'});
+    });
+
     test('toggle adds then removes an id', () {
       final controller = SelectionController();
       controller.enterExplicit();

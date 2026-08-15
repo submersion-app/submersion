@@ -152,6 +152,82 @@ class PreDiveSessionRepository {
     }
   }
 
+  /// Item tallies for every visible session in one aggregate query. A session
+  /// list renders a progress and flag badge per row; fetching each session's
+  /// items separately would be one query per row.
+  Future<Map<String, domain.PreDiveSessionStats>> getSessionStats({
+    String? diverId,
+  }) async {
+    try {
+      final sessions = _db.preDiveSessions;
+      final items = _db.preDiveSessionItems;
+
+      final total = items.id.count();
+      final resolved = items.id.count(
+        filter: items.state.equals(domain.PreDiveItemState.pending.name).not(),
+      );
+      final flagged = items.id.count(
+        filter: items.state.equals(domain.PreDiveItemState.flagged.name),
+      );
+
+      final query = _db.selectOnly(sessions).join([
+        leftOuterJoin(items, items.sessionId.equalsExp(sessions.id)),
+      ]);
+      query.addColumns([sessions.id, total, resolved, flagged]);
+      query.groupBy([sessions.id]);
+      if (diverId != null) {
+        query.where(
+          sessions.diverId.equals(diverId) | sessions.diverId.isNull(),
+        );
+      }
+
+      final rows = await query.get();
+      return {
+        for (final row in rows)
+          row.read(sessions.id)!: domain.PreDiveSessionStats(
+            total: row.read(total) ?? 0,
+            resolved: row.read(resolved) ?? 0,
+            flagged: row.read(flagged) ?? 0,
+          ),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get pre-dive session stats',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Items for many sessions in one query, grouped by session id and sorted
+  /// within each group. Used by the checklist export, which would otherwise
+  /// issue one query per exported session.
+  Future<Map<String, List<domain.PreDiveSessionItem>>> getItemsForSessions(
+    List<String> sessionIds,
+  ) async {
+    if (sessionIds.isEmpty) return {};
+    try {
+      final rows =
+          await (_db.select(_db.preDiveSessionItems)
+                ..where((t) => t.sessionId.isIn(sessionIds))
+                ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+              .get();
+      final grouped = <String, List<domain.PreDiveSessionItem>>{};
+      for (final row in rows) {
+        (grouped[row.sessionId] ??= []).add(_mapItem(row));
+      }
+      return grouped;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get pre-dive session items in bulk',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<List<domain.PreDiveSession>> getAllSessions({String? diverId}) async {
     try {
       final query = _db.select(_db.preDiveSessions)

@@ -228,8 +228,8 @@ class DiveCenterFieldAdapter
       DiveCenterField.affiliations =>
         (value as List<String>).isEmpty ? '--' : value.join(', '),
       DiveCenterField.rating => (value as double).toStringAsFixed(1),
-      DiveCenterField.latitude => (value as double).toStringAsFixed(5),
-      DiveCenterField.longitude => (value as double).toStringAsFixed(5),
+      DiveCenterField.latitude => units.formatLatitude(value as double),
+      DiveCenterField.longitude => units.formatLongitude(value as double),
       DiveCenterField.diveCount => value.toString(),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),
     };

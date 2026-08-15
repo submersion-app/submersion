@@ -1718,11 +1718,9 @@ void main() {
         notifier.toggleSelection(ImportEntityType.dives, 0);
 
         final state = container.read(importWizardNotifierProvider);
-        expect(
-          state.pendingFor(ImportEntityType.dives),
-          {1},
-          reason: 'Pending for duplicate should be unchanged',
-        );
+        expect(state.pendingFor(ImportEntityType.dives), {
+          1,
+        }, reason: 'Pending for duplicate should be unchanged');
         expect(state.selections[ImportEntityType.dives], isNot(contains(0)));
       },
     );
@@ -1879,11 +1877,9 @@ void main() {
         );
 
         final state = container.read(importWizardNotifierProvider);
-        expect(
-          state.pendingFor(ImportEntityType.dives),
-          {1},
-          reason: 'Weak match (score 0.55) should remain pending',
-        );
+        expect(state.pendingFor(ImportEntityType.dives), {
+          1,
+        }, reason: 'Weak match (score 0.55) should remain pending');
         expect(
           state.duplicateActions[ImportEntityType.dives]?[0],
           DuplicateAction.consolidate,

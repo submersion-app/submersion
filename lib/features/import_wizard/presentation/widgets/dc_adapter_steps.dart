@@ -432,10 +432,14 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     widget.adapter.setDownloadedDives(state.downloadedDives);
 
     // No dives — show an informational message instead of advancing to an
-    // empty Review step.
-    if (state.downloadedDives.isEmpty) {
-      if (mounted) setState(() => _noDives = true);
-      return;
+    // empty Review step. The computer itself is still saved below: reaching
+    // this point means it paired, connected and completed a download, which is
+    // exactly what makes it worth remembering for next time. Returning early
+    // here used to strand a working computer as unknown whenever the diver's
+    // first download had nothing new on it (issue #865).
+    final hasDives = state.downloadedDives.isNotEmpty;
+    if (!hasDives && mounted) {
+      setState(() => _noDives = true);
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -444,6 +448,8 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       final discoveryState = ref.read(discoveryNotifierProvider);
       final device = discoveryState.selectedDevice;
       if (device != null) {
+        // Serial and firmware ride on the completion event, not on the dives,
+        // so the hardware-identity rebind still works with an empty download.
         await widget.adapter.ensureComputer(
           device: device,
           serialNumber: state.serialNumber,
@@ -451,7 +457,9 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
         );
       }
 
-      if (mounted) {
+      // Only a download that actually produced dives has a Review step to
+      // advance to; the empty case stays on DcNoNewDivesView.
+      if (hasDives && mounted) {
         ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
       }
     });

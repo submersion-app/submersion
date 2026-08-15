@@ -83,7 +83,7 @@ class BuddyRepository {
       }
 
       final rows = await query.get();
-      return _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
+      return await _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
     } catch (e, stackTrace) {
       _log.error('Failed to get all buddies', error: e, stackTrace: stackTrace);
       rethrow;
@@ -256,7 +256,7 @@ class BuddyRepository {
         updatedAt: DateTime.now(),
       );
 
-      return createBuddy(newBuddy);
+      return await createBuddy(newBuddy);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find or create buddy: $name',

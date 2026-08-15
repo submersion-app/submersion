@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/services/asset_resolution_service
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 
 import '../support/media_widget_harness.dart';
@@ -22,7 +23,7 @@ void main() {
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
-          resolvedFullResolutionProvider(item).overrideWith(
+          mediaBytesProvider(item).overrideWith(
             (ref) async =>
                 const ResolvedAssetResult(status: ResolutionStatus.unavailable),
           ),

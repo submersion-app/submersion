@@ -132,7 +132,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'NAUI',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
                     letterSpacing: 6,
@@ -142,7 +142,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                 pw.SizedBox(height: 8),
                 pw.Text(
                   'DIVE LOG',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 32,
                     fontWeight: pw.FontWeight.bold,
                     color: _nauiGreen,
@@ -196,7 +196,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         children: [
           pw.Text(
             value,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 18,
               fontWeight: pw.FontWeight.bold,
               color: _nauiGreen,
@@ -221,7 +221,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         children: [
           pw.Text(
             'NAUI DIVE LOG',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white,
@@ -262,7 +262,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'DIVE #${dive.diveNumber ?? '-'}',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
                     color: _nauiGreen,
@@ -290,7 +290,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                       // Site
                       pw.Text(
                         dive.site?.name ?? 'Unknown Site',
-                        style: pw.TextStyle(
+                        style: const pw.TextStyle(
                           fontSize: 10,
                           fontWeight: pw.FontWeight.bold,
                         ),
@@ -308,7 +308,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           children: [
                             pw.Text(
                               'DIVE DATA',
-                              style: pw.TextStyle(
+                              style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
                                 color: _nauiGreen,
@@ -406,7 +406,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           children: [
                             pw.Text(
                               'VERIFICATION',
-                              style: pw.TextStyle(
+                              style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
                                 color: _nauiGreen,

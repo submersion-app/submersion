@@ -60,11 +60,11 @@ void main() {
       // exactly like RecentDivesCard watching recentDivesProvider.
       final onScreen = container.listen(recentDivesProvider, (_, _) {});
       final initial = await container.read(recentDivesProvider.future);
-      expect(
-        initial.map((d) => d.diveNumber).toList(),
-        [3, 2, 1],
-        reason: 'pre-import recent dives',
-      );
+      expect(initial.map((d) => d.diveNumber).toList(), [
+        3,
+        2,
+        1,
+      ], reason: 'pre-import recent dives');
 
       // User leaves the dashboard to run the import flow. The card unmounts, so
       // it stops listening. recentDivesProvider is a kept-alive (non

@@ -262,6 +262,7 @@
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				5351BCB825D6492185EFDA9E /* [CP] Embed Pods Frameworks */,
 				DE534D87E36110AA403AADF1 /* [CP] Copy Pods Resources */,
+				9F60D9E12C1A4B7E88A10996 /* Sort App.framework symbol table */,
 			);
 			buildRules = (
 			);
@@ -344,6 +345,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9F60D9E12C1A4B7E88A10996 /* Sort App.framework symbol table */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sort App.framework symbol table";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# gen_snapshot emits App.framework's exported symbols in address order,\n# which macOS 11's dyld cannot resolve by binary search (issue #996).\n# Must run before signing; both pipelines codesign after the Xcode build.\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  exit 0\nfi\nAPP_BINARY=\"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}/Contents/Frameworks/App.framework/Versions/A/App\"\nif [ ! -f \"${APP_BINARY}\" ]; then\n  echo \"error: App.framework binary not found at ${APP_BINARY}\"\n  exit 1\nfi\nexec /usr/bin/env python3 \"${SRCROOT}/../scripts/fix_macho_symbol_order.py\" \"${APP_BINARY}\"\n";
+		};
 		3399D490228B24CF009A79C7 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -601,7 +621,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -685,7 +705,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -734,7 +754,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;

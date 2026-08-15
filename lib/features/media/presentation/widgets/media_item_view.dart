@@ -67,14 +67,16 @@ class MediaItemView extends ConsumerStatefulWidget {
 /// do. Carried alongside the data rather than folded into it so the resolver
 /// contract stays a plain "bytes or a reason".
 ///
-/// [isStoreData] marks bytes served by the media-store fallback. Documents
-/// need it: a PDF's STORE THUMB is a renderable JPEG, while every other
-/// document resolution (local original, store original) is raw document
-/// bytes that Image widgets cannot decode.
+/// [documentRenderable] marks a document resolution whose bytes are an
+/// IMAGE rather than the document itself — a page-1 render, produced either
+/// locally by [PdfThumbnailService] or by the upload pipeline and served
+/// back as the store's THUMB. Every other document resolution (local
+/// original, store original) is raw document bytes that Image widgets
+/// cannot decode, and draws the placeholder instead.
 typedef _Resolution = ({
   MediaSourceData data,
   bool videoPosterMissing,
-  bool isStoreData,
+  bool documentRenderable,
 });
 
 class _MediaItemViewState extends ConsumerState<MediaItemView> {
@@ -112,6 +114,27 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   Future<_Resolution> _resolve() async {
     final registry = ref.read(mediaSourceResolverRegistryProvider);
     final resolver = registry.resolverFor(widget.item.sourceType);
+    // A PDF tile draws page 1. Rendering is the only way raw document bytes
+    // become an image, and doing it here rather than in the resolver keeps
+    // resolveThumbnail's contract intact -- ThumbnailGenerator calls it
+    // expecting the PDF itself to feed to the same renderer. Cache-first
+    // inside the service, so the source read (on Android, the whole file
+    // back across a platform channel) happens once per document instead of
+    // once per tile that scrolls into view.
+    if (widget.thumbnail && widget.item.isPdf) {
+      final page1 = await ref
+          .read(pdfThumbnailServiceProvider)
+          .thumbFor(widget.item, source: () => resolver.resolve(widget.item));
+      if (page1 != null) {
+        return (
+          data: BytesData(bytes: page1),
+          videoPosterMissing: false,
+          documentRenderable: true,
+        );
+      }
+      // No local render (bytes unavailable here, or an unreadable PDF):
+      // fall through, which reaches the store's own page-1 thumb below.
+    }
     // [thumbnail] alone decides the path. Requiring a [targetSize] too made
     // the flag a silent no-op wherever one was omitted, and the fallback is
     // the full-resolution original: for a gallery item, AssetEntity
@@ -125,7 +148,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           )
         : await resolver.resolve(widget.item);
     if (native is! UnavailableData) {
-      return (data: native, videoPosterMissing: false, isStoreData: false);
+      return (
+        data: native,
+        videoPosterMissing: false,
+        documentRenderable: false,
+      );
     }
     // Media store fallback (design spec section 10): only engages when the
     // native source cannot produce bytes on this device and the row is
@@ -146,7 +173,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             widget.item.remoteCompressedUploadedAt != null ||
             (widget.thumbnail && widget.item.remoteThumbUploadedAt != null));
     if (!storeConfirmed) {
-      return (data: native, videoPosterMissing: false, isStoreData: false);
+      return (
+        data: native,
+        videoPosterMissing: false,
+        documentRenderable: false,
+      );
     }
     try {
       final runtime = await ref.read(mediaStoreRuntimeProvider.future);
@@ -154,14 +185,28 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       // somewhere, but nothing here can reach them, so the native
       // placeholder is the honest answer.
       if (runtime == null) {
-        return (data: native, videoPosterMissing: false, isStoreData: false);
+        return (
+          data: native,
+          videoPosterMissing: false,
+          documentRenderable: false,
+        );
       }
       final remote = await runtime.resolver.tryResolveRemote(
         widget.item,
         thumbnail: widget.thumbnail,
       );
       if (remote != null) {
-        return (data: remote, videoPosterMissing: false, isStoreData: true);
+        return (
+          data: remote,
+          videoPosterMissing: false,
+          // Not "the request was a thumbnail": a thumbnail request whose
+          // thumb object is missing or unfetchable degrades to the ORIGINAL
+          // (see MediaStoreResolver.tryResolveRemote), and for a document
+          // that original is the PDF. Only the store knows which of the two
+          // it handed back, and isPoster is how it says so.
+          documentRenderable:
+              widget.thumbnail && remote is FileData && remote.isPoster,
+        );
       }
       // The movie tile claims something specific -- this video has no poster
       // frame -- so it is shown only when that is what happened: the store
@@ -176,10 +221,14 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             widget.thumbnail &&
             widget.item.isVideo &&
             widget.item.remoteThumbUploadedAt == null,
-        isStoreData: false,
+        documentRenderable: false,
       );
     } catch (_) {
-      return (data: native, videoPosterMissing: false, isStoreData: false);
+      return (
+        data: native,
+        videoPosterMissing: false,
+        documentRenderable: false,
+      );
     }
   }
 
@@ -202,10 +251,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         }
         final data = resolution.data;
         // A document resolves to raw document bytes (PDF, docx, ...), which
-        // the Image widgets cannot decode. The one renderable exception is
-        // a PDF's media-store THUMB: a JPEG served by the store fallback
-        // for a thumbnail request.
-        final documentRenderable = resolution.isStoreData && widget.thumbnail;
+        // the Image widgets cannot decode. The renderable exception is a
+        // PDF's page-1 image: rendered here for a tile, or served as the
+        // store's THUMB when this device cannot read the PDF itself.
+        final documentRenderable = resolution.documentRenderable;
         return switch (data) {
           FileData() when widget.item.isDocument && !documentRenderable =>
             _DocumentThumbnailPlaceholder(item: widget.item),

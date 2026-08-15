@@ -578,21 +578,19 @@ void main() {
       'd5',
       'd7',
     });
-    expect(
-      await idsMatching(battery['minDepth (null-exclusion)']!),
-      {'d2', 'd4', 'd6'},
-      reason: 'd3 (null maxDepth) must be excluded once minDepth is set',
-    );
-    expect(
-      await idsMatching(battery['minRating (null-exclusion)']!),
-      {'d2', 'd5'},
-      reason: 'd3/d6 (null rating) must be excluded once minRating is set',
-    );
-    expect(
-      await idsMatching(battery['minO2Percent (any-tank)']!),
-      {'d2', 'd5'},
-      reason: 'ANY-tank semantics: d5 matches via its second (100%) tank',
-    );
+    expect(await idsMatching(battery['minDepth (null-exclusion)']!), {
+      'd2',
+      'd4',
+      'd6',
+    }, reason: 'd3 (null maxDepth) must be excluded once minDepth is set');
+    expect(await idsMatching(battery['minRating (null-exclusion)']!), {
+      'd2',
+      'd5',
+    }, reason: 'd3/d6 (null rating) must be excluded once minRating is set');
+    expect(await idsMatching(battery['minO2Percent (any-tank)']!), {
+      'd2',
+      'd5',
+    }, reason: 'ANY-tank semantics: d5 matches via its second (100%) tank');
     expect(await idsMatching(battery['computerSerial']!), {'d4'});
     expect(
       await idsMatching(battery['buddyNameFilter']!),
@@ -615,11 +613,9 @@ void main() {
           'repository SQL filter (getDiveSummaries) must match junction '
           'buddies too',
     );
-    expect(
-      await idsMatching(battery['customFieldKey + value substring']!),
-      {'d6'},
-      reason: "only d6's visMeters value ('15') contains '1'",
-    );
+    expect(await idsMatching(battery['customFieldKey + value substring']!), {
+      'd6',
+    }, reason: "only d6's visMeters value ('15') contains '1'");
     expect(await idsMatching(battery['combo: tag + O2']!), {'d2', 'd5'});
     expect(await idsMatching(battery['combo: center + rating']!), {'d1', 'd2'});
     expect(await idsMatching(battery['combo: equipment + favorites']!), {'d2'});

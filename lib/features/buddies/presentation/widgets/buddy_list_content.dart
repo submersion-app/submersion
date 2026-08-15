@@ -11,6 +11,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -154,31 +156,65 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
   }
 
-  /// Enter selection mode implicitly, from a long-press or modifier-click.
-  void _enterSelectionMode(String? initialId) {
-    if (initialId == null) {
-      _selection.enterExplicit();
-    } else {
-      _selection.enterImplicit(initialId);
-    }
+  /// Enter selection mode implicitly, from a modifier-click, checking [id].
+  ///
+  /// Clearing the highlight keeps the detail pane from arguing with the bulk
+  /// selection about what the row means: a row left highlighted but unchecked
+  /// reads as selected while no bulk action would touch it.
+  ///
+  /// The Select controls route to [SelectionController.enterExplicit] directly
+  /// -- they have no row to check -- so this helper only ever serves the
+  /// implicit path, which since the removal of long-press entry means
+  /// modifier-click alone.
+  void _enterImplicitSelection(String id, {String? seedId}) {
+    ref.read(highlightedBuddyIdProvider.notifier).state = null;
+    _selection.enterImplicit(id, seedId: seedId);
   }
 
   void _exitSelectionMode() => _selection.exit();
 
   void _toggleSelection(String id) => _selection.toggle(id);
 
+  /// Select the contiguous span from the anchor buddy to [targetId].
+  ///
+  /// With no anchor yet, the highlighted row is the origin, matching Finder.
+  void _selectRangeTo(String targetId, List<String> orderedIds) {
+    _selection.extendTo(
+      targetId,
+      orderedIds,
+      fallbackAnchorId: ref.read(highlightedBuddyIdProvider),
+    );
+  }
+
+  /// Cmd/Ctrl-click [id], carrying the highlighted buddy into the selection.
+  ///
+  /// Outside selection mode the highlighted row is what the user sees as
+  /// selected, so a modifier-click adds to it rather than replacing it. A
+  /// highlight that filtering has pushed out of [orderedIds] is ignored, so
+  /// the count can never include a buddy that is not on screen.
+  void _modifierTap(String id, List<String> orderedIds) {
+    final highlighted = ref.read(highlightedBuddyIdProvider);
+    _enterImplicitSelection(
+      id,
+      seedId: highlighted != null && orderedIds.contains(highlighted)
+          ? highlighted
+          : null,
+    );
+  }
+
   /// One tap policy for every buddy row, in every view mode.
   ///
-  /// A held modifier turns a tap into an implicit entry, so desktop users
-  /// never have to discover long-press.
+  /// A held modifier turns a tap into an implicit entry -- the one path that
+  /// still evaporates at zero checked, since touch has no gesture entry left.
+  /// Shift extends from the anchor, falling back to the highlighted row.
   void _handleRowTap(String id, List<BuddyWithDiveCount> buddies) {
     final orderedIds = buddies.map((b) => b.buddy.id).toList();
     if (SelectableListScope.isShiftPressed()) {
-      _selection.extendTo(id, orderedIds);
+      _selectRangeTo(id, orderedIds);
       return;
     }
     if (SelectableListScope.isModifierPressed()) {
-      _selection.enterImplicit(id);
+      _modifierTap(id, orderedIds);
       return;
     }
     if (_isSelectionMode) {
@@ -454,8 +490,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                         );
                       },
                     ),
-                    // Discoverability: buddies had no Select affordance at all --
-                    // long-press was the only way into bulk actions.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -522,17 +558,42 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     BuildContext context,
     AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
   ) {
-    final tableContent = _buildTableView(context, buddiesAsync);
+    final loadedBuddies =
+        buddiesAsync.valueOrNull ?? const <BuddyWithDiveCount>[];
+    final visibleIds = loadedBuddies.map((b) => b.buddy.id).toList();
 
-    if (_isSelectionMode) {
-      return Column(
-        children: [
-          _buildCompactSelectionAppBar(context, buddiesAsync.valueOrNull ?? []),
-          Expanded(child: tableContent),
-        ],
-      );
-    }
-    return tableContent;
+    // Same pruning the list path does: drop checked buddies that fell out of
+    // the visible list, so the count always matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final tableContent = _buildTableView(context, buddiesAsync);
+
+          // Table mode has no app bar of its own, so the Select affordance
+          // lives in the same slot the contextual bar takes, at the same
+          // height -- the table does not shift as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildCompactSelectionAppBar(context, loadedBuddies)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: tableContent),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for buddy table mode.
@@ -567,12 +628,27 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTapDown: (id) {
-            if (!_isSelectionMode) {
-              ref.read(highlightedBuddyIdProvider.notifier).state = id;
+            // Rows carry a double-tap, so onEntityTap only resolves after the
+            // double-tap timer -- long after this fires. A modified click is a
+            // selection gesture, not a navigation one: moving the highlight
+            // here would overwrite the very anchor the shift-click is about to
+            // extend from.
+            if (_isSelectionMode ||
+                SelectableListScope.isShiftPressed() ||
+                SelectableListScope.isModifierPressed()) {
+              return;
             }
+            ref.read(highlightedBuddyIdProvider.notifier).state = id;
           },
           onEntityTap: (id) {
-            if (_isSelectionMode) {
+            // Table mode honours modifier and shift clicks too, so selection
+            // works the same way as in the list view modes.
+            final orderedIds = buddyRecords.map((b) => b.buddy.id).toList();
+            if (SelectableListScope.isShiftPressed()) {
+              _selectRangeTo(id, orderedIds);
+            } else if (SelectableListScope.isModifierPressed()) {
+              _modifierTap(id, orderedIds);
+            } else if (_isSelectionMode) {
               _toggleSelection(id);
             }
           },
@@ -580,9 +656,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
             if (_isSelectionMode) return;
             context.push('/buddies/$id');
           },
-          onEntityLongPress: _isSelectionMode
-              ? null
-              : (id) => _enterSelectionMode(id),
           selectedIds: _selectedIds,
           isSelectionMode: _isSelectionMode,
           highlightedId: ref.watch(highlightedBuddyIdProvider),
@@ -631,8 +704,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
               showSearch(context: context, delegate: BuddySearchDelegate(ref));
             },
           ),
-          // Discoverability: buddies had no Select affordance at all --
-          // long-press was the only way into bulk actions.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -763,31 +836,21 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           final isChecked = _selectedIds.contains(buddy.id);
           final viewMode = ref.watch(buddyListViewModeProvider);
           return switch (viewMode) {
-            ListViewMode.detailed || ListViewMode.compact => GestureDetector(
-              onLongPress: _isSelectionMode
-                  ? null
-                  : () => _enterSelectionMode(buddy.id),
-              child: BuddyListTile(
-                buddy: buddy,
-                diveCount: buddyWithCount.diveCount,
-                isSelected: isSelected,
-                isChecked: isChecked,
-                isSelectionMode: _isSelectionMode,
-                onTap: () => _handleRowTap(buddy.id, buddies),
-              ),
+            ListViewMode.detailed || ListViewMode.compact => BuddyListTile(
+              buddy: buddy,
+              diveCount: buddyWithCount.diveCount,
+              isSelected: isSelected,
+              isChecked: isChecked,
+              isSelectionMode: _isSelectionMode,
+              onTap: () => _handleRowTap(buddy.id, buddies),
             ),
-            ListViewMode.dense || ListViewMode.table => GestureDetector(
-              onLongPress: _isSelectionMode
-                  ? null
-                  : () => _enterSelectionMode(buddy.id),
-              child: DenseBuddyListTile(
-                buddy: buddy,
-                diveCount: buddyWithCount.diveCount,
-                isChecked: isChecked,
-                isHighlighted: !_isSelectionMode && isHighlighted,
-                isSelectionMode: _isSelectionMode,
-                onTap: () => _handleRowTap(buddy.id, buddies),
-              ),
+            ListViewMode.dense || ListViewMode.table => DenseBuddyListTile(
+              buddy: buddy,
+              diveCount: buddyWithCount.diveCount,
+              isChecked: isChecked,
+              isHighlighted: !_isSelectionMode && isHighlighted,
+              isSelectionMode: _isSelectionMode,
+              onTap: () => _handleRowTap(buddy.id, buddies),
             ),
           };
         },
@@ -887,20 +950,15 @@ class BuddyListTile extends StatelessWidget {
           : null,
       child: ListTile(
         onTap: onTap,
-        leading: isSelectionMode
-            ? SizedBox(
-                width: 40,
-                height: 40,
-                child: Center(
-                  child: Checkbox(
-                    value: isChecked,
-                    onChanged: (_) => onTap?.call(),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              )
-            : CircleAvatar(
+        leading: SizedBox(
+          width: 40,
+          height: 40,
+          child: Center(
+            child: SelectionLeading(
+              isSelectionMode: isSelectionMode,
+              isChecked: isChecked,
+              onChanged: (_) => onTap?.call(),
+              child: CircleAvatar(
                 backgroundColor: theme.colorScheme.primaryContainer,
                 backgroundImage: buddy.photoPath != null
                     ? AssetImage(buddy.photoPath!)
@@ -915,6 +973,9 @@ class BuddyListTile extends StatelessWidget {
                       )
                     : null,
               ),
+            ),
+          ),
+        ),
         title: Text(buddy.name),
         subtitle: _buildSubtitle(context),
         trailing: Row(

@@ -11,8 +11,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
@@ -255,8 +256,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                         );
                       },
                     ),
-                    // Discoverability: bulk actions must not be reachable only by a
-                    // long-press that nothing on screen advertises.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -447,14 +448,43 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     AsyncValue<List<EquipmentItem>> equipmentAsync,
   ) {
-    final tableContent = _buildTableView(context, equipmentAsync);
+    final visibleIds = (equipmentAsync.value ?? const <EquipmentItem>[])
+        .map((e) => e.id)
+        .toList();
 
-    return Column(
-      children: [
-        if (widget.headerExtension != null) widget.headerExtension!,
-        _buildFilterChips(context),
-        Expanded(child: tableContent),
-      ],
+    // Same pruning the list path does: drop checked items that fell out of
+    // the visible list, so the count always matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) => Column(
+          children: [
+            if (widget.headerExtension != null) widget.headerExtension!,
+            // Table mode has no app bar of its own, so both bars live here:
+            // the contextual one while selecting, and the Select affordance
+            // while not. They share a slot and a height, so the table does
+            // not shift as the mode opens.
+            if (selection.isActive)
+              _buildSelectionBar(
+                equipmentAsync.value ?? const <EquipmentItem>[],
+                SelectionBarShell.pane,
+              )
+            else
+              SelectionEntryBar(controller: _selection),
+            _buildFilterChips(context),
+            Expanded(child: _buildTableView(context, equipmentAsync)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -491,9 +521,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
           },
-          onEntityLongPress: _isSelectionMode
-              ? null
-              : (id) => _selection.enterImplicit(id),
           selectedIds: _selectedIds,
           isSelectionMode: _isSelectionMode,
           onEntityDoubleTap: (id) {
@@ -543,8 +570,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               showSearch(context: context, delegate: EquipmentSearchDelegate());
             },
           ),
-          // Discoverability: bulk actions must not be reachable only by a
-          // long-press that nothing on screen advertises.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -696,24 +723,26 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               widget.selectedId == item.id ||
               ref.watch(highlightedEquipmentIdProvider) == item.id;
           final viewMode = ref.watch(equipmentListViewModeProvider);
-          final tile = switch (viewMode) {
+          final isChecked = _selectedIds.contains(item.id);
+          void onCheckChanged(bool _) => _selection.toggle(item.id);
+          return switch (viewMode) {
             ListViewMode.detailed || ListViewMode.compact => EquipmentListTile(
               item: item,
               isSelected: isSelected,
               onTap: () => _handleRowTap(item),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
             ListViewMode.dense || ListViewMode.table => DenseEquipmentListTile(
               item: item,
               isSelected: isSelected,
               onTap: () => _handleRowTap(item),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
           };
-          return SelectableRow(
-            isSelectionMode: _isSelectionMode,
-            isChecked: _selectedIds.contains(item.id),
-            onChanged: (_) => _selection.toggle(item.id),
-            child: tile,
-          );
         },
       ),
     );
@@ -803,12 +832,18 @@ class EquipmentListTile extends ConsumerWidget {
   final EquipmentItem item;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const EquipmentListTile({
     super.key,
     required this.item,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -831,19 +866,24 @@ class EquipmentListTile extends ConsumerWidget {
           : null,
       child: ListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          // An overdue service is a status signal, so it keeps the error
-          // colors even with accents on -- a cosmetic preference must not
-          // hide a service warning.
-          backgroundColor: isOverdue
-              ? theme.colorScheme.errorContainer
-              : accent?.withValues(alpha: 0.15) ??
-                    theme.colorScheme.tertiaryContainer,
-          child: Icon(
-            _getIconForType(item.type),
-            color: isOverdue
-                ? theme.colorScheme.onErrorContainer
-                : accent ?? theme.colorScheme.onTertiaryContainer,
+        leading: SelectionLeading(
+          isSelectionMode: isSelectionMode,
+          isChecked: isChecked,
+          onChanged: onCheckChanged,
+          child: CircleAvatar(
+            // An overdue service is a status signal, so it keeps the error
+            // colors even with accents on -- a cosmetic preference must not
+            // hide a service warning.
+            backgroundColor: isOverdue
+                ? theme.colorScheme.errorContainer
+                : accent?.withValues(alpha: 0.15) ??
+                      theme.colorScheme.tertiaryContainer,
+            child: Icon(
+              _getIconForType(item.type),
+              color: isOverdue
+                  ? theme.colorScheme.onErrorContainer
+                  : accent ?? theme.colorScheme.onTertiaryContainer,
+            ),
           ),
         ),
         title: Text(item.name),

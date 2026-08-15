@@ -125,8 +125,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     // MARK: - Connection
 
     /// Connect to the peripheral and discover services/characteristics.
-    /// Blocks until ready or timeout. Returns true on success.
-    func connectAndDiscover() -> Bool {
+    /// Blocks until ready or timeout. Returns nil once the stream is usable,
+    /// or the reason the attempt was abandoned.
+    func connectAndDiscover() -> BleConnectFailure? {
         NativeLogger.d(
             "BleIoStream", category: "BLE",
             "connectAndDiscover start for \(self.peripheral.identifier.uuidString)"
@@ -139,7 +140,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 "BleIoStream", category: "BLE",
                 "Central not powered on (state=\(self.centralManager.state.rawValue))"
             )
-            return false
+            return .other
         }
 
         connectError = nil
@@ -172,13 +173,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 NativeLogger.w("BleIoStream", category: "BLE",
                     "Timed out waiting for in-flight connect callback")
                 centralManager.cancelPeripheralConnection(peripheral)
-                return false
+                return .other
             }
             if let error = connectError {
                 NativeLogger.e("BleIoStream", category: "BLE",
                     "In-flight connect failed: \(error.localizedDescription)")
                 centralManager.cancelPeripheralConnection(peripheral)
-                return false
+                return BleConnectFailure.fromConnectError(error)
             }
         default:
             centralManager.connect(peripheral, options: nil)
@@ -187,13 +188,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 NativeLogger.w("BleIoStream", category: "BLE",
                     "Timed out waiting for connect callback")
                 centralManager.cancelPeripheralConnection(peripheral)
-                return false
+                return .other
             }
             if let error = connectError {
                 NativeLogger.e("BleIoStream", category: "BLE",
                     "Connect failed: \(error.localizedDescription)")
                 centralManager.cancelPeripheralConnection(peripheral)
-                return false
+                return BleConnectFailure.fromConnectError(error)
             }
         }
 
@@ -207,23 +208,27 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         peripheral.discoverServices(nil)
         let discoverResult = discoverSemaphore.wait(timeout: .now() + .seconds(10))
         if discoverResult == .timedOut {
+            // The link is up but the peer never answered, so this is not the
+            // "no usable characteristics" case below: nothing was enumerated at
+            // all. On macOS that is what a stale bond looks like -- iOS names
+            // the condition, macOS just waits (issue #865).
             NativeLogger.w("BleIoStream", category: "BLE",
                 "Timed out waiting for service/characteristic discovery")
             centralManager.cancelPeripheralConnection(peripheral)
-            return false
+            return .discoveryStalled
         }
         if !isReady {
             NativeLogger.w("BleIoStream", category: "BLE",
                 "Discovery completed without usable write/notify characteristics")
             centralManager.cancelPeripheralConnection(peripheral)
-            return false
+            return .other
         }
         // A Telit Terminal I/O module keeps its UART bridge closed until the
         // client grants initial credits, so the first command write would fail
         // outright without this (issue #923).
         if !grantInitialCredits() {
             centralManager.cancelPeripheralConnection(peripheral)
-            return false
+            return .other
         }
         Thread.sleep(forTimeInterval: Self.notifySettleDelaySeconds)
         NativeLogger.d("BleIoStream", category: "BLE",
@@ -231,7 +236,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         NativeLogger.d("BleIoStream", category: "BLE",
             "Discovery ready (write=\(self.writeCharacteristic?.uuid.uuidString ?? "nil")"
                 + " notify=\(self.notifyCharacteristic?.uuid.uuidString ?? "nil"))")
-        return true
+        return nil
     }
 
     // MARK: - Terminal I/O credits

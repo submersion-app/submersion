@@ -387,21 +387,41 @@ class DiveComputerHostApiImpl(
             return
         }
 
-        // Ensure the device is bonded before starting the download.
-        // Devices using encrypted BLE services (e.g. Aqualung i300C on
-        // the Pelagic service) need an established bond. createBond()
+        // Bond the device before starting the download. Devices using
+        // encrypted BLE services (e.g. Aqualung i300C on the Pelagic
+        // service) have to pair sooner or later, and doing it here puts
+        // the system pairing dialog in front of the user before the
+        // transfer starts rather than part-way through it. createBond()
         // works here because we have an active GATT connection.
         // Shearwater devices are exempt: their protocol needs no bond,
         // and holding one blocks Shearwater Cloud until the user unpairs
         // (issue #910) -- see BondPolicy.
+        //
+        // A bond that does not complete is not fatal. By this point the
+        // link is connected and its services are discovered, and no other
+        // backend bonds at all, so giving up here would throw away a
+        // working connection over an optimisation -- which is what left a
+        // tester unable to download at all (issue #1029). A computer that
+        // really does require encryption still gets it: the Android stack
+        // pairs transparently during the first encrypted GATT operation,
+        // and if that fails the download reports the protocol error that
+        // actually describes the problem.
         if (BondPolicy.requiresProactiveBond(device.vendor)) {
             if (!bleStream.ensureBonded()) {
-                reportError("bond_failed", "Failed to pair with device")
-                bleStream.close()
-                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
-                downloadSessionPtr = 0
-                activeBleStream = null
-                return
+                val reason = bleStream.lastBondFailure ?: "reason unavailable"
+                if (BondPolicy.bondFailureAbortsDownload(device.vendor)) {
+                    reportError("bond_failed", "Failed to pair with device: $reason")
+                    bleStream.close()
+                    LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                    downloadSessionPtr = 0
+                    activeBleStream = null
+                    return
+                }
+                NativeLogger.w(
+                    TAG, "BLE",
+                    "Proactive bond with ${device.vendor} ${device.product} " +
+                        "did not complete ($reason); continuing unbonded"
+                )
             }
         } else {
             NativeLogger.d(

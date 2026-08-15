@@ -44,6 +44,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -619,6 +620,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
   final _log = LoggerService.forClass(SyncNotifier);
   StreamSubscription<void>? _changeSubscription;
   Timer? _autoSyncTimer;
+  Timer? _pendingCountTimer;
+  int _pendingCountGeneration = 0;
   bool _syncInFlight = false;
 
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
@@ -705,8 +708,53 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   void _listenForChanges() {
     _changeSubscription = SyncEventBus.changes.listen((_) {
+      // Refresh the displayed count REGARDLESS of the auto-sync setting.
+      // _scheduleAutoSync returns immediately when auto-sync is off, which is
+      // how the "Synced" chip used to survive a whole session of edits (#990):
+      // nothing else recomputes pendingChanges between syncs.
+      _schedulePendingCountRefresh();
       _scheduleAutoSync();
     });
+  }
+
+  /// Debounced: one local action (a bulk edit, a multi-entity save) fires many
+  /// bus events, and each refresh is two queries.
+  void _schedulePendingCountRefresh() {
+    _pendingCountTimer?.cancel();
+    _pendingCountTimer = Timer(
+      const Duration(milliseconds: 400),
+      _refreshPendingCount,
+    );
+  }
+
+  /// Deliberately narrower than [refreshState]: this runs on every local write,
+  /// so it must not probe the network via isSyncAvailable() nor rewrite
+  /// status/message (which would stomp a sync or an error the user is reading).
+  ///
+  /// The debounce cancels pending TIMERS, not an in-flight refresh: once the
+  /// queries are running, a later write can start a second refresh alongside
+  /// the first. [_pendingCountGeneration] makes the newest caller the only one
+  /// allowed to publish, so a slow earlier query cannot land a stale count on
+  /// top of a fresher one.
+  Future<void> _refreshPendingCount() async {
+    if (!mounted) return;
+    // A sync clears pending records as it publishes; its own post-sync
+    // refreshState lands the settled number.
+    if (state.status == SyncStatus.syncing) return;
+    final generation = ++_pendingCountGeneration;
+    try {
+      final providerId = _ref.read(cloudStorageProviderProvider)?.providerId;
+      final count = await _syncRepository.getUnsyncedChangeCount(
+        providerId: providerId,
+      );
+      if (!mounted || generation != _pendingCountGeneration) return;
+      if (state.pendingChanges == count) return;
+      state = state.copyWith(pendingChanges: count);
+    } catch (e) {
+      // A count is advisory: leave the last known value rather than pushing
+      // the whole page into an error state over a failed status query.
+      _log.error('Failed to refresh pending count', error: e);
+    }
   }
 
   void _scheduleAutoSync() {
@@ -742,7 +790,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       final lastSync = await _syncRepository.getLastSyncTime(
         forProvider: activeProvider?.providerId,
       );
-      final pendingCount = await _syncRepository.getPendingCount();
+      // Same composite count the live refresh uses (record edits + tombstones
+      // above the publish watermark), so the two paths cannot disagree.
+      final pendingCount = await _syncRepository.getUnsyncedChangeCount(
+        providerId: activeProvider?.providerId,
+      );
       final conflictCount = await _syncRepository.getConflictCount();
       final isAvailable = await _syncService.isSyncAvailable();
 
@@ -1397,25 +1449,45 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// Remove THIS device's sync files from the active backend (issue #509,
   /// cloud clear 3a). Safe: other devices keep syncing; frees this device's
   /// changeset log, base parts, and manifest.
-  Future<void> removeThisDeviceCloudFiles() async {
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async {
     final deviceId = await _syncRepository.getDeviceId();
-    await _syncService.deleteDeviceSyncFile(deviceId);
+    final outcome = await _syncService.deleteDeviceSyncFile(
+      deviceId,
+      onProgress: onProgress,
+    );
     await refreshState();
+    return outcome;
   }
 
   /// Wipe ALL sync data on the active backend, including the epoch/moved
   /// markers (issue #509, cloud clear 3b). Every device re-establishes from
   /// scratch. Dive data is untouched.
-  Future<void> wipeAllCloudSyncData() async {
-    await _syncService.wipeAllSyncDataOnActiveProvider();
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    final outcome = await _syncService.wipeAllSyncDataOnActiveProvider(
+      onProgress: onProgress,
+    );
     await refreshState();
+    return outcome;
   }
 
   /// Escape a stuck library replacement whose uploader went offline (issue
   /// #509): rebuild this backend from THIS device's library, then publish it so
   /// peers adopt from us. Un-pauses the awaiting-adoption state.
-  Future<void> rebuildBackendFromThisDevice() async {
-    final result = await _syncService.rebuildBackendFromThisDevice();
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+
+    /// Fires once the clear-out is done and the (much longer) full-library
+    /// republish begins, so a caller showing progress can retitle rather than
+    /// leave a completed file count on screen for minutes (issue #1032).
+    void Function()? onPublishStarted,
+  }) async {
+    final result = await _syncService.rebuildBackendFromThisDevice(
+      onProgress: onProgress,
+    );
     if (result.status != SyncResultStatus.success) {
       // Keep the error visible: refreshState (which recomputes status from the
       // repository) must NOT run here, or it would clear the reason.
@@ -1429,6 +1501,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       message: null,
     );
     await _ref.read(libraryEpochStoreProvider).clearPendingReplace();
+    onPublishStarted?.call();
     await performSync(); // publish our library as the epoch's base
     await refreshState();
   }
@@ -1436,6 +1509,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   @override
   void dispose() {
     _autoSyncTimer?.cancel();
+    _pendingCountTimer?.cancel();
     _changeSubscription?.cancel();
     super.dispose();
   }

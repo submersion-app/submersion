@@ -222,6 +222,46 @@ void main() {
     expect(result['src-meta']!.points, isEmpty);
   });
 
+  test('two sources sharing a computerId collapse onto the canonical (primary) '
+      'one', () async {
+    // Mirrors what a same-computer sequential merge produces
+    // (dive_merge_service.dart step 10 carries over every original dive's
+    // data source row as provenance; two originals logged by the same
+    // physical computer both had their own row).
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-a-dup'),
+            diveId: const Value('dive-1'),
+            computerId: const Value('dc-a'),
+            isPrimary: const Value(false),
+            importedAt: Value(DateTime(2026, 1, 3)),
+            createdAt: Value(DateTime(2026, 1, 3)),
+          ),
+        );
+    await insertProfileRow(
+      diveId: 'dive-1',
+      timestamp: 0,
+      depth: 10.0,
+      computerId: 'dc-a',
+      isPrimary: true,
+    );
+    await insertProfileRow(
+      diveId: 'dive-1',
+      timestamp: 5,
+      depth: 11.0,
+      computerId: 'dc-a',
+      isPrimary: true,
+    );
+
+    final result = await repository.getProfilesByDataSource('dive-1');
+
+    expect(result.keys, containsAll(['src-a', 'src-b']));
+    expect(result.containsKey('src-a-dup'), false);
+    expect(result['src-a']!.points.map((p) => p.depth).toList(), [10.0, 11.0]);
+  });
+
   test('synthesizes a primary source from raw profile rows when the dive has '
       'no data source metadata row (legacy import)', () async {
     // Older imports wrote dive_profiles rows without a dive_data_sources

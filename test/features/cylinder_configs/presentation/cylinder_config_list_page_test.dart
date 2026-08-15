@@ -156,6 +156,10 @@ void main() {
         // `configs:` would capture the original list by value.
         build: () => host(configs: all, configsFuture: () async => visible),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa plan'),
+          matching: find.byType(ListTile),
+        ),
         firstRow: find.text('Aaa plan'),
         applyFilter: (tester) async {
           visible = [all.first];

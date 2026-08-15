@@ -832,6 +832,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             errorCount: _locationErrorCount(),
             latitudeController: _latitudeController,
             longitudeController: _longitudeController,
+            coordinateFormat: ref.watch(coordinateFormatProvider),
             altitudeController: _altitudeController,
             latValidator: _latValidatorFn,
             lonValidator: _lonValidatorFn,

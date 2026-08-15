@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 
 class TempAnomalyDetector extends QualityDetector {
@@ -11,7 +12,7 @@ class TempAnomalyDetector extends QualityDetector {
   @override
   String get id => 'temp_anomaly';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.temperature;
 
@@ -28,6 +29,10 @@ class TempAnomalyDetector extends QualityDetector {
       final maxC = temps.map((e) => e.c).reduce(math.max);
       if (minC < QualityThresholds.waterTempMinC ||
           maxC > QualityThresholds.waterTempMaxC) {
+        // A unit conversion is only the explanation when it lands the WHOLE
+        // channel back in range -- converting because of a single bad sample
+        // corrupts every good one and leaves the finding open.
+        final readings = temps.map((e) => e.c);
         out.add(
           make(
             ctx,
@@ -37,7 +42,17 @@ class TempAnomalyDetector extends QualityDetector {
               'minTempC': minC,
               'maxTempC': maxC,
               // A Kelvin-scale reading (~273+) betrays the F-as-K firmware bug.
-              'fahrenheitAsKelvinSuspected': maxC > 250,
+              'fahrenheitAsKelvinSuspected':
+                  maxC > 250 &&
+                  RepairPredicates.convertedChannelIsPlausible(
+                    readings,
+                    kelvinScale: true,
+                  ),
+              'fahrenheitSuspected':
+                  RepairPredicates.convertedChannelIsPlausible(
+                    readings,
+                    kelvinScale: false,
+                  ),
             },
           ),
         );
@@ -61,7 +76,19 @@ class TempAnomalyDetector extends QualityDetector {
               ctx,
               discriminator: 'jump:${temps[i].t ~/ 300}',
               severity: QualitySeverity.warning,
-              params: {'atSeconds': temps[i].t, 'deltaC': delta},
+              params: {
+                'atSeconds': temps[i].t,
+                'deltaC': delta,
+                // Only an isolated outlier can be smoothed away; a one-sided
+                // step is a judgment call and gets no one-tap repair.
+                'spikeShaped':
+                    i + 1 < temps.length &&
+                    RepairPredicates.isTemperatureSpike(
+                      temps[i - 1].c,
+                      temps[i].c,
+                      temps[i + 1].c,
+                    ),
+              },
             ),
           );
         }

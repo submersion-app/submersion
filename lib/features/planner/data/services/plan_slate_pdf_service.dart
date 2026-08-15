@@ -154,7 +154,10 @@ class PlanSlatePdfService {
       children: [
         pw.Text(
           plan.name,
-          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
         pw.SizedBox(height: 2),
         pw.Text(
@@ -170,7 +173,7 @@ class PlanSlatePdfService {
     padding: const pw.EdgeInsets.only(bottom: 3),
     child: pw.Text(
       text.toUpperCase(),
-      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+      style: const pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
     ),
   );
 
@@ -178,7 +181,7 @@ class PlanSlatePdfService {
     padding: const pw.EdgeInsets.only(top: 3, bottom: 2),
     child: pw.Text(
       text,
-      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+      style: const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
     ),
   );
 

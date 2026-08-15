@@ -117,7 +117,6 @@ Widget _buildTable({
   EntityTableViewConfig<_TestField>? config,
   void Function(String)? onEntityTap,
   void Function(String)? onEntityDoubleTap,
-  void Function(String)? onEntityLongPress,
   void Function(_TestField)? onSortFieldChanged,
   void Function(_TestField, double)? onResizeColumn,
   Set<String>? selectedIds,
@@ -135,7 +134,6 @@ Widget _buildTable({
       onResizeColumn: onResizeColumn ?? (_, _) {},
       onEntityTap: onEntityTap ?? (_) {},
       onEntityDoubleTap: onEntityDoubleTap,
-      onEntityLongPress: onEntityLongPress,
       selectedIds: selectedIds ?? const {},
       isSelectionMode: isSelectionMode,
       highlightedId: highlightedId,
@@ -227,22 +225,39 @@ void main() {
       expect(doubleTappedId, equals('dt-1'));
     });
 
-    testWidgets('calls onEntityLongPress on long-press', (tester) async {
-      String? longPressedId;
-
+    testWidgets('rows register no long-press recognizer', (tester) async {
       await tester.pumpWidget(
         _buildTable(
           entities: [const _TestEntity('lp-1', 'Echo', 7)],
           onEntityTap: (_) {},
-          onEntityLongPress: (id) => longPressedId = id,
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.text('Echo'));
-      await tester.pumpAndSettle();
-
-      expect(longPressedId, equals('lp-1'));
+      // Long-press is no longer a selection gesture on any surface, so no row
+      // may carry a handler for it. Asserting on the widget tree rather than
+      // on a callback is deliberate: with the parameter gone there is nothing
+      // left to observe from the outside, and a reintroduced handler would
+      // otherwise slip in unnoticed.
+      //
+      // The assertion is on the recognizer, not on individual callbacks:
+      // GestureDetector registers one LongPressGestureRecognizer keyed by its
+      // own Type if ANY of seven long-press callbacks is non-null, so checking
+      // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
+      // and the rest without having to enumerate them.
+      final detectors = tester.widgetList<RawGestureDetector>(
+        find.descendant(
+          of: find.byType(EntityTableView<_TestEntity, _TestField>),
+          matching: find.byType(RawGestureDetector),
+        ),
+      );
+      expect(detectors, isNotEmpty);
+      for (final detector in detectors) {
+        expect(
+          detector.gestures.containsKey(LongPressGestureRecognizer),
+          isFalse,
+        );
+      }
     });
 
     testWidgets('highlights the row matching highlightedId', (tester) async {
@@ -779,14 +794,13 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // No long-press or double-tap handlers
+    // No double-tap handler
     // -----------------------------------------------------------------------
 
     testWidgets('table renders without optional handlers', (tester) async {
       await tester.pumpWidget(
         _buildTable(
           entities: [const _TestEntity('np-1', 'NoPress', 5)],
-          onEntityLongPress: null,
           onEntityDoubleTap: null,
         ),
       );

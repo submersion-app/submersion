@@ -2422,6 +2422,52 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze checklistregistratie verwijderen?';
 
   @override
+  String get preDive_sessions_filter => 'Filteren';
+
+  @override
+  String get preDive_sessions_filterTitle => 'Checklistsessies filteren';
+
+  @override
+  String get preDive_sessions_filterChecklist => 'Checklist';
+
+  @override
+  String get preDive_sessions_filterStatus => 'Status';
+
+  @override
+  String get preDive_sessions_filterFlaggedOnly => 'Alleen gemarkeerde sessies';
+
+  @override
+  String get preDive_sessions_filterDateRange => 'Datumbereik';
+
+  @override
+  String get preDive_sessions_filterAnyDate => 'Elke datum';
+
+  @override
+  String get preDive_sessions_filterClearAll => 'Alles wissen';
+
+  @override
+  String get preDive_sessions_filterApply => 'Toepassen';
+
+  @override
+  String get preDive_sessions_filterFlaggedChip => 'Alleen gemarkeerd';
+
+  @override
+  String get preDive_sessions_emptyFiltered =>
+      'Geen checklistsessies voldoen aan deze filters';
+
+  @override
+  String get preDive_sessions_export => 'Exporteren naar Excel';
+
+  @override
+  String get preDive_sessions_exportEmpty =>
+      'Geen checklistsessies om te exporteren';
+
+  @override
+  String preDive_sessions_exportFailed(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
   String get preDive_start_title => 'Pre-dive checklist starten';
 
   @override
@@ -6180,6 +6226,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_continue => 'Doorgaan';
+
+  @override
+  String get setup_syncPull_incomplete_message =>
+      'Dit account bevat een Submersion-bibliotheek die nooit volledig is geüpload. Laat je andere apparaat de synchronisatie voltooien en probeer het opnieuw.';
+
+  @override
+  String get setup_syncPull_incomplete_retry => 'Opnieuw controleren';
+
+  @override
+  String get setup_syncPull_incomplete_title =>
+      'Bibliotheek niet volledig geüpload';
+
+  @override
+  String get setup_syncPull_locked_message =>
+      'Voer de versleutelingswachtwoordzin in om deze bibliotheek te ontgrendelen en naar dit apparaat te downloaden.';
+
+  @override
+  String get setup_syncPull_locked_title => 'Deze bibliotheek is versleuteld';
 
   @override
   String get setup_syncPull_noLibrary_message =>
@@ -11790,8 +11854,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_gpsBanner_addToSiteButton => 'Toevoegen aan duikstek';
 
   @override
-  String media_gpsBanner_coordinates(Object latitude, Object longitude) {
-    return 'Coordinaten: $latitude, $longitude';
+  String media_gpsBanner_coordinates(Object coordinates) {
+    return 'Coordinaten: $coordinates';
   }
 
   @override
@@ -19100,6 +19164,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen USB-seriële poorten gevonden. Is de duikcomputer aangesloten en ingeschakeld?';
 
   @override
+  String get diveComputer_download_stalePairing =>
+      'De Bluetooth-koppeling van deze duikcomputer is verouderd. Vergeet de duikcomputer in de Bluetooth-instellingen van je apparaat en koppel hem daarna opnieuw via het Bluetooth-menu van de duikcomputer.';
+
+  @override
+  String get diveComputer_download_discoveryStalled =>
+      'Verbonden met de duikcomputer, maar hij reageerde niet meer voordat de download kon beginnen. Meestal betekent dit dat de Bluetooth-koppeling verouderd is: vergeet de duikcomputer in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'Kan geen verbinding maken met de duikcomputer.\n\nDiagnostische gegevens (deel met ontwikkelaars):\n$details';
   }
@@ -22984,6 +23056,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_repair_applied => 'Herstel toegepast';
 
   @override
+  String get dataQuality_repair_noChange => 'Hier valt niets te herstellen';
+
+  @override
   String get dataQuality_repair_failed => 'Herstel mislukt';
 
   @override
@@ -23198,6 +23273,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_despike => 'Piek verwijderen';
+
+  @override
+  String get dataQuality_repairLabel_clampNegative =>
+      'Diepten boven het oppervlak begrenzen';
+
+  @override
+  String get dataQuality_repairLabel_smoothRates =>
+      'Onmogelijke snelheden vlak maken';
 
   @override
   String get dataQuality_repairLabel_fillGaps => 'Hiaten opvullen';
@@ -23463,6 +23546,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String visibility_range_under(String max, String unit) {
     return 'minder dan $max $unit';
   }
+
+  @override
+  String get settings_coordinateFormat_title => 'Coördinaatformaat';
+
+  @override
+  String get settings_coordinateFormat_subtitle =>
+      'Hoe GPS-posities worden weergegeven en ingevoerd';
+
+  @override
+  String get settings_coordinateFormat_decimalDegrees => 'Decimale graden';
+
+  @override
+  String get settings_coordinateFormat_degreesDecimalMinutes =>
+      'Graden en decimale minuten';
+
+  @override
+  String get settings_coordinateFormat_degreesMinutesSeconds =>
+      'Graden, minuten, seconden';
+
+  @override
+  String get settings_coordinateFormat_utm => 'UTM';
+
+  @override
+  String get settings_coordinateFormat_mgrs => 'MGRS';
 
   @override
   String get settings_visibilityScale_title => 'Zichtschaal';

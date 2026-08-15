@@ -64,9 +64,10 @@ void main() {
       await _pump(tester);
 
       expect(find.byType(FlutterMap), findsOneWidget);
-      expect(find.text('12.34567, 98.76543'), findsOneWidget); // entry, 5 dp
-      expect(find.text('12.34612, 98.76489'), findsOneWidget); // exit, 5 dp
-      expect(find.text('12.34000, 98.76000'), findsOneWidget); // site, 5 dp
+      // Rendered in the diver's coordinate notation, decimal degrees here.
+      expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget); // entry
+      expect(find.text('12.346120° N, 98.764890° E'), findsOneWidget); // exit
+      expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget); // site
       expect(find.text('Open in Maps'), findsNothing);
     },
   );

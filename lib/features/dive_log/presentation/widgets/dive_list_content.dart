@@ -41,6 +41,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -222,17 +223,34 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     });
   }
 
-  /// Enter selection mode implicitly, from a long-press or modifier-click.
+  /// Enter selection mode implicitly, from a modifier-click, checking [id].
   ///
   /// Clearing the highlight keeps the detail pane from arguing with the bulk
   /// selection about what the row means.
-  void _enterSelectionMode(String? initialId) {
+  ///
+  /// The Select controls route to [SelectionController.enterExplicit] directly
+  /// -- they have no row to check -- so this helper only ever serves the
+  /// implicit path, which since the removal of long-press entry means
+  /// modifier-click alone.
+  void _enterImplicitSelection(String id, {String? seedId}) {
     ref.read(highlightedDiveIdProvider.notifier).state = null;
-    if (initialId == null) {
-      _selection.enterExplicit();
-    } else {
-      _selection.enterImplicit(initialId);
-    }
+    _selection.enterImplicit(id, seedId: seedId);
+  }
+
+  /// Cmd/Ctrl-click [id], carrying the highlighted dive into the selection.
+  ///
+  /// Outside selection mode the highlighted row is what the user sees as
+  /// selected, so a modifier-click adds to it rather than replacing it. A
+  /// highlight that filtering has pushed out of [orderedIds] is ignored, so
+  /// the count can never include a dive that is not on screen.
+  void _modifierTap(String id, List<String> orderedIds) {
+    final highlighted = ref.read(highlightedDiveIdProvider);
+    _enterImplicitSelection(
+      id,
+      seedId: highlighted != null && orderedIds.contains(highlighted)
+          ? highlighted
+          : null,
+    );
   }
 
   void _exitSelectionMode() => _selection.exit();
@@ -653,7 +671,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// One tap policy for every dive row, in every view mode.
   ///
   /// Outside selection mode a held modifier turns a tap into an implicit
-  /// entry, so desktop users never have to discover long-press. Shift extends
+  /// entry -- the one path that still evaporates at zero checked. Shift extends
   /// from the anchor, falling back to the highlighted row.
   void _handleRowTap(String id, List<DiveSummary> dives) {
     if (SelectableListScope.isShiftPressed()) {
@@ -661,7 +679,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       return;
     }
     if (SelectableListScope.isModifierPressed()) {
-      _enterSelectionMode(id);
+      _modifierTap(id, dives.map((d) => d.id).toList());
       return;
     }
     // No-op when the id is gone. A stale tap callback firing after the list
@@ -852,8 +870,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           tooltip: context.l10n.diveLog_listPage_tooltip_sort,
           onPressed: () => _showSortSheet(context),
         ),
-        // Discoverability: bulk actions must not be reachable only by a
-        // long-press that nothing on screen advertises.
+        // The only way into bulk actions: entry by long-press was removed,
+        // so nothing but this control opens selection mode on touch.
         IconButton(
           key: const ValueKey('enter_selection'),
           icon: const Icon(Icons.checklist),
@@ -1204,23 +1222,46 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// The outer Scaffold, profile panel, map, and column settings are all
   /// managed by [TableModeLayout].
   Widget _buildTableModeScaffold(BuildContext context, DiveFilterState filter) {
-    final content = _buildTableView(context, filter);
+    // Pass the real dive list, not an empty one. Passing const [] made
+    // select-all vanish and select-by-date-range select nothing whenever the
+    // list was in table mode.
+    final tableDives = ref.watch(allDivesForTableProvider).value ?? const [];
+    final visibleIds = tableDives.map((d) => d.id).toList();
 
-    if (_isSelectionMode) {
-      // Pass the real dive list, not an empty one. Passing const [] made
-      // select-all vanish and select-by-date-range select nothing whenever
-      // the list was in table mode.
-      final tableDives = ref.read(allDivesForTableProvider).value ?? const [];
-      return Column(
-        children: [
-          _buildSelectionBar(
-            tableDives.map((d) => DiveSummary.fromDive(d)).toList(),
-          ),
-          Expanded(child: content),
-        ],
-      );
-    }
-    return content;
+    // Same pruning the list path does: drop checked dives that fell out of
+    // the visible list, so the count always matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final content = _buildTableView(context, filter);
+
+          // Table mode has no app bar of its own, so the Select affordance
+          // lives in the same slot the contextual bar takes, at the same
+          // height -- the table does not shift as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(
+                  tableDives.map((d) => DiveSummary.fromDive(d)).toList(),
+                )
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: content),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the DiveTableView widget from the full-Dive provider.
@@ -1241,9 +1282,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               child: DiveTableView(
                 dives: dives,
                 onDiveTapDown: (id) {
-                  if (!_isSelectionMode) {
-                    ref.read(highlightedDiveIdProvider.notifier).state = id;
+                  // Rows carry a double-tap, so onDiveTap only resolves after
+                  // the double-tap timer -- long after this fires. A modified
+                  // click is a selection gesture, not a navigation one:
+                  // moving the highlight here would overwrite the very anchor
+                  // the shift-click is about to extend from.
+                  if (_isSelectionMode ||
+                      SelectableListScope.isShiftPressed() ||
+                      SelectableListScope.isModifierPressed()) {
+                    return;
                   }
+                  ref.read(highlightedDiveIdProvider.notifier).state = id;
                 },
                 onDiveTap: (id) {
                   // Table mode now honours modifier and shift clicks too, so
@@ -1254,7 +1303,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   if (SelectableListScope.isShiftPressed()) {
                     _selectRangeTo(id, summaries);
                   } else if (SelectableListScope.isModifierPressed()) {
-                    _enterSelectionMode(id);
+                    _modifierTap(id, summaries.map((d) => d.id).toList());
                   } else if (_isSelectionMode) {
                     _toggleSelection(id);
                   }
@@ -1263,9 +1312,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   if (_isSelectionMode) return;
                   context.push('/dives/$id');
                 },
-                onDiveLongPress: _isSelectionMode
-                    ? null
-                    : (id) => _enterSelectionMode(id),
                 selectedIds: _selectedIds,
                 isSelectionMode: _isSelectionMode,
                 highlightedId: ref.watch(highlightedDiveIdProvider),
@@ -1369,9 +1415,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   isChecked: isSelected,
                   isHighlighted: isMasterSelected || isHighlighted,
                   onTap: () => _handleRowTap(dive.id, dives),
-                  onLongPress: _isSelectionMode
-                      ? null
-                      : () => _enterSelectionMode(dive.id),
                 );
               },
             ),

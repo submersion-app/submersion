@@ -368,11 +368,10 @@ void main() {
     final sourcesOnB = await (dbB.select(
       dbB.diveDataSources,
     )..where((t) => t.diveId.equals('t'))).get();
-    expect(
-      sourcesOnB.map((s) => s.computerId).toSet(),
-      {'comp-t', 'comp-s'},
-      reason: 'B must see both computers as data sources on the target dive',
-    );
+    expect(sourcesOnB.map((s) => s.computerId).toSet(), {
+      'comp-t',
+      'comp-s',
+    }, reason: 'B must see both computers as data sources on the target dive');
     expect(
       sourcesOnB.where((s) => s.isPrimary),
       hasLength(1),
@@ -498,18 +497,15 @@ void main() {
     expect(sourcesAfterUndo.map((s) => s.diveId).toSet(), {'t', 's'});
 
     final pressuresAfterUndo = await dbB.select(dbB.tankPressureProfiles).get();
-    expect(
-      pressuresAfterUndo.map((p) => p.id).toSet(),
-      {'tp-t1', 'tp-s1'},
-      reason: 'undo must not leave orphaned tank-pressure rows on B',
-    );
+    expect(pressuresAfterUndo.map((p) => p.id).toSet(), {
+      'tp-t1',
+      'tp-s1',
+    }, reason: 'undo must not leave orphaned tank-pressure rows on B');
 
     final eventsAfterUndo = await dbB.select(dbB.diveProfileEvents).get();
-    expect(
-      eventsAfterUndo.map((e) => e.id).toSet(),
-      {'event-s1'},
-      reason: 'undo must not leave orphaned profile-event rows on B',
-    );
+    expect(eventsAfterUndo.map((e) => e.id).toSet(), {
+      'event-s1',
+    }, reason: 'undo must not leave orphaned profile-event rows on B');
 
     final tagsAfterUndo = await dbB.select(dbB.diveTags).get();
     expect(

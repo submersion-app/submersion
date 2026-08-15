@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v149 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(149));
-    expect(AppDatabase.migrationVersions, contains(149));
+  test('v151 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(151));
+    expect(AppDatabase.migrationVersions, contains(151));
   });
 
   test(
@@ -25,7 +25,7 @@ void main() {
   );
 
   test(
-    'a database stranded before v149 gains the columns via beforeOpen',
+    'a database stranded before v151 gains the columns via beforeOpen',
     () async {
       // Only the columns this migration touches are omitted; the beforeOpen
       // backstop must add them even when onUpgrade never ran.
@@ -53,9 +53,10 @@ void main() {
     },
   );
 
-  test('the v149 onUpgrade step adds the columns to a v148 database', () async {
-    // Stamp user_version=148 so drift runs onUpgrade(148, 149) - the
-    // migration step itself, not just the beforeOpen backstop.
+  test('the v151 onUpgrade step adds the columns to a v150 database', () async {
+    // Stamp user_version=150 so drift runs onUpgrade(150, 151) - the
+    // migration step itself, not just the beforeOpen backstop, and isolated
+    // to this single step rather than replaying main's v149/v150 blocks.
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('''
@@ -66,7 +67,7 @@ void main() {
             level TEXT
           )
         ''');
-        rawDb.execute('PRAGMA user_version = 148');
+        rawDb.execute('PRAGMA user_version = 150');
       },
     );
     final db = AppDatabase(nativeDb);

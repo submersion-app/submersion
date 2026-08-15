@@ -314,12 +314,26 @@ void main() {
           ),
           'smoothTemp': (
             detector: 'temp_anomaly',
-            params: const {'deltaC': 5.0},
+            params: const {'deltaC': 5.0, 'spikeShaped': true},
             related: null,
           ),
           'convertTemp': (
             detector: 'temp_anomaly',
-            params: const {'minTempC': 10.0, 'maxTempC': 300.0},
+            params: const {
+              'minTempC': 280.0,
+              'maxTempC': 300.0,
+              'fahrenheitAsKelvinSuspected': true,
+            },
+            related: null,
+          ),
+          'smoothRates': (
+            detector: 'impossible_rate',
+            params: const {'startSeconds': 60, 'interpolatable': true},
+            related: null,
+          ),
+          'clampNegative': (
+            detector: 'depth_spike',
+            params: const {'sampleCount': 4, 'minDepth': -3.0},
             related: null,
           ),
           'swapPressures': (

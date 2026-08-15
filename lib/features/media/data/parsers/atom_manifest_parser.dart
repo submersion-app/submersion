@@ -89,7 +89,7 @@ class AtomManifestParser {
   static XmlElement? _rssChannel(XmlElement rssRoot) =>
       rssRoot.childElements.firstWhere(
         (el) => _localName(el) == 'channel',
-        orElse: () => XmlElement(XmlName('missing')),
+        orElse: () => XmlElement(const XmlName.parts('missing')),
       );
 
   /// First descendant element with the given local name, returning trimmed text.

@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -49,9 +48,10 @@ void main() {
           child: const DeviceListPage(),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.byType(Card).first,
         // The card renders computer.displayName, not name, so target the
         // row widget rather than a text string.
-        firstRow: find.byType(SelectableRow).first,
+        firstRow: find.byType(Card).first,
         applyFilter: (tester) async {
           final container = ProviderScope.containerOf(
             tester.element(find.byType(DeviceListPage)),

@@ -36,7 +36,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     final divesPerPage = pageSize == PdfPageSize.a4 ? 20 : 18;
 
     // Header row for the table
-    final headerStyle = pw.TextStyle(
+    const headerStyle = pw.TextStyle(
       fontSize: 9,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey800,
@@ -67,7 +67,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                   children: [
                     pw.Text(
                       title,
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
                       ),

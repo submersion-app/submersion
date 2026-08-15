@@ -9,6 +9,12 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 /// just-written file invisible to listFiles for N calls) to exercise the
 /// eventual-consistency / transient-missing paths in later phases.
 class FakeCloudStorageProvider implements CloudStorageProvider {
+  /// When set, uploads beyond this many calls throw. Models an app killed or a
+  /// connection dropped in the middle of a large base publish.
+  int? failUploadsAfter;
+
+  /// Total uploadFile calls, including the ones that threw.
+  int uploadCount = 0;
   FakeCloudStorageProvider({this.providerId = 's3', this.listLagCalls = 0});
 
   @override
@@ -57,6 +63,15 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     String filename, {
     String? folderId,
   }) async {
+    // Counted BEFORE the guard: `&&` short-circuits, so folding the increment
+    // into the condition only counted uploads while a failure was being
+    // simulated, contradicting this counter's contract (PR #1033 review).
+    uploadCount++;
+    // Models an upload dying partway through a multi-part base: the parts
+    // before the cut land, everything after throws (issue #1032 resume tests).
+    if (failUploadsAfter != null && uploadCount > failUploadsAfter!) {
+      throw const CloudStorageException('upload interrupted (test)');
+    }
     final key = _key(folderId, filename);
     _files[key] = Uint8List.fromList(data);
     _modified[key] = ++_clock;

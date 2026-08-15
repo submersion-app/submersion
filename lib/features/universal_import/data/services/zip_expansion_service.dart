@@ -63,6 +63,17 @@ class ZipExpansionService {
         (b2 == 0x07 && b3 == 0x08);
   }
 
+  /// True only for `PK\x03\x04`, the local-file-header signature, meaning the
+  /// archive claimed to carry at least one member. Length-guarded so it is
+  /// safe on arbitrary input: [expandZipBytes] is public and must not depend
+  /// on callers having run [isZipBytes] first.
+  static bool _hasLocalFileHeader(Uint8List bytes) =>
+      bytes.length >= 4 &&
+      bytes[0] == 0x50 &&
+      bytes[1] == 0x4B &&
+      bytes[2] == 0x03 &&
+      bytes[3] == 0x04;
+
   /// Expands any ZIPs in [paths]; non-ZIP paths pass through unchanged and
   /// keep their position. Results from multiple ZIPs are merged.
   Future<ArchiveExpansion> expandAll(List<String> paths) async {
@@ -132,6 +143,19 @@ class ZipExpansionService {
       );
     }
 
+    // archive 4.x stopped throwing on a truncated or corrupt ZIP: ZipDirectory
+    // tolerates the damage and returns zero entries. A local-file-header
+    // signature (PK\x03\x04) means the archive claimed to carry members, so an
+    // empty decode is corruption rather than an empty archive. A legitimately
+    // empty ZIP (PK\x05\x06) still falls through to the "no importable files"
+    // path below.
+    if (archive.isEmpty && _hasLocalFileHeader(bytes)) {
+      throw FormatException(
+        'Could not read archive "$archiveName" '
+        '(corrupt or password-protected)',
+      );
+    }
+
     var totalSize = 0;
     for (final entry in archive) {
       if (entry.isFile) totalSize += entry.size;
@@ -195,7 +219,7 @@ class ZipExpansionService {
             '${p.basenameWithoutExtension(name)}_${counter++}${p.extension(name)}';
         outPath = p.join(tempDir.path, outName);
       }
-      await File(outPath).writeAsBytes(entry.content as List<int>);
+      await File(outPath).writeAsBytes(entry.readBytes() ?? const <int>[]);
 
       if (isDiveFile) {
         diveFiles[p.basenameWithoutExtension(outName)] = outPath;

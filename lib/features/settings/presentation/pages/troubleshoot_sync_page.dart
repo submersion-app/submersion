@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
+import 'package:submersion/features/settings/presentation/pages/sync_devices_page.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -39,6 +42,20 @@ class TroubleshootSyncPage extends ConsumerWidget {
             onTap: () => _confirmRebuild(context, ref),
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.devices_other),
+            title: const Text('Devices on this backend'),
+            subtitle: const Text(
+              'See every device holding files here, how much space each uses, '
+              'and remove leftovers from libraries no device syncs from any '
+              'more. Your dive data is not affected.',
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const SyncDevicesPage(),
+              ),
+            ),
+          ),
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
             title: const Text('Remove this device’s cloud files'),
@@ -148,8 +165,21 @@ class TroubleshootSyncPage extends ConsumerWidget {
         ],
       ),
     );
-    if (ok != true) return;
-    await ref.read(syncStateProvider.notifier).rebuildBackendFromThisDevice();
+    if (ok != true || !context.mounted) return;
+    await runWithSyncMaintenanceProgress(
+      context: context,
+      title: 'Rebuilding backend',
+      task: (report) => ref
+          .read(syncStateProvider.notifier)
+          .rebuildBackendFromThisDevice(
+            onProgress: cleanupPhase(report, 'Clearing old files'),
+            // The republish that follows the clear-out uploads the whole
+            // library. It has no file count of its own here, so flip the bar
+            // to indeterminate rather than leave it parked at 100% looking
+            // finished while minutes of upload remain (issue #1032).
+            onPublishStarted: () => report(0, 0, 'Publishing library'),
+          ),
+    );
     if (!context.mounted) return;
     // The rebuild can fail (e.g. no epoch marker to rebuild from), in which case
     // the notifier surfaces SyncStatus.error -- reflect that instead of always
@@ -191,13 +221,39 @@ class TroubleshootSyncPage extends ConsumerWidget {
         ],
       ),
     );
-    if (ok != true) return;
-    await ref.read(syncStateProvider.notifier).removeThisDeviceCloudFiles();
+    if (ok != true || !context.mounted) return;
+    final outcome = await runWithSyncMaintenanceProgress(
+      context: context,
+      title: 'Removing this device’s cloud files',
+      task: (report) => ref
+          .read(syncStateProvider.notifier)
+          .removeThisDeviceCloudFiles(
+            onProgress: cleanupPhase(report, 'Deleting'),
+          ),
+    );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Removed this device’s cloud files')),
+        SnackBar(content: Text(_cleanupMessage(outcome, 'Removed'))),
       );
     }
+  }
+
+  /// Report what the cleanup actually achieved.
+  ///
+  /// These operations are best-effort: an offline provider or a timed-out
+  /// listing leaves files behind. Claiming success regardless is what sent the
+  /// reporter of issue #1032 away believing a wipe had completed when it had
+  /// not, leaving the backend in a state no later sync could explain.
+  static String _cleanupMessage(SyncCleanupOutcome outcome, String verb) {
+    if (outcome.isComplete) {
+      return '$verb ${outcome.deleted} file${outcome.deleted == 1 ? '' : 's'}';
+    }
+    final trouble = <String>[
+      if (outcome.failed > 0) '${outcome.failed} could not be deleted',
+      if (outcome.listIncomplete) 'some files could not be listed',
+    ].join('; ');
+    return '$verb ${outcome.deleted} file${outcome.deleted == 1 ? '' : 's'}, '
+        'but $trouble. Try again while online.';
   }
 
   /// Destructive full-backend wipe: guarded by typing the word WIPE so it
@@ -209,12 +265,18 @@ class TroubleshootSyncPage extends ConsumerWidget {
       context: context,
       builder: (context) => const _WipeConfirmDialog(),
     );
-    if (ok != true) return;
-    await ref.read(syncStateProvider.notifier).wipeAllCloudSyncData();
+    if (ok != true || !context.mounted) return;
+    final outcome = await runWithSyncMaintenanceProgress(
+      context: context,
+      title: 'Wiping sync data',
+      task: (report) => ref
+          .read(syncStateProvider.notifier)
+          .wipeAllCloudSyncData(onProgress: cleanupPhase(report, 'Deleting')),
+    );
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Wiped all sync data')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_cleanupMessage(outcome, 'Wiped'))),
+      );
     }
   }
 }

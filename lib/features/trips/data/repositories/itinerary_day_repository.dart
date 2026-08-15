@@ -239,7 +239,7 @@ class ItineraryDayRepository {
       );
 
       // 6. Return the new days (re-fetch to get persisted timestamps)
-      return getByTripId(tripId);
+      return await getByTripId(tripId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to regenerate itinerary days for trip: $tripId',

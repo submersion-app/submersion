@@ -92,6 +92,39 @@ void main() {
   }
 
   group('state rendering', () {
+    testWidgets('long item title keeps its width beside the completion time', (
+      tester,
+    ) async {
+      // Guards the ListTile.trailing hazard behind issue #935: the trailing
+      // widget is measured against the full tile width before the title column
+      // gets what is left.
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      const longTitle =
+          'Verify both oxygen cells read within 2 mV of each '
+          'other before closing the loop';
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          title: longTitle,
+          state: PreDiveItemState.done,
+          completedAt: now,
+        ),
+      );
+
+      final titleSize = tester.getSize(find.text(longTitle));
+
+      expect(
+        titleSize.width,
+        greaterThan(150),
+        reason:
+            'Item title collapsed to ${titleSize.width}px wide on a 360px '
+            'screen; the trailing row is starving the text column.',
+      );
+    });
+
     testWidgets('pending item shows unchecked icon and title', (tester) async {
       await pumpTile(tester, s: session(), it: item());
       expect(find.text('Check air'), findsOneWidget);

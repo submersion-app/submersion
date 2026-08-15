@@ -183,7 +183,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           const SizedBox(height: 16),
 
           // Location Details Section
-          _buildLocationSection(context, site),
+          _buildLocationSection(context, ref, site),
           const SizedBox(height: 16),
 
           // Depth Information Section
@@ -871,8 +871,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
-  Widget _buildLocationSection(BuildContext context, DiveSite site) {
+  Widget _buildLocationSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final colorScheme = Theme.of(context).colorScheme;
+    final coordinates = units.formatCoordinates(
+      site.location?.latitude,
+      site.location?.longitude,
+    );
 
     return Card(
       child: Padding(
@@ -941,14 +950,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               Icons.gps_fixed,
               context.l10n.diveSites_detail_location_gpsCoordinates,
               site.hasCoordinates
-                  ? site.location.toString()
+                  ? coordinates
                   : context.l10n.diveSites_detail_location_notSet,
               isEmpty: !site.hasCoordinates,
               onTap: site.hasCoordinates
                   ? () {
-                      Clipboard.setData(
-                        ClipboardData(text: site.location.toString()),
-                      );
+                      Clipboard.setData(ClipboardData(text: coordinates));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(

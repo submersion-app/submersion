@@ -369,7 +369,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/release/sanitize_apple_store_notes.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -378,6 +378,8 @@ jobs:
             scripts/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_dc_process_isolation_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/release/sanitize_apple_store_notes_test.py
           python3 -m coverage report -m --include="$guards"
@@ -681,6 +683,15 @@ jobs:
             --entitlements macos/Runner/ReleaseNoSandbox.entitlements \
             build/macos/Build/Products/Release/submersion.app
 
+      # gen_snapshot emits App.framework's exported symbols in address order, which
+      # macOS 11's dyld cannot resolve by binary search -- the app then segfaults on
+      # launch before its window appears (issue #996). A build phase sorts them; this
+      # asserts the phase actually ran, since the failure is invisible on macOS 12+.
+      - name: Verify App.framework symbol order
+        run: |
+          python3 scripts/fix_macho_symbol_order.py --check \
+            build/macos/Build/Products/Release/submersion.app/Contents/Frameworks/App.framework/Versions/A/App
+
       # Zip with ditto before upload: upload-artifact would otherwise root the
       # archive inside the .app bundle (losing the submersion.app wrapper) and
       # strip the symlinks, permission bits, and codesign seal the bundle
@@ -771,6 +782,16 @@ jobs:
 
       - name: Build Android APK
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
+
+      # The plugin's Kotlin JVM tests (BondPolicy, BondDiagnostics,
+      # BleScanDiagnostics, SerialReadBuffer) cover decision logic that no
+      # Dart test can reach. They run here rather than in their own job
+      # because android/gradlew is gitignored: the Gradle wrapper only
+      # exists once a Flutter Android build has injected it, which the APK
+      # step above has just done.
+      - name: Run libdivecomputer_plugin Kotlin unit tests
+        working-directory: android
+        run: ./gradlew :libdivecomputer_plugin:testDebugUnitTest
 
       # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
       # silently shipped and crashed the app on Android 15+ 16 KB-page devices.

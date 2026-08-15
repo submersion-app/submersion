@@ -95,8 +95,12 @@ class UddfImportService {
             'gradientfactorhigh',
           );
           decoModels[modelId] = {
-            'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
-            'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
+            'gfLow': gfLowText != null
+                ? UddfImportParsers.parseUddfInt(gfLowText) ?? 0
+                : 0,
+            'gfHigh': gfHighText != null
+                ? UddfImportParsers.parseUddfInt(gfHighText) ?? 0
+                : 0,
           };
         }
       }
@@ -217,7 +221,7 @@ class UddfImportService {
 
       final diveNumText = _getElementText(beforeElement, 'divenumber');
       if (diveNumText != null) {
-        diveData['diveNumber'] = int.tryParse(diveNumText);
+        diveData['diveNumber'] = UddfImportParsers.parseUddfInt(diveNumText);
       }
 
       final airTempText = _getElementText(beforeElement, 'airtemperature');
@@ -258,7 +262,7 @@ class UddfImportService {
           'passedtime',
         );
         if (passedTimeText != null) {
-          final seconds = int.tryParse(passedTimeText);
+          final seconds = UddfImportParsers.parseUddfInt(passedTimeText);
           if (seconds != null && seconds > 0) {
             diveData['surfaceInterval'] = Duration(seconds: seconds);
           }
@@ -272,7 +276,7 @@ class UddfImportService {
       if (equipmentElement != null) {
         final leadText = _getElementText(equipmentElement, 'leadquantity');
         if (leadText != null) {
-          final leadKg = double.tryParse(leadText);
+          final leadKg = UddfImportParsers.parseUddfDouble(leadText);
           if (leadKg != null) {
             diveData['weightUsed'] = leadKg;
           }
@@ -454,7 +458,7 @@ class UddfImportService {
       // Get tank order
       final tankOrder = _getElementText(tankDataElement, 'tankorder');
       if (tankOrder != null) {
-        tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
+        tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
       }
 
       // Validate tank data before adding
@@ -543,7 +547,7 @@ class UddfImportService {
 
         final timeText = _getElementText(waypoint, 'divetime');
         if (timeText != null) {
-          point['timestamp'] = int.tryParse(timeText) ?? 0;
+          point['timestamp'] = UddfImportParsers.parseUddfInt(timeText) ?? 0;
         }
 
         final depthText = _getElementText(waypoint, 'depth');
@@ -643,7 +647,7 @@ class UddfImportService {
         // Get heart rate
         final heartRateText = _getElementText(waypoint, 'heartrate');
         if (heartRateText != null) {
-          point['heartRate'] = int.tryParse(heartRateText);
+          point['heartRate'] = UddfImportParsers.parseUddfInt(heartRateText);
         }
 
         if (point.containsKey('timestamp') && point.containsKey('depth')) {
@@ -684,7 +688,7 @@ class UddfImportService {
       // UDDF diveduration is total dive time (runtime), not bottom time
       final durationText = _getElementText(afterElement, 'diveduration');
       if (durationText != null) {
-        final seconds = int.tryParse(durationText);
+        final seconds = UddfImportParsers.parseUddfInt(durationText);
         if (seconds != null) {
           diveData['runtime'] = Duration(seconds: seconds);
         }
@@ -741,7 +745,7 @@ class UddfImportService {
       if (ratingElement != null) {
         final ratingValue = _getElementText(ratingElement, 'ratingvalue');
         if (ratingValue != null) {
-          diveData['rating'] = int.tryParse(ratingValue);
+          diveData['rating'] = UddfImportParsers.parseUddfInt(ratingValue);
         }
       }
 

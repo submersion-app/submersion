@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_api_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Page for searching and importing dive centers from online sources.
 class DiveCenterImportPage extends ConsumerStatefulWidget {
@@ -198,6 +200,8 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
+
     // Error state
     if (state.hasError) {
       return Center(
@@ -364,6 +368,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
             return _DiveCenterCard(
               center: center,
               isImported: isImported,
+              units: units,
               onImport: () => _importCenter(center),
             );
           }),
@@ -511,11 +516,13 @@ class _LocalCenterCard extends StatelessWidget {
 class _DiveCenterCard extends StatelessWidget {
   final ExternalDiveCenter center;
   final bool isImported;
+  final UnitFormatter units;
   final VoidCallback onImport;
 
   const _DiveCenterCard({
     required this.center,
     required this.isImported,
+    required this.units,
     required this.onImport,
   });
 
@@ -779,8 +786,10 @@ class _DiveCenterCard extends StatelessWidget {
                         Chip(
                           avatar: const Icon(Icons.location_on, size: 18),
                           label: Text(
-                            '${center.latitude!.toStringAsFixed(4)}, '
-                            '${center.longitude!.toStringAsFixed(4)}',
+                            units.formatCoordinates(
+                              center.latitude,
+                              center.longitude,
+                            ),
                           ),
                         ),
                       ...center.affiliations.map((a) => Chip(label: Text(a))),

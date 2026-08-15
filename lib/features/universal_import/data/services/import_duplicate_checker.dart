@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -80,6 +82,9 @@ class ImportDuplicateChecker {
   /// empty map. When an incoming dive carries a matching `sourceUuid` in its
   /// payload map, this short-circuits fuzzy content matching — faster and
   /// more precise for cross-format re-imports.
+  ///
+  /// [units] renders the site match preview's coordinates in the diver's
+  /// notation; the default keeps decimal degrees for callers without settings.
   ImportDuplicateResult check({
     required ImportPayload payload,
     required List<Dive> existingDives,
@@ -94,6 +99,7 @@ class ImportDuplicateChecker {
     Map<String, String> existingSourceUuidByDiveId = const {},
     DiveMatcher matcher = const DiveMatcher(),
     bool checkIntraBatch = false,
+    UnitFormatter units = const UnitFormatter(AppSettings()),
   }) {
     final duplicates = <ImportEntityType, Set<int>>{};
     final entityMatches = <ImportEntityType, Map<int, EntityMatchResult>>{};
@@ -111,7 +117,7 @@ class ImportDuplicateChecker {
       entityMatches,
       ImportEntityType.sites,
       payload,
-      (items) => _checkSiteDuplicates(items, existingSites),
+      (items) => _checkSiteDuplicates(items, existingSites, units),
     );
 
     _checkEntityIfPresent(
@@ -394,6 +400,7 @@ class ImportDuplicateChecker {
   _EntityCheckResult _checkSiteDuplicates(
     List<Map<String, dynamic>> importedSites,
     List<DiveSite> existingSites,
+    UnitFormatter units,
   ) {
     final existingByNameLower = <String, DiveSite>{};
     for (final site in existingSites) {
@@ -411,7 +418,7 @@ class ImportDuplicateChecker {
         final existing = existingByNameLower[name.toLowerCase()];
         if (existing != null) {
           indices.add(i);
-          matches[i] = _buildSiteMatch(importedSites[i], existing);
+          matches[i] = _buildSiteMatch(importedSites[i], existing, units);
           continue;
         }
       }
@@ -430,7 +437,7 @@ class ImportDuplicateChecker {
             );
             if (distance <= 100) {
               indices.add(i);
-              matches[i] = _buildSiteMatch(importedSites[i], existing);
+              matches[i] = _buildSiteMatch(importedSites[i], existing, units);
               break;
             }
           }
@@ -444,14 +451,22 @@ class ImportDuplicateChecker {
   EntityMatchResult _buildSiteMatch(
     Map<String, dynamic> incoming,
     DiveSite existing,
+    UnitFormatter units,
   ) {
     final lat = incoming['latitude'] as double?;
     final lon = incoming['longitude'] as double?;
     final incomingLocation = (lat != null && lon != null)
-        ? '${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'
+        ? units.formatCoordinates(lat, lon)
         : incoming['location'] as String?;
 
-    final existingLocation = existing.location?.toString();
+    // Both sides of the preview must speak the same notation, or a match
+    // reads as a mismatch.
+    final existingLocation = existing.location == null
+        ? null
+        : units.formatCoordinates(
+            existing.location!.latitude,
+            existing.location!.longitude,
+          );
 
     final maxDepth = incoming['maxDepth'] as double?;
     final existingMaxDepth = existing.maxDepth;

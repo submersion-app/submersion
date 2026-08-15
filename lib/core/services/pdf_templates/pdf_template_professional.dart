@@ -99,7 +99,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 children: [
                   pw.Text(
                     'Professional Dive Log',
-                    style: pw.TextStyle(
+                    style: const pw.TextStyle(
                       fontSize: 12,
                       fontWeight: pw.FontWeight.bold,
                       color: PdfColors.grey700,
@@ -158,7 +158,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'PROFESSIONAL',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
                     letterSpacing: 4,
@@ -168,7 +168,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 pw.SizedBox(height: 8),
                 pw.Text(
                   title.toUpperCase(),
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 32,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -221,7 +221,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
       children: [
         pw.Text(
           'Diver Profile',
-          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
         pw.SizedBox(height: 16),
         pw.Divider(color: PdfColors.grey400),
@@ -266,7 +269,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         if (certifications != null && certifications.isNotEmpty) ...[
           pw.Text(
             'Certifications',
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
           pw.SizedBox(height: 8),
           ...certifications
@@ -324,7 +330,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         children: [
           pw.Text(
             label.toUpperCase(),
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,
@@ -364,7 +370,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
             children: [
               pw.Text(
                 'DIVE #${dive.diveNumber ?? '-'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -451,7 +457,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 children: [
                   pw.Text(
                     'NOTES',
-                    style: pw.TextStyle(
+                    style: const pw.TextStyle(
                       fontSize: 8,
                       fontWeight: pw.FontWeight.bold,
                       color: PdfColors.grey600,
@@ -473,7 +479,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           pw.SizedBox(height: 12),
           pw.Text(
             'VERIFICATION',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey700,
@@ -524,7 +530,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           ),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),

@@ -281,11 +281,9 @@ void main() {
 
       final review = await repo.getReview('dive-1');
       expect(review, isNotNull);
-      expect(
-        review!.findings.map((f) => f.id),
-        ['f1'],
-        reason: 'the unknown-rule row is skipped, not coerced to rapidAscent',
-      );
+      expect(review!.findings.map((f) => f.id), [
+        'f1',
+      ], reason: 'the unknown-rule row is skipped, not coerced to rapidAscent');
     },
   );
 

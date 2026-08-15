@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_part_file_sourc
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/resumable_base_publish.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 
@@ -34,11 +35,13 @@ class ChangesetWriter {
     this.compactionByteRatio = 0.30,
     this.compactionMaxChangesets = 200,
     this.heartbeatMaxAgeMillis = SyncLiveness.heartbeatMaxAgeMillis,
-  });
+    ResumableBasePublishStore? resumableStore,
+  }) : _resumable = resumableStore ?? ResumableBasePublishStore();
 
   final SyncDataSerializer _serializer;
   final ChangesetCodec _codec;
   final PublishStateStore _publishState;
+  final ResumableBasePublishStore _resumable;
   final double compactionByteRatio;
   final int compactionMaxChangesets;
   final int heartbeatMaxAgeMillis;
@@ -63,6 +66,12 @@ class ChangesetWriter {
     /// Leaving it over-claiming makes the stale-restore detector fire again on
     /// every subsequent sync, wiping all peer cursors each time (#997).
     bool forceBase = false,
+
+    /// Fires as each base part lands, as `(uploaded, total)`. Only a full base
+    /// publish (or a compaction that rewrites one) reports here -- an ordinary
+    /// changeset is a single small upload with nothing to show. See
+    /// [BasePartFileSource.uploadAll] for why this exists (issue #1032).
+    void Function(int uploaded, int total)? onBasePartUploaded,
   }) async {
     final providerId = provider.providerId;
     final ownManifest = await _readOwnManifest(provider, folderId, deviceId);
@@ -104,45 +113,91 @@ class ChangesetWriter {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     if (!hasBase && !adoptedNoBase) {
+      // Resume an export a previous attempt wrote but never finished
+      // uploading, before spending a whole re-export on it. A wiped backend
+      // forces the entire library out as one base, and on a phone that is
+      // minutes of upload; restarting it from part 0 every time the app
+      // reopened is why the reporter's sync never converged (#1032).
+      final resumed = await _resumable.find(
+        providerId: providerId,
+        deviceId: deviceId,
+        epochId: epochId,
+      );
+
       // Stream the base to a temp file and slice-upload it, so a large library
       // is never materialized in RAM (#358 write side). Do NOT call
       // exportChangeset(null) here -- that is the OOM path.
-      final base = await _serializer.exportBaseToTempFile(
-        deviceId: deviceId,
-        deletions: deletions,
-        epochId: epochId,
-        uploadNonce: uploadNonce,
-        seq: newSeq,
-      );
-      try {
+      final ResumableBasePublish publish;
+      final int rowCount;
+      if (resumed != null) {
+        publish = resumed;
+        // rowCount is only consulted for the empty-library noop below, and a
+        // recorded export is by definition something we already decided to
+        // publish. Treat it as non-empty rather than re-deriving it.
+        rowCount = 1;
+      } else {
+        final base = await _serializer.exportBaseToTempFile(
+          deviceId: deviceId,
+          deletions: deletions,
+          epochId: epochId,
+          uploadNonce: uploadNonce,
+          seq: newSeq,
+        );
+        rowCount = base.rowCount;
         // Nothing to say -- except under [forceBase], where the point of the
         // publish is the manifest, not its contents: an empty base still
         // replaces an over-claiming `publishedHlcHigh` with the truth (null),
         // which is what stops the stale-restore loop for a device rewound to an
         // empty library. Peers apply an empty base as a no-op (upsert + LWW).
-        if (base.rowCount == 0 && deletions.isEmpty && !forceBase) {
+        if (rowCount == 0 && deletions.isEmpty && !forceBase) {
+          try {
+            await File(base.path).delete();
+          } catch (_) {}
           return const ChangesetWriteResult(ChangesetWriteKind.noop);
         }
-        final upload = await BasePartFileSource(base.path).uploadAll(
+        publish = await _recordResumable(
+          base,
+          providerId,
+          deviceId,
+          newSeq,
+          epochId,
+          uploadNonce,
+        );
+      }
+
+      final seq = publish.seq;
+      try {
+        // The cloud is the authority on what already landed: part names encode
+        // (device, seq, index), so a listing answers it exactly. Local
+        // bookkeeping could only disagree with the bytes actually there.
+        final present = resumed == null
+            ? const <int>{}
+            : await _uploadedParts(provider, folderId, deviceId, seq);
+        final upload = await BasePartFileSource(publish.dataPath).uploadAll(
           (i, bytes) => provider.uploadFile(
             bytes,
-            ChangesetLogLayout.basePartName(deviceId, newSeq, i),
+            ChangesetLogLayout.basePartName(deviceId, seq, i),
             folderId: folderId,
           ),
+          onPartUploaded: onBasePartUploaded,
+          skipPart: present.contains,
         );
         final manifest = SyncManifest(
           deviceId: deviceId,
           deviceName: deviceName,
           provider: providerId,
-          baseSeq: newSeq,
+          baseSeq: seq,
           basePartCount: upload.partCount,
-          baseBytes: base.byteLength,
+          baseBytes: publish.byteLength,
           baseChecksum: upload.wholeChecksum,
           basePartChecksums: upload.partChecksums,
-          headSeq: newSeq,
-          publishedHlcHigh: base.toHlc,
+          headSeq: seq,
+          publishedHlcHigh: publish.toHlc,
           epochId: epochId,
-          uploadNonce: uploadNonce,
+          // The nonce is baked into the exported bytes, so a resumed publish
+          // keeps the one it was exported with rather than restamping the
+          // manifest out of step with the base it describes.
+          uploadNonce: publish.uploadNonce,
           appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
           schemaVersion: AppDatabase.currentSchemaVersion,
@@ -151,11 +206,11 @@ class ChangesetWriter {
         await _publishState.upsert(
           LocalPublishStatesCompanion(
             provider: Value(providerId),
-            baseSeq: Value(newSeq),
+            baseSeq: Value(seq),
             basePartCount: Value(upload.partCount),
-            baseBytes: Value(base.byteLength),
-            headSeq: Value(newSeq),
-            publishedHlcHigh: Value(base.toHlc),
+            baseBytes: Value(publish.byteLength),
+            headSeq: Value(seq),
+            publishedHlcHigh: Value(publish.toHlc),
             changesetBytesSinceBase: const Value(0),
             updatedAt: Value(now),
           ),
@@ -166,13 +221,18 @@ class ChangesetWriter {
         // _pruneSupersededBelow: best-effort, readers self-heal from the new
         // base). An ordinary cold-start has nothing below it to prune.
         if (forceBase) {
-          await _pruneSupersededBelow(provider, folderId, deviceId, newSeq);
+          await _pruneSupersededBelow(provider, folderId, deviceId, seq);
         }
-        return ChangesetWriteResult(ChangesetWriteKind.base, newSeq);
-      } finally {
-        try {
-          await File(base.path).delete();
-        } catch (_) {}
+        // Only now, with the manifest committed, is the export spent. Failing
+        // before this leaves the record in place so the NEXT attempt resumes
+        // rather than starting over -- the whole point of the exercise.
+        await _resumable.discard(publish);
+        return ChangesetWriteResult(ChangesetWriteKind.base, seq);
+      } catch (_) {
+        // Keep the export and its record for the next attempt. Nothing else
+        // reclaims this directory, so a publish that can never succeed would
+        // otherwise leak; find() prunes records whose epoch has moved on.
+        rethrow;
       }
     }
 
@@ -286,6 +346,7 @@ class ChangesetWriter {
         uploadNonce: uploadNonce,
         deviceName: deviceName,
         appliedPeerHlc: appliedPeerHlc,
+        onBasePartUploaded: onBasePartUploaded,
       );
       return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq);
     }
@@ -354,6 +415,7 @@ class ChangesetWriter {
     String? epochId,
     String? uploadNonce,
     String? deviceName,
+    void Function(int uploaded, int total)? onBasePartUploaded,
   }) async {
     // The fresh base must carry the full deletion log: a peer that still holds
     // a since-deleted record and cold-starts from this base (its prior
@@ -378,6 +440,7 @@ class ChangesetWriter {
           ChangesetLogLayout.basePartName(deviceId, compSeq, i),
           folderId: folderId,
         ),
+        onPartUploaded: onBasePartUploaded,
       );
     } finally {
       try {
@@ -423,6 +486,79 @@ class ChangesetWriter {
   /// manifest are already durable, so a transient list/delete failure must
   /// never fail the publish. Superseded files are harmless (the base is their
   /// superset) and a later sync re-runs this idempotent sweep.
+  /// Move a fresh export into the durable publish directory and record it, so
+  /// an interrupted upload can pick it up instead of re-exporting.
+  ///
+  /// The export lands in the temp directory, which iOS, Android and macOS all
+  /// purge under pressure -- exactly the window this feature has to survive --
+  /// so it is relocated rather than tracked where it lies. A rename across
+  /// filesystems fails, hence the copy fallback.
+  Future<ResumableBasePublish> _recordResumable(
+    StreamedBase base,
+    String providerId,
+    String deviceId,
+    int seq,
+    String? epochId,
+    String? uploadNonce,
+  ) async {
+    final dir = await _resumable.directory;
+    final target =
+        '${dir.path}/${base.path.split(Platform.pathSeparator).last}';
+    final source = File(base.path);
+    try {
+      await source.rename(target);
+    } on FileSystemException {
+      await source.copy(target);
+      try {
+        await source.delete();
+      } catch (_) {}
+    }
+    final publish = ResumableBasePublish(
+      providerId: providerId,
+      deviceId: deviceId,
+      seq: seq,
+      dataPath: target,
+      byteLength: base.byteLength,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      epochId: epochId,
+      uploadNonce: uploadNonce,
+      toHlc: base.toHlc,
+    );
+    await _resumable.save(publish);
+    return publish;
+  }
+
+  /// Part indices already present in the cloud for [deviceId]'s base [seq].
+  ///
+  /// Best-effort: a listing failure yields an empty set, so the resumed publish
+  /// re-uploads everything. Slow, but never wrong -- the opposite mistake would
+  /// skip a part that was never actually there and publish a base no peer can
+  /// reassemble.
+  Future<Set<int>> _uploadedParts(
+    CloudStorageProvider provider,
+    String folderId,
+    String deviceId,
+    int seq,
+  ) async {
+    try {
+      // Bounded: the catch below cannot save a caller from a listing that
+      // never RETURNS, and this one runs mid-publish, so a stalled provider
+      // would hang the whole sync instead of falling back to re-uploading.
+      // Same 8s ceiling the cleanup paths use (PR #1033 review).
+      final files = await provider
+          .listFiles(folderId: folderId, namePattern: ChangesetLogLayout.prefix)
+          .timeout(const Duration(seconds: 8));
+      return {
+        for (final f in files)
+          if (ChangesetLogLayout.deviceIdOf(f.name) == deviceId)
+            if (ChangesetLogLayout.basePartOf(f.name) case final p?)
+              if (p.baseSeq == seq) p.part,
+      };
+    } catch (_) {
+      return const {};
+    }
+  }
+
   Future<void> _pruneSupersededBelow(
     CloudStorageProvider provider,
     String folderId,

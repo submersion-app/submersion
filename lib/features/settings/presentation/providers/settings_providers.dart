@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
@@ -128,6 +129,12 @@ class AppSettings {
   final double? visibilityScaleExcellentM;
   final double? visibilityScaleGoodM;
   final double? visibilityScaleModerateM;
+
+  /// How GPS coordinates are rendered and entered.
+  ///
+  /// Presentational only: coordinates are always stored as decimal degrees,
+  /// so changing this re-renders every site without altering a stored value.
+  final CoordinateFormat coordinateFormat;
 
   /// The resolved scale for the current preference.
   ///
@@ -444,6 +451,7 @@ class AppSettings {
     this.visibilityScaleExcellentM,
     this.visibilityScaleGoodM,
     this.visibilityScaleModerateM,
+    this.coordinateFormat = CoordinateFormat.decimalDegrees,
     this.timeFormat = TimeFormat.twelveHour,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
     this.themeMode = ThemeMode.system,
@@ -600,6 +608,7 @@ class AppSettings {
     double? visibilityScaleExcellentM,
     double? visibilityScaleGoodM,
     double? visibilityScaleModerateM,
+    CoordinateFormat? coordinateFormat,
     TimeFormat? timeFormat,
     DateFormatPreference? dateFormat,
     ThemeMode? themeMode,
@@ -725,6 +734,7 @@ class AppSettings {
       visibilityScaleGoodM: visibilityScaleGoodM ?? this.visibilityScaleGoodM,
       visibilityScaleModerateM:
           visibilityScaleModerateM ?? this.visibilityScaleModerateM,
+      coordinateFormat: coordinateFormat ?? this.coordinateFormat,
       timeFormat: timeFormat ?? this.timeFormat,
       dateFormat: dateFormat ?? this.dateFormat,
       themeMode: themeMode ?? this.themeMode,
@@ -1208,6 +1218,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       visibilityScaleGoodM: goodM,
       visibilityScaleModerateM: moderateM,
     );
+    await _saveSettings();
+  }
+
+  Future<void> setCoordinateFormat(CoordinateFormat format) async {
+    state = state.copyWith(coordinateFormat: format);
     await _saveSettings();
   }
 
@@ -1865,6 +1880,10 @@ final defaultCurrencyProvider = Provider<String>((ref) {
 
 final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {
   return ref.watch(settingsProvider.select((s) => s.altitudeUnit));
+});
+
+final coordinateFormatProvider = Provider<CoordinateFormat>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.coordinateFormat));
 });
 
 final themeModeProvider = Provider<ThemeMode>((ref) {

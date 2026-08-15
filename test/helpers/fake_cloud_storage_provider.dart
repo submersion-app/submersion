@@ -40,6 +40,23 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [deleteFile] throws, modelling an offline/denied provider.
   bool failDeletes = false;
 
+  /// When true, [listFiles] throws, modelling the listing timeout that left a
+  /// wipe silently incomplete while the UI still claimed success (issue #1032).
+  bool failLists = false;
+
+  /// When true, every cloud call returns a future that NEVER completes,
+  /// modelling a stalled connection. Callers that run behind a non-dismissible
+  /// UI must bound these themselves or the user is stranded (PR #1033 review).
+  bool hangOperations = false;
+
+  /// When true, only [downloadFile] hangs. Lets a test stall ONE manifest read
+  /// while the folder listing still succeeds.
+  bool hangDownloads = false;
+
+  /// A future that never completes and schedules no timer, so a test can await
+  /// a caller's own timeout without leaving pending timers behind.
+  Future<T> _hang<T>() => Completer<T>().future;
+
   /// When true, [downloadFile] throws, modelling a transient read failure.
   bool failDownloads = false;
 
@@ -99,6 +116,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   }) async {
     operationLog.add('upload:$filename');
     uploadAttempts++;
+    if (hangOperations) return _hang<UploadResult>();
     if (failUploads) {
       throw const CloudStorageException('upload failed (test)');
     }
@@ -114,6 +132,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
 
   @override
   Future<Uint8List> downloadFile(String fileId) async {
+    if (hangOperations || hangDownloads) return _hang<Uint8List>();
     if (failDownloads) {
       throw const CloudStorageException('download failed (test)');
     }
@@ -142,6 +161,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     String? namePattern,
   }) async {
     operationLog.add('list');
+    if (hangOperations) return _hang<List<CloudFileInfo>>();
+    if (failLists) {
+      throw const CloudStorageException('list failed (test)');
+    }
     return _files.entries
         .where((e) => namePattern == null || e.key.contains(namePattern))
         .map(
@@ -158,6 +181,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   @override
   Future<void> deleteFile(String fileId) async {
     operationLog.add('delete:$fileId');
+    if (hangOperations) return _hang<void>();
     if (failDeletes) {
       throw const CloudStorageException('delete failed (test)');
     }

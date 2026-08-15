@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 
 class DepthSpikeDetector extends QualityDetector {
@@ -27,13 +28,16 @@ class DepthSpikeDetector extends QualityDetector {
       i++
     ) {
       final dt1 = s[i].t - s[i - 1].t;
-      final dt2 = s[i + 1].t - s[i].t;
-      if (dt1 <= 0 || dt2 <= 0) continue;
-      final r1 = (s[i].depth - s[i - 1].depth) / dt1;
-      final r2 = (s[i + 1].depth - s[i].depth) / dt2;
-      if (r1.abs() > QualityThresholds.spikeRateMetersPerSecond &&
-          r2.abs() > QualityThresholds.spikeRateMetersPerSecond &&
-          r1.sign != r2.sign) {
+      // Shares its definition with ProfileRepairService.despike so the
+      // offered repair clears exactly what is flagged here.
+      if (RepairPredicates.isDepthSpike(
+        dt1: dt1,
+        dt2: s[i + 1].t - s[i].t,
+        d0: s[i - 1].depth,
+        d1: s[i].depth,
+        d2: s[i + 1].depth,
+      )) {
+        final r1 = (s[i].depth - s[i - 1].depth) / dt1;
         spikes++;
         out.add(
           make(

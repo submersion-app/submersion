@@ -174,7 +174,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.longPress(_tile('d1'));
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(_tile('d1'));
     await tester.pumpAndSettle();
     await tester.tap(_tile('d2'));
     await tester.pumpAndSettle();

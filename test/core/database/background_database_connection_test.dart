@@ -121,32 +121,28 @@ void main() {
     );
   }, timeout: const Timeout(Duration(seconds: 60)));
 
-  test(
-    'awaitWorkerShutdown kills a stuck worker when asked to',
-    () async {
-      final connection = await BackgroundDatabaseConnection.open(
-        File('unused-by-the-test-opener.db'),
-        debugOpener: _slowClosingOpener(
-          const Duration(minutes: 5).inMilliseconds,
-        ),
-      );
-      final db = _TinyDb(connection.connection);
-      await db.customSelect('SELECT 1').get();
-      await db.close();
+  test('awaitWorkerShutdown kills a stuck worker when asked to', () async {
+    final connection = await BackgroundDatabaseConnection.open(
+      File('unused-by-the-test-opener.db'),
+      debugOpener: _slowClosingOpener(
+        const Duration(minutes: 5).inMilliseconds,
+      ),
+    );
+    final db = _TinyDb(connection.connection);
+    await db.customSelect('SELECT 1').get();
+    await db.close();
 
-      final exitedCleanly = await connection.awaitWorkerShutdown(
-        timeout: const Duration(milliseconds: 300),
-        killIfStuck: true,
-      );
+    final exitedCleanly = await connection.awaitWorkerShutdown(
+      timeout: const Duration(milliseconds: 300),
+      killIfStuck: true,
+    );
 
-      expect(
-        exitedCleanly,
-        isFalse,
-        reason: 'the worker was still closing, so it had to be killed',
-      );
-    },
-    timeout: const Timeout(Duration(seconds: 60)),
-  );
+    expect(
+      exitedCleanly,
+      isFalse,
+      reason: 'the worker was still closing, so it had to be killed',
+    );
+  }, timeout: const Timeout(Duration(seconds: 60)));
 
   test(
     'awaitWorkerShutdown throws instead of killing on reopen paths',
@@ -238,43 +234,39 @@ void main() {
     await subscription.cancel();
   }, timeout: const Timeout(Duration(seconds: 60)));
 
-  test(
-    'opens a usable database on the worker isolate',
-    () async {
-      final dir = Directory.systemTemp.createTempSync('bg_conn');
-      addTearDown(() => dir.deleteSync(recursive: true));
+  test('opens a usable database on the worker isolate', () async {
+    final dir = Directory.systemTemp.createTempSync('bg_conn');
+    addTearDown(() => dir.deleteSync(recursive: true));
 
-      final connection = await BackgroundDatabaseConnection.open(
-        File('${dir.path}/app.db'),
-      );
-      final db = _TinyDb(connection.connection);
+    final connection = await BackgroundDatabaseConnection.open(
+      File('${dir.path}/app.db'),
+    );
+    final db = _TinyDb(connection.connection);
 
-      // Explicit WAL mode so the post-shutdown read exercises a WAL
-      // checkpoint-on-close.
-      await db.customStatement('PRAGMA journal_mode = WAL');
-      await db.customStatement('CREATE TABLE t (id INTEGER PRIMARY KEY)');
-      await db.customStatement('INSERT INTO t (id) VALUES (7)');
-      final rows = await db.customSelect('SELECT id FROM t').get();
-      expect(rows.single.read<int>('id'), 7);
+    // Explicit WAL mode so the post-shutdown read exercises a WAL
+    // checkpoint-on-close.
+    await db.customStatement('PRAGMA journal_mode = WAL');
+    await db.customStatement('CREATE TABLE t (id INTEGER PRIMARY KEY)');
+    await db.customStatement('INSERT INTO t (id) VALUES (7)');
+    final rows = await db.customSelect('SELECT id FROM t').get();
+    expect(rows.single.read<int>('id'), 7);
 
-      await db.close();
-      final exitedCleanly = await connection.awaitWorkerShutdown(
-        timeout: const Duration(seconds: 20),
-        killIfStuck: false,
-      );
+    await db.close();
+    final exitedCleanly = await connection.awaitWorkerShutdown(
+      timeout: const Duration(seconds: 20),
+      killIfStuck: false,
+    );
 
-      expect(exitedCleanly, isTrue);
-      // The worker exits only after connection.close() returns, so a clean
-      // exit means SQLite closed. (WAL-sidecar absence is not assertable:
-      // Apple's system SQLite enables PERSIST_WAL and keeps the file on a
-      // clean close.) The committed write must survive a fresh open.
-      final reopened = sqlite3.open('${dir.path}/app.db');
-      try {
-        expect(reopened.select('SELECT id FROM t').single['id'], 7);
-      } finally {
-        reopened.dispose();
-      }
-    },
-    timeout: const Timeout(Duration(seconds: 60)),
-  );
+    expect(exitedCleanly, isTrue);
+    // The worker exits only after connection.close() returns, so a clean
+    // exit means SQLite closed. (WAL-sidecar absence is not assertable:
+    // Apple's system SQLite enables PERSIST_WAL and keeps the file on a
+    // clean close.) The committed write must survive a fresh open.
+    final reopened = sqlite3.open('${dir.path}/app.db');
+    try {
+      expect(reopened.select('SELECT id FROM t').single['id'], 7);
+    } finally {
+      reopened.dispose();
+    }
+  }, timeout: const Timeout(Duration(seconds: 60)));
 }

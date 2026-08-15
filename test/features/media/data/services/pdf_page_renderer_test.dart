@@ -82,33 +82,25 @@ void main() {
     });
   });
 
-  test(
-    'renders first page of a pdf to a jpeg within maxDimension',
-    () async {
-      final bytes = await PdfPageRenderer.renderFirstPageJpeg(
-        file: File('test/fixtures/sample.pdf'),
-        maxDimension: 256,
-      );
-      expect(bytes, isNotNull);
-      final decoded = img.decodeJpg(bytes!);
-      expect(decoded, isNotNull);
-      expect(
-        decoded!.width <= 256 && decoded.height <= 256,
-        isTrue,
-        reason: 'longest edge must be capped',
-      );
-    },
-    skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)',
-  );
+  test('renders first page of a pdf to a jpeg within maxDimension', () async {
+    final bytes = await PdfPageRenderer.renderFirstPageJpeg(
+      file: File('test/fixtures/sample.pdf'),
+      maxDimension: 256,
+    );
+    expect(bytes, isNotNull);
+    final decoded = img.decodeJpg(bytes!);
+    expect(decoded, isNotNull);
+    expect(
+      decoded!.width <= 256 && decoded.height <= 256,
+      isTrue,
+      reason: 'longest edge must be capped',
+    );
+  }, skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)');
 
-  test(
-    'returns null for garbage bytes',
-    () async {
-      final bytes = await PdfPageRenderer.renderFirstPageJpeg(
-        bytes: Uint8List.fromList([1, 2, 3]),
-      );
-      expect(bytes, isNull);
-    },
-    skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)',
-  );
+  test('returns null for garbage bytes', () async {
+    final bytes = await PdfPageRenderer.renderFirstPageJpeg(
+      bytes: Uint8List.fromList([1, 2, 3]),
+    );
+    expect(bytes, isNull);
+  }, skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)');
 }

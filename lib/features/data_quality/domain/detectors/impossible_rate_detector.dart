@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 
 /// Sustained vertical rates beyond real diving indicate corrupt samples --
@@ -14,7 +15,7 @@ class ImpossibleRateDetector extends QualityDetector {
   @override
   String get id => 'impossible_rate';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.profile;
 
@@ -22,27 +23,42 @@ class ImpossibleRateDetector extends QualityDetector {
   List<QualityFinding> detect(DiveQualityContext ctx) {
     final s = ctx.primarySamples;
     final out = <QualityFinding>[];
-    int? runStart;
+    int? runStartIndex;
     var runMaxRate = 0.0;
-    var lastT = 0;
+    var lastIndex = 0;
 
     void closeRun() {
-      if (runStart != null &&
-          lastT - runStart! >= QualityThresholds.impossibleRateMinSeconds) {
-        out.add(
-          make(
-            ctx,
-            discriminator: 'run:${runStart! ~/ 60}',
-            severity: QualitySeverity.warning,
-            params: {
-              'startSeconds': runStart,
-              'durationSeconds': lastT - runStart!,
-              'maxRateMetersPerMinute': runMaxRate,
-            },
-          ),
-        );
+      if (runStartIndex != null) {
+        final start = s[runStartIndex!];
+        final end = s[lastIndex];
+        if (end.t - start.t >= QualityThresholds.impossibleRateMinSeconds) {
+          out.add(
+            make(
+              ctx,
+              discriminator: 'run:${start.t ~/ 60}',
+              severity: QualitySeverity.warning,
+              params: {
+                'startSeconds': start.t,
+                'durationSeconds': end.t - start.t,
+                'maxRateMetersPerMinute': runMaxRate,
+                // Whether redrawing the run's interior as a straight line
+                // between its endpoints leaves a plausible rate. Oscillating
+                // garbage does; a sustained fast descent does not, and gets
+                // no one-tap repair.
+                'interpolatable':
+                    RepairPredicates.impossibleRunIsInterpolatable(
+                      sampleCount: lastIndex - runStartIndex! + 1,
+                      startSeconds: start.t,
+                      endSeconds: end.t,
+                      startDepth: start.depth,
+                      endDepth: end.depth,
+                    ),
+              },
+            ),
+          );
+        }
       }
-      runStart = null;
+      runStartIndex = null;
       runMaxRate = 0;
     }
 
@@ -51,9 +67,9 @@ class ImpossibleRateDetector extends QualityDetector {
       if (dt <= 0) continue;
       final ratePerMin = ((s[i].depth - s[i - 1].depth) / dt * 60).abs();
       if (ratePerMin > QualityThresholds.impossibleRateMetersPerMinute) {
-        runStart ??= s[i - 1].t;
+        runStartIndex ??= i - 1;
         runMaxRate = math.max(runMaxRate, ratePerMin);
-        lastT = s[i].t;
+        lastIndex = i;
       } else {
         closeRun();
       }

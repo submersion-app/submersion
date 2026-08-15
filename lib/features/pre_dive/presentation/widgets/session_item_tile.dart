@@ -87,6 +87,14 @@ class SessionItemTile extends StatelessWidget {
         ),
       if (item.notes.isNotEmpty)
         Text(item.notes, style: theme.textTheme.bodySmall),
+      // Completion time belongs in the subtitle, not in trailing: a ListTile
+      // measures its trailing widget against the full tile width, so anything
+      // text-bearing there eats into the item title (issue #935).
+      if (item.completedAt != null)
+        Text(
+          TimeOfDay.fromDateTime(item.completedAt!).format(context),
+          style: theme.textTheme.bodySmall,
+        ),
     ];
 
     final dimmed = !actionable && item.state == PreDiveItemState.pending;
@@ -101,16 +109,9 @@ class SessionItemTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: subtitleChildren,
             ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (item.completedAt != null)
-            Text(
-              TimeOfDay.fromDateTime(item.completedAt!).format(context),
-              style: theme.textTheme.bodySmall,
-            ),
-          if (showMenu)
-            PopupMenuButton<String>(
+      trailing: !showMenu
+          ? null
+          : PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {
                   case 'skip':
@@ -145,8 +146,6 @@ class SessionItemTile extends StatelessWidget {
                   ),
               ],
             ),
-        ],
-      ),
       enabled: actionable,
       onTap: actionable
           ? (item.itemType == PreDiveItemType.value ? onEditValue : onDone)

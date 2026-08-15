@@ -300,17 +300,17 @@ void main() {
       );
     });
 
-    test('formats latitude with 5 decimal places', () {
+    test('formats latitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(DiveCenterField.latitude, 35.89780, units),
-        equals('35.89780'),
+        equals('35.897800° N'),
       );
     });
 
-    test('formats longitude with 5 decimal places', () {
+    test('formats longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(DiveCenterField.longitude, 14.51220, units),
-        equals('14.51220'),
+        equals('14.512200° E'),
       );
     });
 

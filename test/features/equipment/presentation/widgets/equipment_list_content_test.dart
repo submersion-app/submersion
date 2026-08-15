@@ -249,6 +249,10 @@ void main() {
           child: const EquipmentListContent(showAppBar: true),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa Reg'),
+          matching: find.byType(EquipmentListTile),
+        ),
         firstRow: find.text('Aaa Reg'),
         applyFilter: (tester) async {
           final container = ProviderScope.containerOf(

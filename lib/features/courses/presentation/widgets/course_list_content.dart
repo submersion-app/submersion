@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -147,8 +147,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                       tooltip: context.l10n.courses_action_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // Discoverability: bulk actions must not be reachable only by a
-                    // long-press that nothing on screen advertises.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -324,9 +324,43 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     BuildContext context,
     AsyncValue<List<Course>> coursesAsync,
   ) {
-    final tableContent = _buildTableView(context, coursesAsync);
+    // The table renders the raw list, not the status-filtered one the list
+    // modes render, so selectable ids come from the raw list here -- pruning
+    // must follow whichever path is on screen.
+    final visibleIds = (coursesAsync.value ?? const <Course>[])
+        .map((c) => c.id)
+        .toList();
 
-    return tableContent;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final courses = coursesAsync.value ?? const <Course>[];
+          // Table mode has no app bar of its own, so both bars live here:
+          // the contextual one while selecting, and the Select affordance
+          // while not. They share a slot and a height, so the table does not
+          // shift as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(courses, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: _buildTableView(context, coursesAsync)),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for course table mode.
@@ -360,9 +394,6 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
           },
-          onEntityLongPress: _isSelectionMode
-              ? null
-              : (id) => _selection.enterImplicit(id),
           onEntityDoubleTap: (id) {
             context.push('/courses/$id');
           },
@@ -408,8 +439,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               tooltip: context.l10n.courses_action_sort,
               onPressed: () => _showSortSheet(context),
             ),
-          // Discoverability: bulk actions must not be reachable only by a
-          // long-press that nothing on screen advertises.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -507,17 +538,15 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           final course = courses[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: SelectableRow(
+            child: CourseCard(
+              course: course,
+              isSelected:
+                  widget.selectedId == course.id ||
+                  ref.watch(highlightedCourseIdProvider) == course.id,
+              onTap: () => _handleRowTap(course),
               isSelectionMode: _isSelectionMode,
               isChecked: _selectedIds.contains(course.id),
-              onChanged: (_) => _selection.toggle(course.id),
-              child: CourseCard(
-                course: course,
-                isSelected:
-                    widget.selectedId == course.id ||
-                    ref.watch(highlightedCourseIdProvider) == course.id,
-                onTap: () => _handleRowTap(course),
-              ),
+              onCheckChanged: (_) => _selection.toggle(course.id),
             ),
           );
         },

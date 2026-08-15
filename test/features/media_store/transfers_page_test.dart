@@ -101,6 +101,32 @@ void main() {
     expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
   });
 
+  testWidgets('renders the checkbox inside the row, not beside it', (
+    tester,
+  ) async {
+    // Stands in for the rowRoot assertion in verifySelectionContract, which
+    // this page cannot run for the reason described above.
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+
+    expect(
+      find.descendant(
+        of: find.byType(ListTile).first,
+        matching: find.byType(Checkbox),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('bulk retry requeues every checked failed entry', (tester) async {
     late List<MediaTransferQueueEntry> snapshot;
     await tester.runAsync(() async {

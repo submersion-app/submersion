@@ -16,8 +16,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
@@ -228,8 +229,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       tooltip: context.l10n.trips_list_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // Discoverability: bulk actions must not be reachable only by a
-                    // long-press that nothing on screen advertises.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -339,8 +340,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
   /// One tap policy for every trip row.
   ///
-  /// A held modifier turns a tap into an implicit entry, so desktop users
-  /// never have to discover long-press.
+  /// A held modifier turns a tap into an implicit entry -- the one path
+  /// that still evaporates at zero checked, since touch has no gesture
+  /// entry left.
   void _handleRowTap(Trip trip) {
     if (SelectableListScope.isModifierPressed()) {
       _selection.enterImplicit(trip.id);
@@ -358,7 +360,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     AsyncValue<List<TripWithStats>> tripsAsync,
     TripFilterState filter,
   ) {
-    final tableContent = _buildTableView(context, tripsAsync, filter);
     final loadedTrips = tripsAsync.value ?? const <TripWithStats>[];
     final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
 
@@ -371,14 +372,26 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       selectableIds: visibleIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
-        builder: (context, selection, _) => selection.isActive
-            ? Column(
-                children: [
-                  _buildSelectionBar(loadedTrips, SelectionBarShell.pane),
-                  Expanded(child: tableContent),
-                ],
-              )
-            : tableContent,
+        builder: (context, selection, _) {
+          // Built inside the builder so the table's own rows re-render as
+          // checks change; building it outside left them on a stale
+          // selectedIds while only the bar updated.
+          final tableContent = _buildTableView(context, tripsAsync, filter);
+
+          // Table mode has no app bar of its own, so both bars live here: the
+          // contextual one while selecting, and the Select affordance while
+          // not. They share a slot and a height, so the table does not shift
+          // as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(loadedTrips, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: tableContent),
+            ],
+          );
+        },
       ),
     );
   }
@@ -419,9 +432,6 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 onEntityTap: (id) {
                   if (_isSelectionMode) _selection.toggle(id);
                 },
-                onEntityLongPress: _isSelectionMode
-                    ? null
-                    : (id) => _selection.enterImplicit(id),
                 selectedIds: _selectedIds,
                 isSelectionMode: _isSelectionMode,
                 onEntityDoubleTap: (id) {
@@ -476,8 +486,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
-          // Discoverability: bulk actions must not be reachable only by a
-          // long-press that nothing on screen advertises.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -624,32 +634,38 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 final viewMode = ref.watch(tripListViewModeProvider);
                 final showSharedBadge =
                     tripWithStats.trip.isShared && diversCount >= 2;
-                final tile = switch (viewMode) {
+                final isChecked = _selectedIds.contains(tripWithStats.trip.id);
+                void onCheckChanged(bool _) =>
+                    _selection.toggle(tripWithStats.trip.id);
+                final selectableTile = switch (viewMode) {
                   ListViewMode.detailed => TripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                   ListViewMode.compact => CompactTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                   ListViewMode.dense || ListViewMode.table => DenseTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
                     onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                 };
-                final selectableTile = SelectableRow(
-                  isSelectionMode: _isSelectionMode,
-                  isChecked: _selectedIds.contains(tripWithStats.trip.id),
-                  onChanged: (_) => _selection.toggle(tripWithStats.trip.id),
-                  child: tile,
-                );
                 if (!tripWithStats.trip.isUpcoming) return selectableTile;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -766,6 +782,9 @@ class TripListTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final bool showSharedBadge;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const TripListTile({
     super.key,
@@ -773,6 +792,9 @@ class TripListTile extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -813,24 +835,29 @@ class TripListTile extends StatelessWidget {
           subtitleTextStyle: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          leading: Consumer(
-            builder: (context, ref, _) {
-              final accent = resolveFeatureAccent(
-                context,
-                ref,
-                surface: AccentSurface.list,
-                featureId: 'trips',
-              );
-              return CircleAvatar(
-                backgroundColor:
-                    accent?.withValues(alpha: 0.15) ??
-                    theme.colorScheme.primaryContainer,
-                child: Icon(
-                  trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                  color: accent ?? theme.colorScheme.onPrimaryContainer,
-                ),
-              );
-            },
+          leading: SelectionLeading(
+            isSelectionMode: isSelectionMode,
+            isChecked: isChecked,
+            onChanged: onCheckChanged,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final accent = resolveFeatureAccent(
+                  context,
+                  ref,
+                  surface: AccentSurface.list,
+                  featureId: 'trips',
+                );
+                return CircleAvatar(
+                  backgroundColor:
+                      accent?.withValues(alpha: 0.15) ??
+                      theme.colorScheme.primaryContainer,
+                  child: Icon(
+                    trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                    color: accent ?? theme.colorScheme.onPrimaryContainer,
+                  ),
+                );
+              },
+            ),
           ),
           title: Row(
             children: [

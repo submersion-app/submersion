@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 
@@ -168,6 +169,83 @@ void main() {
       final result = await initializer.checkSyncOnLaunch(provider);
 
       expect(result.status, SyncCheckStatus.updatesAvailable);
+    });
+  });
+
+  group('peerLibraryState', () {
+    CloudFileInfo file(String name) =>
+        CloudFileInfo(id: name, name: name, modifiedTime: DateTime(2026));
+
+    test('an empty account is none', () {
+      expect(
+        SyncInitializer.classifyPeerFiles(const []),
+        PeerLibraryState.none,
+      );
+    });
+
+    test('a manifest makes the library pullable', () {
+      expect(
+        SyncInitializer.classifyPeerFiles([
+          file(ChangesetLogLayout.manifestName('deviceB')),
+        ]),
+        PeerLibraryState.pullable,
+      );
+    });
+
+    test('base parts with no manifest are an unfinished publish', () {
+      // The manifest commits a publish and is written last, so a base upload
+      // that died partway leaves exactly this: parts, no manifest. Reporting
+      // "no library found" here sends the user to Start Fresh over data that
+      // is half uploaded (issue #792).
+      expect(
+        SyncInitializer.classifyPeerFiles([
+          file(ChangesetLogLayout.basePartName('deviceB', 1, 0)),
+          file(ChangesetLogLayout.basePartName('deviceB', 1, 1)),
+        ]),
+        PeerLibraryState.incomplete,
+      );
+    });
+
+    test('changesets with no manifest are an unfinished publish', () {
+      expect(
+        SyncInitializer.classifyPeerFiles([
+          file(ChangesetLogLayout.changesetName('deviceB', 7)),
+        ]),
+        PeerLibraryState.incomplete,
+      );
+    });
+
+    test('a retired peer leaves nothing to pull', () {
+      expect(
+        SyncInitializer.classifyPeerFiles([
+          file(ChangesetLogLayout.retiredMarkerName('deviceB')),
+        ]),
+        PeerLibraryState.none,
+      );
+    });
+
+    test('lists over the wire, skipping our own device', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(
+        _payload,
+        ChangesetLogLayout.basePartName('deviceB', 1, 0),
+      );
+
+      // Our own manifest must not make a peer's half-published library look
+      // pullable -- nor make an empty account look occupied.
+      expect(
+        await initializer.peerLibraryState(provider),
+        PeerLibraryState.incomplete,
+      );
+    });
+
+    test('foreign files in the folder are ignored', () async {
+      await provider.uploadFile(_payload, 'holiday-photo.jpg');
+      expect(
+        await initializer.peerLibraryState(provider),
+        PeerLibraryState.none,
+      );
     });
   });
 

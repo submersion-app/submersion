@@ -21,6 +21,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
@@ -74,6 +75,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setTimeFormat(TimeFormat format) async =>
       state = state.copyWith(timeFormat: format);

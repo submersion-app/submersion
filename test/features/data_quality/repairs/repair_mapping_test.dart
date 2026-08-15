@@ -138,9 +138,24 @@ void main() {
   });
 
   test('sample_gap offers fill-gaps then navigation', () {
-    final actions = repairOptionsFor(f(detectorId: 'sample_gap'));
+    final actions = repairOptionsFor(
+      f(detectorId: 'sample_gap', params: {'fillableGapCount': 2}),
+    );
     expect(actions.first, isA<FillGapsRepair>());
     expect(actions.whereType<GoToDiveRepair>(), hasLength(1));
+  });
+
+  test('sample_gap without the fillable count stays repairable', () {
+    // Findings written before the detector reported it, pending a rescan.
+    final actions = repairOptionsFor(f(detectorId: 'sample_gap'));
+    expect(actions.first, isA<FillGapsRepair>());
+  });
+
+  test('sample_gap with only unfillable holes navigates', () {
+    final actions = repairOptionsFor(
+      f(detectorId: 'sample_gap', params: {'fillableGapCount': 0}),
+    );
+    expect(actions.single, isA<GoToDiveRepair>());
   });
 
   test('depth spike (non-mismatch) offers despike', () {
@@ -150,9 +165,31 @@ void main() {
     expect(actions.first, isA<DespikeRepair>());
   });
 
-  test('impossible_rate offers despike', () {
-    final actions = repairOptionsFor(f(detectorId: 'impossible_rate'));
-    expect(actions.first, isA<DespikeRepair>());
+  test('negative depths offer a clamp, not a despike', () {
+    final actions = repairOptionsFor(
+      f(
+        detectorId: 'depth_spike',
+        params: {'sampleCount': 3, 'minDepth': -4.0},
+      ),
+    );
+    expect(actions.first, isA<ClampNegativeDepthsRepair>());
+    expect(actions.whereType<DespikeRepair>(), isEmpty);
+  });
+
+  test('an interpolatable impossible-rate run offers rate smoothing', () {
+    final actions = repairOptionsFor(
+      f(detectorId: 'impossible_rate', params: {'interpolatable': true}),
+    );
+    expect(actions.first, isA<SmoothRatesRepair>());
+  });
+
+  test('a non-interpolatable impossible-rate run navigates', () {
+    // Redrawing the run would leave it just as impossible, so the button
+    // would only ever no-op.
+    final actions = repairOptionsFor(
+      f(detectorId: 'impossible_rate', params: {'interpolatable': false}),
+    );
+    expect(actions.single, isA<GoToDiveRepair>());
   });
 
   group('temp_anomaly branches', () {
@@ -167,11 +204,25 @@ void main() {
       expect(c.kelvinScale, isTrue);
     });
 
-    test('delta jump offers temperature smoothing', () {
+    test('a spike-shaped delta jump offers temperature smoothing', () {
       final actions = repairOptionsFor(
-        f(detectorId: 'temp_anomaly', params: {'deltaC': 9.0}),
+        f(
+          detectorId: 'temp_anomaly',
+          params: {'deltaC': 9.0, 'spikeShaped': true},
+        ),
       );
       expect(actions.first, isA<SmoothTemperatureRepair>());
+    });
+
+    test('a one-sided delta jump navigates', () {
+      // Smoothing cannot remove a step that never comes back.
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'temp_anomaly',
+          params: {'deltaC': 9.0, 'spikeShaped': false},
+        ),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
     });
 
     test('scalar water temp gets navigation only', () {
@@ -181,12 +232,24 @@ void main() {
       expect(actions.single, isA<GoToDiveRepair>());
     });
 
-    test('range anomaly offers a non-kelvin conversion', () {
+    test('a Fahrenheit channel offers a non-kelvin conversion', () {
       final actions = repairOptionsFor(
-        f(detectorId: 'temp_anomaly', params: {'minTempC': 1.0}),
+        f(
+          detectorId: 'temp_anomaly',
+          params: {'minTempC': 60.0, 'fahrenheitSuspected': true},
+        ),
       );
       final c = actions.whereType<ConvertTemperatureRepair>().single;
       expect(c.kelvinScale, isFalse);
+    });
+
+    test('a range anomaly with no unit explanation navigates', () {
+      // One bad sample in an otherwise plausible channel: converting the
+      // whole series would corrupt every good reading.
+      final actions = repairOptionsFor(
+        f(detectorId: 'temp_anomaly', params: {'minTempC': 1.0}),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
     });
   });
 

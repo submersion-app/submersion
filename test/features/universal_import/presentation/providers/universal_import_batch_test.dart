@@ -19,6 +19,7 @@ import 'package:submersion/features/universal_import/data/models/picked_import_f
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A fake file picker whose results are scripted by the test.
@@ -117,7 +118,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     container = ProviderContainer(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        // The duplicate preview formats coordinates in the diver's notation,
+        // so this notifier now reads settings. The real one loads from the
+        // database asynchronously and would outlive this container.
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
     );
     notifier = container.read(universalImportNotifierProvider.notifier);
     originalPicker = FilePickerPlatform.instance;
@@ -214,6 +221,7 @@ void main() {
       final cancelContainer = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           universalImportNotifierProvider.overrideWith(
             (ref) => UniversalImportNotifier(
               ref,
@@ -314,7 +322,7 @@ void main() {
           ArchiveFile(entry.key, entry.value.length, entry.value),
         );
       }
-      return Uint8List.fromList(ZipEncoder().encode(archive)!);
+      return Uint8List.fromList(ZipEncoder().encode(archive));
     }
 
     List<int> zxuBytes(String start) =>

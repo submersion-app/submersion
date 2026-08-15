@@ -515,8 +515,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.rating:
         return (value as double).toStringAsFixed(1);
       case SiteField.latitude:
+        return units.formatLatitude(value as double);
       case SiteField.longitude:
-        return (value as double).toStringAsFixed(5);
+        return units.formatLongitude(value as double);
     }
   }
 

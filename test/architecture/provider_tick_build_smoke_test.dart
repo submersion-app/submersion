@@ -151,21 +151,17 @@ Future<void> _readFilteredTrips(ProviderContainer container) async {
 void _tickGroup(String feature, List<_TickCase> cases) {
   group(feature, () {
     for (final tickCase in cases) {
-      test(
-        '${tickCase.name} builds against a real database',
-        () async {
-          final container = _makeContainer();
-          addTearDown(container.dispose);
-          await expectLater(
-            tickCase.read(container),
-            completes,
-            reason:
-                '${tickCase.name} subscribes to a change tick, so it touches the '
-                'database during build. It must not throw.',
-          );
-        },
-        skip: _needsPlatform[tickCase.name],
-      );
+      test('${tickCase.name} builds against a real database', () async {
+        final container = _makeContainer();
+        addTearDown(container.dispose);
+        await expectLater(
+          tickCase.read(container),
+          completes,
+          reason:
+              '${tickCase.name} subscribes to a change tick, so it touches the '
+              'database during build. It must not throw.',
+        );
+      }, skip: _needsPlatform[tickCase.name]);
     }
   });
 }

@@ -666,6 +666,15 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     if (state.errorCode == 'no_serial_ports') {
       return l10n.diveComputer_download_noSerialPortsFound;
     }
+    // Apple platforms expose no API for deleting a pairing record, so a stale
+    // one can only be cleared by the diver in Bluetooth settings. Say so
+    // instead of showing the generic connect failure (issue #865).
+    if (state.errorCode == 'stale_pairing') {
+      return l10n.diveComputer_download_stalePairing;
+    }
+    if (state.errorCode == 'discovery_stalled') {
+      return l10n.diveComputer_download_discoveryStalled;
+    }
     if (state.errorCode == 'connect_failed' && state.errorMessage != null) {
       return l10n.diveComputer_download_serialConnectFailedWithDetails(
         state.errorMessage!,

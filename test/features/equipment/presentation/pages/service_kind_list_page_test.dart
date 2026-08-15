@@ -75,6 +75,13 @@ void main() {
           ),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        // Built-in kinds render isSelectable: false and so have no checkbox at
+        // all, which makes ListTile.first the wrong anchor. Pin to the custom
+        // row that is actually selectable.
+        rowRoot: find.ancestor(
+          of: find.text('Aaa custom'),
+          matching: find.byType(ListTile),
+        ),
         firstRow: find.text('Aaa custom'),
         applyFilter: (tester) async {
           visible = [all.first];
@@ -86,6 +93,24 @@ void main() {
         },
         visibleAfterFilter: 1,
       );
+    });
+
+    testWidgets('selection mode hides the per-row delete action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildPage([custom('c1', 'Custom kind')]));
+      await tester.pumpAndSettle();
+
+      // Normal mode offers the row's own trash.
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // In selection mode the only delete is the bulk one, which the shared
+      // bar keeps behind its overflow menu.
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
     });
 
     testWidgets('built-in kinds render no checkbox and are excluded from '

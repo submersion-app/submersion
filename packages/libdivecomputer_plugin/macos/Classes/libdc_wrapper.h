@@ -135,6 +135,10 @@ typedef struct {
 
 typedef struct {
     unsigned int time_ms;      // milliseconds since dive start
+    // Always finite -- depth has no "unavailable" sentinel, unlike every other
+    // field here. Samples the computer logged without a depth are filled in
+    // from their neighbours before this struct is returned (fill_missing_depths
+    // in libdc_download.c).
     double depth;              // meters
     double temperature;        // celsius (NAN if unavailable)
     double pressure;           // bar (NAN if unavailable)

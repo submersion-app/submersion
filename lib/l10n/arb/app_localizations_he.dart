@@ -2366,6 +2366,51 @@ class AppLocalizationsHe extends AppLocalizations {
       'למחוק את רשומת רשימת הבדיקה הזו?';
 
   @override
+  String get preDive_sessions_filter => 'סינון';
+
+  @override
+  String get preDive_sessions_filterTitle => 'סינון רשימות בדיקה שבוצעו';
+
+  @override
+  String get preDive_sessions_filterChecklist => 'רשימת בדיקה';
+
+  @override
+  String get preDive_sessions_filterStatus => 'סטטוס';
+
+  @override
+  String get preDive_sessions_filterFlaggedOnly => 'רק ריצות מסומנות';
+
+  @override
+  String get preDive_sessions_filterDateRange => 'טווח תאריכים';
+
+  @override
+  String get preDive_sessions_filterAnyDate => 'כל תאריך';
+
+  @override
+  String get preDive_sessions_filterClearAll => 'נקה הכול';
+
+  @override
+  String get preDive_sessions_filterApply => 'החל';
+
+  @override
+  String get preDive_sessions_filterFlaggedChip => 'מסומנות בלבד';
+
+  @override
+  String get preDive_sessions_emptyFiltered =>
+      'אין רשימות בדיקה התואמות למסננים אלה';
+
+  @override
+  String get preDive_sessions_export => 'ייצוא ל-Excel';
+
+  @override
+  String get preDive_sessions_exportEmpty => 'אין רשימות בדיקה לייצוא';
+
+  @override
+  String preDive_sessions_exportFailed(String error) {
+    return 'הייצוא נכשל: $error';
+  }
+
+  @override
   String get preDive_start_title => 'התחלת רשימת בדיקה לפני צלילה';
 
   @override
@@ -6064,6 +6109,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_syncPull_continue => 'המשך';
+
+  @override
+  String get setup_syncPull_incomplete_message =>
+      'בחשבון זה קיימת ספריית Submersion שהעלאתה מעולם לא הושלמה. אפשרו למכשיר האחר לסיים את הסנכרון ונסו שוב.';
+
+  @override
+  String get setup_syncPull_incomplete_retry => 'בדיקה חוזרת';
+
+  @override
+  String get setup_syncPull_incomplete_title => 'העלאת הספרייה לא הושלמה';
+
+  @override
+  String get setup_syncPull_locked_message =>
+      'הזינו את משפט הסיסמה של ההצפנה כדי לפתוח את הספרייה ולהוריד אותה למכשיר זה.';
+
+  @override
+  String get setup_syncPull_locked_title => 'הספרייה הזו מוצפנת';
 
   @override
   String get setup_syncPull_noLibrary_message =>
@@ -11583,8 +11645,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_gpsBanner_addToSiteButton => 'הוסף לאתר';
 
   @override
-  String media_gpsBanner_coordinates(Object latitude, Object longitude) {
-    return 'קואורדינטות: $latitude, $longitude';
+  String media_gpsBanner_coordinates(Object coordinates) {
+    return 'קואורדינטות: $coordinates';
   }
 
   @override
@@ -18763,6 +18825,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נמצאו חיבורי USB טוריים. האם מחשב הצלילה מחובר ופועל?';
 
   @override
+  String get diveComputer_download_stalePairing =>
+      'התאמת ה-Bluetooth של מחשב הצלילה הזה אינה עדכנית. שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך, ולאחר מכן התאם אותו מחדש מתפריט ה-Bluetooth של מחשב הצלילה.';
+
+  @override
+  String get diveComputer_download_discoveryStalled =>
+      'ההתחברות למחשב הצלילה הצליחה, אך הוא הפסיק להגיב לפני תחילת ההורדה. בדרך כלל המשמעות היא שהתאמת ה-Bluetooth אינה עדכנית: שכח את מחשב הצלילה בהגדרות ה-Bluetooth של המכשיר שלך ונסה שוב.';
+
+  @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
     return 'לא ניתן להתחבר למחשב הצלילה.\n\nפרטי אבחון (שתפו עם המפתחים):\n$details';
   }
@@ -22582,6 +22652,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repair_applied => 'התיקון הוחל';
 
   @override
+  String get dataQuality_repair_noChange => 'אין כאן מה לתקן';
+
+  @override
   String get dataQuality_repair_failed => 'התיקון נכשל';
 
   @override
@@ -22792,6 +22865,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_despike => 'הסרת הקפיצה';
+
+  @override
+  String get dataQuality_repairLabel_clampNegative =>
+      'הגבלת עומקים מעל פני המים';
+
+  @override
+  String get dataQuality_repairLabel_smoothRates => 'החלקת קצבים בלתי אפשריים';
 
   @override
   String get dataQuality_repairLabel_fillGaps => 'מילוי הפערים';
@@ -23044,6 +23124,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String visibility_range_under(String max, String unit) {
     return 'מתחת ל-$max $unit';
   }
+
+  @override
+  String get settings_coordinateFormat_title => 'פורמט קואורדינטות';
+
+  @override
+  String get settings_coordinateFormat_subtitle =>
+      'כיצד מוצגים ומוזנים מיקומי GPS';
+
+  @override
+  String get settings_coordinateFormat_decimalDegrees => 'מעלות עשרוניות';
+
+  @override
+  String get settings_coordinateFormat_degreesDecimalMinutes =>
+      'מעלות ודקות עשרוניות';
+
+  @override
+  String get settings_coordinateFormat_degreesMinutesSeconds =>
+      'מעלות, דקות, שניות';
+
+  @override
+  String get settings_coordinateFormat_utm => 'UTM';
+
+  @override
+  String get settings_coordinateFormat_mgrs => 'MGRS';
 
   @override
   String get settings_visibilityScale_title => 'סולם ראות';

@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.7.3+120
+version: 1.7.4+121
 
 environment:
   sdk: ^3.10.0
@@ -106,12 +106,12 @@ dependencies:
   # Utilities
   intl: ^0.20.2
   uuid: ^4.5.0
-  xml: ^6.5.0
+  xml: ^7.0.1
   clock: ^1.1.2  # zone-aware now() so tests can drive time via fake_async
   pdf: ^3.11.1
   csv: ^6.0.0
-  excel: ^4.0.6
-  archive: ^3.6.1  # ZIP expansion for DiveCloud export archives
+  excel_community: ^2.2.1  # maintained fork of `excel` (archive 4.x)
+  archive: ^4.0.9  # ZIP expansion for DiveCloud export archives
   fit_tool: ^1.0.5  # Garmin FIT file parsing for dive imports
   logger: ^2.0.0  # Used to suppress fit_tool's verbose warnings
   collection: ^1.18.0
@@ -133,7 +133,7 @@ dependencies:
   cryptography_flutter: ^2.3.4
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
-  pdfrx: ^2.4.5
+  pdfrx: ^2.4.7
 
 dev_dependencies:
   flutter_test:

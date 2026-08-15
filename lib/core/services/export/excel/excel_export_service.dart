@@ -1,22 +1,25 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:excel/excel.dart' as xl;
+import 'package:excel_community/excel_community.dart' as xl;
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/excel/pre_dive_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 
 /// Handles Excel export with multiple worksheet sheets.
 class ExcelExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
   final _timeFormat = DateFormat('HH:mm');
+  final _preDive = PreDiveExcelExportService();
 
   /// Export all dive data to Excel format and share via system sheet.
   ///
@@ -34,6 +37,8 @@ class ExcelExportService {
     required PressureUnit pressureUnit,
     required VolumeUnit volumeUnit,
     required DateFormatPreference dateFormat,
+    List<PreDiveSession> preDiveSessions = const [],
+    Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -44,6 +49,8 @@ class ExcelExportService {
       pressureUnit: pressureUnit,
       volumeUnit: volumeUnit,
       dateFormat: dateFormat,
+      preDiveSessions: preDiveSessions,
+      preDiveItemsBySession: preDiveItemsBySession,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());
@@ -66,10 +73,10 @@ class ExcelExportService {
     required PressureUnit pressureUnit,
     required VolumeUnit volumeUnit,
     required DateFormatPreference dateFormat,
+    List<PreDiveSession> preDiveSessions = const [],
+    Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
   }) async {
     final excel = xl.Excel.createExcel();
-
-    excel.delete('Sheet1');
 
     _buildDivesSheet(
       excel,
@@ -82,6 +89,12 @@ class ExcelExportService {
     );
     _buildSitesSheet(excel, sites, depthUnit);
     _buildEquipmentSheet(excel, equipment, dateFormat);
+    _preDive.buildSheets(
+      excel,
+      sessions: preDiveSessions,
+      itemsBySession: preDiveItemsBySession,
+      dateFormat: dateFormat,
+    );
     _buildStatisticsSheet(
       excel,
       dives,
@@ -91,6 +104,11 @@ class ExcelExportService {
       temperatureUnit,
       dateFormat,
     );
+
+    // Removed only once real sheets exist: the excel package will not delete a
+    // workbook's last remaining sheet, so deleting up front left a stray empty
+    // "Sheet1" in every export.
+    excel.delete('Sheet1');
 
     final bytes = excel.encode();
     if (bytes == null) {
@@ -110,6 +128,8 @@ class ExcelExportService {
     required PressureUnit pressureUnit,
     required VolumeUnit volumeUnit,
     required DateFormatPreference dateFormat,
+    List<PreDiveSession> preDiveSessions = const [],
+    Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -120,6 +140,8 @@ class ExcelExportService {
       pressureUnit: pressureUnit,
       volumeUnit: volumeUnit,
       dateFormat: dateFormat,
+      preDiveSessions: preDiveSessions,
+      preDiveItemsBySession: preDiveItemsBySession,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());

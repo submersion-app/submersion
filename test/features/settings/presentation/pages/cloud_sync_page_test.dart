@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType, SyncRepository;
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
@@ -220,17 +221,28 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
 
   int removeThisDeviceCloudFilesCalls = 0;
   @override
-  Future<void> removeThisDeviceCloudFiles() async =>
-      removeThisDeviceCloudFilesCalls++;
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    removeThisDeviceCloudFilesCalls++;
+    return const SyncCleanupOutcome();
+  }
 
   int wipeAllCloudSyncDataCalls = 0;
   @override
-  Future<void> wipeAllCloudSyncData() async => wipeAllCloudSyncDataCalls++;
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    wipeAllCloudSyncDataCalls++;
+    return const SyncCleanupOutcome();
+  }
 
   int rebuildBackendFromThisDeviceCalls = 0;
   @override
-  Future<void> rebuildBackendFromThisDevice() async =>
-      rebuildBackendFromThisDeviceCalls++;
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+    void Function()? onPublishStarted,
+  }) async => rebuildBackendFromThisDeviceCalls++;
 
   @override
   Future<void> signOut() async => signOutCalls++;
@@ -655,6 +667,13 @@ void main() {
       await pumpPage(tester);
       expect(find.text('Duplicate diver profiles'), findsNothing);
     });
+
+    // Issue #990: SyncState's counts and cursor are otherwise only recomputed
+    // by a sync, so opening the page could report state from app launch.
+    testWidgets('refreshes sync state when opened', (tester) async {
+      final handles = await pumpPage(tester);
+      expect(handles.sync.refreshStateCalls, greaterThan(0));
+    });
   });
 
   group('CloudSyncPage - custom folder banner', () {
@@ -947,21 +966,19 @@ void main() {
       },
     );
 
-    testWidgets(
-      'tapping the iCloud tile authenticates and shows snackbar',
-      (tester) async {
-        final handles = await pumpPage(tester);
+    testWidgets('tapping the iCloud tile authenticates and shows snackbar', (
+      tester,
+    ) async {
+      final handles = await pumpPage(tester);
 
-        await tester.tap(find.text('iCloud'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('iCloud'));
+      await tester.pumpAndSettle();
 
-        // Fake provider authenticates successfully -> success snackbar +
-        // refreshState() on the sync notifier.
-        expect(find.text('Connected to Fake'), findsOneWidget);
-        expect(handles.sync.refreshStateCalls, greaterThan(0));
-      },
-      skip: tapUnavailable,
-    );
+      // Fake provider authenticates successfully -> success snackbar +
+      // refreshState() on the sync notifier.
+      expect(find.text('Connected to Fake'), findsOneWidget);
+      expect(handles.sync.refreshStateCalls, greaterThan(0));
+    }, skip: tapUnavailable);
 
     testWidgets('null cloud provider shows initialize-failed snackbar', (
       tester,
@@ -974,18 +991,16 @@ void main() {
       expect(find.text('Failed to initialize icloud provider'), findsOneWidget);
     }, skip: tapUnavailable);
 
-    testWidgets(
-      'authentication failure shows connection-failed snackbar',
-      (tester) async {
-        await pumpPage(tester, cloudProvider: _ThrowingCloudStorageProvider());
+    testWidgets('authentication failure shows connection-failed snackbar', (
+      tester,
+    ) async {
+      await pumpPage(tester, cloudProvider: _ThrowingCloudStorageProvider());
 
-        await tester.tap(find.text('iCloud'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('iCloud'));
+      await tester.pumpAndSettle();
 
-        expect(find.textContaining('Fake connection failed:'), findsOneWidget);
-      },
-      skip: tapUnavailable,
-    );
+      expect(find.textContaining('Fake connection failed:'), findsOneWidget);
+    }, skip: tapUnavailable);
   });
 
   group('CloudSyncPage - sync actions', () {

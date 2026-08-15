@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_edit
 /// - Smooth: window size selection and apply buttons
 /// - Outlier: detect and remove outlier controls
 /// - Draw: waypoint management and profile generation
+/// - Trim: profile trimming controls
 class EditorContextPanel extends StatefulWidget {
   final EditorMode mode;
   final ProfileEditorNotifier notifier;
@@ -45,6 +46,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         EditorMode.smooth => _buildSmoothPanel(context),
         EditorMode.outlier => _buildOutlierPanel(context),
         EditorMode.draw => _buildDrawPanel(context),
+        EditorMode.trim => _buildTrimPanel(context),
       },
     );
   }
@@ -249,6 +251,31 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               label: const Text('Generate Profile'),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrimPanel(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Trim Mode', style: Theme.of(context).textTheme.titleSmall),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Trim profile endpoints',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.tonalIcon(
+          onPressed: () => widget.notifier.trimEndZeros(),
+          icon: const Icon(Icons.content_cut, size: 18),
+          label: const Text('Trim End'),
         ),
       ],
     );

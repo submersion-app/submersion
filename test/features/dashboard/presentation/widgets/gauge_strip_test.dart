@@ -15,7 +15,9 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -39,10 +41,43 @@ const _emptyGauges = DashboardGauges(
   daysSinceLastDive: null,
 );
 
+/// Sync enabled, nothing pending: the state the sync chip renders as "Synced".
+const _syncGauges = DashboardGauges(
+  gearGauges: [],
+  hasGear: true,
+  insurance: null,
+  noFlyStatus: null,
+  daysSinceLastDive: null,
+  syncEnabled: true,
+);
+
+/// Counts the syncs the chip asks for, without touching the database.
+/// Only the members [runSyncNow] reaches are implemented; anything else
+/// throws, which is the point -- the chip must not take another path.
+class _RecordingSyncNotifier extends StateNotifier<SyncState>
+    implements SyncNotifier {
+  _RecordingSyncNotifier(super.state);
+
+  int syncCount = 0;
+
+  @override
+  Future<void> performSync({bool auto = false}) async => syncCount++;
+
+  @override
+  Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
+
+  @override
+  Future<LibraryEpochMarker?> libraryReplaceInfo() async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<NavSpy> pumpStrip(
   WidgetTester tester,
   DashboardGauges gauges, {
   MockSettingsNotifier? settingsNotifier,
+  List<Override> extraOverrides = const [],
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final spy = NavSpy();
@@ -119,6 +154,7 @@ Future<NavSpy> pumpStrip(
       overrides: [
         ...overrides,
         dashboardGaugesProvider.overrideWith((ref) async => gauges),
+        ...extraOverrides,
       ].cast(),
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -846,20 +882,74 @@ void main() {
       expect(find.text('5 unsynced'), findsOneWidget);
     });
 
-    testWidgets('opens cloud sync settings', (tester) async {
+    testWidgets('shows the syncing state while a sync runs', (tester) async {
+      await pumpStrip(
+        tester,
+        _syncGauges,
+        extraOverrides: [
+          syncStateProvider.overrideWith(
+            (ref) => _RecordingSyncNotifier(
+              const SyncState(status: SyncStatus.syncing),
+            ),
+          ),
+        ],
+      );
+      expect(find.text('Syncing...'), findsOneWidget);
+      expect(find.text('Synced'), findsNothing);
+    });
+
+    // Issue #990: the chip's job is the sync itself, so tapping runs one
+    // rather than sending the user to a page to press another button.
+    testWidgets('tapping runs a sync instead of navigating', (tester) async {
+      final notifier = _RecordingSyncNotifier(const SyncState());
       final spy = await pumpStrip(
         tester,
-        const DashboardGauges(
-          gearGauges: [],
-          hasGear: true,
-          insurance: null,
-          noFlyStatus: null,
-          daysSinceLastDive: null,
-          syncEnabled: true,
-        ),
+        _syncGauges,
+        extraOverrides: [syncStateProvider.overrideWith((ref) => notifier)],
       );
+
       await tapChip(tester, 'Synced');
+
+      expect(notifier.syncCount, 1);
+      expect(spy.location, isNull);
+    });
+
+    // Mid-sync the chip must not queue a second run, but it also must not go
+    // inert via a no-op callback: that still announces a tap action to
+    // assistive tech. It opens the page showing sync progress instead.
+    testWidgets('a tap mid-sync opens progress, not a second run', (
+      tester,
+    ) async {
+      final notifier = _RecordingSyncNotifier(
+        const SyncState(status: SyncStatus.syncing),
+      );
+      final spy = await pumpStrip(
+        tester,
+        _syncGauges,
+        extraOverrides: [syncStateProvider.overrideWith((ref) => notifier)],
+      );
+
+      await tapChip(tester, 'Syncing...');
+
+      expect(notifier.syncCount, 0);
       expect(spy.location, '/settings/cloud-sync');
+    });
+
+    testWidgets('long-press still opens cloud sync settings', (tester) async {
+      final notifier = _RecordingSyncNotifier(const SyncState());
+      final spy = await pumpStrip(
+        tester,
+        _syncGauges,
+        extraOverrides: [syncStateProvider.overrideWith((ref) => notifier)],
+      );
+
+      await tester.longPress(
+        find.ancestor(of: find.text('Synced'), matching: find.byType(InkWell)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(spy.location, '/settings/cloud-sync');
+      expect(notifier.syncCount, 0);
     });
   });
 

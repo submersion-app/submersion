@@ -48,8 +48,8 @@ void main() {
     await tester.pumpWidget(
       host(const TissuePick(col: 1, comp: 2, screenPos: Offset.zero)),
     );
-    expect(find.textContaining('12.15100'), findsOneWidget);
-    expect(find.textContaining('-68.29800'), findsOneWidget);
+    expect(find.textContaining('12.151000° N'), findsOneWidget);
+    expect(find.textContaining('68.298000° W'), findsOneWidget);
     expect(find.textContaining('15.0m'), findsOneWidget);
   });
 

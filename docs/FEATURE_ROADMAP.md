@@ -1696,7 +1696,7 @@
 |----------|--------|--------------|
 | iOS | ✅ | iOS 15+ |
 | Android | ✅ | Android 7+ |
-| macOS | ✅ | macOS 11+ |
+| macOS | ✅ | macOS 12+ |
 | Windows | ✅ | Windows 10+ |
 | Linux | ✅ | Desktop Linux |
 | Web | v2.0 | Requires cloud sync |

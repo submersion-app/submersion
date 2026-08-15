@@ -279,22 +279,29 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
               style: const TextStyle(fontStyle: FontStyle.italic),
             )
           : Text(species.category.displayName),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit species',
-            onPressed: () => context.push('/species/${species.id}/edit'),
-          ),
-          if (isCustom)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Delete species',
-              onPressed: () => _confirmDelete(species),
+      // Per-row actions yield to selection mode. Leaving the trash here would
+      // put a one-tap delete beside the checkbox while the bulk delete sits
+      // deliberately behind the selection bar's overflow -- two contradictory
+      // answers to how destructive an action delete is on this screen.
+      trailing: _isSelectionMode
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: context.l10n.marineLife_speciesManage_editTooltip,
+                  onPressed: () => context.push('/species/${species.id}/edit'),
+                ),
+                if (isCustom)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip:
+                        context.l10n.marineLife_speciesManage_deleteTooltip,
+                    onPressed: () => _confirmDelete(species),
+                  ),
+              ],
             ),
-        ],
-      ),
       onTap: () {
         if (_isSelectionMode) {
           if (_isSelectable(species)) _selection.toggle(species.id);

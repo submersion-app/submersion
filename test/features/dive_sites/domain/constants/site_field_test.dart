@@ -234,10 +234,10 @@ void main() {
       expect(adapter.formatValue(SiteField.rating, 4.5, units), equals('4.5'));
     });
 
-    test('formats latitude/longitude with 5 decimal places', () {
+    test('formats latitude/longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(SiteField.latitude, 36.04270, units),
-        equals('36.04270'),
+        equals('36.042700° N'),
       );
     });
 
@@ -795,10 +795,10 @@ void main() {
       expect(formatted, equals('5m'));
     });
 
-    test('formats longitude with 5 decimal places', () {
+    test('formats longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(SiteField.longitude, 14.19827, units),
-        equals('14.19827'),
+        equals('14.198270° E'),
       );
     });
 

@@ -90,6 +90,35 @@ class _FakeDiveComputerRepository extends DiveComputerRepository {
   }) async => null;
 }
 
+/// Repository that records the computers created through it, so a test can
+/// assert that a download persisted the dive computer it talked to.
+class _RecordingDiveComputerRepository extends DiveComputerRepository {
+  final List<DiveComputer> created = [];
+
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async {
+    created.add(computer);
+    return computer;
+  }
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async => null;
+}
+
 /// Repository that never resolves findByBluetoothAddress, simulating
 /// an async delay during computer resolution.
 class _NeverResolveDiveComputerRepository extends DiveComputerRepository {
@@ -602,6 +631,46 @@ void main() {
       expect(find.byType(DcNoNewDivesView), findsOneWidget);
       expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
     });
+
+    // Issue #865: a first-time pairing whose download happened to find nothing
+    // new used to return before ensureComputer(), so a dive computer that had
+    // just proved it pairs, connects and downloads was never saved -- the diver
+    // had to rediscover it every time.
+    testWidgets(
+      'a completed download with no dives still saves the dive computer',
+      (tester) async {
+        final repository = _RecordingDiveComputerRepository();
+        final adapter = _makeAdapter(computerRepository: repository);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container
+            .read(downloadNotifierProvider.notifier)
+            .state = const DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [],
+          firmwareVersion: '92',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DcNoNewDivesView), findsOneWidget);
+        expect(repository.created, hasLength(1));
+        expect(repository.created.single.bluetoothAddress, _testDevice.address);
+        expect(repository.created.single.firmwareVersion, '92');
+        // Still no Review step to advance to -- only the saving changed.
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+      },
+    );
 
     testWidgets(
       'importing a partial download captures dives and advances the wizard',

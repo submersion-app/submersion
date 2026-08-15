@@ -34,6 +34,14 @@ void main() {
 
   final now = DateTime.now();
 
+  Future<void> insertDiver(String id) async {
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO divers (id, name, created_at, updated_at) '
+      "VALUES ('$id', '$id', 0, 0)",
+    );
+  }
+
   Future<void> insertDive(String id) async {
     final db = DatabaseService.instance.database;
     await db.customStatement(
@@ -165,6 +173,76 @@ void main() {
     expect((await repository.getActiveSession())!.id, s2.id);
     await repository.abortSession(s2.id);
     expect(await repository.getActiveSession(), isNull);
+  });
+
+  test(
+    'getSessionStats counts totals, resolved and flagged per session',
+    () async {
+      final s1 = await start();
+      final s1Items = await repository.getItemsForSession(s1.id);
+      await repository.updateItemState(
+        sessionId: s1.id,
+        itemId: s1Items[0].id,
+        state: domain.PreDiveItemState.flagged,
+      );
+      await repository.completeSession(s1.id);
+
+      final s2 = await start();
+      final s2Items = await repository.getItemsForSession(s2.id);
+      await repository.updateItemState(
+        sessionId: s2.id,
+        itemId: s2Items[0].id,
+        state: domain.PreDiveItemState.done,
+      );
+      await repository.updateItemState(
+        sessionId: s2.id,
+        itemId: s2Items[1].id,
+        state: domain.PreDiveItemState.skipped,
+      );
+
+      final stats = await repository.getSessionStats();
+
+      // s1: one flagged (which also counts as resolved), one still pending.
+      expect(stats[s1.id]!.total, 2);
+      expect(stats[s1.id]!.resolved, 1);
+      expect(stats[s1.id]!.flagged, 1);
+      // s2: done + skipped are both resolved, neither is flagged.
+      expect(stats[s2.id]!.total, 2);
+      expect(stats[s2.id]!.resolved, 2);
+      expect(stats[s2.id]!.flagged, 0);
+    },
+  );
+
+  test('getSessionStats omits sessions belonging to another diver', () async {
+    await insertDiver('me');
+    await insertDiver('someone-else');
+    // An unscoped session stays visible to every diver.
+    final mine = await start();
+    final theirs = await repository.startSession(
+      template: template(),
+      items: [draft('A')],
+      diverId: 'someone-else',
+    );
+
+    final stats = await repository.getSessionStats(diverId: 'me');
+
+    expect(stats.containsKey(mine.id), isTrue);
+    expect(stats.containsKey(theirs.id), isFalse);
+  });
+
+  test('getItemsForSessions returns items grouped by session id', () async {
+    final s1 = await start();
+    final s2 = await start();
+
+    final grouped = await repository.getItemsForSessions([s1.id, s2.id]);
+
+    expect(grouped[s1.id]!.map((i) => i.title).toList(), ['A', 'B']);
+    expect(grouped[s2.id]!.map((i) => i.title).toList(), ['A', 'B']);
+  });
+
+  test('getItemsForSessions returns an empty map for no ids', () async {
+    await start();
+    expect(await repository.getItemsForSessions([]), isEmpty);
   });
 
   test('deleteSession tombstones session and items', () async {

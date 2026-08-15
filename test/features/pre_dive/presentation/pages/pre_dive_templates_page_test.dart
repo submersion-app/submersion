@@ -62,11 +62,12 @@ void main() {
 
   Future<void> pumpPage(
     WidgetTester tester,
-    List<PreDiveChecklistTemplate> templates,
-  ) async {
+    List<PreDiveChecklistTemplate> templates, {
+    Locale locale = const Locale('en'),
+  }) async {
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           preDiveTemplatesProvider.overrideWith((ref) async => templates),
         ],
@@ -96,6 +97,32 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('template name keeps its width beside the built-in badge', (
+    tester,
+  ) async {
+    // Same ListTile.trailing hazard as issue #935 on the sessions page: the
+    // trailing widget is measured against the full tile width, so a badge with
+    // a translated label eats into the title column. "Predefinita" (it) is the
+    // longest translation of the built-in badge.
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    const longName = 'CCR rEvo - Modificato per acque fredde';
+    await pumpPage(tester, [
+      template(longName, builtIn: true),
+    ], locale: const Locale('it'));
+
+    final titleSize = tester.getSize(find.text(longName));
+
+    expect(
+      titleSize.width,
+      greaterThan(150),
+      reason:
+          'Template name collapsed to ${titleSize.width}px wide on a 360px '
+          'screen; the built-in badge is starving the ListTile text column.',
+    );
+  });
 
   testWidgets('renders built-in badge and user templates', (tester) async {
     await pumpPage(tester, [

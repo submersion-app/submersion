@@ -3,11 +3,61 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/excel/pre_dive_excel_export_service.dart';
+import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_sessions_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+
+/// Captures what the page handed the exporter, without writing any file.
+class _RecordingExcelExporter extends PreDiveExcelExportService {
+  List<PreDiveSession>? sharedSessions;
+  List<PreDiveSession>? savedSessions;
+
+  @override
+  Future<String> exportToExcel({
+    required List<PreDiveSession> sessions,
+    required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required DateFormatPreference dateFormat,
+  }) async {
+    sharedSessions = sessions;
+    return '/tmp/checklists.xlsx';
+  }
+
+  @override
+  Future<String?> saveToFile({
+    required List<PreDiveSession> sessions,
+    required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required DateFormatPreference dateFormat,
+  }) async {
+    savedSessions = sessions;
+    return '/tmp/checklists.xlsx';
+  }
+}
+
+/// Serves the bulk item fetch without a database, and records which runs the
+/// page asked for.
+class _StubSessionRepository implements PreDiveSessionRepository {
+  List<String>? requestedIds;
+
+  @override
+  Future<Map<String, List<PreDiveSessionItem>>> getItemsForSessions(
+    List<String> sessionIds,
+  ) async {
+    requestedIds = sessionIds;
+    return {for (final id in sessionIds) id: const []};
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
@@ -51,19 +101,39 @@ void main() {
           ).overrideWith((ref) async => entry.value),
       ];
 
+  // The page reads tallies from the aggregate stats provider. Deriving them
+  // from the same item fixtures (via the same engine the repository query
+  // mirrors) keeps these tests asserting computed counts rather than numbers
+  // typed into the override.
+  dynamic statsOverrideFor(Map<String, List<PreDiveSessionItem>> byId) =>
+      preDiveSessionStatsProvider.overrideWith(
+        (ref) async => {
+          for (final entry in byId.entries)
+            entry.key: PreDiveSessionStats(
+              total: entry.value.length,
+              resolved: ChecklistSessionEngine.resolvedCount(entry.value),
+              flagged: ChecklistSessionEngine.flaggedCount(entry.value),
+            ),
+        },
+      );
+
   Future<void> pumpPage(
     WidgetTester tester, {
     PreDiveSession? active,
     required List<PreDiveSession> sessions,
     Map<String, List<PreDiveSessionItem>> items = const {},
+    Locale locale = const Locale('en'),
+    List<dynamic> extraOverrides = const [],
   }) async {
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           preDiveActiveSessionProvider.overrideWith((ref) async => active),
           preDiveSessionsProvider.overrideWith((ref) async => sessions),
+          statsOverrideFor(items),
           ...itemOverridesFor(items),
+          ...extraOverrides,
         ],
         child: const PreDiveSessionsPage(),
       ),
@@ -210,6 +280,317 @@ void main() {
     expect(find.text('Linked dive'), findsOneWidget);
     expect(find.byType(ActionChip), findsOneWidget);
     expect(find.byIcon(Icons.scuba_diving), findsOneWidget);
+  });
+
+  testWidgets(
+    'session title keeps its width on a narrow phone in German (#935)',
+    (tester) async {
+      // The German "Verknuepfter Tauchgang" chip is far wider than the English
+      // "Linked dive". A ListTile measures its trailing widget against the full
+      // tile width first, so anything wide there starves the title column and
+      // the name degrades to one glyph per line.
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      const longName = 'CCR rEvo - Modifiziert';
+      await pumpPage(
+        tester,
+        locale: const Locale('de'),
+        sessions: [
+          session(
+            'w1',
+            name: longName,
+            status: PreDiveSessionStatus.completed,
+            diveId: 'dive-42',
+          ),
+        ],
+        items: {
+          'w1': [item('w1', 0, PreDiveItemState.done)],
+        },
+      );
+
+      final titleSize = tester.getSize(find.text(longName));
+
+      expect(
+        titleSize.width,
+        greaterThan(150),
+        reason:
+            'Title collapsed to ${titleSize.width}px wide on a 360px screen; '
+            'the linked-dive chip is starving the ListTile text column.',
+      );
+    },
+  );
+
+  group('filtering', () {
+    Future<void> pumpTwoChecklists(WidgetTester tester) => pumpPage(
+      tester,
+      sessions: [
+        session('a', name: 'CCR Build', status: PreDiveSessionStatus.completed),
+        session('b', name: 'BWRAF', status: PreDiveSessionStatus.aborted),
+      ],
+      items: {
+        'a': [item('a', 0, PreDiveItemState.flagged)],
+        'b': [item('b', 0, PreDiveItemState.done)],
+      },
+    );
+
+    testWidgets('filter icon opens the filter sheet', (tester) async {
+      await pumpTwoChecklists(tester);
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter checklist runs'), findsOneWidget);
+      // Checklist names are offered from the runs actually present.
+      expect(find.widgetWithText(FilterChip, 'CCR Build'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'BWRAF'), findsOneWidget);
+    });
+
+    testWidgets('applying a checklist filter hides the other runs', (
+      tester,
+    ) async {
+      await pumpTwoChecklists(tester);
+      expect(find.text('BWRAF'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'CCR Build'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      // Scoped to the list rows: the active-filter bar also renders the
+      // selected checklist name as a chip.
+      expect(find.widgetWithText(ListTile, 'CCR Build'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'BWRAF'), findsNothing);
+    });
+
+    testWidgets('dismissing the active filter chip restores the full list', (
+      tester,
+    ) async {
+      await pumpTwoChecklists(tester);
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'CCR Build'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, 'BWRAF'), findsNothing);
+
+      // The bar chip carries the facet name and a close affordance.
+      await tester.tap(find.byIcon(Icons.close).first);
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(ListTile, 'BWRAF'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'CCR Build'), findsOneWidget);
+    });
+
+    testWidgets('filtered empty state appears when nothing matches', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        sessions: [
+          session(
+            'a',
+            name: 'CCR Build',
+            status: PreDiveSessionStatus.completed,
+          ),
+        ],
+        items: {
+          'a': [item('a', 0, PreDiveItemState.done)],
+        },
+      );
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      // The switch sits below the sheet's initial fold.
+      await tester.scrollUntilVisible(
+        find.text('Flagged runs only'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      // No run has a flagged item, so this filter matches nothing.
+      await tester.tap(find.text('Flagged runs only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('No checklist runs match these filters'),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.filter_list_off), findsOneWidget);
+      // The unfiltered empty copy must not be shown: runs do exist.
+      expect(find.text('No checklist runs yet'), findsNothing);
+    });
+
+    testWidgets('an in-progress run stays pinned while a filter is active', (
+      tester,
+    ) async {
+      final active = session(
+        'live',
+        name: 'CCR Build',
+        status: PreDiveSessionStatus.inProgress,
+      );
+      await pumpPage(
+        tester,
+        active: active,
+        sessions: [
+          active,
+          session('old', name: 'BWRAF', status: PreDiveSessionStatus.completed),
+        ],
+        items: {
+          'live': [item('live', 0, PreDiveItemState.pending)],
+          'old': [item('old', 0, PreDiveItemState.done)],
+        },
+      );
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'BWRAF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      // Filtering to a different checklist must not strand the running one.
+      expect(find.text('Resume'), findsOneWidget);
+    });
+  });
+
+  group('export', () {
+    testWidgets('exports the filtered set, not the whole history', (
+      tester,
+    ) async {
+      final exporter = _RecordingExcelExporter();
+      final repo = _StubSessionRepository();
+
+      await pumpPage(
+        tester,
+        sessions: [
+          session(
+            'a',
+            name: 'CCR Build',
+            status: PreDiveSessionStatus.completed,
+          ),
+          session('b', name: 'BWRAF', status: PreDiveSessionStatus.completed),
+        ],
+        items: {
+          'a': [item('a', 0, PreDiveItemState.done)],
+          'b': [item('b', 0, PreDiveItemState.done)],
+        },
+        extraOverrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          preDiveExcelExportServiceProvider.overrideWithValue(exporter),
+          preDiveSessionRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'CCR Build'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.grid_on));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Share'));
+      await tester.pumpAndSettle();
+
+      // The filter doubles as the export selector.
+      expect(exporter.sharedSessions?.map((s) => s.templateName).toList(), [
+        'CCR Build',
+      ]);
+      // Item rows were fetched in one bulk call for exactly those runs.
+      expect(repo.requestedIds, ['a']);
+    });
+
+    testWidgets('choosing Save routes to the save path, not share', (
+      tester,
+    ) async {
+      final exporter = _RecordingExcelExporter();
+
+      await pumpPage(
+        tester,
+        sessions: [
+          session(
+            'a',
+            name: 'CCR Build',
+            status: PreDiveSessionStatus.completed,
+          ),
+        ],
+        items: {
+          'a': [item('a', 0, PreDiveItemState.done)],
+        },
+        extraOverrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          preDiveExcelExportServiceProvider.overrideWithValue(exporter),
+          preDiveSessionRepositoryProvider.overrideWithValue(
+            _StubSessionRepository(),
+          ),
+        ],
+      );
+
+      await tester.tap(find.byIcon(Icons.grid_on));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save to File'));
+      await tester.pumpAndSettle();
+
+      expect(exporter.savedSessions, isNotNull);
+      expect(exporter.sharedSessions, isNull);
+    });
+
+    testWidgets('export action is disabled while sessions are still loading', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            preDiveActiveSessionProvider.overrideWith((ref) async => null),
+            // Never completes: holds the provider in its loading state.
+            preDiveSessionsProvider.overrideWith(
+              (ref) => Completer<List<PreDiveSession>>().future,
+            ),
+          ],
+          child: const PreDiveSessionsPage(),
+        ),
+      );
+      await tester.pump();
+
+      final button = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.byIcon(Icons.grid_on),
+          matching: find.byType(IconButton),
+        ),
+      );
+
+      // A pending load must not be reported as "nothing to export".
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('exporting an empty list reports it instead of writing', (
+      tester,
+    ) async {
+      final exporter = _RecordingExcelExporter();
+
+      await pumpPage(
+        tester,
+        sessions: [],
+        extraOverrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          preDiveExcelExportServiceProvider.overrideWithValue(exporter),
+        ],
+      );
+
+      await tester.tap(find.byIcon(Icons.grid_on));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No checklist runs to export'), findsOneWidget);
+      expect(exporter.sharedSessions, isNull);
+      expect(exporter.savedSessions, isNull);
+    });
   });
 
   testWidgets('loading spinner shows while sessions are pending', (

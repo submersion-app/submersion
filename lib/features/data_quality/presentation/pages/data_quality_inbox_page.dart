@@ -107,12 +107,17 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
-    Future<void> withUndo(Future<RepairUndo?> Function() run) async {
+    Future<void> withUndo(Future<RepairResult> Function() run) async {
       try {
-        final undo = await run();
+        final result = await run();
+        final undo = result.undo;
         messenger.showSnackBar(
           SnackBar(
-            content: Text(l10n.dataQuality_repair_applied),
+            content: Text(
+              result.changed
+                  ? l10n.dataQuality_repair_applied
+                  : l10n.dataQuality_repair_noChange,
+            ),
             action: undo == null
                 ? null
                 : SnackBarAction(
@@ -179,6 +184,22 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             diveId: diveId,
             findingId: f.id,
             compute: ProfileRepairService.despike,
+          ),
+        );
+      case SmoothRatesRepair(:final diveId):
+        await withUndo(
+          () => executor.applyProfileRepair(
+            diveId: diveId,
+            findingId: f.id,
+            compute: ProfileRepairService.smoothImpossibleRates,
+          ),
+        );
+      case ClampNegativeDepthsRepair(:final diveId):
+        await withUndo(
+          () => executor.applyProfileRepair(
+            diveId: diveId,
+            findingId: f.id,
+            compute: ProfileRepairService.clampNegativeDepths,
           ),
         );
       case FillGapsRepair(:final diveId):

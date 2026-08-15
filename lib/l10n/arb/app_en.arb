@@ -1531,6 +1531,27 @@
   "preDive_sessions_linkedDive": "Linked dive",
   "preDive_sessions_delete": "Delete",
   "preDive_sessions_deleteConfirm": "Delete this checklist record?",
+  "preDive_sessions_filter": "Filter",
+  "preDive_sessions_filterTitle": "Filter checklist runs",
+  "preDive_sessions_filterChecklist": "Checklist",
+  "preDive_sessions_filterStatus": "Status",
+  "preDive_sessions_filterFlaggedOnly": "Flagged runs only",
+  "preDive_sessions_filterDateRange": "Date range",
+  "preDive_sessions_filterAnyDate": "Any date",
+  "preDive_sessions_filterClearAll": "Clear all",
+  "preDive_sessions_filterApply": "Apply",
+  "preDive_sessions_filterFlaggedChip": "Flagged only",
+  "preDive_sessions_emptyFiltered": "No checklist runs match these filters",
+  "preDive_sessions_export": "Export to Excel",
+  "preDive_sessions_exportEmpty": "No checklist runs to export",
+  "preDive_sessions_exportFailed": "Export failed: {error}",
+  "@preDive_sessions_exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "preDive_start_title": "Start pre-dive checklist",
   "preDive_start_template": "Checklist",
   "preDive_start_equipmentSet": "Equipment set",
@@ -3444,6 +3465,11 @@
   "setup_step_profile": "Profile",
   "setup_step_units": "Units",
   "setup_syncPull_continue": "Continue",
+  "setup_syncPull_incomplete_message": "This account holds a Submersion library that was never finished uploading. Let your other device finish syncing, then try again.",
+  "setup_syncPull_incomplete_retry": "Check again",
+  "setup_syncPull_incomplete_title": "Library upload unfinished",
+  "setup_syncPull_locked_message": "Enter the encryption passphrase to unlock this library and download it to this device.",
+  "setup_syncPull_locked_title": "This library is encrypted",
   "setup_syncPull_noLibrary_message": "No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.",
   "setup_syncPull_noLibrary_title": "No library found",
   "setup_syncPull_success": "Library adopted",
@@ -6744,7 +6770,7 @@
     }
   },
   "media_gpsBanner_addToSiteButton": "Add to Site",
-  "media_gpsBanner_coordinates": "Coordinates: {latitude}, {longitude}",
+  "media_gpsBanner_coordinates": "Coordinates: {coordinates}",
   "media_gpsBanner_createSiteButton": "Create Site",
   "media_gpsBanner_dismissTooltip": "Dismiss GPS suggestion",
   "media_gpsBanner_title": "GPS found in photos",
@@ -6926,10 +6952,7 @@
   },
   "@media_gpsBanner_coordinates": {
     "placeholders": {
-      "latitude": {
-        "type": "Object"
-      },
-      "longitude": {
+      "coordinates": {
         "type": "Object"
       }
     }
@@ -12090,6 +12113,8 @@
   },
   "diveComputer_download_errorOccurred": "An error occurred",
   "diveComputer_download_noSerialPortsFound": "No USB serial ports found. Is the dive computer connected and powered on?",
+  "diveComputer_download_stalePairing": "This dive computer's Bluetooth pairing is out of date. Forget the dive computer in your device's Bluetooth settings, then pair it again from the dive computer's Bluetooth menu.",
+  "diveComputer_download_discoveryStalled": "Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device's Bluetooth settings, then try again.",
   "diveComputer_download_serialConnectFailedWithDetails": "Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {
@@ -14569,6 +14594,7 @@
   "dataQuality_action_goToDive": "Go to dive",
   "dataQuality_action_undo": "Undo",
   "dataQuality_repair_applied": "Repair applied",
+  "dataQuality_repair_noChange": "Nothing to repair here",
   "dataQuality_repair_failed": "Repair failed",
   "dataQuality_chip_all": "All",
   "dataQuality_chip_time": "Time",
@@ -14825,6 +14851,8 @@
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_combine": "Combine into one dive",
   "dataQuality_repairLabel_despike": "Remove spike",
+  "dataQuality_repairLabel_clampNegative": "Clamp above-surface depths",
+  "dataQuality_repairLabel_smoothRates": "Smooth impossible rates",
   "dataQuality_repairLabel_fillGaps": "Fill gaps",
   "dataQuality_repairLabel_smoothTemp": "Smooth temperature",
   "dataQuality_repairLabel_convertTemp": "Convert temperature",
@@ -14950,6 +14978,13 @@
       }
     }
   },
+  "settings_coordinateFormat_title": "Coordinate format",
+  "settings_coordinateFormat_subtitle": "How GPS positions are shown and entered",
+  "settings_coordinateFormat_decimalDegrees": "Decimal degrees",
+  "settings_coordinateFormat_degreesDecimalMinutes": "Degrees and decimal minutes",
+  "settings_coordinateFormat_degreesMinutesSeconds": "Degrees, minutes, seconds",
+  "settings_coordinateFormat_utm": "UTM",
+  "settings_coordinateFormat_mgrs": "MGRS",
   "settings_visibilityScale_title": "Visibility scale",
   "settings_visibilityScale_subtitle": "Which distances count as good visibility where you dive",
   "settings_visibilityScale_preset_tropical": "Tropical",

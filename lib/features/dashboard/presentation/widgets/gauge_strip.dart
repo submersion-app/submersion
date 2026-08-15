@@ -7,6 +7,8 @@ import 'package:submersion/features/dashboard/presentation/providers/gauge_provi
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dive-currency thresholds for the last-dive chip: quiet under 6 months,
@@ -34,7 +36,7 @@ class GaugeStrip extends ConsumerWidget {
     final gaugesAsync = ref.watch(dashboardGaugesProvider);
     final hidden = ref.watch(settingsProvider.select((s) => s.hiddenHomeChips));
     return gaugesAsync.when(
-      data: (g) => _buildStrip(context, g, hidden),
+      data: (g) => _buildStrip(context, ref, g, hidden),
       loading: () => const SizedBox(height: 40),
       // Always-on block: contained error with a retry affordance instead
       // of vanishing.
@@ -56,6 +58,7 @@ class GaugeStrip extends ConsumerWidget {
 
   Widget _buildStrip(
     BuildContext context,
+    WidgetRef ref,
     DashboardGauges g,
     Set<String> hidden,
   ) {
@@ -356,15 +359,38 @@ class GaugeStrip extends ConsumerWidget {
     }
 
     if (_shown(hidden, HomeChipType.sync) && g.syncEnabled) {
+      final syncing = ref.watch(isSyncingProvider);
       chips.add(
         _chip(
           context,
           icon: Icons.sync_outlined,
-          label: g.syncPending > 0
+          // Reuses the Cloud Sync page's string rather than minting a
+          // dashboard-scoped duplicate of the same word in 12 locales.
+          label: syncing
+              ? l10n.settings_cloudSync_status_syncing
+              : g.syncPending > 0
               ? l10n.dashboard_gauges_syncPending(g.syncPending)
               : l10n.dashboard_gauges_synced,
-          tone: g.syncPending > 0 ? _Tone.warn : _Tone.ok,
-          onTap: () => context.push('/settings/cloud-sync'),
+          tone: syncing
+              ? _Tone.neutral
+              : g.syncPending > 0
+              ? _Tone.warn
+              : _Tone.ok,
+          // Tap syncs; the sync itself is what the user wants when they look
+          // at this chip. runSyncNow (not performSync) so the first-contact
+          // and replaced-library gates still get their confirmation dialogs.
+          //
+          // Mid-sync the tap opens the Cloud Sync page instead of queuing a
+          // redundant run. A no-op callback would be the wrong way to say
+          // "inert": it still announces a tap action to assistive tech and
+          // still splashes. Sending the user to the progress bar is both a
+          // real action and the one they want at that moment -- and it keeps
+          // onTap non-null, which is load-bearing here (see [_chip]).
+          onTap: syncing
+              ? () => context.push('/settings/cloud-sync')
+              : () => runSyncNow(context, ref),
+          // The settings page stays reachable from the chip that points at it.
+          onLongPress: () => context.push('/settings/cloud-sync'),
         ),
       );
     }
@@ -397,6 +423,7 @@ class GaugeStrip extends ConsumerWidget {
     required String label,
     required _Tone tone,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
   }) {
     final scheme = Theme.of(context).colorScheme;
     final (bg, fg) = switch (tone) {
@@ -410,6 +437,7 @@ class GaugeStrip extends ConsumerWidget {
     };
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(999),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

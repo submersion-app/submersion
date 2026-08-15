@@ -41,12 +41,15 @@ class FileData extends MediaSourceData {
   final File file;
 
   /// Whether [file] holds a still image standing in for the item rather than
-  /// the item's own bytes — a poster frame derived from a video.
+  /// the item's own bytes — a poster frame derived from a video, or a page-1
+  /// render of a document.
   ///
-  /// A video row's [FileData] is normally raw video that `Image.file` cannot
-  /// decode, so the view substitutes a placeholder. A poster is the one case
-  /// where a video's file IS decodable, and only the producer knows which it
-  /// handed back: `MediaItemView` sees the same `FileData` either way.
+  /// A video or document row's [FileData] is normally raw bytes that
+  /// `Image.file` cannot decode, so the view substitutes a placeholder. A
+  /// stand-in is the one case where such a row's file IS decodable, and only
+  /// the producer knows which it handed back: `MediaItemView` sees the same
+  /// `FileData` either way. A photo's thumbnail is NOT a stand-in — it is the
+  /// photo itself, resized.
   final bool isPoster;
 
   const FileData({required this.file, this.isPoster = false});

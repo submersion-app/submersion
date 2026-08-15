@@ -54,6 +54,12 @@ typedef struct {
     libdc_parsed_dive_t *dive;
     int has_pending_sample;
     unsigned int current_gasmix;  // active gas index, carried across samples
+    // Deco obligation, likewise carried: it is state the computer holds, not a
+    // reading it retakes, so it stands until the computer reports a new one.
+    unsigned int current_deco_type;
+    unsigned int current_deco_time;
+    double current_deco_depth;
+    unsigned int current_deco_tts;
     libdc_sample_t current_sample;
     // GPS reported as profile samples (see DC_SAMPLE_LOCATION below). Fixes
     // are only collected here and resolved once the whole profile has been
@@ -207,7 +213,13 @@ static void sample_callback(dc_sample_type_t type,
         push_sample(state);
         state->has_pending_sample = 1;
         state->current_sample.time_ms = value->time;
-        state->current_sample.depth = 0.0;
+        // NAN, not 0.0: libdivecomputer opens a sample for every timestamp in
+        // the log, and several families stamp records that carry no depth
+        // (Divesoft logs O2-cell, battery, GPS and tissue records on their own
+        // second). Defaulting to 0.0 turned every one of those into a sample at
+        // the surface. fill_missing_depths() resolves the NANs once the whole
+        // profile is known -- no NAN depth ever leaves this file.
+        state->current_sample.depth = NAN;
         state->current_sample.temperature = NAN;
         state->current_sample.pressure = NAN;
         state->current_sample.tank = UINT32_MAX;
@@ -222,10 +234,15 @@ static void sample_callback(dc_sample_type_t type,
         }
         state->current_sample.cns = NAN;
         state->current_sample.rbt = UINT32_MAX;
-        state->current_sample.deco_type = UINT32_MAX;
-        state->current_sample.deco_time = 0;
-        state->current_sample.deco_depth = NAN;
-        state->current_sample.deco_tts = UINT32_MAX;
+        // Carry the deco state forward for the same reason as the gas: a
+        // record that carries no deco field is not the computer saying the
+        // obligation cleared. Divesoft reports deco only on its POINT_1
+        // records, so resetting here dropped the diver out of deco on every
+        // other sample and hid the deco stop entirely.
+        state->current_sample.deco_type = state->current_deco_type;
+        state->current_sample.deco_time = state->current_deco_time;
+        state->current_sample.deco_depth = state->current_deco_depth;
+        state->current_sample.deco_tts = state->current_deco_tts;
         break;
     case DC_SAMPLE_DEPTH:
         state->current_sample.depth = value->depth;
@@ -271,6 +288,10 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.rbt = value->rbt;
         break;
     case DC_SAMPLE_DECO:
+        state->current_deco_type = value->deco.type;
+        state->current_deco_time = value->deco.time;
+        state->current_deco_depth = value->deco.depth;
+        state->current_deco_tts = value->deco.tts;
         state->current_sample.deco_type = value->deco.type;
         state->current_sample.deco_time = value->deco.time;
         state->current_sample.deco_depth = value->deco.depth;
@@ -305,6 +326,65 @@ static void sample_callback(dc_sample_type_t type,
         break;
     default:
         break;
+    }
+}
+
+// Resolve the depths left as NAN by the profile walk (see DC_SAMPLE_TIME).
+// Must run after the final push_sample(), because a gap is filled from the
+// samples on both sides of it.
+//
+// Depth is the one sample field with no null representation downstream
+// (ProfileSample.depthMeters is non-nullable, and dive_profiles.depth is
+// written unconditionally), so a value has to be chosen here. Linear
+// interpolation in time is the honest one: it keeps the diver on the path the
+// computer actually recorded between the two depths it reported. Repeating the
+// previous depth instead would flatten the trace and then jump, and the
+// ascent-rate calculator smooths over a ~15 s window -- one such step becomes a
+// sustained false rate spread across it, which is exactly how a fabricated
+// sample turns into a rapid-ascent safety finding.
+static void fill_missing_depths(sample_state_t *state) {
+    libdc_parsed_dive_t *dive = state->dive;
+    unsigned int count = dive->sample_count;
+    unsigned int prev = UINT32_MAX;  // last sample with a reported depth
+
+    for (unsigned int i = 0; i < count; i++) {
+        if (isnan(dive->samples[i].depth)) {
+            continue;
+        }
+        if (prev == UINT32_MAX) {
+            // Leading gap: nothing earlier to interpolate from, so hold the
+            // first reported depth. The dive starts at the surface anyway.
+            for (unsigned int j = 0; j < i; j++) {
+                dive->samples[j].depth = dive->samples[i].depth;
+            }
+        } else {
+            unsigned int t0 = dive->samples[prev].time_ms;
+            unsigned int t1 = dive->samples[i].time_ms;
+            double d0 = dive->samples[prev].depth;
+            double d1 = dive->samples[i].depth;
+            for (unsigned int j = prev + 1; j < i; j++) {
+                double fraction = t1 > t0
+                    ? (double)(dive->samples[j].time_ms - t0) / (double)(t1 - t0)
+                    : 0.0;
+                dive->samples[j].depth = d0 + (d1 - d0) * fraction;
+            }
+        }
+        prev = i;
+    }
+
+    if (prev == UINT32_MAX) {
+        // The computer reported no depth anywhere in this profile. Nothing can
+        // be inferred, but a NAN must not escape: it would reach the platform
+        // layers as a null depth or a broken chart axis.
+        for (unsigned int i = 0; i < count; i++) {
+            dive->samples[i].depth = 0.0;
+        }
+        return;
+    }
+
+    // Trailing gap: hold the last reported depth.
+    for (unsigned int i = prev + 1; i < count; i++) {
+        dive->samples[i].depth = dive->samples[prev].depth;
     }
 }
 
@@ -467,10 +547,14 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
     sample_state_t sample_state = {0};
     sample_state.dive = dive;
     sample_state.current_gasmix = UINT32_MAX;  // 0 is a valid gas index
+    sample_state.current_deco_type = UINT32_MAX;  // no obligation reported yet
+    sample_state.current_deco_depth = NAN;
+    sample_state.current_deco_tts = UINT32_MAX;
     sample_state.has_field_entry = has_field_entry;
     sample_state.has_field_exit = has_field_exit;
     dc_parser_samples_foreach(parser, sample_callback, &sample_state);
     push_sample(&sample_state);
+    fill_missing_depths(&sample_state);
     resolve_sample_locations(&sample_state);
 
     return 0;

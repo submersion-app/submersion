@@ -38,7 +38,10 @@ class PdfSharedComponents {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -54,7 +57,10 @@ class PdfSharedComponents {
           pw.Text(label, style: const pw.TextStyle(fontSize: 14)),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -106,7 +112,10 @@ class PdfSharedComponents {
           pw.SizedBox(height: 2),
           pw.Text(
             signature.signerName,
-            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              fontWeight: pw.FontWeight.bold,
+            ),
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
@@ -148,7 +157,7 @@ class PdfSharedComponents {
         children: [
           pw.Text(
             label,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey700,
@@ -195,7 +204,7 @@ class PdfSharedComponents {
         children: [
           pw.Text(
             label,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey700,
@@ -565,7 +574,7 @@ class PdfSharedComponents {
     // Use asterisks for compatibility - Unicode stars may not render with default fonts
     return pw.Text(
       '${'*' * rating}${'.' * (5 - rating)}',
-      style: pw.TextStyle(
+      style: const pw.TextStyle(
         fontSize: 12,
         fontWeight: pw.FontWeight.bold,
         color: PdfColors.amber,

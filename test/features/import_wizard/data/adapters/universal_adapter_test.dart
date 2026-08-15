@@ -1015,8 +1015,10 @@ void main() {
           final item = bundle.groups[ImportEntityType.sites]!.items.first;
 
           expect(item.title, equals('Blue Hole'));
-          expect(item.subtitle, contains('17.3155'));
-          expect(item.subtitle, contains('-87.5347'));
+          // Rendered in the diver's coordinate notation: hemisphere letters
+          // rather than a leading minus, at a fixed six decimal places.
+          expect(item.subtitle, contains('17.315500° N'));
+          expect(item.subtitle, contains('87.534700° W'));
         },
       );
     });

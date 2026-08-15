@@ -61,10 +61,14 @@ class MediaStoreResolver {
 
   Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) async {
     // The pipeline always uploads thumbs as JPEG, whatever the source's own
-    // format. For a video that JPEG is a poster frame, so the result is
-    // decodable as an image even though the row is a video -- something only
-    // this side knows, and the flag is how MediaItemView is told.
-    final isPoster = item.mediaType == MediaType.video;
+    // format. For a video that JPEG is a poster frame and for a document it
+    // is a page-1 render, so the result is decodable as an image even though
+    // the row is not -- something only this side knows, and the flag is how
+    // MediaItemView is told. A photo's thumb is the photo itself, resized,
+    // so it is not a stand-in and stays unflagged.
+    final isPoster =
+        item.mediaType == MediaType.video ||
+        item.mediaType == MediaType.document;
     File? staging;
     try {
       final cached = await _cache.get(hash, MediaCacheKind.thumb);

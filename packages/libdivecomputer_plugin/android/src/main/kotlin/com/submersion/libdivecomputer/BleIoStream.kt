@@ -16,6 +16,7 @@ import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 // Client Characteristic Configuration Descriptor UUID for enabling notifications.
 private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
@@ -56,6 +57,10 @@ private val UBLOX_CREDITS_UUID = UUID.fromString("2456e1b9-26e2-8f83-e744-f34f01
 private const val TIO_INITIAL_GRANT = 254
 // Balance at or below which the client tops the module back up.
 private const val TIO_REFILL_THRESHOLD = 32
+
+// Sentinel for "the bond-state broadcast carried no reason extra". Every
+// real UNBOND_REASON_* value is positive, so a negative cannot collide.
+private const val NO_REASON = -1
 
 // Preferred UUIDs for characteristic selection scoring (matching Darwin BleIoStream).
 // These ensure devices like Aqualung/Oceanic select the correct write and notify
@@ -164,6 +169,14 @@ class BleIoStream(
     // GATT status from the most recent disconnect. Exposed so that callers
     // can detect stale bond keys (status 5 = GATT_INSUFFICIENT_AUTHENTICATION).
     var lastDisconnectStatus = 0
+        private set
+
+    // Why the most recent ensureBonded() call did not produce a bond, or
+    // null if it succeeded or was never attempted. Exposed so the download
+    // path can name the reason in the line it logs when it carries on
+    // unbonded, instead of leaving a bare "bond failed" in the user's log.
+    @Volatile
+    var lastBondFailure: String? = null
         private set
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -636,6 +649,7 @@ class BleIoStream(
     // the pairing dialog (or timeout). Needs an active connection
     // because many BLE peripherals ignore pairing requests without one.
     fun ensureBonded(): Boolean {
+        lastBondFailure = null
         if (device.bondState == BluetoothDevice.BOND_BONDED) {
             NativeLogger.d(TAG, "BLE", "ensureBonded: already bonded")
             return true
@@ -643,6 +657,12 @@ class BleIoStream(
 
         NativeLogger.d(TAG, "BLE", "ensureBonded: initiating bonding for ${device.address}")
         val bondSemaphore = Semaphore(0)
+        // Android reports why a bond ended in the broadcast, not in the
+        // device state that survives it, so the reason has to be captured
+        // here. The broadcast arrives on the main thread while this method
+        // blocks on the download thread, so the handoff must be atomic;
+        // NO_REASON marks "the stack sent none".
+        val unbondReason = AtomicInteger(NO_REASON)
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 if (intent.action != BluetoothDevice.ACTION_BOND_STATE_CHANGED) return
@@ -661,7 +681,15 @@ class BleIoStream(
                     BluetoothDevice.EXTRA_BOND_STATE,
                     BluetoothDevice.BOND_NONE
                 )
-                NativeLogger.d(TAG, "BLE", "ensureBonded: bond state changed to $state")
+                // Absent on some stacks; NO_REASON cannot collide with a
+                // real UNBOND_REASON_* value, all of which are positive.
+                val reason = intent.getIntExtra(BondDiagnostics.EXTRA_REASON, NO_REASON)
+                if (reason != NO_REASON) unbondReason.set(reason)
+                NativeLogger.d(
+                    TAG, "BLE",
+                    "ensureBonded: bond state changed to " +
+                        BondDiagnostics.describeBondState(state)
+                )
                 if (state == BluetoothDevice.BOND_BONDED ||
                     state == BluetoothDevice.BOND_NONE
                 ) {
@@ -670,28 +698,58 @@ class BleIoStream(
             }
         }
 
+        // NOT_EXPORTED: ACTION_BOND_STATE_CHANGED is only ever delivered by
+        // the platform, so nothing is lost by refusing broadcasts from other
+        // apps -- and it matches how UsbSerialIoStream registers its own
+        // receiver.
         val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
             context.registerReceiver(receiver, filter)
         }
 
         try {
-            if (!device.createBond()) {
-                NativeLogger.e(TAG, "BLE", "ensureBonded: createBond() returned false")
+            // createBond() also returns false when a bond is already under
+            // way, which is what a user retrying a failed download every
+            // second produces. Failing instantly there would abandon a bond
+            // that is still running and could yet succeed, so wait for the
+            // in-flight attempt instead of starting a competing one.
+            if (!device.createBond() &&
+                !BondDiagnostics.bondAlreadyInProgress(device.bondState)
+            ) {
+                lastBondFailure = BondDiagnostics.describeRefusedRequest(device.bondState)
+                NativeLogger.w(TAG, "BLE", "ensureBonded: $lastBondFailure")
                 return false
             }
             // 30s timeout: user needs time to interact with pairing dialog.
             if (!bondSemaphore.tryAcquire(30, TimeUnit.SECONDS)) {
-                NativeLogger.e(TAG, "BLE", "ensureBonded: timeout waiting for bonding")
+                lastBondFailure =
+                    "pairing did not finish within 30s (device is " +
+                        "${BondDiagnostics.describeBondState(device.bondState)})"
+                NativeLogger.w(TAG, "BLE", "ensureBonded: $lastBondFailure")
                 return false
             }
-            val bonded = device.bondState == BluetoothDevice.BOND_BONDED
-            NativeLogger.d(TAG, "BLE", "ensureBonded: result=$bonded")
-            return bonded
+            val bondState = device.bondState
+            if (bondState == BluetoothDevice.BOND_BONDED) {
+                NativeLogger.d(TAG, "BLE", "ensureBonded: bonded")
+                return true
+            }
+            // The branch that fires when a computer refuses to pair. It
+            // previously reported only "result=false" at DEBUG, which left
+            // a refused pairing indistinguishable from a cancelled one in
+            // every bug report that reached this point (issue #1029).
+            lastBondFailure = BondDiagnostics.describeFailedAttempt(
+                bondState,
+                unbondReason.get().takeIf { it != NO_REASON }
+            )
+            NativeLogger.w(TAG, "BLE", "ensureBonded: $lastBondFailure")
+            return false
         } catch (e: Exception) {
-            NativeLogger.e(TAG, "BLE", "ensureBonded: failed: ${e.message}")
+            lastBondFailure =
+                BondDiagnostics.describeThrownFailure(e.javaClass.simpleName, e.message)
+            NativeLogger.e(TAG, "BLE", "ensureBonded: $lastBondFailure")
             return false
         } finally {
             context.unregisterReceiver(receiver)
@@ -734,10 +792,12 @@ class BleIoStream(
             }
         }
 
+        // NOT_EXPORTED for the same reason as in ensureBonded above.
         val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
             context.registerReceiver(receiver, filter)
         }
 

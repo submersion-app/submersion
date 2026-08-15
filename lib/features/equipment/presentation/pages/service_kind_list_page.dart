@@ -150,11 +150,18 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
                         }
                         _showEditDialog(context, ref, kind: kind);
                       },
-                      trailing: IconButton(
-                        tooltip: l10n.equipment_serviceKinds_delete,
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _confirmDelete(context, ref, kind),
-                      ),
+                      // The per-row trash yields to selection mode: the bulk
+                      // delete deliberately sits behind the selection bar's
+                      // overflow, and a one-tap delete next to the checkbox
+                      // would contradict that.
+                      trailing: _isSelectionMode
+                          ? null
+                          : IconButton(
+                              tooltip: l10n.equipment_serviceKinds_delete,
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () =>
+                                  _confirmDelete(context, ref, kind),
+                            ),
                     ),
                   const SizedBox(height: 80),
                 ],

@@ -28,6 +28,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
@@ -248,6 +249,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     visibilityScaleGoodM: goodM,
     visibilityScaleModerateM: moderateM,
   );
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);

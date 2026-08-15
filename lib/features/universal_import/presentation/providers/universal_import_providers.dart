@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
@@ -875,6 +877,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingDiveTypes: existingDiveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
+      units: UnitFormatter(_ref.read(settingsProvider)),
     );
   }
 

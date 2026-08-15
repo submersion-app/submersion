@@ -258,7 +258,7 @@ class DivePlanRepository {
                 ..limit(1))
               .get();
       if (rows.isEmpty) return null;
-      return getPlan(rows.first.id);
+      return await getPlan(rows.first.id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load plan linked to dive $diveId',

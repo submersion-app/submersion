@@ -24,7 +24,7 @@ promote (workflow_dispatch, manual)
   -> Promote Beta (promote.yml)            copies the chosen beta's artifacts
        -> main-repo tag + stable release   + appcast.xml entry (stored sig)
        -> Play: track -> production        identical AAB, staged rollout
-       -> App Store: submit existing build then release manually on approval
+       -> App Store: submit existing build, releases on approval
        -> version-bump PR                  auto-merges; opens the next train
 ```
 
@@ -76,13 +76,21 @@ for App Review, and opens the version-bump PR (auto-merges on green CI).
 The five jobs are independent: a partial failure opens a tracking issue
 (`notify-failures`) and only the failed leg needs re-running.
 
-### Manual follow-ups after promoting
+### After promoting
 
-1. **App Store Connect:** press Release for iOS and macOS once Apple
-   approves (~24-48h). Submission is automated; the release button is
-   deliberately manual.
-2. That's it. The bump PR merges itself; the next merge to `main` starts
-   the next beta train.
+Nothing to do. iOS and macOS carry `automatic_release: true`, so both go
+live on their own once Apple approves (~24-48h); the bump PR merges itself,
+and the next merge to `main` starts the next beta train.
+
+Two things still want a human:
+
+- **A rejection.** Auto-release only covers the approved path. A rejected
+  version sits in App Store Connect until someone addresses it.
+- **A bad build.** There is no staged rollout to halt and no rollback once a
+  version is live. Recovering means pulling it and shipping a fix through
+  another review cycle. If that risk ever outweighs the convenience, set
+  `phased_release: true` in `ios/fastlane/Fastfile` for a haltable 7-day iOS
+  rollout, or put `automatic_release` back to `false` in both Fastfiles.
 
 ## Play Store state
 

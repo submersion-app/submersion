@@ -45,10 +45,10 @@ packages:
     dependency: "direct main"
     description:
       name: archive
-      sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
+      sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.1"
+    version: "4.0.9"
   args:
     dependency: transitive
     description:
@@ -388,10 +388,10 @@ packages:
     dependency: transitive
     description:
       name: dbus
-      sha256: "0ce9b0a839e6dee59a37a623d2fc26a35bbbe6404213e419b0d6411023d62645"
+      sha256: "792974a4007974fbc5c1b5433eb2330a9db3e368c3f906253af4c007d0f49a91"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.14"
+    version: "0.7.13"
   desktop_drop:
     dependency: "direct main"
     description:
@@ -448,14 +448,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.8"
-  excel:
+  excel_community:
     dependency: "direct main"
     description:
-      name: excel
-      sha256: "1a15327dcad260d5db21d1f6e04f04838109b39a2f6a84ea486ceda36e468780"
+      name: excel_community
+      sha256: fd55a0c93faee3f7a6dd849b346cec1e410c157b0e48d12070d91c6830dbfc58
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.6"
+    version: "2.2.1"
   extension_google_sign_in_as_googleapis_auth:
     dependency: "direct main"
     description:
@@ -1066,10 +1066,10 @@ packages:
     dependency: "direct main"
     description:
       name: image
-      sha256: f31d52537dc417fdcde36088fdf11d191026fd5e4fae742491ebd40e5a8bea7d
+      sha256: "6300175e00616bbc832e2fc91bfa4d776af5402c81c7151bee6905bb08473c52"
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "4.9.1"
   image_picker:
     dependency: "direct main"
     description:
@@ -1143,10 +1143,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      sha256: "1ca20c894b1717686a2319b8548763d812bc0aabdac580420a44c5178c57a867"
       url: "https://pub.dev"
     source: hosted
-    version: "0.20.2"
+    version: "0.20.3"
   io:
     dependency: transitive
     description:
@@ -1310,10 +1310,10 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861
+      sha256: "31bd099b47c10cd1aeb55146a2d46ce0277630ecef3f7dae54ad7873f36696cd"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.19"
+    version: "0.12.20"
   material_color_utilities:
     dependency: transitive
     description:
@@ -1326,10 +1326,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "1741988757a65eb6b36abe716829688cf01910bbf91c34354ff7ec1c3de2b349"
+      sha256: "307249ce4ff29d58a18e97f6345f539382eb9c9c29ecda628900f31de0443dd9"
       url: "https://pub.dev"
     source: hosted
-    version: "1.18.0"
+    version: "1.19.0"
   mgrs_dart:
     dependency: transitive
     description:
@@ -1510,10 +1510,10 @@ packages:
     dependency: "direct main"
     description:
       name: pdf
-      sha256: e47a275b267873d5944ad5f5ff0dcc7ac2e36c02b3046a0ffac9b72fd362c44b
+      sha256: "517df47af468734a23c8b513c0c6a8a62357403ab1b8ab7fad1606576a9dbdd0"
       url: "https://pub.dev"
     source: hosted
-    version: "3.12.0"
+    version: "3.13.0"
   pdf_widget_wrapper:
     dependency: transitive
     description:
@@ -1542,18 +1542,18 @@ packages:
     dependency: "direct main"
     description:
       name: pdfrx
-      sha256: "4e0efc23547d319ae6089e9593c2c9aca6d858a844eaa7848f95e2c2efea919c"
+      sha256: acce61944c31bd36f0c3031b1bbf41f59d0b0d4e5e27614fbdc74ff093d55464
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.5"
+    version: "2.4.7"
   pdfrx_engine:
     dependency: transitive
     description:
       name: pdfrx_engine
-      sha256: "80a1facaf8f587fb2592b53d424a6dc61f74e26c009395f8e52da7d3d3b6b1e6"
+      sha256: ef8f8cfa64255bfc91a559dd2d32d7cfe7a0f8003bac297bbf9a0aed1182fae5
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.4"
+    version: "0.4.6"
   permission_handler:
     dependency: "direct main"
     description:
@@ -1650,6 +1650,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: bc1bad54ad2b735816e31f8d4600cfde6c7839975085ddfbca48b6c9f7c4044e
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.2"
   printing:
     dependency: "direct main"
     description:
@@ -2072,26 +2080,26 @@ packages:
     dependency: transitive
     description:
       name: test
-      sha256: "8d9ceddbab833f180fbefed08afa76d7c03513dfdba87ffcec2718b02bbcbf20"
+      sha256: ca578dc12bb8b2f40b67b7d3bd2fac4f31c01a6ff7130a14e2597b919934507f
       url: "https://pub.dev"
     source: hosted
-    version: "1.31.0"
+    version: "1.31.1"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "949a932224383300f01be9221c39180316445ecb8e7547f70a41a35bf421fb9e"
+      sha256: "2a122cbe059f8b610d3a5415f42e255b6c17b1f21eee1d960f31080237fb4f11"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.11"
+    version: "0.7.12"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "1991d4cfe85d5043241acac92962c3977c8d2f2add1ee73130c7b286417d1d34"
+      sha256: d2e98ec12998368dc59ddd47ab709f2cd55acd6b66dc7db764455a44082f4bc5
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.17"
+    version: "0.6.18"
   timezone:
     dependency: "direct main"
     description:
@@ -2200,10 +2208,10 @@ packages:
     dependency: transitive
     description:
       name: vector_math
-      sha256: d530bd74fea330e6e364cda7a85019c434070188383e1cd8d9777ee586914c5b
+      sha256: f36f9f3be64c6198714492bb455c11056e33e2f85d9a0b676a48301e44fdcf47
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.4.2"
   video_player:
     dependency: "direct main"
     description:
@@ -2376,10 +2384,10 @@ packages:
     dependency: "direct main"
     description:
       name: xml
-      sha256: "971043b3a0d3da28727e40ed3e0b5d18b742fa5a68665cca88e74b7876d5e025"
+      sha256: "67f0aff7be013d107995e9b75bf4e7f2c3ef2dfdb2c8e68024bba0a7fd5756a4"
       url: "https://pub.dev"
     source: hosted
-    version: "6.6.1"
+    version: "7.0.1"
   yaml:
     dependency: transitive
     description:

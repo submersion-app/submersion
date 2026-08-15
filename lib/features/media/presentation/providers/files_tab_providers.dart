@@ -86,10 +86,9 @@ class FilesTabState extends Equatable {
 /// On iOS / macOS it first creates a security-scoped bookmark blob via
 /// [LocalMediaPlatform.createBookmark] and stores it in the keychain via
 /// [LocalBookmarkStorage.write] keyed by a freshly-generated UUID; that
-/// UUID becomes the row's `bookmarkRef`. On Android it round-trips the
-/// picker URI through [LocalMediaPlatform.takePersistableUri] and stores
-/// the returned URI string as `bookmarkRef`. On desktop it stores the
-/// absolute filesystem path in `localPath` instead.
+/// UUID becomes the row's `bookmarkRef`. Everywhere else — desktop and
+/// Android alike — it stores the absolute filesystem path in `localPath`;
+/// see [_persistOne] for why Android has no persistable URI to take.
 ///
 /// Unmatched files are skipped — assignment UI for them is Phase 3.
 ///
@@ -272,18 +271,18 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         // because the picker path is sandbox-scoped and not reusable.
         localPath = file.file.path;
       }
-    }
-    // coverage:ignore-start
-    // Android branch can only be exercised on an Android host (test suite
-    // runs on macOS / Linux). Desktop fallback is exercised by Linux CI.
-    else if (Platform.isAndroid) {
-      // file.file.path on Android may already be a content URI from
-      // file_picker. takePersistableUri makes it durable across reboots.
-      bookmarkRef = await platform.takePersistableUri(file.file.path);
     } else {
+      // Android included. [ExtractedFile.file] is a dart:io File, so its
+      // path is always a filesystem path — on Android a copy file_picker
+      // made under `<cacheDir>/file_picker/`, or a folder-scan result.
+      // Neither is a SAF content URI, and handing one to
+      // takePersistableUriPermission throws PERMISSION_DENIED (issue
+      // #1002). The Files tab picks with ACTION_GET_CONTENT anyway, which
+      // grants nothing persistable, so there is no URI to recover here;
+      // the media store upload enqueued by the caller is what makes these
+      // rows durable.
       localPath = file.file.path;
     }
-    // coverage:ignore-end
 
     final now = DateTime.now();
     final item = MediaItem(

@@ -116,9 +116,10 @@ class _WriteMetadataDialogState extends State<WriteMetadataDialog> {
                     _MetadataRow(
                       icon: Icons.location_on,
                       label: context.l10n.media_writeMetadata_gpsLabel,
-                      value:
-                          '${widget.item.latitude!.toStringAsFixed(4)}, '
-                          '${widget.item.longitude!.toStringAsFixed(4)}',
+                      value: formatter.formatCoordinates(
+                        widget.item.latitude,
+                        widget.item.longitude,
+                      ),
                     ),
                   ],
 

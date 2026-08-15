@@ -400,34 +400,26 @@ void main() {
     // the volume offline the row must read volumeOffline, not notFound.
     const nasPath = '/Volumes/NAS/photos/missing.jpg';
 
-    test(
-      'missing file on an unmounted volume reads volumeOffline',
-      () async {
-        final r = volumeResolver(volumeOnline: false);
-        final data = await r.resolve(_localFile(localPath: nasPath));
-        expect(data, isA<UnavailableData>());
-        expect((data as UnavailableData).kind, UnavailableKind.volumeOffline);
-        expect(
-          await r.verify(_localFile(localPath: nasPath)),
-          VerifyResult.volumeOffline,
-        );
-      },
-      skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null,
-    );
+    test('missing file on an unmounted volume reads volumeOffline', () async {
+      final r = volumeResolver(volumeOnline: false);
+      final data = await r.resolve(_localFile(localPath: nasPath));
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.volumeOffline);
+      expect(
+        await r.verify(_localFile(localPath: nasPath)),
+        VerifyResult.volumeOffline,
+      );
+    }, skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null);
 
-    test(
-      'missing file on a mounted volume stays notFound',
-      () async {
-        final r = volumeResolver(volumeOnline: true);
-        final data = await r.resolve(_localFile(localPath: nasPath));
-        expect(data, isA<UnavailableData>());
-        expect((data as UnavailableData).kind, UnavailableKind.notFound);
-        expect(
-          await r.verify(_localFile(localPath: nasPath)),
-          VerifyResult.notFound,
-        );
-      },
-      skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null,
-    );
+    test('missing file on a mounted volume stays notFound', () async {
+      final r = volumeResolver(volumeOnline: true);
+      final data = await r.resolve(_localFile(localPath: nasPath));
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+      expect(
+        await r.verify(_localFile(localPath: nasPath)),
+        VerifyResult.notFound,
+      );
+    }, skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null);
   });
 }

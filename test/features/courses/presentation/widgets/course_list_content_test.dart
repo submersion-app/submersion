@@ -224,6 +224,7 @@ void main() {
           child: const CourseListContent(showAppBar: true),
         ),
         selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.byType(CourseCard).first,
         firstRow: find.text('Aaa Course'),
         applyFilter: (tester) async {
           notifier.showOnly([all.first]);

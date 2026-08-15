@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -24,12 +25,20 @@ MediaItem _doc({String? originDeviceId, String? originalFilename}) => MediaItem(
 /// pdfium binary that flutter_test cannot load, and a failed init hangs
 /// the calling future. Every override below therefore resolves to
 /// unavailable, an error, or nothing at all.
+///
+/// Overriding [mediaBytesProvider] is also what pins the page to the right
+/// resolution stack. It used to read [resolvedFullResolutionProvider], which
+/// only ever looks a `platformAssetId` up in the photo library — an id no
+/// document attachment carries — so every PDF opened to the unavailable
+/// state (issue #1019). If the page regressed to that provider, the
+/// pending-completer test below would show the unavailable state instead of
+/// its spinner.
 Widget _host(
   MediaItem item, {
   FutureOr<ResolvedAssetResult> Function(Ref ref)? resolve,
 }) => ProviderScope(
   overrides: [
-    resolvedFullResolutionProvider(item).overrideWith(
+    mediaBytesProvider(item).overrideWith(
       resolve ??
           (ref) async =>
               const ResolvedAssetResult(status: ResolutionStatus.unavailable),

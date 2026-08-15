@@ -41,7 +41,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get active equipment',
@@ -70,7 +70,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get retired equipment',
@@ -100,7 +100,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all equipment',
@@ -135,7 +135,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by status: ${status.name}',
@@ -175,7 +175,7 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)..where((t) => t.id.isIn(ids));
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by ids',
@@ -483,7 +483,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment with service dates',

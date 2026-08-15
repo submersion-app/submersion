@@ -6,8 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
-import 'package:submersion/shared/selection/selectable_row.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -217,8 +218,8 @@ class _CertificationListContentState
                         );
                       },
                     ),
-                    // Discoverability: bulk actions must not be reachable only by a
-                    // long-press that nothing on screen advertises.
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: const Icon(Icons.checklist),
@@ -345,9 +346,43 @@ class _CertificationListContentState
     BuildContext context,
     AsyncValue<List<Certification>> certificationsAsync,
   ) {
-    final tableContent = _buildTableView(context, certificationsAsync);
+    final visibleIds = (certificationsAsync.value ?? const <Certification>[])
+        .map((c) => c.id)
+        .toList();
 
-    return tableContent;
+    // Same pruning the list path does: drop checked certifications that fell
+    // out of the visible list, so the count matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final certifications =
+              certificationsAsync.value ?? const <Certification>[];
+          // Table mode has no app bar of its own, so both bars live here: the
+          // contextual one while selecting, and the Select affordance while
+          // not. They share a slot and a height, so the table does not shift
+          // as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(certifications, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: _buildTableView(context, certificationsAsync)),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for certification table mode.
@@ -381,9 +416,6 @@ class _CertificationListContentState
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
           },
-          onEntityLongPress: _isSelectionMode
-              ? null
-              : (id) => _selection.enterImplicit(id),
           onEntityDoubleTap: (id) {
             context.push('/certifications/$id');
           },
@@ -441,8 +473,8 @@ class _CertificationListContentState
               );
             },
           ),
-          // Discoverability: bulk actions must not be reachable only by a
-          // long-press that nothing on screen advertises.
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
           IconButton(
             key: const ValueKey('enter_selection'),
             icon: const Icon(Icons.checklist, size: 20),
@@ -532,16 +564,14 @@ class _CertificationListContentState
               Colors.red,
             ),
             ...expired.map(
-              (cert) => SelectableRow(
+              (cert) => CertificationListTile(
+                certification: cert,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
+                onTap: () => _handleRowTap(cert),
                 isSelectionMode: _isSelectionMode,
                 isChecked: _selectedIds.contains(cert.id),
-                onChanged: (_) => _selection.toggle(cert.id),
-                child: CertificationListTile(
-                  certification: cert,
-                  isSelected:
-                      widget.selectedId == cert.id || highlightedId == cert.id,
-                  onTap: () => _handleRowTap(cert),
-                ),
+                onCheckChanged: (_) => _selection.toggle(cert.id),
               ),
             ),
           ],
@@ -552,16 +582,14 @@ class _CertificationListContentState
               Colors.orange,
             ),
             ...expiringSoon.map(
-              (cert) => SelectableRow(
+              (cert) => CertificationListTile(
+                certification: cert,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
+                onTap: () => _handleRowTap(cert),
                 isSelectionMode: _isSelectionMode,
                 isChecked: _selectedIds.contains(cert.id),
-                onChanged: (_) => _selection.toggle(cert.id),
-                child: CertificationListTile(
-                  certification: cert,
-                  isSelected:
-                      widget.selectedId == cert.id || highlightedId == cert.id,
-                  onTap: () => _handleRowTap(cert),
-                ),
+                onCheckChanged: (_) => _selection.toggle(cert.id),
               ),
             ),
           ],
@@ -572,16 +600,14 @@ class _CertificationListContentState
               Colors.green,
             ),
             ...valid.map(
-              (cert) => SelectableRow(
+              (cert) => CertificationListTile(
+                certification: cert,
+                isSelected:
+                    widget.selectedId == cert.id || highlightedId == cert.id,
+                onTap: () => _handleRowTap(cert),
                 isSelectionMode: _isSelectionMode,
                 isChecked: _selectedIds.contains(cert.id),
-                onChanged: (_) => _selection.toggle(cert.id),
-                child: CertificationListTile(
-                  certification: cert,
-                  isSelected:
-                      widget.selectedId == cert.id || highlightedId == cert.id,
-                  onTap: () => _handleRowTap(cert),
-                ),
+                onCheckChanged: (_) => _selection.toggle(cert.id),
               ),
             ),
           ],
@@ -681,12 +707,18 @@ class CertificationListTile extends StatelessWidget {
   final Certification certification;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const CertificationListTile({
     super.key,
     required this.certification,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -716,7 +748,12 @@ class CertificationListTile extends StatelessWidget {
             : null,
         child: ListTile(
           onTap: onTap,
-          leading: _buildLeadingIcon(context),
+          leading: SelectionLeading(
+            isSelectionMode: isSelectionMode,
+            isChecked: isChecked,
+            onChanged: onCheckChanged,
+            child: _buildLeadingIcon(context),
+          ),
           title: Text(certificationTitle(certification)),
           subtitle: _buildSubtitle(context),
           trailing: _buildTrailing(context),

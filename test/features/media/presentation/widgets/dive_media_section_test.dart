@@ -146,7 +146,9 @@ void main() {
       await pumpWithTwo(tester);
       expect(find.text('Photos & Video'), findsOneWidget);
 
-      await tester.longPress(find.byType(MediaThumbnailTile).first);
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
 
       // Both media sections render the shared SelectionAppBar; the old
@@ -161,7 +163,9 @@ void main() {
     testWidgets('select all covers every tile, then cancel restores the '
         'normal header', (tester) async {
       await pumpWithTwo(tester);
-      await tester.longPress(find.byType(MediaThumbnailTile).first);
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
