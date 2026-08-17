@@ -59,6 +59,9 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
+import 'package:submersion/features/wrecks/presentation/pages/wreck_detail_page.dart';
+import 'package:submersion/features/wrecks/presentation/pages/wreck_edit_page.dart';
+import 'package:submersion/features/wrecks/presentation/pages/wreck_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -416,6 +419,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         initialMode: initialMode,
                       );
                     },
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Wrecks
+          GoRoute(
+            path: '/wrecks',
+            name: 'wrecks',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const WreckListPage(),
+            ),
+            routes: [
+              // `new` must precede `:wreckId`, or go_router matches
+              // /wrecks/new as a wreck whose id is the string "new".
+              GoRoute(
+                path: 'new',
+                name: 'newWreck',
+                builder: (context, state) => const WreckEditPage(),
+              ),
+              GoRoute(
+                path: ':wreckId',
+                name: 'wreckDetail',
+                builder: (context, state) =>
+                    WreckDetailPage(wreckId: state.pathParameters['wreckId']!),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editWreck',
+                    builder: (context, state) =>
+                        WreckEditPage(wreckId: state.pathParameters['wreckId']),
                   ),
                 ],
               ),

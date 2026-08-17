@@ -38,7 +38,7 @@ class NavDestination {
 
 /// The complete, ordered list of nav destinations in default wide-screen order.
 ///
-/// Length is **15** — 14 routable destinations plus the `more` sentinel.
+/// Length is **17**: 16 routable destinations plus the `more` sentinel.
 final List<NavDestination> kNavDestinations = List.unmodifiable([
   NavDestination(
     id: 'dashboard',
@@ -61,6 +61,13 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     icon: Icons.location_on_outlined,
     selectedIcon: Icons.location_on,
     label: (l10n) => l10n.nav_sites,
+  ),
+  NavDestination(
+    id: 'wrecks',
+    route: '/wrecks',
+    icon: Icons.sailing_outlined,
+    selectedIcon: Icons.sailing,
+    label: (l10n) => l10n.nav_wrecks,
   ),
   NavDestination(
     id: 'trips',

@@ -12,6 +12,7 @@ void main() {
       ('dashboard', '/dashboard'),
       ('dives', '/dives'),
       ('sites', '/sites'),
+      ('wrecks', '/wrecks'),
       ('trips', '/trips'),
       ('media', '/media'),
       ('equipment', '/equipment'),

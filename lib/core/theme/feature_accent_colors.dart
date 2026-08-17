@@ -17,6 +17,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dashboard': Color(0xFF0077B6),
       'dives': Color(0xFF1976D2),
       'sites': Color(0xFF388E3C),
+      'wrecks': Color(0xFF00695C),
       'trips': Color(0xFF7B1FA2),
       'media': Color(0xFF6A1B9A),
       // Orange and amber are the two hues that go illegible first on a light
@@ -55,6 +56,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dashboard': Color(0xFF48CAE4),
       'dives': Color(0xFF64B5F6),
       'sites': Color(0xFF81C784),
+      'wrecks': Color(0xFF4DB6AC),
       'trips': Color(0xFFBA68C8),
       'media': Color(0xFFCE93D8),
       'equipment': Color(0xFFFFB74D),

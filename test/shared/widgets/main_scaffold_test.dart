@@ -212,9 +212,10 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // GPS Log is rail index 13 (after Transfer, before Settings).
+      // GPS Log is rail index 14 (after Transfer, before Settings; the
+      // wrecks destination shifted everything after Sites by one).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(13);
+      rail.onDestinationSelected!(14);
       await tester.pumpAndSettle();
 
       expect(find.text('GPS Log Page'), findsOneWidget);
@@ -222,7 +223,7 @@ void main() {
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
-      expect(selected, 13);
+      expect(selected, 14);
     });
 
     testWidgets('recording strip appears while a GPS session is active', (
@@ -444,7 +445,7 @@ void main() {
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 15 default destinations', (
+    testWidgets('wide-screen rail still shows all 16 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -458,11 +459,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // The wide-screen rail is NOT customized, so it keeps the default
-      // 15-entry order regardless of stored primary-ids customization.
+      // 16-entry order regardless of stored primary-ids customization.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(15));
+      expect(rail.destinations, hasLength(16));
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
@@ -475,6 +476,7 @@ void main() {
         'Home',
         'Dives',
         'Sites',
+        'Wrecks',
         'Trips',
         'Media',
         'Equipment',
