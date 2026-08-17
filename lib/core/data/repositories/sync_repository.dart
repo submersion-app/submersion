@@ -54,6 +54,7 @@ class SyncRepository {
     'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
+    'wrecks': (table: 'wrecks', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
