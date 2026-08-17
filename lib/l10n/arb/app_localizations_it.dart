@@ -12914,6 +12914,126 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_settings => 'Impostazioni';
 
   @override
+  String get nav_wrecks => 'Relitti';
+
+  @override
+  String get wrecks_empty_title => 'Nessun relitto';
+
+  @override
+  String get wrecks_empty_body =>
+      'Aggiungi i relitti che immergi o vuoi immergere';
+
+  @override
+  String get wrecks_add => 'Aggiungi relitto';
+
+  @override
+  String get wrecks_edit => 'Modifica relitto';
+
+  @override
+  String get wrecks_field_name => 'Nome';
+
+  @override
+  String get wrecks_field_vesselType => 'Tipo di imbarcazione';
+
+  @override
+  String get wrecks_field_depthToDeck => 'Profondità al ponte';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'Profondità al fondale';
+
+  @override
+  String get wrecks_field_length => 'Lunghezza';
+
+  @override
+  String get wrecks_field_yearBuilt => 'Anno di costruzione';
+
+  @override
+  String get wrecks_field_yearSunk => 'Anno dell\'affondamento';
+
+  @override
+  String get wrecks_field_cause => 'Causa dell\'affondamento';
+
+  @override
+  String get wrecks_field_condition => 'Condizione';
+
+  @override
+  String get wrecks_field_penetration => 'Penetrazione possibile';
+
+  @override
+  String get wrecks_field_protection => 'Stato di protezione';
+
+  @override
+  String get wrecks_field_site => 'Sito d\'immersione';
+
+  @override
+  String get wrecks_field_notes => 'Note';
+
+  @override
+  String get wrecks_sectionTitle => 'Relitti qui';
+
+  @override
+  String get wrecks_link => 'Collega un relitto';
+
+  @override
+  String get wrecks_linkNone => 'Nessun relitto';
+
+  @override
+  String get wrecks_type_ship => 'Nave';
+
+  @override
+  String get wrecks_type_aircraft => 'Aeromobile';
+
+  @override
+  String get wrecks_type_other => 'Altro';
+
+  @override
+  String get wrecks_cause_foundered => 'Affondato';
+
+  @override
+  String get wrecks_cause_collision => 'Collisione';
+
+  @override
+  String get wrecks_cause_grounding => 'Incaglio';
+
+  @override
+  String get wrecks_cause_scuttled => 'Autoaffondato';
+
+  @override
+  String get wrecks_cause_war => 'Perdita bellica';
+
+  @override
+  String get wrecks_cause_fire => 'Incendio';
+
+  @override
+  String get wrecks_cause_unknown => 'Sconosciuta';
+
+  @override
+  String get wrecks_condition_intact => 'Intatto';
+
+  @override
+  String get wrecks_condition_broken => 'Spezzato';
+
+  @override
+  String get wrecks_condition_debris => 'Campo di detriti';
+
+  @override
+  String get wrecks_protection_none => 'Nessuno';
+
+  @override
+  String get wrecks_protection_permitRequired => 'Permesso richiesto';
+
+  @override
+  String get wrecks_protection_protected => 'Protetto';
+
+  @override
+  String get wrecks_protection_warGrave => 'Tomba di guerra';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return 'Eliminare $name?';
+  }
+
+  @override
   String get nav_sites => 'Siti';
 
   @override

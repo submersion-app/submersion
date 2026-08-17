@@ -12877,6 +12877,126 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_settings => 'Beallitasok';
 
   @override
+  String get nav_wrecks => 'Roncsok';
+
+  @override
+  String get wrecks_empty_title => 'Még nincs roncs';
+
+  @override
+  String get wrecks_empty_body =>
+      'Adjon hozzá roncsokat, amelyeket merül vagy merülni szeretne';
+
+  @override
+  String get wrecks_add => 'Roncs hozzáadása';
+
+  @override
+  String get wrecks_edit => 'Roncs szerkesztése';
+
+  @override
+  String get wrecks_field_name => 'Név';
+
+  @override
+  String get wrecks_field_vesselType => 'Hajótípus';
+
+  @override
+  String get wrecks_field_depthToDeck => 'Mélység a fedélzetig';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'Mélység a fenékig';
+
+  @override
+  String get wrecks_field_length => 'Hossz';
+
+  @override
+  String get wrecks_field_yearBuilt => 'Építés éve';
+
+  @override
+  String get wrecks_field_yearSunk => 'Elsüllyedés éve';
+
+  @override
+  String get wrecks_field_cause => 'Süllyedés oka';
+
+  @override
+  String get wrecks_field_condition => 'Állapot';
+
+  @override
+  String get wrecks_field_penetration => 'Behatolás lehetséges';
+
+  @override
+  String get wrecks_field_protection => 'Védettségi állapot';
+
+  @override
+  String get wrecks_field_site => 'Merülőhely';
+
+  @override
+  String get wrecks_field_notes => 'Jegyzetek';
+
+  @override
+  String get wrecks_sectionTitle => 'Roncsok itt';
+
+  @override
+  String get wrecks_link => 'Roncs társítása';
+
+  @override
+  String get wrecks_linkNone => 'Nincs roncs';
+
+  @override
+  String get wrecks_type_ship => 'Hajó';
+
+  @override
+  String get wrecks_type_aircraft => 'Repülőgép';
+
+  @override
+  String get wrecks_type_other => 'Egyéb';
+
+  @override
+  String get wrecks_cause_foundered => 'Elsüllyedt';
+
+  @override
+  String get wrecks_cause_collision => 'Ütközés';
+
+  @override
+  String get wrecks_cause_grounding => 'Zátonyra futás';
+
+  @override
+  String get wrecks_cause_scuttled => 'Elsüllyesztett';
+
+  @override
+  String get wrecks_cause_war => 'Háborús veszteség';
+
+  @override
+  String get wrecks_cause_fire => 'Tűz';
+
+  @override
+  String get wrecks_cause_unknown => 'Ismeretlen';
+
+  @override
+  String get wrecks_condition_intact => 'Ép';
+
+  @override
+  String get wrecks_condition_broken => 'Törött';
+
+  @override
+  String get wrecks_condition_debris => 'Törmelékmező';
+
+  @override
+  String get wrecks_protection_none => 'Nincs';
+
+  @override
+  String get wrecks_protection_permitRequired => 'Engedély szükséges';
+
+  @override
+  String get wrecks_protection_protected => 'Védett';
+
+  @override
+  String get wrecks_protection_warGrave => 'Háborús sír';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return 'Törli: $name?';
+  }
+
+  @override
   String get nav_sites => 'Merulohelyek';
 
   @override

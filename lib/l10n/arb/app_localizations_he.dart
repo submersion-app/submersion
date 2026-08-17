@@ -12603,6 +12603,125 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_settings => 'הגדרות';
 
   @override
+  String get nav_wrecks => 'ספינות טרופות';
+
+  @override
+  String get wrecks_empty_title => 'אין ספינות טרופות';
+
+  @override
+  String get wrecks_empty_body => 'הוסיפו ספינות טרופות שצללתם או תרצו לצלול';
+
+  @override
+  String get wrecks_add => 'הוספת ספינה טרופה';
+
+  @override
+  String get wrecks_edit => 'עריכת ספינה טרופה';
+
+  @override
+  String get wrecks_field_name => 'שם';
+
+  @override
+  String get wrecks_field_vesselType => 'סוג כלי השיט';
+
+  @override
+  String get wrecks_field_depthToDeck => 'עומק לסיפון';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'עומק לקרקעית';
+
+  @override
+  String get wrecks_field_length => 'אורך';
+
+  @override
+  String get wrecks_field_yearBuilt => 'שנת בנייה';
+
+  @override
+  String get wrecks_field_yearSunk => 'שנת הטביעה';
+
+  @override
+  String get wrecks_field_cause => 'סיבת הטביעה';
+
+  @override
+  String get wrecks_field_condition => 'מצב';
+
+  @override
+  String get wrecks_field_penetration => 'חדירה אפשרית';
+
+  @override
+  String get wrecks_field_protection => 'מצב הגנה';
+
+  @override
+  String get wrecks_field_site => 'אתר צלילה';
+
+  @override
+  String get wrecks_field_notes => 'הערות';
+
+  @override
+  String get wrecks_sectionTitle => 'ספינות טרופות כאן';
+
+  @override
+  String get wrecks_link => 'קישור ספינה טרופה';
+
+  @override
+  String get wrecks_linkNone => 'ללא ספינה טרופה';
+
+  @override
+  String get wrecks_type_ship => 'אונייה';
+
+  @override
+  String get wrecks_type_aircraft => 'מטוס';
+
+  @override
+  String get wrecks_type_other => 'אחר';
+
+  @override
+  String get wrecks_cause_foundered => 'טבעה';
+
+  @override
+  String get wrecks_cause_collision => 'התנגשות';
+
+  @override
+  String get wrecks_cause_grounding => 'עלייה על שרטון';
+
+  @override
+  String get wrecks_cause_scuttled => 'הוטבעה בכוונה';
+
+  @override
+  String get wrecks_cause_war => 'אבדן מלחמה';
+
+  @override
+  String get wrecks_cause_fire => 'שריפה';
+
+  @override
+  String get wrecks_cause_unknown => 'לא ידוע';
+
+  @override
+  String get wrecks_condition_intact => 'שלמה';
+
+  @override
+  String get wrecks_condition_broken => 'שבורה';
+
+  @override
+  String get wrecks_condition_debris => 'שדה שברים';
+
+  @override
+  String get wrecks_protection_none => 'ללא';
+
+  @override
+  String get wrecks_protection_permitRequired => 'נדרש היתר';
+
+  @override
+  String get wrecks_protection_protected => 'מוגנת';
+
+  @override
+  String get wrecks_protection_warGrave => 'קבר מלחמה';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return 'למחוק את $name?';
+  }
+
+  @override
   String get nav_sites => 'אתרים';
 
   @override

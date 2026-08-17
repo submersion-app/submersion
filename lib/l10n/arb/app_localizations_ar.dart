@@ -12685,6 +12685,125 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_settings => 'الإعدادات';
 
   @override
+  String get nav_wrecks => 'حطام السفن';
+
+  @override
+  String get wrecks_empty_title => 'لا توجد حطام بعد';
+
+  @override
+  String get wrecks_empty_body => 'أضف الحطام الذي تغوص فيه أو ترغب بذلك';
+
+  @override
+  String get wrecks_add => 'إضافة حطام';
+
+  @override
+  String get wrecks_edit => 'تحرير الحطام';
+
+  @override
+  String get wrecks_field_name => 'الاسم';
+
+  @override
+  String get wrecks_field_vesselType => 'نوع السفينة';
+
+  @override
+  String get wrecks_field_depthToDeck => 'العمق حتى السطح';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'العمق حتى القاع';
+
+  @override
+  String get wrecks_field_length => 'الطول';
+
+  @override
+  String get wrecks_field_yearBuilt => 'سنة البناء';
+
+  @override
+  String get wrecks_field_yearSunk => 'سنة الغرق';
+
+  @override
+  String get wrecks_field_cause => 'سبب الغرق';
+
+  @override
+  String get wrecks_field_condition => 'الحالة';
+
+  @override
+  String get wrecks_field_penetration => 'الاختراق ممكن';
+
+  @override
+  String get wrecks_field_protection => 'حالة الحماية';
+
+  @override
+  String get wrecks_field_site => 'موقع الغوص';
+
+  @override
+  String get wrecks_field_notes => 'ملاحظات';
+
+  @override
+  String get wrecks_sectionTitle => 'الحطام هنا';
+
+  @override
+  String get wrecks_link => 'ربط حطام';
+
+  @override
+  String get wrecks_linkNone => 'بدون حطام';
+
+  @override
+  String get wrecks_type_ship => 'سفينة';
+
+  @override
+  String get wrecks_type_aircraft => 'طائرة';
+
+  @override
+  String get wrecks_type_other => 'أخرى';
+
+  @override
+  String get wrecks_cause_foundered => 'غرق';
+
+  @override
+  String get wrecks_cause_collision => 'تصادم';
+
+  @override
+  String get wrecks_cause_grounding => 'جنوح';
+
+  @override
+  String get wrecks_cause_scuttled => 'إغراق متعمد';
+
+  @override
+  String get wrecks_cause_war => 'خسارة حربية';
+
+  @override
+  String get wrecks_cause_fire => 'حريق';
+
+  @override
+  String get wrecks_cause_unknown => 'غير معروف';
+
+  @override
+  String get wrecks_condition_intact => 'سليم';
+
+  @override
+  String get wrecks_condition_broken => 'متكسر';
+
+  @override
+  String get wrecks_condition_debris => 'حقل حطام';
+
+  @override
+  String get wrecks_protection_none => 'لا يوجد';
+
+  @override
+  String get wrecks_protection_permitRequired => 'يلزم تصريح';
+
+  @override
+  String get wrecks_protection_protected => 'محمي';
+
+  @override
+  String get wrecks_protection_warGrave => 'مقبرة حربية';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
   String get nav_sites => 'المواقع';
 
   @override

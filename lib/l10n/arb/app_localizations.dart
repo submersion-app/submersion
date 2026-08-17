@@ -21899,6 +21899,240 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get nav_settings;
 
+  /// No description provided for @nav_wrecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks'**
+  String get nav_wrecks;
+
+  /// No description provided for @wrecks_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No wrecks yet'**
+  String get wrecks_empty_title;
+
+  /// No description provided for @wrecks_empty_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Add wrecks you dive or want to dive'**
+  String get wrecks_empty_body;
+
+  /// No description provided for @wrecks_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add wreck'**
+  String get wrecks_add;
+
+  /// No description provided for @wrecks_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit wreck'**
+  String get wrecks_edit;
+
+  /// No description provided for @wrecks_field_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get wrecks_field_name;
+
+  /// No description provided for @wrecks_field_vesselType.
+  ///
+  /// In en, this message translates to:
+  /// **'Vessel type'**
+  String get wrecks_field_vesselType;
+
+  /// No description provided for @wrecks_field_depthToDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth to deck'**
+  String get wrecks_field_depthToDeck;
+
+  /// No description provided for @wrecks_field_depthToSeabed.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth to seabed'**
+  String get wrecks_field_depthToSeabed;
+
+  /// No description provided for @wrecks_field_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get wrecks_field_length;
+
+  /// No description provided for @wrecks_field_yearBuilt.
+  ///
+  /// In en, this message translates to:
+  /// **'Year built'**
+  String get wrecks_field_yearBuilt;
+
+  /// No description provided for @wrecks_field_yearSunk.
+  ///
+  /// In en, this message translates to:
+  /// **'Year sunk'**
+  String get wrecks_field_yearSunk;
+
+  /// No description provided for @wrecks_field_cause.
+  ///
+  /// In en, this message translates to:
+  /// **'Cause of sinking'**
+  String get wrecks_field_cause;
+
+  /// No description provided for @wrecks_field_condition.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get wrecks_field_condition;
+
+  /// No description provided for @wrecks_field_penetration.
+  ///
+  /// In en, this message translates to:
+  /// **'Penetration possible'**
+  String get wrecks_field_penetration;
+
+  /// No description provided for @wrecks_field_protection.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected status'**
+  String get wrecks_field_protection;
+
+  /// No description provided for @wrecks_field_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site'**
+  String get wrecks_field_site;
+
+  /// No description provided for @wrecks_field_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get wrecks_field_notes;
+
+  /// No description provided for @wrecks_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks here'**
+  String get wrecks_sectionTitle;
+
+  /// No description provided for @wrecks_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a wreck'**
+  String get wrecks_link;
+
+  /// No description provided for @wrecks_linkNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No wreck'**
+  String get wrecks_linkNone;
+
+  /// No description provided for @wrecks_type_ship.
+  ///
+  /// In en, this message translates to:
+  /// **'Ship'**
+  String get wrecks_type_ship;
+
+  /// No description provided for @wrecks_type_aircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft'**
+  String get wrecks_type_aircraft;
+
+  /// No description provided for @wrecks_type_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get wrecks_type_other;
+
+  /// No description provided for @wrecks_cause_foundered.
+  ///
+  /// In en, this message translates to:
+  /// **'Foundered'**
+  String get wrecks_cause_foundered;
+
+  /// No description provided for @wrecks_cause_collision.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision'**
+  String get wrecks_cause_collision;
+
+  /// No description provided for @wrecks_cause_grounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounding'**
+  String get wrecks_cause_grounding;
+
+  /// No description provided for @wrecks_cause_scuttled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scuttled'**
+  String get wrecks_cause_scuttled;
+
+  /// No description provided for @wrecks_cause_war.
+  ///
+  /// In en, this message translates to:
+  /// **'War loss'**
+  String get wrecks_cause_war;
+
+  /// No description provided for @wrecks_cause_fire.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire'**
+  String get wrecks_cause_fire;
+
+  /// No description provided for @wrecks_cause_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get wrecks_cause_unknown;
+
+  /// No description provided for @wrecks_condition_intact.
+  ///
+  /// In en, this message translates to:
+  /// **'Intact'**
+  String get wrecks_condition_intact;
+
+  /// No description provided for @wrecks_condition_broken.
+  ///
+  /// In en, this message translates to:
+  /// **'Broken up'**
+  String get wrecks_condition_broken;
+
+  /// No description provided for @wrecks_condition_debris.
+  ///
+  /// In en, this message translates to:
+  /// **'Debris field'**
+  String get wrecks_condition_debris;
+
+  /// No description provided for @wrecks_protection_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get wrecks_protection_none;
+
+  /// No description provided for @wrecks_protection_permitRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Permit required'**
+  String get wrecks_protection_permitRequired;
+
+  /// No description provided for @wrecks_protection_protected.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected'**
+  String get wrecks_protection_protected;
+
+  /// No description provided for @wrecks_protection_warGrave.
+  ///
+  /// In en, this message translates to:
+  /// **'War grave'**
+  String get wrecks_protection_warGrave;
+
+  /// No description provided for @wrecks_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String wrecks_deleteConfirm(String name);
+
   /// Navigation label for dive sites section
   ///
   /// In en, this message translates to:

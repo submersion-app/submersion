@@ -12337,6 +12337,125 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_settings => '设置';
 
   @override
+  String get nav_wrecks => '沉船';
+
+  @override
+  String get wrecks_empty_title => '尚无沉船';
+
+  @override
+  String get wrecks_empty_body => '添加您潜过或想潜的沉船';
+
+  @override
+  String get wrecks_add => '添加沉船';
+
+  @override
+  String get wrecks_edit => '编辑沉船';
+
+  @override
+  String get wrecks_field_name => '名称';
+
+  @override
+  String get wrecks_field_vesselType => '船舶类型';
+
+  @override
+  String get wrecks_field_depthToDeck => '至甲板深度';
+
+  @override
+  String get wrecks_field_depthToSeabed => '至海底深度';
+
+  @override
+  String get wrecks_field_length => '长度';
+
+  @override
+  String get wrecks_field_yearBuilt => '建造年份';
+
+  @override
+  String get wrecks_field_yearSunk => '沉没年份';
+
+  @override
+  String get wrecks_field_cause => '沉没原因';
+
+  @override
+  String get wrecks_field_condition => '状况';
+
+  @override
+  String get wrecks_field_penetration => '可穿透';
+
+  @override
+  String get wrecks_field_protection => '保护状态';
+
+  @override
+  String get wrecks_field_site => '潜点';
+
+  @override
+  String get wrecks_field_notes => '备注';
+
+  @override
+  String get wrecks_sectionTitle => '此处的沉船';
+
+  @override
+  String get wrecks_link => '关联沉船';
+
+  @override
+  String get wrecks_linkNone => '无沉船';
+
+  @override
+  String get wrecks_type_ship => '船';
+
+  @override
+  String get wrecks_type_aircraft => '飞机';
+
+  @override
+  String get wrecks_type_other => '其他';
+
+  @override
+  String get wrecks_cause_foundered => '失事沉没';
+
+  @override
+  String get wrecks_cause_collision => '碰撞';
+
+  @override
+  String get wrecks_cause_grounding => '搁浅';
+
+  @override
+  String get wrecks_cause_scuttled => '自沉';
+
+  @override
+  String get wrecks_cause_war => '战争损失';
+
+  @override
+  String get wrecks_cause_fire => '火灾';
+
+  @override
+  String get wrecks_cause_unknown => '未知';
+
+  @override
+  String get wrecks_condition_intact => '完整';
+
+  @override
+  String get wrecks_condition_broken => '破裂';
+
+  @override
+  String get wrecks_condition_debris => '残骸区';
+
+  @override
+  String get wrecks_protection_none => '无';
+
+  @override
+  String get wrecks_protection_permitRequired => '需要许可';
+
+  @override
+  String get wrecks_protection_protected => '受保护';
+
+  @override
+  String get wrecks_protection_warGrave => '战争坟场';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return '删除 $name？';
+  }
+
+  @override
   String get nav_sites => '潜水点';
 
   @override

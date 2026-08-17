@@ -12818,6 +12818,126 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_settings => 'Instellingen';
 
   @override
+  String get nav_wrecks => 'Wrakken';
+
+  @override
+  String get wrecks_empty_title => 'Nog geen wrakken';
+
+  @override
+  String get wrecks_empty_body =>
+      'Voeg wrakken toe die je duikt of wilt duiken';
+
+  @override
+  String get wrecks_add => 'Wrak toevoegen';
+
+  @override
+  String get wrecks_edit => 'Wrak bewerken';
+
+  @override
+  String get wrecks_field_name => 'Naam';
+
+  @override
+  String get wrecks_field_vesselType => 'Vaartuigtype';
+
+  @override
+  String get wrecks_field_depthToDeck => 'Diepte tot dek';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'Diepte tot bodem';
+
+  @override
+  String get wrecks_field_length => 'Lengte';
+
+  @override
+  String get wrecks_field_yearBuilt => 'Bouwjaar';
+
+  @override
+  String get wrecks_field_yearSunk => 'Zinkjaar';
+
+  @override
+  String get wrecks_field_cause => 'Oorzaak van zinken';
+
+  @override
+  String get wrecks_field_condition => 'Staat';
+
+  @override
+  String get wrecks_field_penetration => 'Penetratie mogelijk';
+
+  @override
+  String get wrecks_field_protection => 'Beschermingsstatus';
+
+  @override
+  String get wrecks_field_site => 'Duikstek';
+
+  @override
+  String get wrecks_field_notes => 'Notities';
+
+  @override
+  String get wrecks_sectionTitle => 'Wrakken hier';
+
+  @override
+  String get wrecks_link => 'Wrak koppelen';
+
+  @override
+  String get wrecks_linkNone => 'Geen wrak';
+
+  @override
+  String get wrecks_type_ship => 'Schip';
+
+  @override
+  String get wrecks_type_aircraft => 'Vliegtuig';
+
+  @override
+  String get wrecks_type_other => 'Overig';
+
+  @override
+  String get wrecks_cause_foundered => 'Vergaan';
+
+  @override
+  String get wrecks_cause_collision => 'Aanvaring';
+
+  @override
+  String get wrecks_cause_grounding => 'Stranding';
+
+  @override
+  String get wrecks_cause_scuttled => 'Tot zinken gebracht';
+
+  @override
+  String get wrecks_cause_war => 'Oorlogsverlies';
+
+  @override
+  String get wrecks_cause_fire => 'Brand';
+
+  @override
+  String get wrecks_cause_unknown => 'Onbekend';
+
+  @override
+  String get wrecks_condition_intact => 'Intact';
+
+  @override
+  String get wrecks_condition_broken => 'Gebroken';
+
+  @override
+  String get wrecks_condition_debris => 'Puinveld';
+
+  @override
+  String get wrecks_protection_none => 'Geen';
+
+  @override
+  String get wrecks_protection_permitRequired => 'Vergunning vereist';
+
+  @override
+  String get wrecks_protection_protected => 'Beschermd';
+
+  @override
+  String get wrecks_protection_warGrave => 'Oorlogsgraf';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return '$name verwijderen?';
+  }
+
+  @override
   String get nav_sites => 'Duikstekken';
 
   @override

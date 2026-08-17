@@ -12705,6 +12705,125 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_settings => 'Settings';
 
   @override
+  String get nav_wrecks => 'Wrecks';
+
+  @override
+  String get wrecks_empty_title => 'No wrecks yet';
+
+  @override
+  String get wrecks_empty_body => 'Add wrecks you dive or want to dive';
+
+  @override
+  String get wrecks_add => 'Add wreck';
+
+  @override
+  String get wrecks_edit => 'Edit wreck';
+
+  @override
+  String get wrecks_field_name => 'Name';
+
+  @override
+  String get wrecks_field_vesselType => 'Vessel type';
+
+  @override
+  String get wrecks_field_depthToDeck => 'Depth to deck';
+
+  @override
+  String get wrecks_field_depthToSeabed => 'Depth to seabed';
+
+  @override
+  String get wrecks_field_length => 'Length';
+
+  @override
+  String get wrecks_field_yearBuilt => 'Year built';
+
+  @override
+  String get wrecks_field_yearSunk => 'Year sunk';
+
+  @override
+  String get wrecks_field_cause => 'Cause of sinking';
+
+  @override
+  String get wrecks_field_condition => 'Condition';
+
+  @override
+  String get wrecks_field_penetration => 'Penetration possible';
+
+  @override
+  String get wrecks_field_protection => 'Protected status';
+
+  @override
+  String get wrecks_field_site => 'Dive site';
+
+  @override
+  String get wrecks_field_notes => 'Notes';
+
+  @override
+  String get wrecks_sectionTitle => 'Wrecks here';
+
+  @override
+  String get wrecks_link => 'Link a wreck';
+
+  @override
+  String get wrecks_linkNone => 'No wreck';
+
+  @override
+  String get wrecks_type_ship => 'Ship';
+
+  @override
+  String get wrecks_type_aircraft => 'Aircraft';
+
+  @override
+  String get wrecks_type_other => 'Other';
+
+  @override
+  String get wrecks_cause_foundered => 'Foundered';
+
+  @override
+  String get wrecks_cause_collision => 'Collision';
+
+  @override
+  String get wrecks_cause_grounding => 'Grounding';
+
+  @override
+  String get wrecks_cause_scuttled => 'Scuttled';
+
+  @override
+  String get wrecks_cause_war => 'War loss';
+
+  @override
+  String get wrecks_cause_fire => 'Fire';
+
+  @override
+  String get wrecks_cause_unknown => 'Unknown';
+
+  @override
+  String get wrecks_condition_intact => 'Intact';
+
+  @override
+  String get wrecks_condition_broken => 'Broken up';
+
+  @override
+  String get wrecks_condition_debris => 'Debris field';
+
+  @override
+  String get wrecks_protection_none => 'None';
+
+  @override
+  String get wrecks_protection_permitRequired => 'Permit required';
+
+  @override
+  String get wrecks_protection_protected => 'Protected';
+
+  @override
+  String get wrecks_protection_warGrave => 'War grave';
+
+  @override
+  String wrecks_deleteConfirm(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
   String get nav_sites => 'Sites';
 
   @override
