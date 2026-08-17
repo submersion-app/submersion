@@ -234,7 +234,8 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
               initialValue: _wrecks.any((w) => w.id == _wreckId)
                   ? _wreckId
                   : null,
-              decoration: InputDecoration(labelText: l10n.wrecks_field_site),
+              // This picks a catalogue WRECK, not a site.
+              decoration: InputDecoration(labelText: l10n.wrecks_link),
               items: [
                 DropdownMenuItem(
                   value: null,

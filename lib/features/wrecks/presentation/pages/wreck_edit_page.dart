@@ -90,9 +90,14 @@ class _WreckEditPageState extends ConsumerState<WreckEditPage> {
   }
 
   static double? _meters(String text, double unitInMeters) {
-    final v = double.tryParse(text.trim().replaceAll(',', '.'));
+    final v = _number(text);
     return v == null ? null : v * unitInMeters;
   }
+
+  /// Parses a typed number, accepting a decimal comma: many divers type
+  /// "12,15" because their keyboard and locale use it.
+  static double? _number(String text) =>
+      double.tryParse(text.trim().replaceAll(',', '.'));
 
   @override
   Widget build(BuildContext context) {
@@ -131,8 +136,9 @@ class _WreckEditPageState extends ConsumerState<WreckEditPage> {
               key: const ValueKey('wreckNameField'),
               controller: _name,
               decoration: InputDecoration(labelText: l10n.wrecks_field_name),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.wrecks_add : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? l10n.wrecks_validation_nameRequired
+                  : null,
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String?>(
@@ -272,7 +278,7 @@ class _WreckEditPageState extends ConsumerState<WreckEditPage> {
                   child: _numberField(
                     key: 'wreckLatitudeField',
                     controller: _latitude,
-                    label: 'Lat',
+                    label: l10n.wrecks_field_latitude,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -280,7 +286,7 @@ class _WreckEditPageState extends ConsumerState<WreckEditPage> {
                   child: _numberField(
                     key: 'wreckLongitudeField',
                     controller: _longitude,
-                    label: 'Lon',
+                    label: l10n.wrecks_field_longitude,
                   ),
                 ),
               ],
@@ -316,8 +322,8 @@ class _WreckEditPageState extends ConsumerState<WreckEditPage> {
 
   Future<void> _save(double unitInMeters) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final lat = double.tryParse(_latitude.text.trim());
-    final lon = double.tryParse(_longitude.text.trim());
+    final lat = _number(_latitude.text);
+    final lon = _number(_longitude.text);
     final draft = Wreck(
       id: widget.wreckId ?? '',
       name: _name.text.trim(),

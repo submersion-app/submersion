@@ -12736,6 +12736,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wrecks_field_site => 'موقع الغوص';
 
   @override
+  String get wrecks_field_latitude => 'خط العرض';
+
+  @override
+  String get wrecks_field_longitude => 'خط الطول';
+
+  @override
+  String get wrecks_validation_nameRequired => 'أدخل اسمًا';
+
+  @override
   String get wrecks_field_notes => 'ملاحظات';
 
   @override

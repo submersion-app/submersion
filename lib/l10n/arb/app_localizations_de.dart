@@ -12958,6 +12958,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get wrecks_field_site => 'Tauchplatz';
 
   @override
+  String get wrecks_field_latitude => 'Breitengrad';
+
+  @override
+  String get wrecks_field_longitude => 'Längengrad';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Namen eingeben';
+
+  @override
   String get wrecks_field_notes => 'Notizen';
 
   @override

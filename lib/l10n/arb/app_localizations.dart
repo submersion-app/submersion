@@ -22001,6 +22001,24 @@ abstract class AppLocalizations {
   /// **'Dive site'**
   String get wrecks_field_site;
 
+  /// No description provided for @wrecks_field_latitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get wrecks_field_latitude;
+
+  /// No description provided for @wrecks_field_longitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get wrecks_field_longitude;
+
+  /// No description provided for @wrecks_validation_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get wrecks_validation_nameRequired;
+
   /// No description provided for @wrecks_field_notes.
   ///
   /// In en, this message translates to:

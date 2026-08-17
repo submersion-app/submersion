@@ -12966,6 +12966,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get wrecks_field_site => 'Sito d\'immersione';
 
   @override
+  String get wrecks_field_latitude => 'Latitudine';
+
+  @override
+  String get wrecks_field_longitude => 'Longitudine';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Inserisci un nome';
+
+  @override
   String get wrecks_field_notes => 'Note';
 
   @override

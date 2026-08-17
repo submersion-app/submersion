@@ -12388,6 +12388,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wrecks_field_site => '潜点';
 
   @override
+  String get wrecks_field_latitude => '纬度';
+
+  @override
+  String get wrecks_field_longitude => '经度';
+
+  @override
+  String get wrecks_validation_nameRequired => '请输入名称';
+
+  @override
   String get wrecks_field_notes => '备注';
 
   @override

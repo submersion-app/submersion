@@ -241,6 +241,41 @@ void main() {
       expect(repo.created.single.depthToDeckMeters, closeTo(18.288, 1e-9));
     });
 
+    testWidgets('coordinates accept a decimal comma', (tester) async {
+      final repo = _RecordingWreckRepository();
+      await _pump(tester, const WreckEditPage(), repository: repo);
+
+      await tester.enterText(
+        find.byKey(const ValueKey('wreckNameField')),
+        'Hilma Hooker',
+      );
+      // The coordinate fields sit far down a lazily built ListView, so
+      // they are not in the tree until scrolled into view.
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('wreckLatitudeField')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pump();
+
+      // Many divers type a decimal comma; the other numeric fields
+      // already normalize it.
+      await tester.enterText(
+        find.byKey(const ValueKey('wreckLatitudeField')),
+        '12,15',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('wreckLongitudeField')),
+        '-68,3',
+      );
+      await tester.tap(find.byKey(const ValueKey('wreckSaveButton')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(repo.created.single.latitude, closeTo(12.15, 1e-9));
+      expect(repo.created.single.longitude, closeTo(-68.3, 1e-9));
+    });
+
     testWidgets('saving without a name is refused', (tester) async {
       final repo = _RecordingWreckRepository();
       await _pump(tester, const WreckEditPage(), repository: repo);

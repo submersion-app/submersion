@@ -12654,6 +12654,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get wrecks_field_site => 'אתר צלילה';
 
   @override
+  String get wrecks_field_latitude => 'קו רוחב';
+
+  @override
+  String get wrecks_field_longitude => 'קו אורך';
+
+  @override
+  String get wrecks_validation_nameRequired => 'הזינו שם';
+
+  @override
   String get wrecks_field_notes => 'הערות';
 
   @override

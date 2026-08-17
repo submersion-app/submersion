@@ -12953,6 +12953,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get wrecks_field_site => 'Punto de buceo';
 
   @override
+  String get wrecks_field_latitude => 'Latitud';
+
+  @override
+  String get wrecks_field_longitude => 'Longitud';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Introduce un nombre';
+
+  @override
   String get wrecks_field_notes => 'Notas';
 
   @override

@@ -106,6 +106,23 @@ void main() {
     expect(find.textContaining('59.1 ft'), findsOneWidget);
   });
 
+  testWidgets('a bare wreck row carries no empty subtitle line', (
+    tester,
+  ) async {
+    await _pumpSection(
+      tester,
+      wrecks: const [
+        // No vessel type and no depth: there is nothing to subtitle.
+        Wreck(id: 'w-9', siteId: 'site-1', name: 'Unknown hull'),
+      ],
+    );
+
+    final tile = tester.widget<ListTile>(
+      find.byKey(const ValueKey('siteWreckRow-w-9')),
+    );
+    expect(tile.subtitle, isNull);
+  });
+
   testWidgets('the link action opens the create page', (tester) async {
     await _pumpSection(tester);
     await tester.tap(find.byKey(const ValueKey('siteWreckLinkButton')));

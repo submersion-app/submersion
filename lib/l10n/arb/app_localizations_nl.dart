@@ -12870,6 +12870,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get wrecks_field_site => 'Duikstek';
 
   @override
+  String get wrecks_field_latitude => 'Breedtegraad';
+
+  @override
+  String get wrecks_field_longitude => 'Lengtegraad';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Voer een naam in';
+
+  @override
   String get wrecks_field_notes => 'Notities';
 
   @override

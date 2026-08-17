@@ -12929,6 +12929,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get wrecks_field_site => 'Merülőhely';
 
   @override
+  String get wrecks_field_latitude => 'Szélesség';
+
+  @override
+  String get wrecks_field_longitude => 'Hosszúság';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Adjon meg egy nevet';
+
+  @override
   String get wrecks_field_notes => 'Jegyzetek';
 
   @override

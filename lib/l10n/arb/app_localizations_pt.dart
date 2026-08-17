@@ -12971,6 +12971,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get wrecks_field_site => 'Local de mergulho';
 
   @override
+  String get wrecks_field_latitude => 'Latitude';
+
+  @override
+  String get wrecks_field_longitude => 'Longitude';
+
+  @override
+  String get wrecks_validation_nameRequired => 'Informe um nome';
+
+  @override
   String get wrecks_field_notes => 'Notas';
 
   @override

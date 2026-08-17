@@ -44,23 +44,28 @@ class SiteWrecksSection extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             for (final w in wrecks)
-              ListTile(
-                key: ValueKey('siteWreckRow-${w.id}'),
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.sailing_outlined),
-                title: Text(w.name),
-                subtitle: Text(
-                  [
+              Builder(
+                builder: (context) {
+                  // Null, not an empty Text: an unknown type and depth
+                  // would otherwise leave a blank subtitle line.
+                  final subtitle = [
                     wreckVesselTypeLabel(l10n, w.vesselTypeName),
                     wreckMeasure(
                       w.depthToDeckMeters,
                       unitInMeters,
                       depthUnit.symbol,
                     ),
-                  ].where((s) => s.isNotEmpty).join(' • '),
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/wrecks/${w.id}'),
+                  ].where((s) => s.isNotEmpty).join(' • ');
+                  return ListTile(
+                    key: ValueKey('siteWreckRow-${w.id}'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.sailing_outlined),
+                    title: Text(w.name),
+                    subtitle: subtitle.isEmpty ? null : Text(subtitle),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/wrecks/${w.id}'),
+                  );
+                },
               ),
             Align(
               alignment: AlignmentDirectional.centerStart,
