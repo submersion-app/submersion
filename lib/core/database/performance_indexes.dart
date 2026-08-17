@@ -186,6 +186,12 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON site_features(site_id)',
   ),
   (
+    name: 'idx_wrecks_site',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_wrecks_site '
+        'ON wrecks(site_id)',
+  ),
+  (
     name: 'idx_courses_diver',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_courses_diver ON courses(diver_id)',
   ),

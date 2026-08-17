@@ -2855,6 +2855,71 @@ class SiteFeatures extends Table {
   /// Stored meters; displayed in the diver's unit.
   RealColumn get depthMeters => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// The catalogue wreck this marker points at, when the diver linked
+  /// one (slice 3a). NULLs rather than cascading: deleting the wreck
+  /// record must not silently remove the marker from the map.
+  TextColumn get wreckId =>
+      text().nullable().references(Wrecks, #id, onDelete: KeyAction.setNull)();
+
+  /// Provenance: 'diver' for hand-placed features; slice 3b writes its
+  /// own source ids for imported ones.
+  TextColumn get source => text().withDefault(const Constant('diver'))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Diver-maintained wreck catalogue (seascape program slice 3a). A wreck
+/// is a top-level entity like a dive site: it carries its own position
+/// and outlives any one site, so [siteId] is an optional link that NULLs
+/// rather than cascading. External sources (slice 3b) write into this
+/// same table rather than owning storage of their own.
+class Wrecks extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+
+  /// The site this wreck is dived from, when the diver has logged one.
+  TextColumn get siteId => text().nullable().references(
+    DiveSites,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Required, as on DiveSites: a nameless wreck is not a record anyone
+  /// can use.
+  TextColumn get name => text()();
+
+  /// A wreck can be known before its position is.
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+
+  /// Enum NAMEs, plain text so a value from a newer build survives sync:
+  /// vesselType ship|aircraft|other; causeOfSinking foundered|collision|
+  /// grounding|scuttled|war|fire|unknown; condition intact|broken|debris;
+  /// protectedStatus none|permitRequired|protected|warGrave.
+  TextColumn get vesselType => text().nullable()();
+  TextColumn get causeOfSinking => text().nullable()();
+  TextColumn get condition => text().nullable()();
+  TextColumn get protectedStatus => text().nullable()();
+
+  /// Stored meters; displayed in the diver's unit.
+  RealColumn get depthToDeckMeters => real().nullable()();
+  RealColumn get depthToSeabedMeters => real().nullable()();
+  RealColumn get lengthMeters => real().nullable()();
+  IntColumn get yearBuilt => integer().nullable()();
+  IntColumn get yearSunk => integer().nullable()();
+
+  /// Null means unknown, which is not the same as no.
+  BoolColumn get penetrationPossible => boolean().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -3002,6 +3067,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
+    Wrecks,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -3061,7 +3127,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 152;
+  static const int currentSchemaVersion = 153;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3281,6 +3347,9 @@ class AppDatabase extends _$AppDatabase {
     // v152: site_features (seascape program slice 2): diver-placed
     // annotations on a site, synced LWW.
     152,
+    // v153: wrecks catalogue plus site_features.wreck_id/source
+    // (seascape program slice 3a).
+    153,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4690,6 +4759,25 @@ class AppDatabase extends _$AppDatabase {
   /// Idempotent DDL for the v151 diver_settings seascape appearance blob.
   /// Same dual-call contract as [_assertVisibilityScaleColumns]. Nullable
   /// with no default: null marks a pre-v151 row (see the table comment).
+  /// v153: the wreck link and provenance columns on site_features.
+  Future<void> _assertSiteFeatureWreckColumns() async {
+    final cols = await customSelect("PRAGMA table_info('site_features')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('wreck_id')) {
+      await customStatement(
+        'ALTER TABLE site_features ADD COLUMN wreck_id TEXT REFERENCES '
+        'wrecks(id) ON DELETE SET NULL',
+      );
+    }
+    if (!names.contains('source')) {
+      await customStatement(
+        "ALTER TABLE site_features ADD COLUMN source TEXT NOT NULL "
+        "DEFAULT 'diver'",
+      );
+    }
+  }
+
   Future<void> _assertSeascapeAppearanceColumn() async {
     final cols = await customSelect(
       "PRAGMA table_info('diver_settings')",
@@ -8060,6 +8148,13 @@ class AppDatabase extends _$AppDatabase {
           await createMigrator().createTable(siteFeatures);
         }
         if (from < 152) await reportProgress();
+        // v153: wreck catalogue (slice 3a). The table must exist before
+        // the site_features FK column can reference it.
+        if (from < 153) {
+          await createMigrator().createTable(wrecks);
+          await _assertSiteFeatureWreckColumns();
+        }
+        if (from < 153) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -8148,6 +8243,11 @@ class AppDatabase extends _$AppDatabase {
         // v152 backstop: site features table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await createMigrator().createTable(siteFeatures);
+
+        // v153 backstop: wrecks table and the site_features link columns
+        // (same self-heal; both are idempotent).
+        await createMigrator().createTable(wrecks);
+        await _assertSiteFeatureWreckColumns();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
