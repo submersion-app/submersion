@@ -6,6 +6,8 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
+import 'package:submersion/features/wrecks/domain/entities/wreck.dart';
+import 'package:submersion/features/wrecks/presentation/providers/wreck_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -18,6 +20,7 @@ void main() {
     SiteFeature? existing,
     double? initialDepthMeters,
     AppSettings settings = const AppSettings(),
+    List<Wreck> wrecks = const [],
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -26,6 +29,7 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          wrecksProvider.overrideWith((ref) async => wrecks),
           settingsProvider.overrideWith(
             (ref) => MockSettingsNotifier(settings),
           ),
@@ -93,6 +97,73 @@ void main() {
     expect(save.name, 'North ball');
     expect(save.bearingDeg, 90);
     expect(save.depthMeters, 18);
+  });
+
+  testWidgets('the wreck picker appears only for the wreck type', (
+    tester,
+  ) async {
+    await pumpHost(
+      tester,
+      wrecks: const [Wreck(id: 'w-1', name: 'Hilma Hooker')],
+    );
+
+    // The default type is wreck, so the picker is offered.
+    expect(find.byKey(const ValueKey('siteFeatureWreckField')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('siteFeatureTypeField')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Mooring').last);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byKey(const ValueKey('siteFeatureWreckField')), findsNothing);
+  });
+
+  testWidgets('picking a wreck returns its id in the save result', (
+    tester,
+  ) async {
+    final result = await pumpHost(
+      tester,
+      wrecks: const [Wreck(id: 'w-1', name: 'Hilma Hooker')],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('siteFeatureWreckField')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Hilma Hooker').last);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.byKey(const ValueKey('siteFeatureSaveButton')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect((result()! as SiteFeatureSheetSave).wreckId, 'w-1');
+  });
+
+  testWidgets('switching away from wreck drops the link', (tester) async {
+    final result = await pumpHost(
+      tester,
+      wrecks: const [Wreck(id: 'w-1', name: 'Hilma Hooker')],
+      existing: const SiteFeature(
+        id: 'f-1',
+        siteId: 's-1',
+        typeName: 'wreck',
+        latitude: 12.15,
+        longitude: -68.3,
+        wreckId: 'w-1',
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('siteFeatureTypeField')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Hazard').last);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('siteFeatureSaveButton')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final save = result()! as SiteFeatureSheetSave;
+    expect(save.typeName, 'hazard');
+    // A hazard cannot carry a wreck link.
+    expect(save.wreckId, isNull);
   });
 
   testWidgets('bearings normalize into 0-359, including negatives', (

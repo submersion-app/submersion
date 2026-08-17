@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
+import 'package:submersion/features/wrecks/presentation/providers/wreck_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -46,6 +47,8 @@ Future<int Function()> _pumpSection(
         sharedPreferencesProvider.overrideWithValue(prefs),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
         siteFeaturesProvider('site-1').overrideWith((ref) async => features),
+        // Row taps open the edit sheet, which loads the catalogue.
+        wrecksProvider.overrideWith((ref) async => const []),
       ],
       child: MaterialApp(
         locale: const Locale('en'),

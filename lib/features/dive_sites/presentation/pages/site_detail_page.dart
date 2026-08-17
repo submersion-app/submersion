@@ -20,6 +20,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_marker_
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
+import 'package:submersion/features/wrecks/presentation/widgets/site_wrecks_section.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -187,6 +188,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _showFullscreenMap(context, ref, site, startPlacing: true),
             ),
             const SizedBox(height: 16),
+            // Catalogue wrecks linked to this site (renders nothing when
+            // there are none).
+            SiteWrecksSection(siteId: site.id),
           ],
 
           // Basic Info Section (Name + Location String)

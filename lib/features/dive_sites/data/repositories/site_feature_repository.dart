@@ -30,6 +30,7 @@ class SiteFeatureRepository {
     double? depthMeters,
     String name = '',
     String notes = '',
+    String? wreckId,
   }) async {
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -46,6 +47,7 @@ class SiteFeatureRepository {
             bearingDeg: Value(bearingDeg),
             depthMeters: Value(depthMeters),
             notes: Value(notes),
+            wreckId: Value(wreckId),
             createdAt: now,
             updatedAt: now,
           ),
@@ -61,6 +63,7 @@ class SiteFeatureRepository {
       bearingDeg: bearingDeg,
       depthMeters: depthMeters,
       notes: notes,
+      wreckId: wreckId,
     );
   }
 
@@ -86,6 +89,7 @@ class SiteFeatureRepository {
         bearingDeg: Value(feature.bearingDeg),
         depthMeters: Value(feature.depthMeters),
         notes: Value(feature.notes),
+        wreckId: Value(feature.wreckId),
         updatedAt: Value(now),
       ),
     );
@@ -142,5 +146,6 @@ class SiteFeatureRepository {
     bearingDeg: row.bearingDeg,
     depthMeters: row.depthMeters,
     notes: row.notes,
+    wreckId: row.wreckId,
   );
 }

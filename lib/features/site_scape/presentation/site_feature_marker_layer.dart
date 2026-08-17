@@ -27,6 +27,7 @@ Future<void> editSiteFeature(
       :final bearingDeg,
       :final depthMeters,
       :final notes,
+      :final wreckId,
     ):
       await repository.updateFeature(
         feature.copyWith(
@@ -37,6 +38,8 @@ Future<void> editSiteFeature(
           depthMeters: depthMeters,
           clearDepth: depthMeters == null,
           notes: notes,
+          wreckId: wreckId,
+          clearWreck: wreckId == null,
         ),
       );
     case SiteFeatureSheetDelete():

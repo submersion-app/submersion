@@ -29,6 +29,11 @@ class SiteFeature {
   final double? depthMeters;
   final String notes;
 
+  /// The catalogue wreck this marker points at, when the diver linked
+  /// one. The catalogue owns the wreck's facts; the feature only says
+  /// where it sits on this site.
+  final String? wreckId;
+
   const SiteFeature({
     required this.id,
     required this.siteId,
@@ -39,6 +44,7 @@ class SiteFeature {
     this.bearingDeg,
     this.depthMeters,
     this.notes = '',
+    this.wreckId,
   });
 
   SiteFeatureType? get type => SiteFeatureType.values.asNameMap()[typeName];
@@ -55,6 +61,10 @@ class SiteFeature {
     double? depthMeters,
     bool clearDepth = false,
     String? notes,
+    String? wreckId,
+
+    /// Unlinks the marker from its catalogue wreck.
+    bool clearWreck = false,
   }) {
     return SiteFeature(
       id: id ?? this.id,
@@ -66,6 +76,7 @@ class SiteFeature {
       bearingDeg: clearBearing ? null : (bearingDeg ?? this.bearingDeg),
       depthMeters: clearDepth ? null : (depthMeters ?? this.depthMeters),
       notes: notes ?? this.notes,
+      wreckId: clearWreck ? null : (wreckId ?? this.wreckId),
     );
   }
 }

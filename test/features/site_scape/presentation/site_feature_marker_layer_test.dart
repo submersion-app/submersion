@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
+import 'package:submersion/features/wrecks/presentation/providers/wreck_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -41,6 +42,8 @@ Future<void> _pumpMap(
           (ref) => MockSettingsNotifier(const AppSettings()),
         ),
         siteFeaturesProvider('site-1').overrideWith((ref) async => features),
+        // The edit sheet loads the wreck catalogue for its picker.
+        wrecksProvider.overrideWith((ref) async => const []),
         if (repository != null)
           siteFeatureRepositoryProvider.overrideWithValue(repository),
       ],

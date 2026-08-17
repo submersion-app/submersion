@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/wrecks/domain/entities/wreck.dart';
+import 'package:submersion/features/wrecks/presentation/providers/wreck_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -21,12 +23,17 @@ class SiteFeatureSheetSave extends SiteFeatureSheetResult {
   final double? depthMeters;
   final String notes;
 
+  /// The catalogue wreck this marker points at; null when unlinked or
+  /// when the type is not a wreck.
+  final String? wreckId;
+
   const SiteFeatureSheetSave({
     required this.typeName,
     required this.name,
     required this.bearingDeg,
     required this.depthMeters,
     required this.notes,
+    this.wreckId,
   });
 }
 
@@ -105,6 +112,25 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
     text: widget.existing?.notes ?? '',
   );
   TextEditingController? _depth;
+
+  late String? _wreckId = widget.existing?.wreckId;
+
+  /// The catalogue, resolved once by AWAITING the provider rather than
+  /// reading it: the sheet never watches the list, so a plain read can
+  /// land on an unresolved provider and silently show no options.
+  List<Wreck> _wrecks = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWrecks();
+  }
+
+  Future<void> _loadWrecks() async {
+    final wrecks = await ref.read(wrecksProvider.future);
+    if (!mounted) return;
+    setState(() => _wrecks = wrecks);
+  }
 
   static String _formatNumber(double? v) {
     if (v == null) return '';
@@ -200,6 +226,26 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
               ),
             ],
           ),
+          // Only a wreck marker can point at a catalogue wreck.
+          if (_typeName == SiteFeatureType.wreck.name) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String?>(
+              key: const ValueKey('siteFeatureWreckField'),
+              initialValue: _wrecks.any((w) => w.id == _wreckId)
+                  ? _wreckId
+                  : null,
+              decoration: InputDecoration(labelText: l10n.wrecks_field_site),
+              items: [
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(l10n.wrecks_linkNone),
+                ),
+                for (final w in _wrecks)
+                  DropdownMenuItem(value: w.id, child: Text(w.name)),
+              ],
+              onChanged: (v) => setState(() => _wreckId = v),
+            ),
+          ],
           const SizedBox(height: 12),
           TextFormField(
             key: const ValueKey('siteFeatureNotesField'),
@@ -244,6 +290,8 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
         bearingDeg: bearing == null ? null : bearing % 360,
         depthMeters: depth == null ? null : depth * unitInMeters,
         notes: _notes.text.trim(),
+        // A link only survives while the marker is still a wreck.
+        wreckId: _typeName == SiteFeatureType.wreck.name ? _wreckId : null,
       ),
     );
   }
