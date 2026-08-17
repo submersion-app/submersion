@@ -87,11 +87,17 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (bytes == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
+    // coverage:ignore-start
+    // Reaching here requires real thumbnail bytes, which only arrive from
+    // AssetEntity via _thumbBytes (already ignored below) on a device with a
+    // photo library. GalleryThumbnailCache keeps its entries private, so a
+    // test cannot seed a hit to get here either.
     return BytesData(
       bytes: bytes,
       servedFrom: ServedFrom.platformGallery,
       servedTier: ServedTier.thumbnail,
     );
+    // coverage:ignore-end
   }
 
   /// Runs only on a cache miss.

@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- **No em-dashes.** The `—` (U+2014) character must not appear in any code, comment, doc, test name, or commit message. En-dashes used as prose punctuation and spaced hyphens are equally forbidden. Use commas, colons, semicolons, parentheses, or two sentences.
+- **No em-dashes.** The em-dash character (U+2014) must not appear in any code, comment, doc, test name, or commit message. En-dashes (U+2013) used as prose punctuation and spaced hyphens are equally forbidden. Use commas, colons, semicolons, parentheses, or two sentences. This rule is stated by codepoint rather than by quoting the glyph so that this file does not trip the Task 10 check.
 - **No emojis** in code, comments, or documentation.
 - **No schema change.** This PR adds no columns, no migration, no schema version bump, and touches no synced entity. If a task appears to need one, stop: something has drifted from the spec.
 - **No behavior change.** Every resolution returns the same bytes, the same `UnavailableKind`, and the same widget rendering as before. Only added metadata. Existing tests must pass unmodified.
@@ -1588,9 +1588,15 @@ Expected: empty output. This PR must not touch the schema or the sync engine. An
 - [ ] **Step 5: Confirm no em-dashes entered the diff**
 
 ```bash
-git diff origin/main...HEAD | grep -n '^+.*—' || echo "clean"
+EMDASH=$(printf '\xe2\x80\x94')
+git diff origin/main...HEAD -- lib test | grep -n "^+.*$EMDASH" || echo "clean"
 ```
 Expected: "clean".
+
+Two details matter here. The pattern is built with `printf` into a variable
+rather than typed literally, so this file does not contain the character it
+is searching for. And the diff is scoped to `lib` and `test`, because docs
+legitimately discuss the character by name.
 
 - [ ] **Step 6: Push and open the PR**
 
