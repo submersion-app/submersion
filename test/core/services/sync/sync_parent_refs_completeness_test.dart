@@ -53,6 +53,7 @@ void main() {
     'dive_data_sources': 'diveDataSources',
     'site_species': 'siteSpecies',
     'site_features': 'siteFeatures',
+    'wrecks': 'wrecks',
     'csv_presets': 'csvPresets',
     'view_configs': 'viewConfigs',
     'field_presets': 'fieldPresets',
