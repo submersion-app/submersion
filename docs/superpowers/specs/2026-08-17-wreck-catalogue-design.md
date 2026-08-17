@@ -63,7 +63,7 @@ sharing, and sync behave identically:
 | `id` | TEXT PK | UUID v4 |
 | `diverId` | TEXT nullable FK | references `Divers`, as on `DiveSites` |
 | `siteId` | TEXT nullable FK | references `DiveSites`, `onDelete: KeyAction.setNull` |
-| `name` | TEXT | required in the UI, defaulted empty in the schema |
+| `name` | TEXT | required, as on `DiveSites` |
 | `latitude` / `longitude` | REAL nullable | a wreck can be known before its position is |
 | `vesselType` | TEXT nullable | enum NAME: `ship`, `aircraft`, `other` |
 | `depthToDeckMeters` | REAL nullable | stored metric, displayed in diver units |
