@@ -156,12 +156,12 @@ void main() {
         expect(result.map((d) => d.id).toList(), [
           'dives',
           'sites',
-          'wrecks',
           'trips',
           'media',
           'dive-centers',
           'certifications',
           'courses',
+          'wrecks',
           'planning',
           'transfer',
           'gps-log',

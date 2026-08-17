@@ -63,13 +63,6 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_sites,
   ),
   NavDestination(
-    id: 'wrecks',
-    route: '/wrecks',
-    icon: Icons.sailing_outlined,
-    selectedIcon: Icons.sailing,
-    label: (l10n) => l10n.nav_wrecks,
-  ),
-  NavDestination(
     id: 'trips',
     route: '/trips',
     icon: Icons.flight_outlined,
@@ -118,6 +111,17 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     selectedIcon: Icons.school,
     label: (l10n) => l10n.nav_courses,
     subtitle: (l10n) => l10n.nav_coursesSubtitle,
+  ),
+  // Last of the content entities, before the analysis and utility
+  // group. Deliberately NOT placed next to sites: the first three
+  // movable ids are the default phone primaries, so inserting there
+  // would promote wrecks into every diver's nav bar and demote trips.
+  NavDestination(
+    id: 'wrecks',
+    route: '/wrecks',
+    icon: Icons.sailing_outlined,
+    selectedIcon: Icons.sailing,
+    label: (l10n) => l10n.nav_wrecks,
   ),
   NavDestination(
     id: 'statistics',
