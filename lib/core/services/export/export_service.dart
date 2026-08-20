@@ -14,6 +14,9 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -101,11 +104,17 @@ class ExportService {
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
+    PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
+    Map<String, PdfProfileSeries>? profiles,
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
+    units: units,
+    options: options,
+    profiles: profiles,
     title: title,
     allSightings: allSightings,
   );
@@ -113,11 +122,17 @@ class ExportService {
   Future<String> exportDivesToPdf(
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
+    PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
+    Map<String, PdfProfileSeries>? profiles,
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
+    units: units,
+    options: options,
+    profiles: profiles,
     title: title,
     allSightings: allSightings,
   );
@@ -125,11 +140,17 @@ class ExportService {
   Future<String?> saveDivesToPdfFile(
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
+    PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
+    Map<String, PdfProfileSeries>? profiles,
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
+    units: units,
+    options: options,
+    profiles: profiles,
     title: title,
     allSightings: allSightings,
   );

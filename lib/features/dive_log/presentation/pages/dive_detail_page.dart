@@ -18,6 +18,8 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -2947,6 +2949,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     if (action == null) return;
 
+    // Same template picker as the Transfer page, so a single-dive export is
+    // the document the diver chose rather than a fixed legacy layout.
+    if (!mounted) return;
+    final pdfOptions = await PdfExportDialog.show(context);
+    // A null return means the diver cancelled, not that anything failed.
+    if (pdfOptions == null) return;
+
     // Show loading dialog while generating PDF
     if (!mounted) return;
     showDialog(
@@ -2966,12 +2975,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     try {
       final exportService = ref.read(exportServiceProvider);
       final settings = ref.read(settingsProvider);
+      // The detail page already holds the dive's profile, so the chart does
+      // not need another query.
+      final profiles = dive.profile.isEmpty
+          ? null
+          : {dive.id: PdfProfileSeries.downsampled(dive.profile)};
+
       final result = await exportService.generateDivePdfBytes(
         [dive],
         dates: PdfDateFormatter(
           dateFormat: settings.dateFormat,
           timeFormat: settings.timeFormat,
         ),
+        units: UnitFormatter(settings),
+        options: pdfOptions,
+        profiles: profiles,
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues

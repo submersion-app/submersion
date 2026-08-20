@@ -38,11 +38,13 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+    // Material rather than a plain Container: the sheet's own background
+    // would otherwise sit between the ListTiles and the nearest Material
+    // ancestor, swallowing their ink splashes.
+    return Material(
+      color: colorScheme.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

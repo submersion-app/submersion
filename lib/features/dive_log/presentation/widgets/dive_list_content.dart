@@ -9,6 +9,8 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -548,6 +550,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     _BulkExportFormat format,
     String formatLabel,
   ) async {
+    // PDF gets the same template picker the Transfer page uses, so a bulk
+    // export is not silently a different document from a full-logbook one.
+    PdfExportOptions? pdfOptions;
+    if (format == _BulkExportFormat.pdf) {
+      pdfOptions = await PdfExportDialog.show(context);
+      // A null return means the diver cancelled, not that anything failed.
+      if (pdfOptions == null || !mounted) return;
+    }
+
     final destination = await showExportDestinationSheet(
       context,
       title: formatLabel,
@@ -603,10 +614,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ? await exportService.exportDivesToPdf(
                   selectedDives,
                   dates: pdfDates,
+                  units: UnitFormatter(settings),
+                  options: pdfOptions!,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
                   dates: pdfDates,
+                  units: UnitFormatter(settings),
+                  options: pdfOptions!,
                 ),
         _BulkExportFormat.csv =>
           sharing
