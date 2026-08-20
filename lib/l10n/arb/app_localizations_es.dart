@@ -18327,6 +18327,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agregar imagenes escaneadas de tarjetas de certificacion al PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Incluir areas de verificacion';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Anadir casillas de sello y firma para la verificacion';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31929,6 +31937,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_export_progress_loadingSignatures => 'Cargando firmas...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Cargando perfiles de buceo...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

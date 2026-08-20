@@ -18001,6 +18001,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add scanned certification card images to the PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Include Verification Areas';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Add stamp and signature boxes for agency verification';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31404,6 +31412,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Loading signatures...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Loading dive profiles...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

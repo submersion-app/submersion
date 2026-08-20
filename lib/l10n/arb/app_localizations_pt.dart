@@ -18324,6 +18324,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar imagens de cartoes de certificacao escaneados ao PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Incluir areas de verificacao';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Adicionar caixas de carimbo e assinatura para verificacao';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31911,6 +31919,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Carregando assinaturas...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Carregando perfis de mergulho...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

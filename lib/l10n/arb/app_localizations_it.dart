@@ -18317,6 +18317,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi le immagini delle tessere certificazione scansionate al PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Includi aree di verifica';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Aggiungi caselle timbro e firma per la verifica';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31900,6 +31908,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Caricamento delle firme...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Caricamento dei profili di immersione...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

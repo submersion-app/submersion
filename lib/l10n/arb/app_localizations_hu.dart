@@ -18263,6 +18263,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Beolvasott tanusitvany kartya kepek hozzaadasa a PDF-hez';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Hitelesitesi mezok hozzaadasa';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Belyegzo- es alairasmezok a hitelesiteshez';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31778,6 +31786,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Aláírások betöltése...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Merulesi profilok betoltese...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

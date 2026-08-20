@@ -31,6 +31,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
   PdfTemplate _selectedTemplate = PdfTemplate.detailed;
   PdfPageSize _selectedPageSize = PdfPageSize.a4;
   bool _includeCertCards = false;
+  bool _includeVerificationAreas = false;
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +138,26 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ],
+                    // Verification areas: only the detailed template renders
+                    // the stamp and large signature boxes.
+                    if (_selectedTemplate == PdfTemplate.detailed)
+                      SwitchListTile(
+                        title: Text(
+                          context
+                              .l10n
+                              .transfer_pdfExport_includeVerificationAreas,
+                        ),
+                        subtitle: Text(
+                          context
+                              .l10n
+                              .transfer_pdfExport_includeVerificationAreasSubtitle,
+                        ),
+                        value: _includeVerificationAreas,
+                        onChanged: (value) {
+                          setState(() => _includeVerificationAreas = value);
+                        },
+                        contentPadding: EdgeInsets.zero,
+                      ),
                   ],
                 ),
               ),
@@ -304,6 +325,9 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
       pageSize: _selectedPageSize,
       includeCertificationCards:
           _selectedTemplate.supportsCertificationCards && _includeCertCards,
+      includeVerificationAreas:
+          _selectedTemplate == PdfTemplate.detailed &&
+          _includeVerificationAreas,
     );
     Navigator.of(context).pop(options);
   }

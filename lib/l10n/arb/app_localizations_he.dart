@@ -17847,6 +17847,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף תמונות כרטיסי הסמכה סרוקים ל-PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas => 'כלול אזורי אימות';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'הוסף תיבות חותמת וחתימה לאימות';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31270,6 +31277,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_progress_loadingSignatures => 'טוען חתימות...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'טוען פרופילי צלילה...';
 
   @override
   String get settings_export_progress_loadingCertifications => 'טוען הסמכות...';

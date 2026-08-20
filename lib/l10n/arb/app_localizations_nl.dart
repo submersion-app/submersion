@@ -18167,6 +18167,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gescande certificeringskaartafbeeldingen aan de PDF toevoegen';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Verificatievelden toevoegen';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Stempel- en handtekeningvakken voor verificatie toevoegen';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31676,6 +31684,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Handtekeningen laden...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Duikprofielen laden...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

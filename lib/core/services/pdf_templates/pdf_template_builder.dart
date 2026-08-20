@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:pdf/pdf.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -36,6 +39,14 @@ abstract class PdfTemplateBuilder {
   /// - [diveSignatures]: Map of dive ID to list of signatures for that dive
   /// - [certifications]: Optional list of certifications to include
   /// - [diver]: Optional diver profile for personalization
+  /// - [profiles]: Downsampled depth profiles keyed by dive id. Absent or
+  ///   empty entries mean the dive has no samples and its chart region is
+  ///   omitted. Loaded by the caller because [getAllDives] does not hydrate
+  ///   profiles.
+  /// - [diverPhoto]: Decoded portrait bytes. Loaded by the caller; templates
+  ///   never touch the file system.
+  /// - [includeVerificationAreas]: Adds an official stamp box and large
+  ///   signature blocks, for logbooks presented to an agency.
   ///
   /// Returns the PDF document as a byte array.
   Future<List<int>> buildPdf({
@@ -47,6 +58,9 @@ abstract class PdfTemplateBuilder {
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
+    Map<String, PdfProfileSeries>? profiles,
+    Uint8List? diverPhoto,
+    bool includeVerificationAreas = false,
   });
 
   /// Convert [PdfPageSize] to the pdf package's [PdfPageFormat].

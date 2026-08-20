@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
@@ -35,6 +38,11 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
+    // Accepted for the shared builder contract; this template does not chart
+    // profiles, show a portrait, or offer verification areas.
+    Map<String, PdfProfileSeries>? profiles,
+    Uint8List? diverPhoto,
+    bool includeVerificationAreas = false,
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);

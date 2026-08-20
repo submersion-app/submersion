@@ -18384,6 +18384,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter les images de cartes de certification scannees au PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Inclure les zones de verification';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Ajouter des cases tampon et signature pour la verification';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31980,6 +31988,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Chargement des signatures...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Chargement des profils de plongee...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

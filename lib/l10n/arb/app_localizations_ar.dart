@@ -17986,6 +17986,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة صور بطاقات الشهادات الممسوحة ضوئيًا إلى ملف PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'تضمين مناطق التحقق';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'إضافة مربعات الختم والتوقيع للتحقق';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -31588,6 +31596,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'جارٍ تحميل التوقيعات...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'جارٍ تحميل ملفات الغوص...';
 
   @override
   String get settings_export_progress_loadingCertifications =>
