@@ -56,8 +56,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       pdf.addPage(
         pw.Page(
           pageFormat: pageFormat,
-          build: (context) =>
-              PdfSharedComponents.buildSummaryPage(dives: dives, units: units),
+          build: (context) => PdfSharedComponents.buildSummaryPage(
+            dives: dives,
+            dates: dates,
+            units: units,
+          ),
         ),
       );
     }

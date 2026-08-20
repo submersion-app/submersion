@@ -114,12 +114,10 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     Diver? diver,
     required List<Dive> dives,
   }) {
-    // Calculate summary stats
+    // Summary stats come from the shared helpers so this cover page cannot
+    // disagree with the summary the other templates print.
     final totalRuntime = pdfTotalRuntime(dives);
-    final maxDepth = dives
-        .where((d) => d.maxDepth != null)
-        .map((d) => d.maxDepth!)
-        .fold<double>(0, (max, depth) => depth > max ? depth : max);
+    final maxDepth = pdfMaxDepth(dives);
 
     return pw.Center(
       child: pw.Column(

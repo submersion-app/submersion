@@ -22,6 +22,15 @@ Duration pdfTotalRuntime(List<Dive> dives) => dives
     .where((d) => d.effectiveRuntime != null)
     .fold<Duration>(Duration.zero, (sum, d) => sum + d.effectiveRuntime!);
 
+/// Deepest recorded depth in meters, or 0 when no dive records one.
+///
+/// Shared so the summary page and the templates that print their own stat
+/// boxes cannot drift apart on what "max depth" means.
+double pdfMaxDepth(List<Dive> dives) => dives
+    .where((d) => d.maxDepth != null)
+    .map((d) => d.maxDepth!)
+    .fold<double>(0, (max, depth) => depth > max ? depth : max);
+
 /// Shared PDF components used across multiple templates.
 ///
 /// These helper methods provide consistent styling and layout for
@@ -530,6 +539,7 @@ class PdfSharedComponents {
   /// Build a summary page with dive statistics.
   static pw.Widget buildSummaryPage({
     required List<Dive> dives,
+    required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfColor accentColor = PdfColors.blue800,
   }) {
@@ -537,11 +547,15 @@ class PdfSharedComponents {
       return pw.Center(child: pw.Text('No dives to summarize'));
     }
 
+    // Sorted rather than taken from the ends of the list: callers pass dives
+    // newest-first (getAllDives) or oldest-first depending on the path, and
+    // the summary must report the true range either way.
+    final orderedDates = dives.map((d) => d.dateTime).toList()..sort();
+    final firstDive = orderedDates.first;
+    final lastDive = orderedDates.last;
+
     final totalDiveTime = pdfTotalRuntime(dives);
-    final maxDepth = dives
-        .where((d) => d.maxDepth != null)
-        .map((d) => d.maxDepth!)
-        .fold<double>(0, (max, depth) => depth > max ? depth : max);
+    final maxDepth = pdfMaxDepth(dives);
     final avgDepth = dives.where((d) => d.avgDepth != null).isEmpty
         ? 0.0
         : dives
@@ -565,6 +579,8 @@ class PdfSharedComponents {
         pw.Divider(),
         pw.SizedBox(height: 20),
         buildStatRow('Total Dives', '${dives.length}'),
+        buildStatRow('First Dive', dates.date(firstDive)),
+        buildStatRow('Last Dive', dates.date(lastDive)),
         buildStatRow(
           'Total Dive Time',
           '${totalDiveTime.inHours}h ${totalDiveTime.inMinutes % 60}m',
