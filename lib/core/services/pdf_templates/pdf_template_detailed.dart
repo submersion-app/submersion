@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -25,6 +26,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required List<Dive> dives,
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -55,7 +57,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         pw.Page(
           pageFormat: pageFormat,
           build: (context) =>
-              PdfSharedComponents.buildSummaryPage(dives: dives),
+              PdfSharedComponents.buildSummaryPage(dives: dives, units: units),
         ),
       );
     }
@@ -92,6 +94,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
                   _buildDiveEntry(
                     dive,
                     dates: dates,
+                    units: units,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 16),
@@ -111,6 +114,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   pw.Widget _buildDiveEntry(
     Dive dive, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     List<Signature>? signatures,
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
@@ -150,7 +154,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             children: [
               PdfSharedComponents.buildInfoChip(
                 'Depth',
-                '${dive.maxDepth?.toStringAsFixed(1) ?? '-'}m',
+                units.formatDepth(dive.maxDepth),
               ),
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(
@@ -160,13 +164,14 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(
                 'Temp',
-                '${dive.waterTemp?.toStringAsFixed(0) ?? '-'}°C',
+                units.formatTemperature(dive.waterTemp),
               ),
               if (tank != null) ...[
                 pw.SizedBox(width: 16),
                 PdfSharedComponents.buildInfoChip(
                   'Air',
-                  '${tank.startPressure?.round() ?? '-'} - ${tank.endPressure?.round() ?? '-'} bar',
+                  '${units.formatPressureValue(tank.startPressure)} - '
+                      '${units.formatPressure(tank.endPressure)}',
                 ),
               ],
             ],

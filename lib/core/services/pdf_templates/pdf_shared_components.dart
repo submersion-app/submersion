@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -516,6 +517,7 @@ class PdfSharedComponents {
   /// Build a summary page with dive statistics.
   static pw.Widget buildSummaryPage({
     required List<Dive> dives,
+    required UnitFormatter units,
     PdfColor accentColor = PdfColors.blue800,
   }) {
     if (dives.isEmpty) {
@@ -554,8 +556,8 @@ class PdfSharedComponents {
           'Total Dive Time',
           '${totalDiveTime.inHours}h ${totalDiveTime.inMinutes % 60}m',
         ),
-        buildStatRow('Deepest Dive', '${maxDepth.toStringAsFixed(1)}m'),
-        buildStatRow('Average Depth', '${avgDepth.toStringAsFixed(1)}m'),
+        buildStatRow('Deepest Dive', units.formatDepth(maxDepth)),
+        buildStatRow('Average Depth', units.formatDepth(avgDepth)),
         buildStatRow(
           'Unique Sites',
           '${dives.map((d) => d.site?.id).where((id) => id != null).toSet().length}',

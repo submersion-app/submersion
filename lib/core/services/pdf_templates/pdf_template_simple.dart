@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -24,6 +25,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     required List<Dive> dives,
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -149,7 +151,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         ),
                         _buildCell(
                           dive.maxDepth != null
-                              ? '${dive.maxDepth!.toStringAsFixed(1)}m'
+                              ? units.formatDepth(dive.maxDepth)
                               : '-',
                           cellStyle,
                         ),
@@ -161,7 +163,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         ),
                         _buildCell(
                           dive.waterTemp != null
-                              ? '${dive.waterTemp!.toStringAsFixed(0)}°C'
+                              ? units.formatTemperature(dive.waterTemp)
                               : '-',
                           cellStyle,
                         ),

@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -28,6 +29,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required List<Dive> dives,
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -44,6 +46,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           title: title,
           diveCount: dives.length,
           dates: dates,
+          units: units,
           diver: diver,
           dives: dives,
         ),
@@ -88,6 +91,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                   _buildNauiDiveEntry(
                     dive,
                     dates: dates,
+                    units: units,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 8),
@@ -106,6 +110,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     required String title,
     required int diveCount,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     Diver? diver,
     required List<Dive> dives,
   }) {
@@ -170,7 +175,10 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                 'Hours',
               ),
               pw.SizedBox(width: 20),
-              _buildStatBox('${maxDepth.toStringAsFixed(0)}m', 'Max Depth'),
+              _buildStatBox(
+                units.formatDepth(maxDepth, decimals: 0),
+                'Max Depth',
+              ),
             ],
           ),
           pw.Spacer(),
@@ -240,6 +248,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
   pw.Widget _buildNauiDiveEntry(
     Dive dive, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     List<Signature>? signatures,
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
@@ -319,11 +328,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                               children: [
                                 _buildNauiField(
                                   'Depth',
-                                  '${dive.maxDepth?.toStringAsFixed(1) ?? '-'}m',
+                                  units.formatDepth(dive.maxDepth),
                                 ),
                                 _buildNauiField(
                                   'Avg',
-                                  '${dive.avgDepth?.toStringAsFixed(1) ?? '-'}m',
+                                  units.formatDepth(dive.avgDepth),
                                 ),
                                 _buildNauiField(
                                   'Time',
@@ -338,11 +347,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                                   _buildNauiField('Gas', tank.gasMix.name),
                                   _buildNauiField(
                                     'Start',
-                                    '${tank.startPressure?.round() ?? '-'} bar',
+                                    units.formatPressure(tank.startPressure),
                                   ),
                                   _buildNauiField(
                                     'End',
-                                    '${tank.endPressure?.round() ?? '-'} bar',
+                                    units.formatPressure(tank.endPressure),
                                   ),
                                 ],
                               ],
@@ -356,14 +365,14 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                         children: [
                           _buildNauiField(
                             'Temp',
-                            '${dive.waterTemp?.toStringAsFixed(0) ?? '-'}°C',
+                            units.formatTemperature(dive.waterTemp),
                           ),
                           _buildNauiField(
                             'Vis',
                             // Measured distance from v144; pre-v144 dives fall
                             // back to their bucket label.
                             dive.visibilityMeters != null
-                                ? '${dive.visibilityMeters!.toStringAsFixed(0)}m'
+                                ? units.formatDistance(dive.visibilityMeters!)
                                 : (dive.visibility?.displayName ?? '-'),
                           ),
                           if (dive.currentStrength != null)

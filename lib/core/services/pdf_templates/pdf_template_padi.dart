@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -29,6 +30,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     required List<Dive> dives,
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -90,6 +92,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                   _buildPadiDiveEntry(
                     dive,
                     dates: dates,
+                    units: units,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 8),
@@ -218,6 +221,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
   pw.Widget _buildPadiDiveEntry(
     Dive dive, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     List<Signature>? signatures,
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
@@ -310,17 +314,14 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 // Dive data row
                 pw.Row(
                   children: [
-                    _buildPadiField(
-                      'Depth',
-                      '${dive.maxDepth?.toStringAsFixed(1) ?? '-'}m',
-                    ),
+                    _buildPadiField('Depth', units.formatDepth(dive.maxDepth)),
                     _buildPadiField(
                       'Time',
                       '${pdfDiveDurationMinutes(dive)}min',
                     ),
                     _buildPadiField(
                       'Temp',
-                      '${dive.waterTemp?.toStringAsFixed(0) ?? '-'}°C',
+                      units.formatTemperature(dive.waterTemp),
                     ),
                     if (tank != null) _buildPadiField('Gas', tank.gasMix.name),
                   ],
@@ -335,13 +336,14 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     _buildPadiField(
                       'Vis',
                       dive.visibilityMeters != null
-                          ? '${dive.visibilityMeters!.toStringAsFixed(0)}m'
+                          ? units.formatDistance(dive.visibilityMeters!)
                           : (dive.visibility?.displayName ?? '-'),
                     ),
                     if (tank != null) ...[
                       _buildPadiField(
                         'Air',
-                        '${tank.startPressure?.round() ?? '-'}-${tank.endPressure?.round() ?? '-'}',
+                        '${units.formatPressureValue(tank.startPressure)}-'
+                            '${units.formatPressure(tank.endPressure)}',
                       ),
                     ],
                     if (dive.waterType != null)

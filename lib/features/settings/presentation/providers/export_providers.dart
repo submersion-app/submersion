@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -346,6 +347,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
       ),
+      units: UnitFormatter(settings),
       title: _l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
