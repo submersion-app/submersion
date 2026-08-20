@@ -56,10 +56,10 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     // Certification cards page - highlight NAUI certs
     if (certifications != null && certifications.isNotEmpty) {
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(32),
-          build: (context) => PdfSharedComponents.buildCertificationCardsPage(
+          build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
             dates: dates,
             diver: diver,

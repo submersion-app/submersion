@@ -55,7 +55,6 @@ extension PdfTemplateExtension on PdfTemplate {
   bool get supportsCertificationCards {
     switch (this) {
       case PdfTemplate.simple:
-        return false;
       case PdfTemplate.detailed:
       case PdfTemplate.padiStyle:
       case PdfTemplate.nauiStyle:

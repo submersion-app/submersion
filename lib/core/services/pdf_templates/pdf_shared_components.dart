@@ -239,48 +239,51 @@ class PdfSharedComponents {
   /// Displays certifications with their scanned card images (if available).
   /// For agency-specific templates, certifications from that agency are
   /// highlighted.
-  static pw.Widget buildCertificationCardsPage({
+  /// Certification cards as a flat widget list for a [pw.MultiPage] body.
+  ///
+  /// Returns a list rather than a single column so the pdf package can break
+  /// between cards. Callers previously placed one `pw.Column` on a fixed
+  /// `pw.Page`, which cannot paginate: a diver with more certifications than
+  /// fit on one page silently lost the remainder (#1017).
+  static List<pw.Widget> buildCertificationCardsBody({
     required List<Certification> certifications,
     required PdfDateFormatter dates,
     Diver? diver,
     String? highlightAgency,
     PdfColor accentColor = PdfColors.blue800,
   }) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          'Certifications',
-          style: pw.TextStyle(
-            fontSize: 24,
-            fontWeight: pw.FontWeight.bold,
-            color: accentColor,
-          ),
+    return [
+      pw.Text(
+        'Certifications',
+        style: pw.TextStyle(
+          fontSize: 24,
+          fontWeight: pw.FontWeight.bold,
+          color: accentColor,
         ),
-        if (diver != null) ...[
-          pw.SizedBox(height: 8),
-          pw.Text(
-            diver.name,
-            style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
-          ),
-        ],
-        pw.SizedBox(height: 16),
-        pw.Divider(color: PdfColors.grey300),
-        pw.SizedBox(height: 16),
-        ...certifications.map(
-          (cert) => _buildCertificationCard(
-            cert,
-            dates: dates,
-            isHighlighted:
-                highlightAgency != null &&
-                cert.agency.name.toLowerCase().contains(
-                  highlightAgency.toLowerCase(),
-                ),
-            accentColor: accentColor,
-          ),
+      ),
+      if (diver != null) ...[
+        pw.SizedBox(height: 8),
+        pw.Text(
+          diver.name,
+          style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
         ),
       ],
-    );
+      pw.SizedBox(height: 16),
+      pw.Divider(color: PdfColors.grey300),
+      pw.SizedBox(height: 16),
+      ...certifications.map(
+        (cert) => _buildCertificationCard(
+          cert,
+          dates: dates,
+          isHighlighted:
+              highlightAgency != null &&
+              cert.agency.name.toLowerCase().contains(
+                highlightAgency.toLowerCase(),
+              ),
+          accentColor: accentColor,
+        ),
+      ),
+    ];
   }
 
   static pw.Widget _buildCertificationCard(
@@ -395,6 +398,16 @@ class PdfSharedComponents {
                     color: PdfColors.grey600,
                   ),
                 ),
+              if (cert.expiryDate != null) ...[
+                pw.SizedBox(width: 16),
+                pw.Text(
+                  'Expires: ${dates.date(cert.expiryDate!)}',
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey600,
+                  ),
+                ),
+              ],
             ],
           ),
           // Card images
