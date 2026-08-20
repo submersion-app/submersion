@@ -9,6 +9,8 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -618,12 +620,22 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
       // The picker offers certification cards, so the bulk path has to supply
       // the same context the settings export does or the option does nothing.
-      final certifications = pdfOptions?.includeCertificationCards == true
-          ? await ref.read(allCertificationsProvider.future)
-          : null;
-      final diver = format == _BulkExportFormat.pdf
-          ? await ref.read(currentDiverProvider.future)
-          : null;
+      //
+      // Best-effort, like the buddy lookup above: this personalizes the
+      // document rather than defining it, so a failed read degrades to a
+      // plainer export instead of no export.
+      List<Certification>? certifications;
+      Diver? diver;
+      if (format == _BulkExportFormat.pdf) {
+        try {
+          if (pdfOptions?.includeCertificationCards == true) {
+            certifications = await ref.read(allCertificationsProvider.future);
+          }
+          diver = await ref.read(currentDiverProvider.future);
+        } catch (_) {
+          // Keep the export going without the personalization.
+        }
+      }
       if (!mounted) return;
 
       if (!keepDialogForDelivery) {

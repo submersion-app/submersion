@@ -7,6 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'dart:typed_data';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -132,6 +137,14 @@ class _RecordingExportService implements ExportService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Returns no buddies; the junction load is exercised in repository tests.
+class _FakeBuddyRepository extends BuddyRepository {
+  @override
+  Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
+    List<String> diveIds,
+  ) async => const {};
+}
+
 class _FakeDiveRepository implements DiveRepository {
   _FakeDiveRepository(this.dives);
   final List<Dive> dives;
@@ -195,6 +208,13 @@ void main() {
           ),
           diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
           exportServiceProvider.overrideWithValue(exportService),
+          // The PDF route enriches the export with buddies, certifications
+          // and the diver. Those reach a database widget tests do not have,
+          // and the reads never settle, so stub them the way
+          // getBaseOverrides stubs preDiveSessionForDiveProvider.
+          buddyRepositoryProvider.overrideWithValue(_FakeBuddyRepository()),
+          allCertificationsProvider.overrideWith((ref) async => const []),
+          currentDiverProvider.overrideWith((ref) async => null),
         ],
         child: const DiveListContent(showAppBar: false),
       ),
