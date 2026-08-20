@@ -3,10 +3,10 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -55,11 +55,12 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         pw.Page(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(40),
-          build: (context) => _buildDiverProfilePage(
+          build: (context) => PdfFrontMatter.buildDiverPage(
             diver: diver,
-            totalDives: dives.length,
+            diveCount: dives.length,
             dates: dates,
-            certifications: certifications,
+            certifications: certifications ?? const [],
+            accentColor: PdfColors.grey800,
           ),
         ),
       );
@@ -205,140 +206,6 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
             'Generated ${dates.dateTime(DateTime.now())}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildDiverProfilePage({
-    required Diver diver,
-    required int totalDives,
-    required PdfDateFormatter dates,
-    List<Certification>? certifications,
-  }) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          'Diver Profile',
-          style: const pw.TextStyle(
-            fontSize: 20,
-            fontWeight: pw.FontWeight.bold,
-          ),
-        ),
-        pw.SizedBox(height: 16),
-        pw.Divider(color: PdfColors.grey400),
-        pw.SizedBox(height: 24),
-        // Profile info
-        pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Expanded(
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  _buildProfileField('Name', diver.name),
-                  if (diver.email != null)
-                    _buildProfileField('Email', diver.email!),
-                  _buildProfileField('Total Dives', '$totalDives'),
-                ],
-              ),
-            ),
-            pw.SizedBox(width: 40),
-            // Photo placeholder
-            pw.Container(
-              width: 100,
-              height: 120,
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.grey400),
-              ),
-              child: pw.Center(
-                child: pw.Text(
-                  'Photo',
-                  style: const pw.TextStyle(
-                    fontSize: 10,
-                    color: PdfColors.grey400,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        pw.SizedBox(height: 24),
-        // Certifications summary
-        if (certifications != null && certifications.isNotEmpty) ...[
-          pw.Text(
-            'Certifications',
-            style: const pw.TextStyle(
-              fontSize: 14,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-          pw.SizedBox(height: 8),
-          ...certifications
-              .take(5)
-              .map(
-                (cert) => pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 4),
-                  child: pw.Row(
-                    children: [
-                      pw.Container(
-                        width: 4,
-                        height: 4,
-                        decoration: const pw.BoxDecoration(
-                          color: PdfColors.grey600,
-                          shape: pw.BoxShape.circle,
-                        ),
-                      ),
-                      pw.SizedBox(width: 8),
-                      // This bullet is a single line with no separate agency
-                      // field, unlike the certifications section in
-                      // PdfSharedComponents -- so the agency stays here. The
-                      // title is derived so it is not printed twice.
-                      pw.Text(
-                        '${cert.agency.displayName} - ${certificationTitle(cert)}',
-                        style: const pw.TextStyle(fontSize: 10),
-                      ),
-                      if (cert.issueDate != null) ...[
-                        pw.Text(
-                          ' (${dates.date(cert.issueDate!)})',
-                          style: const pw.TextStyle(
-                            fontSize: 10,
-                            color: PdfColors.grey600,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-          if (certifications.length > 5)
-            pw.Text(
-              '... and ${certifications.length - 5} more',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-            ),
-        ],
-      ],
-    );
-  }
-
-  pw.Widget _buildProfileField(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 12),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            label.toUpperCase(),
-            style: const pw.TextStyle(
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey600,
-              letterSpacing: 1,
-            ),
-          ),
-          pw.SizedBox(height: 2),
-          pw.Text(value, style: const pw.TextStyle(fontSize: 12)),
         ],
       ),
     );
