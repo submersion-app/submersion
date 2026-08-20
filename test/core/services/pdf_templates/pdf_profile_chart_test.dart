@@ -43,12 +43,14 @@ void main() {
     );
   });
 
-  test('renders a chart carrying the deepest depth as an axis label', () async {
+  test('renders a depth axis that spans the dive', () async {
     final chart = PdfProfileChart.build(series: squareProfile, units: metric);
     expect(chart, isNotNull);
 
     final text = await render(chart!);
-    expect(text, contains('18'), reason: 'max depth appears on the depth axis');
+    // An 18 m dive rounds to a 0-20 m axis in 5 m steps.
+    expect(text, contains('0'));
+    expect(text, contains('20'));
   });
 
   test('labels the depth axis in the diver units', () async {
@@ -63,8 +65,27 @@ void main() {
     expect(imperialText, contains('ft'));
     expect(
       imperialText,
-      contains('59'),
-      reason: '18 m is 59 ft, so the axis must show converted depths',
+      contains('80'),
+      reason:
+          '18 m is 59 ft, which rounds to a 0-80 ft axis in 20 ft steps; '
+          'a metric axis would never produce that label',
+    );
+  });
+
+  test('leaves clearance under the deepest sample', () async {
+    // Anchoring the axis floor exactly at max depth puts the bottom phase on
+    // the axis line, where the filled area has zero height and the flat part
+    // of the dive disappears. The deepest label must read deeper than the
+    // dive itself.
+    final text = await render(
+      PdfProfileChart.build(series: squareProfile, units: metric)!,
+    );
+    final labels = text.split(' ').map(int.tryParse).whereType<int>().toList();
+
+    expect(
+      labels.any((value) => value > 18),
+      isTrue,
+      reason: 'an 18 m dive needs an axis floor deeper than 18 m, got $labels',
     );
   });
 

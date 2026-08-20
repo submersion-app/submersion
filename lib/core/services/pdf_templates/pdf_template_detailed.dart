@@ -383,6 +383,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           '${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
         ),
       if (dive.setpointHigh != null)
+        // Deliberately not unit-converted: a CCR setpoint is a partial
+        // pressure of oxygen, quoted in bar (or ata) whatever the diver's
+        // cylinder-pressure preference. The CCR settings panel does the same.
         _Field('Setpoint', '${dive.setpointHigh} bar'),
       if (dive.diveTypeNames.isNotEmpty)
         _Field('Dive Type', dive.diveTypeNames.join(', ')),

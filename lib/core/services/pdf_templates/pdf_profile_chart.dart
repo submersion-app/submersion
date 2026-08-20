@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -109,10 +111,14 @@ class PdfProfileChart {
     return ticks;
   }
 
-  /// Five depth ticks from the deepest sample up to the surface.
+  /// Depth ticks from below the deepest sample up to the surface.
   ///
   /// Negated, so the list is built deepest-first to come out ascending, which
   /// [pw.FixedAxis] asserts on.
+  ///
+  /// The floor is deliberately deeper than the dive. Anchoring it exactly at
+  /// max depth puts the whole bottom phase on the axis line, where the filled
+  /// area has zero height and the flat part of the dive vanishes.
   static List<double> _depthTicks(
     PdfProfileSeries series,
     UnitFormatter units,
@@ -120,8 +126,24 @@ class PdfProfileChart {
     final maxConverted = units.convertDepth(series.maxDepth);
     if (maxConverted <= 0) return <double>[-1, 0];
 
-    const divisions = 4;
-    final step = maxConverted / divisions;
+    final step = _niceStep(maxConverted / 4);
+    var divisions = (maxConverted / step).ceil();
+    // Guarantee at least a quarter step of clearance under the deepest sample.
+    if (step * divisions - maxConverted < step * 0.25) divisions++;
+
     return <double>[for (var i = divisions; i >= 0; i--) -(step * i)];
+  }
+
+  /// Round [raw] up to a readable axis increment (1, 2, 2.5 or 5 per decade).
+  static double _niceStep(double raw) {
+    if (raw <= 0) return 1;
+    final magnitude = math
+        .pow(10, (math.log(raw) / math.ln10).floor())
+        .toDouble();
+    final normalized = raw / magnitude;
+    for (final candidate in const [1.0, 2.0, 2.5, 5.0]) {
+      if (normalized <= candidate) return candidate * magnitude;
+    }
+    return 10 * magnitude;
   }
 }
