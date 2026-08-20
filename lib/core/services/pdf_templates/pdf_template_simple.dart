@@ -8,6 +8,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -41,6 +42,35 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
+
+    // Key metrics up front (#1017). The compact table below stays untouched:
+    // Simple remains the dense option, it just no longer opens cold.
+    if (dives.isNotEmpty) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: pageFormat,
+          build: (context) => PdfSharedComponents.buildSummaryPage(
+            dives: dives,
+            dates: dates,
+            units: units,
+          ),
+        ),
+      );
+    }
+
+    if (certifications != null && certifications.isNotEmpty) {
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: pageFormat,
+          margin: const pw.EdgeInsets.all(32),
+          build: (context) => PdfSharedComponents.buildCertificationCardsBody(
+            certifications: certifications,
+            dates: dates,
+            diver: diver,
+          ),
+        ),
+      );
+    }
 
     // Calculate dives per page based on page size
     final divesPerPage = pageSize == PdfPageSize.a4 ? 20 : 18;
