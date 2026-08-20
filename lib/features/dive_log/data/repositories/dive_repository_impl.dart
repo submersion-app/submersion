@@ -4491,6 +4491,55 @@ class DiveRepository {
     return _dropDuplicateSamples(rows).map(_profilePointFromRow).toList();
   }
 
+  /// Merged profiles for many dives, keyed by dive id.
+  ///
+  /// The batch form of [getMergedProfile], for the PDF exporter: [getAllDives]
+  /// skips profile hydration for performance, so a logbook export has to load
+  /// profiles itself, and doing that one dive at a time is an N+1 query.
+  ///
+  /// Deliberately NOT built on [getDiveProfile]. That filters
+  /// `isPrimary = true`, and per #623 a file-imported dive can end up with no
+  /// primary rows at all, which would render a blank chart for exactly the
+  /// dives imported from another logbook. This mirrors [getMergedProfile]:
+  /// every source's rows, minus the originals a saved edit superseded.
+  ///
+  /// Dives with no samples are absent from the result rather than mapped to an
+  /// empty list. The id list is chunked so neither the `IN` clause nor peak
+  /// memory grows with the size of the logbook.
+  Future<Map<String, List<domain.DiveProfilePoint>>> getMergedProfilesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+
+    const chunkSize = 50;
+    final result = <String, List<domain.DiveProfilePoint>>{};
+
+    for (var i = 0; i < diveIds.length; i += chunkSize) {
+      final chunk = diveIds.skip(i).take(chunkSize).toList();
+
+      final rows =
+          await (_db.select(_db.diveProfiles)
+                ..where((t) => t.diveId.isIn(chunk))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+
+      final byDive = <String, List<DiveProfile>>{};
+      for (final row in rows) {
+        byDive.putIfAbsent(row.diveId, () => []).add(row);
+      }
+
+      for (final entry in byDive.entries) {
+        final kept = await _dropSupersededOriginals(entry.key, entry.value);
+        final points = _dropDuplicateSamples(
+          kept,
+        ).map(_profilePointFromRow).toList();
+        if (points.isNotEmpty) result[entry.key] = points;
+      }
+    }
+
+    return result;
+  }
+
   /// Drops the originals that a saved profile edit superseded.
   ///
   /// [saveEditedProfile] does not delete the rows it replaces: it demotes them
