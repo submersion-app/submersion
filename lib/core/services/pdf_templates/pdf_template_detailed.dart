@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
@@ -61,10 +62,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
     if (diver != null) {
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(40),
-          build: (context) => PdfFrontMatter.buildDiverPage(
+          build: (context) => PdfFrontMatter.buildDiverPageBody(
             diver: diver,
             dates: dates,
             diveCount: dives.length,
@@ -114,7 +115,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             dive,
             dates: dates,
             units: units,
-            profile: profiles?[dive.id],
+            profile: _seriesFor(dive, profiles),
             signatures: diveSignatures?[dive.id],
             includeVerificationAreas: includeVerificationAreas,
           ),
@@ -123,6 +124,23 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     }
 
     return await pdf.save();
+  }
+
+  /// The chart series for [dive], falling back to samples already on the
+  /// entity.
+  ///
+  /// The logbook path loads profiles in batch because `getAllDives` skips
+  /// them, but `getDivesByIds` and `getDiveById` hydrate `Dive.profile`
+  /// already. Without this fallback every bulk or single-dive Detailed export
+  /// would silently omit the chart.
+  PdfProfileSeries? _seriesFor(
+    Dive dive,
+    Map<String, PdfProfileSeries>? profiles,
+  ) {
+    final supplied = profiles?[dive.id];
+    if (supplied != null && supplied.isNotEmpty) return supplied;
+    if (dive.profile.isEmpty) return null;
+    return PdfProfileSeries.downsampled(dive.profile);
   }
 
   List<pw.Widget> _buildDivePage(
@@ -148,11 +166,12 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ..._section('Profile', _profileFields(dive, dates: dates, units: units)),
       ..._cylinderSection(dive, units: units),
       ..._section('Conditions', _conditionFields(dive, units: units)),
+      ..._section('Weather', _weatherFields(dive, units: units)),
       ..._section('Team', _teamFields(dive)),
       ..._section('Equipment', _equipmentFields(dive, units: units)),
       ..._section('Technical', _technicalFields(dive)),
-      ..._marineLifeSection(dive),
       ..._notesSection(dive),
+      ..._customFieldsSection(dive),
       ..._signatureSection(signatures, dates: dates),
       if (includeVerificationAreas) ..._verificationSection(),
     ];
@@ -258,7 +277,39 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (dive.exitTime != null) _Field('Out', dates.time(dive.exitTime!)),
       if (dive.surfaceInterval != null)
         _Field('Surface Interval', _duration(dive.surfaceInterval!)),
+      if (_sacText(dive, units) case final sac?) _Field('SAC (AMV)', sac),
     ];
+  }
+
+  /// Air consumption, in whichever SAC unit the diver reads.
+  ///
+  /// [Dive.sacPressure] is bar/min. Scaling it by the cylinder volume gives
+  /// L/min, the relation `CylinderSac.sacVolume` documents, so a diver who
+  /// prefers volume SAC gets it whenever the cylinder size is known.
+  String? _sacText(Dive dive, UnitFormatter units) {
+    final pressurePerMin = dive.sacPressure;
+    if (pressurePerMin == null) return null;
+
+    if (units.settings.sacUnit == SacUnit.litersPerMin) {
+      final volume = _sacCylinder(dive)?.volume;
+      if (volume == null) return null;
+      final litersPerMin = pressurePerMin * volume;
+      return '${units.convertSac(litersPerMin).toStringAsFixed(1)} '
+          '${units.sacSymbol}';
+    }
+
+    return '${units.convertSac(pressurePerMin).toStringAsFixed(1)} '
+        '${units.sacSymbol}';
+  }
+
+  /// The cylinder [Dive.sacPressure] was derived from: back gas, else the
+  /// first one, matching that getter's own rule.
+  DiveTank? _sacCylinder(Dive dive) {
+    if (dive.tanks.isEmpty) return null;
+    for (final tank in dive.tanks) {
+      if (tank.role == TankRole.backGas) return tank;
+    }
+    return dive.tanks.first;
   }
 
   /// Every cylinder, not just the first: a technical dive carries stage and
@@ -283,8 +334,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (tank.role != TankRole.backGas) tank.role.displayName,
     ];
 
+    // A half-filled pressure pair is still worth printing: a logbook records
+    // what the diver has, so a missing endpoint becomes a placeholder rather
+    // than suppressing the whole range.
     final pressures = <String>[
-      if (tank.startPressure != null && tank.endPressure != null)
+      if (tank.startPressure != null || tank.endPressure != null)
         '${units.formatPressureValue(tank.startPressure)} - '
             '${units.formatPressure(tank.endPressure)}',
       if (tank.pressureUsed != null)
@@ -340,8 +394,6 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (dive.entryMethod != null)
         _Field('Entry', dive.entryMethod!.displayName),
       if (dive.exitMethod != null) _Field('Exit', dive.exitMethod!.displayName),
-      if (dive.weatherDescription != null)
-        _Field('Weather', dive.weatherDescription!),
       if (dive.altitude != null)
         _Field('Altitude', units.formatAltitude(dive.altitude)),
     ];
@@ -361,7 +413,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
   List<_Field> _equipmentFields(Dive dive, {required UnitFormatter units}) {
     return [
-      if (dive.weightAmount != null)
+      // The current editor writes Dive.weights; weightAmount is the legacy
+      // scalar kept for older dives.
+      if (dive.weights.isNotEmpty)
+        _Field('Weight', units.formatWeight(dive.totalWeight))
+      else if (dive.weightAmount != null)
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
@@ -392,15 +448,61 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<pw.Widget> _marineLifeSection(Dive dive) {
-    if (dive.sightings.isEmpty) return const [];
+  /// Recorded weather, which #1017 asks for beyond the free-text summary.
+  List<_Field> _weatherFields(Dive dive, {required UnitFormatter units}) {
+    return [
+      if (dive.weatherDescription != null)
+        _Field('Conditions', dive.weatherDescription!),
+      if (dive.windSpeed != null)
+        _Field('Wind', units.formatWindSpeed(dive.windSpeed)),
+      if (dive.windDirection != null)
+        _Field('Wind Dir', dive.windDirection!.displayName),
+      if (dive.cloudCover != null)
+        _Field('Cloud', dive.cloudCover!.displayName),
+      if (dive.precipitation != null)
+        _Field('Precipitation', dive.precipitation!.displayName),
+      if (dive.humidity != null)
+        _Field('Humidity', '${dive.humidity!.toStringAsFixed(0)}%'),
+      // Swell is a height in meters, so it follows the depth unit the way the
+      // dive editor renders it.
+      if (dive.swellHeight != null)
+        _Field('Swell', units.formatDepth(dive.swellHeight)),
+    ];
+  }
+
+  /// User-defined key/value entries. The legacy builder rendered these, so
+  /// dropping them would lose data that has no other section to hold it.
+  List<pw.Widget> _customFieldsSection(Dive dive) {
+    if (dive.customFields.isEmpty) return const [];
 
     return [
-      _sectionTitle('Marine Life'),
+      _sectionTitle('Additional Fields'),
       pw.SizedBox(height: 6),
-      pw.Text(
-        dive.sightings.map((s) => s.speciesName).join(', '),
-        style: const pw.TextStyle(fontSize: 10),
+      ...dive.customFields.map(
+        (field) => pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 2),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(
+                width: 120,
+                child: pw.Text(
+                  field.key,
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey600,
+                  ),
+                ),
+              ),
+              pw.Expanded(
+                child: pw.Text(
+                  field.value,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       pw.SizedBox(height: 14),
     ];

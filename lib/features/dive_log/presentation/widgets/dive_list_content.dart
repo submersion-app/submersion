@@ -9,6 +9,9 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -586,9 +589,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     try {
       final repository = ref.read(diveRepositoryProvider);
-      final selectedDives = await repository.getDivesByIds(
-        _selectedIds.toList(),
-      );
+      var selectedDives = await repository.getDivesByIds(_selectedIds.toList());
+
+      // getDivesByIds hydrates profiles but not the buddy junction, which only
+      // getAllDives loads. #1017 asks for buddies in the detailed logbook, so
+      // attach them here rather than shipping an export that omits the team.
+      if (format == _BulkExportFormat.pdf) {
+        final buddiesByDive = await ref
+            .read(buddyRepositoryProvider)
+            .getBuddiesForDives(selectedDives.map((d) => d.id).toList());
+        if (buddiesByDive.isNotEmpty) {
+          selectedDives = selectedDives
+              .map((d) => d.copyWith(buddies: buddiesByDive[d.id] ?? const []))
+              .toList();
+        }
+      }
       final exportService = ref.read(exportServiceProvider);
       final settings = ref.read(settingsProvider);
       final pdfDates = PdfDateFormatter(
@@ -600,6 +615,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           .map((d) => d.site!)
           .toSet()
           .toList();
+
+      // The picker offers certification cards, so the bulk path has to supply
+      // the same context the settings export does or the option does nothing.
+      final certifications = pdfOptions?.includeCertificationCards == true
+          ? await ref.read(allCertificationsProvider.future)
+          : null;
+      final diver = format == _BulkExportFormat.pdf
+          ? await ref.read(currentDiverProvider.future)
+          : null;
+      if (!mounted) return;
 
       if (!keepDialogForDelivery) {
         if (!mounted) return;
@@ -616,12 +641,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   dates: pdfDates,
                   units: UnitFormatter(settings),
                   options: pdfOptions!,
+                  certifications: certifications,
+                  diver: diver,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
                   dates: pdfDates,
                   units: UnitFormatter(settings),
                   options: pdfOptions!,
+                  certifications: certifications,
+                  diver: diver,
                 ),
         _BulkExportFormat.csv =>
           sharing

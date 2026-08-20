@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'dart:typed_data';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -109,12 +110,18 @@ class ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
     units: units,
     options: options,
     profiles: profiles,
+    certifications: certifications,
+    diver: diver,
+    diverPhoto: diverPhoto,
     title: title,
     allSightings: allSightings,
   );
@@ -127,12 +134,18 @@ class ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
     units: units,
     options: options,
     profiles: profiles,
+    certifications: certifications,
+    diver: diver,
+    diverPhoto: diverPhoto,
     title: title,
     allSightings: allSightings,
   );
@@ -145,12 +158,18 @@ class ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
     units: units,
     options: options,
     profiles: profiles,
+    certifications: certifications,
+    diver: diver,
+    diverPhoto: diverPhoto,
     title: title,
     allSightings: allSightings,
   );

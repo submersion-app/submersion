@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -157,6 +159,40 @@ void main() {
       String.fromCharCodes(result.bytes.map((b) => b & 0xFF)),
       contains('FontFile'),
       reason: 'no embedded font means no Unicode support',
+    );
+  });
+
+  test('honours includeCertificationCards on the bulk route', () async {
+    final certs = [
+      Certification(
+        id: 'c1',
+        name: 'Rescue Diver',
+        agency: CertificationAgency.padi,
+        cardNumber: 'CARD-9',
+        issueDate: DateTime(2021, 4, 2),
+        createdAt: DateTime(2021, 4, 2),
+        updatedAt: DateTime(2021, 4, 2),
+      ),
+    ];
+
+    final withCards = await service.generateDivePdfBytes(
+      [makeDive()],
+      dates: dates,
+      units: units,
+      options: const PdfExportOptions(includeCertificationCards: true),
+      certifications: certs,
+    );
+    final without = await service.generateDivePdfBytes(
+      [makeDive()],
+      dates: dates,
+      units: units,
+      certifications: certs,
+    );
+
+    expect(
+      pdfPageCount(withCards.bytes),
+      greaterThan(pdfPageCount(without.bytes)),
+      reason: 'the option was silently ignored on this route',
     );
   });
 

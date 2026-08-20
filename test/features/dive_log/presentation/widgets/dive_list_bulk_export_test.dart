@@ -7,6 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'dart:typed_data';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -74,6 +77,9 @@ class _RecordingExportService implements ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) {
     pdfOptions = options;
     return _share('pdf');
@@ -88,6 +94,9 @@ class _RecordingExportService implements ExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) {
     pdfOptions = options;
     return _save('pdf');

@@ -7,6 +7,8 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/pdf_text.dart';
@@ -146,6 +148,106 @@ void main() {
 
     test('renders the rating', () {
       expect(text, contains('****'));
+    });
+  });
+
+  group('review findings', () {
+    test('falls back to Dive.profile when no series map is supplied', () async {
+      // getDivesByIds hydrates Dive.profile, so the bulk and single-dive
+      // export routes have samples even though they pass no profiles map.
+      final withSamples = dive.copyWith(
+        profile: [
+          const DiveProfilePoint(timestamp: 0, depth: 0),
+          const DiveProfilePoint(timestamp: 600, depth: 9.8),
+          const DiveProfilePoint(timestamp: 1560, depth: 0),
+        ],
+      );
+
+      final text = pdfVisibleText(await render(withSamples));
+      expect(
+        text,
+        contains('Depth Profile'),
+        reason: 'the chart was omitted on every bulk Detailed export',
+      );
+    });
+
+    test('renders SAC (AMV), which #1017 asks for by name', () async {
+      final text = pdfVisibleText(await render(dive));
+      expect(text, contains('SAC'));
+      expect(text, contains('AMV'));
+    });
+
+    test('renders the recorded weather fields', () async {
+      final windy = dive.copyWith(
+        windSpeed: 8.0,
+        cloudCover: CloudCover.partlyCloudy,
+        humidity: 74.0,
+        swellHeight: 1.5,
+        weatherDescription: 'Squalls offshore',
+      );
+
+      final text = pdfVisibleText(await render(windy));
+      expect(text, contains('Squalls offshore'));
+      expect(text, contains('Wind'));
+      expect(text, contains('74%'));
+      expect(text, contains('Swell'));
+    });
+
+    test('renders custom fields, which the legacy layout carried', () async {
+      final tagged = dive.copyWith(
+        customFields: const [
+          DiveCustomField(id: 'f1', key: 'Boat', value: 'Devil Ray'),
+        ],
+      );
+
+      final text = pdfVisibleText(await render(tagged));
+      expect(text, contains('Boat'));
+      expect(text, contains('Devil Ray'));
+    });
+
+    test('renders a cylinder with only one recorded pressure', () async {
+      final partial = dive.copyWith(
+        tanks: const [DiveTank(id: 't1', name: 'AL80', startPressure: 200)],
+      );
+
+      final text = pdfVisibleText(await render(partial));
+      expect(
+        text,
+        contains('200'),
+        reason: 'a half-filled pressure pair must not suppress the range',
+      );
+    });
+
+    test(
+      'prefers the multi-entry weight list over the legacy scalar',
+      () async {
+        final weighted = dive.copyWith(
+          weightAmount: 4.0,
+          weights: [
+            const DiveWeight(
+              id: 'w1',
+              diveId: 'd1',
+              weightType: WeightType.integrated,
+              amountKg: 3.0,
+            ),
+            const DiveWeight(
+              id: 'w2',
+              diveId: 'd1',
+              weightType: WeightType.integrated,
+              amountKg: 2.5,
+            ),
+          ],
+        );
+
+        final text = pdfVisibleText(await render(weighted));
+        expect(text, contains('5.5 kg'));
+        expect(text, isNot(contains('4.0 kg')));
+      },
+    );
+
+    test('omits the weather group when nothing was recorded', () async {
+      final text = pdfVisibleText(await render(dive));
+      expect(text, isNot(contains('Precipitation')));
     });
   });
 

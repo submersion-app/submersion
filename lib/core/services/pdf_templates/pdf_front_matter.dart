@@ -22,6 +22,41 @@ class PdfFrontMatter {
   /// [photoBytes] is the decoded portrait. Callers load it from
   /// [Diver.photoPath]; templates never touch the file system. When it is
   /// null an empty frame is drawn so the layout keeps its shape.
+  /// Body widgets for a [pw.MultiPage].
+  ///
+  /// A list rather than one column so a diver with many certifications
+  /// paginates instead of overflowing a fixed page, the same reason
+  /// [PdfSharedComponents.buildCertificationCardsBody] returns a list.
+  static List<pw.Widget> buildDiverPageBody({
+    required Diver diver,
+    required PdfDateFormatter dates,
+    required int diveCount,
+    List<Certification> certifications = const [],
+    Uint8List? photoBytes,
+    PdfColor accentColor = PdfColors.blue800,
+  }) {
+    return [
+      buildDiverPage(
+        diver: diver,
+        dates: dates,
+        diveCount: diveCount,
+        photoBytes: photoBytes,
+        accentColor: accentColor,
+      ),
+      if (certifications.isNotEmpty) ...[
+        pw.Text(
+          'Certifications',
+          style: const pw.TextStyle(
+            fontSize: 14,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 8),
+        ...certifications.map((cert) => _buildCertificationLine(cert, dates)),
+      ],
+    ];
+  }
+
   static pw.Widget buildDiverPage({
     required Diver diver,
     required PdfDateFormatter dates,

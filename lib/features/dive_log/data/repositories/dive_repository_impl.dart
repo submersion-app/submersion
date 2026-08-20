@@ -4504,8 +4504,10 @@ class DiveRepository {
   /// every source's rows, minus the originals a saved edit superseded.
   ///
   /// Dives with no samples are absent from the result rather than mapped to an
-  /// empty list. The id list is chunked so neither the `IN` clause nor peak
-  /// memory grows with the size of the logbook.
+  /// empty list. The id list is chunked so the `IN` clause stays bounded, but
+  /// the returned map still holds every sample of every id passed in: a caller
+  /// that cares about peak memory should call this in batches and reduce each
+  /// batch before requesting the next (see `_buildLogbookPdfBytes`).
   Future<Map<String, List<domain.DiveProfilePoint>>> getMergedProfilesForDives(
     List<String> diveIds,
   ) async {

@@ -332,12 +332,22 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_loadingProfiles,
       );
-      final raw = await _ref
-          .read(diveRepositoryProvider)
-          .getMergedProfilesForDives(dives.map((d) => d.id).toList());
-      profiles = raw.map(
-        (id, points) => MapEntry(id, PdfProfileSeries.downsampled(points)),
-      );
+      // Chunked and thinned as we go. Loading every dive's raw samples first
+      // and downsampling afterwards would hold the whole logbook's sample set
+      // in memory at once, which is exactly what the thinning exists to avoid.
+      const chunkSize = 50;
+      final repository = _ref.read(diveRepositoryProvider);
+      final ids = dives.map((d) => d.id).toList();
+      final thinned = <String, PdfProfileSeries>{};
+
+      for (var i = 0; i < ids.length; i += chunkSize) {
+        final chunk = ids.skip(i).take(chunkSize).toList();
+        final raw = await repository.getMergedProfilesForDives(chunk);
+        for (final entry in raw.entries) {
+          thinned[entry.key] = PdfProfileSeries.downsampled(entry.value);
+        }
+      }
+      profiles = thinned;
     }
 
     // Initialize fonts for proper Unicode support

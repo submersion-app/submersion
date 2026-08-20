@@ -18,6 +18,8 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
@@ -2981,8 +2983,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ? null
           : {dive.id: PdfProfileSeries.downsampled(dive.profile)};
 
+      // getDiveById does not hydrate the buddy junction, but this page already
+      // resolves it for its own Buddies section; #1017 wants them in the PDF.
+      final buddies = await ref.read(buddiesForDiveProvider(dive.id).future);
+      final exportDive = buddies.isEmpty
+          ? dive
+          : dive.copyWith(buddies: buddies);
+
       final result = await exportService.generateDivePdfBytes(
-        [dive],
+        [exportDive],
         dates: PdfDateFormatter(
           dateFormat: settings.dateFormat,
           timeFormat: settings.timeFormat,
@@ -2990,6 +2999,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         units: UnitFormatter(settings),
         options: pdfOptions,
         profiles: profiles,
+        certifications: pdfOptions.includeCertificationCards
+            ? await ref.read(allCertificationsProvider.future)
+            : null,
+        diver: await ref.read(currentDiverProvider.future),
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues

@@ -50,6 +50,18 @@ void main() {
     expect(text, contains('1h 30m'));
   });
 
+  test('the cover date range agrees with the summary in either order', () async {
+    // The cover took dives.last / dives.first, which reverses the range for an
+    // oldest-first caller and then contradicts the summary, which sorts.
+    final oldestFirst = await render([
+      diveOn(DateTime(2024, 1, 3), runtime: const Duration(minutes: 50)),
+      diveOn(DateTime(2026, 8, 17), runtime: const Duration(minutes: 40)),
+    ]);
+
+    expect(oldestFirst, contains('03/01/2024 - 17/08/2026'));
+    expect(oldestFirst, isNot(contains('17/08/2026 - 03/01/2024')));
+  });
+
   test('finds the range even when the dives arrive oldest first', () async {
     final text = await render([
       diveOn(DateTime(2024, 1, 3), runtime: const Duration(minutes: 50)),

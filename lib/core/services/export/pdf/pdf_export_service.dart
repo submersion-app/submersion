@@ -7,6 +7,8 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -165,6 +167,9 @@ class PdfExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) async {
     final signatureService = SignatureStorageService();
     final diveSignatures = <String, List<Signature>>{};
@@ -188,6 +193,11 @@ class PdfExportService {
       title: title,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       profiles: profiles,
+      // Only honored when the diver asked for the cards, matching the
+      // settings export path.
+      certifications: options.includeCertificationCards ? certifications : null,
+      diver: diver,
+      diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
     );
 
@@ -206,6 +216,9 @@ class PdfExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -215,6 +228,9 @@ class PdfExportService {
       title: title,
       allSightings: allSightings,
       profiles: profiles,
+      certifications: certifications,
+      diver: diver,
+      diverPhoto: diverPhoto,
     );
     return saveAndShareFileBytes(
       result.bytes,
@@ -232,6 +248,9 @@ class PdfExportService {
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -241,6 +260,9 @@ class PdfExportService {
       title: title,
       allSightings: allSightings,
       profiles: profiles,
+      certifications: certifications,
+      diver: diver,
+      diverPhoto: diverPhoto,
     );
     return savePdfBytesToFile(result.bytes, result.fileName);
   }

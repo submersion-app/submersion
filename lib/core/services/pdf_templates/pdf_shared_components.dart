@@ -499,6 +499,17 @@ class PdfSharedComponents {
     Diver? diver,
     PdfColor accentColor = PdfColors.blue800,
   }) {
+    // Callers pass dives newest-first (getAllDives) or oldest-first depending
+    // on the path, so order the pair here rather than trusting the caller.
+    // Otherwise the cover contradicts the summary page, which sorts.
+    if (firstDiveDate != null &&
+        lastDiveDate != null &&
+        firstDiveDate.isAfter(lastDiveDate)) {
+      final earlier = lastDiveDate;
+      lastDiveDate = firstDiveDate;
+      firstDiveDate = earlier;
+    }
+
     return pw.Center(
       child: pw.Column(
         mainAxisAlignment: pw.MainAxisAlignment.center,
