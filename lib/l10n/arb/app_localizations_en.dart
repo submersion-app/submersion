@@ -9640,13 +9640,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Layout matching PADI logbook format';
 
   @override
-  String get enum_pdfTemplate_professional => 'Professional';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Signature and stamp areas for verification';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simple';
 
   @override
@@ -18045,13 +18038,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Layout matching PADI logbook format';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Professional';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Signature and stamp areas for verification';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {

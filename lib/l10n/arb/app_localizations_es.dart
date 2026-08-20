@@ -9797,13 +9797,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Diseño similar al formato de registro PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'Profesional';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Áreas de firma y sello para verificación';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simple';
 
   @override
@@ -18371,13 +18364,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Diseno que coincide con el formato del libro de registro PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Profesional';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Areas de firma y sello para verificacion';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {

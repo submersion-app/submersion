@@ -5,7 +5,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Existing coverage pins the historical ISO rendering; #964 preference
@@ -47,11 +46,6 @@ void main() {
       dates: isoDates,
     ),
     'NAUI': (dives) => PdfTemplateNaui().buildPdf(
-      dives: dives,
-      pageSize: PdfPageSize.a4,
-      dates: isoDates,
-    ),
-    'Professional': (dives) => PdfTemplateProfessional().buildPdf(
       dives: dives,
       pageSize: PdfPageSize.a4,
       dates: isoDates,

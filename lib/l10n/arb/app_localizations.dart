@@ -16642,18 +16642,6 @@ abstract class AppLocalizations {
   /// **'Layout matching PADI logbook format'**
   String get enum_pdfTemplate_padiStyle_description;
 
-  /// No description provided for @enum_pdfTemplate_professional.
-  ///
-  /// In en, this message translates to:
-  /// **'Professional'**
-  String get enum_pdfTemplate_professional;
-
-  /// No description provided for @enum_pdfTemplate_professional_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Signature and stamp areas for verification'**
-  String get enum_pdfTemplate_professional_description;
-
   /// No description provided for @enum_pdfTemplate_simple.
   ///
   /// In en, this message translates to:
@@ -30669,18 +30657,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Layout matching PADI logbook format'**
   String get transfer_pdfExport_templatePadiStyleDesc;
-
-  /// No description provided for @transfer_pdfExport_templateProfessional.
-  ///
-  /// In en, this message translates to:
-  /// **'Professional'**
-  String get transfer_pdfExport_templateProfessional;
-
-  /// No description provided for @transfer_pdfExport_templateProfessionalDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Signature and stamp areas for verification'**
-  String get transfer_pdfExport_templateProfessionalDesc;
 
   /// No description provided for @transfer_pdfExport_templateSemanticLabel.
   ///

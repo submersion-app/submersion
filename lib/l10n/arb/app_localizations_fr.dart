@@ -9829,13 +9829,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mise en page au format carnet PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'Professionnel';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Zones de signature et de tampon pour verification';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simple';
 
   @override
@@ -18428,13 +18421,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Mise en page conforme au format du carnet PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Professionnel';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Zones de signature et de tampon pour verification';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {

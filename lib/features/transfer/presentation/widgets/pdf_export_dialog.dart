@@ -7,7 +7,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Dialog for selecting PDF export options.
 ///
 /// Allows users to choose:
-/// - Template style (Simple, Detailed, Professional, PADI, NAUI)
+/// - Template style (Simple, Detailed, PADI, NAUI)
 /// - Page size (A4, Letter)
 /// - Whether to include certification cards
 class PdfExportDialog extends ConsumerStatefulWidget {
@@ -262,8 +262,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return context.l10n.transfer_pdfExport_templateSimple;
       case PdfTemplate.detailed:
         return context.l10n.transfer_pdfExport_templateDetailed;
-      case PdfTemplate.professional:
-        return context.l10n.transfer_pdfExport_templateProfessional;
       case PdfTemplate.padiStyle:
         return context.l10n.transfer_pdfExport_templatePadiStyle;
       case PdfTemplate.nauiStyle:
@@ -280,8 +278,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return context.l10n.transfer_pdfExport_templateSimpleDesc;
       case PdfTemplate.detailed:
         return context.l10n.transfer_pdfExport_templateDetailedDesc;
-      case PdfTemplate.professional:
-        return context.l10n.transfer_pdfExport_templateProfessionalDesc;
       case PdfTemplate.padiStyle:
         return context.l10n.transfer_pdfExport_templatePadiStyleDesc;
       case PdfTemplate.nauiStyle:
@@ -295,8 +291,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return Icons.table_rows;
       case PdfTemplate.detailed:
         return Icons.article;
-      case PdfTemplate.professional:
-        return Icons.verified;
       case PdfTemplate.padiStyle:
         return Icons.scuba_diving;
       case PdfTemplate.nauiStyle:

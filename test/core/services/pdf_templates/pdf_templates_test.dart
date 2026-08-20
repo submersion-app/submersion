@@ -5,7 +5,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_simple.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -137,16 +136,6 @@ void main() {
       expect(bytes, isNotEmpty);
     });
 
-    test('PdfTemplateProfessional generates PDF with bottomTime', () async {
-      final template = PdfTemplateProfessional();
-      final bytes = await template.buildPdf(
-        dives: dives,
-        pageSize: PdfPageSize.a4,
-        dates: isoDates,
-      );
-      expect(bytes, isNotEmpty);
-    });
-
     test('PdfTemplatePadi generates PDF with bottomTime', () async {
       final template = PdfTemplatePadi();
       final bytes = await template.buildPdf(
@@ -165,6 +154,16 @@ void main() {
         dates: isoDates,
       );
       expect(bytes, isNotEmpty);
+    });
+  });
+
+  group('template roster', () {
+    test('the professional template is gone', () {
+      expect(
+        PdfTemplate.values.map((t) => t.name),
+        isNot(contains('professional')),
+      );
+      expect(PdfTemplate.values, hasLength(4));
     });
   });
 }

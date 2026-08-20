@@ -6,7 +6,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_simple.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -46,7 +45,6 @@ void main() {
   final templates = <String, PdfTemplateBuilder Function()>{
     'Simple': PdfTemplateSimple.new,
     'Detailed': PdfTemplateDetailed.new,
-    'Professional': PdfTemplateProfessional.new,
     'PADI': PdfTemplatePadi.new,
     'NAUI': PdfTemplateNaui.new,
   };

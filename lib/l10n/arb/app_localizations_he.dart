@@ -9568,13 +9568,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'פריסה בהתאם לפורמט יומן PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'מקצועי';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'אזורי חתימה וחותמת לאימות';
-
-  @override
   String get enum_pdfTemplate_simple => 'פשוט';
 
   @override
@@ -17891,13 +17884,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'פריסה התואמת לפורמט יומן PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'מקצועי';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'אזורי חתימה וחותמת לאימות';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {

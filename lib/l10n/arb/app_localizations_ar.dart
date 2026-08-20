@@ -9624,13 +9624,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تخطيط مطابق لتنسيق سجل PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'احترافي';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'مناطق للتوقيع والختم للتحقق';
-
-  @override
   String get enum_pdfTemplate_simple => 'بسيط';
 
   @override
@@ -18030,13 +18023,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'تخطيط مطابق لتنسيق سجل PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'احترافي';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'مساحات للتوقيع والختم للتحقق';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {

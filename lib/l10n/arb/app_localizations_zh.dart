@@ -9358,12 +9358,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_pdfTemplate_padiStyle_description => '匹配 PADI 潜水日志格式的布局';
 
   @override
-  String get enum_pdfTemplate_professional => '专业';
-
-  @override
-  String get enum_pdfTemplate_professional_description => '包含签名和盖章区域用于验证';
-
-  @override
   String get enum_pdfTemplate_simple => '简洁';
 
   @override
@@ -17424,12 +17418,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_pdfExport_templatePadiStyleDesc => '匹配 PADI 潜水日志格式的布局';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => '专业';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc => '用于验证的签名和印章区域';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
