@@ -63,6 +63,7 @@ class SyncRepository {
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
+    'diveScenarios': (table: 'dive_scenarios', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
     'equipment': (table: 'equipment', pk: 'id'),

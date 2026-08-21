@@ -85,6 +85,7 @@ void main() {
     'dive_plan_tanks': 'divePlanTanks',
     'dive_plan_segments': 'divePlanSegments',
     'dive_plan_equipment': 'divePlanEquipment',
+    'dive_scenarios': 'diveScenarios',
     'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
     'pre_dive_checklist_template_items': 'preDiveChecklistTemplateItems',
     'pre_dive_sessions': 'preDiveSessions',

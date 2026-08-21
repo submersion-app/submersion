@@ -1254,6 +1254,12 @@ class SyncService {
             records: data.divePlanEquipment,
             hasUpdatedAt: false,
           ),
+          // After dives (the scenario's parent).
+          (
+            type: 'diveScenarios',
+            records: data.diveScenarios,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'diverWeightEntries',
             records: data.diverWeightEntries,
@@ -1919,6 +1925,7 @@ class SyncService {
     'preDiveSessionItems': true,
     'gpsTracks': true,
     'divePlans': true,
+    'diveScenarios': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
     'equipment': true,
@@ -2141,6 +2148,7 @@ class SyncService {
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
+    'diveScenarios': [(field: 'diveId', parent: 'dives', nullable: false)],
     'serviceRecords': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],

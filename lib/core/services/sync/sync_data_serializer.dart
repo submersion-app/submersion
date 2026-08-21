@@ -259,6 +259,7 @@ class SyncData {
   final List<Map<String, dynamic>> divePlanTanks;
   final List<Map<String, dynamic>> divePlanSegments;
   final List<Map<String, dynamic>> divePlanEquipment;
+  final List<Map<String, dynamic>> diveScenarios;
   final List<Map<String, dynamic>> diverWeightEntries;
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> diveTags;
@@ -334,6 +335,7 @@ class SyncData {
     this.divePlanTanks = const [],
     this.divePlanSegments = const [],
     this.divePlanEquipment = const [],
+    this.diveScenarios = const [],
     this.diverWeightEntries = const [],
     this.tags = const [],
     this.diveTags = const [],
@@ -410,6 +412,7 @@ class SyncData {
     'divePlanTanks': divePlanTanks,
     'divePlanSegments': divePlanSegments,
     'divePlanEquipment': divePlanEquipment,
+    'diveScenarios': diveScenarios,
     'diverWeightEntries': diverWeightEntries,
     'tags': tags,
     'diveTags': diveTags,
@@ -489,6 +492,7 @@ class SyncData {
       divePlanTanks: _parseList(json['divePlanTanks']),
       divePlanSegments: _parseList(json['divePlanSegments']),
       divePlanEquipment: _parseList(json['divePlanEquipment']),
+      diveScenarios: _parseList(json['diveScenarios']),
       diverWeightEntries: _parseList(json['diverWeightEntries']),
       tags: _parseList(json['tags']),
       diveTags: _parseList(json['diveTags']),
@@ -826,6 +830,7 @@ class SyncDataSerializer {
       blob: false,
       full: () => _exportDivePlanEquipment(null),
     ),
+    (key: 'diveScenarios', table: _db.diveScenarios, blob: false, full: null),
     (
       key: 'diverWeightEntries',
       table: _db.diverWeightEntries,
@@ -1317,6 +1322,10 @@ class SyncDataSerializer {
         'divePlanEquipment',
         () => _exportDivePlanEquipment(hlcSince),
       ),
+      diveScenarios: await _safeExport(
+        'diveScenarios',
+        () => _exportDiveScenarios(hlcSince),
+      ),
       diverWeightEntries: await _safeExport(
         'diverWeightEntries',
         () => _exportDiverWeightEntries(hlcSince),
@@ -1755,6 +1764,11 @@ class SyncDataSerializer {
           _db.divePlans,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'diveScenarios':
+        final row = await (_db.select(
+          _db.diveScenarios,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'divePlanTanks':
         final row = await (_db.select(
           _db.divePlanTanks,
@@ -2072,6 +2086,11 @@ class SyncDataSerializer {
       case 'divePlans':
         final rows = await (_db.select(
           _db.divePlans,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveScenarios':
+        final rows = await (_db.select(
+          _db.diveScenarios,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'divePlanTanks':
@@ -2656,6 +2675,13 @@ class SyncDataSerializer {
         await _db
             .into(_db.divePlans)
             .insertOnConflictUpdate(DivePlan.fromJson(data).toCompanion(false));
+        return;
+      case 'diveScenarios':
+        await _db
+            .into(_db.diveScenarios)
+            .insertOnConflictUpdate(
+              DiveScenario.fromJson(data).toCompanion(false),
+            );
         return;
       case 'divePlanTanks':
         await _db
@@ -3305,6 +3331,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveScenarios':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveScenarios,
+            records
+                .map((r) => DiveScenario.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'divePlanTanks':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -3704,6 +3740,8 @@ class SyncDataSerializer {
         return plain(_db.gpsTracks, _db.gpsTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
+      case 'diveScenarios':
+        return plain(_db.diveScenarios, _db.diveScenarios.id);
       case 'divePlanTanks':
         return plain(_db.divePlanTanks, _db.divePlanTanks.id);
       case 'divePlanSegments':
@@ -3931,6 +3969,8 @@ class SyncDataSerializer {
         return _db.gpsTracks;
       case 'divePlans':
         return _db.divePlans;
+      case 'diveScenarios':
+        return _db.diveScenarios;
       case 'divePlanTanks':
         return _db.divePlanTanks;
       case 'divePlanSegments':
@@ -4267,6 +4307,11 @@ class SyncDataSerializer {
       case 'divePlans':
         await (_db.delete(
           _db.divePlans,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveScenarios':
+        await (_db.delete(
+          _db.diveScenarios,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'divePlanTanks':
@@ -4999,6 +5044,17 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportDivePlans(String? hlcSince) async {
     final query = _db.select(_db.divePlans);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveScenarios(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.diveScenarios);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
