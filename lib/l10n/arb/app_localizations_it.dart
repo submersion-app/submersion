@@ -33160,4 +33160,40 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Scenari ipotetici salvati dal laboratorio immersione';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Assetto';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Assetto netto alla tappa';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Spinta massima richiesta';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Zavorra sganciabile minima';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'L\'assetto richiede bombole o una muta nell\'immersione.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Velocità di risalita ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Profondità dell\'ultima tappa';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Prolunga l\'ultima tappa (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Tappa per cambio gas (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bombola di bailout';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Tutte le bombole di bailout';
 }

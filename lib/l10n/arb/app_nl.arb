@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Nieuw scenario",
   "diveLab_section_hint": "Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.",
   "diveDetailSection_diveLab_name": "Wat als",
-  "diveDetailSection_diveLab_description": "Opgeslagen wat-als-scenario's uit het duiklab"
+  "diveDetailSection_diveLab_description": "Opgeslagen wat-als-scenario's uit het duiklab",
+  "diveLab_panel_buoyancy": "Drijfvermogen",
+  "diveLab_buoyancy_netAtStop": "Netto drijfvermogen bij de stop",
+  "diveLab_buoyancy_peakLift": "Piek liftbehoefte",
+  "diveLab_buoyancy_minDitchable": "Min. afwerpbaar lood",
+  "diveLab_buoyancy_unavailable": "Drijfvermogen vereist flessen of een pak op de duik.",
+  "diveLab_sheet_ascentRate": "Opstijgsnelheid ({unit}/min)",
+  "diveLab_sheet_lastStop": "Diepte laatste stop",
+  "diveLab_sheet_extraLastStop": "Laatste stop verlengen (min)",
+  "diveLab_sheet_gasSwitchStop": "Gaswisselstop (s)",
+  "diveLab_sheet_bailoutTank": "Bailoutfles",
+  "diveLab_sheet_allBailout": "Alle bailoutflessen"
 }

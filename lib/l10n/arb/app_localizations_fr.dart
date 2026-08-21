@@ -33251,4 +33251,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Scénarios « et si » enregistrés depuis le labo de plongée';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Flottabilité';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Flottabilité nette au palier';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Demande de portance maximale';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Lest largable minimum';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'La flottabilité nécessite des blocs ou une combinaison sur la plongée.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Vitesse de remontée ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Profondeur du dernier palier';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Prolonger le dernier palier (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Palier de changement de gaz (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bloc de bailout';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Tous les blocs de bailout';
 }

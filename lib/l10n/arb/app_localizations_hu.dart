@@ -33041,4 +33041,41 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Felhajtóerő';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Nettó felhajtóerő a megállónál';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Csúcs emelőerő-igény';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Min. ledobható ólom';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'A felhajtóerőhöz palack vagy ruha kell a merülésen.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Felemelkedési sebesség ($unit/perc)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Utolsó megálló mélysége';
+
+  @override
+  String get diveLab_sheet_extraLastStop =>
+      'Utolsó megálló meghosszabbítása (perc)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Gázváltási megálló (mp)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bailout palack';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Minden bailout palack';
 }

@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "سيناريو جديد",
   "diveLab_section_hint": "تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.",
   "diveDetailSection_diveLab_name": "ماذا لو",
-  "diveDetailSection_diveLab_description": "سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص"
+  "diveDetailSection_diveLab_description": "سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص",
+  "diveLab_panel_buoyancy": "الطفو",
+  "diveLab_buoyancy_netAtStop": "الطفو الصافي عند التوقف",
+  "diveLab_buoyancy_peakLift": "ذروة الرفع المطلوب",
+  "diveLab_buoyancy_minDitchable": "الحد الأدنى للثقل القابل للإلقاء",
+  "diveLab_buoyancy_unavailable": "يحتاج الطفو إلى أسطوانات أو بدلة في الغطسة.",
+  "diveLab_sheet_ascentRate": "معدل الصعود ({unit}/د)",
+  "diveLab_sheet_lastStop": "عمق آخر توقف",
+  "diveLab_sheet_extraLastStop": "تمديد آخر توقف (د)",
+  "diveLab_sheet_gasSwitchStop": "توقف تبديل الغاز (ث)",
+  "diveLab_sheet_bailoutTank": "أسطوانة الطوارئ",
+  "diveLab_sheet_allBailout": "كل أسطوانات الطوارئ"
 }

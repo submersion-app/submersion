@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "תרחיש חדש",
   "diveLab_section_hint": "הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.",
   "diveDetailSection_diveLab_name": "מה אם",
-  "diveDetailSection_diveLab_description": "תרחישי \"מה אם\" שמורים ממעבדת הצלילה"
+  "diveDetailSection_diveLab_description": "תרחישי \"מה אם\" שמורים ממעבדת הצלילה",
+  "diveLab_panel_buoyancy": "ציפה",
+  "diveLab_buoyancy_netAtStop": "ציפה נטו בעצירה",
+  "diveLab_buoyancy_peakLift": "שיא דרישת העילוי",
+  "diveLab_buoyancy_minDitchable": "מינימום משקולות ניתנות להשלכה",
+  "diveLab_buoyancy_unavailable": "חישוב הציפה דורש מיכלים או חליפה בצלילה.",
+  "diveLab_sheet_ascentRate": "קצב עלייה ({unit}/דק׳)",
+  "diveLab_sheet_lastStop": "עומק העצירה האחרונה",
+  "diveLab_sheet_extraLastStop": "הארכת העצירה האחרונה (דק׳)",
+  "diveLab_sheet_gasSwitchStop": "עצירת החלפת גז (שנ׳)",
+  "diveLab_sheet_bailoutTank": "מיכל ביילאוט",
+  "diveLab_sheet_allBailout": "כל מיכלי הביילאוט"
 }

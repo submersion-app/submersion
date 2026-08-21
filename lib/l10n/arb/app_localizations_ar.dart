@@ -32839,4 +32839,41 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص';
+
+  @override
+  String get diveLab_panel_buoyancy => 'الطفو';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'الطفو الصافي عند التوقف';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'ذروة الرفع المطلوب';
+
+  @override
+  String get diveLab_buoyancy_minDitchable =>
+      'الحد الأدنى للثقل القابل للإلقاء';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'يحتاج الطفو إلى أسطوانات أو بدلة في الغطسة.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'معدل الصعود ($unit/د)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'عمق آخر توقف';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'تمديد آخر توقف (د)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'توقف تبديل الغاز (ث)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'أسطوانة الطوارئ';
+
+  @override
+  String get diveLab_sheet_allBailout => 'كل أسطوانات الطوارئ';
 }

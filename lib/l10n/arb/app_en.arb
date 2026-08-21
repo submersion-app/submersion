@@ -18654,5 +18654,17 @@
   "diveLab_section_new": "New scenario",
   "diveLab_section_hint": "Branch this dive at any moment and compare what would have happened.",
   "diveDetailSection_diveLab_name": "What if",
-  "diveDetailSection_diveLab_description": "Saved what-if scenarios from the Dive Lab"
+  "diveDetailSection_diveLab_description": "Saved what-if scenarios from the Dive Lab",
+  "diveLab_panel_buoyancy": "Buoyancy",
+  "diveLab_buoyancy_netAtStop": "Net buoyancy at the stop",
+  "diveLab_buoyancy_peakLift": "Peak lift demand",
+  "diveLab_buoyancy_minDitchable": "Min ditchable lead",
+  "diveLab_buoyancy_unavailable": "Buoyancy needs tanks or an exposure suit on the dive.",
+  "diveLab_sheet_ascentRate": "Ascent rate ({unit}/min)",
+  "@diveLab_sheet_ascentRate": {"placeholders": {"unit": {"type": "String"}}},
+  "diveLab_sheet_lastStop": "Last stop depth",
+  "diveLab_sheet_extraLastStop": "Extend the last stop (min)",
+  "diveLab_sheet_gasSwitchStop": "Gas-switch stop (s)",
+  "diveLab_sheet_bailoutTank": "Bailout cylinder",
+  "diveLab_sheet_allBailout": "All bailout cylinders"
 }

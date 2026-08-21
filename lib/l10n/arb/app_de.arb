@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Neues Szenario",
   "diveLab_section_hint": "Zweige diesen Tauchgang an beliebiger Stelle ab und vergleiche, was passiert wäre.",
   "diveDetailSection_diveLab_name": "Was wäre wenn",
-  "diveDetailSection_diveLab_description": "Gespeicherte Was-wäre-wenn-Szenarien aus dem Tauchlabor"
+  "diveDetailSection_diveLab_description": "Gespeicherte Was-wäre-wenn-Szenarien aus dem Tauchlabor",
+  "diveLab_panel_buoyancy": "Auftrieb",
+  "diveLab_buoyancy_netAtStop": "Nettoauftrieb am Stopp",
+  "diveLab_buoyancy_peakLift": "Maximaler Auftriebsbedarf",
+  "diveLab_buoyancy_minDitchable": "Min. abwerfbares Blei",
+  "diveLab_buoyancy_unavailable": "Für den Auftrieb braucht der Tauchgang Flaschen oder einen Anzug.",
+  "diveLab_sheet_ascentRate": "Aufstiegsrate ({unit}/min)",
+  "diveLab_sheet_lastStop": "Tiefe des letzten Stopps",
+  "diveLab_sheet_extraLastStop": "Letzten Stopp verlängern (min)",
+  "diveLab_sheet_gasSwitchStop": "Gaswechsel-Stopp (s)",
+  "diveLab_sheet_bailoutTank": "Bailout-Flasche",
+  "diveLab_sheet_allBailout": "Alle Bailout-Flaschen"
 }

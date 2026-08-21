@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Nuovo scenario",
   "diveLab_section_hint": "Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.",
   "diveDetailSection_diveLab_name": "E se",
-  "diveDetailSection_diveLab_description": "Scenari ipotetici salvati dal laboratorio immersione"
+  "diveDetailSection_diveLab_description": "Scenari ipotetici salvati dal laboratorio immersione",
+  "diveLab_panel_buoyancy": "Assetto",
+  "diveLab_buoyancy_netAtStop": "Assetto netto alla tappa",
+  "diveLab_buoyancy_peakLift": "Spinta massima richiesta",
+  "diveLab_buoyancy_minDitchable": "Zavorra sganciabile minima",
+  "diveLab_buoyancy_unavailable": "L'assetto richiede bombole o una muta nell'immersione.",
+  "diveLab_sheet_ascentRate": "Velocità di risalita ({unit}/min)",
+  "diveLab_sheet_lastStop": "Profondità dell'ultima tappa",
+  "diveLab_sheet_extraLastStop": "Prolunga l'ultima tappa (min)",
+  "diveLab_sheet_gasSwitchStop": "Tappa per cambio gas (s)",
+  "diveLab_sheet_bailoutTank": "Bombola di bailout",
+  "diveLab_sheet_allBailout": "Tutte le bombole di bailout"
 }

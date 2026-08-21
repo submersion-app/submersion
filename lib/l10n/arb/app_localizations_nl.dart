@@ -32935,4 +32935,40 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Opgeslagen wat-als-scenario\'s uit het duiklab';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Drijfvermogen';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Netto drijfvermogen bij de stop';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Piek liftbehoefte';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Min. afwerpbaar lood';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'Drijfvermogen vereist flessen of een pak op de duik.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Opstijgsnelheid ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Diepte laatste stop';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Laatste stop verlengen (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Gaswisselstop (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bailoutfles';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Alle bailoutflessen';
 }

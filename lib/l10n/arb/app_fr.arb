@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Nouveau scénario",
   "diveLab_section_hint": "Bifurquez cette plongée à n'importe quel moment et comparez ce qui se serait passé.",
   "diveDetailSection_diveLab_name": "Et si",
-  "diveDetailSection_diveLab_description": "Scénarios « et si » enregistrés depuis le labo de plongée"
+  "diveDetailSection_diveLab_description": "Scénarios « et si » enregistrés depuis le labo de plongée",
+  "diveLab_panel_buoyancy": "Flottabilité",
+  "diveLab_buoyancy_netAtStop": "Flottabilité nette au palier",
+  "diveLab_buoyancy_peakLift": "Demande de portance maximale",
+  "diveLab_buoyancy_minDitchable": "Lest largable minimum",
+  "diveLab_buoyancy_unavailable": "La flottabilité nécessite des blocs ou une combinaison sur la plongée.",
+  "diveLab_sheet_ascentRate": "Vitesse de remontée ({unit}/min)",
+  "diveLab_sheet_lastStop": "Profondeur du dernier palier",
+  "diveLab_sheet_extraLastStop": "Prolonger le dernier palier (min)",
+  "diveLab_sheet_gasSwitchStop": "Palier de changement de gaz (s)",
+  "diveLab_sheet_bailoutTank": "Bloc de bailout",
+  "diveLab_sheet_allBailout": "Tous les blocs de bailout"
 }

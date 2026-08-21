@@ -32641,4 +32641,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Saved what-if scenarios from the Dive Lab';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Buoyancy';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Net buoyancy at the stop';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Peak lift demand';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Min ditchable lead';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'Buoyancy needs tanks or an exposure suit on the dive.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Ascent rate ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Last stop depth';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Extend the last stop (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Gas-switch stop (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bailout cylinder';
+
+  @override
+  String get diveLab_sheet_allBailout => 'All bailout cylinders';
 }

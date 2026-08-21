@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Novo cenário",
   "diveLab_section_hint": "Ramifique este mergulho em qualquer momento e compare o que teria acontecido.",
   "diveDetailSection_diveLab_name": "E se",
-  "diveDetailSection_diveLab_description": "Cenários hipotéticos guardados do laboratório de mergulho"
+  "diveDetailSection_diveLab_description": "Cenários hipotéticos guardados do laboratório de mergulho",
+  "diveLab_panel_buoyancy": "Flutuabilidade",
+  "diveLab_buoyancy_netAtStop": "Flutuabilidade líquida na paragem",
+  "diveLab_buoyancy_peakLift": "Pico de sustentação necessária",
+  "diveLab_buoyancy_minDitchable": "Lastro largável mínimo",
+  "diveLab_buoyancy_unavailable": "A flutuabilidade precisa de garrafas ou de fato no mergulho.",
+  "diveLab_sheet_ascentRate": "Velocidade de subida ({unit}/min)",
+  "diveLab_sheet_lastStop": "Profundidade da última paragem",
+  "diveLab_sheet_extraLastStop": "Prolongar a última paragem (min)",
+  "diveLab_sheet_gasSwitchStop": "Paragem de troca de gás (s)",
+  "diveLab_sheet_bailoutTank": "Garrafa de bailout",
+  "diveLab_sheet_allBailout": "Todas as garrafas de bailout"
 }

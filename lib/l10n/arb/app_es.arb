@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Nuevo escenario",
   "diveLab_section_hint": "Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.",
   "diveDetailSection_diveLab_name": "Y si",
-  "diveDetailSection_diveLab_description": "Escenarios hipotéticos guardados del laboratorio de buceo"
+  "diveDetailSection_diveLab_description": "Escenarios hipotéticos guardados del laboratorio de buceo",
+  "diveLab_panel_buoyancy": "Flotabilidad",
+  "diveLab_buoyancy_netAtStop": "Flotabilidad neta en la parada",
+  "diveLab_buoyancy_peakLift": "Demanda máxima de empuje",
+  "diveLab_buoyancy_minDitchable": "Lastre desechable mínimo",
+  "diveLab_buoyancy_unavailable": "La flotabilidad requiere botellas o traje en la inmersión.",
+  "diveLab_sheet_ascentRate": "Velocidad de ascenso ({unit}/min)",
+  "diveLab_sheet_lastStop": "Profundidad de la última parada",
+  "diveLab_sheet_extraLastStop": "Alargar la última parada (min)",
+  "diveLab_sheet_gasSwitchStop": "Parada de cambio de gas (s)",
+  "diveLab_sheet_bailoutTank": "Botella de bailout",
+  "diveLab_sheet_allBailout": "Todas las botellas de bailout"
 }

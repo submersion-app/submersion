@@ -54872,6 +54872,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved what-if scenarios from the Dive Lab'**
   String get diveDetailSection_diveLab_description;
+
+  /// No description provided for @diveLab_panel_buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get diveLab_panel_buoyancy;
+
+  /// No description provided for @diveLab_buoyancy_netAtStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Net buoyancy at the stop'**
+  String get diveLab_buoyancy_netAtStop;
+
+  /// No description provided for @diveLab_buoyancy_peakLift.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak lift demand'**
+  String get diveLab_buoyancy_peakLift;
+
+  /// No description provided for @diveLab_buoyancy_minDitchable.
+  ///
+  /// In en, this message translates to:
+  /// **'Min ditchable lead'**
+  String get diveLab_buoyancy_minDitchable;
+
+  /// No description provided for @diveLab_buoyancy_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy needs tanks or an exposure suit on the dive.'**
+  String get diveLab_buoyancy_unavailable;
+
+  /// No description provided for @diveLab_sheet_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate ({unit}/min)'**
+  String diveLab_sheet_ascentRate(String unit);
+
+  /// No description provided for @diveLab_sheet_lastStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Last stop depth'**
+  String get diveLab_sheet_lastStop;
+
+  /// No description provided for @diveLab_sheet_extraLastStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Extend the last stop (min)'**
+  String get diveLab_sheet_extraLastStop;
+
+  /// No description provided for @diveLab_sheet_gasSwitchStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas-switch stop (s)'**
+  String get diveLab_sheet_gasSwitchStop;
+
+  /// No description provided for @diveLab_sheet_bailoutTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout cylinder'**
+  String get diveLab_sheet_bailoutTank;
+
+  /// No description provided for @diveLab_sheet_allBailout.
+  ///
+  /// In en, this message translates to:
+  /// **'All bailout cylinders'**
+  String get diveLab_sheet_allBailout;
 }
 
 class _AppLocalizationsDelegate

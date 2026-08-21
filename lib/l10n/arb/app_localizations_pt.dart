@@ -33175,4 +33175,40 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Cenários hipotéticos guardados do laboratório de mergulho';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Flutuabilidade';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Flutuabilidade líquida na paragem';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Pico de sustentação necessária';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Lastro largável mínimo';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'A flutuabilidade precisa de garrafas ou de fato no mergulho.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Velocidade de subida ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Profundidade da última paragem';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Prolongar a última paragem (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Paragem de troca de gás (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Garrafa de bailout';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Todas as garrafas de bailout';
 }

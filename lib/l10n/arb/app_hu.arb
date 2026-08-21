@@ -9743,5 +9743,16 @@
   "diveLab_section_new": "Új forgatókönyv",
   "diveLab_section_hint": "Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.",
   "diveDetailSection_diveLab_name": "Mi lett volna, ha",
-  "diveDetailSection_diveLab_description": "A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek"
+  "diveDetailSection_diveLab_description": "A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek",
+  "diveLab_panel_buoyancy": "Felhajtóerő",
+  "diveLab_buoyancy_netAtStop": "Nettó felhajtóerő a megállónál",
+  "diveLab_buoyancy_peakLift": "Csúcs emelőerő-igény",
+  "diveLab_buoyancy_minDitchable": "Min. ledobható ólom",
+  "diveLab_buoyancy_unavailable": "A felhajtóerőhöz palack vagy ruha kell a merülésen.",
+  "diveLab_sheet_ascentRate": "Felemelkedési sebesség ({unit}/perc)",
+  "diveLab_sheet_lastStop": "Utolsó megálló mélysége",
+  "diveLab_sheet_extraLastStop": "Utolsó megálló meghosszabbítása (perc)",
+  "diveLab_sheet_gasSwitchStop": "Gázváltási megálló (mp)",
+  "diveLab_sheet_bailoutTank": "Bailout palack",
+  "diveLab_sheet_allBailout": "Minden bailout palack"
 }

@@ -33202,4 +33202,40 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Escenarios hipotéticos guardados del laboratorio de buceo';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Flotabilidad';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Flotabilidad neta en la parada';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Demanda máxima de empuje';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Lastre desechable mínimo';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'La flotabilidad requiere botellas o traje en la inmersión.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Velocidad de ascenso ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Profundidad de la última parada';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Alargar la última parada (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Parada de cambio de gas (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Botella de bailout';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Todas las botellas de bailout';
 }

@@ -32494,4 +32494,40 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'תרחישי \"מה אם\" שמורים ממעבדת הצלילה';
+
+  @override
+  String get diveLab_panel_buoyancy => 'ציפה';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'ציפה נטו בעצירה';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'שיא דרישת העילוי';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'מינימום משקולות ניתנות להשלכה';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'חישוב הציפה דורש מיכלים או חליפה בצלילה.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'קצב עלייה ($unit/דק׳)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'עומק העצירה האחרונה';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'הארכת העצירה האחרונה (דק׳)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'עצירת החלפת גז (שנ׳)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'מיכל ביילאוט';
+
+  @override
+  String get diveLab_sheet_allBailout => 'כל מיכלי הביילאוט';
 }

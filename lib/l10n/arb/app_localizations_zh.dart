@@ -31264,4 +31264,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_diveLab_description => '来自潜水实验室的已保存假设情形';
+
+  @override
+  String get diveLab_panel_buoyancy => '浮力';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => '停留时的净浮力';
+
+  @override
+  String get diveLab_buoyancy_peakLift => '峰值升力需求';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => '最少可抛配重';
+
+  @override
+  String get diveLab_buoyancy_unavailable => '计算浮力需要此次潜水有气瓶或防护服。';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return '上升速率（$unit/分钟）';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => '最后停留深度';
+
+  @override
+  String get diveLab_sheet_extraLastStop => '延长最后停留（分钟）';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => '换气停留（秒）';
+
+  @override
+  String get diveLab_sheet_bailoutTank => '逼出气瓶';
+
+  @override
+  String get diveLab_sheet_allBailout => '全部逼出气瓶';
 }

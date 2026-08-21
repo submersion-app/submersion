@@ -33098,4 +33098,40 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveDetailSection_diveLab_description =>
       'Gespeicherte Was-wäre-wenn-Szenarien aus dem Tauchlabor';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Auftrieb';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Nettoauftrieb am Stopp';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Maximaler Auftriebsbedarf';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Min. abwerfbares Blei';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'Für den Auftrieb braucht der Tauchgang Flaschen oder einen Anzug.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Aufstiegsrate ($unit/min)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Tiefe des letzten Stopps';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'Letzten Stopp verlängern (min)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Gaswechsel-Stopp (s)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bailout-Flasche';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Alle Bailout-Flaschen';
 }
