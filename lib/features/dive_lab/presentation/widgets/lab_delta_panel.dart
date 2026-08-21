@@ -21,10 +21,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Verdict, tiles, the actual | what-if | delta table, tissue strips, gas
 /// rows, engine issues, the counterfactual runtime table and notes.
 class LabDeltaPanel extends ConsumerWidget {
-  const LabDeltaPanel({super.key, required this.inputs, required this.outcome});
+  const LabDeltaPanel({
+    super.key,
+    required this.inputs,
+    required this.outcome,
+    this.recomputing = false,
+  });
 
   final LabRequestInputs inputs;
-  final AsyncValue<ScenarioOutcome?> outcome;
+
+  /// The latest outcome; null until the first run completes.
+  final ScenarioOutcome? outcome;
+
+  /// True while a newer outcome is being computed: the panel dims and shows
+  /// a thin progress bar instead of flashing empty.
+  final bool recomputing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,8 +43,8 @@ class LabDeltaPanel extends ConsumerWidget {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final colorFn = colorFnForScheme(ref.watch(tissueColorSchemeProvider));
-    final value = outcome.valueOrNull;
-    final loading = outcome.isLoading;
+    final value = outcome;
+    final loading = recomputing;
     String tankName(String id) => labTankName(inputs.tanks, id);
 
     if (value == null) {

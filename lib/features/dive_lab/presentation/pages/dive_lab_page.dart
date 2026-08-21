@@ -118,7 +118,11 @@ class _LabBody extends ConsumerWidget {
         LabInterventionChips(diveId: diveId, inputs: inputs),
       ],
     );
-    final panel = LabDeltaPanel(inputs: inputs, outcome: outcome);
+    final panel = LabDeltaPanel(
+      inputs: inputs,
+      outcome: outcome.valueOrNull,
+      recomputing: outcome.isLoading,
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {

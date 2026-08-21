@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
@@ -69,9 +68,7 @@ void main() {
     final inputs = _inputs();
     final outcome = _outcome(inputs);
     await tester.pumpWidget(
-      _harness(
-        LabDeltaPanel(inputs: inputs, outcome: AsyncValue.data(outcome)),
-      ),
+      _harness(LabDeltaPanel(inputs: inputs, outcome: outcome)),
     );
     await tester.pump();
     expect(find.text('Runtime'), findsWidgets);
@@ -96,11 +93,7 @@ void main() {
     final outcome = _outcome(inputs);
     await tester.pumpWidget(
       _harness(
-        LabDeltaPanel(
-          inputs: inputs,
-          outcome: const AsyncValue<ScenarioOutcome?>.loading()
-              .copyWithPrevious(AsyncValue.data(outcome)),
-        ),
+        LabDeltaPanel(inputs: inputs, outcome: outcome, recomputing: true),
       ),
     );
     await tester.pump();
@@ -111,10 +104,7 @@ void main() {
   testWidgets('no value yet shows the computing line', (tester) async {
     await tester.pumpWidget(
       _harness(
-        LabDeltaPanel(
-          inputs: _inputs(),
-          outcome: const AsyncValue<ScenarioOutcome?>.loading(),
-        ),
+        LabDeltaPanel(inputs: _inputs(), outcome: null, recomputing: true),
       ),
     );
     await tester.pump();
