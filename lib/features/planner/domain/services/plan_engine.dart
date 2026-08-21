@@ -203,7 +203,7 @@ class PlanEngine {
                 ? 0.0
                 : segments.last.gasMix.he / 100.0,
           )
-        : _ascentPlanFor(plan.tanks);
+        : ascentPlanFor(plan.tanks);
 
     var state = startState ?? model.initial();
     var runtime = 0;
@@ -846,7 +846,10 @@ class PlanEngine {
     );
   }
 
-  AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
+  /// The open-circuit ascent gas plan for [tanks]: the richest eligible mix
+  /// at each depth under the deco ppO2. Public so the Dive Lab synthesises
+  /// the same gas switches the engine schedules.
+  AscentGasPlan ascentPlanFor(List<DiveTank> tanks) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
