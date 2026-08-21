@@ -95,7 +95,7 @@ new feature module `lib/features/dive_lab/`:
 Small, contained changes outside the module:
 
 - `lib/core/deco/entities/deco_status.dart`: nullable
-  `gfLowCeilingAnchorBar`, filled by `BuhlmannAlgorithm.processProfile` and
+  `gfLowCeilingAnchor` (meters), filled by `BuhlmannAlgorithm.processProfile` and
   `processProfileWithGasSegments`.
 - `lib/core/constants/dive_detail_sections.dart`: `DiveDetailSectionId.diveLab`.
 - `dive_detail_page.dart`: toolbar icon + overflow item in both chrome
@@ -192,7 +192,7 @@ Derived from the actual analysis (re-run under the counterfactual GF when
 | Field | Source |
 | --- | --- |
 | `index`, `runtimeSeconds`, `depthMeters` | nearest sample to `branchSeconds` on the primary profile |
-| `compartments`, `gfLowCeilingAnchorBar` | `decoStatuses[index]` (the new anchor field) |
+| `compartments`, `gfLowCeilingAnchor` | `decoStatuses[index]` (the new anchor field) |
 | `cnsPercent`, `otu` | `cnsCurve[index]`, `otuCurve[index]` |
 | `activeTankId`, inspired gas | the gas segment in force at T (OC), or loop setpoint / diluent (CCR, SCR) |
 | `tankPressuresBar` per tank | measured series at T; else the estimated series (linear start -> end, the `estimatedTankPressuresProvider` rule); else unknown. Each tank carries a `PressureSource {measured, estimated, unknown}` |
@@ -201,7 +201,7 @@ Derived from the actual analysis (re-run under the counterfactual GF when
 Sources are surfaced as flags on the outcome and shown as "estimated"
 badges in the UI.
 
-### `DecoStatus.gfLowCeilingAnchorBar`
+### `DecoStatus.gfLowCeilingAnchor`
 
 Nullable `double` added to `DecoStatus`. `BuhlmannAlgorithm.processProfile`
 and `processProfileWithGasSegments` set it from the algorithm's running
@@ -337,7 +337,7 @@ earlier with surface GF 71% vs 78%; the 50% bottle would have ended at
 - Compile round-trip: the remaining-bottom segments reproduce the actual
   remainder's mean depth within 0.5 m and its duration exactly.
 - Codec round-trip for every intervention kind and for `.sublab`.
-- Anchor: a mid-dive `restoreState` from `DecoStatus.gfLowCeilingAnchorBar`
+- Anchor: a mid-dive `restoreState` from `DecoStatus.gfLowCeilingAnchor`
   continues to the same ceilings as the uninterrupted run.
 
 No new tissue math is introduced, so no new Python golden vectors;
