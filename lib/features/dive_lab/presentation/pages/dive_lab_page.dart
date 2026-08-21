@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/scenario_outcome_provider.dart';
@@ -196,10 +197,12 @@ class _LabBody extends ConsumerWidget {
         LabInterventionChips(diveId: diveId, inputs: inputs),
       ],
     );
+    final buoyancy = ref.watch(labBuoyancyProvider(diveId)).valueOrNull;
     final panel = LabDeltaPanel(
       inputs: inputs,
       outcome: outcome.valueOrNull,
       recomputing: outcome.isLoading,
+      buoyancy: buoyancy,
     );
 
     return LayoutBuilder(

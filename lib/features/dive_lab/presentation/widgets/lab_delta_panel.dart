@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/domain/entities/branch_state.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_consumption.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_delta.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_runtime_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -26,9 +29,13 @@ class LabDeltaPanel extends ConsumerWidget {
     required this.inputs,
     required this.outcome,
     this.recomputing = false,
+    this.buoyancy,
   });
 
   final LabRequestInputs inputs;
+
+  /// Buoyancy twin verdicts for both timelines; null while unavailable.
+  final BuoyancyComparison? buoyancy;
 
   /// The latest outcome; null until the first run completes.
   final ScenarioOutcome? outcome;
@@ -81,6 +88,11 @@ class LabDeltaPanel extends ConsumerWidget {
         const SizedBox(height: 16),
         PlanSectionHeader(l10n.diveLab_panel_gas),
         _GasRows(outcome: value, units: units, tankName: tankName),
+        if (buoyancy != null) ...[
+          const SizedBox(height: 16),
+          PlanSectionHeader(l10n.diveLab_panel_buoyancy),
+          _BuoyancyRows(comparison: buoyancy!, units: units),
+        ],
         if (value.planOutcome != null) ...[
           const SizedBox(height: 16),
           PlanSectionHeader(l10n.diveLab_panel_issues),
@@ -424,6 +436,69 @@ class _Issues extends StatelessWidget {
             icon: icon(issue.severity),
             color: planIssueSeverityColor(theme.colorScheme, issue.severity),
             message: planIssueMessage(context, issue, units),
+          ),
+      ],
+    );
+  }
+}
+
+class _BuoyancyRows extends StatelessWidget {
+  const _BuoyancyRows({required this.comparison, required this.units});
+  final BuoyancyComparison comparison;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final a = comparison.actual;
+    final c = comparison.counterfactual;
+    final wing = comparison.wingLiftCapacityKg;
+    Color? lowerBetter(double actual, double cf) {
+      final d = cf - actual;
+      if (d.abs() < 0.05) return null;
+      return d < 0 ? AppColors.success : theme.colorScheme.error;
+    }
+
+    final rows = <(String, double, double, Color?)>[
+      (l10n.diveLab_buoyancy_netAtStop, a.verdict.netKg, c.verdict.netKg, null),
+      (
+        l10n.diveLab_buoyancy_peakLift,
+        a.peakLiftDemandKg,
+        c.peakLiftDemandKg,
+        wing != null && wing > 0 && c.peakLiftDemandKg > wing
+            ? theme.colorScheme.error
+            : lowerBetter(a.peakLiftDemandKg, c.peakLiftDemandKg),
+      ),
+      (
+        l10n.diveLab_buoyancy_minDitchable,
+        a.minDitchableKg,
+        c.minDitchableKg,
+        lowerBetter(a.minDitchableKg, c.minDitchableKg),
+      ),
+    ];
+    Widget cell(String text, {int flex = 1, Color? color}) => Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+        child: Text(
+          text,
+          style: theme.textTheme.bodySmall?.copyWith(color: color),
+        ),
+      ),
+    );
+    String signed(double d) =>
+        '${d > 0.05 ? '+' : (d < -0.05 ? '-' : '')}${units.formatWeight(d.abs())}';
+    return Column(
+      children: [
+        for (final (label, actual, cf, color) in rows)
+          Row(
+            children: [
+              cell(label, flex: 2),
+              cell(units.formatWeight(actual)),
+              cell(units.formatWeight(cf)),
+              cell(signed(cf - actual), color: color),
+            ],
           ),
       ],
     );
