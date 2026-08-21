@@ -23,6 +23,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -851,6 +852,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
+                case 'whatIf':
+                  showDiveLab(context, dive.id);
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
@@ -872,6 +875,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               }
             },
             itemBuilder: (context) => [
+              if (!dive.isGauge && dive.profile.length >= 2)
+                PopupMenuItem(
+                  value: 'whatIf',
+                  child: ListTile(
+                    leading: const Icon(Icons.science_outlined),
+                    title: Text(context.l10n.diveLab_action_whatIf),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'export',
                 child: ListTile(
@@ -1031,6 +1043,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             padding: EdgeInsets.zero,
             onSelected: (value) {
               switch (value) {
+                case 'whatIf':
+                  showDiveLab(context, dive.id);
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
@@ -1067,6 +1081,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (!dive.isGauge && dive.profile.length >= 2)
+                PopupMenuItem(
+                  value: 'whatIf',
+                  child: ListTile(
+                    leading: const Icon(Icons.science_outlined),
+                    title: Text(context.l10n.diveLab_action_whatIf),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'export',
                 child: ListTile(
@@ -1755,6 +1778,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ),
                       ),
                     ),
+                    if (!dive.isGauge && dive.profile.length >= 2)
+                      IconButton(
+                        icon: const Icon(Icons.science_outlined),
+                        tooltip: context.l10n.diveLab_tooltip_open,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => showDiveLab(context, dive.id),
+                      ),
                     IconButton(
                       icon: const Icon(Icons.terrain),
                       tooltip: context.l10n.dive3d_spatial_title,
