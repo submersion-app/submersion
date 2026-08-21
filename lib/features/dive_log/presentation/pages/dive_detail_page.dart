@@ -24,6 +24,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/dive_lab_section.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -355,6 +356,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             SafetyReviewSection(key: _safetyReviewSectionKey, diveId: dive.id),
           LinkedIncidentsRow(diveId: dive.id),
         ];
+      },
+      DiveDetailSectionId.diveLab: () {
+        if (dive.isGauge || dive.profile.length < 2) return [];
+        return [const SizedBox(height: 24), DiveLabSection(diveId: dive.id)];
       },
       DiveDetailSectionId.sacSegments: () {
         if (dive.profile.isEmpty) return [];
