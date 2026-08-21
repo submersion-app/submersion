@@ -230,7 +230,6 @@ List<ProfileGasSegment> buildProfileGasSegments(
 /// bailout, else air. The FIRST tank must not be assumed to be the diluent --
 /// on imported CCR dives it is often the O2-richer loop/bailout mix
 /// (issue #455: dive 003's first tank is EAN40, the diluent is air).
-@visibleForTesting
 GasMix resolveCcrDiluentMix(Dive dive) {
   final diluentTank = dive.diluentTank;
   if (diluentTank != null) return diluentTank.gasMix;
@@ -260,7 +259,6 @@ GasMix resolveCcrDiluentMix(Dive dive) {
 /// dive-level setpoint) is used as a constant when no curve exists. Returns
 /// null when neither exists: with no loop ppO2 information the loop cannot
 /// be modeled and callers keep the legacy path.
-@visibleForTesting
 List<ProfileGasSegment>? buildCcrProfileGasSegments({
   required List<int> timestamps,
   required List<double>? loopPpO2Curve,

@@ -28,6 +28,7 @@ class ScenarioSettings extends Equatable {
     this.airBreaks,
     this.altitudeMeters,
     this.waterType,
+    this.surfacePressureBar,
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
     this.o2Narcotic = true,
@@ -52,6 +53,10 @@ class ScenarioSettings extends Equatable {
   final AirBreakPolicy? airBreaks;
   final double? altitudeMeters;
   final WaterType? waterType;
+
+  /// Measured surface pressure (bar); wins over [altitudeMeters] when set,
+  /// exactly as the dive detail analysis resolves its environment.
+  final double? surfacePressureBar;
   final CnsCalculationMethod cnsMethod;
   final GasModel gasModel;
   final bool o2Narcotic;
@@ -61,10 +66,13 @@ class ScenarioSettings extends Equatable {
   final double buddyFactor;
   final double reservePressureBar;
 
-  /// Altitude <= 0 is unset (legacy 1.0 bar), matching PlanEngine.
+  /// Mirrors profile_analysis_provider: altitude, water type and surface
+  /// pressure straight from the dive (PlanEngine applies its own "altitude
+  /// <= 0 is unset" rule to the altitude it receives separately).
   DiveEnvironment get environment => DiveEnvironment.forConditions(
-    altitudeMeters: (altitudeMeters ?? 0) > 0 ? altitudeMeters : null,
+    altitudeMeters: altitudeMeters,
     waterType: waterType,
+    surfacePressureBar: surfacePressureBar,
   );
 
   int get gfLowPercent => (gfLow * 100).round();
@@ -113,6 +121,7 @@ class ScenarioSettings extends Equatable {
     AirBreakPolicy? airBreaks,
     double? altitudeMeters,
     WaterType? waterType,
+    double? surfacePressureBar,
     CnsCalculationMethod? cnsMethod,
     GasModel? gasModel,
     bool? o2Narcotic,
@@ -136,6 +145,7 @@ class ScenarioSettings extends Equatable {
       airBreaks: airBreaks ?? this.airBreaks,
       altitudeMeters: altitudeMeters ?? this.altitudeMeters,
       waterType: waterType ?? this.waterType,
+      surfacePressureBar: surfacePressureBar ?? this.surfacePressureBar,
       cnsMethod: cnsMethod ?? this.cnsMethod,
       gasModel: gasModel ?? this.gasModel,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
@@ -162,6 +172,7 @@ class ScenarioSettings extends Equatable {
     airBreaks,
     altitudeMeters,
     waterType,
+    surfacePressureBar,
     cnsMethod,
     gasModel,
     o2Narcotic,
