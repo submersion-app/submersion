@@ -334,6 +334,9 @@ class _GasRows extends StatelessWidget {
     final reserve = outcome.consumption.reservePressureBar;
     final warn = end != null && end < reserve;
     final sub = <String>[
+      if (actual?.endPressureBar != null)
+        '${l10n.diveLab_panel_actual}: '
+            '${units.formatPressure(actual!.endPressureBar)}',
       if (c.reserveReachedAtSeconds != null)
         l10n.diveLab_gas_reserve(formatLabTime(c.reserveReachedAtSeconds!)),
       if (c.emptyAtSeconds != null)
@@ -351,24 +354,21 @@ class _GasRows extends StatelessWidget {
                 child: Text(
                   tankName(c.tankId),
                   style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                '${units.formatPressure(start)} → '
-                '${end == null ? l10n.diveLab_gas_unknown : units.formatPressure(end)}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: warn ? theme.colorScheme.error : null,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${units.formatPressure(start)} → '
+                  '${end == null ? l10n.diveLab_gas_unknown : units.formatPressure(end)}',
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: warn ? theme.colorScheme.error : null,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              if (actual?.endPressureBar != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  '(${l10n.diveLab_panel_actual}: '
-                  '${units.formatPressure(actual!.endPressureBar)})',
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
             ],
           ),
           if (sub.isNotEmpty)
