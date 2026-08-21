@@ -30865,4 +30865,346 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       '此设备不支持 HealthKit';
+
+  @override
+  String get diveLab_title => '潜水实验室';
+
+  @override
+  String get diveLab_action_whatIf => '如果当时…';
+
+  @override
+  String get diveLab_tooltip_open => '打开潜水实验室';
+
+  @override
+  String get diveLab_empty_ineligible => '此次潜水没有可供分支的剖面。';
+
+  @override
+  String get diveLab_loading => '正在加载潜水…';
+
+  @override
+  String get diveLab_branch_label => '分支点';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 分钟';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 秒';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 秒';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 分钟';
+
+  @override
+  String get diveLab_mode_replay => '重放';
+
+  @override
+  String get diveLab_mode_replan => '重新规划';
+
+  @override
+  String get diveLab_mode_replayHint => '相同的深度路径，不同的输入';
+
+  @override
+  String get diveLab_mode_replanHint => '引擎从分支点规划上升';
+
+  @override
+  String get diveLab_mode_forced => '某项干预要求重新规划';
+
+  @override
+  String get diveLab_interventions_label => '干预';
+
+  @override
+  String get diveLab_interventions_add => '添加';
+
+  @override
+  String get diveLab_interventions_none => '尚无干预：假设情形与实际潜水相同。';
+
+  @override
+  String get diveLab_kind_switchGas => '切换气体';
+
+  @override
+  String get diveLab_kind_loseTank => '丢失气瓶';
+
+  @override
+  String get diveLab_kind_shiftAscent => '提前或推迟上升';
+
+  @override
+  String get diveLab_kind_ascendNow => '立即上升';
+
+  @override
+  String get diveLab_kind_changeGf => '梯度因子';
+
+  @override
+  String get diveLab_kind_shareGas => '与潜伴共享气体';
+
+  @override
+  String get diveLab_kind_bailOut => '切换到开放式逼出';
+
+  @override
+  String get diveLab_kind_ascentPolicy => '上升策略';
+
+  @override
+  String get diveLab_kindDesc_switchGas => '从分支点起改用另一个气瓶呼吸';
+
+  @override
+  String get diveLab_kindDesc_loseTank => '从分支点起丢失一个减压或挂瓶';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent => '提前或推迟开始最终上升';
+
+  @override
+  String get diveLab_kindDesc_ascendNow => '在分支点终止底部阶段';
+
+  @override
+  String get diveLab_kindDesc_changeGf => '用其他梯度因子计算假设情形';
+
+  @override
+  String get diveLab_kindDesc_shareGas => '气体耗尽的潜伴从分支点起共用你的气体';
+
+  @override
+  String get diveLab_kindDesc_bailOut => '离开循环回路，使用开放式逼出气体上升';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy => '不同的上升速率、最后停留深度或停留时长';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return '切换到 $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '丢失 $tank';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return '上升 $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => '立即上升';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return '共享气体 x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => '逼出';
+
+  @override
+  String get diveLab_chip_ascentPolicy => '上升策略';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return '移除 $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => '添加干预';
+
+  @override
+  String get diveLab_sheet_add => '添加';
+
+  @override
+  String get diveLab_sheet_cylinder => '气瓶';
+
+  @override
+  String get diveLab_sheet_hypothetical => '假设气瓶';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return '容积（$unit）';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return '起始压力（$unit）';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => '分钟';
+
+  @override
+  String get diveLab_sheet_earlier => '提前';
+
+  @override
+  String get diveLab_sheet_later => '推迟';
+
+  @override
+  String get diveLab_sheet_buddyFactor => '潜伴系数';
+
+  @override
+  String get diveLab_sheet_noCandidates => '此次潜水没有可在此使用的气瓶。';
+
+  @override
+  String get diveLab_sheet_allAdded => '所有干预都已在情形中。';
+
+  @override
+  String get diveLab_panel_verdict => '结论';
+
+  @override
+  String get diveLab_panel_actual => '实际';
+
+  @override
+  String get diveLab_panel_whatIf => '假设';
+
+  @override
+  String get diveLab_panel_delta => '差值';
+
+  @override
+  String get diveLab_panel_tissues => '出水时的组织';
+
+  @override
+  String get diveLab_panel_gas => '气体';
+
+  @override
+  String get diveLab_panel_issues => '问题';
+
+  @override
+  String get diveLab_panel_runtime => '运行时间表';
+
+  @override
+  String get diveLab_panel_noIssues => '无问题';
+
+  @override
+  String get diveLab_panel_computing => '计算中…';
+
+  @override
+  String get diveLab_panel_identity => '无变化：假设情形与实际潜水相同。';
+
+  @override
+  String get diveLab_panel_notes => '备注';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label：$actual → $whatIf（$delta）';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC 为估算值';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return '$tank 的压力为估算值';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return '$tank 的压力未知';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return '$tank 的容积为假定值';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining => '分支点已处于上升阶段';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => '按此分支无法完成';
+
+  @override
+  String get diveLab_flag_loopGasMissing => '循环气体未知；按开放式处理';
+
+  @override
+  String get diveLab_metric_runtime => '运行时间';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => '分支点的 TTS';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => '分支后的减压时间';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => '最深停留';
+
+  @override
+  String get diveLab_metric_surfaceGf => '水面 GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => '分支后的峰值 GF99';
+
+  @override
+  String get diveLab_metric_cnsEnd => '出水时的 CNS';
+
+  @override
+  String get diveLab_metric_otuEnd => '出水时的 OTU';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => '分支后的最大 ppO2';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return '$tank 结束压力';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank 耗尽于';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch => '分支点的最小气体余量';
+
+  @override
+  String get diveLab_metric_ceilingViolations => '天花板违规次数';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => '最大天花板超出';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return '在 $time 达到储备压';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return '在 $time 耗尽';
+  }
+
+  @override
+  String get diveLab_gas_unknown => '未知';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => '减压';
+
+  @override
+  String get diveLab_tile_surfGf => '水面 GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => '背气';
+
+  @override
+  String get diveLab_value_none => '无';
 }

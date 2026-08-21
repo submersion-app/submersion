@@ -32751,4 +32751,368 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'O HealthKit não está disponível neste dispositivo';
+
+  @override
+  String get diveLab_title => 'Laboratório de mergulho';
+
+  @override
+  String get diveLab_action_whatIf => 'E se…';
+
+  @override
+  String get diveLab_tooltip_open => 'Abrir o laboratório de mergulho';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'Este mergulho não tem perfil a partir do qual ramificar.';
+
+  @override
+  String get diveLab_loading => 'A carregar o mergulho…';
+
+  @override
+  String get diveLab_branch_label => 'Ramificação';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time a $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 min';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 s';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 s';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 min';
+
+  @override
+  String get diveLab_mode_replay => 'Repetir';
+
+  @override
+  String get diveLab_mode_replan => 'Replanear';
+
+  @override
+  String get diveLab_mode_replayHint =>
+      'Mesmo perfil de profundidade, entradas diferentes';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'O motor planeia a subida a partir da ramificação';
+
+  @override
+  String get diveLab_mode_forced => 'Uma intervenção exige replanear';
+
+  @override
+  String get diveLab_interventions_label => 'Intervenções';
+
+  @override
+  String get diveLab_interventions_add => 'Adicionar';
+
+  @override
+  String get diveLab_interventions_none =>
+      'Sem intervenções: o cenário coincide com o mergulho real.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Trocar de gás';
+
+  @override
+  String get diveLab_kind_loseTank => 'Perder uma garrafa';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Deslocar a subida';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Subir agora';
+
+  @override
+  String get diveLab_kind_changeGf => 'Fatores de gradiente';
+
+  @override
+  String get diveLab_kind_shareGas => 'Partilhar gás com um parceiro';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bailout para circuito aberto';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Regras de subida';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Respirar de outra garrafa a partir do ponto de ramificação';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'Uma garrafa de deco ou stage perde-se a partir da ramificação';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'Iniciar a subida final mais cedo ou mais tarde';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'Abortar a fase de fundo na ramificação';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'Calcular o cenário com outros fatores de gradiente';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'Um parceiro sem gás respira da sua garrafa a partir da ramificação';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'Sair do circuito e subir com gás de bailout';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Outra velocidade de subida, última paragem ou duração das paragens';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Troca para $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank perdida';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Subida $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Subir agora';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Partilhar gás x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bailout';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Regras de subida';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'Remover $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Adicionar uma intervenção';
+
+  @override
+  String get diveLab_sheet_add => 'Adicionar';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Garrafa';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Garrafa hipotética';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Volume ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Pressão inicial ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Minutos';
+
+  @override
+  String get diveLab_sheet_earlier => 'mais cedo';
+
+  @override
+  String get diveLab_sheet_later => 'mais tarde';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Fator de parceiro';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'Nenhuma garrafa deste mergulho serve aqui.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Todas as intervenções já estão no cenário.';
+
+  @override
+  String get diveLab_panel_verdict => 'Veredicto';
+
+  @override
+  String get diveLab_panel_actual => 'Real';
+
+  @override
+  String get diveLab_panel_whatIf => 'Cenário';
+
+  @override
+  String get diveLab_panel_delta => 'Diferença';
+
+  @override
+  String get diveLab_panel_tissues => 'Tecidos à superfície';
+
+  @override
+  String get diveLab_panel_gas => 'Gás';
+
+  @override
+  String get diveLab_panel_issues => 'Problemas';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'Sem problemas';
+
+  @override
+  String get diveLab_panel_computing => 'A calcular…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'Sem alterações: o cenário coincide com o mergulho real.';
+
+  @override
+  String get diveLab_panel_notes => 'Notas';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: de $actual para $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC estimado';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Pressão estimada para $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Pressão desconhecida para $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Volume assumido para $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'A ramificação já está na subida';
+
+  @override
+  String get diveLab_flag_replanNotCompletable =>
+      'Não concluível tal como ramificado';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'Gás do circuito desconhecido; circuito aberto assumido';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS na ramificação';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch =>
+      'Tempo de deco após a ramificação';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Paragem mais funda';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'GF à superfície';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch =>
+      'GF99 máximo após a ramificação';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS à superfície';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU à superfície';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch =>
+      'ppO2 máxima após a ramificação';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'Pressão final de $tank';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank sem gás às';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'Margem de gás mínimo na ramificação';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Violações do teto';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => 'Pior excesso de teto';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'reserva às $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'vazia às $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'desconhecido';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Deco';
+
+  @override
+  String get diveLab_tile_surfGf => 'GF sup.';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Gás de fundo';
+
+  @override
+  String get diveLab_value_none => 'n/d';
 }

@@ -32084,4 +32084,355 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit אינו זמין במכשיר הזה';
+
+  @override
+  String get diveLab_title => 'מעבדת צלילה';
+
+  @override
+  String get diveLab_action_whatIf => 'מה אם…';
+
+  @override
+  String get diveLab_tooltip_open => 'פתיחת מעבדת הצלילה';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'לצלילה זו אין פרופיל שממנו אפשר להסתעף.';
+
+  @override
+  String get diveLab_loading => 'הצלילה נטענת…';
+
+  @override
+  String get diveLab_branch_label => 'נקודת הסתעפות';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time בעומק $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 דק׳';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 שנ׳';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 שנ׳';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 דק׳';
+
+  @override
+  String get diveLab_mode_replay => 'שחזור';
+
+  @override
+  String get diveLab_mode_replan => 'תכנון מחדש';
+
+  @override
+  String get diveLab_mode_replayHint => 'אותו מסלול עומק, קלטים שונים';
+
+  @override
+  String get diveLab_mode_replanHint => 'המנוע מתכנן את העלייה מנקודת ההסתעפות';
+
+  @override
+  String get diveLab_mode_forced => 'אחת ההתערבויות מחייבת תכנון מחדש';
+
+  @override
+  String get diveLab_interventions_label => 'התערבויות';
+
+  @override
+  String get diveLab_interventions_add => 'הוספה';
+
+  @override
+  String get diveLab_interventions_none =>
+      'אין עדיין התערבויות: התרחיש זהה לצלילה בפועל.';
+
+  @override
+  String get diveLab_kind_switchGas => 'החלפת גז';
+
+  @override
+  String get diveLab_kind_loseTank => 'אובדן מיכל';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'הזזת העלייה';
+
+  @override
+  String get diveLab_kind_ascendNow => 'עלייה עכשיו';
+
+  @override
+  String get diveLab_kind_changeGf => 'גורמי גרדיאנט';
+
+  @override
+  String get diveLab_kind_shareGas => 'שיתוף גז עם באדי';
+
+  @override
+  String get diveLab_kind_bailOut => 'ביילאוט למעגל פתוח';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'מדיניות עלייה';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'נשימה ממיכל אחר החל מנקודת ההסתעפות';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'מיכל דקו או סטייג׳ אובד החל מנקודת ההסתעפות';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'התחלת העלייה הסופית מוקדם או מאוחר יותר';
+
+  @override
+  String get diveLab_kindDesc_ascendNow => 'הפסקת שלב הקרקעית בנקודת ההסתעפות';
+
+  @override
+  String get diveLab_kindDesc_changeGf => 'חישוב התרחיש עם גורמי גרדיאנט אחרים';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'באדי שנגמר לו הגז נושם מהגז שלך החל מנקודת ההסתעפות';
+
+  @override
+  String get diveLab_kindDesc_bailOut => 'יציאה מהלולאה ועלייה על גז ביילאוט';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'קצב עלייה, עומק עצירה אחרונה או משכי עצירות אחרים';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'מעבר ל-$gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank אבד';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'עלייה $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'עלייה עכשיו';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'שיתוף גז x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'ביילאוט';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'מדיניות עלייה';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'הסרת $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'הוספת התערבות';
+
+  @override
+  String get diveLab_sheet_add => 'הוספה';
+
+  @override
+  String get diveLab_sheet_cylinder => 'מיכל';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'מיכל היפותטי';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'נפח ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'לחץ התחלתי ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'דקות';
+
+  @override
+  String get diveLab_sheet_earlier => 'מוקדם יותר';
+
+  @override
+  String get diveLab_sheet_later => 'מאוחר יותר';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'מקדם באדי';
+
+  @override
+  String get diveLab_sheet_noCandidates => 'אף מיכל בצלילה זו אינו מתאים לכאן.';
+
+  @override
+  String get diveLab_sheet_allAdded => 'כל ההתערבויות כבר נמצאות בתרחיש.';
+
+  @override
+  String get diveLab_panel_verdict => 'פסק דין';
+
+  @override
+  String get diveLab_panel_actual => 'בפועל';
+
+  @override
+  String get diveLab_panel_whatIf => 'תרחיש';
+
+  @override
+  String get diveLab_panel_delta => 'הפרש';
+
+  @override
+  String get diveLab_panel_tissues => 'רקמות על פני המים';
+
+  @override
+  String get diveLab_panel_gas => 'גז';
+
+  @override
+  String get diveLab_panel_issues => 'בעיות';
+
+  @override
+  String get diveLab_panel_runtime => 'זמן ריצה';
+
+  @override
+  String get diveLab_panel_noIssues => 'אין בעיות';
+
+  @override
+  String get diveLab_panel_computing => 'מחשב…';
+
+  @override
+  String get diveLab_panel_identity => 'אין שינוי: התרחיש זהה לצלילה בפועל.';
+
+  @override
+  String get diveLab_panel_notes => 'הערות';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: מ-$actual ל-$whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC משוער';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'לחץ משוער עבור $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'לחץ לא ידוע עבור $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'נפח משוער עבור $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining => 'נקודת ההסתעפות כבר בשלב העלייה';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'לא ניתן להשלים כפי שהוסתעף';
+
+  @override
+  String get diveLab_flag_loopGasMissing => 'גז הלולאה לא ידוע; הונח מעגל פתוח';
+
+  @override
+  String get diveLab_metric_runtime => 'זמן ריצה';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS בנקודת ההסתעפות';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'זמן דקו אחרי ההסתעפות';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'העצירה העמוקה ביותר';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'GF פני המים';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => 'שיא GF99 אחרי ההסתעפות';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS על פני המים';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU על פני המים';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'ppO2 מרבי אחרי ההסתעפות';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'לחץ סופי $tank';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank נגמר ב-';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'מרווח גז מינימלי בנקודת ההסתעפות';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'חריגות מהתקרה';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation =>
+      'החריגה החמורה ביותר מהתקרה';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'רזרבה ב-$time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'ריק ב-$time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'לא ידוע';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'דקו';
+
+  @override
+  String get diveLab_tile_surfGf => 'GF פני המים';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'גז גב';
+
+  @override
+  String get diveLab_value_none => 'לא זמין';
 }

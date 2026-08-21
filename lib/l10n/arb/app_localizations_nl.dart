@@ -32513,4 +32513,366 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit is niet beschikbaar op dit apparaat';
+
+  @override
+  String get diveLab_title => 'Duiklab';
+
+  @override
+  String get diveLab_action_whatIf => 'Wat als…';
+
+  @override
+  String get diveLab_tooltip_open => 'Duiklab openen';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'Deze duik heeft geen profiel om vanaf te vertakken.';
+
+  @override
+  String get diveLab_loading => 'Duik wordt geladen…';
+
+  @override
+  String get diveLab_branch_label => 'Vertakking';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time op $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 min';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 s';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 s';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 min';
+
+  @override
+  String get diveLab_mode_replay => 'Herhalen';
+
+  @override
+  String get diveLab_mode_replan => 'Herplannen';
+
+  @override
+  String get diveLab_mode_replayHint => 'Zelfde diepteverloop, andere invoer';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'De engine plant de opstijging vanaf de vertakking';
+
+  @override
+  String get diveLab_mode_forced => 'Een ingreep vereist herplannen';
+
+  @override
+  String get diveLab_interventions_label => 'Ingrepen';
+
+  @override
+  String get diveLab_interventions_add => 'Toevoegen';
+
+  @override
+  String get diveLab_interventions_none =>
+      'Nog geen ingrepen: het scenario komt overeen met de werkelijke duik.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Gas wisselen';
+
+  @override
+  String get diveLab_kind_loseTank => 'Fles verliezen';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Opstijging verschuiven';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Nu opstijgen';
+
+  @override
+  String get diveLab_kind_changeGf => 'Gradiëntfactoren';
+
+  @override
+  String get diveLab_kind_shareGas => 'Gas delen met een buddy';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bailout naar open circuit';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Opstijgregels';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Vanaf de vertakking uit een andere fles ademen';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'Een deco- of stagefles gaat vanaf de vertakking verloren';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'De eindopstijging eerder of later beginnen';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'De bodemfase bij de vertakking afbreken';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'Het scenario doorrekenen met andere gradiëntfactoren';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'Een buddy zonder gas ademt vanaf de vertakking mee';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'De loop verlaten en opstijgen op bailoutgas';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Andere opstijgsnelheid, laatste stopdiepte of stopduur';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Wissel naar $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank verloren';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Opstijging $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Nu opstijgen';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Gas delen x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bailout';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Opstijgregels';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return '$name verwijderen';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Ingreep toevoegen';
+
+  @override
+  String get diveLab_sheet_add => 'Toevoegen';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Fles';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Hypothetische fles';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Volume ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Begindruk ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Minuten';
+
+  @override
+  String get diveLab_sheet_earlier => 'eerder';
+
+  @override
+  String get diveLab_sheet_later => 'later';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Buddyfactor';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'Geen fles van deze duik is hier bruikbaar.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Alle ingrepen zitten al in het scenario.';
+
+  @override
+  String get diveLab_panel_verdict => 'Oordeel';
+
+  @override
+  String get diveLab_panel_actual => 'Werkelijk';
+
+  @override
+  String get diveLab_panel_whatIf => 'Scenario';
+
+  @override
+  String get diveLab_panel_delta => 'Verschil';
+
+  @override
+  String get diveLab_panel_tissues => 'Weefsels aan de oppervlakte';
+
+  @override
+  String get diveLab_panel_gas => 'Gas';
+
+  @override
+  String get diveLab_panel_issues => 'Problemen';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'Geen problemen';
+
+  @override
+  String get diveLab_panel_computing => 'Berekenen…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'Geen verandering: het scenario komt overeen met de werkelijke duik.';
+
+  @override
+  String get diveLab_panel_notes => 'Opmerkingen';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: van $actual naar $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC geschat';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Druk geschat voor $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Druk onbekend voor $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Volume aangenomen voor $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'De vertakking ligt al in de opstijging';
+
+  @override
+  String get diveLab_flag_replanNotCompletable =>
+      'Niet uitvoerbaar zoals vertakt';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'Loopgas onbekend; open circuit aangenomen';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS bij de vertakking';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'Decotijd na de vertakking';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Diepste stop';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'Oppervlakte-GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch =>
+      'Hoogste GF99 na de vertakking';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS aan de oppervlakte';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU aan de oppervlakte';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'Max. ppO2 na de vertakking';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'Einddruk $tank';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank leeg om';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'Minimumgasmarge bij de vertakking';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Ceiling-overschrijdingen';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation =>
+      'Grootste ceiling-overschrijding';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'reserve om $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'leeg om $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'onbekend';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Deco';
+
+  @override
+  String get diveLab_tile_surfGf => 'Opp.-GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Ruggas';
+
+  @override
+  String get diveLab_value_none => 'n.v.t.';
 }

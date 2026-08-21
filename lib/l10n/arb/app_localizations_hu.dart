@@ -32620,4 +32620,365 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'A HealthKit nem érhető el ezen az eszközön';
+
+  @override
+  String get diveLab_title => 'Merüléslabor';
+
+  @override
+  String get diveLab_action_whatIf => 'Mi lett volna, ha…';
+
+  @override
+  String get diveLab_tooltip_open => 'Merüléslabor megnyitása';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'Ehhez a merüléshez nincs profil, amelyből el lehetne ágazni.';
+
+  @override
+  String get diveLab_loading => 'A merülés betöltése…';
+
+  @override
+  String get diveLab_branch_label => 'Elágazás';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 perc';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 mp';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 mp';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 perc';
+
+  @override
+  String get diveLab_mode_replay => 'Visszajátszás';
+
+  @override
+  String get diveLab_mode_replan => 'Újratervezés';
+
+  @override
+  String get diveLab_mode_replayHint => 'Azonos mélységprofil, más bemenetek';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'A motor az elágazástól tervezi a felemelkedést';
+
+  @override
+  String get diveLab_mode_forced => 'Egy beavatkozás újratervezést kíván';
+
+  @override
+  String get diveLab_interventions_label => 'Beavatkozások';
+
+  @override
+  String get diveLab_interventions_add => 'Hozzáadás';
+
+  @override
+  String get diveLab_interventions_none =>
+      'Még nincs beavatkozás: a forgatókönyv megegyezik a valós merüléssel.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Gázváltás';
+
+  @override
+  String get diveLab_kind_loseTank => 'Palack elvesztése';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Felemelkedés eltolása';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Felemelkedés most';
+
+  @override
+  String get diveLab_kind_changeGf => 'Gradiensfaktorok';
+
+  @override
+  String get diveLab_kind_shareGas => 'Gázmegosztás a társsal';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bailout nyílt rendszerre';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Felemelkedési szabályok';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Másik palackból lélegzés az elágazástól';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'Egy dekó- vagy stage-palack elvész az elágazástól';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'A végső felemelkedés korábbi vagy későbbi kezdése';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'A fenékfázis megszakítása az elágazásnál';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'A forgatókönyv számítása más gradiensfaktorokkal';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'Egy gáz nélkül maradt társ az elágazástól a te gázodat lélegzi';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'A kör elhagyása és felemelkedés bailout gázzal';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Más felemelkedési sebesség, utolsó megálló vagy megállóhossz';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Váltás erre: $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank elveszett';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Felemelkedés $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Felemelkedés most';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Gázmegosztás x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bailout';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Felemelkedési szabályok';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return '$name eltávolítása';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Beavatkozás hozzáadása';
+
+  @override
+  String get diveLab_sheet_add => 'Hozzáadás';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Palack';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Feltételezett palack';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Térfogat ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Kezdőnyomás ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Perc';
+
+  @override
+  String get diveLab_sheet_earlier => 'korábban';
+
+  @override
+  String get diveLab_sheet_later => 'később';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Társ-szorzó';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'Ennek a merülésnek egyik palackja sem használható itt.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Minden beavatkozás szerepel már a forgatókönyvben.';
+
+  @override
+  String get diveLab_panel_verdict => 'Ítélet';
+
+  @override
+  String get diveLab_panel_actual => 'Valós';
+
+  @override
+  String get diveLab_panel_whatIf => 'Forgatókönyv';
+
+  @override
+  String get diveLab_panel_delta => 'Eltérés';
+
+  @override
+  String get diveLab_panel_tissues => 'Szövetek a felszínen';
+
+  @override
+  String get diveLab_panel_gas => 'Gáz';
+
+  @override
+  String get diveLab_panel_issues => 'Problémák';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'Nincs probléma';
+
+  @override
+  String get diveLab_panel_computing => 'Számítás…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'Nincs változás: a forgatókönyv megegyezik a valós merüléssel.';
+
+  @override
+  String get diveLab_panel_notes => 'Megjegyzések';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: $actual helyett $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC becsült';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Becsült nyomás: $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Ismeretlen nyomás: $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Feltételezett térfogat: $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'Az elágazás már a felemelkedésben van';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'Így nem teljesíthető';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'A körgáz ismeretlen; nyílt rendszer feltételezve';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS az elágazásnál';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'Dekóidő az elágazás után';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Legmélyebb megálló';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'Felszíni GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch =>
+      'Csúcs GF99 az elágazás után';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS a felszínen';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU a felszínen';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'Max. ppO2 az elágazás után';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return '$tank végnyomás';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank kiürül ekkor:';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'Minimális gáztartalék az elágazásnál';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Plafonsértések';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation =>
+      'Legnagyobb plafontúllépés';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'tartalék ekkor: $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'üres ekkor: $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'ismeretlen';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Dekó';
+
+  @override
+  String get diveLab_tile_surfGf => 'Felsz. GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Hátigáz';
+
+  @override
+  String get diveLab_value_none => 'n/a';
 }

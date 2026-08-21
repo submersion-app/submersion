@@ -32424,4 +32424,359 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit غير متوفر على هذا الجهاز';
+
+  @override
+  String get diveLab_title => 'مختبر الغوص';
+
+  @override
+  String get diveLab_action_whatIf => 'ماذا لو…';
+
+  @override
+  String get diveLab_tooltip_open => 'فتح مختبر الغوص';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'لا يوجد لهذه الغطسة ملف تعريف للتفرع منه.';
+
+  @override
+  String get diveLab_loading => 'جارٍ تحميل الغطسة…';
+
+  @override
+  String get diveLab_branch_label => 'نقطة التفرع';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time عند $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 د';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 ث';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 ث';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 د';
+
+  @override
+  String get diveLab_mode_replay => 'إعادة';
+
+  @override
+  String get diveLab_mode_replan => 'إعادة تخطيط';
+
+  @override
+  String get diveLab_mode_replayHint => 'نفس مسار العمق مع مدخلات مختلفة';
+
+  @override
+  String get diveLab_mode_replanHint => 'يخطط المحرك الصعود من نقطة التفرع';
+
+  @override
+  String get diveLab_mode_forced => 'يتطلب أحد التدخلات إعادة التخطيط';
+
+  @override
+  String get diveLab_interventions_label => 'التدخلات';
+
+  @override
+  String get diveLab_interventions_add => 'إضافة';
+
+  @override
+  String get diveLab_interventions_none =>
+      'لا تدخلات بعد: السيناريو مطابق للغطسة الفعلية.';
+
+  @override
+  String get diveLab_kind_switchGas => 'تبديل الغاز';
+
+  @override
+  String get diveLab_kind_loseTank => 'فقدان أسطوانة';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'تأخير أو تقديم الصعود';
+
+  @override
+  String get diveLab_kind_ascendNow => 'الصعود الآن';
+
+  @override
+  String get diveLab_kind_changeGf => 'عوامل التدرج';
+
+  @override
+  String get diveLab_kind_shareGas => 'مشاركة الغاز مع الرفيق';
+
+  @override
+  String get diveLab_kind_bailOut => 'الخروج إلى الدائرة المفتوحة';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'سياسة الصعود';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'التنفس من أسطوانة أخرى من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'فقدان أسطوانة إزالة ضغط أو مرحلية من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'بدء الصعود النهائي أبكر أو لاحقًا';
+
+  @override
+  String get diveLab_kindDesc_ascendNow => 'إنهاء مرحلة القاع عند نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_changeGf => 'حساب السيناريو بعوامل تدرج أخرى';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'رفيق نفد غازه يتنفس من غازك من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_bailOut => 'مغادرة الحلقة والصعود بغاز الطوارئ';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'معدل صعود أو عمق آخر توقف أو مدد توقف مختلفة';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'التبديل إلى $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return 'فُقدت $tank';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'الصعود $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'الصعود الآن';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'مشاركة الغاز x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'خروج طوارئ';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'سياسة الصعود';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'إضافة تدخل';
+
+  @override
+  String get diveLab_sheet_add => 'إضافة';
+
+  @override
+  String get diveLab_sheet_cylinder => 'أسطوانة';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'أسطوانة افتراضية';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'الحجم ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'ضغط البداية ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'دقائق';
+
+  @override
+  String get diveLab_sheet_earlier => 'أبكر';
+
+  @override
+  String get diveLab_sheet_later => 'لاحقًا';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'عامل الرفيق';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'لا توجد أسطوانة في هذه الغطسة يمكن استخدامها هنا.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'كل التدخلات موجودة بالفعل في السيناريو.';
+
+  @override
+  String get diveLab_panel_verdict => 'الحكم';
+
+  @override
+  String get diveLab_panel_actual => 'الفعلي';
+
+  @override
+  String get diveLab_panel_whatIf => 'السيناريو';
+
+  @override
+  String get diveLab_panel_delta => 'الفرق';
+
+  @override
+  String get diveLab_panel_tissues => 'الأنسجة عند السطح';
+
+  @override
+  String get diveLab_panel_gas => 'الغاز';
+
+  @override
+  String get diveLab_panel_issues => 'المشكلات';
+
+  @override
+  String get diveLab_panel_runtime => 'الجدول الزمني';
+
+  @override
+  String get diveLab_panel_noIssues => 'لا مشكلات';
+
+  @override
+  String get diveLab_panel_computing => 'جارٍ الحساب…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'لا تغيير: السيناريو مطابق للغطسة الفعلية.';
+
+  @override
+  String get diveLab_panel_notes => 'ملاحظات';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: من $actual إلى $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC تقديري';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'الضغط تقديري لـ $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'الضغط مجهول لـ $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'الحجم مفترض لـ $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'نقطة التفرع في مرحلة الصعود بالفعل';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'لا يمكن إتمامه بهذا التفرع';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'غاز الحلقة مجهول؛ افتُرضت الدائرة المفتوحة';
+
+  @override
+  String get diveLab_metric_runtime => 'زمن الغطسة';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS عند التفرع';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'زمن إزالة الضغط بعد التفرع';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'أعمق توقف';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'GF السطح';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => 'ذروة GF99 بعد التفرع';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS عند السطح';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU عند السطح';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'أقصى ppO2 بعد التفرع';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'ضغط $tank النهائي';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return 'نفاد $tank عند';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'هامش الحد الأدنى للغاز عند التفرع';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'انتهاكات السقف';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => 'أسوأ تجاوز للسقف';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'الاحتياطي عند $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'فارغة عند $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'مجهول';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'إزالة الضغط';
+
+  @override
+  String get diveLab_tile_surfGf => 'GF السطح';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'غاز الظهر';
+
+  @override
+  String get diveLab_value_none => 'غير متاح';
 }

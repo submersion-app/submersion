@@ -32224,4 +32224,362 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit is not available on this device';
+
+  @override
+  String get diveLab_title => 'Dive Lab';
+
+  @override
+  String get diveLab_action_whatIf => 'What if…';
+
+  @override
+  String get diveLab_tooltip_open => 'Open the Dive Lab';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'This dive has no profile to branch from.';
+
+  @override
+  String get diveLab_loading => 'Loading the dive…';
+
+  @override
+  String get diveLab_branch_label => 'Branch';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time at $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 min';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 s';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 s';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 min';
+
+  @override
+  String get diveLab_mode_replay => 'Replay';
+
+  @override
+  String get diveLab_mode_replan => 'Re-plan';
+
+  @override
+  String get diveLab_mode_replayHint => 'Same depth path, changed inputs';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'The engine plans the ascent from the branch';
+
+  @override
+  String get diveLab_mode_forced => 'Re-plan is required by an intervention';
+
+  @override
+  String get diveLab_interventions_label => 'Interventions';
+
+  @override
+  String get diveLab_interventions_add => 'Add';
+
+  @override
+  String get diveLab_interventions_none =>
+      'No interventions yet: the what-if equals the actual dive.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Switch gas';
+
+  @override
+  String get diveLab_kind_loseTank => 'Lose a cylinder';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Shift the ascent';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Ascend now';
+
+  @override
+  String get diveLab_kind_changeGf => 'Gradient factors';
+
+  @override
+  String get diveLab_kind_shareGas => 'Share gas with a buddy';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bail out to open circuit';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Ascent policy';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Breathe a different cylinder from the branch point';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'A deco or stage cylinder is lost from the branch point';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'Begin the final ascent earlier or later';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'Abort the bottom phase at the branch point';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'Run the what-if under other gradient factors';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'An out-of-gas buddy shares your gas from the branch point';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'Leave the loop and ascend on open-circuit bailout';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Other ascent rate, last stop depth or stop lengths';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Switch to $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return 'Lost $tank';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Ascent $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Ascend now';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Share gas x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bail out';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Ascent policy';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Add an intervention';
+
+  @override
+  String get diveLab_sheet_add => 'Add';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Cylinder';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Hypothetical cylinder';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Volume ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Start pressure ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Minutes';
+
+  @override
+  String get diveLab_sheet_earlier => 'earlier';
+
+  @override
+  String get diveLab_sheet_later => 'later';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Buddy factor';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'No cylinder on this dive can be used here.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Every intervention is already in the scenario.';
+
+  @override
+  String get diveLab_panel_verdict => 'Verdict';
+
+  @override
+  String get diveLab_panel_actual => 'Actual';
+
+  @override
+  String get diveLab_panel_whatIf => 'What if';
+
+  @override
+  String get diveLab_panel_delta => 'Delta';
+
+  @override
+  String get diveLab_panel_tissues => 'Tissues at the surface';
+
+  @override
+  String get diveLab_panel_gas => 'Gas';
+
+  @override
+  String get diveLab_panel_issues => 'Issues';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'No issues';
+
+  @override
+  String get diveLab_panel_computing => 'Computing…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'No change: the what-if matches the actual dive.';
+
+  @override
+  String get diveLab_panel_notes => 'Notes';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: $actual to $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC estimated';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Pressure estimated for $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Pressure unknown for $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Volume assumed for $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'The branch is already in the ascent';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'Not completable as branched';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'Loop gas unknown; open circuit assumed';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS at branch';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'Deco time after branch';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Deepest stop';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'Surface GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => 'Peak GF99 after branch';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS at surface';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU at surface';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'Max ppO2 after branch';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return '$tank end pressure';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank out of gas at';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch => 'Min gas margin at branch';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Ceiling violations';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => 'Worst ceiling excursion';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'reserve at $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'empty at $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'unknown';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Deco';
+
+  @override
+  String get diveLab_tile_surfGf => 'Surf GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Back gas';
+
+  @override
+  String get diveLab_value_none => 'n/a';
 }
