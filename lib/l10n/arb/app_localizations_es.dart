@@ -33142,4 +33142,64 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n/d';
+
+  @override
+  String get diveLab_action_save => 'Guardar';
+
+  @override
+  String get diveLab_action_saved => 'Escenarios guardados';
+
+  @override
+  String get diveLab_save_title => 'Nombre del escenario';
+
+  @override
+  String get diveLab_saved_snackbar => 'Escenario guardado';
+
+  @override
+  String get diveLab_saved_title => 'Escenarios guardados';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Aún no hay escenarios guardados para esta inmersión.';
+
+  @override
+  String get diveLab_saved_open => 'Abrir';
+
+  @override
+  String get diveLab_saved_rename => 'Renombrar';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplicar';
+
+  @override
+  String get diveLab_saved_delete => 'Eliminar';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return '¿Eliminar «$name»?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Repetir en $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Replanificar en $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Nuevo escenario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Y si';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Escenarios hipotéticos guardados del laboratorio de buceo';
 }

@@ -33100,4 +33100,64 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n/d';
+
+  @override
+  String get diveLab_action_save => 'Salva';
+
+  @override
+  String get diveLab_action_saved => 'Scenari salvati';
+
+  @override
+  String get diveLab_save_title => 'Dai un nome allo scenario';
+
+  @override
+  String get diveLab_saved_snackbar => 'Scenario salvato';
+
+  @override
+  String get diveLab_saved_title => 'Scenari salvati';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Nessuno scenario salvato per questa immersione.';
+
+  @override
+  String get diveLab_saved_open => 'Apri';
+
+  @override
+  String get diveLab_saved_rename => 'Rinomina';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplica';
+
+  @override
+  String get diveLab_saved_delete => 'Elimina';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Eliminare \"$name\"?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Ripeti a $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Ripianifica a $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Nuovo scenario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'E se';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Scenari ipotetici salvati dal laboratorio immersione';
 }

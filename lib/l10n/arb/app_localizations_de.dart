@@ -33038,4 +33038,64 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n. v.';
+
+  @override
+  String get diveLab_action_save => 'Speichern';
+
+  @override
+  String get diveLab_action_saved => 'Gespeicherte Szenarien';
+
+  @override
+  String get diveLab_save_title => 'Szenario benennen';
+
+  @override
+  String get diveLab_saved_snackbar => 'Szenario gespeichert';
+
+  @override
+  String get diveLab_saved_title => 'Gespeicherte Szenarien';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Noch keine gespeicherten Szenarien für diesen Tauchgang.';
+
+  @override
+  String get diveLab_saved_open => 'Öffnen';
+
+  @override
+  String get diveLab_saved_rename => 'Umbenennen';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplizieren';
+
+  @override
+  String get diveLab_saved_delete => 'Löschen';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return '„$name“ löschen?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Wiederholen bei $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Neu planen bei $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Neues Szenario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Zweige diesen Tauchgang an beliebiger Stelle ab und vergleiche, was passiert wäre.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Was wäre wenn';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Gespeicherte Was-wäre-wenn-Szenarien aus dem Tauchlabor';
 }

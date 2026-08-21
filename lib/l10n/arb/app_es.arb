@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF sup.",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Gas de fondo",
-  "diveLab_value_none": "n/d"
+  "diveLab_value_none": "n/d",
+  "diveLab_action_save": "Guardar",
+  "diveLab_action_saved": "Escenarios guardados",
+  "diveLab_save_title": "Nombre del escenario",
+  "diveLab_saved_snackbar": "Escenario guardado",
+  "diveLab_saved_title": "Escenarios guardados",
+  "diveLab_saved_empty": "Aún no hay escenarios guardados para esta inmersión.",
+  "diveLab_saved_open": "Abrir",
+  "diveLab_saved_rename": "Renombrar",
+  "diveLab_saved_duplicate": "Duplicar",
+  "diveLab_saved_delete": "Eliminar",
+  "diveLab_saved_deleteConfirm": "¿Eliminar «{name}»?",
+  "diveLab_summary_replay": "Repetir en {time}",
+  "diveLab_summary_replan": "Replanificar en {time}",
+  "diveLab_section_new": "Nuevo escenario",
+  "diveLab_section_hint": "Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.",
+  "diveDetailSection_diveLab_name": "Y si",
+  "diveDetailSection_diveLab_description": "Escenarios hipotéticos guardados del laboratorio de buceo"
 }

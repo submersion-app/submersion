@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "Opp.-GF",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Ruggas",
-  "diveLab_value_none": "n.v.t."
+  "diveLab_value_none": "n.v.t.",
+  "diveLab_action_save": "Opslaan",
+  "diveLab_action_saved": "Opgeslagen scenario's",
+  "diveLab_save_title": "Geef dit scenario een naam",
+  "diveLab_saved_snackbar": "Scenario opgeslagen",
+  "diveLab_saved_title": "Opgeslagen scenario's",
+  "diveLab_saved_empty": "Nog geen opgeslagen scenario's voor deze duik.",
+  "diveLab_saved_open": "Openen",
+  "diveLab_saved_rename": "Hernoemen",
+  "diveLab_saved_duplicate": "Dupliceren",
+  "diveLab_saved_delete": "Verwijderen",
+  "diveLab_saved_deleteConfirm": "\"{name}\" verwijderen?",
+  "diveLab_summary_replay": "Herhalen op {time}",
+  "diveLab_summary_replan": "Herplannen op {time}",
+  "diveLab_section_new": "Nieuw scenario",
+  "diveLab_section_hint": "Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.",
+  "diveDetailSection_diveLab_name": "Wat als",
+  "diveDetailSection_diveLab_description": "Opgeslagen wat-als-scenario's uit het duiklab"
 }

@@ -54770,6 +54770,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'n/a'**
   String get diveLab_value_none;
+
+  /// No description provided for @diveLab_action_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get diveLab_action_save;
+
+  /// No description provided for @diveLab_action_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved scenarios'**
+  String get diveLab_action_saved;
+
+  /// No description provided for @diveLab_save_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this scenario'**
+  String get diveLab_save_title;
+
+  /// No description provided for @diveLab_saved_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario saved'**
+  String get diveLab_saved_snackbar;
+
+  /// No description provided for @diveLab_saved_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved scenarios'**
+  String get diveLab_saved_title;
+
+  /// No description provided for @diveLab_saved_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved scenarios for this dive yet.'**
+  String get diveLab_saved_empty;
+
+  /// No description provided for @diveLab_saved_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get diveLab_saved_open;
+
+  /// No description provided for @diveLab_saved_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get diveLab_saved_rename;
+
+  /// No description provided for @diveLab_saved_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get diveLab_saved_duplicate;
+
+  /// No description provided for @diveLab_saved_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get diveLab_saved_delete;
+
+  /// No description provided for @diveLab_saved_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String diveLab_saved_deleteConfirm(String name);
+
+  /// No description provided for @diveLab_summary_replay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay at {time}'**
+  String diveLab_summary_replay(String time);
+
+  /// No description provided for @diveLab_summary_replan.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-plan at {time}'**
+  String diveLab_summary_replan(String time);
+
+  /// No description provided for @diveLab_section_new.
+  ///
+  /// In en, this message translates to:
+  /// **'New scenario'**
+  String get diveLab_section_new;
+
+  /// No description provided for @diveLab_section_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch this dive at any moment and compare what would have happened.'**
+  String get diveLab_section_hint;
+
+  /// No description provided for @diveDetailSection_diveLab_name.
+  ///
+  /// In en, this message translates to:
+  /// **'What if'**
+  String get diveDetailSection_diveLab_name;
+
+  /// No description provided for @diveDetailSection_diveLab_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved what-if scenarios from the Dive Lab'**
+  String get diveDetailSection_diveLab_description;
 }
 
 class _AppLocalizationsDelegate

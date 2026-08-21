@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF السطح",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "غاز الظهر",
-  "diveLab_value_none": "غير متاح"
+  "diveLab_value_none": "غير متاح",
+  "diveLab_action_save": "حفظ",
+  "diveLab_action_saved": "السيناريوهات المحفوظة",
+  "diveLab_save_title": "تسمية هذا السيناريو",
+  "diveLab_saved_snackbar": "تم حفظ السيناريو",
+  "diveLab_saved_title": "السيناريوهات المحفوظة",
+  "diveLab_saved_empty": "لا توجد سيناريوهات محفوظة لهذه الغطسة بعد.",
+  "diveLab_saved_open": "فتح",
+  "diveLab_saved_rename": "إعادة تسمية",
+  "diveLab_saved_duplicate": "تكرار",
+  "diveLab_saved_delete": "حذف",
+  "diveLab_saved_deleteConfirm": "هل تريد حذف \"{name}\"؟",
+  "diveLab_summary_replay": "إعادة عند {time}",
+  "diveLab_summary_replan": "إعادة تخطيط عند {time}",
+  "diveLab_section_new": "سيناريو جديد",
+  "diveLab_section_hint": "تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.",
+  "diveDetailSection_diveLab_name": "ماذا لو",
+  "diveDetailSection_diveLab_description": "سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص"
 }

@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF sup.",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Gás de fundo",
-  "diveLab_value_none": "n/d"
+  "diveLab_value_none": "n/d",
+  "diveLab_action_save": "Guardar",
+  "diveLab_action_saved": "Cenários guardados",
+  "diveLab_save_title": "Nome do cenário",
+  "diveLab_saved_snackbar": "Cenário guardado",
+  "diveLab_saved_title": "Cenários guardados",
+  "diveLab_saved_empty": "Ainda não há cenários guardados para este mergulho.",
+  "diveLab_saved_open": "Abrir",
+  "diveLab_saved_rename": "Renomear",
+  "diveLab_saved_duplicate": "Duplicar",
+  "diveLab_saved_delete": "Eliminar",
+  "diveLab_saved_deleteConfirm": "Eliminar \"{name}\"?",
+  "diveLab_summary_replay": "Repetir às {time}",
+  "diveLab_summary_replan": "Replanear às {time}",
+  "diveLab_section_new": "Novo cenário",
+  "diveLab_section_hint": "Ramifique este mergulho em qualquer momento e compare o que teria acontecido.",
+  "diveDetailSection_diveLab_name": "E se",
+  "diveDetailSection_diveLab_description": "Cenários hipotéticos guardados do laboratório de mergulho"
 }

@@ -32875,4 +32875,64 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n.v.t.';
+
+  @override
+  String get diveLab_action_save => 'Opslaan';
+
+  @override
+  String get diveLab_action_saved => 'Opgeslagen scenario\'s';
+
+  @override
+  String get diveLab_save_title => 'Geef dit scenario een naam';
+
+  @override
+  String get diveLab_saved_snackbar => 'Scenario opgeslagen';
+
+  @override
+  String get diveLab_saved_title => 'Opgeslagen scenario\'s';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Nog geen opgeslagen scenario\'s voor deze duik.';
+
+  @override
+  String get diveLab_saved_open => 'Openen';
+
+  @override
+  String get diveLab_saved_rename => 'Hernoemen';
+
+  @override
+  String get diveLab_saved_duplicate => 'Dupliceren';
+
+  @override
+  String get diveLab_saved_delete => 'Verwijderen';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Herhalen op $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Herplannen op $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Nieuw scenario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Wat als';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Opgeslagen wat-als-scenario\'s uit het duiklab';
 }

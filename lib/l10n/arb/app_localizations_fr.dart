@@ -33191,4 +33191,64 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n/d';
+
+  @override
+  String get diveLab_action_save => 'Enregistrer';
+
+  @override
+  String get diveLab_action_saved => 'Scénarios enregistrés';
+
+  @override
+  String get diveLab_save_title => 'Nommer ce scénario';
+
+  @override
+  String get diveLab_saved_snackbar => 'Scénario enregistré';
+
+  @override
+  String get diveLab_saved_title => 'Scénarios enregistrés';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Aucun scénario enregistré pour cette plongée.';
+
+  @override
+  String get diveLab_saved_open => 'Ouvrir';
+
+  @override
+  String get diveLab_saved_rename => 'Renommer';
+
+  @override
+  String get diveLab_saved_duplicate => 'Dupliquer';
+
+  @override
+  String get diveLab_saved_delete => 'Supprimer';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Supprimer « $name » ?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Rejouer à $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Replanifier à $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Nouveau scénario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Bifurquez cette plongée à n\'importe quel moment et comparez ce qui se serait passé.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Et si';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Scénarios « et si » enregistrés depuis le labo de plongée';
 }

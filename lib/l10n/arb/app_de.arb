@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "Oberfl.-GF",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Hauptgas",
-  "diveLab_value_none": "n. v."
+  "diveLab_value_none": "n. v.",
+  "diveLab_action_save": "Speichern",
+  "diveLab_action_saved": "Gespeicherte Szenarien",
+  "diveLab_save_title": "Szenario benennen",
+  "diveLab_saved_snackbar": "Szenario gespeichert",
+  "diveLab_saved_title": "Gespeicherte Szenarien",
+  "diveLab_saved_empty": "Noch keine gespeicherten Szenarien für diesen Tauchgang.",
+  "diveLab_saved_open": "Öffnen",
+  "diveLab_saved_rename": "Umbenennen",
+  "diveLab_saved_duplicate": "Duplizieren",
+  "diveLab_saved_delete": "Löschen",
+  "diveLab_saved_deleteConfirm": "„{name}“ löschen?",
+  "diveLab_summary_replay": "Wiederholen bei {time}",
+  "diveLab_summary_replan": "Neu planen bei {time}",
+  "diveLab_section_new": "Neues Szenario",
+  "diveLab_section_hint": "Zweige diesen Tauchgang an beliebiger Stelle ab und vergleiche, was passiert wäre.",
+  "diveDetailSection_diveLab_name": "Was wäre wenn",
+  "diveDetailSection_diveLab_description": "Gespeicherte Was-wäre-wenn-Szenarien aus dem Tauchlabor"
 }

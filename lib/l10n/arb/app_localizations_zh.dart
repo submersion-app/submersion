@@ -31207,4 +31207,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLab_value_none => '无';
+
+  @override
+  String get diveLab_action_save => '保存';
+
+  @override
+  String get diveLab_action_saved => '已保存的情形';
+
+  @override
+  String get diveLab_save_title => '为此情形命名';
+
+  @override
+  String get diveLab_saved_snackbar => '情形已保存';
+
+  @override
+  String get diveLab_saved_title => '已保存的情形';
+
+  @override
+  String get diveLab_saved_empty => '此次潜水尚无已保存的情形。';
+
+  @override
+  String get diveLab_saved_open => '打开';
+
+  @override
+  String get diveLab_saved_rename => '重命名';
+
+  @override
+  String get diveLab_saved_duplicate => '复制';
+
+  @override
+  String get diveLab_saved_delete => '删除';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return '在 $time 重放';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return '在 $time 重新规划';
+  }
+
+  @override
+  String get diveLab_section_new => '新建情形';
+
+  @override
+  String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
+
+  @override
+  String get diveDetailSection_diveLab_name => '如果当时';
+
+  @override
+  String get diveDetailSection_diveLab_description => '来自潜水实验室的已保存假设情形';
 }

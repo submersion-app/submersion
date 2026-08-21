@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "Felsz. GF",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Hátigáz",
-  "diveLab_value_none": "n/a"
+  "diveLab_value_none": "n/a",
+  "diveLab_action_save": "Mentés",
+  "diveLab_action_saved": "Mentett forgatókönyvek",
+  "diveLab_save_title": "Forgatókönyv elnevezése",
+  "diveLab_saved_snackbar": "Forgatókönyv mentve",
+  "diveLab_saved_title": "Mentett forgatókönyvek",
+  "diveLab_saved_empty": "Ehhez a merüléshez még nincs mentett forgatókönyv.",
+  "diveLab_saved_open": "Megnyitás",
+  "diveLab_saved_rename": "Átnevezés",
+  "diveLab_saved_duplicate": "Duplikálás",
+  "diveLab_saved_delete": "Törlés",
+  "diveLab_saved_deleteConfirm": "Törlöd: „{name}”?",
+  "diveLab_summary_replay": "Visszajátszás ekkor: {time}",
+  "diveLab_summary_replan": "Újratervezés ekkor: {time}",
+  "diveLab_section_new": "Új forgatókönyv",
+  "diveLab_section_hint": "Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.",
+  "diveDetailSection_diveLab_name": "Mi lett volna, ha",
+  "diveDetailSection_diveLab_description": "A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek"
 }

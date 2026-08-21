@@ -32582,4 +32582,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n/a';
+
+  @override
+  String get diveLab_action_save => 'Save';
+
+  @override
+  String get diveLab_action_saved => 'Saved scenarios';
+
+  @override
+  String get diveLab_save_title => 'Name this scenario';
+
+  @override
+  String get diveLab_saved_snackbar => 'Scenario saved';
+
+  @override
+  String get diveLab_saved_title => 'Saved scenarios';
+
+  @override
+  String get diveLab_saved_empty => 'No saved scenarios for this dive yet.';
+
+  @override
+  String get diveLab_saved_open => 'Open';
+
+  @override
+  String get diveLab_saved_rename => 'Rename';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplicate';
+
+  @override
+  String get diveLab_saved_delete => 'Delete';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Replay at $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Re-plan at $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'New scenario';
+
+  @override
+  String get diveLab_section_hint =>
+      'Branch this dive at any moment and compare what would have happened.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'What if';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Saved what-if scenarios from the Dive Lab';
 }

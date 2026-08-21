@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF sup.",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Gas di fondo",
-  "diveLab_value_none": "n/d"
+  "diveLab_value_none": "n/d",
+  "diveLab_action_save": "Salva",
+  "diveLab_action_saved": "Scenari salvati",
+  "diveLab_save_title": "Dai un nome allo scenario",
+  "diveLab_saved_snackbar": "Scenario salvato",
+  "diveLab_saved_title": "Scenari salvati",
+  "diveLab_saved_empty": "Nessuno scenario salvato per questa immersione.",
+  "diveLab_saved_open": "Apri",
+  "diveLab_saved_rename": "Rinomina",
+  "diveLab_saved_duplicate": "Duplica",
+  "diveLab_saved_delete": "Elimina",
+  "diveLab_saved_deleteConfirm": "Eliminare \"{name}\"?",
+  "diveLab_summary_replay": "Ripeti a {time}",
+  "diveLab_summary_replan": "Ripianifica a {time}",
+  "diveLab_section_new": "Nuovo scenario",
+  "diveLab_section_hint": "Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.",
+  "diveDetailSection_diveLab_name": "E se",
+  "diveDetailSection_diveLab_description": "Scenari ipotetici salvati dal laboratorio immersione"
 }

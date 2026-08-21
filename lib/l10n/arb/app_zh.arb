@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "水面 GF",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "背气",
-  "diveLab_value_none": "无"
+  "diveLab_value_none": "无",
+  "diveLab_action_save": "保存",
+  "diveLab_action_saved": "已保存的情形",
+  "diveLab_save_title": "为此情形命名",
+  "diveLab_saved_snackbar": "情形已保存",
+  "diveLab_saved_title": "已保存的情形",
+  "diveLab_saved_empty": "此次潜水尚无已保存的情形。",
+  "diveLab_saved_open": "打开",
+  "diveLab_saved_rename": "重命名",
+  "diveLab_saved_duplicate": "复制",
+  "diveLab_saved_delete": "删除",
+  "diveLab_saved_deleteConfirm": "删除“{name}”？",
+  "diveLab_summary_replay": "在 {time} 重放",
+  "diveLab_summary_replan": "在 {time} 重新规划",
+  "diveLab_section_new": "新建情形",
+  "diveLab_section_hint": "在任意时刻分支此次潜水，比较本可能发生的情况。",
+  "diveDetailSection_diveLab_name": "如果当时",
+  "diveDetailSection_diveLab_description": "来自潜水实验室的已保存假设情形"
 }

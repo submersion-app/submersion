@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF פני המים",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "גז גב",
-  "diveLab_value_none": "לא זמין"
+  "diveLab_value_none": "לא זמין",
+  "diveLab_action_save": "שמירה",
+  "diveLab_action_saved": "תרחישים שמורים",
+  "diveLab_save_title": "מתן שם לתרחיש",
+  "diveLab_saved_snackbar": "התרחיש נשמר",
+  "diveLab_saved_title": "תרחישים שמורים",
+  "diveLab_saved_empty": "עדיין אין תרחישים שמורים לצלילה זו.",
+  "diveLab_saved_open": "פתיחה",
+  "diveLab_saved_rename": "שינוי שם",
+  "diveLab_saved_duplicate": "שכפול",
+  "diveLab_saved_delete": "מחיקה",
+  "diveLab_saved_deleteConfirm": "למחוק את \"{name}\"?",
+  "diveLab_summary_replay": "שחזור ב-{time}",
+  "diveLab_summary_replan": "תכנון מחדש ב-{time}",
+  "diveLab_section_new": "תרחיש חדש",
+  "diveLab_section_hint": "הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.",
+  "diveDetailSection_diveLab_name": "מה אם",
+  "diveDetailSection_diveLab_description": "תרחישי \"מה אם\" שמורים ממעבדת הצלילה"
 }

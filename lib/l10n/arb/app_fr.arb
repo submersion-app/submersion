@@ -9726,5 +9726,22 @@
   "diveLab_tile_surfGf": "GF surf.",
   "diveLab_tile_cns": "CNS",
   "diveLab_tile_backGas": "Gaz de fond",
-  "diveLab_value_none": "n/d"
+  "diveLab_value_none": "n/d",
+  "diveLab_action_save": "Enregistrer",
+  "diveLab_action_saved": "Scénarios enregistrés",
+  "diveLab_save_title": "Nommer ce scénario",
+  "diveLab_saved_snackbar": "Scénario enregistré",
+  "diveLab_saved_title": "Scénarios enregistrés",
+  "diveLab_saved_empty": "Aucun scénario enregistré pour cette plongée.",
+  "diveLab_saved_open": "Ouvrir",
+  "diveLab_saved_rename": "Renommer",
+  "diveLab_saved_duplicate": "Dupliquer",
+  "diveLab_saved_delete": "Supprimer",
+  "diveLab_saved_deleteConfirm": "Supprimer « {name} » ?",
+  "diveLab_summary_replay": "Rejouer à {time}",
+  "diveLab_summary_replan": "Replanifier à {time}",
+  "diveLab_section_new": "Nouveau scénario",
+  "diveLab_section_hint": "Bifurquez cette plongée à n'importe quel moment et comparez ce qui se serait passé.",
+  "diveDetailSection_diveLab_name": "Et si",
+  "diveDetailSection_diveLab_description": "Scénarios « et si » enregistrés depuis le labo de plongée"
 }

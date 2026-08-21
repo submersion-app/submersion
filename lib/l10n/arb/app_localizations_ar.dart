@@ -32779,4 +32779,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'غير متاح';
+
+  @override
+  String get diveLab_action_save => 'حفظ';
+
+  @override
+  String get diveLab_action_saved => 'السيناريوهات المحفوظة';
+
+  @override
+  String get diveLab_save_title => 'تسمية هذا السيناريو';
+
+  @override
+  String get diveLab_saved_snackbar => 'تم حفظ السيناريو';
+
+  @override
+  String get diveLab_saved_title => 'السيناريوهات المحفوظة';
+
+  @override
+  String get diveLab_saved_empty =>
+      'لا توجد سيناريوهات محفوظة لهذه الغطسة بعد.';
+
+  @override
+  String get diveLab_saved_open => 'فتح';
+
+  @override
+  String get diveLab_saved_rename => 'إعادة تسمية';
+
+  @override
+  String get diveLab_saved_duplicate => 'تكرار';
+
+  @override
+  String get diveLab_saved_delete => 'حذف';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'هل تريد حذف \"$name\"؟';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'إعادة عند $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'إعادة تخطيط عند $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'سيناريو جديد';
+
+  @override
+  String get diveLab_section_hint =>
+      'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'ماذا لو';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص';
 }

@@ -32435,4 +32435,63 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'לא זמין';
+
+  @override
+  String get diveLab_action_save => 'שמירה';
+
+  @override
+  String get diveLab_action_saved => 'תרחישים שמורים';
+
+  @override
+  String get diveLab_save_title => 'מתן שם לתרחיש';
+
+  @override
+  String get diveLab_saved_snackbar => 'התרחיש נשמר';
+
+  @override
+  String get diveLab_saved_title => 'תרחישים שמורים';
+
+  @override
+  String get diveLab_saved_empty => 'עדיין אין תרחישים שמורים לצלילה זו.';
+
+  @override
+  String get diveLab_saved_open => 'פתיחה';
+
+  @override
+  String get diveLab_saved_rename => 'שינוי שם';
+
+  @override
+  String get diveLab_saved_duplicate => 'שכפול';
+
+  @override
+  String get diveLab_saved_delete => 'מחיקה';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'שחזור ב-$time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'תכנון מחדש ב-$time';
+  }
+
+  @override
+  String get diveLab_section_new => 'תרחיש חדש';
+
+  @override
+  String get diveLab_section_hint =>
+      'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'מה אם';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'תרחישי \"מה אם\" שמורים ממעבדת הצלילה';
 }

@@ -32981,4 +32981,64 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLab_value_none => 'n/a';
+
+  @override
+  String get diveLab_action_save => 'Mentés';
+
+  @override
+  String get diveLab_action_saved => 'Mentett forgatókönyvek';
+
+  @override
+  String get diveLab_save_title => 'Forgatókönyv elnevezése';
+
+  @override
+  String get diveLab_saved_snackbar => 'Forgatókönyv mentve';
+
+  @override
+  String get diveLab_saved_title => 'Mentett forgatókönyvek';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Ehhez a merüléshez még nincs mentett forgatókönyv.';
+
+  @override
+  String get diveLab_saved_open => 'Megnyitás';
+
+  @override
+  String get diveLab_saved_rename => 'Átnevezés';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplikálás';
+
+  @override
+  String get diveLab_saved_delete => 'Törlés';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Törlöd: „$name”?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Visszajátszás ekkor: $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Újratervezés ekkor: $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Új forgatókönyv';
+
+  @override
+  String get diveLab_section_hint =>
+      'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Mi lett volna, ha';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek';
 }
