@@ -26,15 +26,20 @@ Future<void> showLabAddInterventionSheet(
   );
 }
 
-/// Kinds the lab offers in this phase, in display order.
-const List<InterventionKind> kLabPhase2Kinds = [
+/// Kinds the lab offers, in display order.
+const List<InterventionKind> kLabInterventionKinds = [
   InterventionKind.switchGas,
   InterventionKind.loseTank,
   InterventionKind.shiftAscent,
   InterventionKind.ascendNow,
   InterventionKind.changeGf,
   InterventionKind.shareGas,
+  InterventionKind.bailOut,
+  InterventionKind.ascentPolicy,
 ];
+
+/// The marker value for "every bailout cylinder" in the bailout picker.
+const String _kAllBailout = '__all_bailout__';
 
 bool _isLosable(DiveTank t) =>
     t.role == TankRole.deco ||
@@ -86,6 +91,15 @@ class _LabAddInterventionSheetState
   // shareGas
   double _buddyFactor = 2.0;
 
+  // bailOut
+  String _bailoutTankId = _kAllBailout;
+
+  // ascentPolicy
+  int _ascentRateMPerMin = 9;
+  bool _lastStopSix = false;
+  int _extraLastStopMinutes = 0;
+  int _gasSwitchStopSeconds = 0;
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +113,9 @@ class _LabAddInterventionSheetState
     _gfLow = widget.inputs.settings.gfLowPercent;
     _gfHigh = widget.inputs.settings.gfHighPercent;
     _buddyFactor = widget.inputs.settings.buddyFactor;
+    _ascentRateMPerMin = widget.inputs.settings.ascentRate.round().clamp(3, 18);
+    _lastStopSix = widget.inputs.settings.lastStopDepth >= 5.0;
+    _gasSwitchStopSeconds = widget.inputs.settings.gasSwitchStopSeconds;
     final tanks = widget.inputs.tanks;
     _switchTankId = tanks.isEmpty ? _kHypothetical : tanks.first.id;
     final losable = tanks.where(_isLosable).toList();
@@ -120,9 +137,10 @@ class _LabAddInterventionSheetState
     final isOc = widget.inputs.diveMode == DiveMode.oc;
     final losable = widget.inputs.tanks.any(_isLosable);
     return [
-      for (final k in kLabPhase2Kinds)
+      for (final k in kLabInterventionKinds)
         if (!present.contains(k) &&
             (k != InterventionKind.switchGas || isOc) &&
+            (k != InterventionKind.bailOut || !isOc) &&
             (k != InterventionKind.loseTank || losable))
           k,
     ];
@@ -172,7 +190,43 @@ class _LabAddInterventionSheetState
       case InterventionKind.shareGas:
         return ShareGasIntervention(buddyFactor: _buddyFactor);
       case InterventionKind.bailOut:
+        if (_bailoutTankId == _kAllBailout) return const BailOutIntervention();
+        if (_bailoutTankId == _kHypothetical) {
+          final o2 = parseUserDecimal(_o2.text) ?? 21;
+          final he = parseUserDecimal(_he.text) ?? 0;
+          final volume = parseUserDecimal(_volume.text);
+          final pressure = parseUserDecimal(_pressure.text);
+          return BailOutIntervention(
+            tank: HypotheticalTankRef(
+              gasMix: GasMix(
+                o2: o2.clamp(1, 100).toDouble(),
+                he: he.clamp(0, 99).toDouble(),
+              ),
+              volumeLiters: volume == null
+                  ? 11.1
+                  : units.volumeToLiters(volume),
+              startPressureBar: pressure == null
+                  ? 200
+                  : units.pressureToBar(pressure),
+            ),
+          );
+        }
+        return BailOutIntervention(tank: ExistingTankRef(_bailoutTankId));
       case InterventionKind.ascentPolicy:
+        final s = widget.inputs.settings;
+        final lastStop = _lastStopSix ? 6.0 : 3.0;
+        return AscentPolicyIntervention(
+          ascentRate: _ascentRateMPerMin.toDouble() == s.ascentRate
+              ? null
+              : _ascentRateMPerMin.toDouble(),
+          lastStopDepth: lastStop == s.lastStopDepth ? null : lastStop,
+          extraLastStopSeconds: _extraLastStopMinutes == 0
+              ? null
+              : _extraLastStopMinutes * 60,
+          gasSwitchStopSeconds: _gasSwitchStopSeconds == s.gasSwitchStopSeconds
+              ? null
+              : _gasSwitchStopSeconds,
+        );
       case null:
         return null;
     }
@@ -264,9 +318,180 @@ class _LabAddInterventionSheetState
       case InterventionKind.shareGas:
         return _shareGasEditor(l10n, theme);
       case InterventionKind.bailOut:
+        return _bailOutEditor(units, l10n);
       case InterventionKind.ascentPolicy:
-        return const SizedBox.shrink();
+        return _ascentPolicyEditor(units, l10n, theme);
     }
+  }
+
+  Widget _hypotheticalFields(UnitFormatter units, dynamic l10n) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _o2,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: l10n.diveLab_sheet_o2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _he,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: l10n.diveLab_sheet_he),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _volume,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: l10n.diveLab_sheet_volume(units.volumeSymbol),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _pressure,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: l10n.diveLab_sheet_startPressure(
+                  units.pressureSymbol,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  Widget _bailOutEditor(UnitFormatter units, dynamic l10n) {
+    final tanks = widget.inputs.tanks;
+    final bailout = tanks.where((t) => t.role == TankRole.bailout).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: _bailoutTankId,
+          decoration: InputDecoration(
+            labelText: l10n.diveLab_sheet_bailoutTank,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: _kAllBailout,
+              child: Text(l10n.diveLab_sheet_allBailout),
+            ),
+            for (final t in bailout)
+              DropdownMenuItem(
+                value: t.id,
+                child: Text(labTankName(tanks, t.id)),
+              ),
+            DropdownMenuItem(
+              value: _kHypothetical,
+              child: Text(l10n.diveLab_sheet_hypothetical),
+            ),
+          ],
+          onChanged: (v) => setState(() => _bailoutTankId = v ?? _kAllBailout),
+        ),
+        if (_bailoutTankId == _kHypothetical) _hypotheticalFields(units, l10n),
+      ],
+    );
+  }
+
+  Widget _stepperRow(
+    ThemeData theme,
+    String label,
+    String value, {
+    required VoidCallback? onMinus,
+    required VoidCallback? onPlus,
+  }) {
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        IconButton(icon: const Icon(Icons.remove), onPressed: onMinus),
+        Text(value, style: theme.textTheme.titleMedium),
+        IconButton(icon: const Icon(Icons.add), onPressed: onPlus),
+      ],
+    );
+  }
+
+  Widget _ascentPolicyEditor(
+    UnitFormatter units,
+    dynamic l10n,
+    ThemeData theme,
+  ) {
+    final rateShown = units.convertDepth(_ascentRateMPerMin.toDouble());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _stepperRow(
+          theme,
+          l10n.diveLab_sheet_ascentRate(units.depthSymbol),
+          rateShown.toStringAsFixed(
+            rateShown == rateShown.roundToDouble() ? 0 : 1,
+          ),
+          onMinus: _ascentRateMPerMin > 3
+              ? () => setState(() => _ascentRateMPerMin--)
+              : null,
+          onPlus: _ascentRateMPerMin < 18
+              ? () => setState(() => _ascentRateMPerMin++)
+              : null,
+        ),
+        Row(
+          children: [
+            Expanded(child: Text(l10n.diveLab_sheet_lastStop)),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(units.formatDepth(3, decimals: 0)),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(units.formatDepth(6, decimals: 0)),
+                ),
+              ],
+              selected: {_lastStopSix},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => setState(() => _lastStopSix = s.first),
+            ),
+          ],
+        ),
+        _stepperRow(
+          theme,
+          l10n.diveLab_sheet_extraLastStop,
+          '$_extraLastStopMinutes',
+          onMinus: _extraLastStopMinutes > 0
+              ? () => setState(() => _extraLastStopMinutes--)
+              : null,
+          onPlus: _extraLastStopMinutes < 10
+              ? () => setState(() => _extraLastStopMinutes++)
+              : null,
+        ),
+        _stepperRow(
+          theme,
+          l10n.diveLab_sheet_gasSwitchStop,
+          '$_gasSwitchStopSeconds',
+          onMinus: _gasSwitchStopSeconds > 0
+              ? () => setState(() => _gasSwitchStopSeconds -= 30)
+              : null,
+          onPlus: _gasSwitchStopSeconds < 180
+              ? () => setState(() => _gasSwitchStopSeconds += 30)
+              : null,
+        ),
+      ],
+    );
   }
 
   Widget _switchGasEditor(UnitFormatter units, dynamic l10n) {
@@ -290,54 +515,7 @@ class _LabAddInterventionSheetState
           ],
           onChanged: (v) => setState(() => _switchTankId = v),
         ),
-        if (_switchTankId == _kHypothetical) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _o2,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.diveLab_sheet_o2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _he,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.diveLab_sheet_he),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _volume,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: l10n.diveLab_sheet_volume(units.volumeSymbol),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _pressure,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: l10n.diveLab_sheet_startPressure(
-                      units.pressureSymbol,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        if (_switchTankId == _kHypothetical) _hypotheticalFields(units, l10n),
       ],
     );
   }
