@@ -563,3 +563,26 @@ are independent once 2 lands; 5 needs 3.
 - Instructor comments or annotations on a scenario.
 - Scenario templates or "try all interventions" sweeps.
 - Editing the actual profile.
+
+## Deviations recorded during implementation (2026-08-21)
+
+- `DecoStatus` gained `gfLowCeilingAnchor` in meters (the spec draft said
+  "Bar"; the algorithm's anchor is a depth).
+- The codebase has no per-row tombstones: `dive_scenarios` carries `hlc`
+  only and deletions go through `deletion_log` (`SyncRepository.logDeletion`),
+  like `dive_plans`. Deleting a dive cascades at the database level
+  (`onDelete: KeyAction.cascade`, the mechanism dive tanks and profiles use).
+- The branch point is driven by a slider plus steppers, not the chart's
+  `onPointSelected`, because that callback also fires on mouse hover and
+  would move the branch under the pointer.
+- Universal-import routing for `.sublab` is deferred: that pipeline sniffs
+  dive-file formats by content and produces dives (no extension router, and
+  no `.subplan` UTI either). Import lives in the lab's Saved sheet, exactly
+  like `.subplan` import lives in the planner's saved-plans sheet.
+- Buoyancy rows model the dive's own cylinders over the counterfactual
+  profile; a hypothetical cylinder added by an intervention is not added to
+  the rig.
+- Replay mode reports the actual (measured) gas figures when neither the
+  schedule nor the SAC changed, so a no-op scenario shows a zero gas delta.
+- `changeGf` re-derives only the counterfactual (and its branch state); the
+  actual timeline is always analysed under the dive's own gradient factors.
