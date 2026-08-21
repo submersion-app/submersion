@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/scenario_outcome_provider.dart';
@@ -9,6 +12,9 @@ import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_panel.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_intervention_chips.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_mode_toggle.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Width at or above which the delta panel sits beside the chart.
@@ -17,19 +23,27 @@ const double kLabWideBreakpoint = 1160;
 /// Opens the Dive Lab for [diveId] on the root navigator, so the shell's
 /// bottom navigation never paints under it (the FullscreenProfilePage
 /// pattern, issue #811).
-Future<void> showDiveLab(BuildContext context, String diveId) {
-  return Navigator.of(
-    context,
-    rootNavigator: true,
-  ).push(MaterialPageRoute<void>(builder: (_) => DiveLabPage(diveId: diveId)));
+Future<void> showDiveLab(
+  BuildContext context,
+  String diveId, {
+  String? scenarioId,
+}) {
+  return Navigator.of(context, rootNavigator: true).push(
+    MaterialPageRoute<void>(
+      builder: (_) => DiveLabPage(diveId: diveId, scenarioId: scenarioId),
+    ),
+  );
 }
 
 /// Branch a logged dive at any moment and compare what happened with what
 /// would have happened.
 class DiveLabPage extends ConsumerStatefulWidget {
-  const DiveLabPage({super.key, required this.diveId});
+  const DiveLabPage({super.key, required this.diveId, this.scenarioId});
 
   final String diveId;
+
+  /// A saved scenario to load into the draft on open.
+  final String? scenarioId;
 
   @override
   ConsumerState<DiveLabPage> createState() => _DiveLabPageState();
@@ -37,6 +51,51 @@ class DiveLabPage extends ConsumerStatefulWidget {
 
 class _DiveLabPageState extends ConsumerState<DiveLabPage> {
   String get diveId => widget.diveId;
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.scenarioId;
+    if (id != null) {
+      ref.read(diveScenarioRepositoryProvider).getScenario(id).then((s) {
+        if (s != null && mounted) {
+          ref.read(labDraftProvider(diveId).notifier).loadScenario(s);
+        }
+      });
+    }
+  }
+
+  Future<void> _save(LabRequestInputs inputs) async {
+    final l10n = context.l10n;
+    final draft = ref.read(labDraftProvider(diveId));
+    if (!draft.isSeeded) return;
+    final units = UnitFormatter(ref.read(settingsProvider));
+    final scenario = draft.toScenario(diveId);
+    final defaultName =
+        draft.name ??
+        labScenarioSummary(
+          l10n,
+          units,
+          scenario,
+          (id) => labTankName(inputs.tanks, id),
+        );
+    final entered = await showPlanNameDialog(
+      context,
+      initialName: defaultName,
+      title: l10n.diveLab_save_title,
+    );
+    if (entered == null || !mounted) return;
+    final saved = await ref
+        .read(diveScenarioRepositoryProvider)
+        .saveScenario(
+          scenario.copyWith(id: draft.scenarioId ?? '', name: entered),
+        );
+    if (!mounted) return;
+    ref.read(labDraftProvider(diveId).notifier).markSaved(saved.id, saved.name);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.diveLab_saved_snackbar)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +112,27 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
       });
     }
 
+    final inputs = inputsAsync.valueOrNull;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.diveLab_title)),
+      appBar: AppBar(
+        title: Text(l10n.diveLab_title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save_outlined),
+            tooltip: l10n.diveLab_action_save,
+            onPressed: inputs == null || !draft.isSeeded
+                ? null
+                : () => _save(inputs),
+          ),
+          IconButton(
+            icon: const Icon(Icons.folder_open_outlined),
+            tooltip: l10n.diveLab_action_saved,
+            onPressed: inputs == null
+                ? null
+                : () => showLabSavedScenariosSheet(context, diveId: diveId),
+          ),
+        ],
+      ),
       body: inputsAsync.when(
         loading: () => Center(
           child: Column(

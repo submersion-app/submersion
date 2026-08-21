@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_delta.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -197,4 +199,23 @@ String labFlagText(
       l10n.diveLab_flag_replanNotCompletable,
     ScenarioFlagKind.loopGasMissing => l10n.diveLab_flag_loopGasMissing,
   };
+}
+
+/// "Re-plan at 23:40 · Lost deco50 · Ascend now": the mode and branch, then
+/// each intervention's chip label.
+String labScenarioSummary(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  DiveScenario scenario,
+  String Function(String tankId) tankName,
+) {
+  final time = formatLabTime(scenario.branchSeconds);
+  final head = scenario.effectiveMode == ScenarioMode.replan
+      ? l10n.diveLab_summary_replan(time)
+      : l10n.diveLab_summary_replay(time);
+  return [
+    head,
+    for (final i in scenario.interventions)
+      labInterventionChipLabel(l10n, units, i, tankName),
+  ].join(' · ');
 }

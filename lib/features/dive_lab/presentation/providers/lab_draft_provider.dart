@@ -15,12 +15,20 @@ class LabDraft extends Equatable {
     this.branchSeconds,
     this.mode = ScenarioMode.replay,
     this.interventions = const [],
+    this.scenarioId,
+    this.name,
   });
 
   /// Null until the page seeds the default branch.
   final int? branchSeconds;
   final ScenarioMode mode;
   final List<ScenarioIntervention> interventions;
+
+  /// The saved scenario this draft edits; null for an unsaved draft.
+  final String? scenarioId;
+
+  /// The saved name; null until saved.
+  final String? name;
 
   bool get isSeeded => branchSeconds != null;
 
@@ -29,9 +37,9 @@ class LabDraft extends Equatable {
   ScenarioMode get effectiveMode => modeForced ? ScenarioMode.replan : mode;
 
   DiveScenario toScenario(String diveId) => DiveScenario(
-    id: 'draft',
+    id: scenarioId ?? 'draft',
     diveId: diveId,
-    name: 'draft',
+    name: name ?? 'draft',
     branchSeconds: branchSeconds ?? 0,
     mode: mode,
     interventions: interventions,
@@ -43,14 +51,24 @@ class LabDraft extends Equatable {
     int? branchSeconds,
     ScenarioMode? mode,
     List<ScenarioIntervention>? interventions,
+    String? scenarioId,
+    String? name,
   }) => LabDraft(
     branchSeconds: branchSeconds ?? this.branchSeconds,
     mode: mode ?? this.mode,
     interventions: interventions ?? this.interventions,
+    scenarioId: scenarioId ?? this.scenarioId,
+    name: name ?? this.name,
   );
 
   @override
-  List<Object?> get props => [branchSeconds, mode, interventions];
+  List<Object?> get props => [
+    branchSeconds,
+    mode,
+    interventions,
+    scenarioId,
+    name,
+  ];
 }
 
 class LabDraftNotifier extends StateNotifier<LabDraft> {
@@ -100,6 +118,23 @@ class LabDraftNotifier extends StateNotifier<LabDraft> {
 
   void clearInterventions() {
     state = state.copyWith(interventions: const []);
+  }
+
+  /// Replaces the draft with a saved scenario (authoritative, even when the
+  /// default branch was already seeded).
+  void loadScenario(DiveScenario scenario) {
+    state = LabDraft(
+      branchSeconds: scenario.branchSeconds,
+      mode: scenario.mode,
+      interventions: scenario.interventions,
+      scenarioId: scenario.id,
+      name: scenario.name,
+    );
+  }
+
+  /// Records that the draft now edits the saved scenario [id].
+  void markSaved(String id, String name) {
+    state = state.copyWith(scenarioId: id, name: name);
   }
 }
 
