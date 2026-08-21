@@ -24,12 +24,16 @@ class LabChart extends ConsumerWidget {
     required this.inputs,
     required this.outcome,
     required this.branchSeconds,
+    this.exportKey,
   });
 
   final String diveId;
   final LabRequestInputs inputs;
   final ScenarioOutcome? outcome;
   final int? branchSeconds;
+
+  /// Wraps the chart in a RepaintBoundary for PNG capture (PDF, image share).
+  final GlobalKey? exportKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,6 +74,7 @@ class LabChart extends ConsumerWidget {
           : (replay ? o.counterfactual.decoStopCurve : o.actual.decoStopCurve),
       tanks: inputs.tanks,
       highlightedTimestamp: branchSeconds,
+      exportKey: exportKey,
     );
   }
 }

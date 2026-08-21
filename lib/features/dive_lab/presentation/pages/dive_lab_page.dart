@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
+import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
+import 'package:submersion/features/dive_lab/presentation/lab_share.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
@@ -52,6 +55,66 @@ class DiveLabPage extends ConsumerStatefulWidget {
 
 class _DiveLabPageState extends ConsumerState<DiveLabPage> {
   String get diveId => widget.diveId;
+  final GlobalKey _chartKey = GlobalKey();
+
+  Future<void> _share(String what, LabRequestInputs inputs) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final units = UnitFormatter(ref.read(settingsProvider));
+    final actions = ref.read(labShareActionsProvider);
+    final draft = ref.read(labDraftProvider(diveId));
+    final scenario = draft
+        .toScenario(diveId)
+        .copyWith(
+          name:
+              draft.name ??
+              labScenarioSummary(
+                l10n,
+                units,
+                draft.toScenario(diveId),
+                (id) => labTankName(inputs.tanks, id),
+              ),
+        );
+    final base = labSafeFileName(
+      '${inputs.dive.diveNumber ?? 'dive'}_${scenario.name}',
+    );
+    try {
+      switch (what) {
+        case 'pdf':
+          final outcome = ref.read(scenarioOutcomeProvider(diveId)).valueOrNull;
+          if (outcome == null) return;
+          final png = await captureLabChart(_chartKey);
+          if (!mounted) return;
+          final section = labSlateScenario(
+            context,
+            l10n: l10n,
+            units: units,
+            inputs: inputs,
+            scenario: scenario,
+            outcome: outcome,
+            chartPng: png,
+          );
+          final bytes = await const DiveLabSlatePdfService().buildSlate(
+            scenarios: [section],
+            labels: labSlateLabels(l10n),
+          );
+          await actions.sharePdf(bytes, '${base}_lab.pdf');
+        case 'file':
+          await actions.shareFile(
+            labScenarioFileJson(inputs: inputs, scenario: scenario),
+            '$base.$sublabExtension',
+          );
+        case 'image':
+          final png = await captureLabChart(_chartKey);
+          if (png == null) return;
+          await actions.shareImage(png, '${base}_lab.png');
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLab_share_failed(e.toString()))),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -132,6 +195,25 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
                 ? null
                 : () => showLabSavedScenariosSheet(context, diveId: diveId),
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.share_outlined),
+            tooltip: l10n.diveLab_share_menu,
+            enabled: inputs != null && draft.isSeeded,
+            onSelected: (value) {
+              if (inputs != null) _share(value, inputs);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'pdf', child: Text(l10n.diveLab_share_pdf)),
+              PopupMenuItem(
+                value: 'file',
+                child: Text(l10n.diveLab_share_file),
+              ),
+              PopupMenuItem(
+                value: 'image',
+                child: Text(l10n.diveLab_share_image),
+              ),
+            ],
+          ),
         ],
       ),
       body: inputsAsync.when(
@@ -164,7 +246,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
               ),
             );
           }
-          return _LabBody(diveId: diveId, inputs: inputs);
+          return _LabBody(diveId: diveId, inputs: inputs, chartKey: _chartKey);
         },
       ),
     );
@@ -172,10 +254,15 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
 }
 
 class _LabBody extends ConsumerWidget {
-  const _LabBody({required this.diveId, required this.inputs});
+  const _LabBody({
+    required this.diveId,
+    required this.inputs,
+    required this.chartKey,
+  });
 
   final String diveId;
   final LabRequestInputs inputs;
+  final GlobalKey chartKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,6 +273,7 @@ class _LabBody extends ConsumerWidget {
       inputs: inputs,
       outcome: outcome.valueOrNull,
       branchSeconds: draft.branchSeconds,
+      exportKey: chartKey,
     );
     final controls = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
