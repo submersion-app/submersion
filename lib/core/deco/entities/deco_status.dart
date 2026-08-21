@@ -45,6 +45,13 @@ class DecoStatus extends Equatable {
   /// Surface pressure in bar used for surface-referenced metrics (SurfGF).
   final double surfacePressureBar;
 
+  /// Deepest GF-low ceiling (meters) reached so far in the dive at this
+  /// sample: the running anchor BuhlmannAlgorithm interpolates gradient
+  /// factors from. Together with [compartments] it is the complete restorable
+  /// mid-dive state (`BuhlmannAlgorithm.restoreState`). Null when the status
+  /// was not produced by a profile walk (hand-built statuses, older callers).
+  final double? gfLowCeilingAnchor;
+
   const DecoStatus({
     required this.compartments,
     required this.ndlSeconds,
@@ -57,6 +64,7 @@ class DecoStatus extends Equatable {
     required this.currentDepthMeters,
     required this.ambientPressureBar,
     this.surfacePressureBar = 1.0,
+    this.gfLowCeilingAnchor,
   });
 
   /// Whether the diver is currently in decompression obligation.
@@ -189,6 +197,7 @@ class DecoStatus extends Equatable {
     double? currentDepthMeters,
     double? ambientPressureBar,
     double? surfacePressureBar,
+    double? gfLowCeilingAnchor,
   }) {
     return DecoStatus(
       compartments: compartments ?? this.compartments,
@@ -202,6 +211,7 @@ class DecoStatus extends Equatable {
       currentDepthMeters: currentDepthMeters ?? this.currentDepthMeters,
       ambientPressureBar: ambientPressureBar ?? this.ambientPressureBar,
       surfacePressureBar: surfacePressureBar ?? this.surfacePressureBar,
+      gfLowCeilingAnchor: gfLowCeilingAnchor ?? this.gfLowCeilingAnchor,
     );
   }
 
@@ -218,6 +228,7 @@ class DecoStatus extends Equatable {
     currentDepthMeters,
     ambientPressureBar,
     surfacePressureBar,
+    gfLowCeilingAnchor,
   ];
 }
 

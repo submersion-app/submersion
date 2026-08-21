@@ -772,6 +772,7 @@ class BuhlmannAlgorithm {
       currentDepthMeters: currentDepth,
       ambientPressureBar: environment.pressureAtDepth(currentDepth),
       surfacePressureBar: environment.surfacePressureBar,
+      gfLowCeilingAnchor: _gfLowCeilingAnchor,
     );
   }
 
