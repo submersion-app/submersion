@@ -1049,6 +1049,38 @@ class DiverWeightEntries extends Table {
 }
 
 /// Junction: equipment attached to a saved dive plan (v104).
+/// Saved "what if" scenarios on a logged dive (Dive Lab, v161). Inputs only:
+/// the branch point, the mode and the interventions; outcomes are always
+/// recomputed. Synced like dive plans (hlc column, deletion_log tombstones).
+class DiveScenarios extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Runtime seconds on the dive's primary profile where the timelines part.
+  IntColumn get branchSeconds => integer()();
+
+  /// ScenarioMode name: `replay` or `replan`.
+  TextColumn get mode => text().withDefault(const Constant('replay'))();
+
+  /// Versioned JSON envelope (scenario_intervention_codec: formatVersion +
+  /// interventions). A kind the reader does not know fails loudly on decode.
+  TextColumn get interventionsJson => text()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 class DivePlanEquipment extends Table {
   TextColumn get planId =>
       text().references(DivePlans, #id, onDelete: KeyAction.cascade)();
@@ -3153,6 +3185,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ServiceSchedules,
     CylinderConfigs,
     CylinderConfigItems,
+    DiveScenarios,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -3162,7 +3195,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 160;
+  static const int currentSchemaVersion = 161;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3444,6 +3477,9 @@ class AppDatabase extends _$AppDatabase {
     // service_records.service_type -> service_category rename. Renumbered
     // from 158 and then 159, which #1149 and #1177 claimed first on main.
     160,
+    // v161 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    161,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4907,6 +4943,17 @@ class AppDatabase extends _$AppDatabase {
   /// an UPDATE rather than an upsert so it cannot resurrect a built-in the
   /// diver deleted (the v109 rule), and it only fills a NULL so it never
   /// overwrites a category the diver chose.
+  /// v161: the Dive Lab scenarios table. Migrator.createTable is IF NOT
+  /// EXISTS and the index is guarded, so this is safe from both onUpgrade and
+  /// the beforeOpen backstop.
+  Future<void> _assertDiveScenariosSchema() async {
+    await createMigrator().createTable(diveScenarios);
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_dive_scenarios_dive_id
+      ON dive_scenarios(dive_id)
+    ''');
+  }
+
   Future<void> _assertServiceCategoryColumn() async {
     final cols = await customSelect("PRAGMA table_info('service_kinds')").get();
     if (cols.isEmpty) return;
@@ -8506,6 +8553,14 @@ class AppDatabase extends _$AppDatabase {
           await _assertServiceCategoryRename();
         }
         if (from < 160) await reportProgress();
+
+        // v161: dive_scenarios (Dive Lab saved scenarios). createTable is IF
+        // NOT EXISTS and the index is guarded, so the block is idempotent;
+        // the beforeOpen backstop re-asserts the same objects.
+        if (from < 161) {
+          await _assertDiveScenariosSchema();
+        }
+        if (from < 161) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -8695,6 +8750,11 @@ class AppDatabase extends _$AppDatabase {
         // database that arrives by restore or sync-adopt never runs
         // onUpgrade, and every read of a service record would throw.
         await _assertServiceCategoryRename();
+
+        // v161 backstop: re-assert the dive_scenarios table and its index for
+        // databases that reached 161 through a parallel branch, a restore or
+        // sync-adopt without running the onUpgrade block.
+        await _assertDiveScenariosSchema();
 
         // v145 backstop: re-assert the gps_tracks provenance and trim columns.
         await _assertGpsTrackColumns();

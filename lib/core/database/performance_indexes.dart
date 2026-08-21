@@ -310,6 +310,12 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON dive_plan_segments(plan_id)',
   ),
   (
+    name: 'idx_dive_scenarios_dive_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_scenarios_dive_id '
+        'ON dive_scenarios(dive_id)',
+  ),
+  (
     name: 'idx_gps_track_points_local_track_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id '
