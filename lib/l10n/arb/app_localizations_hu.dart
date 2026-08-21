@@ -33078,4 +33078,71 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'Minden bailout palack';
+
+  @override
+  String get diveLab_share_menu => 'Megosztás';
+
+  @override
+  String get diveLab_share_pdf => 'PDF-lap megosztása';
+
+  @override
+  String get diveLab_share_file => 'Forgatókönyvfájl megosztása';
+
+  @override
+  String get diveLab_share_image => 'Diagramkép megosztása';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'A megosztás nem sikerült: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Forgatókönyvfájl importálása';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '„$name” importálva';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'A merülés a forgatókönyvfájlból jött létre';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Az importálás nem sikerült: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Kijelölés';
+
+  @override
+  String get diveLab_saved_done => 'Kész';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Kijelöltek megosztása PDF-ként';
+
+  @override
+  String get diveLab_pdf_title => 'Merüléslabor-lap';
+
+  @override
+  String get diveLab_pdf_branch => 'Elágazás';
+
+  @override
+  String get diveLab_pdf_mode => 'Mód';
+
+  @override
+  String get diveLab_pdf_interventions => 'Beavatkozások';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Beállítások: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, $gasModel gázmodell';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Készítette: Submersion';
+
+  @override
+  String get diveLab_sublab_notes =>
+      'Megosztva merüléslabor-forgatókönyvfájlon keresztül';
 }

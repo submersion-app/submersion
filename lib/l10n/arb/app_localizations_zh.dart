@@ -31299,4 +31299,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => '全部逼出气瓶';
+
+  @override
+  String get diveLab_share_menu => '分享';
+
+  @override
+  String get diveLab_share_pdf => '分享 PDF 卡片';
+
+  @override
+  String get diveLab_share_file => '分享情形文件';
+
+  @override
+  String get diveLab_share_image => '分享图表图片';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return '分享失败：$error';
+  }
+
+  @override
+  String get diveLab_import_file => '导入情形文件';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '已导入“$name”';
+  }
+
+  @override
+  String get diveLab_import_diveCreated => '已根据情形文件创建潜水记录';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return '导入失败：$error';
+  }
+
+  @override
+  String get diveLab_saved_select => '选择';
+
+  @override
+  String get diveLab_saved_done => '完成';
+
+  @override
+  String get diveLab_saved_sharePdf => '将所选分享为 PDF';
+
+  @override
+  String get diveLab_pdf_title => '潜水实验室卡片';
+
+  @override
+  String get diveLab_pdf_branch => '分支点';
+
+  @override
+  String get diveLab_pdf_mode => '模式';
+
+  @override
+  String get diveLab_pdf_interventions => '干预';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return '设置：GF $gfLow/$gfHigh，Bühlmann ZH-L16C，$gasModel 气体模型';
+  }
+
+  @override
+  String get diveLab_pdf_generated => '由 Submersion 生成';
+
+  @override
+  String get diveLab_sublab_notes => '通过潜水实验室情形文件分享';
 }

@@ -32971,4 +32971,70 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'Alle bailoutflessen';
+
+  @override
+  String get diveLab_share_menu => 'Delen';
+
+  @override
+  String get diveLab_share_pdf => 'PDF-slate delen';
+
+  @override
+  String get diveLab_share_file => 'Scenariobestand delen';
+
+  @override
+  String get diveLab_share_image => 'Grafiekafbeelding delen';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'Delen mislukt: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Scenariobestand importeren';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '\"$name\" geïmporteerd';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'De duik is aangemaakt uit het scenariobestand';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Import mislukt: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Selecteren';
+
+  @override
+  String get diveLab_saved_done => 'Klaar';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Selectie delen als PDF';
+
+  @override
+  String get diveLab_pdf_title => 'Duiklab-slate';
+
+  @override
+  String get diveLab_pdf_branch => 'Vertakking';
+
+  @override
+  String get diveLab_pdf_mode => 'Modus';
+
+  @override
+  String get diveLab_pdf_interventions => 'Ingrepen';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Instellingen: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gas $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Gemaakt met Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'Gedeeld via een duiklab-scenariobestand';
 }

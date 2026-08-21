@@ -32530,4 +32530,69 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'כל מיכלי הביילאוט';
+
+  @override
+  String get diveLab_share_menu => 'שיתוף';
+
+  @override
+  String get diveLab_share_pdf => 'שיתוף דף PDF';
+
+  @override
+  String get diveLab_share_file => 'שיתוף קובץ תרחיש';
+
+  @override
+  String get diveLab_share_image => 'שיתוף תמונת הגרף';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'השיתוף נכשל: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'ייבוא קובץ תרחיש';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '\"$name\" יובא';
+  }
+
+  @override
+  String get diveLab_import_diveCreated => 'הצלילה נוצרה מקובץ התרחיש';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'הייבוא נכשל: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'בחירה';
+
+  @override
+  String get diveLab_saved_done => 'סיום';
+
+  @override
+  String get diveLab_saved_sharePdf => 'שיתוף הנבחרים כ-PDF';
+
+  @override
+  String get diveLab_pdf_title => 'דף מעבדת הצלילה';
+
+  @override
+  String get diveLab_pdf_branch => 'נקודת הסתעפות';
+
+  @override
+  String get diveLab_pdf_mode => 'מצב';
+
+  @override
+  String get diveLab_pdf_interventions => 'התערבויות';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'הגדרות: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, מודל גז $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'נוצר על ידי Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'שותף באמצעות קובץ תרחיש של מעבדת הצלילה';
 }

@@ -32876,4 +32876,69 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'كل أسطوانات الطوارئ';
+
+  @override
+  String get diveLab_share_menu => 'مشاركة';
+
+  @override
+  String get diveLab_share_pdf => 'مشاركة بطاقة PDF';
+
+  @override
+  String get diveLab_share_file => 'مشاركة ملف السيناريو';
+
+  @override
+  String get diveLab_share_image => 'مشاركة صورة الرسم البياني';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'فشلت المشاركة: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'استيراد ملف سيناريو';
+
+  @override
+  String diveLab_import_done(String name) {
+    return 'تم استيراد \"$name\"';
+  }
+
+  @override
+  String get diveLab_import_diveCreated => 'أُنشئت الغطسة من ملف السيناريو';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'فشل الاستيراد: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'تحديد';
+
+  @override
+  String get diveLab_saved_done => 'تم';
+
+  @override
+  String get diveLab_saved_sharePdf => 'مشاركة المحدد كملف PDF';
+
+  @override
+  String get diveLab_pdf_title => 'بطاقة مختبر الغوص';
+
+  @override
+  String get diveLab_pdf_branch => 'نقطة التفرع';
+
+  @override
+  String get diveLab_pdf_mode => 'الوضع';
+
+  @override
+  String get diveLab_pdf_interventions => 'التدخلات';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'الإعدادات: GF $gfLow/$gfHigh، Bühlmann ZH-L16C، نموذج غاز $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'أُنشئ بواسطة Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'تمت المشاركة عبر ملف سيناريو مختبر الغوص';
 }

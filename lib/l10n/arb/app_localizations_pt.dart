@@ -33211,4 +33211,71 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'Todas as garrafas de bailout';
+
+  @override
+  String get diveLab_share_menu => 'Partilhar';
+
+  @override
+  String get diveLab_share_pdf => 'Partilhar ficha PDF';
+
+  @override
+  String get diveLab_share_file => 'Partilhar ficheiro de cenário';
+
+  @override
+  String get diveLab_share_image => 'Partilhar imagem do gráfico';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'Falha ao partilhar: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Importar ficheiro de cenário';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '\"$name\" importado';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'O mergulho foi criado a partir do ficheiro de cenário';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Falha na importação: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Selecionar';
+
+  @override
+  String get diveLab_saved_done => 'Concluído';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Partilhar seleção como PDF';
+
+  @override
+  String get diveLab_pdf_title => 'Ficha do laboratório de mergulho';
+
+  @override
+  String get diveLab_pdf_branch => 'Ramificação';
+
+  @override
+  String get diveLab_pdf_mode => 'Modo';
+
+  @override
+  String get diveLab_pdf_interventions => 'Intervenções';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Definições: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gás $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Gerado pelo Submersion';
+
+  @override
+  String get diveLab_sublab_notes =>
+      'Partilhado através de um ficheiro de cenário do laboratório de mergulho';
 }

@@ -33134,4 +33134,71 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'Alle Bailout-Flaschen';
+
+  @override
+  String get diveLab_share_menu => 'Teilen';
+
+  @override
+  String get diveLab_share_pdf => 'PDF-Slate teilen';
+
+  @override
+  String get diveLab_share_file => 'Szenariodatei teilen';
+
+  @override
+  String get diveLab_share_image => 'Diagrammbild teilen';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'Teilen fehlgeschlagen: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Szenariodatei importieren';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '„$name“ importiert';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'Der Tauchgang wurde aus der Szenariodatei erstellt';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Import fehlgeschlagen: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Auswählen';
+
+  @override
+  String get diveLab_saved_done => 'Fertig';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Auswahl als PDF teilen';
+
+  @override
+  String get diveLab_pdf_title => 'Tauchlabor-Slate';
+
+  @override
+  String get diveLab_pdf_branch => 'Abzweigung';
+
+  @override
+  String get diveLab_pdf_mode => 'Modus';
+
+  @override
+  String get diveLab_pdf_interventions => 'Maßnahmen';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Einstellungen: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, Gasmodell $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Erstellt mit Submersion';
+
+  @override
+  String get diveLab_sublab_notes =>
+      'Geteilt über eine Tauchlabor-Szenariodatei';
 }

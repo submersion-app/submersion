@@ -33287,4 +33287,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLab_sheet_allBailout => 'Tous les blocs de bailout';
+
+  @override
+  String get diveLab_share_menu => 'Partager';
+
+  @override
+  String get diveLab_share_pdf => 'Partager la fiche PDF';
+
+  @override
+  String get diveLab_share_file => 'Partager le fichier de scénario';
+
+  @override
+  String get diveLab_share_image => 'Partager l\'image du graphique';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'Échec du partage : $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Importer un fichier de scénario';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '« $name » importé';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'La plongée a été créée à partir du fichier de scénario';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Échec de l\'import : $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Sélectionner';
+
+  @override
+  String get diveLab_saved_done => 'Terminé';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Partager la sélection en PDF';
+
+  @override
+  String get diveLab_pdf_title => 'Fiche du labo de plongée';
+
+  @override
+  String get diveLab_pdf_branch => 'Bifurcation';
+
+  @override
+  String get diveLab_pdf_mode => 'Mode';
+
+  @override
+  String get diveLab_pdf_interventions => 'Interventions';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Réglages : GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gaz $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Généré par Submersion';
+
+  @override
+  String get diveLab_sublab_notes =>
+      'Partagé via un fichier de scénario du labo de plongée';
 }
