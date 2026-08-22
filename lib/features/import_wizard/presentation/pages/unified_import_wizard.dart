@@ -242,9 +242,11 @@ class _UnifiedImportWizardBodyState
     final result = ref.read(importWizardNotifierProvider).importResult;
     if (result == null) return;
 
-    // Always refresh the computers list — ensureComputer() may have created
-    // a new record even when all dives were skipped.
-    if (widget.adapter.sourceType == ImportSourceType.diveComputer) {
+    // Always refresh the computers list — ensureComputer() (or
+    // SuuntoCloudAdapter's per-dive computer resolution) may have created a
+    // new record even when all dives were skipped.
+    if (widget.adapter.sourceType == ImportSourceType.diveComputer ||
+        widget.adapter.sourceType == ImportSourceType.suuntoCloud) {
       ref.invalidate(allDiveComputersProvider);
     }
 

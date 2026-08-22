@@ -17732,6 +17732,70 @@ class AppLocalizationsPt extends AppLocalizations {
   String get surfaceInterval_title => 'Intervalo de Superfície';
 
   @override
+  String get suuntoCloud_signIn_title => 'Sign in to Suunto';
+
+  @override
+  String get suuntoCloud_signIn_description =>
+      'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.';
+
+  @override
+  String get suuntoCloud_signIn_emailLabel => 'Email';
+
+  @override
+  String get suuntoCloud_signIn_emailRequired => 'Email is required';
+
+  @override
+  String get suuntoCloud_signIn_passwordLabel => 'Password';
+
+  @override
+  String get suuntoCloud_signIn_passwordRequired => 'Password is required';
+
+  @override
+  String get suuntoCloud_signIn_button => 'Sign In';
+
+  @override
+  String get suuntoCloud_signIn_signingIn => 'Signing in…';
+
+  @override
+  String suuntoCloud_signIn_signedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get suuntoCloud_fetch_listing => 'Listing dives…';
+
+  @override
+  String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
+    return 'Fetching dive $current of $total…';
+  }
+
+  @override
+  String get suuntoCloud_fetch_failedTitle => 'Could not fetch dives';
+
+  @override
+  String suuntoCloud_fetch_foundDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $count dives',
+      one: 'Found 1 dive',
+      zero: 'No dives found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String suuntoCloud_fetch_someFailed(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be converted and were skipped.',
+      one: '1 dive could not be converted and was skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String tags_action_createNamed(Object tagName) {
     return 'Criar \"$tagName\"';
   }
@@ -17804,6 +17868,18 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get importWizard_review_sortTooltip => 'Sort';
+
+  @override
+  String get importWizard_review_sortByDate => 'Date';
+
+  @override
+  String get importWizard_review_sortByDepth => 'Depth';
+
+  @override
+  String get importWizard_review_sortByDuration => 'Time';
 
   @override
   String get tags_hint_addTags => 'Adicionar tags...';
@@ -18383,6 +18459,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_import_sectionHeader => 'Importar Dados';
+
+  @override
+  String get transfer_importCloud_suuntoTitle => 'Suunto';
+
+  @override
+  String get transfer_importCloud_suuntoSubtitle =>
+      'Import dives from your Suunto app / app.suunto.com account';
 
   @override
   String get transfer_pdfExport_cancelButton => 'Cancelar';
@@ -32751,4 +32834,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'O HealthKit não está disponível neste dispositivo';
+
+  @override
+  String get transfer_section_cloudTitle => 'Cloud';
+
+  @override
+  String get transfer_section_cloudSubtitle => 'Import from cloud';
 }

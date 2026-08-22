@@ -1466,6 +1466,48 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    // setDiveSortField
+    // -------------------------------------------------------------------------
+
+    group('setDiveSortField', () {
+      test('defaults to date, descending (newest first)', () {
+        expect(notifier.state.diveSortField, DiveReviewSortField.date);
+        expect(notifier.state.diveSortAscending, isFalse);
+      });
+
+      test('switching to a different field resets direction to descending', () {
+        notifier.setDiveSortField(DiveReviewSortField.depth);
+
+        expect(notifier.state.diveSortField, DiveReviewSortField.depth);
+        expect(notifier.state.diveSortAscending, isFalse);
+      });
+
+      test('re-picking the active field flips the direction', () {
+        notifier.setDiveSortField(DiveReviewSortField.duration);
+        expect(notifier.state.diveSortAscending, isFalse);
+
+        notifier.setDiveSortField(DiveReviewSortField.duration);
+        expect(notifier.state.diveSortField, DiveReviewSortField.duration);
+        expect(notifier.state.diveSortAscending, isTrue);
+
+        notifier.setDiveSortField(DiveReviewSortField.duration);
+        expect(notifier.state.diveSortAscending, isFalse);
+      });
+
+      test('picking a new field after a flip resets to descending', () {
+        // Default field is already `date`, so this first call itself is a
+        // "re-pick" that flips the direction.
+        notifier.setDiveSortField(DiveReviewSortField.date);
+        expect(notifier.state.diveSortAscending, isTrue);
+
+        notifier.setDiveSortField(DiveReviewSortField.depth);
+
+        expect(notifier.state.diveSortField, DiveReviewSortField.depth);
+        expect(notifier.state.diveSortAscending, isFalse);
+      });
+    });
+
+    // -------------------------------------------------------------------------
     // State immutability
     // -------------------------------------------------------------------------
 

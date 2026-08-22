@@ -19,6 +19,9 @@ enum ImportSourceType {
 
   /// A dive computer download.
   diveComputer,
+
+  /// A Suunto cloud (app.suunto.com) import.
+  suuntoCloud,
 }
 
 /// The kind of entity represented by an [EntityGroup].

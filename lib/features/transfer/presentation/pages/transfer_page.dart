@@ -74,6 +74,8 @@ class TransferPage extends ConsumerWidget {
         return _ExportSectionContent(ref: ref);
       case 'computers':
         return _ComputersSectionContent(ref: ref);
+      case 'cloud':
+        return _CloudSectionContent(ref: ref);
       default:
         return Center(
           child: Text(context.l10n.transfer_unknownSection(sectionId)),
@@ -148,6 +150,8 @@ class _TransferSectionDetailPage extends ConsumerWidget {
         return _ExportSectionContent(ref: ref);
       case 'computers':
         return _ComputersSectionContent(ref: ref);
+      case 'cloud':
+        return _CloudSectionContent(ref: ref);
       default:
         return Center(
           child: Text(context.l10n.transfer_unknownSection(sectionId)),
@@ -841,6 +845,82 @@ class _ComputersSectionContent extends ConsumerWidget {
       default:
         return Icons.watch;
     }
+  }
+}
+
+/// Cloud import section content.
+///
+/// Lists dive-computer manufacturer cloud accounts that dives can be
+/// imported from directly (no file export/transfer needed). Currently just
+/// Suunto; additional providers (Garmin Connect, Shearwater Cloud, etc.)
+/// get their own card here as they're added.
+class _CloudSectionContent extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _CloudSectionContent({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            context,
+            context.l10n.transfer_section_cloudTitle,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => context.push('/transfer/import-cloud/suunto'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.watch, color: colorScheme.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.transfer_importCloud_suuntoTitle,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            context.l10n.transfer_importCloud_suuntoSubtitle,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

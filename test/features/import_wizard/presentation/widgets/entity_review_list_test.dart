@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart'
+    show DiveReviewSortField;
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -67,6 +70,9 @@ Widget _buildList({
   VoidCallback? onSelectAll,
   VoidCallback? onDeselectAll,
   String Function(int)? existingDiveIdForIndex,
+  DiveReviewSortField? sortField,
+  bool sortAscending = false,
+  ValueChanged<DiveReviewSortField>? onSortFieldChanged,
 }) {
   return MaterialApp(
     locale: const Locale('en'),
@@ -89,6 +95,9 @@ Widget _buildList({
             onDeselectAll: onDeselectAll ?? () {},
             existingDiveIdForIndex:
                 existingDiveIdForIndex ?? (_) => _testDiveId,
+            sortField: sortField,
+            sortAscending: sortAscending,
+            onSortFieldChanged: onSortFieldChanged,
           ),
         ),
       ),
@@ -883,6 +892,235 @@ void main() {
       expect(find.byType(ExpansionTile), findsNothing);
       expect(find.text('Dive A'), findsOneWidget);
       expect(find.text('Dive B'), findsOneWidget);
+    });
+  });
+
+  group('EntityReviewList - sorting', () {
+    final oldShallowShort = EntityItem(
+      title: 'Old Shallow Short',
+      subtitle: '',
+      diveData: IncomingDiveData(
+        startTime: DateTime(2026, 1, 1),
+        maxDepth: 10,
+        durationSeconds: 600,
+      ),
+    );
+    final midMediumMedium = EntityItem(
+      title: 'Mid Medium Medium',
+      subtitle: '',
+      diveData: IncomingDiveData(
+        startTime: DateTime(2026, 2, 1),
+        maxDepth: 20,
+        durationSeconds: 1200,
+      ),
+    );
+    final newDeepLong = EntityItem(
+      title: 'New Deep Long',
+      subtitle: '',
+      diveData: IncomingDiveData(
+        startTime: DateTime(2026, 3, 1),
+        maxDepth: 30,
+        durationSeconds: 1800,
+      ),
+    );
+
+    List<String> titlesTopToBottom(WidgetTester tester, List<String> titles) {
+      final byY = [
+        for (final title in titles)
+          (title: title, y: tester.getTopLeft(find.text(title)).dy),
+      ]..sort((a, b) => a.y.compareTo(b.y));
+      return byY.map((e) => e.title).toList();
+    }
+
+    testWidgets('hides the sort control when sortField is null', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [oldShallowShort, midMediumMedium, newDeepLong],
+      );
+
+      await tester.pumpWidget(_buildList(group: group));
+      await tester.pump();
+
+      expect(find.byType(PopupMenuButton<DiveReviewSortField>), findsNothing);
+    });
+
+    testWidgets('sorts newest first by default (date, descending)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [oldShallowShort, midMediumMedium, newDeepLong],
+      );
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          sortField: DiveReviewSortField.date,
+          onSortFieldChanged: (_) {},
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        titlesTopToBottom(tester, [
+          'Old Shallow Short',
+          'Mid Medium Medium',
+          'New Deep Long',
+        ]),
+        ['New Deep Long', 'Mid Medium Medium', 'Old Shallow Short'],
+      );
+    });
+
+    testWidgets('ascending date sorts oldest first', (tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [oldShallowShort, midMediumMedium, newDeepLong],
+      );
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          sortField: DiveReviewSortField.date,
+          sortAscending: true,
+          onSortFieldChanged: (_) {},
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        titlesTopToBottom(tester, [
+          'Old Shallow Short',
+          'Mid Medium Medium',
+          'New Deep Long',
+        ]),
+        ['Old Shallow Short', 'Mid Medium Medium', 'New Deep Long'],
+      );
+    });
+
+    testWidgets('sorts by depth, deepest first by default', (tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [oldShallowShort, midMediumMedium, newDeepLong],
+      );
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          sortField: DiveReviewSortField.depth,
+          onSortFieldChanged: (_) {},
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        titlesTopToBottom(tester, [
+          'Old Shallow Short',
+          'Mid Medium Medium',
+          'New Deep Long',
+        ]),
+        ['New Deep Long', 'Mid Medium Medium', 'Old Shallow Short'],
+      );
+    });
+
+    testWidgets('sorts by duration, longest first by default', (tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final group = EntityGroup(
+        items: [oldShallowShort, midMediumMedium, newDeepLong],
+      );
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          sortField: DiveReviewSortField.duration,
+          onSortFieldChanged: (_) {},
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        titlesTopToBottom(tester, [
+          'Old Shallow Short',
+          'Mid Medium Medium',
+          'New Deep Long',
+        ]),
+        ['New Deep Long', 'Mid Medium Medium', 'Old Shallow Short'],
+      );
+    });
+
+    testWidgets(
+      'items with no diveData sink to the end regardless of direction',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        const noData = EntityItem(title: 'No Data', subtitle: '');
+        final group = EntityGroup(
+          items: [noData, oldShallowShort, newDeepLong],
+        );
+
+        await tester.pumpWidget(
+          _buildList(
+            group: group,
+            sortField: DiveReviewSortField.date,
+            onSortFieldChanged: (_) {},
+          ),
+        );
+        await tester.pump();
+
+        expect(
+          titlesTopToBottom(tester, [
+            'No Data',
+            'Old Shallow Short',
+            'New Deep Long',
+          ]),
+          ['New Deep Long', 'Old Shallow Short', 'No Data'],
+        );
+      },
+    );
+
+    testWidgets('tapping a menu entry reports the picked field', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      DiveReviewSortField? picked;
+      final group = EntityGroup(items: [oldShallowShort, newDeepLong]);
+
+      await tester.pumpWidget(
+        _buildList(
+          group: group,
+          sortField: DiveReviewSortField.date,
+          onSortFieldChanged: (field) => picked = field,
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byType(PopupMenuButton<DiveReviewSortField>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Depth').last);
+      await tester.pumpAndSettle();
+
+      expect(picked, DiveReviewSortField.depth);
     });
   });
 }

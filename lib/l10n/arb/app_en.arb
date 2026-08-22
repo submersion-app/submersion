@@ -10434,6 +10434,20 @@
   "surfaceInterval_tissueRecovery_slow": "Slow (C11-16)",
   "surfaceInterval_tissueRecovery_title": "Tissue Recovery",
   "surfaceInterval_title": "Surface Interval",
+  "suuntoCloud_signIn_title": "Sign in to Suunto",
+  "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "suuntoCloud_signIn_emailLabel": "Email",
+  "suuntoCloud_signIn_emailRequired": "Email is required",
+  "suuntoCloud_signIn_passwordLabel": "Password",
+  "suuntoCloud_signIn_passwordRequired": "Password is required",
+  "suuntoCloud_signIn_button": "Sign In",
+  "suuntoCloud_signIn_signingIn": "Signing in…",
+  "suuntoCloud_signIn_signedInAs": "Signed in as {email}",
+  "suuntoCloud_fetch_listing": "Listing dives…",
+  "suuntoCloud_fetch_fetchingDiveOf": "Fetching dive {current} of {total}…",
+  "suuntoCloud_fetch_failedTitle": "Could not fetch dives",
+  "suuntoCloud_fetch_foundDives": "{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}",
+  "suuntoCloud_fetch_someFailed": "{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}",
   "@surfaceInterval_aboutTissueLoading_body": {
     "description": "Educational text explaining tissue compartments and nitrogen loading"
   },
@@ -10743,6 +10757,41 @@
   "@surfaceInterval_title": {
     "description": "Title for the surface interval tool page and axis label"
   },
+  "@suuntoCloud_signIn_signedInAs": {
+    "description": "Success state on the Suunto sign-in step, once a session is established.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@suuntoCloud_fetch_fetchingDiveOf": {
+    "description": "Progress line while downloading each dive from the Suunto cloud.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@suuntoCloud_fetch_foundDives": {
+    "description": "Result headline after fetching dives from the Suunto cloud.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "@suuntoCloud_fetch_someFailed": {
+    "description": "Shown when one or more fetched Suunto dives could not be converted and were skipped.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "tags_action_createNamed": "Create \"{tagName}\"",
   "tags_action_createTag": "Create tag",
   "tags_action_browse": "Browse",
@@ -10783,6 +10832,10 @@
       }
     }
   },
+  "importWizard_review_sortTooltip": "Sort",
+  "importWizard_review_sortByDate": "Date",
+  "importWizard_review_sortByDepth": "Depth",
+  "importWizard_review_sortByDuration": "Time",
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
   "tags_manage_searchHint": "Search tags...",
@@ -10995,6 +11048,8 @@
   "transfer_import_fileImportSubtitle": "CSV, UDDF, Subsurface XML, Garmin FIT, Shearwater Cloud",
   "transfer_import_fileImportTitle": "File Import",
   "transfer_import_sectionHeader": "Import Data",
+  "transfer_importCloud_suuntoTitle": "Suunto",
+  "transfer_importCloud_suuntoSubtitle": "Import dives from your Suunto app / app.suunto.com account",
   "transfer_pdfExport_cancelButton": "Cancel",
   "transfer_pdfExport_dialogTitle": "Export PDF Logbook",
   "transfer_pdfExport_exportButton": "Export PDF",
@@ -18516,5 +18571,7 @@
   "@settings_dataSources_appleHealth_dataTypeDepth": {"description": "HealthKit data type disclosure: underwater depth."},
   "@settings_dataSources_appleHealth_dataTypeWaterTemp": {"description": "HealthKit data type disclosure: water temperature."},
   "@settings_dataSources_appleHealth_permissionManagedInHealth": {"description": "Permission row shown when the platform will not disclose read access."},
-  "@settings_dataSources_appleHealth_permissionUnsupported": {"description": "Permission row shown when HealthKit is unavailable on this device."}
+  "@settings_dataSources_appleHealth_permissionUnsupported": {"description": "Permission row shown when HealthKit is unavailable on this device."},
+  "transfer_section_cloudTitle": "Cloud",
+  "transfer_section_cloudSubtitle": "Import from cloud"
 }

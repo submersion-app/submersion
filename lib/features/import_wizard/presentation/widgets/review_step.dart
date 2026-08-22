@@ -354,6 +354,11 @@ class _EntityTab extends StatelessWidget {
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
         projectedDiveNumbers: projectedDiveNumbers,
+        sortField: type == ImportEntityType.dives ? state.diveSortField : null,
+        sortAscending: state.diveSortAscending,
+        onSortFieldChanged: type == ImportEntityType.dives
+            ? notifier.setDiveSortField
+            : null,
       ),
     );
   }

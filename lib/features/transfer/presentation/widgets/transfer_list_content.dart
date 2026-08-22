@@ -42,6 +42,13 @@ final transferSections = [
         context.l10n.transfer_section_computersSubtitle,
     color: Colors.indigo,
   ),
+  TransferSection(
+    id: 'cloud',
+    icon: Icons.cloud_download,
+    titleBuilder: (context) => context.l10n.transfer_section_cloudTitle,
+    subtitleBuilder: (context) => context.l10n.transfer_section_cloudSubtitle,
+    color: Colors.teal,
+  ),
 ];
 
 /// Content widget for the transfer section list, used in master-detail layout.
