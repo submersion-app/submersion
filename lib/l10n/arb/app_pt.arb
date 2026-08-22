@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Clima",
   "diveLog_bulkEdit_groupCollections": "Tags, equipamento e vida",
   "diveLog_bulkEdit_fieldFavorite": "Favorito",
+  "diveLog_bulkEdit_fieldMyRole": "Minha função",
+  "diveLog_bulkEdit_buddyRoleMixed": "Variado",
   "diveLog_bulkEdit_collectionWeights": "Lastros",
   "diveLog_bulkEdit_collectionTanks": "Cilindros",
   "diveLog_bulkEdit_notesSet": "Definir",

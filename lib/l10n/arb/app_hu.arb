@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Időjárás",
   "diveLog_bulkEdit_groupCollections": "Címkék, felszerelés és élővilág",
   "diveLog_bulkEdit_fieldFavorite": "Kedvenc",
+  "diveLog_bulkEdit_fieldMyRole": "Saját szerep",
+  "diveLog_bulkEdit_buddyRoleMixed": "Vegyes",
   "diveLog_bulkEdit_collectionWeights": "Súlyok",
   "diveLog_bulkEdit_collectionTanks": "Palackok",
   "diveLog_bulkEdit_notesSet": "Beállítás",

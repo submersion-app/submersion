@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "天气",
   "diveLog_bulkEdit_groupCollections": "标签、装备和生物",
   "diveLog_bulkEdit_fieldFavorite": "收藏",
+  "diveLog_bulkEdit_fieldMyRole": "我的角色",
+  "diveLog_bulkEdit_buddyRoleMixed": "不一致",
   "diveLog_bulkEdit_collectionWeights": "配重",
   "diveLog_bulkEdit_collectionTanks": "气瓶",
   "diveLog_bulkEdit_notesSet": "设置",

@@ -361,6 +361,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_bulkEdit_fieldFavorite => 'Favoriet';
 
   @override
+  String get diveLog_bulkEdit_fieldMyRole => 'Mijn rol';
+
+  @override
+  String get diveLog_bulkEdit_buddyRoleMixed => 'Gemengd';
+
+  @override
   String get diveLog_bulkEdit_collectionWeights => 'Loodgewichten';
 
   @override

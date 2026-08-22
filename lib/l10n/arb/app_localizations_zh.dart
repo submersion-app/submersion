@@ -350,6 +350,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_fieldFavorite => '收藏';
 
   @override
+  String get diveLog_bulkEdit_fieldMyRole => '我的角色';
+
+  @override
+  String get diveLog_bulkEdit_buddyRoleMixed => '不一致';
+
+  @override
   String get diveLog_bulkEdit_collectionWeights => '配重';
 
   @override

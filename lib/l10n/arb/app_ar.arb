@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "الطقس",
   "diveLog_bulkEdit_groupCollections": "الوسوم والمعدات والحياة",
   "diveLog_bulkEdit_fieldFavorite": "مفضّل",
+  "diveLog_bulkEdit_fieldMyRole": "دوري",
+  "diveLog_bulkEdit_buddyRoleMixed": "متنوع",
   "diveLog_bulkEdit_collectionWeights": "الأوزان",
   "diveLog_bulkEdit_collectionTanks": "الأسطوانات",
   "diveLog_bulkEdit_notesSet": "تعيين",

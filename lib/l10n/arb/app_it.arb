@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Meteo",
   "diveLog_bulkEdit_groupCollections": "Tag, attrezzatura e vita",
   "diveLog_bulkEdit_fieldFavorite": "Preferito",
+  "diveLog_bulkEdit_fieldMyRole": "Il mio ruolo",
+  "diveLog_bulkEdit_buddyRoleMixed": "Misto",
   "diveLog_bulkEdit_collectionWeights": "Zavorre",
   "diveLog_bulkEdit_collectionTanks": "Bombole",
   "diveLog_bulkEdit_notesSet": "Imposta",

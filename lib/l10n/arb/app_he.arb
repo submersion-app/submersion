@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "מזג אוויר",
   "diveLog_bulkEdit_groupCollections": "תגיות, ציוד וחיים",
   "diveLog_bulkEdit_fieldFavorite": "מועדף",
+  "diveLog_bulkEdit_fieldMyRole": "התפקיד שלי",
+  "diveLog_bulkEdit_buddyRoleMixed": "מעורב",
   "diveLog_bulkEdit_collectionWeights": "משקולות",
   "diveLog_bulkEdit_collectionTanks": "מכלים",
   "diveLog_bulkEdit_notesSet": "הגדר",

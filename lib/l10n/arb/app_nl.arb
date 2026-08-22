@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Weer",
   "diveLog_bulkEdit_groupCollections": "Tags, uitrusting & leven",
   "diveLog_bulkEdit_fieldFavorite": "Favoriet",
+  "diveLog_bulkEdit_fieldMyRole": "Mijn rol",
+  "diveLog_bulkEdit_buddyRoleMixed": "Gemengd",
   "diveLog_bulkEdit_collectionWeights": "Loodgewichten",
   "diveLog_bulkEdit_collectionTanks": "Flessen",
   "diveLog_bulkEdit_notesSet": "Instellen",

@@ -645,6 +645,44 @@ class BuddyRepository {
     }
   }
 
+  /// Rewrite the role on the links each dive ALREADY has for [buddies],
+  /// inserting nothing. The role-only counterpart to [bulkAddBuddies]: a dive
+  /// the buddy is missing from stays missing, so changing someone's role
+  /// across a mixed selection cannot quietly add them to the rest (#1220).
+  ///
+  /// No notify/transaction; the caller wraps this like every other bulk op.
+  Future<void> bulkUpdateBuddyRoles(
+    List<String> diveIds,
+    List<domain.BuddyWithRole> buddies,
+  ) async {
+    if (diveIds.isEmpty || buddies.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final touched = <String>{};
+    for (final bwr in buddies) {
+      final existing =
+          await (_db.select(_db.diveBuddies)..where(
+                (t) => t.diveId.isIn(diveIds) & t.buddyId.equals(bwr.buddy.id),
+              ))
+              .get();
+      if (existing.isEmpty) continue;
+      await (_db.update(_db.diveBuddies)..where(
+            (t) => t.diveId.isIn(diveIds) & t.buddyId.equals(bwr.buddy.id),
+          ))
+          .write(DiveBuddiesCompanion(role: Value(bwr.role.id)));
+      for (final row in existing) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveBuddies',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+        touched.add(row.diveId);
+      }
+    }
+    for (final diveId in touched) {
+      await _bumpDive(diveId, now);
+    }
+  }
+
   /// Remove each buddy id from every dive. No notify/transaction.
   Future<void> bulkRemoveBuddies(
     List<String> diveIds,

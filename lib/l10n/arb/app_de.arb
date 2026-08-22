@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Wetter",
   "diveLog_bulkEdit_groupCollections": "Tags, Ausrüstung & Leben",
   "diveLog_bulkEdit_fieldFavorite": "Favorit",
+  "diveLog_bulkEdit_fieldMyRole": "Meine Rolle",
+  "diveLog_bulkEdit_buddyRoleMixed": "Gemischt",
   "diveLog_bulkEdit_collectionWeights": "Gewichte",
   "diveLog_bulkEdit_collectionTanks": "Flaschen",
   "diveLog_bulkEdit_notesSet": "Setzen",

@@ -137,6 +137,8 @@
   "diveLog_bulkEdit_groupWeather": "Météo",
   "diveLog_bulkEdit_groupCollections": "Tags, équipement et faune",
   "diveLog_bulkEdit_fieldFavorite": "Favori",
+  "diveLog_bulkEdit_fieldMyRole": "Mon rôle",
+  "diveLog_bulkEdit_buddyRoleMixed": "Variable",
   "diveLog_bulkEdit_collectionWeights": "Lestage",
   "diveLog_bulkEdit_collectionTanks": "Blocs",
   "diveLog_bulkEdit_notesSet": "Définir",
