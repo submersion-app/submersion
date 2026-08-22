@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
@@ -157,7 +161,50 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           failure: data is UnavailableData ? data.kind : null,
           storeFallbackUsed: resolution.storeFallbackUsed,
         );
+    _reconcileOrphanState(data);
     return resolution;
+  }
+
+  /// Persists what this resolution just proved about the row's source.
+  ///
+  /// The recorder above is session-scoped and 200 entries deep, so without
+  /// this the app rediscovers a deleted asset on every scroll and never
+  /// writes it down. `isOrphaned` is then read by the status badge, the
+  /// orphaned placeholder, and the orphan sweeps, all of which understate
+  /// library damage while nothing updates the column.
+  ///
+  /// Writes only on an actual change: [reconciledOrphanFlag] returns null
+  /// when the flag already agrees or the outcome was inconclusive, so a
+  /// library at rest costs nothing. That matters because every
+  /// `MediaRepository` write calls `markRecordPending`, and a write per
+  /// visible tile would queue one pending sync row per thumbnail scrolled
+  /// past.
+  void _reconcileOrphanState(MediaSourceData data) {
+    final desired = reconciledOrphanFlag(
+      currentlyOrphaned: widget.item.isOrphaned,
+      failure: data is UnavailableData ? data.kind : null,
+    );
+    if (desired == null) return;
+    // Unawaited and fully guarded: this runs on the resolve path of a grid
+    // tile and must neither delay the frame nor turn a write failure into a
+    // broken thumbnail. markVerified logs its own errors.
+    try {
+      unawaited(
+        ref
+            .read(mediaRepositoryProvider)
+            .markVerified(
+              widget.item.id,
+              isOrphaned: desired,
+              verifiedAt: DateTime.now(),
+            )
+            .catchError((Object _) {}),
+      );
+    } on Object catch (e) {
+      _imageErrorLog.error(
+        'Orphan reconciliation failed for ${widget.item.id}',
+        error: e,
+      );
+    }
   }
 
   /// Re-runs resolution after the user taps a still-loading tile.

@@ -22131,6 +22131,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_stillFetching => '仍在加载。点按重试。';
 
   @override
+  String get media_unavailablePlaceholder_accessDenied => '无照片库访问权限';
+
+  @override
   String get attrLabel_size => '尺码';
 
   @override
@@ -28243,6 +28246,29 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '已更新 $count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => '检查所有媒体';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个项目无法检查。Submersion 无法访问你的照片库。',
     );
     return '$_temp0';
   }

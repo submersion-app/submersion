@@ -22910,6 +22910,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Still loading. Tap to retry.';
 
   @override
+  String get media_unavailablePlaceholder_accessDenied =>
+      'No photo library access';
+
+  @override
   String get attrLabel_size => 'Size';
 
   @override
@@ -29436,6 +29440,33 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count items updated',
       one: '$count item updated',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => 'Check all media';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items updated',
+      one: '$count item updated',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count items could not be checked. Submersion cannot access your photo library.',
+      one:
+          '$count item could not be checked. Submersion cannot access your photo library.',
     );
     return '$_temp0';
   }

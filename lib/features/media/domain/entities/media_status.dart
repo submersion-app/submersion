@@ -43,12 +43,19 @@ enum MediaStatus {
 MediaStatus mediaStatusFor(MediaProvenance provenance) {
   final missing = provenance.origin.health == OriginHealth.missing;
   final backup = provenance.backup;
-  // Two conditions, both load-bearing. The store must be REACHABLE, since
-  // bytes in a store this device cannot talk to cannot cover for a missing
-  // local file. And "backed up" must be the upload pipeline's own predicate,
-  // not tier != none: a thumb-only stamp yields BackupTier.thumbOnly while
+  // Two conditions, both load-bearing. The store must be ATTACHED, and
+  // "backed up" must be the upload pipeline's own predicate rather than
+  // tier != none: a thumb-only stamp yields BackupTier.thumbOnly while
   // isBackedUp stays false, and treating that as covered would report a
   // photo as cloud-only when only its thumbnail was ever uploaded.
+  //
+  // Attached is deliberately weaker than REACHABLE. storeAttached resolves to
+  // a single SharedPreferences read (media_store_providers.dart), and a real
+  // reachability probe would have to build the store runtime, which this
+  // function is contractually forbidden from reaching for (see
+  // mediaProvenanceProvider). The residual risk is that an offline device
+  // with a configured store reports a missing local file as cloudOnly rather
+  // than broken.
   final coveredByStore = backup.backedUp && backup.storeAttached;
 
   if (missing && !coveredByStore) return MediaStatus.broken;

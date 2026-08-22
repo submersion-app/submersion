@@ -23226,6 +23226,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még töltődik. Koppintson az újrapróbálkozáshoz.';
 
   @override
+  String get media_unavailablePlaceholder_accessDenied =>
+      'Nincs hozzáférés a fotókönyvtárhoz';
+
+  @override
   String get attrLabel_size => 'Méret';
 
   @override
@@ -29771,6 +29775,33 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count elem frissítve',
       one: '$count elem frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => 'Az összes média ellenőrzése';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem frissítve',
+      one: '$count elem frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count elemet nem sikerült ellenőrizni. A Submersion nem fér hozzá a fotókönyvtáradhoz.',
+      one:
+          '$count elemet nem sikerült ellenőrizni. A Submersion nem fér hozzá a fotókönyvtáradhoz.',
     );
     return '$_temp0';
   }

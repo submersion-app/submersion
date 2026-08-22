@@ -216,21 +216,6 @@ void invalidateMediaStoreAttachment(WidgetRef ref) {
   ref.invalidate(mediaStoreAttachedProvider);
 }
 
-/// Per-tile badge status. Transient transfer state outranks persistent
-/// backup state: failed > transferring > queued > notBackedUp > none.
-///
-/// A failed, transferring, or pending queue row maps straight through. A
-/// done or absent row is a settled item, and settles to notBackedUp only
-/// when a store is attached, the source is uploadable, and the item has no
-/// upload stamps.
-///
-/// The settled check re-reads the row rather than trusting [item]: the
-/// tile's snapshot comes from mediaForDiveProvider, a FutureProvider that
-/// an upload's stamp write does not invalidate, so the snapshot goes stale
-/// the moment an upload completes. Re-reading is race-free because the
-/// pipeline calls stampRemoteUploaded before markDone, so the emission
-/// reporting done always follows the stamp write.
-///
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(
   (ref) => MediaStoresRepository(),
 );

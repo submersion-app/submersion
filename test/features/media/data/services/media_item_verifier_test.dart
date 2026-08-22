@@ -126,6 +126,29 @@ void main() {
     expect(repository.written.single.lastVerifiedAt, stamp);
   });
 
+  // accessDenied is the one that used to arrive as notFound. A revoked photo
+  // permission makes EVERY gallery row fail to resolve, so treating it as a
+  // dead pointer marked an entire library orphaned, and markRecordPending
+  // replicated that claim to every other device.
+  test('accessDenied stamps the date but never orphans a row', () async {
+    final result = await build(
+      VerifyResult.accessDenied,
+    ).verify(_item(isOrphaned: false));
+
+    expect(result, VerifyResult.accessDenied);
+    expect(repository.written.single.isOrphaned, isFalse);
+    expect(repository.written.single.lastVerifiedAt, stamp);
+  });
+
+  test('accessDenied does not clear an existing orphan flag either', () async {
+    // Symmetric to the transientError case: learning nothing must not move
+    // the flag in either direction.
+    await build(VerifyResult.accessDenied).verify(_item(isOrphaned: true));
+
+    expect(repository.written.single.isOrphaned, isTrue);
+    expect(repository.written.single.lastVerifiedAt, stamp);
+  });
+
   // A row whose source type has no registered resolver is a programmer
   // error, but its blast radius has to stay one item, and nothing was
   // actually checked so nothing should be written.

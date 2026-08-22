@@ -11,8 +11,20 @@ enum ResolutionStatus {
   /// Asset ID was resolved successfully (from cache, original ID, or matching).
   resolved,
 
-  /// No matching asset found on this device.
+  /// No matching asset found on this device. A POSITIVE finding: the gallery
+  /// was consulted and does not have it. Callers may treat this as evidence
+  /// the asset is gone.
   unavailable,
+
+  /// The gallery could not be consulted, so nothing was learned about the
+  /// asset. Never evidence of absence: the asset is probably fine and the
+  /// user can restore access by granting permission.
+  ///
+  /// Kept distinct from [unavailable] because a caller that orphans rows on
+  /// a negative finding would otherwise mark an entire library missing the
+  /// moment photo permission is revoked, and sync would replicate that
+  /// damage to every other device.
+  accessDenied,
 }
 
 /// Result of resolving a media item's asset ID on the current device.
@@ -157,6 +169,11 @@ class AssetResolutionService {
     // in place: caching would apply the 24h+ backoff to a transient,
     // user-recoverable condition, leaving the item stuck as unavailable
     // long after permission is granted.
+    //
+    // Both exits below report accessDenied rather than unavailable, which is
+    // what lets a caller tell "the gallery says no" apart from "the gallery
+    // would not answer". A caller that orphans rows on unavailable would
+    // otherwise mark the whole library missing the moment permission lapses.
     final PhotoPermissionStatus permission;
     try {
       permission = await _photoPickerService.checkPermission();
@@ -166,14 +183,14 @@ class AssetResolutionService {
       // letting it bubble out of resolveAssetId() and break a Riverpod
       // provider watching it.
       _log.error('Permission check failed for media ${item.id}', error: e);
-      return const ResolutionResult(status: ResolutionStatus.unavailable);
+      return const ResolutionResult(status: ResolutionStatus.accessDenied);
     }
     if (permission != PhotoPermissionStatus.authorized &&
         permission != PhotoPermissionStatus.limited) {
       _log.info(
         'Skipping gallery search for media ${item.id}: permission is $permission',
       );
-      return const ResolutionResult(status: ResolutionStatus.unavailable);
+      return const ResolutionResult(status: ResolutionStatus.accessDenied);
     }
 
     // Step 3: Search gallery by metadata (with query coalescing). The gallery

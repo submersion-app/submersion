@@ -33,6 +33,15 @@ enum UnavailableKind {
   /// recoverable by retrying, and the underlying fetch may well have finished
   /// by the time the user does.
   stillFetching,
+
+  /// The source refused to answer, so nothing is known about the item. The
+  /// gallery case is a revoked or not-yet-granted photo permission.
+  ///
+  /// Never evidence of absence, and deliberately distinct from [notFound]:
+  /// `reconciledOrphanFlag` leaves the orphan flag alone for this kind. It is
+  /// the difference between "your photo is gone" and "let me look at your
+  /// photos", and only one of those is safe to write down and sync.
+  accessDenied,
 }
 
 /// Which concrete source produced a [MediaSourceData]'s bytes.

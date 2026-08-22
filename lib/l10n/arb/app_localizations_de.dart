@@ -23262,6 +23262,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wird noch geladen. Zum Wiederholen tippen.';
 
   @override
+  String get media_unavailablePlaceholder_accessDenied =>
+      'Kein Zugriff auf die Fotomediathek';
+
+  @override
   String get attrLabel_size => 'Größe';
 
   @override
@@ -29817,6 +29821,33 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Elemente aktualisiert',
       one: '$count Element aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => 'Alle Medien prüfen';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente aktualisiert',
+      one: '$count Element aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Elemente konnten nicht geprüft werden. Submersion hat keinen Zugriff auf deine Fotomediathek.',
+      one:
+          '$count Element konnte nicht geprüft werden. Submersion hat keinen Zugriff auf deine Fotomediathek.',
     );
     return '$_temp0';
   }

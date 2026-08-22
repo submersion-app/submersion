@@ -11,11 +11,11 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 
 /// The newest upload row for one media id, reduced to the domain shape.
 ///
-/// Mirrors the guarding in [mediaBadgeStateProvider]: the repository resolves
-/// its database lazily, so an uninitialized local cache surfaces a StateError
-/// from `watchLatestForMedia` rather than from the watch, and both must sit
-/// inside the guard. Widget tests routinely run without that database, and a
-/// media item's provenance is not worth failing a tree over.
+/// Guarded because the repository resolves its database lazily: an
+/// uninitialized local cache surfaces a StateError from `watchLatestForMedia`
+/// rather than from the watch, so both must sit inside the try. Widget tests
+/// routinely run without that database, and a media item's provenance is not
+/// worth failing a tree over.
 ///
 /// AUTO-DISPOSING, unlike Riverpod 3's default for StreamProvider. Every
 /// rendered grid tile opens one entry here, and each entry holds a live Drift

@@ -22722,6 +22722,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין נטען. הקש כדי לנסות שוב.';
 
   @override
+  String get media_unavailablePlaceholder_accessDenied =>
+      'אין גישה לספריית התמונות';
+
+  @override
   String get attrLabel_size => 'מידה';
 
   @override
@@ -29250,6 +29254,39 @@ class AppLocalizationsHe extends AppLocalizations {
       many: '$count פריטים עודכנו',
       two: 'שני פריטים עודכנו',
       one: 'פריט אחד עודכן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => 'בדיקת כל המדיה';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים עודכנו',
+      many: '$count פריטים עודכנו',
+      two: '$count פריטים עודכנו',
+      one: 'פריט אחד עודכן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא ניתן היה לבדוק $count פריטים. ל-Submersion אין גישה לספריית התמונות שלך.',
+      many:
+          'לא ניתן היה לבדוק $count פריטים. ל-Submersion אין גישה לספריית התמונות שלך.',
+      two:
+          'לא ניתן היה לבדוק $count פריטים. ל-Submersion אין גישה לספריית התמונות שלך.',
+      one:
+          'לא ניתן היה לבדוק פריט אחד. ל-Submersion אין גישה לספריית התמונות שלך.',
     );
     return '$_temp0';
   }

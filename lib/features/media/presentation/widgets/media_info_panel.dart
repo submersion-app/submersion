@@ -425,8 +425,12 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
         VerifyResult.notFound ||
         VerifyResult.unauthenticated ||
         VerifyResult.fromOtherDevice => l10n.media_info_checkMissing,
+        // accessDenied belongs here rather than with checkMissing: the check
+        // did not conclude, and "Source is missing" would report a revoked
+        // photo permission as data loss.
         VerifyResult.transientError ||
-        VerifyResult.volumeOffline => l10n.media_info_checkUnavailable,
+        VerifyResult.volumeOffline ||
+        VerifyResult.accessDenied => l10n.media_info_checkUnavailable,
       };
       messenger.showSnackBar(SnackBar(content: Text(message)));
       // Invalidate the ROW, not the provenance provider: provenance is keyed

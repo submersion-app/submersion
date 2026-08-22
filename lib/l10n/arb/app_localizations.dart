@@ -38774,6 +38774,12 @@ abstract class AppLocalizations {
   /// **'Still loading. Tap to retry.'**
   String get media_unavailablePlaceholder_stillFetching;
 
+  /// No description provided for @media_unavailablePlaceholder_accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'No photo library access'**
+  String get media_unavailablePlaceholder_accessDenied;
+
   /// No description provided for @attrLabel_size.
   ///
   /// In en, this message translates to:
@@ -49998,6 +50004,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} item updated} other{{count} items updated}}'**
   String settings_mediaSources_reverifyResult(int count);
+
+  /// Media Sources: verify every media row regardless of source type
+  ///
+  /// In en, this message translates to:
+  /// **'Check all media'**
+  String get settings_mediaSources_checkAll;
+
+  /// Media Sources: how many rows the check-all pass updated
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item updated} other{{count} items updated}}'**
+  String settings_mediaSources_checkAllResult(int count);
+
+  /// Media Sources: the check-all pass could not read some rows sources
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item could not be checked. Submersion cannot access your photo library.} other{{count} items could not be checked. Submersion cannot access your photo library.}}'**
+  String settings_mediaSources_checkAllBlocked(int count);
 
   /// Media Sources settings page app bar title
   ///

@@ -10,6 +10,8 @@ import 'package:submersion/features/media/data/resolvers/local_file_resolver.dar
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/media_item_verifier.dart';
+import 'package:submersion/features/media/data/services/media_verification_sweep.dart';
 import 'package:submersion/features/media/data/services/gallery_thumbnail_cache.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
@@ -163,13 +165,32 @@ final mediaSourceResolverRegistryProvider =
       });
     });
 
+/// Verifies media rows of any source type. Backs the Media Sources
+/// "check all media" action, and the local-file subsection's own re-verify.
+///
+/// Builds its own [MediaItemVerifier] rather than reading
+/// `mediaItemVerifierProvider`: that provider lives in
+/// media_provenance_providers.dart, which imports THIS file, so reading it
+/// here would close an import cycle. The verifier is stateless over a
+/// registry and a repository, so a second instance costs nothing.
+///
+/// no-tick: a service rather than a cached query result.
+final mediaVerificationSweepProvider = Provider<MediaVerificationSweep>(
+  (ref) => MediaVerificationSweep(
+    repository: ref.read(mediaRepositoryProvider),
+    verifier: MediaItemVerifier(
+      registry: ref.read(mediaSourceResolverRegistryProvider),
+      repository: ref.read(mediaRepositoryProvider),
+    ),
+  ),
+);
+
 /// Singleton [LocalFilesDiagnosticsService] used by the Settings →
 /// Media Sources → Local files subsection.
 final localFilesDiagnosticsServiceProvider =
     Provider<LocalFilesDiagnosticsService>(
       (ref) => LocalFilesDiagnosticsService(
         repository: ref.read(mediaRepositoryProvider),
-        resolver: ref.read(localFileResolverProvider),
         platform: ref.read(localMediaPlatformProvider),
       ),
     );

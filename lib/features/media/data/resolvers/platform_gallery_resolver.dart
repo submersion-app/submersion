@@ -48,7 +48,14 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    final resolvedId = await _resolveId(item);
+    final resolution = await _resolutionService.resolveAssetId(item);
+    // Checked before the id, because accessDenied always carries a null id
+    // and collapsing the two would report "your photo is gone" for what is
+    // really "let me look at your photos".
+    if (resolution.status == ResolutionStatus.accessDenied) {
+      return const UnavailableData(kind: UnavailableKind.accessDenied);
+    }
+    final resolvedId = resolution.localAssetId;
     if (resolvedId == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
@@ -85,7 +92,21 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       () => _fetchThumbnail(item, width, height),
     );
     if (bytes == null) {
-      return const UnavailableData(kind: UnavailableKind.notFound);
+      // _fetchThumbnail returns Uint8List? and has already discarded WHY, so
+      // re-derive it. Failure path only, and getOrFetch never caches a null
+      // (gallery_thumbnail_cache.dart:99-103), so this costs nothing in the
+      // common case. resolveAssetId short-circuits at the permission check
+      // before it queries the gallery.
+      //
+      // Load-bearing: grid tiles call resolveThumbnail, so without this every
+      // tile on a permission-revoked device reports notFound and the
+      // reconciler would orphan the whole library.
+      final status = (await _resolutionService.resolveAssetId(item)).status;
+      return UnavailableData(
+        kind: status == ResolutionStatus.accessDenied
+            ? UnavailableKind.accessDenied
+            : UnavailableKind.notFound,
+      );
     }
     return BytesData(
       bytes: bytes,
@@ -149,7 +170,14 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   Future<VerifyResult> verify(MediaItem item) async {
     final assetId = item.platformAssetId;
     if (assetId == null || assetId.isEmpty) return VerifyResult.notFound;
-    final resolvedId = await _resolveId(item);
+    final resolution = await _resolutionService.resolveAssetId(item);
+    // Before the id check: accessDenied always carries a null id, and
+    // returning notFound here is what used to let a revoked permission mark
+    // every row in the library orphaned.
+    if (resolution.status == ResolutionStatus.accessDenied) {
+      return VerifyResult.accessDenied;
+    }
+    final resolvedId = resolution.localAssetId;
     if (resolvedId == null) return VerifyResult.notFound;
     // coverage:ignore-start
     final asset = await AssetEntity.fromId(resolvedId);
