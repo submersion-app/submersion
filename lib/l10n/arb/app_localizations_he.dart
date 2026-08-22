@@ -9601,13 +9601,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'פריסה בהתאם לפורמט יומן PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'מקצועי';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'אזורי חתימה וחותמת לאימות';
-
-  @override
   String get enum_pdfTemplate_simple => 'פשוט';
 
   @override
@@ -17924,6 +17917,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף תמונות כרטיסי הסמכה סרוקים ל-PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas => 'כלול אזורי אימות';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'הוסף תיבות חותמת וחתימה לאימות';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -17961,13 +17961,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'פריסה התואמת לפורמט יומן PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'מקצועי';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'אזורי חתימה וחותמת לאימות';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -31386,6 +31379,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_progress_loadingSignatures => 'טוען חתימות...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'טוען פרופילי צלילה...';
 
   @override
   String get settings_export_progress_loadingCertifications => 'טוען הסמכות...';

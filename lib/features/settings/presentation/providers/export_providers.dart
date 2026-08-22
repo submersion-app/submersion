@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -319,6 +322,33 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
     // Get current diver for personalization
     final diver = await _ref.read(currentDiverProvider.future);
+    final diverPhoto = await _loadDiverPhoto(diver?.photoPath);
+
+    // Depth profiles, for the templates that chart them. getAllDives skips
+    // profile hydration for performance, so they are loaded here, in one
+    // batched query, and thinned before any template sees them.
+    Map<String, PdfProfileSeries>? profiles;
+    if (exportOptions.template == PdfTemplate.detailed) {
+      state = state.copyWith(
+        message: _l10n.settings_export_progress_loadingProfiles,
+      );
+      // Chunked and thinned as we go. Loading every dive's raw samples first
+      // and downsampling afterwards would hold the whole logbook's sample set
+      // in memory at once, which is exactly what the thinning exists to avoid.
+      const chunkSize = 50;
+      final repository = _ref.read(diveRepositoryProvider);
+      final ids = dives.map((d) => d.id).toList();
+      final thinned = <String, PdfProfileSeries>{};
+
+      for (var i = 0; i < ids.length; i += chunkSize) {
+        final chunk = ids.skip(i).take(chunkSize).toList();
+        final raw = await repository.getMergedProfilesForDives(chunk);
+        for (final entry in raw.entries) {
+          thinned[entry.key] = PdfProfileSeries.downsampled(entry.value);
+        }
+      }
+      profiles = thinned;
+    }
 
     // Initialize fonts for proper Unicode support
     state = state.copyWith(
@@ -346,11 +376,30 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
       ),
+      units: UnitFormatter(settings),
       title: _l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       diver: diver,
+      profiles: profiles,
+      diverPhoto: diverPhoto,
+      includeVerificationAreas: exportOptions.includeVerificationAreas,
     );
+  }
+
+  /// Decode the diver's portrait for the PDF, or null when there is none.
+  ///
+  /// A missing or unreadable photo must never fail the export: the logbook is
+  /// still perfectly usable without a portrait.
+  Future<Uint8List?> _loadDiverPhoto(String? photoPath) async {
+    if (photoPath == null || photoPath.isEmpty) return null;
+    try {
+      final file = File(photoPath);
+      if (!await file.exists()) return null;
+      return await file.readAsBytes();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> exportDivesToUddf() async {

@@ -16682,18 +16682,6 @@ abstract class AppLocalizations {
   /// **'Layout matching PADI logbook format'**
   String get enum_pdfTemplate_padiStyle_description;
 
-  /// No description provided for @enum_pdfTemplate_professional.
-  ///
-  /// In en, this message translates to:
-  /// **'Professional'**
-  String get enum_pdfTemplate_professional;
-
-  /// No description provided for @enum_pdfTemplate_professional_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Signature and stamp areas for verification'**
-  String get enum_pdfTemplate_professional_description;
-
   /// No description provided for @enum_pdfTemplate_simple.
   ///
   /// In en, this message translates to:
@@ -30686,6 +30674,18 @@ abstract class AppLocalizations {
   /// **'Add scanned certification card images to the PDF'**
   String get transfer_pdfExport_includeCertCardsSubtitle;
 
+  /// No description provided for @transfer_pdfExport_includeVerificationAreas.
+  ///
+  /// In en, this message translates to:
+  /// **'Include Verification Areas'**
+  String get transfer_pdfExport_includeVerificationAreas;
+
+  /// No description provided for @transfer_pdfExport_includeVerificationAreasSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add stamp and signature boxes for agency verification'**
+  String get transfer_pdfExport_includeVerificationAreasSubtitle;
+
   /// No description provided for @transfer_pdfExport_pageSizeA4.
   ///
   /// In en, this message translates to:
@@ -30757,18 +30757,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Layout matching PADI logbook format'**
   String get transfer_pdfExport_templatePadiStyleDesc;
-
-  /// No description provided for @transfer_pdfExport_templateProfessional.
-  ///
-  /// In en, this message translates to:
-  /// **'Professional'**
-  String get transfer_pdfExport_templateProfessional;
-
-  /// No description provided for @transfer_pdfExport_templateProfessionalDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Signature and stamp areas for verification'**
-  String get transfer_pdfExport_templateProfessionalDesc;
 
   /// No description provided for @transfer_pdfExport_templateSemanticLabel.
   ///
@@ -53055,6 +53043,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading signatures...'**
   String get settings_export_progress_loadingSignatures;
+
+  /// No description provided for @settings_export_progress_loadingProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading dive profiles...'**
+  String get settings_export_progress_loadingProfiles;
 
   /// No description provided for @settings_export_progress_loadingCertifications.
   ///

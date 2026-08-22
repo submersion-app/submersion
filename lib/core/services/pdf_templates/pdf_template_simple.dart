@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -24,13 +29,48 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     required List<Dive> dives,
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
+    // Accepted for the shared builder contract; this template does not chart
+    // profiles, show a portrait, or offer verification areas.
+    Map<String, PdfProfileSeries>? profiles,
+    Uint8List? diverPhoto,
+    bool includeVerificationAreas = false,
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
+
+    // Key metrics up front (#1017). The compact table below stays untouched:
+    // Simple remains the dense option, it just no longer opens cold.
+    if (dives.isNotEmpty) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: pageFormat,
+          build: (context) => PdfSharedComponents.buildSummaryPage(
+            dives: dives,
+            dates: dates,
+            units: units,
+          ),
+        ),
+      );
+    }
+
+    if (certifications != null && certifications.isNotEmpty) {
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: pageFormat,
+          margin: const pw.EdgeInsets.all(32),
+          build: (context) => PdfSharedComponents.buildCertificationCardsBody(
+            certifications: certifications,
+            dates: dates,
+            diver: diver,
+          ),
+        ),
+      );
+    }
 
     // Calculate dives per page based on page size
     final divesPerPage = pageSize == PdfPageSize.a4 ? 20 : 18;
@@ -149,7 +189,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         ),
                         _buildCell(
                           dive.maxDepth != null
-                              ? '${dive.maxDepth!.toStringAsFixed(1)}m'
+                              ? units.formatDepth(dive.maxDepth)
                               : '-',
                           cellStyle,
                         ),
@@ -161,7 +201,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                         ),
                         _buildCell(
                           dive.waterTemp != null
-                              ? '${dive.waterTemp!.toStringAsFixed(0)}°C'
+                              ? units.formatTemperature(dive.waterTemp)
                               : '-',
                           cellStyle,
                         ),

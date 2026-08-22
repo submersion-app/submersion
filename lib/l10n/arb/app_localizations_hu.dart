@@ -9812,13 +9812,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'PADI naplo formatumnak megfelelo elrendezes';
 
   @override
-  String get enum_pdfTemplate_professional => 'Professzionalis';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Alairas es pecsethely az ellenorzeshez';
-
-  @override
   String get enum_pdfTemplate_simple => 'Egyszeru';
 
   @override
@@ -18340,6 +18333,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Beolvasott tanusitvany kartya kepek hozzaadasa a PDF-hez';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Hitelesitesi mezok hozzaadasa';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Belyegzo- es alairasmezok a hitelesiteshez';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -18377,13 +18378,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'PADI naplokonyv formatumnak megfelelo elrendezes';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Professzionalis';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Alairas es pecsethely a hitelesiteshez';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -31895,6 +31889,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Aláírások betöltése...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Merulesi profilok betoltese...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

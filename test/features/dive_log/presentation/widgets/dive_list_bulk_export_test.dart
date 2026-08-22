@@ -7,6 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'dart:typed_data';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -52,6 +63,9 @@ class _RecordingExportService implements ExportService {
     return '/tmp/shared_$label';
   }
 
+  /// The options the bulk sheet routed through, for assertions.
+  PdfExportOptions? pdfOptions;
+
   Future<String?> _save(String label) async {
     calls.add('save:$label');
     await gate?.future;
@@ -63,17 +77,35 @@ class _RecordingExportService implements ExportService {
   Future<String> exportDivesToPdf(
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
+    PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
-  }) => _share('pdf');
+    Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
+  }) {
+    pdfOptions = options;
+    return _share('pdf');
+  }
 
   @override
   Future<String?> saveDivesToPdfFile(
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
+    PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
-  }) => _save('pdf');
+    Map<String, PdfProfileSeries>? profiles,
+    List<Certification>? certifications,
+    Diver? diver,
+    Uint8List? diverPhoto,
+  }) {
+    pdfOptions = options;
+    return _save('pdf');
+  }
 
   @override
   Future<String> exportDivesToCsv(List<Dive> dives) => _share('csv');
@@ -103,6 +135,14 @@ class _RecordingExportService implements ExportService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Returns no buddies; the junction load is exercised in repository tests.
+class _FakeBuddyRepository extends BuddyRepository {
+  @override
+  Future<Map<String, List<BuddyWithRole>>> getBuddiesForDives(
+    List<String> diveIds,
+  ) async => const {};
 }
 
 class _FakeDiveRepository implements DiveRepository {
@@ -168,6 +208,13 @@ void main() {
           ),
           diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
           exportServiceProvider.overrideWithValue(exportService),
+          // The PDF route enriches the export with buddies, certifications
+          // and the diver. Those reach a database widget tests do not have,
+          // and the reads never settle, so stub them the way
+          // getBaseOverrides stubs preDiveSessionForDiveProvider.
+          buddyRepositoryProvider.overrideWithValue(_FakeBuddyRepository()),
+          allCertificationsProvider.overrideWith((ref) async => const []),
+          currentDiverProvider.overrideWith((ref) async => null),
         ],
         child: const DiveListContent(showAppBar: false),
       ),
@@ -196,6 +243,12 @@ void main() {
   ) async {
     await tester.tap(find.text(format));
     await tester.pumpAndSettle();
+    // PDF now asks which template to use before asking where to put it, so a
+    // bulk export is the same document a full-logbook export would produce.
+    if (format == 'PDF Logbook') {
+      await tester.tap(find.text('Export PDF'));
+      await tester.pumpAndSettle();
+    }
     await tester.tap(find.text(destination));
     await tester.pumpAndSettle();
   }
@@ -232,6 +285,25 @@ void main() {
     await chooseFormatAndDestination(tester, 'PDF Logbook', 'Share');
 
     expect(exportService.calls, ['share:pdf']);
+    expect(
+      exportService.pdfOptions?.template,
+      PdfTemplate.detailed,
+      reason: 'the picker default must reach the export service',
+    );
+  });
+
+  testWidgets('dismissing the PDF template picker exports nothing', (
+    tester,
+  ) async {
+    await pumpAndOpenExportSheet(tester);
+    await tester.tap(find.text('PDF Logbook'));
+    await tester.pumpAndSettle();
+
+    // Cancelling the picker is not a failure, it just stops the export.
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    expect(exportService.calls, isEmpty);
   });
 
   testWidgets('bulk UDDF export can still share, with sites', (tester) async {

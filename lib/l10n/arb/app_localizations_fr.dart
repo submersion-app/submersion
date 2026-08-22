@@ -9862,13 +9862,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mise en page au format carnet PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'Professionnel';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Zones de signature et de tampon pour verification';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simple';
 
   @override
@@ -18462,6 +18455,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter les images de cartes de certification scannees au PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Inclure les zones de verification';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Ajouter des cases tampon et signature pour la verification';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -18499,13 +18500,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Mise en page conforme au format du carnet PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Professionnel';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Zones de signature et de tampon pour verification';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -32098,6 +32092,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Chargement des signatures...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Chargement des profils de plongee...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

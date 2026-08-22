@@ -2,14 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Existing coverage pins the historical ISO rendering; #964 preference
 /// coverage lives in pdf_date_preference_test.dart.
+/// Metric formatter: these tests predate unit support and assert on the
+/// metric output they always produced.
+const testUnits = UnitFormatter(AppSettings());
+
 final isoDates = PdfDateFormatter(
   dateFormat: DateFormatPreference.yyyymmdd,
   timeFormat: TimeFormat.twentyFourHour,
@@ -45,16 +50,13 @@ void main() {
       dives: dives,
       pageSize: PdfPageSize.a4,
       dates: isoDates,
+      units: testUnits,
     ),
     'NAUI': (dives) => PdfTemplateNaui().buildPdf(
       dives: dives,
       pageSize: PdfPageSize.a4,
       dates: isoDates,
-    ),
-    'Professional': (dives) => PdfTemplateProfessional().buildPdf(
-      dives: dives,
-      pageSize: PdfPageSize.a4,
-      dates: isoDates,
+      units: testUnits,
     ),
   };
 

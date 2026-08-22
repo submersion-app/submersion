@@ -2,13 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_simple.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/pdf_text.dart';
 
@@ -40,13 +41,13 @@ void main() {
       dives: [dive],
       pageSize: PdfPageSize.a4,
       dates: dayFirst12Hour,
+      units: const UnitFormatter(AppSettings()),
     ),
   );
 
   final templates = <String, PdfTemplateBuilder Function()>{
     'Simple': PdfTemplateSimple.new,
     'Detailed': PdfTemplateDetailed.new,
-    'Professional': PdfTemplateProfessional.new,
     'PADI': PdfTemplatePadi.new,
     'NAUI': PdfTemplateNaui.new,
   };

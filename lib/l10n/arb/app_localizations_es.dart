@@ -9830,13 +9830,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Diseño similar al formato de registro PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'Profesional';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Áreas de firma y sello para verificación';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simple';
 
   @override
@@ -18405,6 +18398,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agregar imagenes escaneadas de tarjetas de certificacion al PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Incluir areas de verificacion';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Anadir casillas de sello y firma para la verificacion';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -18442,13 +18443,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Diseno que coincide con el formato del libro de registro PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Profesional';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Areas de firma y sello para verificacion';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -32047,6 +32041,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_export_progress_loadingSignatures => 'Cargando firmas...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Cargando perfiles de buceo...';
 
   @override
   String get settings_export_progress_loadingCertifications =>

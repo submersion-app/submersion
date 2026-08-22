@@ -9829,13 +9829,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Layout no formato do logbook PADI';
 
   @override
-  String get enum_pdfTemplate_professional => 'Profissional';
-
-  @override
-  String get enum_pdfTemplate_professional_description =>
-      'Areas de assinatura e carimbo para verificacao';
-
-  @override
   String get enum_pdfTemplate_simple => 'Simples';
 
   @override
@@ -18402,6 +18395,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar imagens de cartoes de certificacao escaneados ao PDF';
 
   @override
+  String get transfer_pdfExport_includeVerificationAreas =>
+      'Incluir areas de verificacao';
+
+  @override
+  String get transfer_pdfExport_includeVerificationAreasSubtitle =>
+      'Adicionar caixas de carimbo e assinatura para verificacao';
+
+  @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
 
   @override
@@ -18439,13 +18440,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
       'Layout correspondente ao formato do logbook PADI';
-
-  @override
-  String get transfer_pdfExport_templateProfessional => 'Profissional';
-
-  @override
-  String get transfer_pdfExport_templateProfessionalDesc =>
-      'Areas de assinatura e carimbo para verificacao';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -32029,6 +32023,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_progress_loadingSignatures =>
       'Carregando assinaturas...';
+
+  @override
+  String get settings_export_progress_loadingProfiles =>
+      'Carregando perfis de mergulho...';
 
   @override
   String get settings_export_progress_loadingCertifications =>
