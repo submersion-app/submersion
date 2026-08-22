@@ -3080,6 +3080,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
+            if (dive.courseId != null) _buildCourseRow(context, ref, dive),
             if (dive.visibility != null)
               _buildDetailRow(
                 context,
@@ -4311,6 +4312,63 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Training-course row for the Details card (#1219).
+  ///
+  /// The linked course used to surface only as a chip in the Signatures card
+  /// header, which is an optional section far down the page, so read-only
+  /// viewers had no way to see the link short of opening the edit form.
+  /// Callers gate on `dive.courseId != null`, so the provider is only reached
+  /// for dives that actually carry a link; the row stays empty until the
+  /// lookup resolves rather than reserving blank space.
+  Widget _buildCourseRow(BuildContext context, WidgetRef ref, Dive dive) {
+    final course = ref.watch(courseForDiveProvider(dive.id)).valueOrNull;
+    if (course == null) return const SizedBox.shrink();
+
+    return Semantics(
+      button: true,
+      label: context.l10n.diveLog_detail_semantics_viewCourse(course.name),
+      child: InkWell(
+        onTap: () => context.push('/courses/${course.id}'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_edit_section_trainingCourse,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        course.name,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
