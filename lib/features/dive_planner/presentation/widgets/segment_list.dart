@@ -91,10 +91,14 @@ class SegmentList extends ConsumerWidget {
 
   void _showAddSegmentDialog(BuildContext context, WidgetRef ref) {
     final planState = ref.read(divePlanNotifierProvider);
+    final initialStartDepth = planState.segments.isEmpty
+        ? 0.0
+        : planState.segments.last.endDepth;
 
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
+        initialStartDepth: initialStartDepth,
         availableTanks: planState.tanks,
         onSave: (segment) {
           ref.read(divePlanNotifierProvider.notifier).addSegment(segment);

@@ -321,6 +321,18 @@ class PlanEngine {
         : const DecoSchedule(stops: [], ttsSeconds: 0);
     final stops = _mapStops(schedule, plan, ascentPlan, lastDepth, runtime);
 
+    // A separate, finely-sampled replay purely for the chart's ceiling curve.
+    // It never feeds back into `state`/cns/otu/stops, so it cannot perturb
+    // the numbers the rest of this method already computed and returned.
+    final ceilingTrace = _ceilingTrace(
+      model,
+      plan,
+      segments,
+      stops,
+      lastDepth,
+      ascentPlan,
+    );
+
     // Decompression stops carry O2 exposure too — a long stop on a rich deco
     // gas is where CNS/OTU pile up — so accumulate them before issues and the
     // outcome are built. Each stop splits into its primary gas and, when air
@@ -382,7 +394,97 @@ class PlanEngine {
       issues: issues,
       endTissue: state as BuhlmannState,
       tissueTimeline: timeline,
+      ceilingTrace: ceilingTrace,
     );
+  }
+
+  /// Replays the dive (user segments, then the computed travel legs and
+  /// stops) on a scratch tissue state, sampling the ceiling every
+  /// [_ceilingSampleSeconds] so the chart can draw the real shape of a deco
+  /// obligation: it climbs from 0 as tissues load, then eases back to 0 as
+  /// each stop clears — never a flat plateau pinned to a stop's own depth.
+  static const _ceilingSampleSeconds = 30;
+
+  List<(int, double)> _ceilingTrace(
+    DecoModel model,
+    domain.DivePlan plan,
+    List<PlanSegment> segments,
+    List<PlanStop> stops,
+    double lastDepth,
+    AscentGasPlan ascentPlan,
+  ) {
+    final trace = <(int, double)>[];
+    var traceState = model.initial();
+    var runtime = 0;
+
+    void sampleLeg(
+      double startDepth,
+      double endDepth,
+      int durationSeconds,
+      BreathingConfig Function(double depth) breathingAt,
+    ) {
+      var elapsed = 0;
+      while (elapsed < durationSeconds) {
+        final remaining = durationSeconds - elapsed;
+        final step = remaining < _ceilingSampleSeconds
+            ? remaining
+            : _ceilingSampleSeconds;
+        final legStart =
+            startDepth + (endDepth - startDepth) * (elapsed / durationSeconds);
+        final legEnd =
+            startDepth +
+            (endDepth - startDepth) * ((elapsed + step) / durationSeconds);
+        traceState = model.applySegment(
+          traceState,
+          DecoSegment(
+            startDepth: legStart,
+            endDepth: legEnd,
+            durationSeconds: step,
+          ),
+          breathingAt((legStart + legEnd) / 2.0),
+        );
+        runtime += step;
+        elapsed += step;
+        trace.add((
+          runtime,
+          model.ceilingMeters(traceState, currentDepth: legEnd),
+        ));
+      }
+    }
+
+    BreathingConfig ascentBreathingAt(double depth) {
+      final gas = ascentPlan.gasForDepth(depth);
+      return OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
+    }
+
+    for (final segment in segments) {
+      sampleLeg(
+        segment.startDepth,
+        segment.endDepth,
+        segment.durationSeconds,
+        (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
+      );
+    }
+
+    var depth = lastDepth;
+    for (final stop in stops) {
+      final legSeconds = ((depth - stop.depthMeters) / plan.ascentRate * 60)
+          .round();
+      sampleLeg(depth, stop.depthMeters, legSeconds, ascentBreathingAt);
+      sampleLeg(
+        stop.depthMeters,
+        stop.depthMeters,
+        stop.durationSeconds,
+        (_) => ascentBreathingAt(stop.depthMeters),
+      );
+      depth = stop.depthMeters;
+    }
+    if (depth > 0) {
+      final legSeconds = (depth / plan.ascentRate * 60).round();
+      sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
+    }
+
+    return trace;
   }
 
   /// CCR consumption: metabolic O2 over the whole runtime charged to the

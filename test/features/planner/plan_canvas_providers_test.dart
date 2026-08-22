@@ -117,6 +117,34 @@ void main() {
     expect(series.ceiling, isNotEmpty);
   });
 
+  test(
+    'ceiling curve rises from 0, is finely sampled, and clears back to 0',
+    () {
+      final container = _container();
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+      final outcome = container.read(planOutcomeProvider);
+      final series = container.read(planCanvasSeriesProvider);
+
+      // A staircase pinned to each stop's own depth would only produce two
+      // points per stop; a real ceiling curve samples far more densely across
+      // the whole ascent (and the loading portion of the dive too).
+      expect(series.ceiling.length, greaterThan(outcome.stops.length * 2));
+      expect(series.ceiling.first.depth, 0);
+      // Clears to (near) the surface once the last stop finishes; residual
+      // GF-interpolation noise keeps this from landing on exactly 0.
+      expect(series.ceiling.last.depth, lessThan(0.5));
+      expect(series.ceiling.map((p) => p.depth), contains(greaterThan(0)));
+      // Monotonically non-decreasing time.
+      for (var i = 1; i < series.ceiling.length; i++) {
+        expect(
+          series.ceiling[i].timeSeconds,
+          greaterThanOrEqualTo(series.ceiling[i - 1].timeSeconds),
+        );
+      }
+    },
+  );
+
   test('multi-gas plan yields gas-switch markers at deco depths', () {
     final container = _container();
     final notifier = container.read(divePlanNotifierProvider.notifier);

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -68,5 +69,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(selectedSegmentIdProvider), segments.first.id);
+  });
+
+  testWidgets(
+    'add-segment dialog seeds start depth from the previous segment end depth',
+    (tester) async {
+      await tester.pumpWidget(harness());
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SegmentList)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+      await tester.pumpAndSettle();
+      final expectedDepth = container
+          .read(divePlanNotifierProvider)
+          .segments
+          .last
+          .endDepth;
+
+      await tester.tap(find.byTooltip('Add Segment'));
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.initialStartDepth, expectedDepth);
+    },
+  );
+
+  testWidgets('add-segment dialog seeds start depth at 0 for an empty plan', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Add Segment'));
+    await tester.pumpAndSettle();
+
+    final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+    expect(editor.initialStartDepth, 0.0);
   });
 }

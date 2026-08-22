@@ -1,3 +1,4 @@
+import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,18 +66,30 @@ void main() {
                 .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
                 .painter
             as PlanChartSeriesPainter;
+    PlanChartBackdropPainter backdropPainter() =>
+        tester
+                .widget<CustomPaint>(find.byKey(const Key('planChartBackdrop')))
+                .painter
+            as PlanChartBackdropPainter;
     expect(seriesPainter().ghost, isNull);
+
+    final baseCeiling = backdropPainter().ceiling;
 
     await tester.tap(find.text('+5m'));
     await tester.pumpAndSettle();
 
     expect(container.read(selectedDeviationProvider), 'deeper');
     expect(seriesPainter().ghost, isNotNull);
+    // The backdrop's ceiling band must track the previewed contingency, not
+    // stay pinned to the base plan.
+    expect(backdropPainter().ceiling, seriesPainter().ghost!.ceiling);
+    expect(backdropPainter().ceiling, isNot(baseCeiling));
 
-    // Back to base clears the ghost.
+    // Back to base clears the ghost and restores the base ceiling.
     await tester.tap(find.text('Base'));
     await tester.pumpAndSettle();
     expect(seriesPainter().ghost, isNull);
+    expect(backdropPainter().ceiling, baseCeiling);
   });
 
   testWidgets('overlay chips render a single row strip and drive selection', (

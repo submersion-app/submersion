@@ -120,6 +120,7 @@ void main() {
         issues: issues,
         endTissue: const BuhlmannState(compartments: []),
         tissueTimeline: const [],
+        ceilingTrace: const [],
       );
     }
 
