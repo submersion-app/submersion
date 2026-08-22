@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/pages/nav_customizatio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
@@ -29,6 +30,10 @@ class _FakeRepo implements AppSettingsRepository {
   Future<String?> getRawSetting(String key) async => null;
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {

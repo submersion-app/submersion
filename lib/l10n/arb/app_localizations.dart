@@ -20071,7 +20071,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_tab_blender.
   ///
   /// In en, this message translates to:
-  /// **'Blender'**
+  /// **'Trimix blender'**
   String get gasCalculators_tab_blender;
 
   /// No description provided for @gasCalculators_blender_cylinder.
@@ -20216,6 +20216,12 @@ abstract class AppLocalizations {
   /// **'These fill gases cannot reach the target mix exactly. Check the fill gases and their order.'**
   String get gasCalculators_blender_error_targetNotReached;
 
+  /// No description provided for @gasCalculators_blender_error_implausibleStartMix.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder is holding pressure but no oxygen and no helium, which would be pure nitrogen. Check the mix already in the cylinder.'**
+  String get gasCalculators_blender_error_implausibleStartMix;
+
   /// No description provided for @gasCalculators_blender_about.
   ///
   /// In en, this message translates to:
@@ -20225,8 +20231,302 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_aboutBody.
   ///
   /// In en, this message translates to:
-  /// **'Partial-pressure blend for the target mix, using real-gas (Van der Waals) behaviour. Add each fill gas in order, up to the pressure shown. Fill gases and their order are configurable; always analyse the finished mix before diving it.'**
+  /// **'Partial-pressure blend for the target mix. Add each fill gas in order, up to the pressure shown, then let the cylinder settle. Fill gases and their order are configurable, so setting the last gas to 32/0 tops off with EAN32 instead of air. Always analyse the finished mix before diving it.'**
   String get gasCalculators_blender_aboutBody;
+
+  /// No description provided for @gasCalculators_blender_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Blending conditions'**
+  String get gasCalculators_blender_conditions;
+
+  /// No description provided for @gasCalculators_blender_fillTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill temperature'**
+  String get gasCalculators_blender_fillTemp;
+
+  /// No description provided for @gasCalculators_blender_fillTempHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder\'s temperature while you fill it. Every pressure in the procedure is the gauge reading at this temperature.'**
+  String get gasCalculators_blender_fillTempHelp;
+
+  /// No description provided for @gasCalculators_blender_settledTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled temperature'**
+  String get gasCalculators_blender_settledTemp;
+
+  /// No description provided for @gasCalculators_blender_settledTempHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The temperature the cylinder ends up at. The target pressure is what it reads once it gets there.'**
+  String get gasCalculators_blender_settledTempHelp;
+
+  /// No description provided for @gasCalculators_blender_gasModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas model'**
+  String get gasCalculators_blender_gasModel;
+
+  /// No description provided for @gasCalculators_blender_modelIdeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal gas'**
+  String get gasCalculators_blender_modelIdeal;
+
+  /// No description provided for @gasCalculators_blender_modelVanDerWaals.
+  ///
+  /// In en, this message translates to:
+  /// **'Van der Waals'**
+  String get gasCalculators_blender_modelVanDerWaals;
+
+  /// No description provided for @gasCalculators_blender_modelZFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Real gas (Z-factor)'**
+  String get gasCalculators_blender_modelZFactor;
+
+  /// No description provided for @gasCalculators_blender_modelRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get gasCalculators_blender_modelRecommended;
+
+  /// No description provided for @gasCalculators_blender_modelHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Real gas (Z-factor) is the most accurate at cylinder pressures. Ideal gas matches most published blending tables. Van der Waals is offered for comparison with other blending software and is several percent off at fill pressure.'**
+  String get gasCalculators_blender_modelHelp;
+
+  /// No description provided for @gasCalculators_blender_stepAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {gas}'**
+  String gasCalculators_blender_stepAdd(String gas);
+
+  /// No description provided for @gasCalculators_blender_stepStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get gasCalculators_blender_stepStartLabel;
+
+  /// No description provided for @gasCalculators_blender_settlesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Settles to {pressure} at {temperature}'**
+  String gasCalculators_blender_settlesTo(String pressure, String temperature);
+
+  /// No description provided for @gasCalculators_blender_templates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get gasCalculators_blender_templates;
+
+  /// No description provided for @gasCalculators_blender_templatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target mix templates'**
+  String get gasCalculators_blender_templatesTitle;
+
+  /// No description provided for @gasCalculators_blender_saveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save current mix'**
+  String get gasCalculators_blender_saveTemplate;
+
+  /// No description provided for @gasCalculators_blender_manageTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage templates'**
+  String get gasCalculators_blender_manageTemplates;
+
+  /// No description provided for @gasCalculators_blender_templateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {mix}'**
+  String gasCalculators_blender_templateSaved(String mix);
+
+  /// No description provided for @gasCalculators_blender_templateExists.
+  ///
+  /// In en, this message translates to:
+  /// **'That mix is already saved.'**
+  String get gasCalculators_blender_templateExists;
+
+  /// No description provided for @gasCalculators_blender_templateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂ + He cannot exceed 100%.'**
+  String get gasCalculators_blender_templateInvalid;
+
+  /// No description provided for @gasCalculators_blender_templateNeedsNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both O₂ and He as numbers.'**
+  String get gasCalculators_blender_templateNeedsNumbers;
+
+  /// No description provided for @gasCalculators_blender_templateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can save up to {count} templates.'**
+  String gasCalculators_blender_templateLimit(int count);
+
+  /// No description provided for @gasCalculators_blender_templateNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Save a target mix to reuse it here.'**
+  String get gasCalculators_blender_templateNone;
+
+  /// No description provided for @gasCalculators_blender_templateDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {mix}'**
+  String gasCalculators_blender_templateDelete(String mix);
+
+  /// No description provided for @gasCalculators_blender_templateAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add template'**
+  String get gasCalculators_blender_templateAdd;
+
+  /// No description provided for @gasCalculators_blender_billing.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get gasCalculators_blender_billing;
+
+  /// No description provided for @gasCalculators_blender_cylinderVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder water capacity'**
+  String get gasCalculators_blender_cylinderVolume;
+
+  /// No description provided for @gasCalculators_blender_cylinderPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get gasCalculators_blender_cylinderPresets;
+
+  /// No description provided for @gasCalculators_blender_unitPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per 100 {unit}'**
+  String gasCalculators_blender_unitPrice(String unit);
+
+  /// No description provided for @gasCalculators_blender_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get gasCalculators_blender_currency;
+
+  /// No description provided for @gasCalculators_blender_costTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get gasCalculators_blender_costTotal;
+
+  /// No description provided for @gasCalculators_blender_costBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed on the pressure delivered (cylinder water capacity × bar added), the way a fill station meters it.'**
+  String get gasCalculators_blender_costBasis;
+
+  /// No description provided for @gasCalculators_blender_costMissingPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a price for every gas to see the total.'**
+  String get gasCalculators_blender_costMissingPrice;
+
+  /// No description provided for @gasCalculators_blender_saveFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this fill'**
+  String get gasCalculators_blender_saveFill;
+
+  /// No description provided for @gasCalculators_blender_billed.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed'**
+  String get gasCalculators_blender_billed;
+
+  /// No description provided for @gasCalculators_blender_billedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing billed yet. Finish a fill and save it here.'**
+  String get gasCalculators_blender_billedNone;
+
+  /// No description provided for @gasCalculators_blender_billedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed to'**
+  String get gasCalculators_blender_billedTo;
+
+  /// No description provided for @gasCalculators_blender_addManualLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a line'**
+  String get gasCalculators_blender_addManualLine;
+
+  /// No description provided for @gasCalculators_blender_lineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get gasCalculators_blender_lineDescription;
+
+  /// No description provided for @gasCalculators_blender_lineAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get gasCalculators_blender_lineAmount;
+
+  /// No description provided for @gasCalculators_blender_clearBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gasCalculators_blender_clearBilled;
+
+  /// No description provided for @gasCalculators_blender_clearBilledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the bill?'**
+  String get gasCalculators_blender_clearBilledTitle;
+
+  /// No description provided for @gasCalculators_blender_clearBilledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes all {count} saved fills.'**
+  String gasCalculators_blender_clearBilledBody(int count);
+
+  /// No description provided for @gasCalculators_blender_editLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {label}'**
+  String gasCalculators_blender_editLine(String label);
+
+  /// No description provided for @gasCalculators_blender_deleteLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {label}'**
+  String gasCalculators_blender_deleteLine(String label);
+
+  /// No description provided for @gasCalculators_blender_fillAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix} added to the bill'**
+  String gasCalculators_blender_fillAdded(String mix);
+
+  /// No description provided for @gasCalculators_blender_billedIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more lines have no price, so this total is incomplete.'**
+  String get gasCalculators_blender_billedIncomplete;
+
+  /// No description provided for @gasCalculators_blender_billedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get gasCalculators_blender_billedTotal;
 
   /// No description provided for @gasCalculators_tab_mod.
   ///

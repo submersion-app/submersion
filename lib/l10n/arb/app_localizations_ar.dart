@@ -11573,7 +11573,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
-  String get gasCalculators_tab_blender => 'الخلاط';
+  String get gasCalculators_tab_blender => 'خلاط ترايمكس';
 
   @override
   String get gasCalculators_blender_cylinder => 'الأسطوانة';
@@ -11664,11 +11664,193 @@ class AppLocalizationsAr extends AppLocalizations {
       'غازات التعبئة هذه لا تصل إلى الخليط المستهدف بدقة. تحقق من الغازات وترتيبها.';
 
   @override
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      'الأسطوانة تحت ضغط لكنها لا تحتوي على أكسجين ولا هيليوم، أي نيتروجين نقي. تحقّق من الخليط الموجود في الأسطوانة.';
+
+  @override
   String get gasCalculators_blender_about => 'حول الخلط';
 
   @override
   String get gasCalculators_blender_aboutBody =>
-      'خلط بالضغوط الجزئية للوصول إلى الخليط المستهدف باستخدام سلوك الغاز الحقيقي (فان دير فالس). أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض. غازات التعبئة وترتيبها قابلة للتعديل؛ حلّل الخليط النهائي دائمًا قبل الغوص به.';
+      'خلط بالضغط الجزئي للوصول إلى الخليط المستهدف. أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض، ثم اترك الأسطوانة تستقر. غازات التعبئة وترتيبها قابلة للتعديل، فضبط الغاز الأخير على 32/0 يجعل الاستكمال بـ EAN32 بدلاً من الهواء. حلّل الخليط النهائي دائمًا قبل الغوص به.';
+
+  @override
+  String get gasCalculators_blender_conditions => 'ظروف الخلط';
+
+  @override
+  String get gasCalculators_blender_fillTemp => 'درجة حرارة التعبئة';
+
+  @override
+  String get gasCalculators_blender_fillTempHelp =>
+      'درجة حرارة الأسطوانة أثناء التعبئة. كل ضغط في الخطوات هو قراءة المقياس عند هذه الدرجة.';
+
+  @override
+  String get gasCalculators_blender_settledTemp => 'درجة الحرارة بعد الاستقرار';
+
+  @override
+  String get gasCalculators_blender_settledTempHelp =>
+      'درجة الحرارة التي تستقر عليها الأسطوانة في النهاية. الضغط المستهدف هو ما تقرأه عندها.';
+
+  @override
+  String get gasCalculators_blender_gasModel => 'نموذج الغاز';
+
+  @override
+  String get gasCalculators_blender_modelIdeal => 'غاز مثالي';
+
+  @override
+  String get gasCalculators_blender_modelVanDerWaals => 'فان دير فالس';
+
+  @override
+  String get gasCalculators_blender_modelZFactor => 'غاز حقيقي (معامل Z)';
+
+  @override
+  String get gasCalculators_blender_modelRecommended => 'موصى به';
+
+  @override
+  String get gasCalculators_blender_modelHelp =>
+      'الغاز الحقيقي (معامل Z) هو الأدق عند ضغوط الأسطوانات. الغاز المثالي يطابق معظم جداول الخلط المنشورة. أما فان دير فالس فيُتاح للمقارنة مع برامج الخلط الأخرى، ويحيد بعدة نقاط مئوية عند ضغط التعبئة.';
+
+  @override
+  String gasCalculators_blender_stepAdd(String gas) {
+    return 'أضف $gas';
+  }
+
+  @override
+  String get gasCalculators_blender_stepStartLabel => 'البداية';
+
+  @override
+  String gasCalculators_blender_settlesTo(String pressure, String temperature) {
+    return 'يستقر عند $pressure في $temperature';
+  }
+
+  @override
+  String get gasCalculators_blender_templates => 'القوالب';
+
+  @override
+  String get gasCalculators_blender_templatesTitle => 'قوالب الخليط المستهدف';
+
+  @override
+  String get gasCalculators_blender_saveTemplate => 'حفظ الخليط الحالي';
+
+  @override
+  String get gasCalculators_blender_manageTemplates => 'إدارة القوالب';
+
+  @override
+  String gasCalculators_blender_templateSaved(String mix) {
+    return 'تم حفظ $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_templateExists =>
+      'هذا الخليط محفوظ بالفعل.';
+
+  @override
+  String get gasCalculators_blender_templateInvalid =>
+      'لا يمكن أن يتجاوز O₂ + He‏ 100%.';
+
+  @override
+  String get gasCalculators_blender_templateNeedsNumbers =>
+      'أدخل كلًا من O₂ وHe كأرقام.';
+
+  @override
+  String gasCalculators_blender_templateLimit(int count) {
+    return 'يمكنك حفظ ما يصل إلى $count قالبًا.';
+  }
+
+  @override
+  String get gasCalculators_blender_templateNone =>
+      'لا توجد قوالب بعد. احفظ خليطًا مستهدفًا لإعادة استخدامه هنا.';
+
+  @override
+  String gasCalculators_blender_templateDelete(String mix) {
+    return 'حذف $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_templateAdd => 'إضافة قالب';
+
+  @override
+  String get gasCalculators_blender_billing => 'التكلفة';
+
+  @override
+  String get gasCalculators_blender_cylinderVolume => 'السعة المائية للأسطوانة';
+
+  @override
+  String get gasCalculators_blender_cylinderPresets => 'الإعدادات المسبقة';
+
+  @override
+  String gasCalculators_blender_unitPrice(String unit) {
+    return 'السعر لكل 100 $unit';
+  }
+
+  @override
+  String get gasCalculators_blender_currency => 'العملة';
+
+  @override
+  String get gasCalculators_blender_costTotal => 'الإجمالي';
+
+  @override
+  String get gasCalculators_blender_costBasis =>
+      'تُحتسب التكلفة على الضغط المُعبأ (السعة المائية للأسطوانة × البار المضافة)، بالطريقة نفسها التي تقيس بها محطة التعبئة.';
+
+  @override
+  String get gasCalculators_blender_costMissingPrice =>
+      'أدخل سعرًا لكل غاز لعرض الإجمالي.';
+
+  @override
+  String get gasCalculators_blender_saveFill => 'حفظ هذه التعبئة';
+
+  @override
+  String get gasCalculators_blender_billed => 'الفاتورة';
+
+  @override
+  String get gasCalculators_blender_billedNone =>
+      'لا شيء في الفاتورة بعد. أكمل تعبئة واحفظها هنا.';
+
+  @override
+  String get gasCalculators_blender_billedTo => 'الفاتورة باسم';
+
+  @override
+  String get gasCalculators_blender_addManualLine => 'إضافة بند';
+
+  @override
+  String get gasCalculators_blender_lineDescription => 'الوصف';
+
+  @override
+  String get gasCalculators_blender_lineAmount => 'المبلغ';
+
+  @override
+  String get gasCalculators_blender_clearBilled => 'إفراغ';
+
+  @override
+  String get gasCalculators_blender_clearBilledTitle => 'إفراغ الفاتورة؟';
+
+  @override
+  String gasCalculators_blender_clearBilledBody(int count) {
+    return 'سيؤدي هذا إلى حذف جميع التعبئات المحفوظة وعددها $count.';
+  }
+
+  @override
+  String gasCalculators_blender_editLine(String label) {
+    return 'تعديل $label';
+  }
+
+  @override
+  String gasCalculators_blender_deleteLine(String label) {
+    return 'حذف $label';
+  }
+
+  @override
+  String gasCalculators_blender_fillAdded(String mix) {
+    return 'تمت إضافة $mix إلى الفاتورة';
+  }
+
+  @override
+  String get gasCalculators_blender_billedIncomplete =>
+      'أحد البنود بلا سعر، لذا فالإجمالي غير مكتمل.';
+
+  @override
+  String get gasCalculators_blender_billedTotal => 'الإجمالي';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';

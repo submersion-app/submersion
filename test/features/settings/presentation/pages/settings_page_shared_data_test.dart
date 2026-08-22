@@ -36,6 +36,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
@@ -120,6 +121,10 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.

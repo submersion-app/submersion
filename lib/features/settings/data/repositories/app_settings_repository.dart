@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 /// Read/write global (not per-diver) app settings stored in the
 /// key-value `settings` table.
@@ -17,6 +18,7 @@ class AppSettingsRepository {
 
   static const _shareByDefaultKey = 'share_new_records_by_default';
   static const _navPrimaryIdsKey = 'nav_primary_ids';
+  static const _blenderPrefsKey = 'gas_blender_prefs';
 
   /// Emits whenever the `settings` table changes so providers holding a
   /// setting refresh after a sync applies a remote change.
@@ -80,6 +82,61 @@ class AppSettingsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to write $_navPrimaryIdsKey',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The blender's saved templates, gas prices and blending conditions.
+  ///
+  /// Returns null when the key has never been written, which is what lets the
+  /// caller seed the default templates exactly once. A read error also returns
+  /// null rather than throwing, matching every other read in this class.
+  Future<BlenderPreferences?> getBlenderPreferences() async {
+    try {
+      final row = await (_db.select(
+        _db.settings,
+      )..where((t) => t.key.equals(_blenderPrefsKey))).getSingleOrNull();
+      final raw = row?.value;
+      if (raw == null) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return BlenderPreferences.fromJson(decoded);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read $_blenderPrefsKey',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  /// Persist the blender preferences. Rethrows so a failed save is visible,
+  /// matching [setNavPrimaryIds].
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db
+          .into(_db.settings)
+          .insertOnConflictUpdate(
+            SettingsCompanion(
+              key: const Value(_blenderPrefsKey),
+              value: Value(jsonEncode(prefs.toJson())),
+              updatedAt: Value(now),
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'settings',
+        recordId: _blenderPrefsKey,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to write $_blenderPrefsKey',
         error: e,
         stackTrace: stackTrace,
       );

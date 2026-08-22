@@ -11776,7 +11776,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
-  String get gasCalculators_tab_blender => 'Mezclador';
+  String get gasCalculators_tab_blender => 'Mezclador de trimix';
 
   @override
   String get gasCalculators_blender_cylinder => 'Cilindro';
@@ -11867,11 +11867,195 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos gases de llenado no alcanzan exactamente la mezcla objetivo. Revisa los gases y su orden.';
 
   @override
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      'El cilindro tiene presión pero ni oxígeno ni helio, lo que sería nitrógeno puro. Comprueba la mezcla que ya hay en el cilindro.';
+
+  @override
   String get gasCalculators_blender_about => 'Sobre la mezcla';
 
   @override
   String get gasCalculators_blender_aboutBody =>
-      'Mezcla por presiones parciales para la mezcla objetivo, con comportamiento de gas real (Van der Waals). Añade cada gas de llenado en orden, hasta la presión indicada. Los gases y su orden son configurables; analiza siempre la mezcla final antes de bucear.';
+      'Mezcla por presiones parciales para la mezcla objetivo. Añade cada gas de llenado en orden, hasta la presión indicada, y deja que el cilindro se estabilice. Los gases de llenado y su orden son configurables: si ajustas el último gas a 32/0, el remate se hace con EAN32 en lugar de aire. Analiza siempre la mezcla final antes de bucearla.';
+
+  @override
+  String get gasCalculators_blender_conditions => 'Condiciones de mezcla';
+
+  @override
+  String get gasCalculators_blender_fillTemp => 'Temperatura de llenado';
+
+  @override
+  String get gasCalculators_blender_fillTempHelp =>
+      'La temperatura del cilindro mientras lo llenas. Cada presión del procedimiento es la lectura del manómetro a esta temperatura.';
+
+  @override
+  String get gasCalculators_blender_settledTemp => 'Temperatura estabilizada';
+
+  @override
+  String get gasCalculators_blender_settledTempHelp =>
+      'La temperatura a la que acaba el cilindro. La presión objetivo es lo que marca una vez estabilizado.';
+
+  @override
+  String get gasCalculators_blender_gasModel => 'Modelo de gas';
+
+  @override
+  String get gasCalculators_blender_modelIdeal => 'Gas ideal';
+
+  @override
+  String get gasCalculators_blender_modelVanDerWaals => 'Van der Waals';
+
+  @override
+  String get gasCalculators_blender_modelZFactor => 'Gas real (factor Z)';
+
+  @override
+  String get gasCalculators_blender_modelRecommended => 'Recomendado';
+
+  @override
+  String get gasCalculators_blender_modelHelp =>
+      'El gas real (factor Z) es el más preciso a presiones de cilindro. El gas ideal coincide con la mayoría de las tablas de mezcla publicadas. Van der Waals se ofrece para comparar con otros programas de mezcla y se desvía varios por ciento a presión de llenado.';
+
+  @override
+  String gasCalculators_blender_stepAdd(String gas) {
+    return 'Añadir $gas';
+  }
+
+  @override
+  String get gasCalculators_blender_stepStartLabel => 'Inicio';
+
+  @override
+  String gasCalculators_blender_settlesTo(String pressure, String temperature) {
+    return 'Se estabiliza en $pressure a $temperature';
+  }
+
+  @override
+  String get gasCalculators_blender_templates => 'Plantillas';
+
+  @override
+  String get gasCalculators_blender_templatesTitle =>
+      'Plantillas de mezcla objetivo';
+
+  @override
+  String get gasCalculators_blender_saveTemplate => 'Guardar la mezcla actual';
+
+  @override
+  String get gasCalculators_blender_manageTemplates => 'Gestionar plantillas';
+
+  @override
+  String gasCalculators_blender_templateSaved(String mix) {
+    return '$mix guardada';
+  }
+
+  @override
+  String get gasCalculators_blender_templateExists =>
+      'Esa mezcla ya está guardada.';
+
+  @override
+  String get gasCalculators_blender_templateInvalid =>
+      'O₂ + He no puede superar el 100 %.';
+
+  @override
+  String get gasCalculators_blender_templateNeedsNumbers =>
+      'Introduce O₂ y He como números.';
+
+  @override
+  String gasCalculators_blender_templateLimit(int count) {
+    return 'Puedes guardar hasta $count plantillas.';
+  }
+
+  @override
+  String get gasCalculators_blender_templateNone =>
+      'Aún no hay plantillas. Guarda una mezcla objetivo para reutilizarla aquí.';
+
+  @override
+  String gasCalculators_blender_templateDelete(String mix) {
+    return 'Eliminar $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_templateAdd => 'Añadir plantilla';
+
+  @override
+  String get gasCalculators_blender_billing => 'Coste';
+
+  @override
+  String get gasCalculators_blender_cylinderVolume =>
+      'Volumen de agua del cilindro';
+
+  @override
+  String get gasCalculators_blender_cylinderPresets => 'Preajustes';
+
+  @override
+  String gasCalculators_blender_unitPrice(String unit) {
+    return 'Precio por 100 $unit';
+  }
+
+  @override
+  String get gasCalculators_blender_currency => 'Moneda';
+
+  @override
+  String get gasCalculators_blender_costTotal => 'Total';
+
+  @override
+  String get gasCalculators_blender_costBasis =>
+      'Se factura la presión suministrada (volumen de agua del cilindro × bar añadidos), tal como lo mide una estación de carga.';
+
+  @override
+  String get gasCalculators_blender_costMissingPrice =>
+      'Introduce un precio para cada gas para ver el total.';
+
+  @override
+  String get gasCalculators_blender_saveFill => 'Guardar este llenado';
+
+  @override
+  String get gasCalculators_blender_billed => 'Facturado';
+
+  @override
+  String get gasCalculators_blender_billedNone =>
+      'Todavía no hay nada facturado. Termina un llenado y guárdalo aquí.';
+
+  @override
+  String get gasCalculators_blender_billedTo => 'Facturado a';
+
+  @override
+  String get gasCalculators_blender_addManualLine => 'Añadir una línea';
+
+  @override
+  String get gasCalculators_blender_lineDescription => 'Descripción';
+
+  @override
+  String get gasCalculators_blender_lineAmount => 'Importe';
+
+  @override
+  String get gasCalculators_blender_clearBilled => 'Vaciar';
+
+  @override
+  String get gasCalculators_blender_clearBilledTitle => '¿Vaciar la factura?';
+
+  @override
+  String gasCalculators_blender_clearBilledBody(int count) {
+    return 'Esto elimina los $count llenados guardados.';
+  }
+
+  @override
+  String gasCalculators_blender_editLine(String label) {
+    return 'Editar $label';
+  }
+
+  @override
+  String gasCalculators_blender_deleteLine(String label) {
+    return 'Eliminar $label';
+  }
+
+  @override
+  String gasCalculators_blender_fillAdded(String mix) {
+    return '$mix añadido a la factura';
+  }
+
+  @override
+  String get gasCalculators_blender_billedIncomplete =>
+      'Alguna línea no tiene precio, así que el total está incompleto.';
+
+  @override
+  String get gasCalculators_blender_billedTotal => 'Total';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';

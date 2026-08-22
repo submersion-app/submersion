@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 Future<Widget> _buildTestApp({
   String initialLocation = '/dashboard',
@@ -142,6 +143,10 @@ class _FakeRepo implements AppSettingsRepository {
   Future<String?> getRawSetting(String key) async => null;
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {

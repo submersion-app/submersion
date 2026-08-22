@@ -11498,7 +11498,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
-  String get gasCalculators_tab_blender => 'מערבל';
+  String get gasCalculators_tab_blender => 'מערבל טרימיקס';
 
   @override
   String get gasCalculators_blender_cylinder => 'בלון';
@@ -11589,11 +11589,192 @@ class AppLocalizationsHe extends AppLocalizations {
       'גזי המילוי האלה לא מגיעים בדיוק לתערובת היעד. בדקו את הגזים ואת סדרם.';
 
   @override
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      'הבלון תחת לחץ אך ללא חמצן וללא הליום, כלומר חנקן טהור. בדוק את התערובת שכבר נמצאת בבלון.';
+
+  @override
   String get gasCalculators_blender_about => 'על הערבוב';
 
   @override
   String get gasCalculators_blender_aboutBody =>
-      'ערבוב בלחצים חלקיים לתערובת היעד, עם התנהגות גז ריאלי (ואן דר ואלס). הוסף כל גז מילוי לפי הסדר, עד הלחץ המוצג. גזי המילוי וסדרם ניתנים להגדרה; נתח תמיד את התערובת הסופית לפני צלילה איתה.';
+      'ערבוב בלחצים חלקיים לתערובת היעד. הוסף כל גז מילוי לפי הסדר עד ללחץ המוצג, ואז תן לבלון להתייצב. גזי המילוי וסדרם ניתנים להגדרה, כך שקביעת הגז האחרון ל-32/0 משלימה את המילוי ב-EAN32 במקום באוויר. תמיד נתח את התערובת הסופית לפני צלילה איתה.';
+
+  @override
+  String get gasCalculators_blender_conditions => 'תנאי הערבוב';
+
+  @override
+  String get gasCalculators_blender_fillTemp => 'טמפרטורת המילוי';
+
+  @override
+  String get gasCalculators_blender_fillTempHelp =>
+      'טמפרטורת הבלון בזמן המילוי. כל לחץ בסדר המילוי הוא הקריאה במד הלחץ בטמפרטורה הזו.';
+
+  @override
+  String get gasCalculators_blender_settledTemp => 'טמפרטורה לאחר התייצבות';
+
+  @override
+  String get gasCalculators_blender_settledTempHelp =>
+      'הטמפרטורה שאליה הבלון מגיע בסוף. לחץ היעד הוא מה שהוא מראה כשהוא שם.';
+
+  @override
+  String get gasCalculators_blender_gasModel => 'מודל הגז';
+
+  @override
+  String get gasCalculators_blender_modelIdeal => 'גז אידיאלי';
+
+  @override
+  String get gasCalculators_blender_modelVanDerWaals => 'ואן דר ואלס';
+
+  @override
+  String get gasCalculators_blender_modelZFactor => 'גז ממשי (מקדם Z)';
+
+  @override
+  String get gasCalculators_blender_modelRecommended => 'מומלץ';
+
+  @override
+  String get gasCalculators_blender_modelHelp =>
+      'גז ממשי (מקדם Z) הוא המדויק ביותר בלחצי בלון. גז אידיאלי תואם את רוב טבלאות הערבוב המפורסמות. ואן דר ואלס מוצע להשוואה מול תוכנות ערבוב אחרות וסוטה באחוזים בודדים בלחץ המילוי.';
+
+  @override
+  String gasCalculators_blender_stepAdd(String gas) {
+    return 'הוסף $gas';
+  }
+
+  @override
+  String get gasCalculators_blender_stepStartLabel => 'התחלה';
+
+  @override
+  String gasCalculators_blender_settlesTo(String pressure, String temperature) {
+    return 'מתייצב על $pressure ב-$temperature';
+  }
+
+  @override
+  String get gasCalculators_blender_templates => 'תבניות';
+
+  @override
+  String get gasCalculators_blender_templatesTitle => 'תבניות תערובת יעד';
+
+  @override
+  String get gasCalculators_blender_saveTemplate => 'שמור את התערובת הנוכחית';
+
+  @override
+  String get gasCalculators_blender_manageTemplates => 'ניהול תבניות';
+
+  @override
+  String gasCalculators_blender_templateSaved(String mix) {
+    return '$mix נשמרה';
+  }
+
+  @override
+  String get gasCalculators_blender_templateExists => 'התערובת הזו כבר שמורה.';
+
+  @override
+  String get gasCalculators_blender_templateInvalid =>
+      '‏O₂ + He לא יכולים לעלות על 100%.';
+
+  @override
+  String get gasCalculators_blender_templateNeedsNumbers =>
+      'הזן גם O₂ וגם He כמספרים.';
+
+  @override
+  String gasCalculators_blender_templateLimit(int count) {
+    return 'אפשר לשמור עד $count תבניות.';
+  }
+
+  @override
+  String get gasCalculators_blender_templateNone =>
+      'אין עדיין תבניות. שמור תערובת יעד כדי להשתמש בה כאן שוב.';
+
+  @override
+  String gasCalculators_blender_templateDelete(String mix) {
+    return 'מחק $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_templateAdd => 'הוסף תבנית';
+
+  @override
+  String get gasCalculators_blender_billing => 'עלות';
+
+  @override
+  String get gasCalculators_blender_cylinderVolume => 'נפח המים של הבלון';
+
+  @override
+  String get gasCalculators_blender_cylinderPresets => 'הגדרות מוכנות';
+
+  @override
+  String gasCalculators_blender_unitPrice(String unit) {
+    return 'מחיר ל-100 $unit';
+  }
+
+  @override
+  String get gasCalculators_blender_currency => 'מטבע';
+
+  @override
+  String get gasCalculators_blender_costTotal => 'סה\"כ';
+
+  @override
+  String get gasCalculators_blender_costBasis =>
+      'החיוב הוא לפי הלחץ שסופק (נפח המים של הבלון × בר שהוסף), כפי שתחנת המילוי מודדת.';
+
+  @override
+  String get gasCalculators_blender_costMissingPrice =>
+      'הזן מחיר לכל גז כדי לראות את הסכום הכולל.';
+
+  @override
+  String get gasCalculators_blender_saveFill => 'שמור את המילוי הזה';
+
+  @override
+  String get gasCalculators_blender_billed => 'חיוב';
+
+  @override
+  String get gasCalculators_blender_billedNone =>
+      'עדיין אין חיובים. סיים מילוי ושמור אותו כאן.';
+
+  @override
+  String get gasCalculators_blender_billedTo => 'החיוב על שם';
+
+  @override
+  String get gasCalculators_blender_addManualLine => 'הוסף שורה';
+
+  @override
+  String get gasCalculators_blender_lineDescription => 'תיאור';
+
+  @override
+  String get gasCalculators_blender_lineAmount => 'סכום';
+
+  @override
+  String get gasCalculators_blender_clearBilled => 'נקה';
+
+  @override
+  String get gasCalculators_blender_clearBilledTitle => 'לנקות את החיוב?';
+
+  @override
+  String gasCalculators_blender_clearBilledBody(int count) {
+    return 'פעולה זו תמחק את כל $count המילויים השמורים.';
+  }
+
+  @override
+  String gasCalculators_blender_editLine(String label) {
+    return 'עריכת $label';
+  }
+
+  @override
+  String gasCalculators_blender_deleteLine(String label) {
+    return 'מחיקת $label';
+  }
+
+  @override
+  String gasCalculators_blender_fillAdded(String mix) {
+    return '$mix נוסף לחיוב';
+  }
+
+  @override
+  String get gasCalculators_blender_billedIncomplete =>
+      'לשורה אחת או יותר אין מחיר, ולכן הסכום חלקי.';
+
+  @override
+  String get gasCalculators_blender_billedTotal => 'סה\"כ';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
