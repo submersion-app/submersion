@@ -12,6 +12,7 @@ enum ImportFormat {
   shearwaterDb,
   scubapro,
   danDl7,
+  ratioXml,
   sqlite,
   unknown;
 
@@ -28,6 +29,7 @@ enum ImportFormat {
     shearwaterDb => 'Shearwater Cloud',
     scubapro => 'Scubapro',
     danDl7 => 'DAN DL7',
+    ratioXml => 'Ratio XML',
     sqlite => 'SQLite Database',
     unknown => 'Unknown',
   };
@@ -41,7 +43,8 @@ enum ImportFormat {
     shearwaterDb ||
     macdiveXml ||
     macdiveSqlite ||
-    danDl7 => true,
+    danDl7 ||
+    ratioXml => true,
     _ => false,
   };
 }
@@ -60,6 +63,7 @@ enum SourceApp {
   ssiMyDiveGuide,
   dan,
   diverLog,
+  ratio,
   generic;
 
   String get displayName => switch (this) {
@@ -75,12 +79,14 @@ enum SourceApp {
     ssiMyDiveGuide => 'SSI MyDiveGuide',
     dan => 'DAN',
     diverLog => 'DiverLog+',
+    ratio => 'Ratio Computers',
     generic => 'Unknown App',
   };
 
   /// Instructions for exporting from this app in a supported format.
   String? get exportInstructions => switch (this) {
     shearwater => null, // Native .db import supported
+    ratio => null, // Native XML import supported
     suunto =>
       'In Suunto DM5, select your dives and go to File > Export > UDDF.',
     scubapro =>
@@ -206,6 +212,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.dan,
       format: ImportFormat.danDl7,
       displayName: 'DAN (DL7)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.ratio,
+      format: ImportFormat.ratioXml,
+      displayName: 'Ratio Computers (XML)',
     ),
   ];
 

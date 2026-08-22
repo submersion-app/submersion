@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(14));
+      expect(ImportFormat.values, hasLength(15));
     });
 
     test('displayName for each format', () {
@@ -20,12 +20,13 @@ void main() {
       expect(ImportFormat.shearwaterDb.displayName, 'Shearwater Cloud');
       expect(ImportFormat.scubapro.displayName, 'Scubapro');
       expect(ImportFormat.danDl7.displayName, 'DAN DL7');
+      expect(ImportFormat.ratioXml.displayName, 'Ratio XML');
       expect(ImportFormat.sqlite.displayName, 'SQLite Database');
       expect(ImportFormat.unknown.displayName, 'Unknown');
     });
 
     test(
-      'isSupported returns true for csv, uddf, subsurfaceXml, fit, shearwaterDb, macdiveXml, macdiveSqlite, danDl7',
+      'isSupported returns true for csv, uddf, subsurfaceXml, fit, shearwaterDb, macdiveXml, macdiveSqlite, danDl7, ratioXml',
       () {
         expect(ImportFormat.csv.isSupported, isTrue);
         expect(ImportFormat.uddf.isSupported, isTrue);
@@ -35,6 +36,7 @@ void main() {
         expect(ImportFormat.macdiveXml.isSupported, isTrue);
         expect(ImportFormat.macdiveSqlite.isSupported, isTrue);
         expect(ImportFormat.danDl7.isSupported, isTrue);
+        expect(ImportFormat.ratioXml.isSupported, isTrue);
       },
     );
 
@@ -50,7 +52,7 @@ void main() {
 
   group('SourceApp', () {
     test('has all expected values', () {
-      expect(SourceApp.values, hasLength(13));
+      expect(SourceApp.values, hasLength(14));
     });
 
     test('displayName for each source app', () {
@@ -65,6 +67,7 @@ void main() {
       expect(SourceApp.scubapro.displayName, 'Scubapro');
       expect(SourceApp.ssiMyDiveGuide.displayName, 'SSI MyDiveGuide');
       expect(SourceApp.dan.displayName, 'DAN');
+      expect(SourceApp.ratio.displayName, 'Ratio Computers');
       expect(SourceApp.generic.displayName, 'Unknown App');
     });
 
@@ -91,6 +94,7 @@ void main() {
       expect(SourceApp.divingLog.exportInstructions, isNull);
       expect(SourceApp.diveMate.exportInstructions, isNull);
       expect(SourceApp.garminConnect.exportInstructions, isNull);
+      expect(SourceApp.ratio.exportInstructions, isNull);
       expect(SourceApp.generic.exportInstructions, isNull);
     });
   });
@@ -134,7 +138,7 @@ void main() {
   group('SourceOverrideOption', () {
     group('supported list', () {
       test('contains expected number of entries', () {
-        expect(SourceOverrideOption.supported.length, 18);
+        expect(SourceOverrideOption.supported.length, 19);
       });
 
       test('contains Submersion CSV entry', () {
