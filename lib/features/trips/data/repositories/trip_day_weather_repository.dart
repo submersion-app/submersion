@@ -93,13 +93,20 @@ class TripDayWeatherRepository {
       final createdAt = sameDay.map((r) => r.createdAt).minOrNull;
       final strays = sameDay.where((r) => r.id != id).map((r) => r.id).toList();
 
+      // Atomic, following the pattern the #553 review established in
+      // BuddyRepository.deleteBuddy: the row change and its sync bookkeeping
+      // commit together, and only the observable event is deferred to after
+      // the commit. A tombstone written outside the transaction could be lost
+      // while its delete stood, and nothing would ever repair that: the
+      // backfill skips any day that already has a stored row, so once the
+      // canonical row exists this day is never upserted again and a
+      // resurrected stray would sit in the table for good.
       await _db.transaction(() async {
         // Strays go before the insert, not after. insertOnConflictUpdate
         // targets the primary key, so a stray sitting on this same
         // (trip_id, date) is not a conflict it can absorb: the insert misses
         // the ON CONFLICT target and hits the unique index instead, which
-        // throws and fails the whole write. One transaction, so a day is
-        // never left with its old row deleted and no new one in its place.
+        // throws and fails the whole write.
         if (strays.isNotEmpty) {
           await (_db.delete(
             _db.tripDayWeather,
@@ -131,24 +138,23 @@ class TripDayWeatherRepository {
                 updatedAt: Value(now),
               ),
             );
+
+        // A stray is a synced record: dropping it without a tombstone lets
+        // the peer that sent it hand it straight back on the next pull.
+        for (final stray in strays) {
+          await _syncRepository.logDeletion(
+            entityType: 'tripDayWeather',
+            recordId: stray,
+          );
+        }
+
+        await _syncRepository.markRecordPending(
+          entityType: 'tripDayWeather',
+          recordId: id,
+          localUpdatedAt: now,
+        );
       });
 
-      // After the row is in place, so a failed write leaves no tombstone for
-      // a day that still has its original row. A stray is a synced record:
-      // dropping it without one lets the peer that sent it hand it back on
-      // the next pull.
-      for (final stray in strays) {
-        await _syncRepository.logDeletion(
-          entityType: 'tripDayWeather',
-          recordId: stray,
-        );
-      }
-
-      await _syncRepository.markRecordPending(
-        entityType: 'tripDayWeather',
-        recordId: id,
-        localUpdatedAt: now,
-      );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
