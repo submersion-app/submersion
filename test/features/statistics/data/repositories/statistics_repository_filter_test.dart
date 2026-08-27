@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -79,14 +80,19 @@ void main() {
     await tag('dry');
     await link('a', 'dry');
 
-    final all = await repo.getVisibilityDistribution();
+    final all = await repo.getVisibilityDistribution(
+      scale: VisibilityScale.tropical,
+    );
     expect(all.length, 2);
 
     final filtered = await repo.getVisibilityDistribution(
+      scale: VisibilityScale.tropical,
       filter: const DiveFilterState(tagIds: ['dry']),
     );
     expect(filtered.length, 1);
-    expect(filtered.first.label, 'Good');
+    // These fixtures carry a pre-v144 bucket rather than a measurement, so
+    // they bin as legacy segments and keep their bucket in the key.
+    expect(filtered.first.label, 'legacy_Good');
   });
 
   test('dive-type distribution respects a tag filter', () async {

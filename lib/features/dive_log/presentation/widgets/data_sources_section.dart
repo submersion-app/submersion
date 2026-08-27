@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -77,7 +76,7 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
   Widget build(BuildContext context) {
     final count = widget.dataSources.length;
     final isMultiSource = count >= 2;
-    final title = isMultiSource ? 'Data Sources' : 'Data Source';
+    final title = context.l10n.diveLog_sources_sectionTitle(count);
 
     return CollapsibleSection(
       title: title,
@@ -93,7 +92,12 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
 
   List<Widget> _buildCards(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
-      return [_ManualEntryCard(diveCreatedAt: widget.diveCreatedAt)];
+      return [
+        _ManualEntryCard(
+          diveCreatedAt: widget.diveCreatedAt,
+          units: widget.units,
+        ),
+      ];
     }
 
     final children = <Widget>[];
@@ -236,8 +240,9 @@ class _SourceComparisonGrid extends StatelessWidget {
 /// Card shown when a dive has no imported data sources (manual entry).
 class _ManualEntryCard extends StatelessWidget {
   final DateTime diveCreatedAt;
+  final UnitFormatter units;
 
-  const _ManualEntryCard({required this.diveCreatedAt});
+  const _ManualEntryCard({required this.diveCreatedAt, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -258,14 +263,14 @@ class _ManualEntryCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Text(
-                      'Manual Entry',
+                      context.l10n.diveLog_sources_manualEntry,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 6),
                     _Badge(
-                      label: 'Manual',
+                      label: context.l10n.diveLog_sources_badge_manual,
                       color: colorScheme.surfaceContainerHighest,
                     ),
                   ],
@@ -276,7 +281,9 @@ class _ManualEntryCard extends StatelessWidget {
           const SizedBox(height: 8),
           // Creation date
           Text(
-            'Created ${_formatDate(diveCreatedAt)}',
+            context.l10n.diveLog_sources_created(
+              units.formatDate(diveCreatedAt),
+            ),
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -284,10 +291,6 @@ class _ManualEntryCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
   }
 }
 
@@ -315,20 +318,17 @@ class _DataSourceCard extends StatelessWidget {
     this.onTap,
   });
 
-  String _formatDuration(int? seconds) {
+  String _formatDuration(BuildContext context, int? seconds) {
     if (seconds == null) return '--';
     final minutes = seconds ~/ 60;
-    return '$minutes min';
+    return context.l10n.diveLog_sources_minutes(minutes);
   }
 
-  String _formatTime(DateTime? dateTime) {
-    if (dateTime == null) return '--';
-    return DateFormat('h:mm a').format(dateTime);
-  }
+  // Passed to _DetailsGrid as tear-offs, so they stay methods rather than
+  // inlined calls.
+  String _formatTime(DateTime? dateTime) => units.formatTime(dateTime);
 
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
-  }
+  String _formatDate(DateTime date) => units.formatDate(date);
 
   @override
   Widget build(BuildContext context) {
@@ -400,17 +400,23 @@ class _DataSourceCard extends StatelessWidget {
                               const SizedBox(width: 6),
                               if (isViewing)
                                 _Badge(
-                                  label: 'Viewing',
+                                  label: context
+                                      .l10n
+                                      .diveLog_sources_badge_viewing,
                                   color: colorScheme.tertiaryContainer,
                                 )
                               else if (source.isPrimary)
                                 _Badge(
-                                  label: 'Primary',
+                                  label: context
+                                      .l10n
+                                      .diveLog_computerSource_badge_primary,
                                   color: colorScheme.primaryContainer,
                                 )
                               else
                                 _Badge(
-                                  label: 'Secondary',
+                                  label: context
+                                      .l10n
+                                      .diveLog_sources_badge_secondary,
                                   color: colorScheme.surfaceContainerHighest,
                                 ),
                             ],
@@ -481,7 +487,7 @@ class _DataSourceCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _MetricCell(
-                      label: 'Max depth',
+                      label: context.l10n.diveLog_sources_row_maxDepth,
                       value: units.formatDepth(source.maxDepth),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
@@ -489,15 +495,15 @@ class _DataSourceCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'Duration',
-                      value: _formatDuration(source.duration),
+                      label: context.l10n.diveLog_sources_row_duration,
+                      value: _formatDuration(context, source.duration),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
                     ),
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'Water temp',
+                      label: context.l10n.diveLog_sources_row_waterTemp,
                       value: units.formatTemperature(source.waterTemp),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
@@ -505,7 +511,7 @@ class _DataSourceCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'CNS%',
+                      label: context.l10n.diveLog_legend_label_cns,
                       value: source.cns != null
                           ? '${source.cns!.toStringAsFixed(1)}%'
                           : '--',
@@ -563,7 +569,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.computerSerial != null) {
       items.add(
         _MetricCell(
-          label: 'Serial',
+          label: context.l10n.diveLog_sources_detail_serial,
           value: source.computerSerial!,
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -574,7 +580,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.sourceFormat != null) {
       items.add(
         _MetricCell(
-          label: 'Format',
+          label: context.l10n.diveLog_sources_detail_format,
           value: source.sourceFormat!,
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -585,7 +591,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.entryTime != null) {
       items.add(
         _MetricCell(
-          label: 'Entry',
+          label: context.l10n.diveLog_edit_row_entry,
           value: formatTime(source.entryTime),
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -596,7 +602,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.exitTime != null) {
       items.add(
         _MetricCell(
-          label: 'Exit',
+          label: context.l10n.diveLog_edit_row_exit,
           value: formatTime(source.exitTime),
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -606,7 +612,7 @@ class _DetailsGrid extends StatelessWidget {
 
     items.add(
       _MetricCell(
-        label: 'Imported',
+        label: context.l10n.diveLog_sources_detail_imported,
         value: formatDate(source.importedAt),
         labelStyle: labelStyle,
         valueStyle: valueStyle,

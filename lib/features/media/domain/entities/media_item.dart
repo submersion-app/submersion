@@ -1,13 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Type of media (photo, video, instructor signature)
 enum MediaType {
   photo,
   video,
-  instructorSignature;
+  instructorSignature,
+  document;
 
   String get displayName {
     switch (this) {
@@ -17,6 +19,8 @@ enum MediaType {
         return 'Video';
       case MediaType.instructorSignature:
         return 'Instructor Signature';
+      case MediaType.document:
+        return 'Document';
     }
   }
 
@@ -34,7 +38,13 @@ enum MatchConfidence {
   exact,
   interpolated,
   estimated,
-  noProfile;
+  noProfile,
+
+  /// The diver pinned the item to a moment in the dive themselves
+  /// ([MediaItem.manualElapsedSeconds]); depth and temperature are read
+  /// from the profile at that offset. Never an estimate, never reverted
+  /// by a backfill, and never subject to the dive-window tolerance.
+  manual;
 
   String get displayName {
     switch (this) {
@@ -46,6 +56,8 @@ enum MatchConfidence {
         return 'Estimated';
       case MatchConfidence.noProfile:
         return 'No Profile';
+      case MatchConfidence.manual:
+        return 'Manual';
     }
   }
 
@@ -98,6 +110,17 @@ class MediaItem extends Equatable {
   final String? compressedLevel;
   final int? compressedSizeBytes;
   final DateTime? remoteCompressedUploadedAt;
+
+  /// Media section Phase 2: explicitly kept in the library while unlinked.
+  /// The orphan sweep never GCs retained rows' store blobs.
+  final bool retainInLibrary;
+
+  /// Seconds from the dive start the diver pinned this item to, overriding
+  /// the position derived from [takenAt] (issue #1090). Null means the
+  /// automatic position applies. [takenAt] itself is never rewritten: it is
+  /// the file's own timestamp and gallery re-resolution matches on it.
+  final int? manualElapsedSeconds;
+
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -141,6 +164,8 @@ class MediaItem extends Equatable {
     this.compressedLevel,
     this.compressedSizeBytes,
     this.remoteCompressedUploadedAt,
+    this.retainInLibrary = false,
+    this.manualElapsedSeconds,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -151,6 +176,80 @@ class MediaItem extends Equatable {
 
   /// Returns true if this is a video
   bool get isVideo => mediaType == MediaType.video;
+
+  /// True for attachment documents (PDFs and opaque files).
+  bool get isDocument => mediaType == MediaType.document;
+
+  /// Lowercased extension of [originalFilename] without the dot; '' when
+  /// absent. Presentation-only: storage addressing uses StoreKeys.
+  String get documentExtension {
+    final name = originalFilename;
+    if (name == null) return '';
+    final dot = name.lastIndexOf('.');
+    if (dot < 0 || dot == name.length - 1) return '';
+    return name.substring(dot + 1).toLowerCase();
+  }
+
+  /// True for documents that render in the in-app PDF viewer.
+  bool get isPdf => isDocument && documentExtension == 'pdf';
+
+  /// Filename to use when writing this item's bytes to a temp file for
+  /// sharing. Falls back to a media-type-appropriate default when
+  /// [originalFilename] is missing or blank -- some import sources (e.g.
+  /// the desktop file picker) report an empty string rather than null,
+  /// which a plain `??` fallback misses and produces an empty path.
+  String get shareFilename {
+    final name = originalFilename;
+    if (name != null && name.isNotEmpty) return name;
+    return isVideo ? 'dive_video.mp4' : 'dive_photo.jpg';
+  }
+
+  /// MIME type to advertise when sharing this item, derived from
+  /// [shareFilename]'s extension so the advertised type never disagrees with
+  /// the filename (and likely the bytes) some share targets inspect. Falls
+  /// back to a media-type-appropriate default for a missing or unrecognized
+  /// extension.
+  String get shareMimeType {
+    final name = shareFilename;
+    final dot = name.lastIndexOf('.');
+    final ext = dot >= 0 && dot < name.length - 1
+        ? name.substring(dot + 1).toLowerCase()
+        : '';
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'm4v':
+        return 'video/x-m4v';
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'txt':
+        return 'text/plain';
+      case 'gpx':
+        return 'application/gpx+xml';
+      default:
+        if (isDocument) return 'application/octet-stream';
+        return isVideo ? 'video/mp4' : 'image/jpeg';
+    }
+  }
 
   /// Returns formatted duration string (e.g., "1:30" for 90 seconds)
   String? get durationString {
@@ -199,6 +298,8 @@ class MediaItem extends Equatable {
     Object? compressedLevel = _undefined,
     Object? compressedSizeBytes = _undefined,
     Object? remoteCompressedUploadedAt = _undefined,
+    bool? retainInLibrary,
+    Object? manualElapsedSeconds = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -286,6 +387,10 @@ class MediaItem extends Equatable {
       remoteCompressedUploadedAt: remoteCompressedUploadedAt == _undefined
           ? this.remoteCompressedUploadedAt
           : remoteCompressedUploadedAt as DateTime?,
+      retainInLibrary: retainInLibrary ?? this.retainInLibrary,
+      manualElapsedSeconds: manualElapsedSeconds == _undefined
+          ? this.manualElapsedSeconds
+          : manualElapsedSeconds as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -334,6 +439,8 @@ class MediaItem extends Equatable {
     compressedLevel,
     compressedSizeBytes,
     remoteCompressedUploadedAt,
+    retainInLibrary,
+    manualElapsedSeconds,
     createdAt,
     updatedAt,
     enrichment,
@@ -393,6 +500,26 @@ class MediaEnrichment extends Equatable {
           ? this.timestampOffsetSeconds
           : timestampOffsetSeconds as int?,
       createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  /// Whether the diver placed this item in the dive themselves.
+  bool get isManual => matchConfidence == MatchConfidence.manual;
+
+  /// Whether this row positions the item somewhere the chart should draw.
+  ///
+  /// An automatic position is only trusted inside [MediaDiveWindow] around a
+  /// profile of [profileLengthSeconds]; a manual one always is. The chart,
+  /// the 3D scene and the viewer all ask this rather than clamping blindly,
+  /// so a wrong capture date cannot pin a marker to the exit (issue #1090).
+  bool isWithinDiveWindow(int profileLengthSeconds) {
+    final seconds = elapsedSeconds;
+    if (seconds == null) return false;
+    if (matchConfidence == MatchConfidence.noProfile) return false;
+    if (isManual) return true;
+    return MediaDiveWindow.contains(
+      elapsedSeconds: seconds,
+      profileLengthSeconds: profileLengthSeconds,
     );
   }
 

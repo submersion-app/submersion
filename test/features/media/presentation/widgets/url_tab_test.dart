@@ -11,9 +11,10 @@
 //   the [ManifestModePanel] (Phase 3b Task 13 swap).
 // - Multi-line text field per-line validation via `UrlValidator`.
 // - "Add URL" single-line entry that appends to the staged set.
-// - Auto-match-by-date checkbox is on by default.
 // - "Add" button disabled when staged set is empty or has any invalid lines.
-// - Tapping "Add" calls `commit()` and shows a success snackbar with "Undo".
+// - Tapping "Add" resolves the draft, inserts against the picker's dive or
+//   site target (or opens the import review when there is none), and shows
+//   a success snackbar with "Undo".
 // - Tapping "Undo" calls `undoCommit(ids)`.
 // - On a 401 (unauthenticated host) a "Sign in" badge appears; tapping it
 //   opens the sign-in sheet.
@@ -44,12 +45,22 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
+import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_import_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'url_tab_test.mocks.dart';
+
+// `Override` is not exported from flutter_riverpod's public barrel; the
+// shared test helper re-types it for widget tests.
+import '../../../../helpers/mock_providers.dart' show Override;
 
 /// Stub fetcher used by the Manifest mode tab tests so the widget can
 /// be pumped without a real HTTP stack. The Manifest mode body itself
@@ -105,9 +116,14 @@ void main() {
     when(credentials.headersFor(any)).thenAnswer((_) async => null);
   });
 
-  Widget wrap(Widget child, {UrlTabState? seed}) {
+  Widget wrap(
+    Widget child, {
+    UrlTabState? seed,
+    List<Override> extraOverrides = const [],
+  }) {
     return ProviderScope(
       overrides: [
+        ...extraOverrides,
         // Override the credentials provider so [NetworkThumbnail] does
         // not try to construct the real service (which reaches into the
         // not-initialized [DatabaseService] in tests).
@@ -136,9 +152,34 @@ void main() {
             ),
           ),
       ],
-      child: MaterialApp(home: Scaffold(body: child)),
+      // The review page the no-target flow opens reads context.l10n.
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: child),
+      ),
     );
   }
+
+  ResolvedNetworkMedia resolvedA() =>
+      ResolvedNetworkMedia(uri: Uri.parse('https://example.com/a.jpg'));
+
+  void stubResolveAndInsert({List<String> ids = const ['id-1']}) {
+    when(pipeline.resolve(any)).thenAnswer((_) async => [resolvedA()]);
+    when(
+      pipeline.insertResolved(any, subscriptionId: anyNamed('subscriptionId')),
+    ).thenAnswer((_) async => ids);
+  }
+
+  List<NetworkInsertRequest> capturedRequests() =>
+      verify(
+            pipeline.insertResolved(
+              captureAny,
+              subscriptionId: anyNamed('subscriptionId'),
+            ),
+          ).captured.single
+          as List<NetworkInsertRequest>;
 
   testWidgets('renders mode segmented control with URLs default', (
     tester,
@@ -212,12 +253,6 @@ void main() {
     );
   });
 
-  testWidgets('autoMatchByDate checkbox is on by default', (tester) async {
-    await tester.pumpWidget(wrap(const UrlTab()));
-    final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
-    expect(checkbox.value, isTrue);
-  });
-
   testWidgets('Add button disabled when staged set is empty', (tester) async {
     await tester.pumpWidget(wrap(const UrlTab()));
     final addButton = tester.widget<FilledButton>(
@@ -241,22 +276,15 @@ void main() {
     expect(addButton.onPressed, isNull);
   });
 
-  testWidgets('committing calls notifier.commit and shows undo snack', (
+  testWidgets('Add resolves the draft and inserts against the dive target', (
     tester,
   ) async {
-    when(
-      pipeline.ingest(any, autoMatch: anyNamed('autoMatch')),
-    ).thenAnswer((_) async => ['id-1', 'id-2']);
+    stubResolveAndInsert();
 
     await tester.pumpWidget(
       wrap(
-        const UrlTab(),
-        seed: const UrlTabState(
-          draftLines: [
-            'https://example.com/a.jpg',
-            'https://example.com/b.jpg',
-          ],
-        ),
+        const UrlTab(target: DiveAttachTarget('dive-1')),
+        seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
       ),
     );
 
@@ -264,26 +292,126 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    verify(pipeline.ingest(any, autoMatch: anyNamed('autoMatch'))).called(1);
-    expect(find.byType(SnackBar), findsOneWidget);
+    final requests = capturedRequests();
+    expect(requests.single.diveId, 'dive-1');
+    expect(requests.single.siteId, isNull);
+    expect(find.text('Added 1 URL'), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
   });
 
-  testWidgets('undo calls notifier.undoCommit(ids)', (tester) async {
-    when(
-      pipeline.ingest(any, autoMatch: anyNamed('autoMatch')),
-    ).thenAnswer((_) async => ['id-1', 'id-2']);
-    when(repo.deleteMedia(any)).thenAnswer((_) async {});
+  testWidgets('with no target, Add opens the review page', (tester) async {
+    stubResolveAndInsert();
 
     await tester.pumpWidget(
       wrap(
         const UrlTab(),
-        seed: const UrlTabState(
-          draftLines: [
-            'https://example.com/a.jpg',
-            'https://example.com/b.jpg',
-          ],
+        seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MediaImportReviewPage), findsOneWidget);
+    verifyNever(
+      pipeline.insertResolved(any, subscriptionId: anyNamed('subscriptionId')),
+    );
+  });
+
+  testWidgets('confirming the review inserts the decided URLs', (tester) async {
+    final takenAt = DateTime.utc(2026, 6, 12, 10);
+    when(pipeline.resolve(any)).thenAnswer(
+      (_) async => [
+        ResolvedNetworkMedia(
+          uri: Uri.parse('https://example.com/a.jpg'),
+          result: UrlExtractionResult(
+            url: 'https://example.com/a.jpg',
+            finalUrl: 'https://example.com/a.jpg',
+            takenAt: takenAt,
+          ),
         ),
+      ],
+    );
+    when(
+      pipeline.insertResolved(any, subscriptionId: anyNamed('subscriptionId')),
+    ).thenAnswer((_) async => ['id-1']);
+
+    await tester.pumpWidget(
+      wrap(
+        const UrlTab(),
+        seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
+        extraOverrides: [
+          importSuggestionProvider(takenAt).overrideWith(
+            (ref) async => const ImportSuggestion(
+              match: TimestampMatch(
+                kind: TimestampMatchKind.confident,
+                diveId: 'd3',
+              ),
+              diveNumber: 3,
+            ),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    expect(find.text('Link to #3'), findsOneWidget);
+
+    await tester.tap(find.text('Import 1 items'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final requests = capturedRequests();
+    expect(requests.single.diveId, 'd3');
+    expect(find.text('Added 1 URL'), findsOneWidget);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('backing out of the review keeps the pasted URLs', (
+    tester,
+  ) async {
+    stubResolveAndInsert();
+
+    await tester.pumpWidget(
+      wrap(
+        const UrlTab(),
+        seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaImportReviewPage), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MediaImportReviewPage), findsNothing);
+    final element = tester.element(find.byType(UrlTab));
+    final state = ProviderScope.containerOf(
+      element,
+    ).read(urlTabNotifierProvider);
+    expect(state.draftLines, ['https://example.com/a.jpg']);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller?.text,
+      'https://example.com/a.jpg',
+    );
+    verifyNever(
+      pipeline.insertResolved(any, subscriptionId: anyNamed('subscriptionId')),
+    );
+  });
+
+  testWidgets('undo calls notifier.undoCommit(ids)', (tester) async {
+    stubResolveAndInsert(ids: ['id-1', 'id-2']);
+    when(repo.deleteMedia(any)).thenAnswer((_) async {});
+
+    await tester.pumpWidget(
+      wrap(
+        const UrlTab(target: DiveAttachTarget('dive-1')),
+        seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
       ),
     );
 
@@ -362,5 +490,33 @@ void main() {
         displayName: anyNamed('displayName'),
       ),
     ).called(1);
+  });
+
+  // Issue #1098. Opened from a dive site, the URL tab's "Add" button ingested
+  // rows that could only ever land on a dive, so the site never gained the
+  // attachment the user asked for.
+  group('site target', () {
+    testWidgets('inserts against the site', (tester) async {
+      stubResolveAndInsert();
+
+      await tester.pumpWidget(
+        wrap(
+          const UrlTab(target: SiteAttachTarget('site-1')),
+          seed: const UrlTabState(draftLines: ['https://example.com/a.jpg']),
+        ),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      verify(
+        pipeline.resolve(
+          argThat(equals([Uri.parse('https://example.com/a.jpg')])),
+        ),
+      ).called(1);
+      final requests = capturedRequests();
+      expect(requests.single.siteId, 'site-1');
+      expect(requests.single.diveId, isNull);
+    });
   });
 }

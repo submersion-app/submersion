@@ -3,13 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
-import '../../../helpers/sync_test_helpers.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
@@ -33,8 +32,8 @@ void main() {
       cloud = FakeCloudStorageProvider();
     });
 
-    tearDown(() {
-      DatabaseService.instance.resetForTesting();
+    tearDown(() async {
+      await tearDownTestDatabase();
     });
 
     SyncService buildService() => SyncService(
@@ -92,9 +91,7 @@ void main() {
         'createdAt': 1000,
       });
 
-      await buildService().performSync();
-      await serializer.deleteRecord('diveCustomFields', 'cf-1');
-      await impersonateFreshDevice();
+      await seedPeerLog(cloud, 'device-a');
       expect(await serializer.fetchRecord('diveCustomFields', 'cf-1'), isNull);
 
       final pull = await buildService().performSync();
@@ -119,9 +116,7 @@ void main() {
         'createdAt': 1000,
       });
 
-      await buildService().performSync();
-      await serializer.deleteRecord('siteSpecies', 'ss-1');
-      await impersonateFreshDevice();
+      await seedPeerLog(cloud, 'device-a');
       expect(await serializer.fetchRecord('siteSpecies', 'ss-1'), isNull);
 
       final pull = await buildService().performSync();
@@ -143,9 +138,7 @@ void main() {
         'updatedAt': 1000,
       });
 
-      await buildService().performSync();
-      await serializer.deleteRecord('csvPresets', 'csv-1');
-      await impersonateFreshDevice();
+      await seedPeerLog(cloud, 'device-a');
       expect(await serializer.fetchRecord('csvPresets', 'csv-1'), isNull);
 
       final pull = await buildService().performSync();
@@ -169,9 +162,7 @@ void main() {
         'updatedAt': 1000,
       });
 
-      await buildService().performSync();
-      await serializer.deleteRecord('viewConfigs', 'vc-1');
-      await impersonateFreshDevice();
+      await seedPeerLog(cloud, 'device-a');
       expect(await serializer.fetchRecord('viewConfigs', 'vc-1'), isNull);
 
       final pull = await buildService().performSync();
@@ -196,9 +187,7 @@ void main() {
         'createdAt': 1000,
       });
 
-      await buildService().performSync();
-      await serializer.deleteRecord('fieldPresets', 'fp-1');
-      await impersonateFreshDevice();
+      await seedPeerLog(cloud, 'device-a');
       expect(await serializer.fetchRecord('fieldPresets', 'fp-1'), isNull);
 
       final pull = await buildService().performSync();
@@ -227,11 +216,13 @@ void main() {
           'importedAt': 1700000000000,
           'createdAt': 1700000000000,
           'rawFingerprint': fingerprint,
+          // Consolidation's time re-base (#1177). It cannot be recovered from
+          // the raw bytes, so a peer that loses it re-parses the folded-in
+          // strand onto the wrong clock.
+          'timeOffsetSeconds': 60,
         });
 
-        await buildService().performSync();
-        await serializer.deleteRecord('diveDataSources', 'ds-1');
-        await impersonateFreshDevice();
+        await seedPeerLog(cloud, 'device-a');
         expect(await serializer.fetchRecord('diveDataSources', 'ds-1'), isNull);
 
         final pull = await buildService().performSync();
@@ -247,6 +238,7 @@ void main() {
           reason: 'data-source row (with BLOB) must round-trip',
         );
         expect(restored!['sourceFormat'], 'shearwater');
+        expect(restored['timeOffsetSeconds'], 60);
 
         // BLOB survives the JSON round-trip. The sync layer encodes BLOBs as
         // base64 strings (see sync_blob_base64_test.dart); fetchRecord decodes
@@ -264,5 +256,30 @@ void main() {
         expect(restoredBytes, [0x01, 0x02, 0x03, 0xFE, 0xFF]);
       },
     );
+
+    test('a DiveDataSources payload from a pre-v159 peer, with no '
+        'timeOffsetSeconds key at all, still applies (#1177)', () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-ds-2', diveNumber: 103),
+      );
+
+      // Older writers do not know the column exists. The receiving side
+      // must read that as "no offset", not reject the row.
+      await serializer.upsertRecord('diveDataSources', {
+        'id': 'ds-2',
+        'diveId': 'dive-ds-2',
+        'isPrimary': true,
+        'sourceFormat': 'shearwater',
+        'importedAt': 1700000000000,
+        'createdAt': 1700000000000,
+      });
+
+      final stored = await serializer.fetchRecord('diveDataSources', 'ds-2');
+      expect(stored, isNotNull);
+      expect(stored!['timeOffsetSeconds'], isNull);
+    });
   });
 }

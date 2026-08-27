@@ -45,6 +45,10 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
 /// but only DEFINITIVE nulls (a cached "no water here") are memoized;
 /// transient failures self-invalidate after
 /// [bathymetryTransientRetryBackoff] so a later visit retries.
+// no-tick: a write-once cache in the local-only cache database. Rows are keyed
+// by quantized cell and never updated in place -- a span change misses the old
+// key rather than rewriting it -- and the transient-failure case already
+// self-invalidates on a backoff timer.
 final bathymetryGridProvider =
     FutureProvider.family<BathymetryGrid?, ({double lat, double lon})>((
       ref,

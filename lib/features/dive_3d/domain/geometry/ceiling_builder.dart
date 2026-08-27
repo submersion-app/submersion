@@ -4,19 +4,19 @@ import 'dart:ui';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
-/// Renders the per-sample deco ceiling as a translucent strip above the
-/// ribbon: the physical "roof" the diver must stay below. The vertical gap
-/// between ribbon and ceiling is the deco margin. Samples where the diver
-/// is shallower than the ceiling (a ceiling violation) render red.
+/// The deco margin as a translucent sheet standing between the path and its
+/// ceiling depth, following the path in Z. Its height is the margin the
+/// diver has to the ceiling; samples where the diver is shallower than the
+/// ceiling (a violation) render red.
 class CeilingBuilder {
   static const Color _safe = Color(0xFFF59E0B);
   static const Color _violation = Color(0xFFEF4444);
   static const double _opacity = 0.35;
-  static const double _zHalf = SceneBounds.zHalfWidth * 3;
 
   static MeshData? build({
     required List<double> times,
     required List<double> depths,
+    required List<double> zs,
     required List<double?> ceilings,
     required SceneBounds bounds,
   }) {
@@ -32,15 +32,14 @@ class CeilingBuilder {
     for (var j = 0; j < active.length; j++) {
       final i = active[j];
       final x = bounds.xOf(times[i]);
-      final y = bounds.yOf(ceilings[i]!);
       final color = depths[i] < ceilings[i]! ? _violation : _safe;
       final p = j * 6;
       positions[p] = x;
-      positions[p + 1] = y;
-      positions[p + 2] = -_zHalf;
+      positions[p + 1] = bounds.yOf(depths[i]);
+      positions[p + 2] = zs[i];
       positions[p + 3] = x;
-      positions[p + 4] = y;
-      positions[p + 5] = _zHalf;
+      positions[p + 4] = bounds.yOf(ceilings[i]!);
+      positions[p + 5] = zs[i];
       for (var k = 0; k < 2; k++) {
         colors[p + k * 3] = color.r;
         colors[p + k * 3 + 1] = color.g;

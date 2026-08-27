@@ -8,7 +8,6 @@ import android.hardware.usb.UsbManager
 import android.os.Handler
 import android.os.Looper
 import com.hoho.android.usbserial.driver.UsbSerialDriver
-import com.hoho.android.usbserial.driver.UsbSerialProber
 import io.flutter.plugin.common.BinaryMessenger
 import java.util.concurrent.Executors
 
@@ -21,7 +20,6 @@ private const val LIBDC_TRANSPORT_IRDA = 1 shl 3
 private const val LIBDC_TRANSPORT_BLE = 1 shl 5
 
 private const val LIBDC_STATUS_CANCELLED = -10
-private const val UINT32_SENTINEL: Long = 4294967295L  // UINT32_MAX = unavailable
 private const val GATT_INSUFFICIENT_AUTHENTICATION = 5
 
 // Settle time between a stale-bond repair (GATT close + removeBond) and the
@@ -165,7 +163,12 @@ class DiveComputerHostApiImpl(
         // BleScanner identifies devices via LibdcWrapper.nativeDescriptorMatch on
         // the (async) scan-result thread. Bail with a clear error if the native
         // library never loaded, rather than crashing there (issue #318).
-        if (!nativeLibraryReady()) return
+        // Signal completion on the way out so the scan UI stops spinning
+        // instead of waiting for results that can never arrive (issue #123).
+        if (!nativeLibraryReady()) {
+            mainHandler.post { flutterApi.onDiscoveryComplete { } }
+            return
+        }
 
         val scanner = BleScanner(context)
         scanner.onDeviceDiscovered = { device ->
@@ -382,17 +385,47 @@ class DiveComputerHostApiImpl(
             return
         }
 
-        // Ensure the device is bonded before starting the download.
-        // Devices using encrypted BLE services (e.g. Aqualung i300C on
-        // the Pelagic service) need an established bond. createBond()
+        // Bond the device before starting the download. Devices using
+        // encrypted BLE services (e.g. Aqualung i300C on the Pelagic
+        // service) have to pair sooner or later, and doing it here puts
+        // the system pairing dialog in front of the user before the
+        // transfer starts rather than part-way through it. createBond()
         // works here because we have an active GATT connection.
-        if (!bleStream.ensureBonded()) {
-            reportError("bond_failed", "Failed to pair with device")
-            bleStream.close()
-            LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
-            downloadSessionPtr = 0
-            activeBleStream = null
-            return
+        // Shearwater devices are exempt: their protocol needs no bond,
+        // and holding one blocks Shearwater Cloud until the user unpairs
+        // (issue #910) -- see BondPolicy.
+        //
+        // A bond that does not complete is not fatal. By this point the
+        // link is connected and its services are discovered, and no other
+        // backend bonds at all, so giving up here would throw away a
+        // working connection over an optimisation -- which is what left a
+        // tester unable to download at all (issue #1029). A computer that
+        // really does require encryption still gets it: the Android stack
+        // pairs transparently during the first encrypted GATT operation,
+        // and if that fails the download reports the protocol error that
+        // actually describes the problem.
+        if (BondPolicy.requiresProactiveBond(device.vendor)) {
+            if (!bleStream.ensureBonded()) {
+                val reason = bleStream.lastBondFailure ?: "reason unavailable"
+                if (BondPolicy.bondFailureAbortsDownload(device.vendor)) {
+                    reportError("bond_failed", "Failed to pair with device: $reason")
+                    bleStream.close()
+                    LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                    downloadSessionPtr = 0
+                    activeBleStream = null
+                    return
+                }
+                NativeLogger.w(
+                    TAG, "BLE",
+                    "Proactive bond with ${device.vendor} ${device.product} " +
+                        "did not complete ($reason); continuing unbonded"
+                )
+            }
+        } else {
+            NativeLogger.d(
+                TAG, "BLE",
+                "Skipping proactive bond for ${device.vendor} (BondPolicy)"
+            )
         }
 
         val downloadCallback = makeDownloadCallback()
@@ -470,7 +503,10 @@ class DiveComputerHostApiImpl(
     ) {
         val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
         val drivers: List<UsbSerialDriver> = usbManager?.let {
-            UsbSerialProber.getDefaultProber().findAllDrivers(it)
+            // Not getDefaultProber(): its table lists only stock bridge-chip
+            // identifiers, so a dive cable with a reprogrammed product ID is
+            // invisible (issue #732).
+            DiveCableIds.prober().findAllDrivers(it)
         } ?: emptyList()
 
         if (drivers.isEmpty()) {
@@ -603,30 +639,7 @@ class DiveComputerHostApiImpl(
         val sampleCount = LibdcWrapper.nativeGetDiveSampleCount(divePtr)
         val samples = (0 until sampleCount).mapNotNull { i ->
             val s = LibdcWrapper.nativeGetDiveSample(divePtr, i) ?: return@mapNotNull null
-            ProfileSample(
-                timeSeconds = (s[0] / 1000.0).toLong(),
-                depthMeters = s[1],
-                temperatureCelsius = if (s[2].isNaN()) null else s[2],
-                pressureBar = if (s[3].isNaN()) null else s[3],
-                tankIndex = if (s[4].toLong() == UINT32_SENTINEL) null else s[4].toLong(),
-                heartRate = if (s[5].toLong() == UINT32_SENTINEL) null else s[5].toLong(),
-                heading = if (s.size < 22 || s[21].toLong() == UINT32_SENTINEL) null else s[21],
-                setpoint = if (s[6].isNaN()) null else s[6],
-                ppo2 = if (s[7].isNaN()) null else s[7],
-                cns = if (s[8].isNaN()) null else s[8],
-                rbt = if (s[9].toLong() == UINT32_SENTINEL) null else s[9].toLong(),
-                decoType = if (s[10].toLong() == UINT32_SENTINEL) null else s[10].toLong(),
-                decoTime = if (s[11].toLong() == UINT32_SENTINEL) null else s[11].toLong(),
-                decoDepth = if (s[12].isNaN()) null else s[12],
-                tts = if (s[13].toLong() == UINT32_SENTINEL || s[13].toLong() == 0L) null else s[13].toLong(),
-                o2Sensor1 = if (s[14].isNaN()) null else s[14],
-                o2Sensor2 = if (s[15].isNaN()) null else s[15],
-                o2Sensor3 = if (s[16].isNaN()) null else s[16],
-                o2Sensor4 = if (s[17].isNaN()) null else s[17],
-                o2Sensor5 = if (s[18].isNaN()) null else s[18],
-                o2Sensor6 = if (s[19].isNaN()) null else s[19],
-                gasMixIndex = if (s[20].toLong() == UINT32_SENTINEL) null else s[20].toLong(),
-            )
+            decodeProfileSample(s)
         }
 
         // Convert gas mixes.

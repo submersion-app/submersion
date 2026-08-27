@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -20,6 +27,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -63,6 +71,13 @@ class DiveCenterListContent extends ConsumerStatefulWidget {
 }
 
 class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
+  /// Owns the bulk-selection state machine for this list.
+  final SelectionController _selection = SelectionController();
+
+  /// Convenience mirrors of the controller, so the widget tree reads clearly.
+  bool get _isSelectionMode => _selection.value.isActive;
+  Set<String> get _selectedIds => _selection.value.checkedIds;
+
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
   bool _selectionFromList = false;
@@ -80,6 +95,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _selection.dispose();
     super.dispose();
   }
 
@@ -159,91 +175,143 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
 
     final sort = ref.watch(diveCenterSortProvider);
-    final content = centersAsync.when(
-      data: (centers) {
-        final sorted = applyDiveCenterSorting(centers, sort);
-        return sorted.isEmpty
-            ? _buildEmptyState(context)
-            : _buildCenterList(context, ref, sorted);
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => _buildErrorState(context, error),
+    final visibleCenters = applyDiveCenterSorting(
+      centersAsync.value ?? const [],
+      sort,
     );
+    final visibleIds = visibleCenters.map((c) => c.id).toList();
 
-    if (!widget.showAppBar) {
-      return Column(
-        children: [
-          _buildCompactAppBar(context),
-          Expanded(child: content),
-        ],
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // Built inside the selection listener below so rows re-render as checks
+    // change; computing it here would leave the list frozen mid-selection.
+    Widget buildContent() {
+      return centersAsync.when(
+        data: (centers) {
+          final sorted = applyDiveCenterSorting(centers, sort);
+          return sorted.isEmpty
+              ? _buildEmptyState(context)
+              : _buildCenterList(context, ref, sorted);
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => _buildErrorState(context, error),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.diveCenters_title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.map),
-            tooltip: context.l10n.diveCenters_tooltip_mapView,
-            onPressed: () => context.go('/dive-centers/map'),
+    if (!widget.showAppBar) {
+      return SelectableListScope(
+        controller: _selection,
+        selectableIds: visibleIds,
+        child: ValueListenableBuilder<SelectionState>(
+          valueListenable: _selection,
+          builder: (context, selection, _) => Column(
+            children: [
+              selection.isActive
+                  ? _buildSelectionBar(visibleCenters, SelectionBarShell.pane)
+                  : _buildCompactAppBar(context),
+              Expanded(child: buildContent()),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: context.l10n.diveCenters_tooltip_search,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: DiveCenterSearchDelegate(ref),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort),
-            tooltip: context.l10n.diveCenters_tooltip_sort,
-            onPressed: () => _showSortSheet(context),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: context.l10n.diveCenters_tooltip_moreOptions,
-            onSelected: (value) {
-              if (value == 'import') {
-                context.push('/dive-centers/import');
-              } else if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(diveCenterListViewModeProvider);
-              return [
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
+        ),
+      );
+    }
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) => Scaffold(
+          appBar: selection.isActive
+              ? _buildSelectionBar(visibleCenters, SelectionBarShell.appBar)
+              : AppBar(
+                  title: FeatureAppBarTitle(
+                    featureId: 'dive-centers',
+                    title: context.l10n.diveCenters_title,
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.map),
+                      tooltip: context.l10n.diveCenters_tooltip_mapView,
+                      onPressed: () => context.push('/dive-centers/map'),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      tooltip: context.l10n.diveCenters_tooltip_search,
+                      onPressed: () {
+                        showSearch(
+                          context: context,
+                          delegate: DiveCenterSearchDelegate(ref),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.sort),
+                      tooltip: context.l10n.diveCenters_tooltip_sort,
+                      onPressed: () => _showSortSheet(context),
+                    ),
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
+                    IconButton(
+                      key: const ValueKey('enter_selection'),
+                      icon: const Icon(Icons.checklist),
+                      tooltip: context.l10n.common_selection_enterTooltip,
+                      onPressed: _selection.enterExplicit,
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      tooltip: context.l10n.diveCenters_tooltip_moreOptions,
+                      onSelected: (value) {
+                        if (value == 'import') {
+                          context.push('/dive-centers/import');
+                        } else if (value.startsWith('view_')) {
+                          final mode = ListViewMode.fromName(
+                            value.replaceFirst('view_', ''),
+                          );
+                          ref
+                                  .read(diveCenterListViewModeProvider.notifier)
+                                  .state =
+                              mode;
+                        }
+                      },
+                      itemBuilder: (context) {
+                        final currentMode = ref.read(
+                          diveCenterListViewModeProvider,
+                        );
+                        return [
+                          ...ListViewModeToggle.menuItems(
+                            context,
+                            currentMode: currentMode,
+                            modes: const [
+                              ListViewMode.detailed,
+                              ListViewMode.compact,
+                              ListViewMode.table,
+                            ],
+                          ),
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: 'import',
+                            child: ListTile(
+                              leading: const Icon(Icons.download),
+                              title: Text(
+                                context.l10n.diveCenters_action_import,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
                   ],
                 ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'import',
-                  child: ListTile(
-                    leading: const Icon(Icons.download),
-                    title: Text(context.l10n.diveCenters_action_import),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ];
-            },
-          ),
-        ],
+          body: buildContent(),
+          floatingActionButton: selection.isActive
+              ? null
+              : widget.floatingActionButton,
+        ),
       ),
-      body: content,
-      floatingActionButton: widget.floatingActionButton,
     );
   }
 
@@ -253,13 +321,121 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
   /// only the compact app bar (sort controls, etc.) and the table.
   /// The outer Scaffold, map, and column settings are all managed by
   /// [TableModeLayout].
+  /// Dive centers offer no extras beyond the baseline.
+  ///
+  /// Merge exists for dives, sites, buddies, divers and tags, but nowhere
+  /// under dive_centers -- there is no single-center merge to lift, so one is
+  /// not invented here.
+  SelectionAppBar _buildSelectionBar(
+    List<DiveCenter> centers,
+    SelectionBarShell shell,
+  ) {
+    return SelectionAppBar(
+      controller: _selection,
+      selectableIds: centers.map((c) => c.id).toList(),
+      actions: const [],
+      shell: shell,
+      onDelete: _confirmAndDelete,
+    );
+  }
+
+  /// One tap policy for every dive-center row.
+  ///
+  /// The selection checks come first: [_handleItemTap] short-circuits to the
+  /// map callback when isMapMode, so deferring to it would open a centre
+  /// instead of toggling it while selecting on the map page.
+  void _handleRowTap(DiveCenter center) {
+    if (SelectableListScope.isModifierPressed()) {
+      _selection.enterImplicit(center.id);
+      return;
+    }
+    if (_isSelectionMode) {
+      _selection.toggle(center.id);
+      return;
+    }
+    _handleItemTap(center);
+  }
+
+  Future<void> _confirmAndDelete() async {
+    final ids = _selectedIds.toList();
+    if (ids.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
+        content: Text(ctx.l10n.common_bulkDelete_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(ctx.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(diveCenterListNotifierProvider.notifier);
+    _selection.exit();
+    for (final id in ids) {
+      await notifier.deleteDiveCenter(id);
+    }
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+      ),
+    );
+  }
+
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<DiveCenter>> centersAsync,
   ) {
-    final tableContent = _buildTableView(context, centersAsync);
+    final visibleIds = (centersAsync.value ?? const <DiveCenter>[])
+        .map((c) => c.id)
+        .toList();
 
-    return tableContent;
+    // Same pruning the list path does: drop checked centers that fell out of
+    // the visible list, so the count matches what is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
+    // the builder is what repaints the table as checks change -- the table is
+    // built inside it for that reason.
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          final centers = centersAsync.value ?? const <DiveCenter>[];
+          // Table mode has no app bar of its own, so both bars live here: the
+          // contextual one while selecting, and the Select affordance while
+          // not. They share a slot and a height, so the table does not shift
+          // as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(centers, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: _buildTableView(context, centersAsync)),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for dive center table mode.
@@ -302,7 +478,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           onEntityTapDown: (id) {
             ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
           },
-          onEntityTap: (id) {},
+          onEntityTap: (id) {
+            if (_isSelectionMode) _selection.toggle(id);
+          },
+          selectedIds: _selectedIds,
+          isSelectionMode: _isSelectionMode,
           onEntityDoubleTap: (id) {
             context.push('/dive-centers/$id');
           },
@@ -327,13 +507,21 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveCenters_title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          // Expanded, and no Spacer: the title must be the row's only flexible
+          // child, or Spacer takes half the free space and the leftover half
+          // lands after the last icon (see trip_list_content for the detail).
+          // This bar is the most crowded of the five: map, search, sort,
+          // select and overflow, which is why the gap was small enough here to
+          // look right-aligned while still being wrong.
+          Expanded(
+            child: FeatureAppBarTitle(
+              featureId: 'dive-centers',
+              title: context.l10n.diveCenters_title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
           ),
-          const Spacer(),
           // Map toggle: shown in detailed/compact mode only.
           // In table mode, TableModeLayout manages the map toggle.
           if (widget.onMapViewToggle != null)
@@ -346,7 +534,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             IconButton(
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveCenters_tooltip_mapView,
-              onPressed: () => context.go('/dive-centers/map'),
+              onPressed: () => context.push('/dive-centers/map'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
@@ -362,6 +550,14 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.diveCenters_tooltip_sort,
             onPressed: () => _showSortSheet(context),
+          ),
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
+          IconButton(
+            key: const ValueKey('enter_selection'),
+            icon: const Icon(Icons.checklist, size: 20),
+            tooltip: context.l10n.common_selection_enterTooltip,
+            onPressed: _selection.enterExplicit,
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -409,7 +605,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: DiveCenterSortField.values,
-      getFieldDisplayName: (field) => field.displayName,
+      getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
         ref.read(diveCenterSortProvider.notifier).state = SortState(
@@ -443,23 +639,34 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             diveCenterDiveCountProvider(center.id),
           );
           final diveCount = diveCountAsync.valueOrNull ?? 0;
+          final isChecked = _selectedIds.contains(center.id);
+          void onCheckChanged(bool _) => _selection.toggle(center.id);
           return switch (viewMode) {
             ListViewMode.detailed => DiveCenterListTile(
               center: center,
               isSelected: isSelected,
-              onTap: () => _handleItemTap(center),
+              onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
             ListViewMode.compact => CompactDiveCenterListTile(
               center: center,
               diveCount: diveCount,
               isSelected: isSelected,
-              onTap: () => _handleItemTap(center),
+              onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
             ListViewMode.dense || ListViewMode.table => DenseDiveCenterListTile(
               center: center,
               diveCount: diveCount,
               isSelected: isSelected,
-              onTap: () => _handleItemTap(center),
+              onTap: () => _handleRowTap(center),
+              isSelectionMode: _isSelectionMode,
+              isChecked: isChecked,
+              onCheckChanged: onCheckChanged,
             ),
           };
         },
@@ -545,12 +752,18 @@ class DiveCenterListTile extends ConsumerWidget {
   final DiveCenter center;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DiveCenterListTile({
     super.key,
     required this.center,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -570,16 +783,22 @@ class DiveCenterListTile extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.store,
-                  color: theme.colorScheme.onPrimaryContainer,
+              // Store icon, which becomes the checkbox in selection mode.
+              SelectionLeading(
+                isSelectionMode: isSelectionMode,
+                isChecked: isChecked,
+                onChanged: onCheckChanged,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.store,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -718,17 +937,31 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
           itemBuilder: (context, index) {
             final center = centers[index];
             return ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.store,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              leading: Builder(
+                builder: (context) {
+                  final accent = resolveFeatureAccent(
+                    context,
+                    ref,
+                    surface: AccentSurface.list,
+                    featureId: 'dive-centers',
+                  );
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color:
+                          accent?.withValues(alpha: 0.15) ??
+                          Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.store,
+                      color:
+                          accent ??
+                          Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                },
               ),
               title: Text(center.name),
               subtitle: center.fullLocationString != null

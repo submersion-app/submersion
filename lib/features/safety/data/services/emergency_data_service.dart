@@ -43,6 +43,13 @@ class EmergencyDataService {
     return _chambersCache!;
   }
 
+  /// Test seam: replaces the asset-backed dataset for a single test, so
+  /// ordering and selection can be exercised against a known fixture rather
+  /// than whatever the shipped directory happens to contain.
+  static void setBundledChambersForTesting(List<EmergencyChamber> chambers) {
+    _chambersCache = chambers;
+  }
+
   static void resetCacheForTesting() {
     _numbersCache = null;
     _chambersCache = null;

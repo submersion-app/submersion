@@ -70,6 +70,11 @@ set_target_properties(${BINARY_NAME}
 )
 
 
+# sqlcipher_flutter_libs defaults to preferring static OpenSSL libs, but
+# distros like Fedora only ship shared libcrypto/libssl by default, which
+# makes find_package(OpenSSL REQUIRED) fail even though OpenSSL is installed.
+set(OPENSSL_USE_STATIC_LIBS OFF CACHE BOOL "Whether to prefer linking to OpenSSL statically" FORCE)
+
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)

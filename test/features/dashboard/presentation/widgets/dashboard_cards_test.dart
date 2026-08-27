@@ -4,16 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
-import 'package:submersion/features/dashboard/presentation/providers/photo_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/milestones_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/on_this_day_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/photo_ribbon_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/media_ribbon_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/year_in_review_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -22,8 +25,17 @@ import '../../../../helpers/mock_providers.dart';
 final _t0 = DateTime(2026, 1, 1);
 
 /// Records where a tap navigated.
-class NavSpy {
+class NavSpy extends NavigatorObserver {
   String? location;
+
+  /// Routes pushed imperatively onto the root navigator (go_router's own
+  /// route pushes arrive here too, so callers match on route type).
+  final List<Route<dynamic>> pushedRoutes = [];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRoutes.add(route);
+  }
 }
 
 Future<NavSpy> pumpCard(
@@ -40,6 +52,7 @@ Future<NavSpy> pumpCard(
     },
   );
   final router = GoRouter(
+    observers: [spy],
     routes: [
       GoRoute(
         path: '/',
@@ -264,24 +277,55 @@ void main() {
     });
   });
 
-  group('PhotoRibbonCard', () {
-    testWidgets('hidden without photos', (tester) async {
+  group('MediaRibbonCard', () {
+    testWidgets('hidden without media', (tester) async {
       await pumpCard(
         tester,
-        const PhotoRibbonCard(),
+        const MediaRibbonCard(),
         overrides: [
-          recentPhotosProvider.overrideWith((ref) async => <MediaItem>[]),
+          recentMediaProvider.overrideWith((ref) async => <MediaItem>[]),
         ],
       );
-      expect(find.text('Recent photos'), findsNothing);
+      expect(find.text('Recent media'), findsNothing);
     });
 
-    testWidgets('renders a tile per photo', (tester) async {
+    // A video thumbnail is a still frame, so the badge is the only thing
+    // distinguishing it from a photo in the ribbon.
+    testWidgets('badges videos but not photos', (tester) async {
+      MediaItem entry(String id, MediaType type) => MediaItem(
+        id: id,
+        mediaType: type,
+        sourceType: MediaSourceType.platformGallery,
+        filePath: '/tmp/$id',
+        diveId: 'd1',
+        takenAt: _t0,
+        createdAt: _t0,
+        updatedAt: _t0,
+      );
+
       await pumpCard(
         tester,
-        const PhotoRibbonCard(),
+        const MediaRibbonCard(),
         overrides: [
-          recentPhotosProvider.overrideWith(
+          recentMediaProvider.overrideWith(
+            (ref) async => [
+              entry('v1', MediaType.video),
+              entry('p1', MediaType.photo),
+              entry('v2', MediaType.video),
+            ],
+          ),
+        ],
+      );
+
+      expect(find.byIcon(Icons.play_arrow), findsNWidgets(2));
+    });
+
+    testWidgets('renders a tile per item', (tester) async {
+      await pumpCard(
+        tester,
+        const MediaRibbonCard(),
+        overrides: [
+          recentMediaProvider.overrideWith(
             (ref) async => [
               MediaItem(
                 id: 'p1',
@@ -307,14 +351,51 @@ void main() {
           ),
         ],
       );
-      expect(find.text('Recent photos'), findsOneWidget);
+      expect(find.text('Recent media'), findsOneWidget);
       expect(find.byType(ClipRRect), findsNWidgets(2));
+    });
+
+    testWidgets('tapping a photo opens the photo viewer, not the dive', (
+      tester,
+    ) async {
+      final spy = await pumpCard(
+        tester,
+        const MediaRibbonCard(),
+        overrides: [
+          recentMediaProvider.overrideWith(
+            (ref) async => [
+              MediaItem(
+                id: 'p1',
+                mediaType: MediaType.photo,
+                sourceType: MediaSourceType.platformGallery,
+                filePath: '/tmp/p1.jpg',
+                diveId: 'd1',
+                takenAt: _t0,
+                createdAt: _t0,
+                updatedAt: _t0,
+              ),
+            ],
+          ),
+          // The viewer resolves its own gallery from the dive; an empty list
+          // short-circuits its build before it reaches the profile providers,
+          // so this stays a navigation test rather than a viewer test.
+          mediaForDiveProvider('d1').overrideWith((ref) async => <MediaItem>[]),
+          diveProvider('d1').overrideWith((ref) async => null),
+        ],
+      );
+
+      await tester.tap(find.byType(ClipRRect).first);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PhotoViewerPage), findsOneWidget);
+      expect(spy.location, isNull);
     });
   });
 
   group('QuickActionsCard', () {
-    // Each action calls context.go(), which replaces the stack, so every
-    // case gets its own pump rather than popping back.
+    // Tab-level actions still use go(); sub-page actions use push() so the
+    // Android system back button can pop them (#647). Either way each case
+    // gets its own pump rather than popping back.
     for (final (label, destination) in const [
       ('Plan Dive', '/planning/dive-planner'),
       ('Statistics', '/statistics'),
@@ -335,6 +416,17 @@ void main() {
       await tester.pumpAndSettle();
       // The sheet replaces nothing; it presents options over the card.
       expect(find.byType(QuickActionsCard), findsOneWidget);
+    });
+
+    testWidgets('log dive manually pushes the new-dive page', (tester) async {
+      final spy = await pumpCard(tester, const QuickActionsCard());
+      await tester.tap(find.text('Log Dive'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Log Dive Manually'));
+      await tester.pumpAndSettle();
+
+      expect(spy.location, '/dives/new');
     });
   });
 }

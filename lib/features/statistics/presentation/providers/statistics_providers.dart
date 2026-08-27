@@ -8,12 +8,16 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
-/// Repository provider
+/// Repository provider.
+///
+/// Watches the gas model so flipping the preference rebuilds the repository
+/// and refreshes every gas statistic downstream of it (issue #828).
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
-  return StatisticsRepository();
+  return StatisticsRepository(gasModel: ref.watch(gasModelProvider));
 });
 
 /// Overview totals scoped by the Statistics filter. Kept separate from
@@ -29,12 +33,40 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
-/// Adds keepAlive with a 5-minute expiry and watches the statistics version
-/// so all stats providers stay cached across navigations but refresh when
-/// dives are mutated.
+/// Personal records (superlatives) scoped by the Statistics filter.
+///
+/// Split from diveRecordsProvider for the same reason
+/// [filteredDiveStatisticsProvider] is split from diveStatisticsProvider: the
+/// dive-log summary widget reads the unfiltered one and has no filter UI, so
+/// the Statistics tab's scope must not reach it. Issue #1028: before this
+/// split, the Statistics tab's records were the only panel on the page that
+/// ignored the filter.
+///
+/// Takes the same dives tick as its unfiltered sibling (issue #217): a merge,
+/// a bulk delete, or a sync pull rewrites the superlatives without going
+/// through any notifier.
+final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getRecords(diverId: currentDiverId, filter: filter);
+});
+
+/// Adds keepAlive with a 5-minute expiry and subscribes to the statistics
+/// change tick, so all stats providers stay cached across navigations but
+/// refresh whenever any table they read is written.
+///
+/// This used to watch `statisticsVersionProvider`, a counter incremented from
+/// exactly one line in the app, inside `PaginatedDiveListNotifier`. Merge,
+/// consolidate, import, and sync pulls never bumped it, so the cache this doc
+/// comment claimed was reactive stayed stale for up to five minutes: merge two
+/// dives, open Statistics, and every chart still counted the merged-away dive
+/// (issue #974).
 void _keepAliveWithExpiry(Ref ref) {
-  // Watch version so we refetch when dives change
-  ref.watch(statisticsVersionProvider);
+  ref.invalidateSelfWhen(
+    ref.watch(statisticsRepositoryProvider).watchStatisticsChanges(),
+  );
   // Keep alive for 5 minutes after last listener detaches
   final link = ref.keepAlive();
   final timer = Timer(const Duration(minutes: 5), link.close);
@@ -211,7 +243,12 @@ final visibilityDistributionProvider =
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(statisticsFilterProvider);
+      // Watched, not read: changing the calibration must re-bin the chart.
+      final scale = ref.watch(
+        settingsProvider.select((s) => s.visibilityScale),
+      );
       return repository.getVisibilityDistribution(
+        scale: scale,
         diverId: currentDiverId,
         filter: filter,
       );
@@ -482,14 +519,45 @@ final timeAtDepthRangesProvider =
       );
     });
 
+/// Deco obligation counts: recorded signals first, the app's own analysis as
+/// the fallback (#623).
+///
+/// A dive whose source recorded no deco columns is classified by the same
+/// analysis that draws the DECO badge on its detail page, so the card and the
+/// dive can no longer disagree. Dives with no profile at all stay unknown and
+/// are excluded from the rate rather than counted as no-deco.
 final decoObligationStatsProvider =
-    FutureProvider<({int decoCount, int totalCount})>((ref) async {
+    FutureProvider<({int decoCount, int noDecoCount, int unknownCount})>((
+      ref,
+    ) async {
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(statisticsFilterProvider);
-      return repository.getDecoObligationStats(
+
+      final scan = await repository.scanRecordedDecoSignals(
         diverId: currentDiverId,
         filter: filter,
       );
+
+      var deco = scan.recordedDeco.length;
+      var noDeco = scan.recordedNoDeco.length;
+      var unknown = scan.noProfile.length;
+
+      final computed = await const DecoClassificationService().classify(
+        ref,
+        scan.needsCompute,
+      );
+      for (final diveId in scan.needsCompute.keys) {
+        final hadDeco = computed[diveId];
+        if (hadDeco == null) {
+          unknown++;
+        } else if (hadDeco) {
+          deco++;
+        } else {
+          noDeco++;
+        }
+      }
+
+      return (decoCount: deco, noDecoCount: noDeco, unknownCount: unknown);
     });

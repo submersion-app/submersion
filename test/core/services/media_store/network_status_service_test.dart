@@ -29,4 +29,22 @@ void main() {
     );
     expect(NetworkStatusService.kindFrom(const []), NetworkKind.offline);
   });
+
+  test('kindFrom treats satellite as metered, not offline', () {
+    // connectivity_plus 7 added ConnectivityResult.satellite. The old
+    // "anything unrecognised is offline" fallback would have reported a
+    // working satellite link as no link at all, blocking transfers outright.
+    expect(
+      NetworkStatusService.kindFrom([ConnectivityResult.satellite]),
+      NetworkKind.cellular,
+    );
+    expect(
+      NetworkStatusService.kindFrom([
+        ConnectivityResult.satellite,
+        ConnectivityResult.wifi,
+      ]),
+      NetworkKind.unmetered,
+      reason: 'an unmetered transport still wins when both are present',
+    );
+  });
 }

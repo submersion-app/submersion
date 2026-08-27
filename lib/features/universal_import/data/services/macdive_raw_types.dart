@@ -56,6 +56,9 @@ class MacDiveRawDive {
   /// Foreign key to `ZCERTIFICATION.Z_PK`.
   final int? certificationFk;
 
+  /// `ZDIVE.ZRELATIONSHIPDIVER` - which MacDive diver logged this dive.
+  final int? diverFk;
+
   /// `ZSAMPLES` BLOB — MacDive's proprietary profile-sample format
   /// (NOT bplist; left on the model for future decode work, not
   /// used by M3).
@@ -105,6 +108,7 @@ class MacDiveRawDive {
     this.weight,
     this.diveSiteFk,
     this.certificationFk,
+    this.diverFk,
     this.samplesBlob,
     this.rawDataBlob,
   });
@@ -171,6 +175,11 @@ class MacDiveRawGear {
   final String? notes;
   final String? url;
   final String? warranty;
+  final String? currency;
+
+  /// `ZGEARITEM.ZDISABLED`. MacDive's "inactive" flag; the closest
+  /// Submersion equivalent is EquipmentStatus.retired.
+  final bool disabled;
 
   const MacDiveRawGear({
     required this.pk,
@@ -187,6 +196,8 @@ class MacDiveRawGear {
     this.notes,
     this.url,
     this.warranty,
+    this.currency,
+    this.disabled = false,
   });
 }
 
@@ -279,6 +290,10 @@ class MacDiveRawCertification {
   final DateTime? expiry;
   final String? instructorName;
   final String? instructorNumber;
+  final String? instructorShop;
+
+  /// `ZDIVERNUMBER` - the diver's number on the card, not the instructor's.
+  final String? diverNumber;
   final String? cardFrontPath;
   final String? cardBackPath;
   const MacDiveRawCertification({
@@ -290,6 +305,8 @@ class MacDiveRawCertification {
     this.expiry,
     this.instructorName,
     this.instructorNumber,
+    this.instructorShop,
+    this.diverNumber,
     this.cardFrontPath,
     this.cardBackPath,
   });
@@ -329,6 +346,67 @@ class MacDiveRawEvent {
   });
 }
 
+/// A row from `ZDIVETYPE` - MacDive's user-extensible dive-type vocabulary
+/// ("Boat", "Night", "Aquarium", ...). Linked to dives through
+/// `Z_5RELATIONSHIPDIVETYPES`.
+class MacDiveRawDiveType {
+  final int pk;
+  final String uuid;
+  final String? name;
+  const MacDiveRawDiveType({required this.pk, required this.uuid, this.name});
+}
+
+/// A row from `ZDIVELOG` - one of MacDive's sidebar logbooks.
+///
+/// A log is either a static collection the diver drags dives into, or a smart
+/// group whose membership is computed from an `NSPredicate` stored in
+/// `ZPREDICATE`. Only static membership can be imported; smart groups have no
+/// stored member list to read.
+class MacDiveRawDiveLog {
+  final int pk;
+  final String uuid;
+  final String? name;
+  final bool isGroup;
+
+  /// True when `ZPREDICATE` is non-empty, i.e. this is a smart group.
+  final bool isSmart;
+
+  const MacDiveRawDiveLog({
+    required this.pk,
+    required this.uuid,
+    this.name,
+    this.isGroup = false,
+    this.isSmart = false,
+  });
+}
+
+/// A row from `ZDIVER`. MacDive supports several divers in one library;
+/// `ZDIVE.ZRELATIONSHIPDIVER` says which one a dive belongs to.
+class MacDiveRawDiver {
+  final int pk;
+  final String uuid;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+
+  const MacDiveRawDiver({
+    required this.pk,
+    required this.uuid,
+    this.firstName,
+    this.lastName,
+    this.email,
+  });
+
+  /// Display name, or null when the row carries neither name part.
+  String? get fullName {
+    final parts = [
+      firstName?.trim(),
+      lastName?.trim(),
+    ].whereType<String>().where((p) => p.isNotEmpty);
+    return parts.isEmpty ? null : parts.join(' ');
+  }
+}
+
 /// Top-level container returned by [MacDiveDbReader.readAll]. Holds all
 /// tables keyed for lookup plus the junction tables as dive_pk → list
 /// of foreign PKs. The mapper walks this graph to build ImportPayload.
@@ -349,6 +427,10 @@ class MacDiveRawLogbook {
   final Map<int, List<int>> diveToTagPks;
   final Map<int, List<int>> diveToGearPks;
   final Map<int, List<int>> diveToCritterPks;
+  final Map<int, MacDiveRawDiveType> diveTypesByPk;
+  final Map<int, List<int>> diveToDiveTypePks;
+  final Map<int, MacDiveRawDiveLog> diveLogsByPk;
+  final Map<int, MacDiveRawDiver> diversByPk;
 
   /// Value of `ZMETADATA.ZALL` where `ZIDENTIFIER = 'SystemOfUnits'`.
   /// Used to interpret raw MacDive numerics (Imperial vs Metric).
@@ -372,5 +454,9 @@ class MacDiveRawLogbook {
     required this.diveToGearPks,
     required this.diveToCritterPks,
     required this.unitsPreference,
+    this.diveTypesByPk = const {},
+    this.diveToDiveTypePks = const {},
+    this.diveLogsByPk = const {},
+    this.diversByPk = const {},
   });
 }

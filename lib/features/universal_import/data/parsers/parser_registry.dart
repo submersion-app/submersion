@@ -5,6 +5,7 @@ import 'package:submersion/features/universal_import/data/parsers/import_parser.
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/ratio_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
@@ -20,6 +21,7 @@ ImportParser parserForFormat(ImportFormat format) {
     ImportFormat.danDl7 => const DanDl7Parser(),
     ImportFormat.fit => const FitImportParser(),
     ImportFormat.shearwaterDb => ShearwaterCloudParser(),
+    ImportFormat.ratioXml => const RatioXmlParser(),
     _ => const PlaceholderParser(),
   };
 }

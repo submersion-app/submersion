@@ -33,6 +33,8 @@ void main() {
             ),
           ].cast(),
           child: MaterialApp(
+            // Pinned: the assertions match English strings.
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(

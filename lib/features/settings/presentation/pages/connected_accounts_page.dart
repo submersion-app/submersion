@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -16,9 +17,9 @@ final connectedAccountsWithStatusProvider =
     FutureProvider.autoDispose<List<(domain.ConnectedAccount, AccountStatus)>>((
       ref,
     ) async {
-      final accounts = await ref
-          .watch(connectedAccountsRepositoryProvider)
-          .getAll();
+      final repository = ref.watch(connectedAccountsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchAccountsChanges());
+      final accounts = await repository.getAll();
       final registry = ref.watch(accountProviderRegistryProvider);
       // Status probes hit the keychain / provider sessions: run them
       // concurrently so one slow probe cannot serialize the page load.

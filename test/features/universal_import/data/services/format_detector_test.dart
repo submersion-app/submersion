@@ -334,6 +334,36 @@ void main() {
       expect(result.format, isNot(ImportFormat.danDl7));
     });
   });
+
+  group('Ratio Computers XML detection', () {
+    test('detects diveSegment root element', () {
+      const xml =
+          '<?xml version="1.0" encoding="UTF-8"?>'
+          '<diveSegment version="1.2">'
+          '<segmentHeader>'
+          '<UTCStartingTimeS>586371714</UTCStartingTimeS>'
+          '</segmentHeader>'
+          '</diveSegment>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, ImportFormat.ratioXml);
+      expect(result.sourceApp, SourceApp.ratio);
+      expect(result.confidence, 0.95);
+    });
+
+    test('detects diveSegment with mixed case', () {
+      const xml =
+          '<?xml version="1.0"?><DiveSegment version="1.2">'
+          '<segmentHeader/></DiveSegment>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, ImportFormat.ratioXml);
+    });
+
+    test('does not detect non-diveSegment XML as Ratio', () {
+      const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, isNot(ImportFormat.ratioXml));
+    });
+  });
 }
 
 Uint8List _toBytes(String text) => Uint8List.fromList(utf8.encode(text));

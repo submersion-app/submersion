@@ -27,11 +27,13 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
 /// visibility of the destructive "Delete plan" action: a brand-new, never-saved
@@ -271,15 +273,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 'settings':
         _focusSetup('deco');
       case 'convert':
-        _convertToDive();
+        logFailure(_convertToDive(), _PlanCanvasPageState, 'convert to dive');
       case 'slate':
-        _exportSlate();
+        logFailure(_exportSlate(), _PlanCanvasPageState, 'export slate');
       case 'share':
-        _sharePlanFile();
+        logFailure(_sharePlanFile(), _PlanCanvasPageState, 'share plan file');
       case 'reset':
         _resetPlan();
       case 'delete':
-        _deletePlan();
+        logFailure(_deletePlan(), _PlanCanvasPageState, 'delete plan');
     }
   }
 
@@ -405,10 +407,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       context.l10n.plannerCanvas_tab_setup,
       context.l10n.divePlanner_tab_results,
     ];
+    // 30% of the body, clamped so the chart neither vanishes on short
+    // viewports nor dominates tall ones; the deck gets everything else.
+    final chartHeight = (constraints.maxHeight * 0.30)
+        .clamp(160.0, 260.0)
+        .toDouble();
     return Column(
       children: [
         SizedBox(
-          height: constraints.maxHeight * 0.40,
+          height: chartHeight,
           child: Stack(
             children: [
               const Positioned.fill(
@@ -417,27 +424,31 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   child: PlanProfileChart(),
                 ),
               ),
+              PlanChartReadouts(
+                onIssuesTap: () =>
+                    ref.read(plannerPhoneTabProvider.notifier).state = 3,
+              ),
+              const Positioned(
+                left: 8,
+                right: 56,
+                bottom: 8,
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ContingencyChips(overlay: true),
+                ),
+              ),
               Positioned(
                 right: 10,
                 bottom: 10,
                 child: IconButton.filledTonal(
                   icon: const Icon(Icons.open_in_full, size: 18),
-                  onPressed: () => context.go('/planning/dive-planner/chart'),
+                  // PUSH (not go): back returns to this canvas with its
+                  // state on the stack, instead of closing the app (#647).
+                  onPressed: () => context.push('/planning/dive-planner/chart'),
                 ),
               ),
             ],
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: PlanStatusChips(
-            onIssuesTap: () =>
-                ref.read(plannerPhoneTabProvider.notifier).state = 3,
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(12, 6, 12, 0),
-          child: ContingencyChips(),
         ),
         const SizedBox(height: 8),
         Padding(
@@ -679,7 +690,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         content: Text(context.l10n.plannerCanvas_convert_success),
         action: SnackBarAction(
           label: context.l10n.plannerCanvas_convert_view,
-          onPressed: () => context.go('/dives/${created.id}'),
+          // push, not go: `go` into the `/dives` child route would rebuild
+          // the stack as [dive list, dive detail] and discard this canvas
+          // and its editable plan state.
+          onPressed: () => context.push('/dives/${created.id}'),
         ),
       ),
     );

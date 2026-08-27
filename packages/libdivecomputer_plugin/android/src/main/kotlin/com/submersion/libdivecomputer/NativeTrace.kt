@@ -50,10 +50,24 @@ object NativeTrace {
      * A no-op unless debug mode has created the log file.
      */
     @Synchronized
-    fun write(level: String, message: String) {
+    fun write(level: String, message: String) = writeLine("SER", level, message)
+
+    /**
+     * Appends a libdivecomputer diagnostic under the LDC channel. Called from
+     * JNI (nativeDownloadRun's log callback) for WARNING/ERROR messages, so
+     * protocol-level failures like a NAK'd Shearwater dive request (#766)
+     * land in the user-exportable debug log instead of only logcat.
+     */
+    @Synchronized
+    fun writeLibdc(level: String, message: String) =
+        writeLine("LDC", level, message)
+
+    @Synchronized
+    private fun writeLine(channel: String, level: String, message: String) {
         val file = logFile ?: return
         if (!file.exists()) return
-        val line = "[${timestampFormat.format(Date())}] [SER] [$level] $message\n"
+        val line =
+            "[${timestampFormat.format(Date())}] [$channel] [$level] $message\n"
         try {
             FileOutputStream(file, true).use { out ->
                 out.write(line.toByteArray(Charsets.UTF_8))

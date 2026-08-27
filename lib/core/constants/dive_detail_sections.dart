@@ -6,6 +6,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 ///
 /// Declaration order defines the default display order. The two fixed sections
 /// (Header and Dive Profile Chart) are not included — they always render first.
+///
+/// Sections that pair side by side on a wide pane are declared adjacently, in
+/// left-then-right order (see `kDiveDetailSectionPairs`), so the default order
+/// already reads the way the paired layout renders.
 enum DiveDetailSectionId {
   decoO2,
   safetyReview,
@@ -13,11 +17,12 @@ enum DiveDetailSectionId {
   details,
   environment,
   altitude,
-  tide,
   surfaceGps,
+  tide,
+  reefHealth,
+  tanks,
   weights,
   buoyancy,
-  tanks,
   buddies,
   signatures,
   equipment,
@@ -26,7 +31,6 @@ enum DiveDetailSectionId {
   tags,
   notes,
   customFields,
-  preDiveChecklist,
   dataSources;
 
   /// Human-readable name shown in the settings UI (English fallback).
@@ -39,6 +43,7 @@ enum DiveDetailSectionId {
       environment => 'Environment',
       altitude => 'Altitude',
       tide => 'Tide',
+      reefHealth => 'Water Conditions',
       surfaceGps => 'Surface GPS',
       weights => 'Weights',
       buoyancy => 'Buoyancy',
@@ -51,7 +56,6 @@ enum DiveDetailSectionId {
       tags => 'Tags',
       notes => 'Notes',
       customFields => 'Custom Fields',
-      preDiveChecklist => 'Pre-Dive Check',
       dataSources => 'Data Sources',
     };
   }
@@ -67,6 +71,7 @@ enum DiveDetailSectionId {
       environment => 'Air/water temp, visibility, current',
       altitude => 'Altitude value, category, deco requirement',
       tide => 'Tide cycle graph and timing',
+      reefHealth => 'Satellite water conditions on the dive date',
       surfaceGps => 'GPS entry/exit points and surface drift',
       weights => 'Weight breakdown, total weight',
       buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
@@ -79,7 +84,6 @@ enum DiveDetailSectionId {
       tags => 'Dive tags',
       notes => 'Dive notes/description',
       customFields => 'User-defined custom fields',
-      preDiveChecklist => 'Linked pre-dive checklist session',
       dataSources => 'Connected dive computers, source management',
     };
   }
@@ -94,6 +98,7 @@ enum DiveDetailSectionId {
       environment => l10n.diveDetailSection_environment_name,
       altitude => l10n.diveDetailSection_altitude_name,
       tide => l10n.diveDetailSection_tide_name,
+      reefHealth => l10n.diveDetailSection_reefHealth_name,
       surfaceGps => l10n.diveDetailSection_surfaceGps_name,
       weights => l10n.diveDetailSection_weights_name,
       buoyancy => l10n.diveDetailSection_buoyancy_name,
@@ -106,7 +111,6 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_name,
       notes => l10n.diveDetailSection_notes_name,
       customFields => l10n.diveDetailSection_customFields_name,
-      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
   }
@@ -121,6 +125,7 @@ enum DiveDetailSectionId {
       environment => l10n.diveDetailSection_environment_description,
       altitude => l10n.diveDetailSection_altitude_description,
       tide => l10n.diveDetailSection_tide_description,
+      reefHealth => l10n.diveDetailSection_reefHealth_description,
       surfaceGps => l10n.diveDetailSection_surfaceGps_description,
       weights => l10n.diveDetailSection_weights_description,
       buoyancy => l10n.diveDetailSection_buoyancy_description,
@@ -133,7 +138,6 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_description,
       notes => l10n.diveDetailSection_notes_description,
       customFields => l10n.diveDetailSection_customFields_description,
-      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
@@ -186,11 +190,12 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.details, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.environment, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.altitude, visible: true),
-    DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.surfaceGps, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.reefHealth, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.weights, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buoyancy, visible: true),
-    DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buddies, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.signatures, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.equipment, visible: true),
@@ -200,10 +205,6 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
     DiveDetailSectionConfig(
       id: DiveDetailSectionId.customFields,
-      visible: true,
-    ),
-    DiveDetailSectionConfig(
-      id: DiveDetailSectionId.preDiveChecklist,
       visible: true,
     ),
     DiveDetailSectionConfig(id: DiveDetailSectionId.dataSources, visible: true),

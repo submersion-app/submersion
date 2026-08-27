@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/eager_tap_gesture_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
@@ -12,7 +13,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Rendered as a widget layer above the LineChart (a later Stack child) so
 /// its tap targets win hit-testing over the chart's pan/scrub/tooltip
-/// gestures without entering fl_chart's touch arena.
+/// gestures without entering fl_chart's touch arena. The chart's own
+/// double-tap recognizer is an ancestor and does still share the arena;
+/// [EagerTapGestureRecognizer] is what keeps these taps immediate.
 class PhotoMarkerOverlay extends StatefulWidget {
   /// Time-sorted markers (see [photoMarkersFromMedia]).
   final List<PhotoChartMarker> markers;
@@ -91,6 +94,27 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
     );
   }
 
+  /// [GestureDetector.onTap] equivalent backed by [EagerTapGestureRecognizer].
+  Widget _eagerTap({
+    Key? key,
+    required HitTestBehavior behavior,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return RawGestureDetector(
+      key: key,
+      behavior: behavior,
+      gestures: {
+        EagerTapGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<EagerTapGestureRecognizer>(
+              () => EagerTapGestureRecognizer(debugOwner: this),
+              (recognizer) => recognizer.onTap = onTap,
+            ),
+      },
+      child: child,
+    );
+  }
+
   String _formatRuntime(int seconds) {
     final m = seconds ~/ 60;
     final s = seconds % 60;
@@ -144,9 +168,10 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
             // Tap-away dismisses the preview card.
             if (selected != null)
               Positioned.fill(
-                child: GestureDetector(
+                child: _eagerTap(
                   behavior: HitTestBehavior.translucent,
                   onTap: () => setState(() => _selectedMediaId = null),
+                  child: const SizedBox.expand(),
                 ),
               ),
             for (final cluster in clusters)
@@ -174,14 +199,22 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
       (i) => widget.markers[i].item.isVideo,
     );
 
+    // Re-tapping the marker whose card is open closes it: that is the first
+    // thing a diver tries, and on a chart there is little empty space to
+    // tap away into.
+    final showsSelected = cluster.memberIndexes.any(
+      (i) => widget.markers[i].item.id == _selectedMediaId,
+    );
+
     return Semantics(
       button: true,
       label: context.l10n.diveLog_profile_semantics_photoMarker,
-      child: GestureDetector(
+      child: _eagerTap(
         behavior: HitTestBehavior.opaque,
         onTap: () => setState(
-          () => _selectedMediaId =
-              widget.markers[cluster.memberIndexes.first].item.id,
+          () => _selectedMediaId = showsSelected
+              ? null
+              : widget.markers[cluster.memberIndexes.first].item.id,
         ),
         child: Center(
           child: Container(
@@ -302,7 +335,7 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
     final caption =
         '${widget.units.formatDepth(marker.depthMeters, decimals: 0)}'
         ' · ${_formatRuntime(marker.elapsedSeconds)}';
-    return GestureDetector(
+    return _eagerTap(
       key: ValueKey('photoMarkerCardThumb-${marker.item.id}'),
       behavior: HitTestBehavior.opaque,
       onTap: () => _openPhoto(marker.item),

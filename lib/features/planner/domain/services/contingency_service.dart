@@ -20,17 +20,22 @@ class DeviationOutcome {
   });
 }
 
-/// The schedule that results from losing one deco/stage cylinder.
+/// The schedule that results from losing one deco/stage/travel cylinder.
 class LostGasOutcome {
   final DiveTank tank;
+  final domain.DivePlan plan;
   final PlanOutcome outcome;
 
-  const LostGasOutcome({required this.tank, required this.outcome});
+  const LostGasOutcome({
+    required this.tank,
+    required this.plan,
+    required this.outcome,
+  });
 }
 
 /// Derives contingency variants of a plan and runs them through the
 /// PlanEngine: the classic slate trio (+depth, +time, both) and one
-/// lost-gas schedule per carried deco/stage cylinder.
+/// lost-gas schedule per carried deco/stage/travel cylinder.
 class ContingencyService {
   final PlanEngineConfig config;
 
@@ -65,40 +70,70 @@ class ContingencyService {
     );
   }
 
-  /// One outcome per lost deco/stage cylinder. Empty for CCR plans (loop
-  /// loss is the bailout solver's job) and when no such cylinder is carried.
+  /// Whether [tank] is eligible to be marked lost: a dedicated deco/stage
+  /// cylinder, or any cylinder flagged as travel gas regardless of its role
+  /// (a diluent, pony, or sidemount tank breathed on the descent is just as
+  /// losable as a dedicated stage/deco bottle).
+  bool isLosable(DiveTank tank) =>
+      tank.role == TankRole.deco ||
+      tank.role == TankRole.stage ||
+      tank.isTravelGas;
+
+  /// One outcome per losable cylinder (see [isLosable]). Empty for CCR plans
+  /// (loop loss is the bailout solver's job) and when no such cylinder is
+  /// carried.
   List<LostGasOutcome> lostGas(domain.DivePlan plan) {
     if (plan.mode == domain.PlanMode.ccr || plan.segments.isEmpty) {
       return const [];
     }
     final results = <LostGasOutcome>[];
     for (final tank in plan.tanks) {
-      if (tank.role != TankRole.deco && tank.role != TankRole.stage) continue;
-      final remaining = plan.tanks.where((t) => t.id != tank.id).toList();
-      // Nothing left to breathe — a lost-gas schedule would be meaningless.
-      if (remaining.isEmpty) continue;
-      // Any user segment that breathed the lost cylinder is remapped onto a
-      // fallback (prefer back gas). Without this the contingency would still
-      // "breathe" the lost gas and its consumption would go unaccounted, since
-      // the engine only reports usage for tanks present in plan.tanks.
-      final fallback = remaining.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => remaining.first,
-      );
-      final without = plan.copyWith(
-        tanks: remaining,
-        segments: [
-          for (final segment in plan.segments)
-            segment.tankId == tank.id
-                ? segment.copyWith(tankId: fallback.id, gasMix: fallback.gasMix)
-                : segment,
-        ],
-      );
-      results.add(
-        LostGasOutcome(tank: tank, outcome: _engine.compute(without)),
-      );
+      if (!isLosable(tank)) continue;
+      final outcome = lostGasFor(plan, tank.id);
+      if (outcome != null) results.add(outcome);
     }
     return results;
+  }
+
+  /// A single tank's lost-gas schedule by [tankId], or null when the tank is
+  /// missing, not losable, the only cylinder carried, or the plan can't be
+  /// varied (no segments, or CCR). Lets callers (the chart ghost, a tapped
+  /// row) run just the one variant selected instead of the full set.
+  LostGasOutcome? lostGasFor(domain.DivePlan plan, String tankId) {
+    if (plan.mode == domain.PlanMode.ccr || plan.segments.isEmpty) return null;
+    DiveTank? tank;
+    for (final t in plan.tanks) {
+      if (t.id == tankId) {
+        tank = t;
+        break;
+      }
+    }
+    if (tank == null || !isLosable(tank)) return null;
+    final remaining = plan.tanks.where((t) => t.id != tankId).toList();
+    // Nothing left to breathe — a lost-gas schedule would be meaningless.
+    if (remaining.isEmpty) return null;
+    // Any user segment that breathed the lost cylinder is remapped onto a
+    // fallback (prefer back gas). Without this the contingency would still
+    // "breathe" the lost gas and its consumption would go unaccounted, since
+    // the engine only reports usage for tanks present in plan.tanks.
+    final fallback = remaining.firstWhere(
+      (t) => t.role == TankRole.backGas,
+      orElse: () => remaining.first,
+    );
+    final without = plan.copyWith(
+      tanks: remaining,
+      segments: [
+        for (final segment in plan.segments)
+          segment.tankId == tankId
+              ? segment.copyWith(tankId: fallback.id, gasMix: fallback.gasMix)
+              : segment,
+      ],
+    );
+    return LostGasOutcome(
+      tank: tank,
+      plan: without,
+      outcome: _engine.compute(without),
+    );
   }
 
   domain.DivePlan _deepened(domain.DivePlan plan) =>

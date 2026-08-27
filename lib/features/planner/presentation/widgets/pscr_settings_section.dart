@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -50,7 +51,9 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
     super.dispose();
   }
 
-  String _format(double ratio) => ratio.toStringAsFixed(0);
+  /// Paired with [parseUserDecimal] in [_onChanged]: seeding with a dot while
+  /// parsing in the diver's locale would misread the value (#1091).
+  String _format(double ratio) => formatDecimalForInput(ratio.roundToDouble());
 
   /// Mirror [ratio] into the field unless the user is actively editing it, so
   /// external/async changes never clobber in-progress input.
@@ -61,7 +64,7 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
   }
 
   void _onChanged(String text) {
-    final parsed = double.tryParse(text);
+    final parsed = parseUserDecimal(text);
     if (parsed == null || parsed <= 0) {
       // Invalid/empty input: drop any pending valid value and cancel the
       // debounce so an earlier edit can't flush after the user has cleared or

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -11,6 +12,7 @@ void main() {
   Widget wrap({
     required bool restoring,
     String? message,
+    SafetyReviewSweepProgress? sweepProgress,
     required VoidCallback onTap,
   }) {
     return testApp(
@@ -18,6 +20,7 @@ void main() {
       overrides: [
         restoreInProgressProvider.overrideWithValue(restoring),
         restoreMessageProvider.overrideWithValue(message),
+        restoreSweepProgressProvider.overrideWithValue(sweepProgress),
       ],
       child: RestoreBarrier(
         child: Center(
@@ -66,6 +69,43 @@ void main() {
   ) async {
     await tester.pumpWidget(wrap(restoring: true, onTap: () {}));
     expect(find.text('Restoring backup...'), findsOneWidget);
+  });
+
+  // The Skip button's callback resolves backupOperationProvider.notifier,
+  // which would drag the whole backup service graph into a widget test. These
+  // assert that it renders; the skip behavior itself is covered by the
+  // notifier test in backup_providers_restore_test.dart.
+  testWidgets('shows determinate sweep progress and a Skip button', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        restoring: true,
+        sweepProgress: const SafetyReviewSweepProgress(done: 3, total: 10),
+        onTap: () {},
+      ),
+    );
+
+    expect(find.text('Running the safety review'), findsOneWidget);
+    expect(find.text('Analyzed 3 of 10 dives'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
+
+    final bar = tester.widget<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(bar.value, closeTo(0.3, 0.001));
+  });
+
+  testWidgets('keeps the plain spinner when no sweep is running', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(restoring: true, message: 'Restoring backup...', onTap: () {}),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.text('Skip'), findsNothing);
   });
 
   testWidgets(

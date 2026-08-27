@@ -67,14 +67,48 @@ void main() {
   });
 
   group('attributeDisplayFromMetric', () {
-    test('metric formatter is identity for every dimension', () {
+    test('metric formatter is identity for every same-unit dimension', () {
+      // Every dimension whose canonical storage unit is also its metric
+      // display unit: kg, L, bar, m, mm. speedMps (stored m/s, shown m/min)
+      // and durationH (stored hours, shown minutes) are the deliberate
+      // per-time exceptions and are asserted on their own below.
+      const perTime = {
+        AttributeDimension.speedMps,
+        AttributeDimension.durationH,
+      };
       for (final d in AttributeDimension.values) {
+        if (perTime.contains(d)) continue;
         expect(
           attributeDisplayFromMetric(d, units, 10),
           closeTo(10, 1e-9),
           reason: 'metric $d should not scale',
         );
       }
+    });
+
+    test('speed converts out of canonical m/s in both unit systems', () {
+      // Stored in m/s, but a DPV is specced in distance per minute on every
+      // manufacturer's sheet: m/min metric, ft/min imperial (issue #1096).
+      expect(
+        attributeDisplayFromMetric(AttributeDimension.speedMps, units, 1),
+        closeTo(60, 1e-6),
+      );
+      expect(
+        attributeDisplayFromMetric(AttributeDimension.speedMps, imperial, 1),
+        closeTo(196.85, 1e-2),
+      );
+    });
+
+    test('duration converts hours to minutes in both unit systems', () {
+      // Minutes are minutes in every market, so both formatters agree.
+      expect(
+        attributeDisplayFromMetric(AttributeDimension.durationH, units, 1.5),
+        closeTo(90, 1e-9),
+      );
+      expect(
+        attributeDisplayFromMetric(AttributeDimension.durationH, imperial, 1.5),
+        closeTo(90, 1e-9),
+      );
     });
 
     test('imperial formatter converts each scaled dimension', () {
@@ -131,6 +165,13 @@ void main() {
     expect(attributeUnitSymbol(AttributeDimension.lengthM, imperial), 'ft');
     expect(attributeUnitSymbol(AttributeDimension.depthM, imperial), 'ft');
     expect(attributeUnitSymbol(AttributeDimension.thicknessMm, imperial), 'mm');
+    expect(
+      attributeUnitSymbol(AttributeDimension.speedMps, imperial),
+      'ft/min',
+    );
+    expect(attributeUnitSymbol(AttributeDimension.speedMps, units), 'm/min');
+    expect(attributeUnitSymbol(AttributeDimension.durationH, imperial), 'min');
+    expect(attributeUnitSymbol(AttributeDimension.durationH, units), 'min');
     expect(attributeUnitSymbol(AttributeDimension.none, imperial), '');
   });
 
@@ -199,6 +240,54 @@ void main() {
       expect(text, matches(r'^\d+(\.\d)?$'));
       // A whole-number display drops the decimal entirely.
       expect(formatAttributeNumberForEditing(def.dimension, units, 3.0), '3');
+    });
+
+    test('a display value whole to one decimal drops the decimal', () {
+      // 100 minutes round-trips through hours as 1.6666...h, which multiplies
+      // back to 100.00000000000001 -- binary noise, not a real fraction. The
+      // edit field must show "100", never "100.0".
+      expect(
+        formatAttributeNumberForEditing(
+          AttributeDimension.durationH,
+          units,
+          100 / 60,
+        ),
+        '100',
+      );
+    });
+
+    group('dpv (issue #1096)', () {
+      test('burn time renders stored hours as minutes', () {
+        final def = EquipmentAttributeCatalog.defFor('burn_time_h');
+        // 1.5 stored hours is what a pre-#1096 diver entered under the
+        // "Burn time (h)" label; it must now read as 90 min, not 1.5.
+        expect(
+          formatAttributeValue(attr(num: 1.5), def, units, l10n),
+          '90 min',
+        );
+        expect(
+          formatAttributeValue(attr(num: 1.5), def, imperial, l10n),
+          '90 min',
+        );
+      });
+
+      test('top speed renders in distance per minute, not km/h', () {
+        final def = EquipmentAttributeCatalog.defFor('speed_mps');
+        // 55 m/min is a typical tow-behind scooter's rated speed.
+        final metricValue = attributeMetricFromDisplay(
+          def!.dimension,
+          units,
+          55,
+        );
+        expect(
+          formatAttributeValue(attr(num: metricValue), def, units, l10n),
+          '55 m/min',
+        );
+        expect(
+          formatAttributeValue(attr(num: metricValue), def, imperial, l10n),
+          '180.4 ft/min',
+        );
+      });
     });
 
     test('choice kind resolves the localized option label', () {

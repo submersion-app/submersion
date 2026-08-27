@@ -5,6 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -31,6 +34,14 @@ class FilesTabState extends Equatable {
   final int totalToExtract;
   final MatchedSelection match;
 
+  /// A correction added to every staged file's capture time before matching
+  /// and before persisting.
+  ///
+  /// Scoped to one picking session. Cleared by [FilesTabNotifier.clearStagedFiles]
+  /// along with the files themselves: the notifier is not autoDispose, so an
+  /// offset left set would silently follow the user into their next import.
+  final Duration captureTimeOffset;
+
   const FilesTabState({
     required this.files,
     required this.autoMatchByDate,
@@ -38,6 +49,7 @@ class FilesTabState extends Equatable {
     required this.extractedCount,
     required this.totalToExtract,
     required this.match,
+    required this.captureTimeOffset,
   });
 
   factory FilesTabState.initial() => FilesTabState(
@@ -47,6 +59,7 @@ class FilesTabState extends Equatable {
     extractedCount: 0,
     totalToExtract: 0,
     match: MatchedSelection.empty(),
+    captureTimeOffset: Duration.zero,
   );
 
   FilesTabState copyWith({
@@ -56,6 +69,7 @@ class FilesTabState extends Equatable {
     int? extractedCount,
     int? totalToExtract,
     MatchedSelection? match,
+    Duration? captureTimeOffset,
   }) => FilesTabState(
     files: files ?? this.files,
     autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
@@ -63,6 +77,7 @@ class FilesTabState extends Equatable {
     extractedCount: extractedCount ?? this.extractedCount,
     totalToExtract: totalToExtract ?? this.totalToExtract,
     match: match ?? this.match,
+    captureTimeOffset: captureTimeOffset ?? this.captureTimeOffset,
   );
 
   @override
@@ -73,6 +88,7 @@ class FilesTabState extends Equatable {
     extractedCount,
     totalToExtract,
     match,
+    captureTimeOffset,
   ];
 }
 
@@ -81,17 +97,19 @@ class FilesTabState extends Equatable {
 /// Phase 2 actions: [toggleAutoMatch], [clear], [setFiles],
 /// [setExtractionProgress], [removeFile], [commit], [undoCommit].
 ///
-/// [commit] iterates the matcher's assignment and persists each
-/// [ExtractedFile] as a [MediaItem] row via [MediaRepository.createMedia].
+/// [commit] persists each staged [ExtractedFile] as a [MediaItem] row via
+/// [MediaRepository.createMedia]: walking the matcher's per-dive assignment
+/// for a dive session, or the flat file list for a site one (see [commit]).
 /// On iOS / macOS it first creates a security-scoped bookmark blob via
 /// [LocalMediaPlatform.createBookmark] and stores it in the keychain via
 /// [LocalBookmarkStorage.write] keyed by a freshly-generated UUID; that
-/// UUID becomes the row's `bookmarkRef`. On Android it round-trips the
-/// picker URI through [LocalMediaPlatform.takePersistableUri] and stores
-/// the returned URI string as `bookmarkRef`. On desktop it stores the
-/// absolute filesystem path in `localPath` instead.
+/// UUID becomes the row's `bookmarkRef`. Everywhere else — desktop and
+/// Android alike — it stores the absolute filesystem path in `localPath`;
+/// see [_persistOne] for why Android has no persistable URI to take.
 ///
-/// Unmatched files are skipped — assignment UI for them is Phase 3.
+/// In a dive session, unmatched files are skipped; the review pane's assign
+/// actions are what move them into a dive group. A site session has no
+/// unmatched bucket to skip; every staged file belongs to the site.
 ///
 /// [undoCommit] takes the list of IDs returned by [commit] and deletes
 /// each row. The keychain bookmark blob (if any) is intentionally left
@@ -133,8 +151,41 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     state = FilesTabState.initial();
   }
 
+  /// Drops the staged files and their grouping while keeping the user's
+  /// auto-match preference.
+  ///
+  /// Called when the picker opens. The notifier is not autoDispose, so files
+  /// picked and then abandoned (backing out without committing) outlive the
+  /// session that picked them, and the next session may attach to a
+  /// different dive, or to a site. Offering yesterday's leftovers as
+  /// "attach these to this site" is wrong regardless of what the user then
+  /// taps, so the staged set starts empty every time.
+  void clearStagedFiles() {
+    state = state.copyWith(
+      files: const [],
+      match: MatchedSelection.empty(),
+      isExtracting: false,
+      extractedCount: 0,
+      totalToExtract: 0,
+      captureTimeOffset: Duration.zero,
+    );
+  }
+
   void setFiles(List<ExtractedFile> files, {required MatchedSelection match}) {
     state = state.copyWith(files: files, match: match);
+  }
+
+  /// Applies a new capture-time [offset] together with the [match] it produced.
+  ///
+  /// Both move in one state update so the review pane's summary count and the
+  /// rendered groups can never disagree: a caller that set the offset first and
+  /// the match second would publish an intermediate state showing the new
+  /// offset against the old grouping.
+  void setCaptureTimeOffset(
+    Duration offset, {
+    required MatchedSelection match,
+  }) {
+    state = state.copyWith(captureTimeOffset: offset, match: match);
   }
 
   void setExtractionProgress({required int done, required int total}) {
@@ -163,7 +214,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         .toList();
     state = state.copyWith(
       files: remainingFiles,
-      match: MatchedSelection(matched: newMatched, unmatched: newUnmatched),
+      match: state.match.copyWith(matched: newMatched, unmatched: newUnmatched),
     );
   }
 
@@ -194,7 +245,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     );
 
     state = state.copyWith(
-      match: MatchedSelection(
+      match: state.match.copyWith(
         matched: newMatched,
         unmatched: state.match.unmatched
             .where((f) => f.sourcePath != sourcePath)
@@ -220,25 +271,44 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     );
 
     state = state.copyWith(
-      match: MatchedSelection(matched: newMatched, unmatched: const []),
+      match: state.match.copyWith(matched: newMatched, unmatched: const []),
     );
   }
 
-  /// Persists the matcher's per-dive assignment as [MediaItem] rows and
-  /// returns the list of created IDs. Pass the list back to [undoCommit]
-  /// to roll back. State is reset via [clear] before returning.
+  /// Persists the staged files as [MediaItem] rows and returns the list of
+  /// created IDs. Pass the list back to [undoCommit] to roll back. State is
+  /// reset via [clear] before returning.
+  ///
+  /// What gets persisted depends on [target]:
+  ///
+  /// - [SiteAttachTarget]: every file in [FilesTabState.files], each stamped
+  ///   with the site id. The dive matcher's grouping is ignored outright:
+  ///   `matched` is keyed by dive id and a site session has no dives to key
+  ///   on, so honouring it would either persist nothing (the issue #1098
+  ///   symptom) or scatter the user's photos across whatever dives their
+  ///   timestamps happened to fall inside.
+  /// - [DiveAttachTarget], or no target at all: the matcher's per-dive
+  ///   assignment, which the review pane lets the user correct first.
+  ///   Unmatched files are skipped; the pane's assign actions are how they
+  ///   get out of that bucket.
   ///
   /// Both photos and videos are persisted; [_persistOne] tags each row with
   /// the right [MediaType] from its MIME. On desktop a local-file video
   /// resolves by localPath and plays via `VideoPlayerController.file`
   /// (see [FilesTab] class doc for the iOS caveat).
-  Future<List<String>> commit() async {
+  Future<List<String>> commit({MediaAttachTarget? target}) async {
     final created = <String>[];
-    for (final entry in state.match.matched.entries) {
-      for (final file in entry.value) {
-        final id = await _persistOne(file, entry.key);
-        created.add(id);
-      }
+    switch (target) {
+      case SiteAttachTarget(:final siteId):
+        for (final file in state.files) {
+          created.add(await _persistOne(file, siteId: siteId));
+        }
+      case DiveAttachTarget() || null:
+        for (final entry in state.match.matched.entries) {
+          for (final file in entry.value) {
+            created.add(await _persistOne(file, diveId: entry.key));
+          }
+        }
     }
     clear();
     return created;
@@ -257,7 +327,23 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     }
   }
 
-  Future<String> _persistOne(ExtractedFile file, String diveId) async {
+  /// Writes one row. Exactly one of [diveId] / [siteId] is supplied by
+  /// [commit]; the other stays null so the row belongs to one owner and does
+  /// not surface in both a dive's grid and a site's.
+  Future<String> _persistOne(
+    ExtractedFile file, {
+    String? diveId,
+    String? siteId,
+  }) async {
+    // Asserted, not just documented: neither mistake announces itself. Both
+    // set puts the photo in a dive's grid and a site's; neither set writes an
+    // ownerless row that shows up in no grid at all, which reads to the user
+    // exactly like the import having silently failed.
+    assert(
+      (diveId == null) != (siteId == null),
+      'a Files-tab row belongs to exactly one owner, got '
+      'diveId=$diveId siteId=$siteId',
+    );
     String? localPath;
     String? bookmarkRef;
 
@@ -272,24 +358,25 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         // because the picker path is sandbox-scoped and not reusable.
         localPath = file.file.path;
       }
-    }
-    // coverage:ignore-start
-    // Android branch can only be exercised on an Android host (test suite
-    // runs on macOS / Linux). Desktop fallback is exercised by Linux CI.
-    else if (Platform.isAndroid) {
-      // file.file.path on Android may already be a content URI from
-      // file_picker. takePersistableUri makes it durable across reboots.
-      bookmarkRef = await platform.takePersistableUri(file.file.path);
     } else {
+      // Android included. [ExtractedFile.file] is a dart:io File, so its
+      // path is always a filesystem path — on Android a copy file_picker
+      // made under `<cacheDir>/file_picker/`, or a folder-scan result.
+      // Neither is a SAF content URI, and handing one to
+      // takePersistableUriPermission throws PERMISSION_DENIED (issue
+      // #1002). The Files tab picks with ACTION_GET_CONTENT anyway, which
+      // grants nothing persistable, so there is no URI to recover here;
+      // the media store upload enqueued by the caller is what makes these
+      // rows durable.
       localPath = file.file.path;
     }
-    // coverage:ignore-end
 
     final now = DateTime.now();
     final item = MediaItem(
       // Empty id triggers UUID generation in MediaRepository.createMedia.
       id: '',
       diveId: diveId,
+      siteId: siteId,
       mediaType: file.metadata.mimeType.startsWith('video/')
           ? MediaType.video
           : MediaType.photo,
@@ -302,7 +389,13 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       originalFilename: p.basename(file.sourcePath),
       localPath: localPath,
       bookmarkRef: bookmarkRef,
-      takenAt: file.metadata.takenAt ?? now,
+      // The session offset is baked into the stored value, not merely used
+      // for matching. EnrichmentService derives elapsed-since-entry from this
+      // column to place the photo on the profile chart and derive its depth
+      // badge; persisting an unshifted time for a file that only matched
+      // because of the shift would give every such photo a large negative
+      // elapsed, which resolves to the first profile sample's depth.
+      takenAt: file.metadata.takenAt?.add(state.captureTimeOffset) ?? now,
       latitude: file.metadata.latitude,
       longitude: file.metadata.longitude,
       width: file.metadata.width,
@@ -317,6 +410,34 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     return saved.id;
   }
 }
+
+/// The dive time windows the Files tab matches picked media against.
+///
+/// Kept separate from [filesTabNotifierProvider] so the review pane can re-run
+/// [DivePhotoMatcher] with a new capture-time offset without sending the user
+/// back through the OS file picker.
+///
+/// A dive with no recorded exit time gets one synthesised from its runtime, and
+/// a dive with neither gets a one-hour window. That is deliberately generous:
+/// [DivePhotoMatcher] adds a 30-minute pre-buffer and a 60-minute post-buffer
+/// on top, and a window that is slightly too wide costs a correctable
+/// mis-assignment, while one that is too narrow silently drops photos into the
+/// unmatched bucket with nothing to explain it.
+final diveBoundsProvider = FutureProvider<List<DiveBounds>>((ref) async {
+  final dives = await ref.watch(divesProvider.future);
+  return [
+    for (final d in dives)
+      DiveBounds(
+        diveId: d.id,
+        entryTime: d.effectiveEntryTime,
+        exitTime:
+            d.exitTime ??
+            d.effectiveEntryTime.add(
+              d.effectiveRuntime ?? const Duration(hours: 1),
+            ),
+      ),
+  ];
+});
 
 final filesTabNotifierProvider =
     StateNotifierProvider<FilesTabNotifier, FilesTabState>(

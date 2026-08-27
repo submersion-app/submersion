@@ -309,6 +309,9 @@ jobs:
           merge-multiple: true
 
       - name: Generate release notes HTML
+        env:
+          # Needed to resolve contributor logins; see promote.yml.
+          GH_TOKEN: ${{ github.token }}
         run: |
           ./scripts/release/generate_changelog.sh --notes-only | \
             ./scripts/generate_release_notes_html.sh > release-notes.html
@@ -367,6 +370,9 @@ jobs:
           fetch-depth: 0
 
       - name: Generate release notes
+        env:
+          # Needed to resolve contributor logins; see promote.yml.
+          GH_TOKEN: ${{ github.token }}
         run: |
           ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
 

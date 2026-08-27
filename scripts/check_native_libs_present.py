@@ -11,19 +11,33 @@ This is issue #433: a "tier 2 constraint bump" moved ``sqlite3_flutter_libs``
 from ``0.5.x`` to ``0.6.0+eol``. That ``+eol`` release is an empty tombstone
 package (it removed all of its Android/desktop build scripts) intended only for
 apps that have migrated to ``package:sqlite3`` 3.x, which bundles the SQLite
-engine itself. Submersion is still on ``sqlite3`` 2.x, so nothing bundled
+engine itself. Submersion was on ``sqlite3`` 2.x at the time, so nothing bundled
 ``libsqlite3.so`` anymore. The APK shipped without it and the app died at
 startup with::
 
     Failed to load dynamic library '/data/data/app.submersion/lib/libsqlite3.so':
     dlopen failed: library "..." not found
 
-The existing ``check_16kb_alignment`` guard did not catch this: a *missing*
+Submersion has since migrated to ``package:sqlite3`` 3.x, which supplies
+SQLCipher (``libsqlcipher.so``) through a Dart build hook: see the ``hooks:``
+section of pubspec.yaml. Neither ``sqlite3_flutter_libs`` nor
+``sqlcipher_flutter_libs`` is a dependency any more, so the exact tombstone that
+caused #433 can no longer recur. The guard still earns its place, because the
+engine now arrives as a prebuilt binary downloaded per platform by a build hook,
+which is one more way for it to go missing without the build failing.
+
+The existing ``check_16kb_alignment`` guard did not catch #433: a *missing*
 library is not a *misaligned* library, so the alignment pass was clean. This is
-the complementary check -- it asserts that each required library is present in
+the complementary check. It asserts that each required library is present in
 every ABI the archive ships, and fails (exit code 1) otherwise. It is
 dependency-free (pure stdlib) so it runs identically in CI (Linux) and locally
 (macOS).
+
+``check_bundled_native_assets.py`` is the desktop counterpart, comparing a built
+Windows or Linux bundle against the NativeAssetsManifest.json that the build
+wrote. It exists because the same class of failure reached Windows in #1129,
+where a CMake install rule silently dropped every native asset from the package
+while every build job stayed green.
 
 Libraries whose silent absence is fatal at startup belong in ``REQUIRED_LIBS``.
 Libraries whose absence only disables a feature (e.g. ``liblibdc_jni.so``, the
@@ -37,13 +51,19 @@ Usage:
 import sys
 import zipfile
 
-# Native libraries that MUST be bundled for every ABI. ``libsqlite3.so`` is the
-# SQLite engine behind Drift; without it the database cannot open and the app is
-# unusable from the first launch (issue #433). It is supplied by the Maven
-# artifact ``eu.simonbinder:sqlite3-native-library`` that sqlite3_flutter_libs
-# 0.5.x depends on -- and only while we remain on sqlite3 2.x. Keep this list in
-# sync with pubspec.yaml's note pinning sqlite3_flutter_libs to 0.5.x.
-REQUIRED_LIBS = ("libsqlite3.so",)
+# Native libraries that MUST be bundled for every ABI. ``libsqlcipher.so`` is
+# the SQLite engine behind Drift; without it the database cannot open and the
+# app is unusable from the first launch (issue #433). It is supplied by
+# ``package:sqlite3``'s build hook, selected by the ``source: sqlcipher``
+# user-define in pubspec.yaml, which downloads a sha256-verified prebuilt
+# SQLCipher binary for each platform.
+#
+# The name changed from ``libsqlite3.so`` when App Security replaced plain
+# SQLite with SQLCipher: SQLCipher is ABI-compatible with SQLite but ships under
+# its own name. An APK carrying ``libsqlite3.so`` instead would mean the hook
+# had resolved to its default ``sqlite3`` source, which cannot open an encrypted
+# database at all.
+REQUIRED_LIBS = ("libsqlcipher.so",)
 
 
 def abi_to_libs(zf):

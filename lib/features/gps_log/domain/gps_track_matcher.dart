@@ -11,12 +11,16 @@ class GpsTrackMatcher {
 
   /// Finds the first completed track whose recording window (extended by
   /// the tolerance on both sides) contains [wallClockMs].
+  ///
+  /// Reads the EFFECTIVE window, so a trimmed-away leg no longer matches. A
+  /// diver who trims off the drive to the marina has said, in the only way
+  /// the app offers, that those positions are not part of the dive day.
   static GpsTrack? trackCovering(List<GpsTrack> tracks, int wallClockMs) {
     const tolMs = toleranceSeconds * 1000;
     for (final track in tracks) {
-      final end = track.endTime;
+      final end = track.effectiveEndTime;
       if (end == null) continue;
-      if (wallClockMs >= track.startTime - tolMs &&
+      if (wallClockMs >= track.effectiveStartTime - tolMs &&
           wallClockMs <= end + tolMs) {
         return track;
       }

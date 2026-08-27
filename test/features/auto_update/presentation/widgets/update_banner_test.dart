@@ -7,6 +7,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   late SharedPreferences prefs;
@@ -28,6 +29,9 @@ void main() {
         ),
       ],
       child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('en'),
         home: Scaffold(
           body: Column(
             children: [

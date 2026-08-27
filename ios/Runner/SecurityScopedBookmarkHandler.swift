@@ -93,12 +93,7 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
         pendingPickerResult = result
 
         // Create document picker for folders
-        let documentPicker: UIDocumentPickerViewController
-        if #available(iOS 14.0, *) {
-            documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder])
-        } else {
-            documentPicker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
-        }
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder])
 
         documentPicker.delegate = self
         documentPicker.allowsMultipleSelection = false

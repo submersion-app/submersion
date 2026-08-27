@@ -8,17 +8,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Renders the latest externally emitted tooltip rows (see
 /// [DiveProfileChart.onTooltipData]) in a compact card the user can drag
 /// anywhere within the enclosing [Stack]. Position is a fraction of the
-/// movable range (the stack area minus a 12 px inset margin, minus the card
-/// size): (0,0) puts the card at the inset top-left corner, (1,1) at the
-/// inset bottom-right. Out-of-range fractions are clamped so a bad persisted
-/// value can never strand the card outside the visible (clipped) area. Must
-/// be placed directly inside a [Stack].
+/// movable range (the stack area minus [placementInsets] and the card size):
+/// (0,0) puts the card at the inset top-left corner, (1,1) at the inset
+/// bottom-right. The default inset is 12 px on every side; callers can reserve
+/// larger control areas. Out-of-range fractions are clamped so a bad
+/// persisted value can never strand the card outside the visible (clipped)
+/// area. Must be placed directly inside a [Stack].
 class DraggableReadoutCard extends StatefulWidget {
   /// Latest tooltip rows; null or empty shows the placeholder hint.
   final List<TooltipRow>? rows;
 
   /// Starting position fraction; null uses [defaultFraction].
   final Offset? initialFraction;
+
+  /// Insets that bound the card's draggable movement arena.
+  final EdgeInsets placementInsets;
 
   /// Called with the final position fraction when a drag ends. The caller
   /// persists it (the fullscreen page saves it to settings).
@@ -29,6 +33,7 @@ class DraggableReadoutCard extends StatefulWidget {
     required this.rows,
     required this.initialFraction,
     required this.onDragEnd,
+    this.placementInsets = const EdgeInsets.all(12),
   });
 
   /// Default position: top-right corner.
@@ -39,8 +44,6 @@ class DraggableReadoutCard extends StatefulWidget {
 }
 
 class _DraggableReadoutCardState extends State<DraggableReadoutCard> {
-  static const _inset = 12.0;
-
   // Fixed character columns, mirroring the detail-page tooltip
   // (DiveProfileChart's labelWidth/valueWidth). Every row pads to the same
   // character count and renders in monospace, so value-length changes while
@@ -94,7 +97,7 @@ class _DraggableReadoutCardState extends State<DraggableReadoutCard> {
 
     return Positioned.fill(
       child: Padding(
-        padding: const EdgeInsets.all(_inset),
+        padding: widget.placementInsets,
         child: LayoutBuilder(
           builder: (context, constraints) => Align(
             alignment: FractionalOffset(_fraction.dx, _fraction.dy),

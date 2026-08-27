@@ -6,6 +6,7 @@ import 'package:submersion/features/import_wizard/domain/models/entity_match_res
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A scrollable review list for a single entity type.
@@ -83,13 +84,23 @@ class EntityReviewList extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
-    final nonDuplicateIndices = _nonDuplicateIndices();
-    final likelyDuplicateIndices = _sortedDuplicateIndices(minScore: 0.7);
+    final autoSkipIndices = group.autoSkipIndices ?? const <int>{};
+
+    final nonDuplicateIndices = _nonDuplicateIndices()
+        .where((i) => !autoSkipIndices.contains(i))
+        .toList();
+    final likelyDuplicateIndices = _sortedDuplicateIndices(
+      minScore: 0.7,
+    ).where((i) => !autoSkipIndices.contains(i)).toList();
     final possibleDuplicateIndices = _sortedDuplicateIndices(
       minScore: 0.5,
       maxScore: 0.7,
-    );
+    ).where((i) => !autoSkipIndices.contains(i)).toList();
+    final unscoredDuplicateIndices = _unscoredDuplicateIndices()
+        .where((i) => !autoSkipIndices.contains(i))
+        .toList();
 
     final totalItems = group.items.length;
     final duplicateCount = group.duplicateIndices.length;
@@ -106,6 +117,7 @@ class EntityReviewList extends StatelessWidget {
               Expanded(
                 child: Text(
                   _itemCountText(
+                    l10n,
                     nonDuplicateCount,
                     duplicateCount,
                     selectedIndices.length,
@@ -122,7 +134,7 @@ class EntityReviewList extends StatelessWidget {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text('Select All'),
+                child: Text(l10n.universalImport_action_selectAll),
               ),
               TextButton(
                 onPressed: onDeselectAll,
@@ -131,7 +143,7 @@ class EntityReviewList extends StatelessWidget {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text('Deselect All'),
+                child: Text(l10n.universalImport_action_deselectAll),
               ),
             ],
           ),
@@ -151,7 +163,7 @@ class EntityReviewList extends StatelessWidget {
         // that need user attention are at the top of the tab.
         if (likelyDuplicateIndices.isNotEmpty) ...[
           _SectionLabel(
-            label: 'Potential Duplicates',
+            label: l10n.universalImport_section_potentialDuplicates,
             color: colorScheme.error,
           ),
           for (final index in likelyDuplicateIndices)
@@ -159,8 +171,8 @@ class EntityReviewList extends StatelessWidget {
         ],
 
         if (possibleDuplicateIndices.isNotEmpty) ...[
-          const _SectionLabel(
-            label: 'Possible Duplicates',
+          _SectionLabel(
+            label: l10n.universalImport_section_possibleDuplicates,
             color: Colors.orange,
           ),
           for (final index in possibleDuplicateIndices)
@@ -168,12 +180,12 @@ class EntityReviewList extends StatelessWidget {
         ],
 
         // Unscored duplicates (non-dive entities without matchResults)
-        if (_unscoredDuplicateIndices().isNotEmpty) ...[
+        if (unscoredDuplicateIndices.isNotEmpty) ...[
           _SectionLabel(
-            label: 'Potential Duplicates',
+            label: l10n.universalImport_section_potentialDuplicates,
             color: colorScheme.error,
           ),
-          for (final index in _unscoredDuplicateIndices())
+          for (final index in unscoredDuplicateIndices)
             _buildEntityDuplicateCard(index),
         ],
 
@@ -189,7 +201,62 @@ class EntityReviewList extends StatelessWidget {
               projectedDiveNumber: projectedDiveNumbers?[index],
             ),
         ],
+
+        // Auto-skipped items (e.g. dives at or before the diver's first-sync
+        // cutoff): collapsed by default behind a single summary row so a
+        // long tail of already-logged dives doesn't bury the rows that need
+        // attention. Expanding reveals each item via the same row widget
+        // used above, so action changes keep working unchanged.
+        if (autoSkipIndices.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                leading: const Icon(Icons.history),
+                title: Text(
+                  context.l10n.importWizard_review_olderDivesSkipped(
+                    autoSkipIndices.length,
+                  ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                children: [
+                  for (final index in autoSkipIndices.toList()..sort())
+                    _buildRowForIndex(index),
+                ],
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  /// Builds the appropriate row widget for a single item [index], reusing
+  /// the exact same per-item widgets the main list sections use above.
+  ///
+  /// Dispatches by data shape rather than by list membership so it works
+  /// identically whether called from the main sections or from inside the
+  /// auto-skipped summary's [ExpansionTile]: scored dive duplicates render
+  /// as a [DuplicateActionCard], unscored entity duplicates render as an
+  /// [_EntityDuplicateCard], and everything else renders as a
+  /// [_NonDuplicateRow].
+  Widget _buildRowForIndex(int index) {
+    if (group.duplicateIndices.contains(index)) {
+      final matchResults = group.matchResults;
+      if (matchResults != null && matchResults[index] != null) {
+        return _buildDuplicateCard(index);
+      }
+      return _buildEntityDuplicateCard(index);
+    }
+    return _NonDuplicateRow(
+      item: group.items[index],
+      index: index,
+      isSelected: selectedIndices.contains(index),
+      onToggle: () => onToggleSelection(index),
+      projectedDiveNumber: projectedDiveNumbers?[index],
     );
   }
 
@@ -284,6 +351,7 @@ class EntityReviewList extends StatelessWidget {
       entityMatch: entityMatch,
       selectedAction: action,
       onActionChanged: (a) => onDuplicateActionChanged(index, a),
+      availableActions: availableActions,
       isPending: pendingIndices.contains(index),
     );
   }
@@ -316,13 +384,20 @@ class EntityReviewList extends StatelessWidget {
     }).length;
   }
 
-  String _itemCountText(int nonDuplicates, int duplicates, int selectedCount) {
+  String _itemCountText(
+    AppLocalizations l10n,
+    int nonDuplicates,
+    int duplicates,
+    int selectedCount,
+  ) {
     final parts = <String>[];
     if (nonDuplicates > 0) {
-      parts.add('$selectedCount / $nonDuplicates selected');
+      parts.add(
+        l10n.universalImport_label_xOfYSelected(selectedCount, nonDuplicates),
+      );
     }
     if (duplicates > 0) {
-      parts.add('$duplicates duplicate${duplicates == 1 ? '' : 's'}');
+      parts.add(l10n.universalImport_count_duplicates(duplicates));
     }
     return parts.join(' \u00b7 ');
   }
@@ -422,7 +497,7 @@ class _NonDuplicateRow extends StatelessWidget {
                   border: Border.all(color: Colors.green, width: 1),
                 ),
                 child: Text(
-                  'IMPORT',
+                  context.l10n.universalImport_entityAction_importBadge,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -442,7 +517,7 @@ class _NonDuplicateRow extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'SKIP',
+                  context.l10n.universalImport_entityAction_skipBadge,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.4),
                     fontWeight: FontWeight.bold,
@@ -472,6 +547,9 @@ class _EntityDuplicateCard extends StatefulWidget {
   final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
 
+  /// Which action buttons the expanded comparison panel may offer.
+  final Set<DuplicateAction> availableActions;
+
   /// Whether this row still needs an explicit user decision.
   ///
   /// When true the card renders a warning-colored 1.5-px border and a
@@ -483,6 +561,7 @@ class _EntityDuplicateCard extends StatefulWidget {
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    required this.availableActions,
     this.isPending = false,
   });
 
@@ -503,16 +582,13 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
     // the tertiary warning colour so the border reads as "undecided" rather
     // than implying a skip. The pending branch below also uses tertiary, so
     // this fallback only matters for the rare non-pending-null case.
-    final Color borderColor;
-    if (widget.selectedAction == null) {
-      borderColor = colorScheme.tertiary;
-    } else if (isImporting) {
-      borderColor = Colors.green;
-    } else if (widget.selectedAction == DuplicateAction.consolidate) {
-      borderColor = colorScheme.primary;
-    } else {
-      borderColor = colorScheme.error;
-    }
+    final Color borderColor = switch (widget.selectedAction) {
+      null => colorScheme.tertiary,
+      DuplicateAction.importAsNew => Colors.green,
+      DuplicateAction.consolidate => colorScheme.primary,
+      DuplicateAction.replaceSource => Colors.blue.shade700,
+      DuplicateAction.skip => colorScheme.error,
+    };
 
     final BorderSide borderSide = widget.isPending
         ? BorderSide(color: colorScheme.tertiary, width: 1.5)
@@ -612,6 +688,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                 entityMatch: widget.entityMatch!,
                 selectedAction: widget.selectedAction,
                 onActionChanged: widget.onActionChanged,
+                availableActions: widget.availableActions,
                 isPending: widget.isPending,
               ),
           ],
@@ -630,6 +707,10 @@ class _EntityComparisonPanel extends StatelessWidget {
   final DuplicateAction? selectedAction;
   final ValueChanged<DuplicateAction> onActionChanged;
 
+  /// Which action buttons to render. Filtered per entity type by the adapter
+  /// so a tab never offers an action whose import path would drop the row.
+  final Set<DuplicateAction> availableActions;
+
   /// Whether the enclosing row still needs an explicit user decision.
   ///
   /// When `true` AND [selectedAction] is `null`, a "Choose an action" label
@@ -640,6 +721,7 @@ class _EntityComparisonPanel extends StatelessWidget {
     required this.entityMatch,
     required this.selectedAction,
     required this.onActionChanged,
+    required this.availableActions,
     this.isPending = false,
   });
 
@@ -668,7 +750,7 @@ class _EntityComparisonPanel extends StatelessWidget {
               const SizedBox(width: 80),
               Expanded(
                 child: Text(
-                  'Existing',
+                  context.l10n.universalImport_compare_existing,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
@@ -678,7 +760,7 @@ class _EntityComparisonPanel extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  'Incoming',
+                  context.l10n.universalImport_compare_incoming,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
@@ -719,32 +801,55 @@ class _EntityComparisonPanel extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
-                  _EntityActionButton(
-                    label:
-                        context.l10n.universalImport_entityAction_linkExisting,
-                    subtitle: context
-                        .l10n
-                        .universalImport_entityAction_linkExistingSubtitle,
-                    isSelected: selectedAction == DuplicateAction.consolidate,
-                    color: colorScheme.primary,
-                    onPressed: () =>
-                        onActionChanged(DuplicateAction.consolidate),
-                  ),
-                  _EntityActionButton(
-                    label: 'Skip',
-                    subtitle: 'Discard this import',
-                    isSelected: selectedAction == DuplicateAction.skip,
-                    color: colorScheme.error,
-                    onPressed: () => onActionChanged(DuplicateAction.skip),
-                  ),
-                  _EntityActionButton(
-                    label: 'Import as New',
-                    subtitle: 'Create separate entry',
-                    isSelected: selectedAction == DuplicateAction.importAsNew,
-                    color: Colors.green.shade700,
-                    onPressed: () =>
-                        onActionChanged(DuplicateAction.importAsNew),
-                  ),
+                  if (availableActions.contains(DuplicateAction.consolidate))
+                    _EntityActionButton(
+                      label: context
+                          .l10n
+                          .universalImport_entityAction_linkExisting,
+                      subtitle: context
+                          .l10n
+                          .universalImport_entityAction_linkExistingSubtitle,
+                      isSelected: selectedAction == DuplicateAction.consolidate,
+                      color: colorScheme.primary,
+                      onPressed: () =>
+                          onActionChanged(DuplicateAction.consolidate),
+                    ),
+                  if (availableActions.contains(DuplicateAction.skip))
+                    _EntityActionButton(
+                      label: context.l10n.universalImport_entityAction_skip,
+                      subtitle: context
+                          .l10n
+                          .universalImport_entityAction_skipSubtitle,
+                      isSelected: selectedAction == DuplicateAction.skip,
+                      color: colorScheme.error,
+                      onPressed: () => onActionChanged(DuplicateAction.skip),
+                    ),
+                  if (availableActions.contains(DuplicateAction.importAsNew))
+                    _EntityActionButton(
+                      label:
+                          context.l10n.universalImport_entityAction_importAsNew,
+                      subtitle: context
+                          .l10n
+                          .universalImport_entityAction_importAsNewSubtitle,
+                      isSelected: selectedAction == DuplicateAction.importAsNew,
+                      color: Colors.green.shade700,
+                      onPressed: () =>
+                          onActionChanged(DuplicateAction.importAsNew),
+                    ),
+                  if (availableActions.contains(DuplicateAction.replaceSource))
+                    _EntityActionButton(
+                      label: context
+                          .l10n
+                          .universalImport_entityAction_replaceExisting,
+                      subtitle: context
+                          .l10n
+                          .universalImport_entityAction_replaceExistingSubtitle,
+                      isSelected:
+                          selectedAction == DuplicateAction.replaceSource,
+                      color: Colors.blue.shade700,
+                      onPressed: () =>
+                          onActionChanged(DuplicateAction.replaceSource),
+                    ),
                 ],
               ),
             ],
@@ -902,12 +1007,24 @@ class _SimpleActionBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (label, color) = switch (action) {
-      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
+      DuplicateAction.importAsNew => (
+        context.l10n.universalImport_entityAction_importBadge,
+        Colors.green.shade700,
+      ),
       DuplicateAction.consolidate => (
         context.l10n.universalImport_entityAction_linkBadge,
         theme.colorScheme.primary,
       ),
-      _ => ('SKIP', theme.colorScheme.error),
+      // "REPLACE", matching the dive card's badge for the same action rather
+      // than introducing a second word ("Overwrite") for one enum value.
+      DuplicateAction.replaceSource => (
+        context.l10n.universalImport_entityAction_replaceBadge,
+        Colors.blue.shade700,
+      ),
+      DuplicateAction.skip => (
+        context.l10n.universalImport_entityAction_skipBadge,
+        theme.colorScheme.error,
+      ),
     };
 
     return Container(

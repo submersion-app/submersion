@@ -486,85 +486,75 @@ void main() {
       );
     });
 
-    test(
-      'a library-level photo whose dive was deleted is preserved '
-      '(unlinked), not lost and not resurrected with a dangling link',
-      () async {
-        final serializer = SyncDataSerializer();
-        final diveRepo = DiveRepository();
-        final db = DatabaseService.instance.database;
+    test('a network photo whose dive was deleted dies with it and is not '
+        'resurrected by a peer live copy', () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      final db = DatabaseService.instance.database;
 
-        await diveRepo.createDive(
-          createTestDiveWithBottomTime(id: 'dive-61', diveNumber: 61),
-        );
-        await db
-            .into(db.media)
-            .insert(
-              MediaCompanion.insert(
-                id: 'media-61',
-                diveId: const Value('dive-61'),
-                filePath: '/photo.jpg',
-                sourceType: const Value('networkUrl'),
-                createdAt: 1000,
-                updatedAt: 1000,
-              ),
-            );
-        await buildService().performSync();
-        final diveJson = await serializer.fetchRecord('dives', 'dive-61');
-        final mediaJson = await serializer.fetchRecord('media', 'media-61');
-        expect(mediaJson, isNotNull);
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-61', diveNumber: 61),
+      );
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'media-61',
+              diveId: const Value('dive-61'),
+              filePath: '/photo.jpg',
+              sourceType: const Value('networkUrl'),
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+      await buildService().performSync();
+      final diveJson = await serializer.fetchRecord('dives', 'dive-61');
+      final mediaJson = await serializer.fetchRecord('media', 'media-61');
+      expect(mediaJson, isNotNull);
 
-        // Library-level source types (networkUrl/manifestEntry) revert to
-        // library on dive deletion instead of dying (orphan-prevention spec
-        // section 3): auto-match was additive, so the import must survive.
-        await diveRepo.deleteDive('dive-61');
-        expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
-        final localMedia = await serializer.fetchRecord('media', 'media-61');
-        expect(
-          localMedia,
-          isNotNull,
-          reason: 'the library import must survive the delete',
-        );
-        expect(localMedia!['diveId'], isNull);
+      // No source type is exempt from the cascade any more: a row with
+      // no dive and no site has no place in the library, so the URL row
+      // this dive owned dies with it and leaves a tombstone.
+      await diveRepo.deleteDive('dive-61');
+      expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
+      expect(
+        await serializer.fetchRecord('media', 'media-61'),
+        isNull,
+        reason: 'the dive-only URL row dies with its dive',
+      );
 
-        // Peer still has the live dive AND the photo still linked to it.
-        final peerData = SyncData(
-          dives: [
-            {...diveJson!, 'updatedAt': 1000},
-          ],
-          media: [mediaJson!],
-        );
-        final checksum = sha256
-            .convert(utf8.encode(jsonEncode(peerData.toJson())))
-            .toString();
-        final payload = SyncPayload(
-          version: syncFormatVersion,
-          exportedAt: 2000,
-          deviceId: 'peer-dev',
-          checksum: checksum,
-          data: peerData,
-          deletions: const {},
-        );
-        await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
+      // Peer still has the live dive AND the photo still linked to it.
+      final peerData = SyncData(
+        dives: [
+          {...diveJson!, 'updatedAt': 1000},
+        ],
+        media: [mediaJson!],
+      );
+      final checksum = sha256
+          .convert(utf8.encode(jsonEncode(peerData.toJson())))
+          .toString();
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 2000,
+        deviceId: 'peer-dev',
+        checksum: checksum,
+        data: peerData,
+        deletions: const {},
+      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
 
-        final result = await buildService().performSync();
+      final result = await buildService().performSync();
 
-        expect(result.status, isNot(SyncResultStatus.error));
-        expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
-        final afterMedia = await serializer.fetchRecord('media', 'media-61');
-        expect(
-          afterMedia,
-          isNotNull,
-          reason:
-              'the library import must NOT be lost when its dive is deleted',
-        );
-        expect(
-          afterMedia!['diveId'],
-          isNull,
-          reason: 'the dangling dive link is cleared, not resurrected',
-        );
-      },
-    );
+      expect(result.status, isNot(SyncResultStatus.error));
+      expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
+      expect(
+        await serializer.fetchRecord('media', 'media-61'),
+        isNull,
+        reason:
+            'the media tombstone beats the peer live copy: a row pointing '
+            'at a deleted dive must not come back',
+      );
+    });
 
     test(
       'applying a peer deletion of a SITE a local dive still references does '

@@ -135,7 +135,6 @@ class TankPresetsPage extends ConsumerWidget {
       preset.volumeLiters,
       preset.workingPressureBar,
       ratedCapacityCuft: preset.ratedCapacityCuft,
-      decimals: 0,
     );
     final pressureStr = units.formatPressure(
       preset.workingPressureBar,

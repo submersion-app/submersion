@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -28,6 +29,29 @@ import 'package:submersion/features/universal_import/data/services/macdive_xml_r
 ///   - gear: by `(manufacturer|name|serial)` composite key
 class MacDiveXmlParser implements ImportParser {
   const MacDiveXmlParser();
+
+  /// MacDive's XML exporter writes neither certifications nor equipment
+  /// service records, so those two entity types can never come out of this
+  /// parser no matter what the diver's library holds (issue #1135: a 540-dive
+  /// export whose `MacDive.sqlite` had 4 certifications and 1 service record
+  /// produced an XML file containing no element for either).
+  ///
+  /// `MacDiveDbReader` does read both from `ZCERTIFICATION` and
+  /// `ZSERVICERECORD`, so the diver has a real remedy. Say so on every import
+  /// rather than letting the gap look like a failed parse.
+  ///
+  /// Worded as a claim about *this file*, not about the import. A batch parses
+  /// each file with its own detected format and `PayloadMerger` concatenates
+  /// every file's warnings, so a MacDive.sqlite alongside the XML export puts
+  /// this notice next to a non-zero Certifications count. Scoped this way it
+  /// stays true there and still names the remedy.
+  static const _formatGapNotice = ImportWarning(
+    severity: ImportWarningSeverity.info,
+    message:
+        'This MacDive XML file contains no certifications or equipment '
+        'service records: MacDive omits both from its XML export. To bring '
+        'them in, add your MacDive.sqlite database to this import.',
+  );
 
   @override
   List<ImportFormat> get supportedFormats => const [ImportFormat.macdiveXml];
@@ -91,6 +115,8 @@ class MacDiveXmlParser implements ImportParser {
     final buddiesByName = <String, Map<String, dynamic>>{};
     final gearByKey = <String, Map<String, dynamic>>{};
     final tagsByName = <String, Map<String, dynamic>>{};
+    final diveTypesBySlug = <String, Map<String, dynamic>>{};
+    final diveCentersByName = <String, Map<String, dynamic>>{};
 
     for (final dive in logbook.dives) {
       final diveMap = _mapDive(dive);
@@ -152,6 +178,46 @@ class MacDiveXmlParser implements ImportParser {
         }
       }
 
+      // Dive types: MacDive's own vocabulary. Slugging the name lands the
+      // common ones on Submersion's built-in ids and carries the rest across
+      // as custom types (#912). The reader has always parsed <types>; only
+      // the mapping was missing.
+      if (dive.diveTypes.isNotEmpty) {
+        final typeIds = <String>[];
+        for (final type in dive.diveTypes) {
+          final trimmed = type.trim();
+          if (trimmed.isEmpty) continue;
+          final slug = DiveTypeEntity.generateSlug(trimmed);
+          if (slug.isEmpty || typeIds.contains(slug)) continue;
+          typeIds.add(slug);
+          diveTypesBySlug.putIfAbsent(
+            slug,
+            () => <String, dynamic>{
+              'id': slug,
+              'name': trimmed,
+              'uddfId': slug,
+            },
+          );
+        }
+        if (typeIds.isNotEmpty) diveMap['diveTypeIds'] = typeIds;
+      }
+
+      // Operator: keep the free-text column and also link the dive to a
+      // deduplicated DiveCenter entity (#912).
+      final operator = dive.diveOperator?.trim();
+      if (operator != null && operator.isNotEmpty) {
+        diveMap['diveCenterRef'] = operator;
+        diveCentersByName.putIfAbsent(
+          operator,
+          () => <String, dynamic>{
+            'name': operator,
+            'uddfId': operator,
+            if ((dive.site?.country ?? '').isNotEmpty)
+              'country': dive.site!.country,
+          },
+        );
+      }
+
       if (dive.tags.isNotEmpty) {
         // Per-dive dedup: `dive_tags` has no UNIQUE(diveId, tagId)
         // constraint, so duplicate `<tag>` entries would create duplicate
@@ -185,8 +251,19 @@ class MacDiveXmlParser implements ImportParser {
     if (gearByKey.isNotEmpty) {
       entities[ImportEntityType.equipment] = gearByKey.values.toList();
     }
+    if (diveTypesBySlug.isNotEmpty) {
+      entities[ImportEntityType.diveTypes] = diveTypesBySlug.values.toList();
+    }
+    if (diveCentersByName.isNotEmpty) {
+      entities[ImportEntityType.diveCenters] = diveCentersByName.values
+          .toList();
+    }
     if (tagsByName.isNotEmpty) {
       entities[ImportEntityType.tags] = tagsByName.values.toList();
+    }
+
+    if (diveMaps.isNotEmpty) {
+      warnings.add(_formatGapNotice);
     }
 
     return ImportPayload(
@@ -226,7 +303,9 @@ class MacDiveXmlParser implements ImportParser {
     if (d.tempLowCelsius != null) map['waterTemp'] = d.tempLowCelsius;
     if (d.airTempCelsius != null) map['airTemp'] = d.airTempCelsius;
     if (d.cns != null) map['cnsEnd'] = d.cns;
-    if (d.decoModel != null) map['decoModel'] = d.decoModel;
+    // `decoAlgorithm` is the key UddfEntityImporter reads; emitting only
+    // `decoModel` silently dropped MacDive's deco model on every import.
+    if (d.decoModel != null) map['decoAlgorithm'] = d.decoModel;
     if (d.gasModel != null) map['gasModel'] = d.gasModel;
     if (d.visibility != null) map['visibility'] = d.visibility;
     if (d.weightKg != null) map['weightUsed'] = d.weightKg;

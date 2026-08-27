@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_app.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -14,6 +16,10 @@ import 'package:submersion/core/services/logger_service.dart';
 ///
 /// The refresh token is the only persisted credential (DropboxAuthStore);
 /// access tokens (~4 h lifetime) live in memory only.
+///
+/// The transport carries [TimeoutHttpClient]'s deadlines: token refresh is
+/// awaited inside DropboxApiClient's send loop, so a wedged refresh stalls
+/// every Dropbox request behind it just as a wedged request would (#1279).
 class DropboxAuthManager {
   DropboxAuthManager({
     this.appKey = dropboxAppKey,
@@ -22,7 +28,7 @@ class DropboxAuthManager {
     DateTime Function()? now,
     String Function()? verifierGenerator,
   }) : _store = store ?? DropboxAuthStore(),
-       _http = httpClient ?? http.Client(),
+       _http = httpClient ?? TimeoutHttpClient.overSockets(),
        _now = now ?? DateTime.now,
        _generateVerifier = verifierGenerator ?? generateCodeVerifier;
 
@@ -50,6 +56,12 @@ class DropboxAuthManager {
   final http.Client _http;
   final DateTime Function() _now;
   final String Function() _generateVerifier;
+
+  /// The transport actually in use, so a test can assert that a manager
+  /// nobody handed one to did not fall back to a deadline-free
+  /// `http.Client()`.
+  @visibleForTesting
+  http.Client get transport => _http;
 
   String? _pendingVerifier;
   String? _accessToken;

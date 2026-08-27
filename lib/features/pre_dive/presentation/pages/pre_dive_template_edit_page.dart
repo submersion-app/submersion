@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -303,11 +304,13 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
     _valueUnitController = TextEditingController(
       text: widget.item?.valueUnit ?? '',
     );
+    final valueMin = widget.item?.valueMin;
+    final valueMax = widget.item?.valueMax;
     _valueMinController = TextEditingController(
-      text: widget.item?.valueMin?.toString() ?? '',
+      text: valueMin == null ? '' : formatDecimalForInput(valueMin),
     );
     _valueMaxController = TextEditingController(
-      text: widget.item?.valueMax?.toString() ?? '',
+      text: valueMax == null ? '' : formatDecimalForInput(valueMax),
     );
     _itemType = widget.item?.itemType ?? PreDiveItemType.check;
     _isRequired = widget.item?.isRequired ?? false;
@@ -351,12 +354,8 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
         itemType: _itemType,
         valueLabel: isValue && valueLabel.isNotEmpty ? valueLabel : null,
         valueUnit: isValue && valueUnit.isNotEmpty ? valueUnit : null,
-        valueMin: isValue
-            ? double.tryParse(_valueMinController.text.trim())
-            : null,
-        valueMax: isValue
-            ? double.tryParse(_valueMaxController.text.trim())
-            : null,
+        valueMin: isValue ? parseUserDecimal(_valueMinController.text) : null,
+        valueMax: isValue ? parseUserDecimal(_valueMaxController.text) : null,
         isRequired: _isRequired,
         createdAt: widget.item?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),

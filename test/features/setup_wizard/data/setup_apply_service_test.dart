@@ -152,6 +152,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
+      await container.read(settingsProvider.notifier).initialLoad;
+
       // The re-entry draft must mirror the live schedule, not defaults.
       final draft = container.read(
         setupWizardProvider(SetupWizardMode.settings),

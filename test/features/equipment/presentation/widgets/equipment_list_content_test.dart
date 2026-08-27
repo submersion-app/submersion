@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -17,6 +17,8 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -81,6 +83,11 @@ Future<List<Override>> _buildOverrides({
   ];
 }
 
+/// Mutable source for the contract test's filter step.
+final _visibleEquipmentProvider = StateProvider<List<EquipmentItem>>(
+  (ref) => const [],
+);
+
 Future<List<Override>> _buildPhoneOverrides({
   required List<EquipmentItem> items,
   ListViewMode viewMode = ListViewMode.detailed,
@@ -106,6 +113,160 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  group('bulk actions', () {
+    late _CapturingEquipmentNotifier notifier;
+
+    Future<Widget> host(List<EquipmentItem> items) async {
+      notifier = _CapturingEquipmentNotifier();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return testApp(
+        locale: const Locale('en'),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          equipmentListNotifierProvider.overrideWith((ref) => notifier),
+          equipmentByStatusProvider.overrideWith((ref, status) => items),
+          activeEquipmentProvider.overrideWith((ref) async => items),
+          equipmentListViewModeProvider.overrideWith(
+            (ref) => ListViewMode.detailed,
+          ),
+          equipmentTableConfigProvider.overrideWith(
+            (ref) => _TestEquipTableConfigNotifier(_testConfig),
+          ),
+          highlightedEquipmentIdProvider.overrideWith((ref) => null),
+        ],
+        child: const EquipmentListContent(showAppBar: true),
+      );
+    }
+
+    testWidgets('deletes every checked item and reports the count', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+      ]);
+
+      await verifyBulkDelete(
+        tester,
+        build: () => widget,
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        expectedDeletedCount: 2,
+      );
+
+      expect(notifier.deleted, ['e1', 'e2']);
+      expect(find.text('2 deleted'), findsOneWidget);
+    });
+
+    testWidgets('retire acts on a uniformly active selection', (tester) async {
+      final widget = await host([
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      final retire = find.byKey(const ValueKey('selection_action_retire'));
+      expect(tester.widget<IconButton>(retire).onPressed, isNotNull);
+
+      // Reactivate is meaningless on an all-active selection, so the
+      // isEnabled predicate must refuse it.
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_reactivate')),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(retire);
+      await tester.pumpAndSettle();
+
+      expect(notifier.retired, ['e1', 'e2']);
+      expect(notifier.reactivated, isEmpty);
+    });
+
+    testWidgets('cancelling deletes nothing and keeps the selection', (
+      tester,
+    ) async {
+      final widget = await host([_makeEquipment(id: 'e1', name: 'Aaa Reg')]);
+
+      await verifyBulkDeleteCancels(
+        tester,
+        build: () => widget,
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+      );
+
+      expect(notifier.deleted, isEmpty);
+    });
+  });
+
+  group('selection contract', () {
+    testWidgets('satisfies the shared selection contract', (tester) async {
+      final all = <EquipmentItem>[
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+        _makeEquipment(id: 'e3', name: 'Ccc Fins'),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        _visibleEquipmentProvider.overrideWith((ref) => all),
+        equipmentByStatusProvider.overrideWith((ref, status) => all),
+        activeEquipmentProvider.overrideWith(
+          (ref) async => ref.watch(_visibleEquipmentProvider),
+        ),
+        equipmentListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        equipmentTableConfigProvider.overrideWith(
+          (ref) => _TestEquipTableConfigNotifier(_testConfig),
+        ),
+        highlightedEquipmentIdProvider.overrideWith((ref) => null),
+      ];
+
+      await verifySelectionContract(
+        tester,
+        build: () => testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const EquipmentListContent(showAppBar: true),
+        ),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa Reg'),
+          matching: find.byType(EquipmentListTile),
+        ),
+        firstRow: find.text('Aaa Reg'),
+        applyFilter: (tester) async {
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(EquipmentListContent)),
+          );
+          container.read(_visibleEquipmentProvider.notifier).state = [
+            all.first,
+          ];
+        },
+        visibleAfterFilter: 1,
+      );
+    });
+  });
+
   group('EquipmentListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final equipment = [
@@ -385,6 +546,9 @@ void main() {
         overrides: [
           // Ledger map resolved but empty -> worstClock is null for this item.
           equipmentWorstClockProvider.overrideWith((ref) async => {}),
+          // The tile reads the color-accent toggle, so settings must be
+          // stubbed: the real notifier reaches for SharedPreferences.
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -670,4 +834,27 @@ void main() {
       expect(activeBuilds, activeBefore);
     });
   });
+}
+
+/// Records which ids each bulk action reached the notifier with.
+class _CapturingEquipmentNotifier
+    extends StateNotifier<AsyncValue<List<EquipmentItem>>>
+    implements EquipmentListNotifier {
+  _CapturingEquipmentNotifier() : super(const AsyncValue.data([]));
+
+  final deleted = <String>[];
+  final retired = <String>[];
+  final reactivated = <String>[];
+
+  @override
+  Future<void> deleteEquipment(String id) async => deleted.add(id);
+
+  @override
+  Future<void> retireEquipment(String id) async => retired.add(id);
+
+  @override
+  Future<void> reactivateEquipment(String id) async => reactivated.add(id);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

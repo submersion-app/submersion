@@ -80,11 +80,41 @@ void main() {
       await publish(); // published watermark now == d2's hlc
 
       // Simulate a restore to an earlier state: drop the newest row so the local
-      // HLC high-water falls below the published watermark.
+      // HLC high-water falls below the published watermark. Raw SQL, so no
+      // tombstone is written -- a restore rewinds the deletion log too.
       await DatabaseService.instance.database.customStatement(
         "DELETE FROM dives WHERE id = 'd2'",
       );
       expect(await isStale(), isTrue);
     },
   );
+
+  test('not stale after the user deletes the newest record', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publish();
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+    );
+    await publish(); // published watermark now == d2's hlc
+
+    // A legitimate delete drops the highest live-row hlc below the published
+    // watermark, but leaves a tombstone stamped ABOVE it. Nothing was rewound,
+    // so the cold-start re-pull must not fire.
+    await DiveRepository().deleteDive('d2');
+    expect(await isStale(), isFalse);
+  });
+
+  test('not stale after the user deletes every record', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publish();
+
+    await DiveRepository().deleteDive('d1');
+    // maxRowHlc() is now null (no live hlc-bearing row at all), which reads as
+    // "cloud has data, local has none" unless tombstones count.
+    expect(await isStale(), isFalse);
+  });
 }

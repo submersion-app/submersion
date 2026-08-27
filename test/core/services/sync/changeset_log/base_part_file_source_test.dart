@@ -57,6 +57,58 @@ void main() {
     await dir.delete(recursive: true);
   });
 
+  // Issue #1032: a wiped backend forces a full base republish -- 80 parts for
+  // the reporting user. Without a per-part tick the sync UI sits motionless at
+  // its single "uploading" step for the whole transfer and reads as frozen.
+  test(
+    'reports each part against a total known before the first upload',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('src_progress');
+      final path = '${dir.path}/base.json';
+      await File(
+        path,
+      ).writeAsBytes(Uint8List.fromList(List.generate(1000, (i) => i % 256)));
+
+      final ticks = <({int uploaded, int total})>[];
+      final res = await BasePartFileSource(path, partSize: 256).uploadAll(
+        (i, bytes) async {},
+        onPartUploaded: (uploaded, total) =>
+            ticks.add((uploaded: uploaded, total: total)),
+      );
+
+      expect(res.partCount, 4);
+      expect(
+        ticks.map((t) => t.uploaded),
+        orderedEquals([1, 2, 3, 4]),
+        reason: 'one tick per part, after it lands',
+      );
+      expect(
+        ticks.every((t) => t.total == 4),
+        isTrue,
+        reason:
+            'the denominator is fixed from the file length up front, so the '
+            'bar cannot grow under the user mid-upload',
+      );
+      await dir.delete(recursive: true);
+    },
+  );
+
+  test('reports a single part for an empty base', () async {
+    final dir = await Directory.systemTemp.createTemp('src_progress_empty');
+    final path = '${dir.path}/base.json';
+    await File(path).writeAsBytes(Uint8List(0));
+
+    final ticks = <({int uploaded, int total})>[];
+    await BasePartFileSource(path).uploadAll(
+      (i, bytes) async {},
+      onPartUploaded: (uploaded, total) =>
+          ticks.add((uploaded: uploaded, total: total)),
+    );
+
+    expect(ticks, [(uploaded: 1, total: 1)]);
+    await dir.delete(recursive: true);
+  });
+
   test(
     'empty file yields one empty part (mirrors BaseChunker.slice)',
     () async {

@@ -2,13 +2,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -37,14 +37,11 @@ class TripStoryDayCard extends ConsumerWidget {
     // Built once for the day's dives rather than per row.
     final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
 
-    if (day.isSurface) {
-      return _SurfaceDayRow(day: day);
-    }
-
     // The day title, subtitle, and Planned chip live in the sticky
     // TripStoryDayHeader above this card; the card is body-only. A planned
     // day whose itinerary has nothing to show would produce an empty card,
-    // so skip it entirely.
+    // so skip it entirely. A surface day has nothing by definition and takes
+    // the same exit: its header is the whole chapter.
     // Blank is not content: a whitespace-only port or note would otherwise
     // defeat this guard and render a card with nothing in it. The edit sheet
     // normalizes empties away, but sync and import payloads do not.
@@ -73,14 +70,16 @@ class TripStoryDayCard extends ConsumerWidget {
         opacity: _isPlanned ? 0.85 : 1,
         child: Padding(
           padding: const EdgeInsets.all(16),
+          // Three zones with deliberate visual weight: a tinted day-at-a-glance
+          // band (stats + rhythm), the untinted dive rows as the dominant
+          // middle, and captioned photo/species clusters at the tail. Gaps
+          // follow the grouping: tight inside a zone, 16 between zones.
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (day.dives.isNotEmpty) ...[
-                _DayStatStrip(day: day, units: units),
+                _DaySummaryBand(day: day, units: units),
                 const SizedBox(height: 12),
-                DayRhythmBar(dives: day.dives),
-                const SizedBox(height: 8),
                 ...day.dives.mapIndexed(
                   (index, dive) => DiveListItem(
                     summary: DiveSummary.fromDive(dive),
@@ -95,11 +94,17 @@ class TripStoryDayCard extends ConsumerWidget {
                 ),
               ],
               if (day.media.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                _SectionCaption(text: context.l10n.trips_photos_sectionTitle),
+                const SizedBox(height: 6),
                 _PhotoStrip(tripId: tripId, media: day.media),
               ],
               if (day.sightings.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                _SectionCaption(
+                  text: context.l10n.trips_detail_stat_speciesSeen,
+                ),
+                const SizedBox(height: 6),
                 _SightingChips(day: day),
               ],
               if (_isPlanned) _PlannedExtras(day: day, units: units),
@@ -111,37 +116,52 @@ class TripStoryDayCard extends ConsumerWidget {
   }
 }
 
-/// Slim row for a day with no dives, media, or itinerary entry.
-class _SurfaceDayRow extends StatelessWidget {
+/// The day-at-a-glance cluster: stat strip plus 24h rhythm bar, visually
+/// bounded by a subtle tint so it reads as one summary unit above the dive
+/// rows rather than as loose siblings of them.
+class _DaySummaryBand extends StatelessWidget {
   final TripStoryDay day;
+  final UnitFormatter units;
 
-  const _SurfaceDayRow({required this.day});
+  const _DaySummaryBand({required this.day, required this.units});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('day-summary-band'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _DayStatStrip(day: day, units: units),
+          const SizedBox(height: 10),
+          DayRhythmBar(dives: day.dives),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tiny muted heading over a tail-of-card cluster (photos, species) so those
+/// strips stop reading as unlabeled debris after the dive rows.
+class _SectionCaption extends StatelessWidget {
+  final String text;
+
+  const _SectionCaption({required this.text});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMEd();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      child: Row(
-        children: [
-          Icon(
-            Icons.waves,
-            size: 16,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '${context.l10n.trips_story_dayLabel(day.dayNumber)}'
-              ' - ${dateFormat.format(day.date)}'
-              ' - ${context.l10n.trips_story_surfaceDay}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
+    return Text(
+      text,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
       ),
     );
   }
@@ -156,13 +176,13 @@ class _DayStatStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final bottom = day.totalBottomTime;
-    final bottomLabel = bottom.inHours > 0
-        ? '${bottom.inHours}h ${bottom.inMinutes % 60}m'
-        : '${bottom.inMinutes}m';
+    final runtime = day.totalRuntime;
+    final runtimeLabel = runtime.inHours > 0
+        ? '${runtime.inHours}h ${runtime.inMinutes % 60}m'
+        : '${runtime.inMinutes}m';
     final stats = <(String, String)>[
       (l10n.trips_detail_stat_totalDives, '${day.diveCount}'),
-      (l10n.trips_detail_stat_totalBottomTime, bottomLabel),
+      (l10n.trips_detail_stat_totalRuntime, runtimeLabel),
       if (day.maxDepth != null)
         (l10n.trips_detail_stat_maxDepth, units.formatDepth(day.maxDepth)),
       // siteCount dedupes by site id (siteNames dedupes by display name), so two
@@ -296,7 +316,11 @@ class _SightingChips extends StatelessWidget {
     for (final sighting in day.sightings) {
       final existing = merged[sighting.speciesId];
       merged[sighting.speciesId] = (
-        name: sighting.speciesName,
+        name: localizedSpeciesName(
+          context.l10n,
+          sighting.speciesId,
+          sighting.speciesName,
+        ),
         count: (existing?.count ?? 0) + sighting.count,
       );
     }

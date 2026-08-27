@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -223,12 +225,14 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> equipmentSetItems;
   final List<Map<String, dynamic>> equipmentSetGeofences;
+  final List<Map<String, dynamic>> cylinderConfigs;
+  final List<Map<String, dynamic>> cylinderConfigItems;
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
+  final List<Map<String, dynamic>> mediaSmartAlbums;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> mediaEnrichment;
   final List<Map<String, dynamic>> buddies;
-  final List<Map<String, dynamic>> buddyRoles;
   final List<Map<String, dynamic>> mediaStores;
   final List<Map<String, dynamic>> connectedAccounts;
   final List<Map<String, dynamic>> mediaSubscriptions;
@@ -278,6 +282,7 @@ class SyncData {
   final List<Map<String, dynamic>> diveCustomFields;
   final List<Map<String, dynamic>> diveDataSources;
   final List<Map<String, dynamic>> siteSpecies;
+  final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
   final List<Map<String, dynamic>> viewConfigs;
   final List<Map<String, dynamic>> fieldPresets;
@@ -295,12 +300,14 @@ class SyncData {
     this.equipmentSets = const [],
     this.equipmentSetItems = const [],
     this.equipmentSetGeofences = const [],
+    this.cylinderConfigs = const [],
+    this.cylinderConfigItems = const [],
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
+    this.mediaSmartAlbums = const [],
     this.media = const [],
     this.mediaEnrichment = const [],
     this.buddies = const [],
-    this.buddyRoles = const [],
     this.mediaStores = const [],
     this.connectedAccounts = const [],
     this.mediaSubscriptions = const [],
@@ -350,6 +357,7 @@ class SyncData {
     this.diveCustomFields = const [],
     this.diveDataSources = const [],
     this.siteSpecies = const [],
+    this.siteFeatures = const [],
     this.csvPresets = const [],
     this.viewConfigs = const [],
     this.fieldPresets = const [],
@@ -368,12 +376,14 @@ class SyncData {
     'equipmentSets': equipmentSets,
     'equipmentSetItems': equipmentSetItems,
     'equipmentSetGeofences': equipmentSetGeofences,
+    'cylinderConfigs': cylinderConfigs,
+    'cylinderConfigItems': cylinderConfigItems,
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
+    'mediaSmartAlbums': mediaSmartAlbums,
     'media': media,
     'mediaEnrichment': mediaEnrichment,
     'buddies': buddies,
-    'buddyRoles': buddyRoles,
     'mediaStores': mediaStores,
     'connectedAccounts': connectedAccounts,
     'mediaSubscriptions': mediaSubscriptions,
@@ -423,6 +433,7 @@ class SyncData {
     'diveCustomFields': diveCustomFields,
     'diveDataSources': diveDataSources,
     'siteSpecies': siteSpecies,
+    'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
     'viewConfigs': viewConfigs,
     'fieldPresets': fieldPresets,
@@ -442,12 +453,14 @@ class SyncData {
       equipmentSets: _parseList(json['equipmentSets']),
       equipmentSetItems: _parseList(json['equipmentSetItems']),
       equipmentSetGeofences: _parseList(json['equipmentSetGeofences']),
+      cylinderConfigs: _parseList(json['cylinderConfigs']),
+      cylinderConfigItems: _parseList(json['cylinderConfigItems']),
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
+      mediaSmartAlbums: _parseList(json['mediaSmartAlbums']),
       media: _parseList(json['media']),
       mediaEnrichment: _parseList(json['mediaEnrichment']),
       buddies: _parseList(json['buddies']),
-      buddyRoles: _parseList(json['buddyRoles']),
       mediaStores: _parseList(json['mediaStores']),
       connectedAccounts: _parseList(json['connectedAccounts']),
       mediaSubscriptions: _parseList(json['mediaSubscriptions']),
@@ -499,6 +512,7 @@ class SyncData {
       diveCustomFields: _parseList(json['diveCustomFields']),
       diveDataSources: _parseList(json['diveDataSources']),
       siteSpecies: _parseList(json['siteSpecies']),
+      siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
       viewConfigs: _parseList(json['viewConfigs']),
       fieldPresets: _parseList(json['fieldPresets']),
@@ -515,6 +529,7 @@ class SyncData {
 class SyncDataSerializer {
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(SyncDataSerializer);
+  final SyncRepository _syncRepository = SyncRepository();
 
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
@@ -656,6 +671,18 @@ class SyncDataSerializer {
       full: null,
     ),
     (
+      key: 'cylinderConfigs',
+      table: _db.cylinderConfigs,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'cylinderConfigItems',
+      table: _db.cylinderConfigItems,
+      blob: false,
+      full: null,
+    ),
+    (
       key: 'qualityFindings',
       table: _db.qualityFindings,
       blob: false,
@@ -667,6 +694,12 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (
+      key: 'mediaSmartAlbums',
+      table: _db.mediaSmartAlbums,
+      blob: false,
+      full: null,
+    ),
     (key: 'media', table: _db.media, blob: true, full: null),
     (
       key: 'mediaEnrichment',
@@ -675,7 +708,6 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'buddies', table: _db.buddies, blob: false, full: null),
-    (key: 'buddyRoles', table: _db.buddyRoles, blob: false, full: null),
     (key: 'mediaStores', table: _db.mediaStores, blob: false, full: null),
     (
       key: 'connectedAccounts',
@@ -881,6 +913,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'siteSpecies', table: _db.siteSpecies, blob: false, full: null),
+    (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
     (key: 'viewConfigs', table: _db.viewConfigs, blob: false, full: null),
     (
@@ -950,8 +983,13 @@ class SyncDataSerializer {
     Future<Directory> Function()? tempDir,
   }) async {
     final dir = await (tempDir?.call() ?? resolveSyncTempDir());
-    final path =
-        '${dir.path}/ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json';
+    // p.join, not a literal '/': on Windows the temp dir is backslashed, and a
+    // path mixing both separators is what broke the move into the publish
+    // directory in #1304.
+    final path = p.join(
+      dir.path,
+      'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json',
+    );
     final raf = await File(path).open(mode: FileMode.write);
     final digestSink = _Sha256DigestSink();
     final dataHash = sha256.startChunkedConversion(digestSink);
@@ -1157,6 +1195,14 @@ class SyncDataSerializer {
         'equipmentSetGeofences',
         () => _exportEquipmentSetGeofences(hlcSince),
       ),
+      cylinderConfigs: await _safeExport(
+        'cylinderConfigs',
+        () => _exportCylinderConfigs(hlcSince),
+      ),
+      cylinderConfigItems: await _safeExport(
+        'cylinderConfigItems',
+        () => _exportCylinderConfigItems(hlcSince),
+      ),
       qualityFindings: await _safeExport(
         'qualityFindings',
         () => _exportQualityFindings(hlcSince),
@@ -1165,16 +1211,16 @@ class SyncDataSerializer {
         'equipmentAttributes',
         () => _exportEquipmentAttributes(hlcSince),
       ),
+      mediaSmartAlbums: await _safeExport(
+        'mediaSmartAlbums',
+        () => _exportMediaSmartAlbums(hlcSince),
+      ),
       media: await _safeExport('media', () => _exportMedia(hlcSince)),
       mediaEnrichment: await _safeExport(
         'mediaEnrichment',
         () => _exportMediaEnrichment(hlcSince),
       ),
       buddies: await _safeExport('buddies', () => _exportBuddies(hlcSince)),
-      buddyRoles: await _safeExport(
-        'buddyRoles',
-        () => _exportBuddyRoles(hlcSince),
-      ),
       mediaStores: await _safeExport(
         'mediaStores',
         () => _exportMediaStores(hlcSince),
@@ -1352,6 +1398,10 @@ class SyncDataSerializer {
       siteSpecies: await _safeExport(
         'siteSpecies',
         () => _exportSiteSpecies(hlcSince),
+      ),
+      siteFeatures: await _safeExport(
+        'siteFeatures',
+        () => _exportSiteFeatures(hlcSince),
       ),
       csvPresets: await _safeExport(
         'csvPresets',
@@ -1543,6 +1593,16 @@ class SyncDataSerializer {
           _db.equipmentSetGeofences,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'cylinderConfigs':
+        final row = await (_db.select(
+          _db.cylinderConfigs,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'cylinderConfigItems':
+        final row = await (_db.select(
+          _db.cylinderConfigItems,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'qualityFindings':
         final row = await (_db.select(
           _db.qualityFindings,
@@ -1572,11 +1632,6 @@ class SyncDataSerializer {
       case 'buddies':
         final row = await (_db.select(
           _db.buddies,
-        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
-      case 'buddyRoles':
-        final row = await (_db.select(
-          _db.buddyRoles,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'mediaStores':
@@ -1835,6 +1890,11 @@ class SyncDataSerializer {
           _db.siteSpecies,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'siteFeatures':
+        final row = await (_db.select(
+          _db.siteFeatures,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'csvPresets':
         final row = await (_db.select(
           _db.csvPresets,
@@ -1915,6 +1975,16 @@ class SyncDataSerializer {
           _db.equipmentSetGeofences,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderConfigs':
+        final rows = await (_db.select(
+          _db.cylinderConfigs,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderConfigItems':
+        final rows = await (_db.select(
+          _db.cylinderConfigItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'qualityFindings':
         final rows = await (_db.select(
           _db.qualityFindings,
@@ -1928,11 +1998,6 @@ class SyncDataSerializer {
       case 'buddies':
         final rows = await (_db.select(
           _db.buddies,
-        )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
-      case 'buddyRoles':
-        final rows = await (_db.select(
-          _db.buddyRoles,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'mediaStores':
@@ -2116,6 +2181,173 @@ class SyncDataSerializer {
     }
   }
 
+  // ==========================================================================
+  // Tag identity (issue #1032)
+  // ==========================================================================
+
+  /// Remote tag ids this device has folded into a local tag of the same name,
+  /// mapped to the id that survived.
+  ///
+  /// A peer's junction rows reference the peer's tag id, which may be the one
+  /// that lost the fold and therefore no longer exists here. Rewriting those
+  /// references keeps the tag on the dive instead of leaving a dangling
+  /// foreign key for the repair pass to delete. Entries never go stale (the
+  /// survivor is chosen deterministically from the ids themselves), so the map
+  /// is not cleared between payloads.
+  final Map<String, String> _tagIdAliases = {};
+
+  Map<String, dynamic> _withTagAlias(Map<String, dynamic> data) {
+    final tagId = data['tagId'];
+    final survivor = tagId is String ? _tagIdAliases[tagId] : null;
+    return survivor == null ? data : {...data, 'tagId': survivor};
+  }
+
+  /// Applies a remote `tags` row, converging on ONE row per (diver scope,
+  /// case-folded name) -- the invariant `idx_tags_diver_name_unique` enforces.
+  ///
+  /// Upserting by primary key alone is what produced #1032: two devices each
+  /// minted a uuid for the same auto-generated import tag name, so the peer's
+  /// row landed beside the local one and the dive showed the tag twice.
+  ///
+  /// The survivor is the lexically lowest id among the rivals. It has to be a
+  /// property of the rows rather than of this device -- "the one we had first"
+  /// differs per device and would make the two flip-flop forever, each
+  /// adopting the other's id on every sync. Lowest-id matches the v149
+  /// migration's rule, so a device that healed by migration and a device that
+  /// healed by merge land on the same tag.
+  ///
+  /// Both sides normalize to `lower(trim(name))`, exactly as
+  /// `idx_tags_diver_name_unique` keys. Trimming only the INCOMING name made
+  /// the comparison asymmetric -- a local " Wreck" would not match a remote
+  /// "Wreck" while the reverse did -- so whether two devices converged
+  /// depended on which of them happened to hold the padded spelling
+  /// (PR #1033 review).
+  Future<void> _applyTagRecord(Tag remote) async {
+    final rivals =
+        await (_db.select(_db.tags)..where(
+              (t) =>
+                  t.name.trim().lower().equals(
+                    remote.name.trim().toLowerCase(),
+                  ) &
+                  coalesce([
+                    t.diverId,
+                    const Constant(''),
+                  ]).equals(remote.diverId ?? '') &
+                  t.id.equals(remote.id).not(),
+            ))
+            .get();
+
+    if (rivals.isEmpty) {
+      await _db
+          .into(_db.tags)
+          .insertOnConflictUpdate(_normalizedTag(remote).toCompanion(false));
+      return;
+    }
+
+    final ids = [remote.id, for (final r in rivals) r.id]..sort();
+    final survivor = ids.first;
+    for (final loser in ids.skip(1)) {
+      await _foldTagInto(loser: loser, survivor: survivor);
+    }
+    if (survivor == remote.id) {
+      await _db
+          .into(_db.tags)
+          .insertOnConflictUpdate(_normalizedTag(remote).toCompanion(false));
+    }
+  }
+
+  /// A remote tag with its name normalized the way everything else keys on it.
+  ///
+  /// The v149 migration trims every stored name so a row reads back as what
+  /// lookups compare against. Writing a peer's value verbatim would undo that
+  /// on the first sync from a device predating the change: uniqueness would
+  /// still hold (the index keys on `lower(trim(name))`), but the stored value
+  /// would drift from the invariant the migration establishes, and the tag
+  /// would render with whitespace the user never typed (PR #1033 review).
+  Tag _normalizedTag(Tag remote) {
+    final trimmed = remote.name.trim();
+    return trimmed == remote.name ? remote : remote.copyWith(name: trimmed);
+  }
+
+  /// Moves [loser]'s dive links onto [survivor], drops the losing tag row and
+  /// remembers the alias.
+  ///
+  /// A link the survivor already covers is deleted outright rather than
+  /// tombstoned -- it is a local identity fold, not a user deleting a tag.
+  ///
+  /// Convergence does NOT depend on republishing these rows, and deliberately
+  /// so: the survivor rule is deterministic, so every device that sees both
+  /// tags performs the identical fold from its own copy. The repointed rows
+  /// are still marked pending to record that they changed locally, but note
+  /// that alone does not re-export them -- `_exportDiveTags` gathers junctions
+  /// by their parent DIVE's HLC, not from pending junction records, and
+  /// bumping the dive to force it would risk clobbering a peer's newer edit to
+  /// that dive under LWW.
+  ///
+  /// The residual gap is narrow and known: a junction referencing a tag folded
+  /// away in an EARLIER sync run arrives with no alias to rewrite it, so
+  /// `repairDanglingForeignKeys` drops it and that one dive loses the tag
+  /// locally until something touches it. Closing it properly means either a
+  /// durable alias table or teaching the incremental export to honour pending
+  /// junction records -- both new sync surface, deferred rather than smuggled
+  /// into this change (PR #1033 review).
+  Future<void> _foldTagInto({
+    required String loser,
+    required String survivor,
+  }) async {
+    final moving = await (_db.select(
+      _db.diveTags,
+    )..where((t) => t.tagId.equals(loser))).get();
+
+    if (moving.isNotEmpty) {
+      final covered =
+          (await (_db.select(
+                _db.diveTags,
+              )..where((t) => t.tagId.equals(survivor))).get())
+              .map((r) => r.diveId)
+              .toSet();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final row in moving) {
+        if (!covered.add(row.diveId)) {
+          await (_db.delete(
+            _db.diveTags,
+          )..where((t) => t.id.equals(row.id))).go();
+          continue;
+        }
+        await (_db.update(_db.diveTags)..where((t) => t.id.equals(row.id)))
+            .write(DiveTagsCompanion(tagId: Value(survivor)));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTags',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+
+    await (_db.delete(_db.tags)..where((t) => t.id.equals(loser))).go();
+    _tagIdAliases[loser] = survivor;
+  }
+
+  /// Applies a remote `dive_tags` row.
+  ///
+  /// `DO NOTHING` on ANY uniqueness conflict, not just the primary key: a peer
+  /// that linked the same tag to the same dive minted its own uuid for the
+  /// junction row, so the pair is already applied even though the id is new.
+  /// Skipping it is the whole point -- with `idx_dive_tags_dive_tag_unique` in
+  /// place an unguarded insert would throw and fail the entire sync, which is
+  /// far worse than the duplicate it replaces.
+  ///
+  /// Junction rows are immutable (they are deleted and re-inserted with fresh
+  /// ids, never edited), so declining to update an existing row loses nothing.
+  Future<void> _applyDiveTagRecord(DiveTag record) async {
+    await _db
+        .into(_db.diveTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$DiveTagsTable, DiveTag>(target: const []),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -2143,7 +2375,13 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
-    data = _withoutDeviceLocalFields(data, entityType: entityType);
+    data = _withSchemaDefaults(
+      entityType,
+      _withRenamedKeys(
+        entityType,
+        _withoutDeviceLocalFields(data, entityType: entityType),
+      ),
+    );
     switch (entityType) {
       case 'divers':
         await _db
@@ -2210,6 +2448,20 @@ class SyncDataSerializer {
               EquipmentSetGeofence.fromJson(data).toCompanion(false),
             );
         return;
+      case 'cylinderConfigs':
+        await _db
+            .into(_db.cylinderConfigs)
+            .insertOnConflictUpdate(
+              CylinderConfig.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'cylinderConfigItems':
+        await _db
+            .into(_db.cylinderConfigItems)
+            .insertOnConflictUpdate(
+              CylinderConfigItem.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'qualityFindings':
         await _db
             .into(_db.qualityFindings)
@@ -2240,13 +2492,6 @@ class SyncDataSerializer {
         await _db
             .into(_db.buddies)
             .insertOnConflictUpdate(Buddy.fromJson(data).toCompanion(false));
-        return;
-      case 'buddyRoles':
-        await _db
-            .into(_db.buddyRoles)
-            .insertOnConflictUpdate(
-              BuddyRoleRow.fromJson(data).toCompanion(false),
-            );
         return;
       case 'mediaStores':
         await _db
@@ -2447,14 +2692,10 @@ class SyncDataSerializer {
             );
         return;
       case 'tags':
-        await _db
-            .into(_db.tags)
-            .insertOnConflictUpdate(Tag.fromJson(data).toCompanion(false));
+        await _applyTagRecord(Tag.fromJson(data));
         return;
       case 'diveTags':
-        await _db
-            .into(_db.diveTags)
-            .insertOnConflictUpdate(DiveTag.fromJson(data));
+        await _applyDiveTagRecord(DiveTag.fromJson(_withTagAlias(data)));
         return;
       case 'diveDiveTypes':
         await _db
@@ -2580,6 +2821,13 @@ class SyncDataSerializer {
               SiteSpecy.fromJson(_withTimestampDefaults(data)),
             );
         return;
+      case 'siteFeatures':
+        await _db
+            .into(_db.siteFeatures)
+            .insertOnConflictUpdate(
+              SiteFeature.fromJson(_withTimestampDefaults(data)),
+            );
+        return;
       case 'csvPresets':
         await _db
             .into(_db.csvPresets)
@@ -2620,7 +2868,13 @@ class SyncDataSerializer {
     if (records.isEmpty) return;
     records = records
         .map(
-          (record) => _withoutDeviceLocalFields(record, entityType: entityType),
+          (record) => _withSchemaDefaults(
+            entityType,
+            _withRenamedKeys(
+              entityType,
+              _withoutDeviceLocalFields(record, entityType: entityType),
+            ),
+          ),
         )
         .toList();
     switch (entityType) {
@@ -2726,6 +2980,26 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'cylinderConfigs':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderConfigs,
+            records
+                .map((r) => CylinderConfig.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'cylinderConfigItems':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderConfigItems,
+            records
+                .map((r) => CylinderConfigItem.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'qualityFindings':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -2812,16 +3086,6 @@ class SyncDataSerializer {
             _db.mediaSubscriptions,
             records
                 .map((r) => MediaSubscription.fromJson(r).toCompanion(false))
-                .toList(),
-          ),
-        );
-        return;
-      case 'buddyRoles':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.buddyRoles,
-            records
-                .map((r) => BuddyRoleRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -3085,19 +3349,21 @@ class SyncDataSerializer {
           ),
         );
         return;
+      // Tags reconcile one at a time: each row may fold a local tag of the
+      // same name into itself (or be folded into one), which a single batched
+      // insert cannot express. Tag vocabularies are tens of rows, not the
+      // per-sample volumes the batch path exists for.
       case 'tags':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.tags,
-            records.map((r) => Tag.fromJson(r).toCompanion(false)).toList(),
-          ),
-        );
+        for (final record in records) {
+          await _applyTagRecord(Tag.fromJson(record));
+        }
         return;
       case 'diveTags':
         await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
+          (b) => b.insertAll(
             _db.diveTags,
-            records.map((r) => DiveTag.fromJson(r)).toList(),
+            records.map((r) => DiveTag.fromJson(_withTagAlias(r))).toList(),
+            onConflict: DoNothing<$DiveTagsTable, DiveTag>(target: const []),
           ),
         );
         return;
@@ -3281,6 +3547,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'siteFeatures':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.siteFeatures,
+            records
+                .map((r) => SiteFeature.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
       case 'csvPresets':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -3391,8 +3667,6 @@ class SyncDataSerializer {
         return plain(_db.diverSettings, _db.diverSettings.id);
       case 'buddies':
         return plain(_db.buddies, _db.buddies.id);
-      case 'buddyRoles':
-        return plain(_db.buddyRoles, _db.buddyRoles.id);
       case 'mediaStores':
         return plain(_db.mediaStores, _db.mediaStores.id);
       case 'mediaEnrichment':
@@ -3446,6 +3720,10 @@ class SyncDataSerializer {
         return plain(_db.equipmentSets, _db.equipmentSets.id);
       case 'equipmentSetGeofences':
         return plain(_db.equipmentSetGeofences, _db.equipmentSetGeofences.id);
+      case 'cylinderConfigs':
+        return plain(_db.cylinderConfigs, _db.cylinderConfigs.id);
+      case 'cylinderConfigItems':
+        return plain(_db.cylinderConfigItems, _db.cylinderConfigItems.id);
       case 'qualityFindings':
         return plain(_db.qualityFindings, _db.qualityFindings.id);
       case 'equipmentAttributes':
@@ -3502,6 +3780,8 @@ class SyncDataSerializer {
         return plain(_db.diveDataSources, _db.diveDataSources.id);
       case 'siteSpecies':
         return plain(_db.siteSpecies, _db.siteSpecies.id);
+      case 'siteFeatures':
+        return plain(_db.siteFeatures, _db.siteFeatures.id);
       case 'csvPresets':
         return plain(_db.csvPresets, _db.csvPresets.id);
       case 'viewConfigs':
@@ -3524,6 +3804,8 @@ class SyncDataSerializer {
         return plain(_db.serviceSchedules, _db.serviceSchedules.id);
       case 'media':
         return plain(_db.media, _db.media.id);
+      case 'mediaSmartAlbums':
+        return plain(_db.mediaSmartAlbums, _db.mediaSmartAlbums.id);
       default:
         // Fail loud: a synced entity without a case here would silently
         // enumerate zero local ids, so streaming adopt would never delete its
@@ -3621,8 +3903,6 @@ class SyncDataSerializer {
         return _db.diverSettings;
       case 'buddies':
         return _db.buddies;
-      case 'buddyRoles':
-        return _db.buddyRoles;
       case 'mediaStores':
         return _db.mediaStores;
       case 'mediaEnrichment':
@@ -3667,6 +3947,10 @@ class SyncDataSerializer {
         return _db.equipmentSets;
       case 'equipmentSetGeofences':
         return _db.equipmentSetGeofences;
+      case 'cylinderConfigs':
+        return _db.cylinderConfigs;
+      case 'cylinderConfigItems':
+        return _db.cylinderConfigItems;
       case 'qualityFindings':
         return _db.qualityFindings;
       case 'equipmentAttributes':
@@ -3723,6 +4007,8 @@ class SyncDataSerializer {
         return _db.diveDataSources;
       case 'siteSpecies':
         return _db.siteSpecies;
+      case 'siteFeatures':
+        return _db.siteFeatures;
       case 'csvPresets':
         return _db.csvPresets;
       case 'viewConfigs':
@@ -3745,6 +4031,8 @@ class SyncDataSerializer {
         return _db.serviceSchedules;
       case 'media':
         return _db.media;
+      case 'mediaSmartAlbums':
+        return _db.mediaSmartAlbums;
       default:
         throw ArgumentError.value(
           entityType,
@@ -3827,6 +4115,16 @@ class SyncDataSerializer {
           _db.equipmentSetGeofences,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'cylinderConfigs':
+        await (_db.delete(
+          _db.cylinderConfigs,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'cylinderConfigItems':
+        await (_db.delete(
+          _db.cylinderConfigItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'qualityFindings':
         await (_db.delete(
           _db.qualityFindings,
@@ -3872,11 +4170,6 @@ class SyncDataSerializer {
       case 'mediaSubscriptions':
         await (_db.delete(
           _db.mediaSubscriptions,
-        )..where((t) => t.id.equals(recordId))).go();
-        return;
-      case 'buddyRoles':
-        await (_db.delete(
-          _db.buddyRoles,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveBuddies':
@@ -4095,6 +4388,11 @@ class SyncDataSerializer {
           _db.siteSpecies,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'siteFeatures':
+        await (_db.delete(
+          _db.siteFeatures,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'csvPresets':
         await (_db.delete(
           _db.csvPresets,
@@ -4301,10 +4599,43 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportCylinderConfigs(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderConfigs);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportCylinderConfigItems(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderConfigItems);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportQualityFindings(
     String? hlcSince,
   ) async {
     final query = _db.select(_db.qualityFindings);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportMediaSmartAlbums(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaSmartAlbums);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -4358,15 +4689,6 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportBuddies(String? hlcSince) async {
     final query = _db.select(_db.buddies);
-    if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
-    }
-    final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> _exportBuddyRoles(String? hlcSince) async {
-    final query = _db.select(_db.buddyRoles);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -4490,6 +4812,19 @@ class SyncDataSerializer {
       return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.courseRequirementDives).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Site features carry their own hlc (mutable LWW entity), so the delta
+  /// filters on the row's clock rather than joining the parent site.
+  Future<List<Map<String, dynamic>>> _exportSiteFeatures(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.siteFeatures);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 
@@ -5100,6 +5435,124 @@ class SyncDataSerializer {
   // Default Value Helpers
   // ============================================================================
 
+  /// Cached (jsonKey, fill) pairs per entity type: one entry for every
+  /// non-nullable column of the entity's table whose schema-level default can
+  /// be reconstructed at replay time (a primitive [Constant]). Built lazily
+  /// from the live table metadata so new columns are covered without touching
+  /// this file.
+  final Map<String, List<MapEntry<String, Object? Function()>>>
+  _schemaDefaultFills = {};
+
+  /// Hydrates missing (or explicitly null) non-nullable columns in [data]
+  /// with their schema defaults before the generated `fromJson` runs (#858).
+  ///
+  /// A record exported before a schema change lacks the newer columns, and
+  /// Drift's `fromJson` does a straight cast per column -- `null` where a
+  /// non-nullable `bool`/`int`/`String` is expected throws, which permanently
+  /// blocked library adoption (the only path that replays full changeset
+  /// history through `fromJson`). Filling the column's own default mirrors
+  /// what the `ALTER TABLE ... DEFAULT` migration produced for that row on
+  /// the exporting device, so this is a faithful reconstruction, not a guess.
+  /// Wire keys this build renamed, as oldKey -> newKey per entity type.
+  ///
+  /// Payloads published by peers below schema 160, and backups written by
+  /// them, spell the maintenance category 'serviceType'. The compatibility
+  /// floor stops those peers applying OUR payloads, but the gate is
+  /// one-directional (changeset_reader.dart compares the writer's floor to
+  /// the reader's schema), so their payloads still arrive here and would hit
+  /// a NOT NULL column with no key, throwing in the generated fromJson.
+  ///
+  /// [_withSchemaDefaults] cannot cover this: it only fills NOT NULL columns
+  /// carrying a constant SQL default, and service_category has none.
+  ///
+  /// Delete this once the floor moves past the last build that published the
+  /// old spelling.
+  static const Map<String, Map<String, String>> _renamedWireKeys = {
+    'serviceRecords': {'serviceType': 'serviceCategory'},
+  };
+
+  Map<String, dynamic> _withRenamedKeys(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    final renames = _renamedWireKeys[entityType];
+    if (renames == null) return data;
+    Map<String, dynamic>? patched;
+    for (final entry in renames.entries) {
+      if (!data.containsKey(entry.key)) continue;
+      // A payload carrying both keys came from a build that knows the new
+      // name, so the new one wins and the stale alias is dropped.
+      final map = patched ??= Map.of(data);
+      final legacy = map.remove(entry.key);
+      map.putIfAbsent(entry.value, () => legacy);
+    }
+    return patched ?? data;
+  }
+
+  Map<String, dynamic> _withSchemaDefaults(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    final fills = _schemaDefaultFills.putIfAbsent(
+      entityType,
+      () => _buildSchemaDefaultFills(entityType),
+    );
+    if (fills.isEmpty) return data;
+    Map<String, dynamic>? patched;
+    for (final fill in fills) {
+      if (data[fill.key] != null) continue;
+      final value = fill.value();
+      if (value == null) continue;
+      (patched ??= Map.of(data))[fill.key] = value;
+    }
+    return patched ?? data;
+  }
+
+  List<MapEntry<String, Object? Function()>> _buildSchemaDefaultFills(
+    String entityType,
+  ) {
+    final TableInfo<Table, dynamic> table;
+    try {
+      table = _syncTableFor(entityType);
+    } on ArgumentError {
+      // upsertRecord silently ignores unknown entity types; mirror that.
+      return const [];
+    }
+    final fills = <MapEntry<String, Object? Function()>>[];
+    for (final column in table.$columns) {
+      if (column.$nullable) continue;
+      final defaultValue = column.defaultValue;
+      if (defaultValue is! Constant<Object>) continue;
+      final value = defaultValue.value;
+      // Primitive constants only: they match the wire format for plain and
+      // enum columns, and cover every replay-relevant column -- SQLite
+      // requires a constant DEFAULT to add a NOT NULL column, so a column
+      // that old records can be missing always has one. Non-constant SQL
+      // defaults (e.g. currentDateAndTime) can't be evaluated here and keep
+      // today's behavior.
+      if (value is bool || value is num || value is String) {
+        fills.add(MapEntry(_jsonKeyForSqlColumn(column.name), () => value));
+      }
+    }
+    return fills;
+  }
+
+  /// Maps a Drift SQL column name (snake_case of the Dart getter) back to the
+  /// getter name, which is the generated `fromJson`/`toJson` key. The project
+  /// has no build.yaml renames and no `named()` overrides, so the mapping is
+  /// mechanical; a wrong key would only add an ignored extra entry, never
+  /// overwrite a real one (fills skip keys already present).
+  static String _jsonKeyForSqlColumn(String sqlName) {
+    final parts = sqlName.split('_');
+    final buffer = StringBuffer(parts.first);
+    for (final part in parts.skip(1)) {
+      if (part.isEmpty) continue;
+      buffer.write(part[0].toUpperCase());
+      buffer.write(part.substring(1));
+    }
+    return buffer.toString();
+  }
+
   /// Applies default values for DiverSettings fields that may be missing
   /// from older sync data or incomplete conflict records.
   /// Defensive back-compat for the entities most recently added to SyncData:
@@ -5122,12 +5575,24 @@ class SyncDataSerializer {
       'weightUnit': 'kilograms',
       'altitudeUnit': 'meters',
       'sacUnit': 'litersPerMin',
+      // Issue #828. Added in v155; seed it so a payload from a pre-v155 peer
+      // hydrates to the documented default rather than null.
+      'gasModel': 'real',
+      // Issue #1041. v144's visibility columns were never given defaults
+      // here; this one is, so a payload from a pre-v150 peer hydrates to the
+      // documented default instead of null.
+      'coordinateFormat': 'decimalDegrees',
       // Time/Date format settings
       'timeFormat': 'twelveHour',
       'dateFormat': 'mmmDYYYY',
       // Theme
       'themeMode': 'system',
       'themePreset': 'submersion',
+      // Color accents. Non-nullable bools added in v135; seed payloads
+      // predating the columns so fromJson hydrates instead of throwing.
+      'accentNavIcons': false,
+      'accentSectionHeaders': false,
+      'accentListIcons': false,
       // Locale (language preference: 'system', 'en', 'es', 'fr', etc.)
       'locale': 'system',
       // Defaults
@@ -5201,6 +5666,12 @@ class SyncDataSerializer {
       'defaultShowOtu': false,
       'defaultShowGasSwitchMarkers': true,
       'defaultShowGasTimeline': false,
+      // v161: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson.
+      'defaultShowO2CellMv': false,
+      // v166: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson (issue #1187).
+      'placeNameLanguage': 'en',
       // Dive profile default-visible metrics. Non-nullable bool added in v91;
       // seed it so payloads predating the column hydrate instead of throwing in
       // DiverSetting.fromJson.

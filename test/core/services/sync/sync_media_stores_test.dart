@@ -12,7 +12,7 @@ import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
 /// Sync replication for `media_stores` (media store Phase 1, spec
-/// 2026-07-10). Like `buddy_roles`, this table carries its own `hlc`
+/// 2026-07-10). Like `certifications`, this table carries its own `hlc`
 /// column, so its export uses the simple hlc-filter pattern.
 void main() {
   group('media_stores sync', () {

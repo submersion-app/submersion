@@ -1,8 +1,10 @@
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final diveTypeRepositoryProvider = Provider<DiveTypeRepository>((ref) {
@@ -30,6 +32,9 @@ final builtInDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((
   ref,
 ) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
+  // Built-ins are seeded rather than static: an adopt/wipe of the reference
+  // data rewrites them.
+  ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
   return repository.getBuiltInDiveTypes();
 });
 
@@ -41,6 +46,7 @@ final customDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
   return repository.getCustomDiveTypes(diverId: validatedDiverId);
 });
 
@@ -50,6 +56,7 @@ final diveTypeProvider = FutureProvider.family<DiveTypeEntity?, String>((
   id,
 ) async {
   final repository = ref.watch(diveTypeRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
   return repository.getDiveTypeById(id);
 });
 
@@ -61,6 +68,10 @@ final diveTypeStatisticsProvider = FutureProvider<List<DiveTypeStatistic>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
+  // Counts dives per type, so a merge or bulk delete changes the figures
+  // without the dive_types table being written.
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getDiveTypeStatistics(diverId: validatedDiverId);
 });
 
@@ -73,7 +84,11 @@ class DiveTypeListNotifier
 
   DiveTypeListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveTypeListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -86,7 +101,11 @@ class DiveTypeListNotifier
         _ref.invalidate(diveTypesProvider);
         _ref.invalidate(customDiveTypesProvider);
         _ref.invalidate(diveTypeStatisticsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveTypeListNotifier,
+          'initialize and load',
+        );
       }
     });
 

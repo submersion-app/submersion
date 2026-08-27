@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/enum_picker_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
@@ -18,7 +21,14 @@ class AccessSafetySection extends StatelessWidget {
     required this.mooringNumberController,
     required this.parkingInfoController,
     required this.hazardsController,
+    required this.entryMethod,
+    required this.exitMethod,
+    required this.onEntryMethodChanged,
+    required this.onExitMethodChanged,
     this.mergeExtras,
+    this.entryMethodExtras,
+    this.exitMethodExtras,
+    this.entrySuggestion,
   });
 
   final bool expanded;
@@ -30,6 +40,21 @@ class AccessSafetySection extends StatelessWidget {
   final TextEditingController parkingInfoController;
   final TextEditingController hazardsController;
   final MergeFieldExtras? Function(String key)? mergeExtras;
+
+  final EntryMethod? entryMethod;
+  final EntryMethod? exitMethod;
+  final ValueChanged<EntryMethod?> onEntryMethodChanged;
+  final ValueChanged<EntryMethod?> onExitMethodChanged;
+
+  /// Dedicated merge affordances for the two enum rows. These cannot go
+  /// through [mergeExtras], which resolves through the page's
+  /// text-controller candidate map and returns null for an enum field.
+  final MergeFieldExtras? entryMethodExtras;
+  final MergeFieldExtras? exitMethodExtras;
+
+  /// Optional one-tap fill offered above the entry method row. Built by the
+  /// page so this widget stays free of provider dependencies.
+  final Widget? entrySuggestion;
 
   Widget _row(
     BuildContext context, {
@@ -53,6 +78,33 @@ class AccessSafetySection extends StatelessWidget {
     );
   }
 
+  Widget _methodRow(
+    BuildContext context, {
+    required String label,
+    required EntryMethod? value,
+    required ValueChanged<EntryMethod?> onChanged,
+    required MergeFieldExtras? extras,
+  }) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (extras != null)
+          MergeSourceRow(
+            sourceLabel: extras.sourceLabel,
+            onCycle: extras.onCycle,
+          ),
+        EnumPickerRow<EntryMethod>(
+          label: label,
+          value: value,
+          values: EntryMethod.values,
+          displayName: (v) => v.localizedName(l10n),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -72,6 +124,21 @@ class AccessSafetySection extends StatelessWidget {
           controller: accessNotesController,
           placeholder: l10n.diveSites_edit_access_accessNotes_hint,
           maxLines: 3,
+        ),
+        ?entrySuggestion,
+        _methodRow(
+          context,
+          label: l10n.diveSites_edit_access_entryMethod_label,
+          value: entryMethod,
+          onChanged: onEntryMethodChanged,
+          extras: entryMethodExtras,
+        ),
+        _methodRow(
+          context,
+          label: l10n.diveSites_edit_access_exitMethod_label,
+          value: exitMethod,
+          onChanged: onExitMethodChanged,
+          extras: exitMethodExtras,
         ),
         _row(
           context,

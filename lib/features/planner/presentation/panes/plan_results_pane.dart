@@ -15,7 +15,7 @@ class PlanResultsPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final outcome = ref.watch(planOutcomeProvider);
+    final outcome = ref.watch(activePlanOutcomeProvider);
     final scheme = Theme.of(context).colorScheme;
     final inDeco = outcome.stops.isNotEmpty;
 

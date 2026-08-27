@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
@@ -35,6 +38,34 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Fake device GPS. [LocationService] has a private constructor, so the fake
+/// implements the interface rather than extending it.
+class _FakeLocationService implements LocationService {
+  _FakeLocationService({this.result, this.pending});
+
+  /// Resolved fix, or null for "no fix available".
+  final LocationResult? result;
+
+  /// When set, [getCurrentLocation] hangs on this instead of resolving, so a
+  /// test can observe the in-progress state.
+  final Completer<LocationResult?>? pending;
+
+  int calls = 0;
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) {
+    calls++;
+    return pending?.future ?? Future.value(result);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required List<DiveSite> sites,
@@ -44,6 +75,7 @@ Future<void> _pump(
   String? selectedSiteId,
   void Function(DiveSite)? onSiteSelected,
   VoidCallback? onCreateNewSite,
+  LocationService? locationService,
 }) async {
   tester.view.physicalSize = const Size(900, 2000);
   tester.view.devicePixelRatio = 1.0;
@@ -53,10 +85,18 @@ Future<void> _pump(
       overrides: [
         sitesProvider.overrideWith((ref) async => sites),
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+        // Default to "no fix" so no test reaches the real platform channel.
+        locationServiceProvider.overrideWithValue(
+          locationService ?? _FakeLocationService(),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        // Every assertion below is an English literal. flutter_test forwards
+        // the host machine's locale list, so without this the UI resolves to
+        // the developer's own language and 6 of these tests miss.
+        locale: const Locale('en'),
         home: Scaffold(
           body: SitePickerSheet(
             scrollController: ScrollController(),
@@ -163,6 +203,68 @@ void main() {
     expect(_tileTitles(tester), ['House Reef', 'Channel', 'Blue Hole']);
     expect(find.text('Sorted by distance'), findsOneWidget);
     expect(find.text('Sorted by distance from this dive'), findsNothing);
+  });
+
+  // #965: a dive computer import produces a dive with no GPS, and the edit
+  // page captures device GPS only for new dives, so the sheet used to receive
+  // no anchor at all and fell back to the repository's alphabetical order.
+  testWidgets('falls back to device location when the caller gives none', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: const [_farSite, _noGpsSite, _nearSite, _midSite],
+      locationService: _FakeLocationService(result: _here),
+    );
+    expect(_tileTitles(tester), [
+      'House Reef',
+      'Channel',
+      'Blue Hole',
+      'Mystery Lake',
+    ]);
+    expect(find.text('Sorted by distance'), findsOneWidget);
+  });
+
+  testWidgets('keeps the provided order when no device fix is available', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: const [_farSite, _nearSite, _midSite],
+      locationService: _FakeLocationService(),
+    );
+    expect(_tileTitles(tester), ['Blue Hole', 'House Reef', 'Channel']);
+    expect(find.text('Sorted by distance'), findsNothing);
+  });
+
+  testWidgets('does not request device location when the dive has GPS', (
+    tester,
+  ) async {
+    final service = _FakeLocationService(result: _here);
+    await _pump(
+      tester,
+      sites: const [_farSite, _nearSite],
+      diveLocation: const GeoPoint(10.0, 10.0),
+      locationService: service,
+    );
+    expect(service.calls, 0);
+  });
+
+  testWidgets('shows a progress caption while the device fix resolves', (
+    tester,
+  ) async {
+    final pending = Completer<LocationResult?>();
+    await _pump(
+      tester,
+      sites: const [_farSite, _nearSite],
+      locationService: _FakeLocationService(pending: pending),
+    );
+    expect(find.text('Getting location...'), findsOneWidget);
+
+    pending.complete(_here);
+    await tester.pumpAndSettle();
+    expect(find.text('Getting location...'), findsNothing);
+    expect(_tileTitles(tester), ['House Reef', 'Blue Hole']);
   });
 
   testWidgets('distance readout respects imperial units', (tester) async {

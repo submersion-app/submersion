@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
@@ -72,11 +77,14 @@ Future<void> pumpView(
   TripStory story, {
   List<Override> extra = const [],
   Size viewSize = const Size(800, 2600),
+  http.Client? weatherHttpClient,
 }) async {
   tester.view.physicalSize = viewSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(
+    weatherHttpClient: weatherHttpClient,
+  );
   final stats = TripWithStats(trip: story.trip, diveCount: 2);
   final router = GoRouter(
     routes: [
@@ -319,10 +327,55 @@ void main() {
         tester.getTopLeft(find.byWidget(element.widget)).dy,
     ];
     expect(pinnedTops, anyElement(closeTo(180.0, 1.0)));
-    expect(find.textContaining('Day 1 -'), findsNothing);
+    // The first day's header (its badge shows "Mar 25") has been pushed out.
+    expect(find.textContaining('Mar 25'), findsNothing);
   });
 
-  testWidgets('surface days get no sticky header', (tester) async {
+  testWidgets('checklist and notes closers share the section title style', (
+    tester,
+  ) async {
+    // Both end-of-story cards must read as the same family: the checklist
+    // ExpansionTile's title gets the notes card's bold section-title style
+    // instead of the ListTile default.
+    final trip = Trip(
+      id: 'trip-1',
+      name: 'Bonaire',
+      startDate: DateTime(2026, 3, 27),
+      endDate: DateTime(2026, 3, 28),
+      tripType: TripType.resort,
+      notes: 'Great vis all week',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final story = buildTripStory(
+      trip: trip,
+      dives: [_dive('d1', DateTime(2026, 3, 27, 9))],
+      itineraryDays: [],
+      mediaByDiveId: {},
+      sightingsByDiveId: {},
+      checklistItems: [
+        TripChecklistItem(
+          id: 'c1',
+          tripId: 'trip-1',
+          title: 'Pack fins',
+          isDone: true,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story);
+
+    final notesStyle = tester.widget<Text>(find.text('Notes')).style;
+    final checklistStyle = tester.widget<Text>(find.text('1 of 1 done')).style;
+    expect(checklistStyle?.fontWeight, FontWeight.bold);
+    expect(checklistStyle?.fontSize, notesStyle?.fontSize);
+  });
+
+  testWidgets('surface days get the same sticky header as dive days', (
+    tester,
+  ) async {
     final trip = _trip(
       start: DateTime(2026, 3, 25),
       end: DateTime(2026, 3, 27),
@@ -338,9 +391,64 @@ void main() {
     );
     await pumpView(tester, story);
 
-    // Tall harness viewport: all three days are mounted, but only the two
-    // dive days contribute sticky headers.
-    expect(find.byType(TripStoryDayHeader), findsNWidgets(2));
-    expect(find.textContaining('Surface day'), findsOneWidget);
+    // Tall harness viewport: all three days are mounted, and every one of them
+    // contributes a sticky header, surface day included.
+    expect(find.byType(TripStoryDayHeader), findsNWidgets(3));
+    // The surface day's header carries the same day-number badge as dive days.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('day-number-badge')).at(1),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Surface day'), findsOneWidget);
+  });
+
+  testWidgets('only the surface day fetches from the nearest trip point', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        _diveAt('d1', DateTime(2026, 3, 25, 9), 12.10, -68.20),
+        _diveAt('d3', DateTime(2026, 3, 27, 9), 13.30, -69.40),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    var calls = 0;
+    final client = MockClient((request) async {
+      calls++;
+      expect(request.url.queryParameters['latitude'], '12.1');
+      expect(request.url.queryParameters['longitude'], '-68.2');
+      expect(request.url.queryParameters['start_date'], '2026-03-26');
+      expect(request.url.queryParameters['timezone'], 'auto');
+      return http.Response(
+        jsonEncode({
+          'hourly': {
+            'time': ['2026-03-26T12:00'],
+            'temperature_2m': [26.0],
+            'relative_humidity_2m': [70.0],
+            'precipitation': [0.0],
+            'cloud_cover': [10.0],
+            'wind_speed_10m': [8.0],
+            'wind_direction_10m': [30.0],
+            'surface_pressure': [1012.0],
+            'weathercode': [0],
+          },
+        }),
+        200,
+      );
+    });
+
+    await pumpView(tester, story, weatherHttpClient: client);
+    await tester.pump();
+
+    expect(calls, 1);
+    expect(find.text('26°C'), findsOneWidget);
   });
 }

@@ -9,6 +9,7 @@ import workmanager_apple
   private var metadataHandler: MetadataWriteHandler?
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
+  private var deviceNameHandler: DeviceNameHandler?
 
   override func application(
     _ application: UIApplication,
@@ -37,6 +38,9 @@ import workmanager_apple
     }
     if let backupRegistrar = self.registrar(forPlugin: "BackupBookmarkHandler") {
       backupBookmarkHandler = BackupBookmarkHandler(messenger: backupRegistrar.messenger())
+    }
+    if let deviceNameRegistrar = self.registrar(forPlugin: "DeviceNameHandler") {
+      deviceNameHandler = DeviceNameHandler(messenger: deviceNameRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

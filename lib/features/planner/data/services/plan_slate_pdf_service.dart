@@ -45,6 +45,28 @@ class PlanSlateLabels {
   });
 }
 
+/// The slate's header line: plan date, mode, gradient factors, and the
+/// headline outcome numbers.
+///
+/// Top-level so tests can assert the rendered string directly. The slate
+/// embeds a TrueType font, so its glyph-indexed text cannot be read back out
+/// of the saved PDF the way the Helvetica-based logbook templates can.
+String planSlateHeaderLine(
+  domain.DivePlan plan,
+  PlanOutcome outcome,
+  UnitFormatter units,
+) =>
+    // The date follows the diver's DateFormatPreference: a slate is printed
+    // and read at the dive site, not parsed by another program (#964).
+    '${units.formatDate(plan.updatedAt)}   ${plan.mode.name.toUpperCase()}   '
+    'GF ${plan.gfLow}/${plan.gfHigh}   '
+    'max ${units.formatDepth(outcome.maxDepth)}   '
+    'RT ${planSlateMinutes(outcome.runtimeSeconds)}   '
+    'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%';
+
+/// Whole minutes, rounded up, as the slate prints durations.
+String planSlateMinutes(int seconds) => '${(seconds / 60).ceil()} min';
+
 /// Renders a plan as a high-contrast printable dive slate: runtime table,
 /// gas plan, contingency tables, bailout summary, and range table. Pure
 /// consumer of engine outputs — no deco math of its own.
@@ -127,22 +149,19 @@ class PlanSlatePdfService {
     PlanOutcome outcome,
     UnitFormatter units,
   ) {
-    final mode = plan.mode.name.toUpperCase();
-    final date =
-        '${plan.updatedAt.year}-${plan.updatedAt.month.toString().padLeft(2, '0')}-${plan.updatedAt.day.toString().padLeft(2, '0')}';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
           plan.name,
-          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
         pw.SizedBox(height: 2),
         pw.Text(
-          '$date   $mode   GF ${plan.gfLow}/${plan.gfHigh}   '
-          'max ${units.formatDepth(outcome.maxDepth)}   '
-          'RT ${_minutes(outcome.runtimeSeconds)}   '
-          'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%',
+          planSlateHeaderLine(plan, outcome, units),
           style: const pw.TextStyle(fontSize: 10),
         ),
         pw.Divider(thickness: 1.2),
@@ -154,7 +173,7 @@ class PlanSlatePdfService {
     padding: const pw.EdgeInsets.only(bottom: 3),
     child: pw.Text(
       text.toUpperCase(),
-      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+      style: const pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
     ),
   );
 
@@ -162,11 +181,9 @@ class PlanSlatePdfService {
     padding: const pw.EdgeInsets.only(top: 3, bottom: 2),
     child: pw.Text(
       text,
-      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+      style: const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
     ),
   );
-
-  String _minutes(int seconds) => '${(seconds / 60).ceil()} min';
 
   pw.Widget _runtimeTable(
     PlanOutcome outcome,
@@ -278,7 +295,7 @@ class PlanSlatePdfService {
   pw.Widget _bailoutSummary(BailoutOutcome bailout, UnitFormatter units) {
     final worst = bailout.worstCase;
     return pw.Text(
-      'TTS ${_minutes(worst.ttsSeconds)} @ ${units.formatDepth(worst.depthMeters)} '
+      'TTS ${planSlateMinutes(worst.ttsSeconds)} @ ${units.formatDepth(worst.depthMeters)} '
       '(${units.formatVolume(worst.litersRequired)} / '
       '${units.formatVolume(bailout.availableLiters)})',
       style: const pw.TextStyle(fontSize: 10),

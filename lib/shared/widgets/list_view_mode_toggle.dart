@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Popup menu button for switching between list view modes.
 ///
@@ -32,12 +34,12 @@ class ListViewModeToggle extends StatelessWidget {
     };
   }
 
-  String _labelForMode(ListViewMode mode) {
+  String _labelForMode(ListViewMode mode, AppLocalizations l10n) {
     return switch (mode) {
-      ListViewMode.detailed => 'Detailed',
-      ListViewMode.compact => 'Compact',
-      ListViewMode.dense => 'Dense',
-      ListViewMode.table => 'Table',
+      ListViewMode.detailed => l10n.enum_listViewMode_detailed,
+      ListViewMode.compact => l10n.enum_listViewMode_compact,
+      ListViewMode.dense => l10n.enum_listViewMode_dense,
+      ListViewMode.table => l10n.enum_listViewMode_table,
     };
   }
 
@@ -48,6 +50,7 @@ class ListViewModeToggle extends StatelessWidget {
     required ListViewMode currentMode,
     List<ListViewMode> modes = ListViewMode.values,
   }) {
+    final l10n = context.l10n;
     final primary = Theme.of(context).colorScheme.primary;
     return modes.map((mode) {
       final isCurrent = mode == currentMode;
@@ -62,7 +65,7 @@ class ListViewModeToggle extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              _labelForModeStatic(mode),
+              _labelForModeStatic(mode, l10n),
               style: isCurrent
                   ? TextStyle(color: primary, fontWeight: FontWeight.w600)
                   : null,
@@ -82,20 +85,21 @@ class ListViewModeToggle extends StatelessWidget {
     };
   }
 
-  static String _labelForModeStatic(ListViewMode mode) {
+  static String _labelForModeStatic(ListViewMode mode, AppLocalizations l10n) {
     return switch (mode) {
-      ListViewMode.detailed => 'Detailed',
-      ListViewMode.compact => 'Compact',
-      ListViewMode.dense => 'Dense',
-      ListViewMode.table => 'Table',
+      ListViewMode.detailed => l10n.enum_listViewMode_detailed,
+      ListViewMode.compact => l10n.enum_listViewMode_compact,
+      ListViewMode.dense => l10n.enum_listViewMode_dense,
+      ListViewMode.table => l10n.enum_listViewMode_table,
     };
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return PopupMenuButton<ListViewMode>(
       icon: Icon(_iconForMode(currentMode), size: iconSize),
-      tooltip: 'View mode',
+      tooltip: l10n.listViewMode_tooltip,
       onSelected: onModeChanged,
       itemBuilder: (context) => availableModes.map((mode) {
         return PopupMenuItem(
@@ -111,7 +115,7 @@ class ListViewModeToggle extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                _labelForMode(mode),
+                _labelForMode(mode, l10n),
                 style: mode == currentMode
                     ? TextStyle(
                         color: Theme.of(context).colorScheme.primary,

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -15,8 +15,9 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
-  final _dateFormat = DateFormat('yyyy-MM-dd');
-  final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
+  /// File names stay ISO no matter what the diver reads in the document, so a
+  /// folder of exports still sorts chronologically (#964).
+  static final _fileNameDate = DateFormat('yyyy-MM-dd');
 
   // ==================== Trip PDF ====================
 
@@ -24,6 +25,7 @@ class PdfExportService {
   Future<String> exportTripToPdf(
     Trip trip,
     List<Dive> dives, {
+    required PdfDateFormatter dates,
     TripWithStats? stats,
   }) async {
     final pdf = pw.Document();
@@ -38,14 +40,14 @@ class PdfExportService {
             children: [
               pw.Text(
                 trip.name,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.SizedBox(height: 20),
               pw.Text(
-                '${_dateFormat.format(trip.startDate)} - ${_dateFormat.format(trip.endDate)}',
+                '${dates.date(trip.startDate)} - ${dates.date(trip.endDate)}',
                 style: const pw.TextStyle(fontSize: 18),
               ),
               if (trip.location != null) ...[
@@ -72,7 +74,7 @@ class PdfExportService {
               pw.SizedBox(height: 30),
               pw.Text(
                 '${dives.length} Dives',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -80,7 +82,7 @@ class PdfExportService {
               if (stats != null) ...[
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  'Total Bottom Time: ${stats.formattedBottomTime}',
+                  'Total Runtime: ${stats.formattedRuntime}',
                   style: const pw.TextStyle(fontSize: 14),
                 ),
               ],
@@ -100,13 +102,13 @@ class PdfExportService {
             children: [
               pw.Text(
                 'Dive ${dive.diveNumber ?? ""}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.Text('Date: ${_dateTimeFormat.format(dive.dateTime)}'),
+              pw.Text('Date: ${dates.dateTime(dive.dateTime)}'),
               if (dive.site != null) pw.Text('Site: ${dive.site!.name}'),
               pw.SizedBox(height: 10),
               pw.Row(
@@ -147,6 +149,7 @@ class PdfExportService {
   /// Generate PDF dive logbook bytes without sharing.
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
     List<Dive> dives, {
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
   }) async {
@@ -162,22 +165,25 @@ class PdfExportService {
 
     final pdfBytes = await _buildDivePdf(
       dives,
+      dates: dates,
       title: title,
       allSightings: allSightings,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
     );
-    final fileName = 'dive_logbook_${_dateFormat.format(DateTime.now())}.pdf';
+    final fileName = 'dive_logbook_${_fileNameDate.format(DateTime.now())}.pdf';
     return (bytes: pdfBytes, fileName: fileName);
   }
 
   /// Generate PDF dive logbook and share via system share sheet.
   Future<String> exportDivesToPdf(
     List<Dive> dives, {
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
+      dates: dates,
       title: title,
       allSightings: allSightings,
     );
@@ -191,11 +197,13 @@ class PdfExportService {
   /// Save PDF logbook to a user-selected location.
   Future<String?> saveDivesToPdfFile(
     List<Dive> dives, {
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
+      dates: dates,
       title: title,
       allSightings: allSightings,
     );
@@ -212,24 +220,19 @@ class PdfExportService {
       dialogTitle: 'Save PDF File',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['pdf'],
       bytes: Uint8List.fromList(bytes),
+      mimeType: 'application/pdf',
     );
 
     if (saveResult == null) return null;
-
-    if (!Platform.isAndroid) {
-      final file = File(saveResult);
-      await file.writeAsBytes(bytes);
-    }
-
-    return saveResult;
+    return savedFileLocation(saveResult);
   }
 
   // ==================== Internal PDF Building ====================
 
   Future<List<int>> _buildDivePdf(
     List<Dive> dives, {
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     List<Sighting>? allSightings,
     Map<String, List<Signature>>? diveSignatures,
@@ -246,7 +249,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 title,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -259,13 +262,13 @@ class PdfExportService {
               pw.SizedBox(height: 10),
               if (dives.isNotEmpty) ...[
                 pw.Text(
-                  '${_dateFormat.format(dives.last.dateTime)} - ${_dateFormat.format(dives.first.dateTime)}',
+                  '${dates.date(dives.last.dateTime)} - ${dates.date(dives.first.dateTime)}',
                   style: const pw.TextStyle(fontSize: 16),
                 ),
               ],
               pw.SizedBox(height: 40),
               pw.Text(
-                'Generated on ${_dateTimeFormat.format(DateTime.now())}',
+                'Generated on ${dates.dateTime(DateTime.now())}',
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,
@@ -302,7 +305,7 @@ class PdfExportService {
             children: [
               pw.Text(
                 'Summary',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -349,6 +352,7 @@ class PdfExportService {
                 (dive) => [
                   _buildPdfDiveEntry(
                     dive,
+                    dates: dates,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 16),
@@ -376,14 +380,21 @@ class PdfExportService {
           pw.Text(label, style: const pw.TextStyle(fontSize: 14)),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),
     );
   }
 
-  pw.Widget _buildPdfDiveEntry(Dive dive, {List<Signature>? signatures}) {
+  pw.Widget _buildPdfDiveEntry(
+    Dive dive, {
+    required PdfDateFormatter dates,
+    List<Signature>? signatures,
+  }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
 
     return pw.Container(
@@ -400,13 +411,13 @@ class PdfExportService {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - ${dive.site?.name ?? 'Unknown Site'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.Text(
-                _dateTimeFormat.format(dive.dateTime),
+                dates.dateTime(dive.dateTime),
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,
@@ -461,7 +472,7 @@ class PdfExportService {
                         children: [
                           pw.Text(
                             '${field.key}: ',
-                            style: pw.TextStyle(
+                            style: const pw.TextStyle(
                               fontSize: 9,
                               fontWeight: pw.FontWeight.bold,
                               color: PdfColors.grey700,
@@ -494,7 +505,7 @@ class PdfExportService {
             pw.SizedBox(height: 8),
             pw.Text(
               'Verified by:',
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColors.grey700,
@@ -505,7 +516,7 @@ class PdfExportService {
               spacing: 8,
               runSpacing: 8,
               children: signatures
-                  .map((sig) => _buildPdfSignatureBlock(sig))
+                  .map((sig) => _buildPdfSignatureBlock(sig, dates))
                   .toList(),
             ),
           ],
@@ -514,7 +525,10 @@ class PdfExportService {
     );
   }
 
-  pw.Widget _buildPdfSignatureBlock(Signature signature) {
+  pw.Widget _buildPdfSignatureBlock(
+    Signature signature,
+    PdfDateFormatter dates,
+  ) {
     pw.ImageProvider? signatureImage;
     if (signature.hasImage) {
       try {
@@ -555,7 +569,10 @@ class PdfExportService {
           pw.SizedBox(height: 2),
           pw.Text(
             signature.signerName,
-            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              fontWeight: pw.FontWeight.bold,
+            ),
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
@@ -564,7 +581,7 @@ class PdfExportService {
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
-            _dateFormat.format(signature.signedAt),
+            dates.date(signature.signedAt),
             style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
             textAlign: pw.TextAlign.center,
           ),
@@ -583,7 +600,10 @@ class PdfExportService {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );

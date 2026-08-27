@@ -27,13 +27,19 @@ class _FileWritingAdapter implements BackupDatabaseAdapter {
   }
 
   @override
-  Future<void> restore(String backupPath) async => restoreCalls++;
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async => restoreCalls++;
 
   @override
   Future<String> get databasePath async => dbPath;
 
   @override
   AppDatabase get database => throw UnimplementedError();
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 class _FakeSafPort implements BackupSafPort {
@@ -93,7 +99,7 @@ String _validDb(String dir, String name) {
   final db = sqlite3.sqlite3.open(path);
   db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
   db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
-  db.dispose();
+  db.close();
   return path;
 }
 
@@ -132,7 +138,13 @@ void main() {
 
       expect(record.localPath, startsWith('content://tree/doc/'));
       expect(record.sizeBytes, greaterThan(0));
-      expect(port.wroteFrom, live);
+      // The port streams an EXPORT of the database, never the live file: `<db>`
+      // alone omits the rows still in the WAL, and under database password
+      // protection it is ciphertext where a backup must be portable plaintext.
+      expect(port.wroteFrom, isNotNull);
+      expect(port.wroteFrom, isNot(live));
+      // And the staged plaintext export does not outlive the write.
+      expect(File(port.wroteFrom!).existsSync(), isFalse);
     },
   );
 

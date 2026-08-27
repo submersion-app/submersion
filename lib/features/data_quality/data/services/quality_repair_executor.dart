@@ -7,6 +7,7 @@ import 'package:submersion/features/data_quality/data/repositories/quality_findi
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -14,9 +15,26 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 
 typedef RepairUndo = Future<void> Function();
 
+/// What a repair attempt actually did.
+///
+/// A repair that changes nothing must say so: marking the finding resolved
+/// would only have it reopened by the very next scan, and writing an
+/// unchanged profile stacks another edited-profile layer for no reason.
+class RepairResult {
+  const RepairResult.applied([this.undo]) : changed = true;
+  const RepairResult.noChange() : changed = false, undo = null;
+
+  /// Whether anything was written.
+  final bool changed;
+
+  /// Inverse of the write, when the operation has one.
+  final RepairUndo? undo;
+}
+
 /// Executes data repairs with one uniform contract: write -> single notify ->
-/// mark finding resolved -> queue a targeted rescan -> return an undo
-/// closure (null when the operation has no inverse).
+/// mark finding resolved -> queue a targeted rescan -> return the undo
+/// closure (absent when the operation has no inverse). Operations that find
+/// nothing to do return [RepairResult.noChange] and leave the finding open.
 class QualityRepairExecutor {
   QualityRepairExecutor({
     DiveRepository? diveRepository,
@@ -54,7 +72,7 @@ class QualityRepairExecutor {
     return ids.isEmpty ? [diveId] : ids;
   }
 
-  Future<RepairUndo?> shiftTimes({
+  Future<RepairResult> shiftTimes({
     required List<String> diveIds,
     required Duration offset,
     required String findingId,
@@ -63,15 +81,20 @@ class QualityRepairExecutor {
     await _db.transaction(() => _diveRepo.bulkShiftDiveTimes(diveIds, offset));
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, diveIds);
-    return () async {
+    return RepairResult.applied(() async {
       await _db.transaction(() => _diveRepo.restoreDiveTimes(snapshot));
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan(diveIds);
-    };
+    });
   }
 
   /// [compute] is one of ProfileRepairService's pure functions.
-  Future<RepairUndo?> applyProfileRepair({
+  ///
+  /// A computed series identical to the stored one means the repair found
+  /// nothing it could fix: writing it would demote the originals and insert a
+  /// byte-identical copy as the new primary, and resolving the finding would
+  /// only have the next scan reopen it.
+  Future<RepairResult> applyProfileRepair({
     required String diveId,
     required String findingId,
     required List<domain.DiveProfilePoint> Function(
@@ -80,27 +103,43 @@ class QualityRepairExecutor {
     compute,
   }) async {
     final current = await _profiles.currentPrimaryProfile(diveId);
-    if (current.isEmpty) return null;
+    if (current.isEmpty) return const RepairResult.noChange();
+    final repaired = compute(current);
+    if (_sameSeries(current, repaired)) return const RepairResult.noChange();
     // saveEditedProfile notifies internally.
-    await _profiles.applyEdited(diveId, compute(current));
+    await _profiles.applyEdited(diveId, repaired);
     await _finish(findingId, [diveId]);
-    return () async {
+    return RepairResult.applied(() async {
       await _profiles.undo(diveId); // restoreOriginalProfile notifies
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
-  Future<RepairUndo?> recomputeMetrics({
+  /// Whole-sample equality: DiveProfilePoint is Equatable over all of its
+  /// fields, so a repair that touches any channel -- not just depth and
+  /// temperature -- still counts as a change.
+  static bool _sameSeries(
+    List<domain.DiveProfilePoint> a,
+    List<domain.DiveProfilePoint> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  Future<RepairResult> recomputeMetrics({
     required String diveId,
     required String findingId,
   }) async {
     final dive = await _diveRepo.getDiveById(diveId);
-    if (dive == null) return null;
+    if (dive == null) return const RepairResult.noChange();
     final prior = (maxDepth: dive.maxDepth, avgDepth: dive.avgDepth);
     await _db.transaction(() => _profiles.recomputeMetrics(diveId));
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId]);
-    return () async {
+    return RepairResult.applied(() async {
       await _db.transaction(
         () => _diveRepo.bulkUpdateFields(
           [diveId],
@@ -112,10 +151,54 @@ class QualityRepairExecutor {
       );
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
-  Future<RepairUndo?> swapTankRecordPressures({
+  /// Reinterpret the dive's recorded water temperature on the scale it was
+  /// really logged on. The sample-channel equivalent goes through
+  /// [applyProfileRepair] with ProfileRepairService.convertTemperature; this
+  /// one rewrites the single scalar column and nothing else.
+  Future<RepairResult> convertWaterTemp({
+    required String diveId,
+    required bool kelvinScale,
+    required String findingId,
+  }) async {
+    final dive = await _diveRepo.getDiveById(diveId);
+    final prior = dive?.waterTemp;
+    if (prior == null) return const RepairResult.noChange();
+    // Re-test convergence against the CURRENT value rather than trusting the
+    // finding's params. The dive may have been corrected by hand since the
+    // scan, and converting an already-plausible reading would corrupt it.
+    // Refusing also subsumes the degenerate -40 case, where Celsius and
+    // Fahrenheit coincide and the conversion could never change anything.
+    if (!RepairPredicates.convertedChannelIsPlausible([
+      prior,
+    ], kelvinScale: kelvinScale)) {
+      return const RepairResult.noChange();
+    }
+    final converted = RepairPredicates.convertToCelsius(
+      prior,
+      kelvinScale: kelvinScale,
+    );
+
+    Future<void> write(double value) async {
+      await _db.transaction(
+        () => _diveRepo.bulkUpdateFields([
+          diveId,
+        ], DivesCompanion(waterTemp: Value(value))),
+      );
+      SyncEventBus.notifyLocalChange();
+    }
+
+    await write(converted);
+    await _finish(findingId, [diveId]);
+    return RepairResult.applied(() async {
+      await write(prior);
+      scheduleQualityScan([diveId]);
+    });
+  }
+
+  Future<RepairResult> swapTankRecordPressures({
     required String diveId,
     required String tankId,
     required double newStartBar,
@@ -132,7 +215,7 @@ class QualityRepairExecutor {
     );
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId]);
-    return () async {
+    return RepairResult.applied(() async {
       await _db.transaction(
         () => _diveRepo.updateTankRecordPressures(
           diveId: diveId,
@@ -143,12 +226,12 @@ class QualityRepairExecutor {
       );
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
   /// Set ONE endpoint of a tank record from its sensor series (the
   /// endpoint-mismatch repair). Never touches the other endpoint.
-  Future<RepairUndo?> setTankRecordEndpoint({
+  Future<RepairResult> setTankRecordEndpoint({
     required String diveId,
     required String tankId,
     required String endpoint, // 'start' | 'end'
@@ -157,7 +240,7 @@ class QualityRepairExecutor {
   }) async {
     final dive = await _diveRepo.getDiveById(diveId);
     final tank = dive?.tanks.where((t) => t.id == tankId).firstOrNull;
-    if (tank == null) return null;
+    if (tank == null) return const RepairResult.noChange();
     final prior = endpoint == 'start' ? tank.startPressure : tank.endPressure;
     Future<void> write(double? value) => _db.transaction(
       () => _diveRepo.updateTankRecordPressures(
@@ -170,15 +253,15 @@ class QualityRepairExecutor {
     await write(bar);
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId]);
-    if (prior == null) return null;
-    return () async {
+    if (prior == null) return const RepairResult.applied();
+    return RepairResult.applied(() async {
       await write(prior);
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
-  Future<RepairUndo?> swapPressureSeries({
+  Future<RepairResult> swapPressureSeries({
     required String diveId,
     required String tankIdA,
     required String tankIdB,
@@ -193,7 +276,7 @@ class QualityRepairExecutor {
     );
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId]);
-    return () async {
+    return RepairResult.applied(() async {
       await _db.transaction(
         () => _tankRepo.swapTankPressureSeries(
           diveId: diveId,
@@ -203,10 +286,10 @@ class QualityRepairExecutor {
       );
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
-  Future<RepairUndo?> reassignPressureSeries({
+  Future<RepairResult> reassignPressureSeries({
     required String diveId,
     required String fromTankId,
     required String toTankId,
@@ -221,7 +304,7 @@ class QualityRepairExecutor {
     );
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId]);
-    return () async {
+    return RepairResult.applied(() async {
       await _db.transaction(
         () => _tankRepo.reassignTankPressureSeries(
           diveId: diveId,
@@ -231,10 +314,10 @@ class QualityRepairExecutor {
       );
       SyncEventBus.notifyLocalChange();
       scheduleQualityScan([diveId]);
-    };
+    });
   }
 
-  Future<RepairUndo?> setPrimarySource({
+  Future<RepairResult> setPrimarySource({
     required String diveId,
     required String sourceId,
     required String findingId,
@@ -244,6 +327,7 @@ class QualityRepairExecutor {
       computerReadingId: sourceId,
     );
     await _finish(findingId, [diveId]);
-    return null; // set-primary has its own UI affordance to set back
+    // set-primary has its own UI affordance to set back
+    return const RepairResult.applied();
   }
 }

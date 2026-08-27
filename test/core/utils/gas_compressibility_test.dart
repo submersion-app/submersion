@@ -1,21 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 
 void main() {
-  group('barToAtm', () {
-    test('1 bar ≈ 0.9869 atm', () {
-      expect(barToAtm(1.0), closeTo(0.9869, 0.0001));
-    });
-
-    test('standard atmosphere converts to 1.0 atm', () {
-      expect(barToAtm(standardAtmBar), closeTo(1.0, 1e-10));
-    });
-
-    test('0 bar = 0 atm', () {
-      expect(barToAtm(0), 0.0);
-    });
-  });
-
   group('gasCompressibilityFactor', () {
     test('Z ≈ 1.0 at surface pressure for air', () {
       final z = gasCompressibilityFactor(o2Percent: 21, bar: 1.0);
@@ -82,12 +69,25 @@ void main() {
 
   group('gasVolume', () {
     test('returns 0 when pressure is 0', () {
-      expect(gasVolume(tankSizeLiters: 12, pressureBar: 0, o2Percent: 21), 0.0);
+      expect(
+        gasVolume(
+          tankSizeLiters: 12,
+          pressureBar: 0,
+          o2Percent: 21,
+          model: GasModel.real,
+        ),
+        0.0,
+      );
     });
 
     test('returns 0 when pressure is negative', () {
       expect(
-        gasVolume(tankSizeLiters: 12, pressureBar: -10, o2Percent: 21),
+        gasVolume(
+          tankSizeLiters: 12,
+          pressureBar: -10,
+          o2Percent: 21,
+          model: GasModel.real,
+        ),
         0.0,
       );
     });
@@ -97,11 +97,12 @@ void main() {
         tankSizeLiters: 12,
         pressureBar: 200,
         o2Percent: 21,
+        model: GasModel.real,
       );
-      // Ideal: 12 * (200/1.01325) ≈ 2369 L
-      // With Z > 1 for air, actual volume < ideal
-      expect(vol, lessThan(2369));
-      expect(vol, closeTo(2287, 5));
+      // Ideal at the 1 bar reference: 12 * 200 = 2400 L.
+      // With Z > 1 for air at 200 bar, actual volume < ideal (issue #828).
+      expect(vol, lessThan(2400));
+      expect(vol, closeTo(2317, 5));
     });
 
     test('helium tank stores more gas than air at same pressure', () {
@@ -109,12 +110,14 @@ void main() {
         tankSizeLiters: 12,
         pressureBar: 200,
         o2Percent: 21,
+        model: GasModel.real,
       );
       final volHe = gasVolume(
         tankSizeLiters: 12,
         pressureBar: 200,
         o2Percent: 0,
         hePercent: 100,
+        model: GasModel.real,
       );
       // He has Z > 1 (larger), so volume = tank * P/Z is less
       // Air also has Z > 1 but smaller than He, so air volume > He volume
@@ -126,11 +129,13 @@ void main() {
         tankSizeLiters: 12,
         pressureBar: 200,
         o2Percent: 21,
+        model: GasModel.real,
       );
       final vol24 = gasVolume(
         tankSizeLiters: 24,
         pressureBar: 200,
         o2Percent: 21,
+        model: GasModel.real,
       );
       expect(vol24, closeTo(vol12 * 2, 0.001));
     });
@@ -144,6 +149,7 @@ void main() {
           startPressureBar: 207,
           litersConsumed: 0,
           o2Percent: 21,
+          model: GasModel.real,
         ),
         closeTo(207.0, 0.01),
       );
@@ -155,9 +161,10 @@ void main() {
         startPressureBar: 207,
         litersConsumed: 500,
         o2Percent: 21,
+        model: GasModel.real,
       );
-      // python3 (Task 8 Step 1): 155.28769781453377 (ideal: 161.358)
-      expect(end, closeTo(155.28769781453377, 0.05));
+      // python3 at the 1 bar reference (issue #828): 155.935672 (ideal: 161.955)
+      expect(end, closeTo(155.935672, 0.05));
     });
 
     test('consuming everything returns 0', () {
@@ -167,6 +174,7 @@ void main() {
           startPressureBar: 207,
           litersConsumed: 99999,
           o2Percent: 21,
+          model: GasModel.real,
         ),
         0.0,
       );
@@ -180,18 +188,21 @@ void main() {
         litersConsumed: consumed,
         o2Percent: 18,
         hePercent: 45,
+        model: GasModel.real,
       );
       final startVol = gasVolume(
         tankSizeLiters: 12.0,
         pressureBar: 232,
         o2Percent: 18,
         hePercent: 45,
+        model: GasModel.real,
       );
       final endVol = gasVolume(
         tankSizeLiters: 12.0,
         pressureBar: end,
         o2Percent: 18,
         hePercent: 45,
+        model: GasModel.real,
       );
       expect(startVol - endVol, closeTo(consumed, 0.5));
     });

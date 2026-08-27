@@ -596,17 +596,19 @@ void main() {
       expect(result, isA<double>());
       // Tank 1: gasVol(12.0, 200, air) - gasVol(12.0, 100, air)
       // Tank 2: gasVol(7.0, 200, air) - gasVol(7.0, 150, air)
-      // With Z-factor correction: ≈ 9.58
-      expect(result as double, closeTo(9.58, 0.1));
+      // With Z-factor correction against the 1 bar reference (issue #828):
+      // ≈ 9.70. It reads 1.3% above the old value because gas volume and the
+      // ambient pressure ratio now share a reference.
+      expect(result as double, closeTo(9.70, 0.1));
     });
 
-    test('sacRate volume mode returns L/min from dive.sac', () {
+    test('sacRate volume mode returns L/min from Dive.sacFor', () {
       final result = DiveField.sacRate.extractFromDive(
         testDive,
         sacUnit: SacUnit.litersPerMin,
       );
-      // With Z-factor correction: ≈ 11.67
-      expect(result as double, closeTo(11.67, 0.1));
+      // With Z-factor correction against the 1 bar reference (issue #828).
+      expect(result as double, closeTo(11.83, 0.1));
     });
 
     test('sacRate pressure mode returns bar/min from dive.sacPressure', () {

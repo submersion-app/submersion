@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -17,17 +18,19 @@ class MediaSourcesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Media Sources')),
+      appBar: AppBar(title: Text(context.l10n.settings_mediaSources_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Card(
+          Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: Icon(Icons.photo_library_outlined),
-                  title: Text('Photo library'),
-                  subtitle: Text('Apple Photos / Google Photos / iCloud'),
+                  leading: const Icon(Icons.photo_library_outlined),
+                  title: Text(context.l10n.media_source_gallery),
+                  subtitle: Text(
+                    context.l10n.settings_mediaSources_photoLibrarySubtitle,
+                  ),
                 ),
               ],
             ),
@@ -41,15 +44,19 @@ class MediaSourcesPage extends ConsumerWidget {
                     final asyncDiag = ref.watch(localFilesDiagnosticsProvider);
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
-                      title: const Text('Local files'),
+                      title: Text(context.l10n.media_source_localFile),
                       subtitle: asyncDiag.when(
-                        data: (d) =>
-                            // TODO(media): l10n
-                            Text(
-                              '${d.available} available, ${d.unavailable} unavailable',
-                            ),
-                        loading: () => const Text('Counting…'),
-                        error: (e, _) => Text('Error: $e'),
+                        data: (d) => Text(
+                          context.l10n.settings_mediaSources_localFilesCounts(
+                            d.available,
+                            d.unavailable,
+                          ),
+                        ),
+                        loading: () =>
+                            Text(context.l10n.settings_mediaSources_counting),
+                        error: (e, _) => Text(
+                          context.l10n.settings_mediaSources_error('$e'),
+                        ),
                       ),
                     );
                   },
@@ -59,25 +66,91 @@ class MediaSourcesPage extends ConsumerWidget {
                   builder: (context, ref, _) {
                     return ListTile(
                       leading: const Icon(Icons.refresh),
-                      // TODO(media): l10n
-                      title: const Text('Re-verify all local files'),
+                      title: Text(
+                        context.l10n.settings_mediaSources_reverifyAll,
+                      ),
                       onTap: () async {
                         final messenger = ScaffoldMessenger.of(context);
-                        final service = ref.read(
-                          localFilesDiagnosticsServiceProvider,
-                        );
+                        final l10n = context.l10n;
+                        final sweep = ref.read(mediaVerificationSweepProvider);
                         try {
-                          final updated = await service.reverifyAll();
+                          final outcome = await sweep.run(
+                            sourceTypes: {MediaSourceType.localFile},
+                          );
                           if (!context.mounted) return;
-                          // TODO(media): l10n, pluralization
                           messenger.showSnackBar(
-                            SnackBar(content: Text('$updated items updated')),
+                            SnackBar(
+                              content: Text(
+                                l10n.settings_mediaSources_reverifyResult(
+                                  outcome.flipped,
+                                ),
+                              ),
+                            ),
                           );
                           ref.invalidate(localFilesDiagnosticsProvider);
                         } catch (e) {
-                          // TODO(media): l10n
                           messenger.showSnackBar(
-                            SnackBar(content: Text('Re-verify failed: $e')),
+                            SnackBar(
+                              content: Text(
+                                l10n.settings_mediaSources_reverifyFailed('$e'),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                // Unfiltered counterpart to the re-verify action above, which
+                // only ever looked at local files. A gallery, URL or connector
+                // row had its orphan flag written at link time and never
+                // again, so nothing downstream of isOrphaned could report the
+                // truth about it.
+                Consumer(
+                  builder: (context, ref, _) {
+                    return ListTile(
+                      leading: const Icon(Icons.fact_check_outlined),
+                      title: Text(context.l10n.settings_mediaSources_checkAll),
+                      onTap: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final l10n = context.l10n;
+                        final sweep = ref.read(mediaVerificationSweepProvider);
+                        try {
+                          final outcome = await sweep.run();
+                          if (!context.mounted) return;
+                          // Only a WHOLLY inconclusive pass is reported as
+                          // blocked. That pass checked nothing, so "0 items
+                          // updated" would read as a clean bill of health.
+                          // A partial one did real work, and inconclusive
+                          // aggregates several causes, so letting a single
+                          // unreachable row take over the message would both
+                          // hide the real result and name a cause that may
+                          // not apply to it.
+                          final blocked =
+                              outcome.processed > 0 &&
+                              outcome.inconclusive == outcome.processed;
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                blocked
+                                    ? l10n.settings_mediaSources_checkAllBlocked(
+                                        outcome.inconclusive,
+                                      )
+                                    : l10n.settings_mediaSources_checkAllResult(
+                                        outcome.flipped,
+                                      ),
+                              ),
+                            ),
+                          );
+                          ref.invalidate(localFilesDiagnosticsProvider);
+                        } catch (e) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                l10n.settings_mediaSources_reverifyFailed('$e'),
+                              ),
+                            ),
                           );
                         }
                       },
@@ -96,13 +169,21 @@ class MediaSourcesPage extends ConsumerWidget {
                       final asyncUsage = ref.watch(androidUriUsageProvider);
                       return ListTile(
                         leading: const Icon(Icons.lock_outline),
-                        title: const Text('Android URI permissions'),
+                        title: Text(
+                          context.l10n.settings_mediaSources_androidUriTitle,
+                        ),
                         subtitle: asyncUsage.when(
-                          data: (usage) =>
-                              // TODO(media): l10n
-                              Text('$usage / 128 persistable URIs in use'),
-                          loading: () => const Text('Loading…'),
-                          error: (e, _) => Text('Error: $e'),
+                          data: (usage) => Text(
+                            context.l10n.settings_mediaSources_androidUriUsage(
+                              usage,
+                              128,
+                            ),
+                          ),
+                          loading: () =>
+                              Text(context.l10n.settings_mediaSources_loading),
+                          error: (e, _) => Text(
+                            context.l10n.settings_mediaSources_error('$e'),
+                          ),
                         ),
                       );
                     },
@@ -116,11 +197,11 @@ class MediaSourcesPage extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.cloud_outlined),
-              // TODO(media): l10n
-              title: const Text('Network sources'),
-              // TODO(media): l10n
-              subtitle: const Text(
-                'Saved hosts, manifest subscriptions, cache, and scan.',
+              title: Text(
+                context.l10n.settings_photosMedia_networkSources_title,
+              ),
+              subtitle: Text(
+                context.l10n.settings_photosMedia_networkSources_subtitle,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>

@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
 /// dive. Tooltip floats as an Overlay on top of all content below.
@@ -50,7 +51,7 @@ class DiveProfilePanel extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Select a dive to view its profile',
+              context.l10n.diveLog_profilePanel_selectDive,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
@@ -227,7 +228,7 @@ class _DiveProfilePanelContentState
         height: 100,
         child: Center(
           child: Text(
-            'No profile data for this dive',
+            context.l10n.diveLog_profilePanel_noProfileData,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
@@ -377,6 +378,7 @@ class _DiveProfilePanelContentState
                   sacCurve: analysis?.smoothedSacCurve,
                   ppO2Curve: analysis?.ppO2Curve,
                   o2SensorCurves: analysis?.o2SensorCurves,
+                  o2CellMvCurves: analysis?.o2CellMvCurves,
                   ppO2FromSensorAverage:
                       analysis?.ppO2FromSensorAverage ?? false,
                   ppN2Curve: analysis?.ppN2Curve,

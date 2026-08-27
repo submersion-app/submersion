@@ -1,15 +1,15 @@
-import 'dart:math' as math;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/dive_search.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/add_dive_botto
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
@@ -35,27 +36,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
-/// Compute a single map tile URL for the given lat/lng at [zoom].
-///
-/// Converts WGS-84 coordinates to slippy map tile x/y using the standard
-/// Web Mercator projection formula, then returns the tile URL for the
-/// requested [style] (Street, Topo, or Satellite).
+/// Compute a single map tile URL for the given lat/lng at [zoom], via the
+/// shared slippy-map conversion.
 String _tileUrl(double lat, double lng, int zoom, MapStyle style) {
-  final n = 1 << zoom; // 2^zoom
-  final x = ((lng + 180.0) / 360.0 * n).floor();
-  final latRad = lat * math.pi / 180.0;
-  final y =
-      ((1.0 - math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi) /
-              2.0 *
-              n)
-          .floor();
-  return MapTileConfig.tileUrl(style, zoom, x, y);
+  final tile = slippyTileOf(lat, lng, zoom);
+  return MapTileConfig.tileUrl(style, zoom, tile.x, tile.y);
 }
 
 /// Main dive list page with master-detail layout on desktop.
@@ -219,13 +212,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         onMapViewToggle: _toggleMapView,
         columnSettingsAction: IconButton(
           icon: const Icon(Icons.view_column_outlined),
-          tooltip: 'Column settings',
+          tooltip: context.l10n.columnConfig_tooltip_columnSettings,
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
           IconButton(
             icon: const Icon(Icons.search, size: 20),
-            tooltip: 'Search dives',
+            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
             onPressed: () {
               showSearch(context: context, delegate: DiveSearchDelegate(ref));
             },
@@ -235,7 +228,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
               isLabelVisible: ref.watch(diveFilterProvider).hasActiveFilters,
               child: const Icon(Icons.filter_list, size: 20),
             ),
-            tooltip: 'Filter dives',
+            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -627,7 +620,9 @@ class DiveSearchDelegate extends SearchDelegate<String?> {
               siteLongitude: dive.siteLongitude,
               onTap: () {
                 close(context, dive.id);
-                context.go('/dives/${dive.id}');
+                // PUSH (not go): go() replaces the stack, leaving system back
+                // with nothing to pop -- it would close the app (#647).
+                context.push('/dives/${dive.id}');
               },
             );
           },
@@ -656,11 +651,15 @@ class DiveListTile extends ConsumerWidget {
   final bool isFavorite;
   final List<Tag> tags;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final VoidCallback? onDoubleTap;
+
+  /// Currently open in the detail pane. Renders as a leading edge stripe.
   final bool isHighlighted;
   final bool isSelectionMode;
-  final bool isSelected;
+
+  /// In the current bulk selection. Renders as a fill tint plus the leading
+  /// checkbox. Independent of [isHighlighted]: a row can be both.
+  final bool isChecked;
 
   /// The dive's value for the active color attribute
   final double? colorValue;
@@ -717,11 +716,10 @@ class DiveListTile extends ConsumerWidget {
     this.isFavorite = false,
     this.tags = const [],
     this.onTap,
-    this.onLongPress,
     this.onDoubleTap,
     this.isHighlighted = false,
     this.isSelectionMode = false,
-    this.isSelected = false,
+    this.isChecked = false,
     this.colorValue,
     this.minValueInList,
     this.maxValueInList,
@@ -770,18 +768,23 @@ class DiveListTile extends ConsumerWidget {
     // Check if map background is enabled
     final showMapBackground = ref.watch(showMapBackgroundOnDiveCardsProvider);
 
+    // The active row carries a fill tint: checked in the bulk selection, or --
+    // outside selection mode -- open in the detail pane. Inside selection mode
+    // the fill belongs to the checked channel alone, so a highlighted but
+    // unchecked row stays plain instead of reading as selected.
+    final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
+
     // Determine if we should show the map (setting enabled + location available)
-    final shouldShowMap = showMapBackground && _hasLocation && !isSelected;
+    final shouldShowMap =
+        showMapBackground && _hasLocation && !showsSelectionFill;
 
     // Determine card background: selection takes priority, then attribute coloring
     // When map is shown, we don't use attribute coloring on the card itself
     final attributeColor = (showCardColors && !shouldShowMap)
         ? _getAttributeBackgroundColor()
         : null;
-    final cardColor = isSelected
+    final cardColor = showsSelectionFill
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     // Determine text colors based on background luminance
@@ -850,6 +853,7 @@ class DiveListTile extends ConsumerWidget {
           final chartWidth = availableWidth < 400
               ? (availableWidth * 0.25).clamp(60.0, 120.0)
               : (availableWidth * 0.20).clamp(80.0, 120.0);
+          final titleStyle = Theme.of(context).textTheme.titleMedium;
 
           return Padding(
             padding: const EdgeInsets.all(12),
@@ -863,36 +867,33 @@ class DiveListTile extends ConsumerWidget {
                     SizedBox(
                       width: 40,
                       height: 40,
-                      child: isSelectionMode
-                          ? Center(
-                              child: Checkbox(
-                                value: isSelected,
-                                onChanged: (_) => onTap?.call(),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
+                      child: Center(
+                        child: SelectionLeading(
+                          isSelectionMode: isSelectionMode,
+                          isChecked: isChecked,
+                          onChanged: (_) => onTap?.call(),
+                          child: CircleAvatar(
+                            backgroundColor: colorScheme.primaryContainer,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
                               ),
-                            )
-                          : CircleAvatar(
-                              backgroundColor: colorScheme.primaryContainer,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    '#$diveNumber',
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      color: colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '#$diveNumber',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     // Main text content (site, location, date)
@@ -906,12 +907,24 @@ class DiveListTile extends ConsumerWidget {
                               Expanded(
                                 child: Text(
                                   buildTitleText(),
-                                  style: Theme.of(context).textTheme.titleMedium
+                                  // Same ink-centering fix as DiveModeBadge
+                                  // and the header's rating number, but
+                                  // without shrinking the space this line
+                                  // occupies: strutStyle pins the reserved
+                                  // line height to titleMedium's own natural
+                                  // value (so the date line below doesn't
+                                  // shift up) while textHeightBehavior only
+                                  // repositions the ink within that space.
+                                  style: titleStyle
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: primaryTextColor,
-                                      ),
+                                      )
+                                      .inkCentered,
                                   overflow: TextOverflow.ellipsis,
+                                  textHeightBehavior:
+                                      inkCenteredTextHeightBehavior,
+                                  strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
                               if (isFavorite) ...[
@@ -960,6 +973,11 @@ class DiveListTile extends ConsumerWidget {
                                       ),
                                 ),
                               ],
+                              const SizedBox(width: 8),
+                              DiveModeBadge(
+                                mode: summary?.diveMode ?? DiveMode.oc,
+                                dense: true,
+                              ),
                             ],
                           ),
                           // Site location (country/region)
@@ -1061,6 +1079,7 @@ class DiveListTile extends ConsumerWidget {
                                 ? field.extractFromDive(
                                     fullDive!,
                                     sacUnit: units.sacUnit,
+                                    gasModel: units.settings.gasModel,
                                     diveTypeLabel: diveTypeLabelResolver,
                                   )
                                 : (field.extractFromSummary(
@@ -1077,7 +1096,7 @@ class DiveListTile extends ConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '${field.shortLabel}: ',
+                                    '${field.localizedShortLabel(context.l10n)}: ',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: secondaryTextColor,
@@ -1124,11 +1143,13 @@ class DiveListTile extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         child: Semantics(
           button: true,
-          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          label: context.l10n.diveLog_listPage_semanticsDiveAtSite(
+            diveNumber,
+            siteName ?? context.l10n.diveLog_listPage_unknownSite,
+          ),
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             child: Stack(
               children: [
                 // Static map tile background (cached)
@@ -1173,27 +1194,23 @@ class DiveListTile extends ConsumerWidget {
       );
     }
 
-    // Standard card without map
+    // Standard card without map. The highlight is the fill above, not an edge
+    // stripe -- the key marks the row for tests without decorating it.
     return Container(
+      key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: isHighlighted
-          ? BoxDecoration(
-              border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
         child: Semantics(
           button: true,
-          label: 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          label: context.l10n.diveLog_listPage_semanticsDiveAtSite(
+            diveNumber,
+            siteName ?? context.l10n.diveLog_listPage_unknownSite,
+          ),
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(12),
             child: buildContent(),
           ),
@@ -1215,6 +1232,7 @@ class DiveListTile extends ConsumerWidget {
         ? field.extractFromDive(
             fullDive!,
             sacUnit: units.sacUnit,
+            gasModel: units.settings.gasModel,
             diveTypeLabel: diveTypeLabelResolver,
           )
         : summary != null
@@ -1242,7 +1260,10 @@ class DiveListTile extends ConsumerWidget {
         ],
       );
     }
-    return Text('${field.shortLabel}: $formatted', style: style);
+    return Text(
+      '${field.localizedShortLabel(context.l10n)}: $formatted',
+      style: style,
+    );
   }
 
   /// Returns the value from the tile's constructor params for known fields.

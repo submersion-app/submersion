@@ -19,9 +19,11 @@ import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 
-/// The newer-schema gate: peers publishing from a newer database schema are
-/// held (not merged, cursor not advanced) until this device updates, and the
-/// writer stamps every manifest with its schema version so peers can gate.
+/// The newer-schema gate: peers whose COMPATIBILITY FLOOR exceeds this
+/// device's schema are held (not merged, cursor not advanced) until this
+/// device updates. The writer stamps the floor into every manifest's
+/// `schemaVersion` so shipped readers gate on it, and its own schema into
+/// `writerSchemaVersion` for diagnostics (issue #1089).
 void main() {
   late FakeCloudStorageProvider provider;
   late ChangesetWriter writer;
@@ -54,6 +56,7 @@ void main() {
     String peerId, {
     String? epochId,
     int? schemaVersionOverride,
+    String? deviceNameOverride,
   }) async {
     await writer.publish(
       provider: provider,
@@ -62,7 +65,7 @@ void main() {
       deletions: const [],
       epochId: epochId,
     );
-    if (schemaVersionOverride != null) {
+    if (schemaVersionOverride != null || deviceNameOverride != null) {
       final manifestFile = (await provider.listFiles(
         folderId: folder,
         namePattern: ChangesetLogLayout.manifestName(peerId),
@@ -70,7 +73,12 @@ void main() {
       final manifest =
           jsonDecode(utf8.decode(await provider.downloadFile(manifestFile.id)))
               as Map<String, dynamic>;
-      manifest['schemaVersion'] = schemaVersionOverride;
+      if (schemaVersionOverride != null) {
+        manifest['schemaVersion'] = schemaVersionOverride;
+      }
+      if (deviceNameOverride != null) {
+        manifest['deviceName'] = deviceNameOverride;
+      }
       await provider.uploadFile(
         Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
         manifestFile.name,
@@ -79,31 +87,45 @@ void main() {
     }
   }
 
-  Future<ChangesetReadResult> pull({String? currentEpochId}) => reader.pull(
+  Future<ChangesetReadResult> pull({
+    String? currentEpochId,
+    int? localSchemaVersion,
+  }) => reader.pull(
     provider: provider,
     selfDeviceId: 'reader-x',
     folderId: folder,
     apply: spyApply,
     applyBaseFile: spyApplyBaseFile(applied),
     currentEpochId: currentEpochId,
+    localSchemaVersion: localSchemaVersion ?? AppDatabase.currentSchemaVersion,
   );
 
-  test('published manifests are stamped with the schema version', () async {
-    await DiveRepository().createDive(
-      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
-    );
-    await publishPeer('peer-1', epochId: 'epoch-A');
+  test(
+    'published manifests are stamped with the floor and writer schema',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer('peer-1', epochId: 'epoch-A');
 
-    final manifestFile = (await provider.listFiles(
-      folderId: folder,
-      namePattern: ChangesetLogLayout.manifestName('peer-1'),
-    )).single;
-    final manifest = SyncManifest.fromBytes(
-      await provider.downloadFile(manifestFile.id),
-    );
+      final manifestFile = (await provider.listFiles(
+        folderId: folder,
+        namePattern: ChangesetLogLayout.manifestName('peer-1'),
+      )).single;
+      final manifest = SyncManifest.fromBytes(
+        await provider.downloadFile(manifestFile.id),
+      );
 
-    expect(manifest.schemaVersion, AppDatabase.currentSchemaVersion);
-  });
+      expect(
+        manifest.schemaVersion,
+        AppDatabase.minimumCompatibleSchemaVersion,
+        reason:
+            'the gate field carries the floor so shipped readers '
+            'only hold peers across declared breaking changes',
+      );
+      expect(manifest.writerSchemaVersion, AppDatabase.currentSchemaVersion);
+    },
+  );
 
   test('holds a peer publishing from a newer schema', () async {
     await DiveRepository().createDive(
@@ -152,7 +174,8 @@ void main() {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
     );
-    // publishPeer without override stamps the current schema version.
+    // publishPeer without override stamps the compatibility floor, which is
+    // at or below this device's schema.
     await publishPeer('peer-same', epochId: 'epoch-A');
 
     final result = await pull(currentEpochId: 'epoch-A');
@@ -160,4 +183,45 @@ void main() {
     expect(result.peersProcessed, 1);
     expect(result.newerSchemaPeerDeviceIds, isEmpty);
   });
+
+  test(
+    'a floor-stamped manifest from a newer writer applies on an old reader',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      // The writer is at currentSchemaVersion but stamps the floor, so a
+      // reader at exactly the floor must apply, not hold. This is the whole
+      // point of #1089: an App Store device mid-review-window keeps syncing.
+      await publishPeer('peer-new');
+
+      final result = await pull(
+        localSchemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
+      );
+
+      expect(result.newerSchemaPeerDeviceIds, isEmpty);
+      expect(result.peersProcessed, 1);
+      expect(applied, isNotEmpty);
+    },
+  );
+
+  test(
+    'a floor above the local schema still holds, and collects the peer name',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer(
+        'peer-future',
+        schemaVersionOverride: AppDatabase.currentSchemaVersion + 1,
+        deviceNameOverride: 'Future iPhone',
+      );
+
+      final result = await pull();
+
+      expect(result.newerSchemaPeerDeviceIds, {'peer-future'});
+      expect(result.newerSchemaPeerNames, {'peer-future': 'Future iPhone'});
+      expect(applied, isEmpty);
+    },
+  );
 }

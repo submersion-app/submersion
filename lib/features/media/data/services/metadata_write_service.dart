@@ -5,12 +5,29 @@ import 'package:flutter/services.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
+/// Native error code for an asset the platform cannot edit in place because
+/// it is a Live Photo (a still paired with a short video).
+///
+/// PhotoKit's content-editing round-trip expects the output to represent both
+/// resources, so writing back a bare modified still is rejected with
+/// `PHPhotosErrorDomain error 3302`. The iOS and macOS handlers detect the
+/// case up front and return this code instead of that raw error.
+const metadataWriteLivePhotoUnsupportedCode = 'LIVE_PHOTO_UNSUPPORTED';
+
 /// Exception thrown when metadata writing fails.
 class MetadataWriteException implements Exception {
   final String message;
+
+  /// The originating native error code, when the failure came from the
+  /// platform channel. Null for failures raised on the Dart side.
+  ///
+  /// Callers in the presentation layer use this to substitute a localized
+  /// message for [message], which is English-only.
+  final String? code;
+
   final Object? cause;
 
-  const MetadataWriteException(this.message, {this.cause});
+  const MetadataWriteException(this.message, {this.code, this.cause});
 
   @override
   String toString() => message;
@@ -115,6 +132,9 @@ class DiveMediaMetadata {
 /// - JPEG photos (EXIF)
 /// - HEIC/HEIF photos (EXIF via CGImageDestination)
 /// - MOV/MP4 videos (QuickTime metadata)
+///
+/// Does not support Live Photos on iOS or macOS: see
+/// [metadataWriteLivePhotoUnsupportedCode].
 class MetadataWriteService {
   static const _channel = MethodChannel('com.submersion.app/metadata');
   final _log = LoggerService.forClass(MetadataWriteService);
@@ -176,7 +196,11 @@ class MetadataWriteService {
       }
     } on PlatformException catch (e) {
       _log.error('Platform exception writing metadata', error: e);
-      throw MetadataWriteException(_parseErrorMessage(e), cause: e);
+      throw MetadataWriteException(
+        _parseErrorMessage(e),
+        code: e.code,
+        cause: e,
+      );
     } catch (e) {
       _log.error('Unexpected error writing metadata', error: e);
       throw MetadataWriteException(
@@ -202,6 +226,12 @@ class MetadataWriteService {
             'Cannot modify iCloud-only or shared album items.';
       case 'UNSUPPORTED_FORMAT':
         return 'This file format does not support metadata writing.';
+      case metadataWriteLivePhotoUnsupportedCode:
+        // Deliberately discards the native message: PhotoKit's own text for
+        // this case is an untranslated error-domain string.
+        return 'Live Photos are not supported yet. '
+            'Duplicate this as a still photo, '
+            'then write the dive data to the copy.';
       case 'WRITE_FAILED':
         return message.isNotEmpty ? message : 'Failed to write metadata.';
       default:

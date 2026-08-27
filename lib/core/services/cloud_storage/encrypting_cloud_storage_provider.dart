@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -83,6 +84,74 @@ class EncryptingCloudStorageProvider implements CloudStorageProvider {
       expectedLibraryKeyId: _libraryKeyId,
       filename: name,
     );
+  }
+
+  /// Exempt (self-framed) artifacts stream through the inner provider
+  /// untouched — the whole point of the path-based API is that a large
+  /// backup never materializes in memory. Non-exempt files fall back to the
+  /// buffering seal path; they are small sync files in practice.
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    if (isExempt(filename)) {
+      final result = await inner.uploadFileFromPath(
+        sourcePath,
+        filename,
+        folderId: folderId,
+      );
+      _names[result.fileId] = filename;
+      return result;
+    }
+    final data = await File(sourcePath).readAsBytes();
+    return uploadFile(data, filename, folderId: folderId);
+  }
+
+  /// Streams via the inner provider, then sniffs the on-disk header: no SBE1
+  /// magic means plaintext (done), an exempt name means a self-framed backup
+  /// whose own codec decrypts it (done), otherwise the file is a sealed
+  /// envelope (a small sync file) — open it and rewrite the plaintext.
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    await inner.downloadToFile(fileId, destinationPath);
+    final dest = File(destinationPath);
+    try {
+      final raf = await dest.open();
+      final Uint8List head;
+      try {
+        head = await raf.read(4);
+      } finally {
+        await raf.close();
+      }
+      if (!SyncEnvelope.hasMagic(head)) return;
+
+      final name = _names[fileId] ?? (await inner.getFileInfo(fileId))?.name;
+      if (name != null && isExempt(name)) return;
+      if (name == null) {
+        throw const EnvelopeCorruptException(
+          'Encrypted file has no resolvable name for authentication',
+        );
+      }
+      _names[fileId] = name;
+      final plaintext = await SyncEnvelope.open(
+        envelope: await dest.readAsBytes(),
+        dataKey: _dataKey,
+        expectedLibraryKeyId: _libraryKeyId,
+        filename: name,
+      );
+      await dest.writeAsBytes(plaintext, flush: true);
+    } catch (_) {
+      // Never leave ciphertext (or a partial rewrite) where the caller
+      // expects plaintext.
+      try {
+        if (await dest.exists()) await dest.delete();
+      } catch (_) {
+        // Best-effort cleanup; the original error is the one that matters.
+      }
+      rethrow;
+    }
   }
 
   @override

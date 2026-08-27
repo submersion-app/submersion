@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Edit sighting sheet
@@ -54,7 +55,11 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.sighting.speciesName,
+                localizedSpeciesName(
+                  context.l10n,
+                  widget.sighting.speciesId,
+                  widget.sighting.speciesName,
+                ),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
@@ -72,7 +77,11 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
                       ),
                       content: Text(
                         context.l10n.diveLog_editSighting_removeConfirm(
-                          widget.sighting.speciesName,
+                          localizedSpeciesName(
+                            context.l10n,
+                            widget.sighting.speciesId,
+                            widget.sighting.speciesName,
+                          ),
                         ),
                       ),
                       actions: [

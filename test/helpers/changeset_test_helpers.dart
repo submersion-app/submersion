@@ -76,7 +76,7 @@ Future<void> seedPeerLog(
     epochId: epochId,
     uploadNonce: uploadNonce,
   );
-  DatabaseService.instance.resetForTesting();
+  await tearDownTestDatabase();
   await setUpTestDatabase();
 }
 

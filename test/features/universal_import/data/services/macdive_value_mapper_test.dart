@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 
 void main() {
@@ -99,6 +101,97 @@ void main() {
         MacDiveValueMapper.normalizeDiveType('custom-dive-type'),
         'custom-dive-type',
       );
+    });
+  });
+
+  group('MacDiveValueMapper.equipmentType', () {
+    // MacDive's type field is free text, so real libraries carry values that
+    // match no enum name. Before this mapping nearly everything imported as
+    // `other` (#912).
+    const cases = <String, EquipmentType>{
+      'Regulator': EquipmentType.regulator,
+      'Reg - Longhose': EquipmentType.regulator,
+      'reg': EquipmentType.regulator,
+      'Octopus': EquipmentType.regulator,
+      'Second Stage': EquipmentType.regulator,
+      'First stage': EquipmentType.regulator,
+      'BCD': EquipmentType.bcd,
+      'BCD - Wing': EquipmentType.bcd,
+      'bc': EquipmentType.bcd,
+      'Wing': EquipmentType.bcd,
+      'Backplate and harness': EquipmentType.bcd,
+      'Computer': EquipmentType.computer,
+      'Dive Watch': EquipmentType.computer,
+      'Transmitter': EquipmentType.transmitter,
+      'Wetsuit': EquipmentType.wetsuit,
+      'wet suit 5mm': EquipmentType.wetsuit,
+      'Drysuit': EquipmentType.drysuit,
+      'Dry Suit': EquipmentType.drysuit,
+      'Rebreather': EquipmentType.rebreather,
+      'CCR unit': EquipmentType.rebreather,
+      'Tank': EquipmentType.tank,
+      'Cylinder': EquipmentType.tank,
+      'Weights': EquipmentType.weights,
+      'Ballast': EquipmentType.weights,
+      'Fins': EquipmentType.fins,
+      'Mask': EquipmentType.mask,
+      'Hood': EquipmentType.hood,
+      'Gloves': EquipmentType.gloves,
+      'Boots': EquipmentType.boots,
+      'Light': EquipmentType.light,
+      'Torch': EquipmentType.light,
+      'Camera': EquipmentType.camera,
+      'Strobe': EquipmentType.camera,
+      'SMB': EquipmentType.smb,
+      'DSMB': EquipmentType.smb,
+      'Reel': EquipmentType.reel,
+      'Spool': EquipmentType.reel,
+      'Knife': EquipmentType.knife,
+      'Shears': EquipmentType.knife,
+      'DPV': EquipmentType.dpv,
+      'Scooter': EquipmentType.dpv,
+      'Suex XJoy Scooter': EquipmentType.dpv,
+      'Diver Propulsion Vehicle': EquipmentType.dpv,
+    };
+
+    cases.forEach((input, expected) {
+      test('maps "$input" to ${expected.name}', () {
+        expect(MacDiveValueMapper.equipmentType(input), expected);
+      });
+    });
+
+    test('is case- and whitespace-insensitive', () {
+      expect(
+        MacDiveValueMapper.equipmentType('  WETSUIT  '),
+        EquipmentType.wetsuit,
+      );
+    });
+
+    test('prefers the more specific suit', () {
+      // "drysuit" contains no "wetsuit", but both contain "suit" - order
+      // matters, so pin it.
+      expect(
+        MacDiveValueMapper.equipmentType('Drysuit'),
+        EquipmentType.drysuit,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Wetsuit'),
+        EquipmentType.wetsuit,
+      );
+    });
+
+    test('falls back to other for an unrecognised label', () {
+      expect(
+        MacDiveValueMapper.equipmentType('Lucky Hat'),
+        EquipmentType.other,
+      );
+      expect(MacDiveValueMapper.equipmentType('Other'), EquipmentType.other);
+    });
+
+    test('returns null for empty input so the importer keeps its default', () {
+      expect(MacDiveValueMapper.equipmentType(null), isNull);
+      expect(MacDiveValueMapper.equipmentType(''), isNull);
+      expect(MacDiveValueMapper.equipmentType('   '), isNull);
     });
   });
 }

@@ -9,17 +9,24 @@
 // `NetworkThumbnail` reads directly) with hand-rolled fakes so the URL tab
 // can paint its empty review pane without touching the database.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
+import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
+import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
+import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
@@ -76,13 +83,27 @@ class _FakeMediaRepository implements MediaRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _wrap() {
+/// Collaborators for the seeded [FilesTabNotifier] used by the stale-staging
+/// test. Nothing is committed there, so neither is ever called.
+class _FakeBookmarkStorage implements LocalBookmarkStorage {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeMediaPlatform implements LocalMediaPlatform {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Widget _wrap({MediaAttachTarget? target, FilesTabNotifier? filesTab}) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
   final mediaRepo = _FakeMediaRepository();
   return ProviderScope(
     overrides: [
       photoPickerServiceProvider.overrideWithValue(_StubPhotoPickerService()),
+      if (filesTab != null)
+        filesTabNotifierProvider.overrideWith((ref) => filesTab),
       // [UrlTab] watches [urlTabNotifierProvider]. The default factory
       // pulls `DatabaseService.instance.database` (uninitialized in tests),
       // so swap it for a notifier built from the fakes above.
@@ -106,6 +127,7 @@ Widget _wrap() {
       home: PhotoPickerPage(
         startTime: DateTime.utc(2024, 1, 1, 9),
         endTime: DateTime.utc(2024, 1, 1, 11),
+        target: target,
       ),
     ),
   );
@@ -194,6 +216,74 @@ void main() {
       await tester.pump(const Duration(milliseconds: 350));
 
       expect(find.text('Done'), findsOneWidget);
+    });
+  });
+
+  testWidgets('opening the picker drops files staged by an earlier session', (
+    tester,
+  ) async {
+    // filesTabNotifierProvider is not autoDispose. A session abandoned
+    // without committing leaves its files behind, and the next session may
+    // attach somewhere else entirely; here, a site inheriting files picked
+    // while a dive was open.
+    final leftover = ExtractedFile(
+      sourcePath: '/left/over.jpg',
+      file: File('/left/over.jpg'),
+      metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+    );
+    final filesTab = FilesTabNotifier(
+      mediaRepository: _FakeMediaRepository(),
+      bookmarkStorage: _FakeBookmarkStorage(),
+      platform: _FakeMediaPlatform(),
+    );
+    filesTab.setFiles(
+      [leftover],
+      match: MatchedSelection(
+        matched: {
+          'an-old-dive': [leftover],
+        },
+        unmatched: const [],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _wrap(target: const SiteAttachTarget('site-1'), filesTab: filesTab),
+    );
+    await tester.pump();
+
+    expect(filesTab.state.files, isEmpty);
+    expect(filesTab.state.match, MatchedSelection.empty());
+  });
+
+  // Issue #1098: the page used to accept only a dive id, so the Files and URL
+  // tabs had no way to know a site session was even a site session.
+  group('attach target reaches the self-committing tabs', () {
+    testWidgets('Files tab receives the page target', (tester) async {
+      await tester.pumpWidget(_wrap(target: const SiteAttachTarget('site-1')));
+      await tester.pump();
+
+      await tester.tap(find.text('Files'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(
+        tester.widget<FilesTab>(find.byType(FilesTab)).target,
+        const SiteAttachTarget('site-1'),
+      );
+    });
+
+    testWidgets('URL tab receives the page target', (tester) async {
+      await tester.pumpWidget(_wrap(target: const SiteAttachTarget('site-1')));
+      await tester.pump();
+
+      await tester.tap(find.text('URL'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(
+        tester.widget<UrlTab>(find.byType(UrlTab)).target,
+        const SiteAttachTarget('site-1'),
+      );
     });
   });
 }

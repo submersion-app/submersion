@@ -203,6 +203,15 @@ class FormatDetector {
       );
     }
 
+    // Ratio Computers XML: <diveSegment> root with <segmentHeader>
+    if (lower.contains('<divesegment') && lower.contains('<segmentheader')) {
+      return const DetectionResult(
+        format: ImportFormat.ratioXml,
+        sourceApp: SourceApp.ratio,
+        confidence: 0.95,
+      );
+    }
+
     // Generic XML with dive-related keywords
     if (_hasDiveKeywords(lower)) {
       return const DetectionResult(

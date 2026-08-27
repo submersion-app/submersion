@@ -14,7 +14,12 @@ class SafetyReviewService {
   /// Bump when rule logic or thresholds change. Stored reviews with an older
   /// version are recomputed lazily, so history is re-graded honestly instead
   /// of silently diverging from what the user was shown.
-  static const int engineVersion = 1;
+  /// v2: reject corrupt depth samples before analysis, measure a rapid ascent
+  /// over the excursion that caused it (3 m minimum rise), report the span the
+  /// violating rates were measured over instead of a zero-length range, raise
+  /// the sawtooth bar to four 6 m teeth, and credit safety-stop time from
+  /// 2 m to 6.5 m.
+  static const int engineVersion = 2;
 
   const SafetyReviewService();
 
@@ -51,6 +56,19 @@ class SafetyReviewService {
         criticalThreshold: AscentRateCalculator.defaultCriticalThreshold,
       );
 
+  /// How far the diver must actually rise for a threshold crossing to be worth
+  /// reporting. Below this the excursion is a buoyancy correction, a swim over
+  /// a reef, or a pool skills drill -- the rate may be brisk but no
+  /// decompression consequence follows from 2 m of water.
+  static const double _minAscentRiseMeters = 3.0;
+
+  /// Rates are smoothed with a centered moving average this many seconds wide
+  /// (see [AscentRateCalculator.smoothingWindowSeconds]), so the samples that
+  /// produced a violating rate extend this far either side of it. The
+  /// excursion is measured over that span rather than over the crossing alone.
+  static const int _rateSmoothingSeconds =
+      AscentRateCalculator.defaultSmoothingWindowSeconds;
+
   List<SafetyFinding> _rapidAscentFindings(
     String diveId,
     ProfileAnalysis analysis,
@@ -73,20 +91,48 @@ class SafetyReviewService {
     final violations = _rapidAscentCalculator.findViolations(recategorized);
     return [
       for (final violation in violations)
-        SafetyFinding(
-          id: nextId(),
-          diveId: diveId,
-          ruleId: SafetyRuleId.rapidAscent,
-          severity: violation.isCritical
-              ? SafetySeverity.significant
-              : SafetySeverity.caution,
-          startTimestamp: violation.startTimestamp,
-          endTimestamp: violation.endTimestamp,
-          value: violation.maxRate,
-          engineVersion: engineVersion,
-          createdAt: now,
-        ),
+        if (_riseOver(analysis.ascentRates, violation) >= _minAscentRiseMeters)
+          SafetyFinding(
+            id: nextId(),
+            diveId: diveId,
+            ruleId: SafetyRuleId.rapidAscent,
+            severity: violation.isCritical
+                ? SafetySeverity.significant
+                : SafetySeverity.caution,
+            startTimestamp: violation.startTimestamp,
+            endTimestamp: violation.endTimestamp,
+            value: violation.maxRate,
+            engineVersion: engineVersion,
+            createdAt: now,
+          ),
     ];
+  }
+
+  /// Depth the diver gained across [violation], measured over the span the
+  /// smoothed rates were drawn from: deepest sample in the smoothing window
+  /// leading into the violation, to shallowest sample in the window trailing
+  /// it. Measuring over the threshold crossing alone understates the ascent,
+  /// because smoothing narrows the crossing to the middle of the excursion.
+  double _riseOver(
+    List<AscentRatePoint> samples,
+    AscentRateViolation violation,
+  ) {
+    if (samples.isEmpty) return 0;
+    var deepestBefore = double.negativeInfinity;
+    var shallowestAfter = double.infinity;
+    for (final sample in samples) {
+      final ts = sample.timestamp;
+      if (ts >= violation.startTimestamp - _rateSmoothingSeconds &&
+          ts <= violation.startTimestamp) {
+        if (sample.depth > deepestBefore) deepestBefore = sample.depth;
+      }
+      if (ts >= violation.endTimestamp &&
+          ts <= violation.endTimestamp + _rateSmoothingSeconds) {
+        if (sample.depth < shallowestAfter) shallowestAfter = sample.depth;
+      }
+    }
+    if (!deepestBefore.isFinite || !shallowestAfter.isFinite) return 0;
+    return deepestBefore - shallowestAfter;
   }
 
   /// Depth above (shallower than) the computed ceiling while in deco.
@@ -192,8 +238,12 @@ class SafetyReviewService {
     ];
   }
 
-  static const double _toothAmplitudeMeters = 3.0;
-  static const int _minToothCount = 3;
+  /// A tooth has to be a real yo-yo, not a swim over a reef. At 3 m / 3 teeth
+  /// the rule fired on a third of an ordinary logbook, which taught divers to
+  /// ignore it; following bottom structure for an hour routinely produces that
+  /// many 3 m excursions.
+  static const double _toothAmplitudeMeters = 6.0;
+  static const int _minToothCount = 4;
 
   /// Repeated up-and-down depth changes. A "tooth" is an ascent of at least
   /// [_toothAmplitudeMeters] followed by a re-descent of at least the same

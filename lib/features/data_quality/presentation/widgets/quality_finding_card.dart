@@ -60,9 +60,12 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       SetPrimarySourceRepair() => l10n.dataQuality_repairLabel_setPrimary,
       SplitSourceRepair() => l10n.dataQuality_repairLabel_split,
       DespikeRepair() => l10n.dataQuality_repairLabel_despike,
+      SmoothRatesRepair() => l10n.dataQuality_repairLabel_smoothRates,
+      ClampNegativeDepthsRepair() => l10n.dataQuality_repairLabel_clampNegative,
       FillGapsRepair() => l10n.dataQuality_repairLabel_fillGaps,
       SmoothTemperatureRepair() => l10n.dataQuality_repairLabel_smoothTemp,
       ConvertTemperatureRepair() => l10n.dataQuality_repairLabel_convertTemp,
+      ConvertWaterTempRepair() => l10n.dataQuality_repairLabel_convertTemp,
       RecomputeMetricsRepair() => l10n.dataQuality_repairLabel_recompute,
       SwapTankRecordPressuresRepair() =>
         l10n.dataQuality_repairLabel_swapPressures,
@@ -112,6 +115,33 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
                   ),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
+          // Some findings are a judgment call the app must not make for the
+          // diver, so no repair converges and the trailing button is absent.
+          // Say that plainly: an unexplained bare row reads as a broken
+          // button (issue #1035).
+          if (primary == null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.build_circle_outlined,
+                    size: 16,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.dataQuality_repair_needsReview,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (_expanded) ...[
             if (widget.evidence != null)
               Padding(

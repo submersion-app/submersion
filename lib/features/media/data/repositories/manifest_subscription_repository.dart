@@ -78,6 +78,19 @@ class ManifestSubscriptionRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(ManifestSubscriptionRepository);
 
+  /// Emits whenever a subscription or its per-device polling state changes,
+  /// so the subscription providers refresh after a sync or any other write
+  /// that bypasses the notifiers. Watches `media_subscription_state` as well
+  /// because every read here joins it: a poll cycle writes only that table,
+  /// yet it changes the last-polled, next-poll and error fields the list
+  /// displays.
+  Stream<void> watchSubscriptionsChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.mediaSubscriptions),
+      TableUpdateQuery.onTable(_db.mediaSubscriptionState),
+    ]),
+  );
+
   Future<ManifestSubscription> createSubscription({
     required String manifestUrl,
     required ManifestFormat format,

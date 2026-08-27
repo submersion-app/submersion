@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -112,9 +113,24 @@ void main() {
     expect(emitted?.key, 'buoyancy_kg');
     expect(emitted?.valueNum, closeTo(-2.5, 0.001));
 
-    // A comma decimal separator (non-dot locales) parses the same as a dot.
+    // A comma decimal separator reads as a decimal only where the diver's
+    // locale says it is one. Number parsing follows Intl.defaultLocale, the
+    // process global lib/app.dart sets from the app locale.
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+
+    Intl.defaultLocale = 'fr';
     await tester.enterText(buoyancy, '7,5');
     expect(emitted?.valueNum, closeTo(7.5, 0.001));
+
+    // Under a dot-decimal locale the same comma is a thousands separator, so
+    // it must NOT be read as a decimal point. The old replaceAll(',', '.')
+    // workaround turned an en_US diver's "1,250" into 1.25 (#1091).
+    Intl.defaultLocale = 'en_US';
+    await tester.enterText(buoyancy, '1,250');
+    expect(emitted?.valueNum, closeTo(1250, 0.001));
+
+    Intl.defaultLocale = 'fr';
 
     // Emptying the field is the only thing that clears it.
     await tester.enterText(buoyancy, '');

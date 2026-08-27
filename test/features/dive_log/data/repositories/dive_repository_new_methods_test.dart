@@ -42,6 +42,7 @@ void main() {
     int? diveNumber,
     String? diveComputerModel,
     String? diveComputerSerial,
+    String? computerId,
     double? maxDepth,
     double? avgDepth,
     int? duration,
@@ -55,6 +56,7 @@ void main() {
     int? gradientFactorHigh,
     String? importId,
     int? diveDateTime,
+    String? buddy,
   }) async {
     final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -68,6 +70,7 @@ void main() {
             diveNumber: Value(diveNumber),
             diveComputerModel: Value(diveComputerModel),
             diveComputerSerial: Value(diveComputerSerial),
+            computerId: Value(computerId),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             bottomTime: Value(duration),
@@ -80,11 +83,40 @@ void main() {
             gradientFactorLow: Value(gradientFactorLow),
             gradientFactorHigh: Value(gradientFactorHigh),
             importId: Value(importId),
+            buddy: Value(buddy),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
         );
     return diveId;
+  }
+
+  Future<void> insertBuddy({required String id, required String name}) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.buddies)
+        .insert(
+          BuddiesCompanion(
+            id: Value(id),
+            name: Value(name),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> linkBuddy(String diveId, String buddyId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diveBuddies)
+        .insert(
+          DiveBuddiesCompanion(
+            id: Value('$diveId-$buddyId'),
+            diveId: Value(diveId),
+            buddyId: Value(buddyId),
+            createdAt: Value(now),
+          ),
+        );
   }
 
   DiveDataSourcesCompanion buildReading({
@@ -617,6 +649,57 @@ void main() {
       );
 
       expect(result[d], 'uuid-new');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getNewestDiveDateTime
+  // ---------------------------------------------------------------------------
+
+  group('getNewestDiveDateTime', () {
+    test(
+      'returns the newest dive time for the diver, scoped strictly to '
+      'diverId (excludes legacy null-diverId dives and other divers'
+      "' dives -- matching this repository's established equals()-only "
+      'diverId scoping convention, e.g. getAllDives/getDivesInRange)',
+      () async {
+        await insertTestDiver('diver-1');
+        await insertTestDiver('diver-2');
+        await insertTestDive(
+          id: 'dive-a',
+          diverId: 'diver-1',
+          diveDateTime: DateTime.utc(2026, 1, 10).millisecondsSinceEpoch,
+        );
+        await insertTestDive(
+          id: 'dive-b',
+          diverId: 'diver-1',
+          diveDateTime: DateTime.utc(2026, 3, 5).millisecondsSinceEpoch,
+        );
+        // Legacy null-diverId dive, newer than diver-1's newest: must NOT
+        // leak into diver-1's result under strict equals() scoping.
+        await insertTestDive(
+          id: 'dive-c',
+          diverId: null,
+          diveDateTime: DateTime.utc(2026, 5, 1).millisecondsSinceEpoch,
+        );
+        await insertTestDive(
+          id: 'dive-d',
+          diverId: 'diver-2',
+          diveDateTime: DateTime.utc(2026, 6, 1).millisecondsSinceEpoch,
+        );
+
+        final result = await repository.getNewestDiveDateTime(
+          diverId: 'diver-1',
+        );
+
+        expect(result, DateTime.utc(2026, 3, 5));
+      },
+    );
+
+    test('returns null when the diver has no dives', () async {
+      final result = await repository.getNewestDiveDateTime(diverId: 'nobody');
+
+      expect(result, isNull);
     });
   });
 
@@ -1296,63 +1379,114 @@ void main() {
   // computerSerial filter in getDiveSummaries
   // ---------------------------------------------------------------------------
 
-  group('computerSerial filter', () {
-    test('filters dives by computer serial number', () async {
-      await insertTestDive(
-        id: 'dive-serial-a',
-        diveNumber: 1,
-        diveComputerSerial: 'SN-AAA',
-        diveComputerModel: 'Computer A',
-      );
-      await insertTestDive(
-        id: 'dive-serial-b',
-        diveNumber: 2,
-        diveComputerSerial: 'SN-BBB',
-        diveComputerModel: 'Computer B',
-      );
-      await insertTestDive(
-        id: 'dive-serial-a2',
-        diveNumber: 3,
-        diveComputerSerial: 'SN-AAA',
-        diveComputerModel: 'Computer A',
-      );
+  group('computerId filter', () {
+    test('filters dives by dive computer', () async {
+      await insertComputer(id: 'dc-a', name: 'Computer A');
+      await insertComputer(id: 'dc-b', name: 'Computer B');
+      await insertTestDive(id: 'dive-a', diveNumber: 1, computerId: 'dc-a');
+      await insertTestDive(id: 'dive-b', diveNumber: 2, computerId: 'dc-b');
+      await insertTestDive(id: 'dive-a2', diveNumber: 3, computerId: 'dc-a');
 
       final summaries = await repository.getDiveSummaries(
-        filter: const DiveFilterState(computerSerial: 'SN-AAA'),
+        filter: const DiveFilterState(computerId: 'dc-a'),
       );
 
       expect(summaries.length, equals(2));
       final ids = summaries.map((s) => s.id).toSet();
-      expect(ids, contains('dive-serial-a'));
-      expect(ids, contains('dive-serial-a2'));
-      expect(ids, isNot(contains('dive-serial-b')));
+      expect(ids, contains('dive-a'));
+      expect(ids, contains('dive-a2'));
+      expect(ids, isNot(contains('dive-b')));
     });
 
-    test('returns empty list when no dives match the serial', () async {
+    // Issue #1064: the filter used to key on dives.dive_computer_serial, so
+    // every computer whose firmware never reported a serial matched nothing.
+    test('filters dives whose computer reported no serial number', () async {
+      await insertComputer(id: 'dc-noserial', name: 'Petrel 3');
+      await insertTestDive(
+        id: 'dive-noserial-1',
+        diveNumber: 1,
+        computerId: 'dc-noserial',
+      );
+      await insertTestDive(
+        id: 'dive-noserial-2',
+        diveNumber: 2,
+        computerId: 'dc-noserial',
+      );
+      await insertTestDive(id: 'dive-manual', diveNumber: 3);
+
+      final summaries = await repository.getDiveSummaries(
+        filter: const DiveFilterState(computerId: 'dc-noserial'),
+      );
+
+      expect(summaries.map((s) => s.id).toSet(), {
+        'dive-noserial-1',
+        'dive-noserial-2',
+      });
+    });
+
+    test('returns empty list when no dives match the computer', () async {
+      await insertComputer(id: 'dc-c', name: 'Computer C');
       await insertTestDive(
         id: 'dive-no-match',
         diveNumber: 1,
-        diveComputerSerial: 'SN-CCC',
+        computerId: 'dc-c',
       );
 
       final summaries = await repository.getDiveSummaries(
-        filter: const DiveFilterState(computerSerial: 'SN-NONEXISTENT'),
+        filter: const DiveFilterState(computerId: 'dc-nonexistent'),
       );
 
       expect(summaries, isEmpty);
     });
 
-    test('returns all dives when computerSerial filter is null', () async {
+    test('returns all dives when computerId filter is null', () async {
+      await insertComputer(id: 'dc-1', name: 'Computer 1');
+      await insertComputer(id: 'dc-2', name: 'Computer 2');
       await insertTestDive(
         id: 'dive-unfiltered-1',
         diveNumber: 1,
-        diveComputerSerial: 'SN-111',
+        computerId: 'dc-1',
       );
       await insertTestDive(
         id: 'dive-unfiltered-2',
         diveNumber: 2,
-        diveComputerSerial: 'SN-222',
+        computerId: 'dc-2',
       );
+
+      final summaries = await repository.getDiveSummaries(
+        filter: const DiveFilterState(),
+      );
+
+      expect(summaries.length, equals(2));
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // noBuddyOnly filter in getDiveSummaries
+  // ---------------------------------------------------------------------------
+
+  group('noBuddyOnly filter', () {
+    test('excludes dives with a legacy buddy or a linked buddy', () async {
+      await insertTestDive(id: 'dive-legacy-buddy', buddy: 'Alice Diver');
+      await insertBuddy(id: 'b1', name: 'Bob Buddy');
+      await insertTestDive(id: 'dive-linked-buddy');
+      await linkBuddy('dive-linked-buddy', 'b1');
+      await insertTestDive(id: 'dive-no-buddy');
+      await insertTestDive(id: 'dive-empty-buddy', buddy: '');
+
+      final summaries = await repository.getDiveSummaries(
+        filter: const DiveFilterState(noBuddyOnly: true),
+      );
+
+      expect(summaries.map((s) => s.id).toSet(), {
+        'dive-no-buddy',
+        'dive-empty-buddy',
+      });
+    });
+
+    test('returns all dives when noBuddyOnly is not set', () async {
+      await insertTestDive(id: 'dive-a', buddy: 'Alice Diver');
+      await insertTestDive(id: 'dive-b');
 
       final summaries = await repository.getDiveSummaries(
         filter: const DiveFilterState(),
@@ -1635,59 +1769,65 @@ void main() {
       }
     });
 
-    test('handles reading with null computerId (no profile swap)', () async {
-      final diveId = await insertTestDive(id: 'dive-null-comp');
+    test(
+      'promoting a null-computerId reading keeps a primary profile',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-null-comp');
 
-      // Save a reading without computerId.
-      await repository.saveComputerReading(
-        buildReading(
-          id: 'reading-no-comp',
-          diveId: diveId,
-          isPrimary: false,
-          computerModel: 'Manual Entry',
-          maxDepth: 20.0,
-        ),
-      );
+        // Save a reading without computerId.
+        await repository.saveComputerReading(
+          buildReading(
+            id: 'reading-no-comp',
+            diveId: diveId,
+            isPrimary: false,
+            computerModel: 'Manual Entry',
+            maxDepth: 20.0,
+          ),
+        );
 
-      await repository.saveComputerReading(
-        buildReading(
-          id: 'reading-primary',
+        await repository.saveComputerReading(
+          buildReading(
+            id: 'reading-primary',
+            diveId: diveId,
+            isPrimary: true,
+            computerModel: 'Original',
+          ),
+        );
+
+        // Insert a profile with no computerId.
+        await insertTestProfile(
           diveId: diveId,
+          sourceTag: 'p1',
           isPrimary: true,
-          computerModel: 'Original',
-        ),
-      );
+          timestamp: 0,
+          depth: 15.0,
+        );
 
-      // Insert a profile with no computerId.
-      await insertTestProfile(
-        diveId: diveId,
-        sourceTag: 'p1',
-        isPrimary: true,
-        timestamp: 0,
-        depth: 15.0,
-      );
+        // Switch primary to reading with no computerId.
+        await repository.setPrimaryDataSource(
+          diveId: diveId,
+          computerReadingId: 'reading-no-comp',
+        );
 
-      // Switch primary to reading with no computerId.
-      await repository.setPrimaryDataSource(
-        diveId: diveId,
-        computerReadingId: 'reading-no-comp',
-      );
+        // The data source should be promoted.
+        final sources = await repository.getDataSources(diveId);
+        final promoted = sources.firstWhere((s) => s.id == 'reading-no-comp');
+        expect(promoted.isPrimary, isTrue);
 
-      // The data source should be promoted.
-      final sources = await repository.getDataSources(diveId);
-      final promoted = sources.firstWhere((s) => s.id == 'reading-no-comp');
-      expect(promoted.isPrimary, isTrue);
+        // The unattributed null-computerId row belongs to whichever source is
+        // primary, so promoting a null-computerId reading takes it along.
+        //
+        // This asserted the opposite until issue #1149 ("no profiles are
+        // re-promoted"), which is precisely the stranding: the dive kept its
+        // samples but every is_primary consumer -- getDiveProfile,
+        // getAscentDescentRates, the data-quality prefilters -- skipped it.
+        final profiles = await (db.select(
+          db.diveProfiles,
+        )..where((t) => t.diveId.equals(diveId))).get();
 
-      // Profile should be demoted (since computerId is null, no profiles
-      // are re-promoted).
-      final profiles = await (db.select(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
-
-      for (final p in profiles) {
-        expect(p.isPrimary, isFalse);
-      }
-    });
+        expect(profiles.where((p) => p.isPrimary), isNotEmpty);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------

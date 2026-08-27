@@ -9,6 +9,12 @@ class ServiceSchedule extends Equatable {
   final int? intervalDays;
   final int? intervalDives;
   final double? intervalHours;
+
+  /// Per-item default price, overriding the kind's. Null inherits the kind's
+  /// value; null currency means "use the diver's default currency".
+  final double? defaultCost;
+  final String? defaultCurrency;
+
   final DateTime? anchorDate;
   final bool enabled;
   final DateTime createdAt;
@@ -21,6 +27,8 @@ class ServiceSchedule extends Equatable {
     this.intervalDays,
     this.intervalDives,
     this.intervalHours,
+    this.defaultCost,
+    this.defaultCurrency,
     this.anchorDate,
     this.enabled = true,
     required this.createdAt,
@@ -28,9 +36,10 @@ class ServiceSchedule extends Equatable {
   });
 
   /// The nullable override fields (intervalDays/intervalDives/intervalHours/
-  /// anchorDate) use the [_undefined] sentinel so callers can explicitly clear
-  /// them to null (e.g. "Clear baseline date" or reset an interval to inherit
-  /// the kind default) rather than only ever overwriting with a non-null value.
+  /// defaultCost/defaultCurrency/anchorDate) use the [_undefined] sentinel so
+  /// callers can explicitly clear them to null (e.g. "Clear baseline date",
+  /// reset an interval to inherit the kind default, or drop a per-item price)
+  /// rather than only ever overwriting with a non-null value.
   ServiceSchedule copyWith({
     String? id,
     String? equipmentId,
@@ -38,6 +47,8 @@ class ServiceSchedule extends Equatable {
     Object? intervalDays = _undefined,
     Object? intervalDives = _undefined,
     Object? intervalHours = _undefined,
+    Object? defaultCost = _undefined,
+    Object? defaultCurrency = _undefined,
     Object? anchorDate = _undefined,
     bool? enabled,
     DateTime? createdAt,
@@ -56,6 +67,12 @@ class ServiceSchedule extends Equatable {
       intervalHours: intervalHours == _undefined
           ? this.intervalHours
           : intervalHours as double?,
+      defaultCost: defaultCost == _undefined
+          ? this.defaultCost
+          : defaultCost as double?,
+      defaultCurrency: defaultCurrency == _undefined
+          ? this.defaultCurrency
+          : defaultCurrency as String?,
       anchorDate: anchorDate == _undefined
           ? this.anchorDate
           : anchorDate as DateTime?,
@@ -73,6 +90,8 @@ class ServiceSchedule extends Equatable {
     intervalDays,
     intervalDives,
     intervalHours,
+    defaultCost,
+    defaultCurrency,
     anchorDate,
     enabled,
     createdAt,

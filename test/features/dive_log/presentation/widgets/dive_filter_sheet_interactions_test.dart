@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/database/database.dart'
     hide DiveSite, DiveComputer;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -48,13 +49,9 @@ void main() {
       createdAt: now,
       updatedAt: now,
     ),
-    DiveComputer(
-      id: 'c2',
-      name: 'Teric',
-      serialNumber: 'SN456',
-      createdAt: now,
-      updatedAt: now,
-    ),
+    // Issue #1064: firmware that never reports a serial. The dropdown used to
+    // drop these entirely, leaving them unfilterable.
+    DiveComputer(id: 'c2', name: 'Teric', createdAt: now, updatedAt: now),
   ];
 
   late AppDatabase db;
@@ -104,6 +101,8 @@ void main() {
           allDiveComputersProvider.overrideWith((ref) async => computers),
         ].cast(),
         child: MaterialApp(
+          // Pinned: this suite drives the sheet by English label.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -141,6 +140,11 @@ void main() {
     // The sheet's ListView builds children lazily, so a deep target may not be
     // in the tree yet; scroll it in. Targets already present (e.g. the preset
     // chips near the top) are skipped to avoid a needless scroll.
+    //
+    // Pass a PLAIN finder: `evaluate()` on an index-qualified one (`.first`,
+    // `.at(n)`) throws "Bad state: No element" when nothing has been built
+    // yet, both here and inside dragUntilVisible. Disambiguation happens below
+    // instead, once the target exists.
     if (finder.evaluate().isEmpty) {
       await tester.scrollUntilVisible(finder, 60.0, scrollable: scrollable());
     }
@@ -205,15 +209,15 @@ void main() {
   testWidgets('dive type, site and computer dropdowns write selections', (
     tester,
   ) async {
-    // Prefill a stale computer serial so the "reset unknown serial to null"
+    // Prefill a stale computer id so the "reset unknown computer to null"
     // branch runs before selection.
     final ref = await openSheet(
       tester,
-      initial: const DiveFilterState(computerSerial: 'GHOST'),
+      initial: const DiveFilterState(computerId: 'GHOST'),
     );
 
     Future<void> selectFrom(String hint, String option) async {
-      await scrollTo(tester, find.text(hint).first);
+      await scrollTo(tester, find.text(hint));
       await tester.tap(find.text(hint).first);
       await tester.pumpAndSettle();
       await tester.tap(find.text(option).last);
@@ -228,7 +232,28 @@ void main() {
     final applied = ref.read(filterProvider);
     expect(applied.diveTypeId, 'wreck');
     expect(applied.siteId, 'site-1');
-    expect(applied.computerSerial, 'SN123');
+    expect(applied.computerId, 'c1');
+  });
+
+  // Issue #1064: the dropdown was built from computers.where(serialNumber !=
+  // null), so a computer whose firmware never reported one was absent from the
+  // list and could not be filtered on at all.
+  testWidgets('computer dropdown offers computers that have no serial', (
+    tester,
+  ) async {
+    final ref = await openSheet(tester);
+
+    // Pass the unqualified finder: scrollTo probes it before the lazy ListView
+    // has built the row, and a `.first` finder throws on an empty match.
+    await scrollTo(tester, find.text('All computers'));
+    await tester.tap(find.text('All computers').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Teric').last, findsOneWidget);
+    await tester.tap(find.text('Teric').last);
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).computerId, 'c2');
   });
 
   testWidgets('depth, buddy and duration text fields write values', (
@@ -243,7 +268,9 @@ void main() {
       (w) => w is TextField && w.decoration?.suffixText == 'min',
     );
 
-    await scrollTo(tester, find.text('Depth Range (meters)'));
+    // The header now carries the diver's depth unit symbol rather than the
+    // word "meters", since the filter renders in the configured unit.
+    await scrollTo(tester, find.text('Depth Range (m)'));
     await tester.enterText(depthFields.first, '12');
     await tester.enterText(depthFields.last, '30');
     await tester.pumpAndSettle();
@@ -383,7 +410,13 @@ void main() {
     await scrollTo(tester, find.text('Suit thickness (mm)'));
     expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
 
-    // A comma decimal separator parses to the same value as a dot.
+    // A comma reads as a decimal separator only where the diver's locale says
+    // it is one. Number parsing follows Intl.defaultLocale, the process global
+    // lib/app.dart sets from the app locale.
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'fr';
+
     final maxField = find.byWidgetPredicate(
       (w) =>
           w is TextField &&
@@ -399,6 +432,35 @@ void main() {
     expect(applied.equipmentAttrMax, 7.5);
   });
 
+  testWidgets('a comma is read as thousands under a dot-decimal locale', (
+    tester,
+  ) async {
+    // The old replaceAll(',', '.') workaround turned an en_US diver's "1,250"
+    // into 1.25. Locale-aware parsing reads the comma in the role that
+    // locale actually gives it (#1091).
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+
+    final ref = await openSheet(
+      tester,
+      initial: const DiveFilterState(equipmentAttrKey: 'thickness_mm'),
+    );
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+
+    final maxField = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          w.decoration?.labelText == 'Max' &&
+          w.decoration?.suffixText == null,
+    );
+    await tester.enterText(maxField, '1,250');
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).equipmentAttrMax, 1250);
+  });
+
   testWidgets('Clear All resets the filter and closes the sheet', (
     tester,
   ) async {
@@ -411,6 +473,38 @@ void main() {
     await tapText(tester, 'Clear All');
     expect(ref.read(filterProvider).hasActiveFilters, false);
     expect(find.byType(DiveFilterSheet), findsNothing);
+  });
+
+  testWidgets('the no-buddy toggle clears a typed buddy name', (tester) async {
+    final ref = await openSheet(tester);
+
+    final buddyField = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Buddy Name',
+    );
+
+    await scrollTo(tester, buddyField);
+    await tester.enterText(buddyField, 'Alex');
+    await tester.pumpAndSettle();
+
+    // Hold the controller itself rather than re-finding the field: scrolling
+    // the switch into view unbuilds the buddy field out of the sheet's lazy
+    // ListView, so the finder would go stale. The controller is owned by the
+    // State and outlives that.
+    final buddyController = tester.widget<TextField>(buddyField).controller!;
+    expect(buddyController.text, 'Alex');
+
+    // A dive either has a buddy to search for or has none, so the two
+    // controls are mutually exclusive. Turning the switch on has to clear the
+    // CONTROLLER as well as the state field: clearing only the field would
+    // leave a stale "Alex" on screen under a filter that ignores it.
+    await tapText(tester, 'No Buddy Assigned');
+
+    expect(buddyController.text, isEmpty);
+
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.noBuddyOnly, isTrue);
+    expect(applied.buddyNameFilter, isNull);
   });
 
   testWidgets('close button dismisses the sheet', (tester) async {

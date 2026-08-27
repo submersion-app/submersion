@@ -4,19 +4,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// Card widget for displaying a course in a list
 class CourseCard extends ConsumerWidget {
   final Course course;
   final VoidCallback? onTap;
   final bool isSelected;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const CourseCard({
     super.key,
     required this.course,
     this.onTap,
     this.isSelected = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -47,23 +55,30 @@ class CourseCard extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Status icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: course.isCompleted
-                        ? Colors.green.withValues(alpha: 0.15)
-                        : colorScheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    course.isCompleted
-                        ? Icons.check_circle_outline
-                        : Icons.school_outlined,
-                    color: course.isCompleted
-                        ? Colors.green
-                        : colorScheme.primary,
+                // Status icon, which becomes the checkbox in selection mode.
+                SelectionLeading(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: courseStatusAccent(
+                        colorScheme,
+                        completed: course.isCompleted,
+                      ).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      course.isCompleted
+                          ? Icons.check_circle_outline
+                          : Icons.school_outlined,
+                      color: courseStatusAccent(
+                        colorScheme,
+                        completed: course.isCompleted,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -153,16 +168,17 @@ class CourseCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (course.isCompleted) {
+      final accent = courseStatusAccent(colorScheme, completed: true);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.15),
+          color: accent.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
           context.l10n.courses_status_completed,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.green,
+            color: accent,
             fontWeight: FontWeight.w600,
           ),
         ),

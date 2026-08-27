@@ -70,3 +70,11 @@ extension EntryMethodDisplay on EntryMethod {
     EntryMethod.other => l10n.enum_entryMethod_other,
   };
 }
+
+extension WaterTypeDisplay on WaterType {
+  String localizedName(AppLocalizations l10n) => switch (this) {
+    WaterType.salt => l10n.enum_waterType_salt,
+    WaterType.fresh => l10n.enum_waterType_fresh,
+    WaterType.brackish => l10n.enum_waterType_brackish,
+  };
+}

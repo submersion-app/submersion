@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -51,6 +52,35 @@ class _NoCandidatesRepo extends TripRepository {
   }) async => [];
 }
 
+/// Trip repository that records the diverId it was queried with, so tests
+/// can assert which diver's dives get searched.
+class _RecordingCandidatesRepo extends TripRepository {
+  String? lastDiverId;
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async {
+    lastDiverId = diverId;
+    return [];
+  }
+}
+
+/// Mock CurrentDiverIdNotifier pinned to a fixed active diver.
+class _FixedDiverIdNotifier extends StateNotifier<String?>
+    implements CurrentDiverIdNotifier {
+  _FixedDiverIdNotifier(super.diverId);
+
+  @override
+  Future<void> setCurrentDiver(String id) async => state = id;
+
+  @override
+  Future<void> clearCurrentDiver() async => state = null;
+}
+
 Trip _trip({String? diverId}) => Trip(
   id: 'trip-1',
   diverId: diverId,
@@ -68,9 +98,14 @@ Future<void> pumpActionButton(
   void Function(BuildContext, WidgetRef) onPressed,
 ) async {
   final overrides = await getBaseOverrides();
+  // Let `extra` overrides win when they target a provider the base list
+  // already overrides (e.g. currentDiverIdProvider); Riverpod disallows
+  // overriding the same provider twice in one ProviderScope.
+  final extraOrigins = extra.map((o) => o.origin).toSet();
+  final deduped = overrides.where((o) => !extraOrigins.contains(o.origin));
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [...overrides, ...extra].cast(),
+      overrides: [...deduped, ...extra].cast(),
       child: MaterialApp(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -89,20 +124,23 @@ Future<void> pumpActionButton(
 }
 
 void main() {
-  testWidgets('scanForTripDives explains when there is no diver', (
+  testWidgets('scanForTripDives explains when there is no active diver', (
     tester,
   ) async {
+    // The trip has an owner; what is missing is the *active* diver, so the
+    // guard and its message must both be about the active diver. The base
+    // overrides pin currentDiverIdProvider to null.
     await pumpActionButton(
       tester,
       const [],
-      (context, ref) => scanForTripDives(context, ref, _trip()),
+      (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'BAB')),
     );
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     // No scan runs, but the user gets feedback instead of a silent no-op.
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(
-      find.text('Assign a diver to this trip to scan for dives'),
+      find.text('Select an active diver to scan for dives'),
       findsOneWidget,
     );
   });
@@ -110,10 +148,26 @@ void main() {
   testWidgets('scanForTripDives shows a no-matches snackbar', (tester) async {
     await pumpActionButton(tester, [
       tripRepositoryProvider.overrideWithValue(_NoCandidatesRepo()),
+      currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier('d1')),
     ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'd1')));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('No matching dives found'), findsOneWidget);
+  });
+
+  testWidgets('scanForTripDives searches the active diver, not the trip owner '
+      '(shared trip)', (tester) async {
+    // Trip is owned by BAB but shared with, and being viewed by, MAB.
+    final repo = _RecordingCandidatesRepo();
+    await pumpActionButton(tester, [
+      tripRepositoryProvider.overrideWithValue(repo),
+      currentDiverIdProvider.overrideWith(
+        (ref) => _FixedDiverIdNotifier('MAB'),
+      ),
+    ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'BAB')));
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(repo.lastDiverId, 'MAB');
   });
 
   testWidgets('scanGalleryForTripPhotos asks to add dives first when empty', (

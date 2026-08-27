@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show SyncRepository;
+import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
+import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -18,6 +21,7 @@ import '../../../../helpers/changeset_test_helpers.dart';
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../support/fake_keychain_storage.dart';
 
 /// Coverage for the REAL SyncNotifier's library-epoch paths (the cloud sync
 /// page widget tests exercise a fake notifier, not this code): replace-info
@@ -51,6 +55,7 @@ void main() {
   Future<ProviderContainer> makeContainer({bool cloudConfigured = true}) async {
     final container = ProviderContainer(
       overrides: [
+        localeProvider.overrideWithValue('en'),
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(
           cloudConfigured ? cloud : null,
@@ -135,6 +140,86 @@ void main() {
           .read(syncStateProvider.notifier)
           .libraryReplaceInfo();
       expect(info, isNull);
+    });
+
+    group('encrypted library', () {
+      const keyId = '8f14e45f-ceea-467f-ab37-a10a8d5f4c11';
+      final mlkBytes = List<int>.generate(32, (i) => i);
+      late EncryptionKeyStore keyStore;
+
+      /// A container wired the way the REAL cloudStorageProviderProvider is:
+      /// the encrypting wrap follows the unlocked SESSION, which only exists
+      /// after the notifier has loaded the key out of secure storage. Mirroring
+      /// that composition here is what makes the ordering observable -- reading
+      /// the provider before `ensureLoaded()` yields the RAW provider and the
+      /// encrypted marker is unreadable.
+      Future<ProviderContainer> makeEncryptedContainer() async {
+        keyStore = EncryptionKeyStore(storage: InMemoryKeychain());
+        await keyStore.saveKey(libraryKeyId: keyId, mlkBytes: mlkBytes);
+        SharedPreferences.setMockInitialValues({
+          'sync_encryption_enabled': true,
+        });
+        prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [
+            localeProvider.overrideWithValue('en'),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            encryptionKeyStoreProvider.overrideWithValue(keyStore),
+            cloudStorageProviderProvider.overrideWith((ref) {
+              final session = ref.watch(encryptionKeyNotifierProvider);
+              if (session == null) return cloud;
+              return EncryptingCloudStorageProvider(
+                cloud,
+                dataKey: session.dataKey,
+                libraryKeyId: session.key.libraryKeyId,
+              );
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        container.read(syncStateProvider);
+        await container.read(syncStateProvider.notifier).refreshState();
+        return container;
+      }
+
+      Future<void> seedSealedMarker(
+        ProviderContainer container,
+        LibraryEpochMarker m,
+      ) async {
+        final session = await container
+            .read(encryptionKeyNotifierProvider.notifier)
+            .ensureLoaded();
+        cloud.seedFile(
+          libraryEpochFileName,
+          await SyncEnvelope.seal(
+            plaintext: Uint8List.fromList(utf8.encode(jsonEncode(m.toJson()))),
+            dataKey: session!.dataKey,
+            libraryKeyId: keyId,
+            filename: libraryEpochFileName,
+          ),
+        );
+        // Put the container back in its launch state: the key is in secure
+        // storage but no session has been loaded yet, exactly as it is when
+        // the launch-time surfacing hook runs.
+        await container.read(encryptionKeyNotifierProvider.notifier).clear();
+      }
+
+      test('returns the marker without waiting for a manual unlock', () async {
+        final container = await makeEncryptedContainer();
+        await seedSealedMarker(container, marker);
+
+        final info = await container
+            .read(syncStateProvider.notifier)
+            .libraryReplaceInfo();
+
+        expect(
+          info?.epochId,
+          'e1',
+          reason:
+              'the pre-check must load the stored key first, like performSync '
+              'does; otherwise an encrypted library never surfaces a replace',
+        );
+      });
     });
   });
 

@@ -1,11 +1,23 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// The provider watches settingsProvider for the terrain appearance and
+/// depth unit; the real notifier needs SharedPreferences, so tests swap in
+/// a notifier that just holds defaults.
+class _TestSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _TestSettingsNotifier() : super(const AppSettings());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 BathymetryGrid smallGrid() => BathymetryGrid(
   originLat: 12.15,
@@ -37,6 +49,7 @@ void main() {
         sitesProvider.overrideWith((ref) async => [?site]),
         divesProvider.overrideWith((ref) async => []),
         bathymetryGridProvider.overrideWith((ref, cell) async => grid),
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       ],
     );
     addTearDown(c.dispose);

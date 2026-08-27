@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A single column header cell for the dive table view.
 ///
@@ -65,7 +66,7 @@ class TableHeaderCell extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        field.displayName,
+                        field.localizedDisplayName(context.l10n),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: theme.textTheme.labelSmall?.copyWith(

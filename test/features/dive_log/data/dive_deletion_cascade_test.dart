@@ -128,17 +128,18 @@ void main() {
     expect(await queue.allForTesting(), isEmpty);
   });
 
-  test('library-level media reverts to library instead of dying', () async {
+  test('network media dies with its dive like any other photo', () async {
+    // No source type is exempt from the cascade: a row with no dive and no
+    // site has no place in the library, so a URL row that only this dive
+    // owned goes with it. It was never uploaded, so no blob intent either.
     final dive = await makeDive();
-    final kept = await mediaRepository.createMedia(
+    final doomed = await mediaRepository.createMedia(
       item('c.jpg', diveId: dive.id, sourceType: MediaSourceType.networkUrl),
     );
 
     await diveRepository.deleteDive(dive.id);
 
-    final got = await mediaRepository.getMediaById(kept.id);
-    expect(got, isNotNull);
-    expect(got!.diveId, isNull);
+    expect(await mediaRepository.getMediaById(doomed.id), isNull);
     expect(await queue.allForTesting(), isEmpty);
   });
 

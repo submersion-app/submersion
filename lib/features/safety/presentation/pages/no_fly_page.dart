@@ -4,16 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
+import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
+import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
+import 'package:submersion/features/safety/presentation/widgets/flight_window_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Flying-after-diving status: the DAN/UHMS guideline countdown from the
 /// most recent dives. Lives in the Planning section.
 class NoFlyPage extends ConsumerStatefulWidget {
-  const NoFlyPage({super.key});
+  /// Renders without its own Scaffold and AppBar, for the Planning detail
+  /// pane. See [PlanningToolPane].
+  final bool embedded;
+
+  const NoFlyPage({super.key, this.embedded = false});
 
   @override
   ConsumerState<NoFlyPage> createState() => _NoFlyPageState();
@@ -42,30 +50,53 @@ class _NoFlyPageState extends ConsumerState<NoFlyPage> {
     final l10n = context.l10n;
     final statusAsync = ref.watch(noFlyStatusProvider);
 
+    final content = ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Only render the all-clear/active card once we actually have a
+        // result. During the very first load or an error with no prior
+        // value, show an explicit placeholder instead of silently implying
+        // "no restriction" -- misleading for a safety readout. A refresh
+        // after data exists keeps the retained value (no flicker).
+        if (statusAsync.hasValue)
+          NoFlyStatusCard(status: statusAsync.value)
+        else if (statusAsync.hasError)
+          _NoFlyStatusPlaceholder(
+            icon: Icons.error_outline,
+            text: l10n.common_label_error,
+          )
+        else
+          _NoFlyStatusPlaceholder(
+            icon: Icons.hourglass_empty,
+            text: l10n.common_label_loading,
+          ),
+        // Forward-looking window for the active trip's return flight, if
+        // one is set. The page's minute ticker keeps the countdown fresh.
+        Builder(
+          builder: (context) {
+            final flight = ref
+                .watch(activeTripFlightWindowProvider)
+                .valueOrNull;
+            if (flight == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: FlightWindowCard(status: flight),
+            );
+          },
+        ),
+      ],
+    );
+
+    if (widget.embedded) {
+      return PlanningToolPane(
+        title: l10n.safetySettings_noFlyHeader,
+        child: content,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.safetySettings_noFlyHeader)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Only render the all-clear/active card once we actually have a
-          // result. During the very first load or an error with no prior
-          // value, show an explicit placeholder instead of silently implying
-          // "no restriction" -- misleading for a safety readout. A refresh
-          // after data exists keeps the retained value (no flicker).
-          if (statusAsync.hasValue)
-            NoFlyStatusCard(status: statusAsync.value)
-          else if (statusAsync.hasError)
-            _NoFlyStatusPlaceholder(
-              icon: Icons.error_outline,
-              text: l10n.common_label_error,
-            )
-          else
-            _NoFlyStatusPlaceholder(
-              icon: Icons.hourglass_empty,
-              text: l10n.common_label_loading,
-            ),
-        ],
-      ),
+      body: content,
     );
   }
 }

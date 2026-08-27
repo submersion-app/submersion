@@ -6,6 +6,8 @@
 #else
 #include <strings.h>
 #endif
+#include <libdivecomputer/iostream.h>
+
 #include "libdc_wrapper.h"
 
 static int dummy_configure(void *userdata, unsigned int baudrate,
@@ -224,6 +226,67 @@ static void test_com_port_detection(void) {
     printf("PASS: test_com_port_detection\n");
 }
 
+// Issue #1155: libdivecomputer orders dc_flowcontrol_t as NONE, HARDWARE,
+// SOFTWARE, so hardware RTS/CTS is 1 and software XON/XOFF is 2. Three of our
+// four serial backends had assumed the opposite and would have enabled the
+// wrong kind of handshaking. Pinning the wrapper's constants against the real
+// enum keeps the backends honest, and catches a future submodule bump that
+// reorders or extends it.
+static void test_flow_control_constants_match_libdivecomputer(void) {
+    assert(LIBDC_FLOWCONTROL_NONE == DC_FLOWCONTROL_NONE);
+    assert(LIBDC_FLOWCONTROL_HARDWARE == DC_FLOWCONTROL_HARDWARE);
+    assert(LIBDC_FLOWCONTROL_SOFTWARE == DC_FLOWCONTROL_SOFTWARE);
+
+    // Spelled out, so a reordered enum fails here rather than silently
+    // redefining what the backends mean by "hardware".
+    assert(LIBDC_FLOWCONTROL_NONE == 0);
+    assert(LIBDC_FLOWCONTROL_HARDWARE == 1);
+    assert(LIBDC_FLOWCONTROL_SOFTWARE == 2);
+
+    printf("PASS: test_flow_control_constants_match_libdivecomputer\n");
+}
+
+// Mirrors the flow-control decision the serial backends make, in the
+// platform-neutral terms all of them reduce to: hardware means RTS/CTS,
+// software means XON/XOFF, anything else means neither.
+//
+// Scope, to be clear about what this does and does not cover: it exercises the
+// mirror below, not the backends. Each backend applies the decision through its
+// own platform API in its own language (termios CRTSCTS and IXON/IXOFF on
+// darwin and Linux, DCB fOutxCtsFlow and fOutX/fInX on Windows), so there is no
+// one production mapping a C test could call; an abstraction whose only caller
+// was this test would not be worth the indirection. What keeps the backends
+// correct is that they now name the LIBDC_FLOWCONTROL_* constants instead of
+// bare 1 and 2, together with the pin above that fixes what those names mean.
+// This case records the intended decision in one readable place so a backend
+// can be checked against it by eye.
+static void mirrored_flow_control_flags(unsigned int flowcontrol, int *rts_cts,
+                                        int *xon_xoff) {
+    *rts_cts = (flowcontrol == LIBDC_FLOWCONTROL_HARDWARE);
+    *xon_xoff = (flowcontrol == LIBDC_FLOWCONTROL_SOFTWARE);
+}
+
+static void test_flow_control_maps_to_the_right_handshake(void) {
+    int rts_cts = 0, xon_xoff = 0;
+
+    mirrored_flow_control_flags(LIBDC_FLOWCONTROL_NONE, &rts_cts, &xon_xoff);
+    assert(!rts_cts && !xon_xoff);
+
+    mirrored_flow_control_flags(LIBDC_FLOWCONTROL_HARDWARE, &rts_cts, &xon_xoff);
+    assert(rts_cts && !xon_xoff);
+
+    mirrored_flow_control_flags(LIBDC_FLOWCONTROL_SOFTWARE, &rts_cts, &xon_xoff);
+    assert(!rts_cts && xon_xoff);
+
+    // An unknown value must fall back to no flow control rather than picking
+    // one of the two handshakes, which is what the backends' default branch
+    // does.
+    mirrored_flow_control_flags(99, &rts_cts, &xon_xoff);
+    assert(!rts_cts && !xon_xoff);
+
+    printf("PASS: test_flow_control_maps_to_the_right_handshake\n");
+}
+
 static void test_null_serial_callbacks_are_safe(void) {
     // When serial callbacks are NULL, bridge functions should be safe
     // to skip (the bridge_* functions check for NULL before calling).
@@ -242,6 +305,8 @@ int main(void) {
     test_auto_probe_port_filtering();
     test_windows_hw_id_filtering();
     test_com_port_detection();
+    test_flow_control_constants_match_libdivecomputer();
+    test_flow_control_maps_to_the_right_handshake();
     test_null_serial_callbacks_are_safe();
     printf("\nAll serial callback tests passed.\n");
     return 0;

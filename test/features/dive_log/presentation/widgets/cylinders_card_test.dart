@@ -210,8 +210,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // sacVolume = 2.0 * 11.1 / 1.01325 = 21.909... -> '21.9 L/min'.
-      expect(find.text('21.9 L/min'), findsOneWidget);
+      // sacVolume = 2.0 * 11.1 = 22.2 -> '22.2 L/min'. The standard-atmosphere
+      // divisor is gone now that both sides share a 1 bar reference (#828).
+      expect(find.text('22.2 L/min'), findsOneWidget);
     });
 
     testWidgets('formats pressures and SAC in imperial units', (tester) async {

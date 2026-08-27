@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -72,6 +74,10 @@ void main() {
       currentDiverIdProvider.overrideWith(
         (ref) => MockCurrentDiverIdNotifier(),
       ),
+      // statisticsRepositoryProvider watches the gas model (issue #828), which
+      // otherwise pulls in settingsProvider and its SharedPreferences
+      // dependency. Pin it instead of standing up the whole settings stack.
+      gasModelProvider.overrideWith((ref) => GasModel.real),
       statisticsFilterProvider.overrideWith((ref) => filter),
     ],
   );

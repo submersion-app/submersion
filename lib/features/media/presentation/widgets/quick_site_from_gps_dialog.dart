@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for quickly creating a dive site from GPS coordinates extracted
@@ -9,7 +12,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Shows the coordinates and allows the user to enter a site name.
 /// Returns the created [DiveSite] on success, or null if cancelled.
-class QuickSiteFromGpsDialog extends StatefulWidget {
+class QuickSiteFromGpsDialog extends ConsumerStatefulWidget {
   final double latitude;
   final double longitude;
 
@@ -33,10 +36,12 @@ class QuickSiteFromGpsDialog extends StatefulWidget {
   }
 
   @override
-  State<QuickSiteFromGpsDialog> createState() => _QuickSiteFromGpsDialogState();
+  ConsumerState<QuickSiteFromGpsDialog> createState() =>
+      _QuickSiteFromGpsDialogState();
 }
 
-class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
+class _QuickSiteFromGpsDialogState
+    extends ConsumerState<QuickSiteFromGpsDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _uuid = const Uuid();
@@ -51,6 +56,11 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final coordinates = units.formatCoordinates(
+      widget.latitude,
+      widget.longitude,
+    );
 
     return AlertDialog(
       title: Row(
@@ -74,8 +84,7 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
             ),
             const SizedBox(height: 16),
             Semantics(
-              label:
-                  'GPS coordinates: ${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}',
+              label: 'GPS coordinates: $coordinates',
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -94,8 +103,7 @@ class _QuickSiteFromGpsDialogState extends State<QuickSiteFromGpsDialog> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${widget.latitude.toStringAsFixed(5)}, '
-                        '${widget.longitude.toStringAsFixed(5)}',
+                        coordinates,
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontFamily: 'monospace',
                         ),

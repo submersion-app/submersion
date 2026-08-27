@@ -19,6 +19,19 @@ class ServiceScheduleRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
+  /// Emits whenever a service clock or the settings that grade it change, so
+  /// the schedule providers refresh after a sync or any other write that
+  /// bypasses the notifiers. Watches `diver_settings` as well because
+  /// [getDueSoonWindowDays] reads the reminder-days list from it: changing
+  /// the reminder settings moves the dueSoon threshold without any
+  /// `service_schedules` row being written.
+  Stream<void> watchSchedulesChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.serviceSchedules),
+      TableUpdateQuery.onTable(_db.diverSettings),
+    ]),
+  );
+
   Future<List<domain.ServiceSchedule>> getSchedulesForEquipment(
     String equipmentId,
   ) async {
@@ -48,6 +61,8 @@ class ServiceScheduleRepository {
             intervalDays: Value(schedule.intervalDays),
             intervalDives: Value(schedule.intervalDives),
             intervalHours: Value(schedule.intervalHours),
+            defaultCost: Value(schedule.defaultCost),
+            defaultCurrency: Value(schedule.defaultCurrency),
             anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
             enabled: Value(schedule.enabled),
             createdAt: Value(now.millisecondsSinceEpoch),
@@ -72,6 +87,8 @@ class ServiceScheduleRepository {
         intervalDays: Value(schedule.intervalDays),
         intervalDives: Value(schedule.intervalDives),
         intervalHours: Value(schedule.intervalHours),
+        defaultCost: Value(schedule.defaultCost),
+        defaultCurrency: Value(schedule.defaultCurrency),
         anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
         enabled: Value(schedule.enabled),
         updatedAt: Value(now),
@@ -160,6 +177,8 @@ class ServiceScheduleRepository {
       intervalDays: row.intervalDays,
       intervalDives: row.intervalDives,
       intervalHours: row.intervalHours,
+      defaultCost: row.defaultCost,
+      defaultCurrency: row.defaultCurrency,
       anchorDate: row.anchorDate == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(row.anchorDate!),

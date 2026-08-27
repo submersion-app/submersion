@@ -14,6 +14,7 @@ class Buddy extends Equatable {
   final CertificationAgency? certificationAgency;
   final String? photoPath;
   final String notes;
+  final bool isFavorite;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +28,7 @@ class Buddy extends Equatable {
     this.certificationAgency,
     this.photoPath,
     this.notes = '',
+    this.isFavorite = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -65,6 +67,7 @@ class Buddy extends Equatable {
     CertificationAgency? certificationAgency,
     String? photoPath,
     String? notes,
+    bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -78,6 +81,7 @@ class Buddy extends Equatable {
       certificationAgency: certificationAgency ?? this.certificationAgency,
       photoPath: photoPath ?? this.photoPath,
       notes: notes ?? this.notes,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -94,6 +98,7 @@ class Buddy extends Equatable {
     certificationAgency,
     photoPath,
     notes,
+    isFavorite,
     createdAt,
     updatedAt,
   ];

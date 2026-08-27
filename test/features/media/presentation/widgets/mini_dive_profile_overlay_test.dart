@@ -81,6 +81,28 @@ void main() {
     expect(bar.spots.first.x, 0);
   });
 
+  testWidgets('marker line moves without implicit animation', (tester) async {
+    // The photo marker dot is a Positioned widget that jumps instantly when
+    // the photo changes; the marker VerticalLine lives in fl_chart data and
+    // would trail it by the default 150ms lerp. Both must move together.
+    final profile = [
+      for (var i = 0; i < 8; i++)
+        DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+    ];
+    await tester.pumpWidget(
+      _host(
+        MiniDiveProfileOverlay(
+          profile: profile,
+          photoElapsedSeconds: 30,
+          settings: settings,
+        ),
+      ),
+    );
+
+    final chart = tester.widget<LineChart>(find.byType(LineChart));
+    expect(chart.duration, Duration.zero);
+  });
+
   testWidgets('a trimmed profile keeps its gap', (tester) async {
     // First sample far past one interval: no fabricated descent.
     final profile = [

@@ -269,10 +269,14 @@ class TissueRecoveryChart extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Minimum interval marker
-                        if (minInterval > 0 && minInterval <= 240)
+                        // Minimum interval marker. Absent when no interval is
+                        // enough, and when the answer sits past the chart's
+                        // 4 hour window.
+                        if (minInterval.minutes != null &&
+                            minInterval.minutes! > 0 &&
+                            minInterval.minutes! <= 240)
                           VerticalLine(
-                            x: minInterval.toDouble(),
+                            x: minInterval.minutes!.toDouble(),
                             color: Colors.green,
                             strokeWidth: 2,
                             dashArray: [8, 4],

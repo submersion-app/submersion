@@ -110,6 +110,17 @@ void main() {
       );
 
       expect(tester.getSize(find.byKey(const Key('zoomed-child'))), expected);
+
+      // getSize is the child's own local size; getRect walks the ancestor
+      // transforms. Together they pin the two invariants this widget has to
+      // satisfy at once: laid out at the logical size, painted across the whole
+      // physical window. Asserting only the first let a nesting that painted
+      // correctly but hit-tested against the wrong box look healthy.
+      expect(
+        tester.getRect(find.byKey(const Key('zoomed-child'))),
+        Rect.fromLTWH(0, 0, physical.width, physical.height),
+        reason: 'the scaled child must cover exactly the physical window',
+      );
     });
   }
 

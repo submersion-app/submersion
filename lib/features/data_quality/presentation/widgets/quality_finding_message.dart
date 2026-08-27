@@ -13,8 +13,8 @@ class QualityUnitFormatters {
   final String Function(double bar) pressure;
   final String Function(double celsius) temperature;
 
-  /// Formats a surface air consumption rate given in L/min into the diver's
-  /// preferred volume unit (L/min vs cuft/min), including the unit suffix.
+  /// Formats an RMV given in L/min into the diver's preferred volume unit
+  /// (L/min vs cuft/min), including the unit suffix.
   final String Function(double litersPerMin) sac;
 
   /// Formats a (UTC) calendar date in the diver's configured date-format

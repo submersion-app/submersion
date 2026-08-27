@@ -1,0 +1,230 @@
+{
+  "chambers": [
+    {
+      "id": "mt-gozo",
+      "name": "Gozo General Hospital Hyperbaric Unit",
+      "country": "MT",
+      "city": "Victoria, Gozo",
+      "phone": "+356-2344-6455",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://gozogeneralhospital.gov.mt/en/resources/phone-numbers/"}
+    },
+    {
+      "id": "mt-materdei",
+      "name": "Mater Dei Hospital Hyperbaric Unit",
+      "country": "MT",
+      "city": "Msida",
+      "phone": "+356-2545-5269",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://materdeihospital.gov.mt/en/departments-and-units/hyperbaric-unit/"}
+    },
+    {
+      "id": "es-palamos",
+      "name": "Hospital de Palamos Unitat de Medicina Hiperbarica",
+      "country": "ES",
+      "city": "Palamos, Girona",
+      "phone": "+34-972-600-160",
+      "capability": "hyperbaric_unit",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.ssibe.cat/serveis/medicina-hiperbarica"}
+    },
+    {
+      "id": "es-canarias",
+      "name": "Hospital Universitario de Canarias Camara Hiperbarica",
+      "country": "ES",
+      "city": "San Cristobal de La Laguna, Tenerife",
+      "phone": "+34-922-678-000",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://es.wikipedia.org/wiki/Hospital_Universitario_de_Canarias"}
+    },
+    {
+      "id": "hr-rijeka",
+      "name": "Institute for Underwater and Hyperbaric Medicine, KBC Rijeka",
+      "country": "HR",
+      "city": "Rijeka",
+      "phone": "+385-51-407-111",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://kbc-rijeka.hr/centar-za-podvodnu-i-hiperbaricnu-medicinu/"}
+    },
+    {
+      "id": "hr-pula",
+      "name": "Poliklinika za baromedicinu OXY",
+      "country": "HR",
+      "city": "Pula",
+      "phone": "+385-52-215-663",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://oxy.hr/baromedicina/"}
+    },
+    {
+      "id": "gr-athens",
+      "name": "Athens Naval Hospital Diving and Hyperbaric Medicine Department",
+      "country": "GR",
+      "city": "Athens",
+      "phone": "+30-210-726-1000",
+      "emergencyPhone": "+30-210-726-1204",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://nna.hellenicnavy.gr/organogramma/diefthynsi-iatrikis-ypiresias/katadytiki-ypervariki-iatriki/"}
+    },
+    {
+      "id": "tr-istanbul",
+      "name": "Haydarpasa Sultan Abdulhamit Training and Research Hospital Underwater and Hyperbaric Medicine",
+      "country": "TR",
+      "city": "Istanbul",
+      "phone": "+90-216-542-2020",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.tssf.gov.tr/basinc-odalari/"}
+    },
+    {
+      "id": "tr-antalya",
+      "name": "Antalya Training and Research Hospital Underwater and Hyperbaric Medicine",
+      "country": "TR",
+      "city": "Antalya",
+      "phone": "+90-242-249-4400",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://antalyaeah.saglik.gov.tr/TR-946557/branslarimiz.html"}
+    },
+    {
+      "id": "tr-izmir",
+      "name": "Izmir Bozyaka Training and Research Hospital Underwater and Hyperbaric Medicine Clinic",
+      "country": "TR",
+      "city": "Izmir",
+      "phone": "+90-232-250-5050",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://bozyakaeah.saglik.gov.tr/TR-1091100/sualti-hekimligi-ve-hiperbarik-tip-klinigi.html"}
+    },
+    {
+      "id": "no-bergen",
+      "name": "Haukeland University Hospital Section for Hyperbaric Medicine",
+      "country": "NO",
+      "city": "Bergen",
+      "phone": "+47-55-97-38-75",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.helse-bergen.no/avdelinger/yrkesmedisinsk-avdeling/hyperbarmedisin-seksjon-for"}
+    },
+    {
+      "id": "se-gothenburg",
+      "name": "Sahlgrenska University Hospital Tryckkammare Ostra (Hyperbaric Chamber)",
+      "country": "SE",
+      "city": "Gothenburg",
+      "phone": "+46-31-343-4032",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.sahlgrenska.se/omraden/omrade-5/anestesi-operation-iva/enheter/tryckkammare-ostra/"}
+    },
+    {
+      "id": "dk-copenhagen",
+      "name": "Rigshospitalet Trykkammerfunktionen (Hyperbaric Medicine)",
+      "country": "DK",
+      "city": "Copenhagen",
+      "phone": "+45-35-45-40-92",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.sundhed.dk/sundhedsfaglig/information-til-praksis/hovedstaden/almen-praksis/patientbehandling/patientforloeb/visitation-hovedside/visitationsmeddelelser-ny/trykkammerfunktion-hyperbar-medicin/"}
+    },
+    {
+      "id": "is-reykjavik",
+      "name": "Landspitali Hyperbaric and Diving Medicine Department",
+      "country": "IS",
+      "city": "Reykjavik",
+      "phone": "+354-543-1007",
+      "emergencyPhone": "+354-543-1000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://island.is/s/landspitali/hathrysti-og-kofunarlaekningadeild"}
+    },
+    {
+      "id": "ie-galway",
+      "name": "National Hyperbaric Medicine Unit, University Hospital Galway",
+      "country": "IE",
+      "city": "Galway",
+      "phone": "+353-91-544074",
+      "emergencyPhone": "+353-91-524222",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.saolta.ie/wards/national-hyperbaric-medicine-unit-university-hospital-galway"}
+    },
+    {
+      "id": "pl-gdynia",
+      "name": "Klinika Medycyny Hiperbarycznej i Ratownictwa Morskiego, UCMMiT Gdynia",
+      "country": "PL",
+      "city": "Gdynia",
+      "phone": "+48-58-349-1704",
+      "emergencyPhone": "+48-58-699-8655",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://ucmmit.gdynia.pl/jednostki-szpitala/klinika-medycyny-hiperbarycznej-i-ratownictwa-morskiego/"}
+    },
+    {
+      "id": "de-kiel",
+      "name": "Schifffahrtmedizinisches Institut der Marine Hyperbaric and Diving Medicine",
+      "country": "DE",
+      "city": "Kronshagen (Kiel)",
+      "phone": "+49-431-5409-88",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.bundeswehr.de/de/organisation/marine/organisation/schifffahrtmedizinisches-institut"}
+    },
+    {
+      "id": "de-berlin",
+      "name": "Vivantes Klinikum im Friedrichshain Zentrum fur hyperbare Sauerstofftherapie und Tauchmedizin",
+      "country": "DE",
+      "city": "Berlin",
+      "phone": "+49-30-13023-1700",
+      "emergencyPhone": "+49-30-13023-1502",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.gtuem.org/liste-notfallzentren/c-24_65.html"}
+    },
+    {
+      "id": "nl-amsterdam",
+      "name": "Amsterdam UMC Hyperbare Geneeskunde",
+      "country": "NL",
+      "city": "Amsterdam",
+      "phone": "+31-20-566-4500",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.amsterdamumc.nl/nl/hyperbare-geneeskunde/home"}
+    },
+    {
+      "id": "be-brussels",
+      "name": "Hopital Militaire Reine Astrid Oxygenotherapie Hyperbare",
+      "country": "BE",
+      "city": "Brussels",
+      "phone": "+32-2-443-2183",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.hopitalmilitaire.be/consultatiediensten_fr.php"}
+    },
+    {
+      "id": "at-graz",
+      "name": "Medizinische Universitat Graz Druckkammer",
+      "country": "AT",
+      "city": "Graz",
+      "phone": "+43-316-385-2056",
+      "emergencyPhone": "+43-316-385-12803",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.gtuem.org/oesterreich/c-25.html"}
+    },
+    {
+      "id": "ch-geneva",
+      "name": "Hopitaux Universitaires de Geneve HBO-Zentrum",
+      "country": "CH",
+      "city": "Geneva",
+      "phone": "+41-22-372-2244",
+      "capability": "hyperbaric_unit",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.gtuem.org/schweiz/c-26.html"}
+    }
+  ]
+}

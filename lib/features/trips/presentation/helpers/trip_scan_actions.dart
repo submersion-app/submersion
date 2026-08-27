@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
@@ -210,7 +211,8 @@ Future<void> scanForTripDives(
   WidgetRef ref,
   Trip trip,
 ) async {
-  if (trip.diverId == null) {
+  final activeDiverId = ref.read(currentDiverIdProvider);
+  if (activeDiverId == null) {
     // Both the hero CTA and the overflow item can reach this action; without a
     // diver there's nothing to scan, so tell the user instead of returning
     // silently (an unresponsive-looking tap).
@@ -237,7 +239,7 @@ Future<void> scanForTripDives(
           tripId: trip.id,
           startDate: trip.startDate,
           endDate: trip.endDate,
-          diverId: trip.diverId!,
+          diverId: activeDiverId,
         );
 
     loading.dismiss(); // Dismiss loading before any further UI.

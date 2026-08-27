@@ -51,7 +51,7 @@ void main(List<String> args) {
         exit(64);
     }
   } finally {
-    db.dispose();
+    db.close();
   }
 }
 

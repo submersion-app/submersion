@@ -110,6 +110,20 @@ typedef int (*libdc_io_configure_fn)(void *userdata, unsigned int baudrate,
 typedef int (*libdc_io_set_dtr_fn)(void *userdata, unsigned int value);
 typedef int (*libdc_io_set_rts_fn)(void *userdata, unsigned int value);
 
+// Flow-control values passed to libdc_io_configure_fn (mirror dc_flowcontrol_t
+// in third_party/libdivecomputer/include/libdivecomputer/iostream.h).
+//
+// The callback signature uses plain unsigned int so a platform backend does not
+// have to include libdivecomputer's headers, which also costs it the enum's
+// names. Backends should compare against these constants rather than against
+// bare 1 and 2: hardware comes first in dc_flowcontrol_t, which reads as the
+// wrong way round to anyone who thinks of XON/XOFF as the simpler case, and
+// every termios and DCB backend here had the two swapped (issue #1155).
+// test_serial_callbacks.c pins these against the real enum.
+#define LIBDC_FLOWCONTROL_NONE     0  // No flow control
+#define LIBDC_FLOWCONTROL_HARDWARE 1  // RTS/CTS
+#define LIBDC_FLOWCONTROL_SOFTWARE 2  // XON/XOFF
+
 typedef struct {
     libdc_io_set_timeout_fn set_timeout;  // may be NULL
     libdc_io_read_fn read;                // required
@@ -135,10 +149,22 @@ typedef struct {
 
 typedef struct {
     unsigned int time_ms;      // milliseconds since dive start
+    // Always finite -- depth has no "unavailable" sentinel, unlike every other
+    // field here. Samples the computer logged without a depth are filled in
+    // from their neighbours before this struct is returned (fill_missing_depths
+    // in libdc_download.c).
     double depth;              // meters
     double temperature;        // celsius (NAN if unavailable)
     double pressure;           // bar (NAN if unavailable)
     unsigned int tank;         // tank index (UINT32_MAX if unavailable)
+    // Per-tank pressure at this sample, indexed by libdivecomputer's tank
+    // index; NAN where that tank reported nothing. Issue #1223: a dive logged
+    // with two AI transmitters fires DC_SAMPLE_PRESSURE twice per sample, and
+    // the single `pressure`/`tank` pair above kept only the last one, so every
+    // tank but the highest-numbered lost its curve. `pressure`/`tank` still
+    // carry that last reading, for the single-pressure profile column; this
+    // array is the complete record.
+    double tank_pressure[LIBDC_MAX_TANKS];
     unsigned int gasmix;       // active gas mix index (UINT32_MAX if unavailable)
     // New fields for full sample capture
     unsigned int heartbeat;    // bpm (UINT32_MAX if unavailable)
@@ -146,6 +172,7 @@ typedef struct {
     double setpoint;           // bar (NAN if unavailable)
     double ppo2;               // bar (NAN if unavailable; aggregate/computed)
     double o2_sensor[6];       // per-cell ppO2 in bar (NAN if that cell absent)
+    unsigned int o2_sensor_mv[6]; // per-cell raw output in mV (UINT32_MAX if absent)
     double cns;                // percentage 0-100 (NAN if unavailable)
     unsigned int rbt;          // remaining bottom time in seconds (UINT32_MAX if unavailable)
     // Decompression status at this sample

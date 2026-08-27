@@ -33,6 +33,8 @@ import 'package:submersion/features/media/data/services/subscription_poller.dart
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_subscription_card.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
+
 class _FakeRepo implements ManifestSubscriptionRepository {
   _FakeRepo(this.subs);
   final List<ManifestSubscription> subs;
@@ -41,6 +43,11 @@ class _FakeRepo implements ManifestSubscriptionRepository {
   final List<String> deletedIds = <String>[];
   final List<({String id, String url, String? name})> editCalls =
       <({String id, String url, String? name})>[];
+
+  /// No database, so nothing ever ticks. Without this the class falls through
+  /// to noSuchMethod, which returns null where a Stream is required.
+  @override
+  Stream<void> watchSubscriptionsChanges() => const Stream.empty();
 
   @override
   Future<List<ManifestSubscription>> listAllActive() async => subs;
@@ -154,7 +161,10 @@ Widget _wrap(
     manifestSubscriptionRepositoryProvider.overrideWithValue(repo),
     subscriptionPollerProvider.overrideWithValue(poller),
   ],
-  child: MaterialApp(home: Scaffold(body: child)),
+  child: localizedMaterialApp(
+    locale: const Locale('en'),
+    home: Scaffold(body: child),
+  ),
 );
 
 void main() {

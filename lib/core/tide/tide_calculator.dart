@@ -13,18 +13,17 @@ import 'package:submersion/core/tide/entities/tide_prediction.dart';
 /// Uses the standard harmonic prediction formula adopted by NOAA and IHO:
 ///
 /// ```
-/// h(t) = Z₀ + Σ fₙ × Hₙ × cos(ωₙ×t + V₀ₙ + uₙ - gₙ)
+/// h(t) = Z0 + sum over n of: f_n x H_n x cos(V_n(t) + u_n - g_n)
 /// ```
 ///
 /// Where:
-/// - `Z₀` = mean sea level datum offset
-/// - `fₙ` = nodal factor (amplitude modulation from 18.6-year lunar cycle)
-/// - `Hₙ` = constituent amplitude (from FES/local data)
-/// - `ωₙ` = constituent angular speed (degrees/hour)
-/// - `t` = time from reference epoch (hours)
-/// - `V₀ₙ` = equilibrium argument (astronomical phase)
-/// - `uₙ` = nodal angle (phase modulation)
-/// - `gₙ` = Greenwich phase lag (from FES/local data)
+/// - `Z0` = datum offset (mean sea level, or station datum for NOAA data)
+/// - `f_n` = nodal factor (amplitude modulation from 18.6-year lunar cycle)
+/// - `H_n` = constituent amplitude (from FES/station data)
+/// - `V_n(t)` = equilibrium argument evaluated at prediction time t
+///   (it already carries the constituent's full time evolution)
+/// - `u_n` = nodal angle (phase modulation)
+/// - `g_n` = Greenwich phase lag (from FES/station data)
 ///
 /// This class follows the same pure Dart pattern as [BuhlmannAlgorithm],
 /// enabling fully offline tide calculations once constituent data is loaded.
@@ -60,7 +59,6 @@ class TideCalculator {
   /// ```
   double calculateHeight(DateTime time) {
     final astro = AstronomicalArguments.forDateTime(time);
-    final hoursFromEpoch = AstronomicalArguments.hoursFromReferenceEpoch(time);
 
     double height = z0;
 
@@ -68,7 +66,7 @@ class TideCalculator {
       final name = entry.key;
       final constituent = entry.value;
 
-      // Get angular speed for this constituent
+      // Skip constituents without astronomical tables.
       final speed = constituentSpeeds[name];
       if (speed == null) continue;
 
@@ -76,11 +74,10 @@ class TideCalculator {
       final f = astro.nodalFactor(name);
       final equilibriumPhase = astro.equilibriumPhase(name);
 
-      // Total phase angle in degrees:
-      // ω×t + V₀ + u - g
-      // where V₀ + u is the equilibrium phase, and g is the local phase lag
-      final phase =
-          speed * hoursFromEpoch + equilibriumPhase - constituent.phase;
+      // Total phase angle in degrees: V(t) + u - g. The equilibrium
+      // argument evaluated at time t already carries the full time
+      // evolution; adding a separate omega*t term double-counts it.
+      final phase = equilibriumPhase - constituent.phase;
 
       // Convert to radians and compute contribution
       final phaseRad = degreesToRadians(phase);

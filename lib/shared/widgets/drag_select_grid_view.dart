@@ -12,14 +12,18 @@ import 'package:flutter/services.dart';
 typedef DragSelectItemBuilder<T> =
     Widget Function(BuildContext context, T item, bool isSelected);
 
-/// A grid view that supports long-press-to-start drag-to-range-select.
+/// A grid view that supports drag-to-range-select inside selection mode.
 ///
-/// In normal mode, taps fire [onItemTap]. Long-pressing an item enters
-/// selection mode and makes that item the drag anchor. Dragging from the
-/// anchor selects all items between anchor and finger position.
+/// In normal mode, selection mode is entered only through the surface's own
+/// Select control, never by a gesture on an item. No long-press recognizer is
+/// registered at all, so a hold falls through to the tap recognizer -- which
+/// has no upper duration bound -- and fires [onItemTap] on release, exactly as
+/// a quick tap would.
 ///
-/// In selection mode, taps toggle individual items. When selection becomes
-/// empty, selection mode exits automatically.
+/// In selection mode, taps toggle individual items, and long-pressing an item
+/// anchors a drag; dragging from the anchor adds every item between anchor and
+/// finger position to the existing selection. When selection becomes empty,
+/// selection mode exits automatically.
 ///
 /// This widget is a pure Flutter widget with no Riverpod dependency.
 /// It communicates entirely via callbacks.
@@ -60,6 +64,15 @@ class DragSelectGridView<T> extends StatefulWidget {
   /// Indices of items that cannot be selected (e.g., already-linked items).
   final Set<int> disabledIndices;
 
+  /// Whether unchecking the last item leaves selection mode on its own.
+  ///
+  /// Set false when an outer selection controller owns the mode: it alone
+  /// knows whether the mode was entered deliberately (Select button, which
+  /// must survive at zero checked) or incidentally (which must evaporate),
+  /// and the grid cannot tell those apart. The owner then drives the grid back
+  /// out through [startInSelectionMode].
+  final bool exitOnEmptySelection;
+
   const DragSelectGridView({
     super.key,
     required this.items,
@@ -74,6 +87,7 @@ class DragSelectGridView<T> extends StatefulWidget {
     this.physics,
     this.startInSelectionMode = false,
     this.disabledIndices = const {},
+    this.exitOnEmptySelection = true,
   });
 
   @override
@@ -122,15 +136,20 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
     super.dispose();
   }
 
-  void _enterSelectionMode(int anchorIndex) {
+  /// Anchor a range drag on [anchorIndex], keeping what is already checked.
+  ///
+  /// Only reachable in selection mode, so the drag extends a selection the
+  /// user already opened rather than starting one. [_preDragSelection] is the
+  /// set as it stood before the anchor was added, because [_onDragUpdate]
+  /// re-unions it with the whole anchor-to-finger span on every move.
+  void _beginRangeDrag(int anchorIndex) {
     if (widget.disabledIndices.contains(anchorIndex)) return;
+    final priorSelection = Set<int>.from(_selectedIndices);
     setState(() {
-      _isSelectionMode = true;
       _dragAnchorIndex = anchorIndex;
-      _selectedIndices = {anchorIndex};
-      _preDragSelection = {};
+      _preDragSelection = priorSelection;
+      _selectedIndices = Set<int>.from(priorSelection)..add(anchorIndex);
     });
-    widget.onSelectionModeChanged(true);
     widget.onSelectionChanged(_selectedIndices);
     HapticFeedback.mediumImpact();
   }
@@ -146,7 +165,7 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
 
     setState(() {
       _selectedIndices = newSelection;
-      if (_selectedIndices.isEmpty) {
+      if (_selectedIndices.isEmpty && widget.exitOnEmptySelection) {
         _isSelectionMode = false;
         widget.onSelectionModeChanged(false);
       }
@@ -270,17 +289,16 @@ class _DragSelectGridViewState<T> extends State<DragSelectGridView<T>> {
               widget.onItemTap?.call(index);
             }
           },
+          // All three are null outside selection mode so no long-press
+          // recognizer is registered at all, leaving the gesture free for
+          // whatever the item itself wants to do with it.
           onLongPressStart: _isSelectionMode
-              ? null
-              : (details) {
-                  _enterSelectionMode(index);
-                },
-          onLongPressMoveUpdate: (details) {
-            _onDragUpdate(details.globalPosition);
-          },
-          onLongPressEnd: (_) {
-            _onDragEnd();
-          },
+              ? (_) => _beginRangeDrag(index)
+              : null,
+          onLongPressMoveUpdate: _isSelectionMode
+              ? (details) => _onDragUpdate(details.globalPosition)
+              : null,
+          onLongPressEnd: _isSelectionMode ? (_) => _onDragEnd() : null,
           child: widget.itemBuilder(context, widget.items[index], isSelected),
         );
       },

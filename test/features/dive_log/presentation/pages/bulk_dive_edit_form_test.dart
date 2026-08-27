@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_specs_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -47,6 +53,10 @@ void main() {
         ProviderScope(
           overrides: buildOverrides(overrides).cast(),
           child: const MaterialApp(
+            // Pinned: an unpinned MaterialApp resolves against the HOST
+            // machine's locales, so English string assertions fail on a
+            // non-English dev machine.
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
@@ -61,9 +71,10 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 4 Logistics + 9 Conditions + 6 Weather + 6 Rebreather + 1 Notes gates.
+      // 4 Logistics + 9 Conditions + 6 Weather + 6 Rebreather + 1 Buddies
+      // (my role, #1220) + 1 Notes gates.
       // (dive type moved from a scalar gate to the collection lane, #414)
-      expect(find.byType(BulkFieldGate), findsNWidgets(26));
+      expect(find.byType(BulkFieldGate), findsNWidgets(27));
       expect(find.text('Favorite'), findsOneWidget);
       // Only the 3 owned collections (weights, tanks, sightings) still use a
       // mode selector; the 4 reference collections (tags, diveTypes,
@@ -105,6 +116,384 @@ void main() {
       await tester.tap(toggle);
       await tester.pump();
       expect(find.text('adding to all 2'), findsOneWidget);
+    });
+
+    testWidgets(
+      'bulk-adding a buddy with a picked role persists that role, not the '
+      'default',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final buddy = await BuddyRepository().createBuddy(
+          Buddy(
+            id: '',
+            name: 'Casey Diver',
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          ),
+        );
+        final d1 = await repository.createDive(
+          createTestDiveWithBottomTime().copyWith(id: 'buddy-role-1'),
+        );
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: buildOverrides(overrides).cast(),
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final buddiesSection = find.ancestor(
+          of: find.text('Buddies'),
+          matching: find.byType(BulkMembershipEditor),
+        );
+        final addToBuddies = find.descendant(
+          of: buddiesSection,
+          matching: find.byIcon(Icons.add),
+        );
+        await tester.ensureVisible(addToBuddies);
+        await tester.tap(addToBuddies);
+        await tester.pumpAndSettle();
+
+        // Open the BuddyPicker's own selection sheet (inside the dialog).
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byIcon(Icons.add),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(buddy.name));
+        await tester.pumpAndSettle();
+
+        // Role selector: pick Instructor instead of the default Buddy role.
+        await tester.tap(find.text('Instructor'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Done'));
+        await tester.pumpAndSettle();
+
+        // Confirm the add in the outer bulk-edit dialog.
+        await tester.tap(find.widgetWithText(FilledButton, 'Add').last);
+        await tester.pumpAndSettle();
+
+        await tester.ensureVisible(find.text('Save'));
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Apply'));
+        await tester.pumpAndSettle();
+
+        final saved = await BuddyRepository().getBuddiesForDive(d1.id);
+        expect(saved, hasLength(1));
+        expect(saved.single.role.id, DiveRole.instructorId);
+      },
+    );
+
+    testWidgets('the My role gate applies the picked role to every dive', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'my-role-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'my-role-2'),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final roleGate = find.ancestor(
+        of: find.text('My role'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(roleGate);
+      await tester.tap(
+        find.descendant(of: roleGate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+
+      // Open the role selector from the picker row and choose Instructor.
+      await tester.tap(
+        find.descendant(of: roleGate, matching: find.byType(FormRow)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(
+        (await repository.getDiveById(d1.id))!.diverRoleId,
+        DiveRole.instructorId,
+      );
+      expect(
+        (await repository.getDiveById(d2.id))!.diverRoleId,
+        DiveRole.instructorId,
+      );
+    });
+
+    testWidgets('a buddy row shows its role and changes it on every link', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final buddy = await BuddyRepository().createBuddy(
+        Buddy(
+          id: '',
+          name: 'Casey Diver',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'row-role-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'row-role-2'),
+      );
+      await BuddyRepository().bulkAddBuddies(
+        [d1.id, d2.id],
+        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+      );
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The row surfaces the role the buddy already carries on both dives.
+      final roleButton = find.byKey(ValueKey('buddy-role-${buddy.id}'));
+      await tester.ensureVisible(roleButton);
+      expect(
+        find.descendant(of: roleButton, matching: find.text('Buddy')),
+        findsOneWidget,
+      );
+
+      await tester.tap(roleButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: roleButton, matching: find.text('Instructor')),
+        findsOneWidget,
+      );
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final id in [d1.id, d2.id]) {
+        final saved = await BuddyRepository().getBuddiesForDive(id);
+        expect(saved.single.role.id, DiveRole.instructorId);
+      }
+    });
+
+    testWidgets('changing the role of a buddy on some dives does not add '
+        'them to the rest', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final buddy = await BuddyRepository().createBuddy(
+        Buddy(
+          id: '',
+          name: 'Casey Diver',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'partial-role-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'partial-role-2'),
+      );
+      // Only d1 has the buddy.
+      await BuddyRepository().bulkAddBuddies(
+        [d1.id],
+        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+      );
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final roleButton = find.byKey(ValueKey('buddy-role-${buddy.id}'));
+      await tester.ensureVisible(roleButton);
+      await tester.tap(roleButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final onD1 = await BuddyRepository().getBuddiesForDive(d1.id);
+      expect(onD1.single.role.id, DiveRole.instructorId);
+      // The membership checkbox was left on "some", so d2 stays untouched.
+      expect(await BuddyRepository().getBuddiesForDive(d2.id), isEmpty);
+    });
+
+    testWidgets('re-picking an already-present buddy with a new role rewrites '
+        'that role (#700)', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final buddy = await BuddyRepository().createBuddy(
+        Buddy(
+          id: '',
+          name: 'Casey Diver',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'repick-role-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'repick-role-2'),
+      );
+      // Both dives already carry the buddy as a plain Buddy.
+      await BuddyRepository().bulkAddBuddies(
+        [d1.id, d2.id],
+        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+      );
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Go through Add and re-pick the buddy who is already on both dives,
+      // this time as Instructor.
+      final buddiesSection = find.ancestor(
+        of: find.text('Buddies'),
+        matching: find.byType(BulkMembershipEditor),
+      );
+      final addToBuddies = find.descendant(
+        of: buddiesSection,
+        matching: find.byIcon(Icons.add),
+      );
+      await tester.ensureVisible(addToBuddies);
+      await tester.tap(addToBuddies);
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byIcon(Icons.add),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(buddy.name).last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Add').last);
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      // The existing links are re-roled in place, not duplicated.
+      for (final id in [d1.id, d2.id]) {
+        final saved = await BuddyRepository().getBuddiesForDive(id);
+        expect(saved, hasLength(1));
+        expect(saved.single.role.id, DiveRole.instructorId);
+      }
     });
 
     testWidgets('toggling a gate enables its checkbox', (tester) async {
@@ -362,6 +751,197 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SnackBar), findsOneWidget);
+    });
+
+    testWidgets('tank Update mode edits specs and keeps pressures', (
+      tester,
+    ) async {
+      // The #797 shape: an imported dive whose tank has pressures but no
+      // cylinder identity.
+      final dive = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'tank-upd-1'),
+      );
+      await repository.bulkAddTank([
+        dive.id,
+      ], const DiveTank(id: '', startPressure: 200, endPressure: 50));
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Update').first);
+      await tester.tap(find.text('Update').first);
+      await tester.pumpAndSettle();
+
+      // The spec editor replaces the add/replace tank list.
+      expect(find.byType(BulkTankSpecsEditor), findsOneWidget);
+
+      // Gate the Volume field on, then type the new cylinder size.
+      final volumeChip = find.widgetWithText(FilterChip, 'Volume');
+      await tester.ensureVisible(volumeChip);
+      await tester.tap(volumeChip);
+      await tester.pumpAndSettle();
+
+      // Scope to the TankEditor: the gate chip carries the same label.
+      final volumeField = find.descendant(
+        of: find.byType(TankEditor),
+        matching: find.ancestor(
+          of: find.text('Volume'),
+          matching: find.byType(TextFormField),
+        ),
+      );
+      await tester.ensureVisible(volumeField);
+      await tester.enterText(volumeField, '11.1');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final tanks = (await repository.getDiveById(dive.id))!.tanks;
+      expect(tanks.length, 1); // no second tank appended
+      expect(tanks.single.volume, 11.1);
+      expect(tanks.single.startPressure, 200); // pressures survive
+      expect(tanks.single.endPressure, 50);
+    });
+
+    testWidgets('tank Update Name gate writes the typed name', (tester) async {
+      // TankEditor has no name input, so the spec editor must supply one;
+      // without it the Name gate could only ever write null.
+      final dive = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'tank-name-1'),
+      );
+      await repository.bulkAddTank([
+        dive.id,
+      ], const DiveTank(id: '', name: 'Old', startPressure: 200));
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Update').first);
+      await tester.tap(find.text('Update').first);
+      await tester.pumpAndSettle();
+
+      final nameChip = find.widgetWithText(FilterChip, 'Name');
+      await tester.ensureVisible(nameChip);
+      await tester.tap(nameChip);
+      await tester.pumpAndSettle();
+
+      final nameField = find.byKey(const ValueKey('bulk-tank-spec-name'));
+      await tester.ensureVisible(nameField);
+      await tester.enterText(nameField, 'Primary');
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final tanks = (await repository.getDiveById(dive.id))!.tanks;
+      expect(tanks.single.name, 'Primary');
+      expect(tanks.single.startPressure, 200);
+    });
+
+    testWidgets('tank Update with an empty mask still saves other changes', (
+      tester,
+    ) async {
+      // An incomplete tank intent must not hold the rest of the edit hostage;
+      // every other collection silently no-ops an empty payload.
+      final dive = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'tank-empty-1'),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tanks set to Update, but no attribute ticked.
+      await tester.ensureVisible(find.text('Update').first);
+      await tester.tap(find.text('Update').first);
+      await tester.pumpAndSettle();
+
+      // An unrelated scalar change that must still apply.
+      final favoriteGate = find.ancestor(
+        of: find.text('Favorite'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(favoriteGate);
+      await tester.tap(
+        find.descendant(of: favoriteGate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: favoriteGate, matching: find.byType(Switch)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect((await repository.getDiveById(dive.id))!.isFavorite, isTrue);
+    });
+
+    testWidgets('tank Update with no attribute chosen explains why', (
+      tester,
+    ) async {
+      await pumpBulk(tester);
+
+      await tester.ensureVisible(find.text('Update').first);
+      await tester.tap(find.text('Update').first);
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // The tank-specific hint, not the generic "turn on a field" one.
+      expect(
+        find.text('Choose at least one tank attribute to update.'),
+        findsOneWidget,
+      );
+      expect(find.text('Apply'), findsNothing); // no confirm dialog
     });
 
     testWidgets('notes Append mode applies an appended note', (tester) async {

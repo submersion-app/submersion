@@ -4,7 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 /// A slider range declared once in canonical units.
 ///
 /// Canonical units are the app's storage units: meters for depth and ascent
-/// rate, liters per minute for SAC, minutes for time. [min], [max], and [step]
+/// rate, liters per minute for RMV, minutes for time. [min], [max], and [step]
 /// are in DISPLAY space, derived from the canonical range and snapped to a
 /// grid that reads naturally in the diver's units.
 ///
@@ -108,13 +108,13 @@ class UnitAxis {
     );
   }
 
-  /// Stressed SAC for emergency planning, canonical 15-40 L/min.
-  factory UnitAxis.stressedSac(UnitFormatter units) => _sac(units, 15, 40);
+  /// Stressed RMV for emergency planning, canonical 15-40 L/min.
+  factory UnitAxis.stressedRmv(UnitFormatter units) => _rmv(units, 15, 40);
 
-  /// Working SAC for consumption planning, canonical 8-30 L/min.
-  factory UnitAxis.normalSac(UnitFormatter units) => _sac(units, 8, 30);
+  /// Working RMV for consumption planning, canonical 8-30 L/min.
+  factory UnitAxis.normalRmv(UnitFormatter units) => _rmv(units, 8, 30);
 
-  static UnitAxis _sac(UnitFormatter units, double minL, double maxL) {
+  static UnitAxis _rmv(UnitFormatter units, double minL, double maxL) {
     final metric = units.settings.volumeUnit == VolumeUnit.liters;
     return UnitAxis(
       min: metric ? minL : _ceilTo(units.convertVolume(minL), 0.05),

@@ -165,7 +165,7 @@ void main() {
     addTearDown(container.dispose);
 
     final kinds = await container.read(serviceKindsProvider.future);
-    expect(kinds.where((k) => k.isBuiltIn).length, 9);
+    expect(kinds.where((k) => k.isBuiltIn).length, 12);
   });
 
   test('tripServiceAlertsProvider gates on trip end date', () async {

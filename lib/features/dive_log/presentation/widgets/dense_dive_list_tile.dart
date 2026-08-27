@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// Single-row flat tile for the dive list (maximum density).
 ///
@@ -21,7 +21,6 @@ class DenseDiveListTile extends ConsumerWidget {
   final double? maxDepth;
   final Duration? duration;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
   final bool isHighlighted;
@@ -60,7 +59,6 @@ class DenseDiveListTile extends ConsumerWidget {
     this.maxDepth,
     this.duration,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
     this.isHighlighted = false,
@@ -92,14 +90,10 @@ class DenseDiveListTile extends ConsumerWidget {
     return backgroundColor.computeLuminance() < 0.5;
   }
 
-  /// Abbreviated date: "Mar 15" for current year, "Mar 15 '24" for other years.
-  String _formatShortDate(DateTime dt) {
-    final now = DateTime.now();
-    if (dt.year == now.year) {
-      return DateFormat('MMM d').format(dt);
-    }
-    return DateFormat("MMM d ''yy").format(dt);
-  }
+  /// Abbreviated date: "Mar 15" for current year, "Mar 15 '24" for other
+  /// years, day-first for divers who chose a day-first date format (#964).
+  String _formatShortDate(DateTime dt, UnitFormatter units) =>
+      units.formatMonthDayWithYear(dt, shortYear: true);
 
   /// Returns the display string for an expanded text slot (slot1 / slot2).
   String _buildTextSlotValue(
@@ -119,7 +113,7 @@ class DenseDiveListTile extends ConsumerWidget {
       return siteName ?? context.l10n.diveLog_listPage_unknownSite;
     }
     if (field == DiveField.dateTime) {
-      return _formatShortDate(dateTime);
+      return _formatShortDate(dateTime, units);
     }
     final value = summary != null
         ? field.extractFromSummary(
@@ -160,6 +154,7 @@ class DenseDiveListTile extends ConsumerWidget {
 
   /// Builds the icon+value or label:value widget for a stat slot.
   Widget _buildStatSlot(
+    BuildContext context,
     DiveField field,
     String formatted,
     TextStyle style,
@@ -184,7 +179,7 @@ class DenseDiveListTile extends ConsumerWidget {
       );
     }
     return Text(
-      '${field.shortLabel}: $formatted',
+      '${field.localizedShortLabel(context.l10n)}: $formatted',
       style: style,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
@@ -283,44 +278,32 @@ class DenseDiveListTile extends ConsumerWidget {
         child: InkWell(
           onTap: onTap,
           onDoubleTap: onDoubleTap,
-          onLongPress: onLongPress,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
                 SizedBox(
                   width: 36,
-                  child: Stack(
+                  child: Align(
                     alignment: Alignment.centerLeft,
-                    children: [
-                      Visibility(
-                        visible: isSelectionMode,
-                        maintainSize: true,
-                        maintainAnimation: true,
-                        maintainState: true,
-                        child: Checkbox(
-                          value: isSelected,
-                          onChanged: (_) => onTap?.call(),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                      if (!isSelectionMode)
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            '#$diveNumber',
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: accentColor,
-                            ),
+                    child: SelectionLeading(
+                      isSelectionMode: isSelectionMode,
+                      isChecked: isSelected,
+                      onChanged: (_) => onTap?.call(),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '#$diveNumber',
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: accentColor,
                           ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -348,6 +331,7 @@ class DenseDiveListTile extends ConsumerWidget {
                 SizedBox(
                   width: 56,
                   child: _buildStatSlot(
+                    context,
                     slot3Field,
                     slot3Text,
                     slot3HasValue ? statStyle! : statStyleDim!,
@@ -359,6 +343,7 @@ class DenseDiveListTile extends ConsumerWidget {
                 SizedBox(
                   width: 50,
                   child: _buildStatSlot(
+                    context,
                     slot4Field,
                     slot4Text,
                     slot4HasValue ? statStyle! : statStyleDim!,

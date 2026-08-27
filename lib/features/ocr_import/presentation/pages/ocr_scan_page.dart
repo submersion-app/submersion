@@ -51,8 +51,8 @@ class _OcrScanPageState extends ConsumerState<OcrScanPage> {
       final file = await ImagePicker().pickImage(source: source);
       return file?.path;
     }
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    return result?.files.single.path;
+    final result = await FilePicker.pickFile(type: FileType.image);
+    return result?.path;
   }
 
   Future<void> _pickFromCamera() async {

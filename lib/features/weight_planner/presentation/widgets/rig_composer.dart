@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -101,13 +102,18 @@ class RigComposer extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // Wrap, not Row: the two action labels are unconstrained and in
+            // longer locales ("Set verwenden", "Ausrüstung hinzufügen") they
+            // squeeze the title to nothing and overflow the row. Wrapping keeps
+            // every label readable and drops the actions to a second line only
+            // when they genuinely do not fit.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.equipment_appBar_title,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                Text(
+                  context.l10n.equipment_appBar_title,
+                  style: theme.textTheme.titleMedium,
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.inventory_2, size: 18),
@@ -144,13 +150,14 @@ class RigComposer extends ConsumerWidget {
                 ],
               ),
             const SizedBox(height: 12),
-            Row(
+            // Same overflow shape as the equipment header above.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.tools_weight_tanks,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                Text(
+                  context.l10n.tools_weight_tanks,
+                  style: theme.textTheme.titleMedium,
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add, size: 18),
@@ -196,7 +203,10 @@ class RigComposer extends ConsumerWidget {
             SegmentedButton<WaterType>(
               segments: [
                 for (final type in WaterType.values)
-                  ButtonSegment(value: type, label: Text(type.displayName)),
+                  ButtonSegment(
+                    value: type,
+                    label: Text(type.localizedName(context.l10n)),
+                  ),
               ],
               selected: {waterType},
               onSelectionChanged: (selection) =>

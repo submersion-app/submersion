@@ -178,6 +178,77 @@ class DiveMergeService {
         ),
       );
 
+      // Owning-source ids for the merged dive (issue #1149). The source
+      // rows themselves are not inserted until step 10, but the profile
+      // copy below has to reference them, so mint the ids up front and let
+      // step 10 reuse them. A profile row whose sourceId names no copied row
+      // falls back to its own segment's source, so samples never end up
+      // pointing at a row on a dive this merge is about to consume.
+      final mergedSourceIds = <String, String>{
+        for (final row in snapshot.dataSourceRows) row.id: _uuid.v4(),
+      };
+      // Inserted here rather than at their step-10 slot: dive_profiles.
+      // sourceId is a real FK and foreign_keys is ON, so the parent rows must
+      // land before the samples that reference them.
+      //
+      // Carried as provenance; NEVER primary (a merged profile is
+      // user-authored -- reparse must not rewrite it).
+      //     CAVEAT (#1164): isPrimary false only stops reparse from
+      //     rewriting the dives row and tanks. ReparseService step 4 calls
+      //     _replaceDiveProfiles unconditionally, so re-parsing a merged
+      //     dive today still wipes the merged profile. Tracked separately.
+      // DiveRepository.saveComputerReading does not call
+      // markRecordPending for diveDataSources rows either -- it relies on
+      // the parent dive's pending record (step 1) to carry the change, so
+      // no per-row markRecordPending here mirrors that.
+      //
+      // EVERY row is carried, including several sharing one computerId --
+      // the shape a same-computer split-pair merge produces. Do NOT collapse
+      // them here (#1045): rows that share a computerId are not duplicates.
+      // Each is the sole surviving copy of one download's rawData,
+      // rawFingerprint and sourceUuid once step 13 deletes the originals, and
+      // all three are load-bearing:
+      //   - getSourceKeysByDiveId unions source_uuid/raw_fingerprint across
+      //     ALL of a dive's rows so a re-download of EITHER half resolves as
+      //     a duplicate; dropping a row makes that half import as a new dive.
+      //   - ReparseService.getSourcesForDiveReparse selects on rawData, so a
+      //     dropped row's bytes can never be re-parsed by a later
+      //     libdivecomputer.
+      // The duplicate is a display-side concern only, and is canonicalized on
+      // read by _canonicalDataSourceRows (#1005). The underlying gap that
+      // comment described -- dive_profiles attributing samples by computerId
+      // alone, so computerId gets treated as a per-dive unique source key the
+      // schema never guaranteed -- is what dive_profiles.sourceId now closes
+      // (#1149); each carried row keeps its own id here and the copied samples
+      // point at it, so the strands stay separable without a lossy write.
+      for (final row in snapshot.dataSourceRows) {
+        await _db
+            .into(_db.diveDataSources)
+            .insert(
+              row
+                  .toCompanion(false)
+                  .copyWith(
+                    id: Value(mergedSourceIds[row.id]!),
+                    diveId: Value(mergedId),
+                    isPrimary: const Value(false),
+                  ),
+            );
+      }
+
+      String? mergedSourceIdFor(String diveId, String? sourceId) {
+        final mapped = mergedSourceIds[sourceId];
+        if (mapped != null) return mapped;
+        final segment = snapshot.dataSourceRows
+            .where((r) => r.diveId == diveId)
+            .toList();
+        if (segment.isEmpty) return null;
+        final owner = segment.firstWhere(
+          (r) => r.isPrimary,
+          orElse: () => segment.first,
+        );
+        return mergedSourceIds[owner.id];
+      }
+
       // 2. Profile rows copied directly (preserves computerId/isPrimary/
       //    temperature/sensor columns), re-based onto the merged timeline.
       await _db.batch((batch) {
@@ -191,6 +262,7 @@ class DiveMergeService {
                   id: Value(_uuid.v4()),
                   diveId: Value(mergedId),
                   timestamp: Value(row.timestamp + offset),
+                  sourceId: Value(mergedSourceIdFor(row.diveId, row.sourceId)),
                 ),
           );
         }
@@ -232,6 +304,11 @@ class DiveMergeService {
                 timestamp: ts,
                 depth: 0,
                 computerId: Value(adjacent?.computerId),
+                sourceId: Value(
+                  adjacent == null
+                      ? null
+                      : mergedSourceIdFor(adjacent.diveId, adjacent.sourceId),
+                ),
                 isPrimary: Value(adjacent?.isPrimary ?? true),
               ),
             );
@@ -387,25 +464,7 @@ class DiveMergeService {
         );
       }
 
-      // 10. Data sources carried as provenance; NEVER primary (a merged
-      //     profile is user-authored -- reparse must not rewrite it).
-      // saveComputerReading (dive_repository_impl.dart:4437) does not call
-      // markRecordPending for diveDataSources rows either -- it relies on
-      // the parent dive's pending record (step 1) to carry the change, so
-      // no per-row markRecordPending here mirrors that.
-      for (final row in snapshot.dataSourceRows) {
-        await _db
-            .into(_db.diveDataSources)
-            .insert(
-              row
-                  .toCompanion(false)
-                  .copyWith(
-                    id: Value(_uuid.v4()),
-                    diveId: Value(mergedId),
-                    isPrimary: const Value(false),
-                  ),
-            );
-      }
+      // 10. Data sources are inserted ahead of step 2 -- see the note there.
 
       // 11. Tide record: first dive's only.
       final firstTide = snapshot.tideRows

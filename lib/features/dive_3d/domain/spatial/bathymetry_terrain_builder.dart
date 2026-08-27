@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/core/utils/geo_math.dart';
+import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/terrain_builder.dart';
@@ -15,14 +18,34 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// waterline (height capped so shorelines read without dominating);
 /// nodata cells fill as shoreline at the waterline.
 class BathymetryTerrainBuilder {
-  static const Color _shallow = Color(0xFF2DD4BF);
-  static const Color _deep = Color(0xFF1E3A8A);
-  static const Color _land = Color(0xFFC2A878);
+  static const Color shallowColor = Color(0xFF2DD4BF);
+  static const Color deepColor = Color(0xFF1E3A8A);
+  static const Color landColor = Color(0xFFC2A878);
   static const Color _water = Color(0xFF3B82F6);
   static const double _waterOpacity = 0.22;
   static const double _landHeightCapFraction = 0.15;
 
-  static const double _metersPerDegLat = 110540.0;
+  static const double metersPerDegLat = 110540.0;
+
+  /// How far above the waterline land is allowed to rise, so shorelines
+  /// read without dominating the scene. Hoist it out of per-node loops.
+  static double landHeightCap(SpatialProjection projection) =>
+      _landHeightCapFraction * math.max(projection.maxDepth, 1.0);
+
+  /// The depth one raw grid sample renders at: nodata fills as shoreline,
+  /// land elevation is capped. THE definition of the rendered surface, so
+  /// the mesh and anything draped on it cannot drift apart.
+  static double surfaceDepth(double? raw, double landCap) =>
+      raw == null ? 0.0 : math.max(raw, -landCap);
+
+  /// The ramp color at normalized depth [t] (0 = shallow, 1 = ramp max).
+  /// Banded mode quantizes into 10 equal segments sampled at their centers
+  /// so the seascape reads like a stepped nautical chart tint.
+  static Color depthColor(double t, {bool banded = false}) {
+    final tc = t.clamp(0.0, 1.0);
+    final tt = banded ? (((tc * 10).floor().clamp(0, 9)) + 0.5) / 10 : tc;
+    return Color.lerp(shallowColor, deepColor, tt)!;
+  }
 
   /// The grid's extent in local east-north meters relative to [center].
   static ({double minEast, double maxEast, double minNorth, double maxNorth})
@@ -34,12 +57,12 @@ class BathymetryTerrainBuilder {
             grid.cellSizeLonDeg * (grid.cols - 1) -
             center.longitude) *
         mLon;
-    final minNorth = (grid.originLat - center.latitude) * _metersPerDegLat;
+    final minNorth = (grid.originLat - center.latitude) * metersPerDegLat;
     final maxNorth =
         (grid.originLat +
             grid.cellSizeLatDeg * (grid.rows - 1) -
             center.latitude) *
-        _metersPerDegLat;
+        metersPerDegLat;
     return (
       minEast: minEast,
       maxEast: maxEast,
@@ -52,35 +75,47 @@ class BathymetryTerrainBuilder {
     required BathymetryGrid grid,
     required GeoPoint center,
     required SpatialProjection projection,
+    double? rampMaxDepthMeters,
+    bool rampBanded = false,
+    TerrainImageryFrame? imageryFrame,
+    SeascapeSurfaceMode surfaceMode = SeascapeSurfaceMode.depth,
   }) {
     final rows = grid.rows, cols = grid.cols;
     final mLon = metersPerDegreeLongitude(center.latitude);
     final maxDepth = math.max(projection.maxDepth, 1.0);
-    final landCap = _landHeightCapFraction * maxDepth;
+    final landCap = landHeightCap(projection);
 
     final positions = Float32List(rows * cols * 3);
     final colors = Float32List(rows * cols * 3);
+    final uvs = imageryFrame == null ? null : Float32List(rows * cols * 2);
     for (var r = 0; r < rows; r++) {
-      final north =
-          (grid.originLat + grid.cellSizeLatDeg * r - center.latitude) *
-          _metersPerDegLat;
+      final lat = grid.originLat + grid.cellSizeLatDeg * r;
+      final north = (lat - center.latitude) * metersPerDegLat;
       for (var c = 0; c < cols; c++) {
-        final east =
-            (grid.originLon + grid.cellSizeLonDeg * c - center.longitude) *
-            mLon;
+        final lon = grid.originLon + grid.cellSizeLonDeg * c;
+        final east = (lon - center.longitude) * mLon;
         final raw = grid.depthAt(r, c);
-        // nodata -> shoreline; land elevation capped so peaks stay modest.
-        final depth = raw == null ? 0.0 : math.max(raw, -landCap);
+        final depth = surfaceDepth(raw, landCap);
         final vi = (r * cols + c) * 3;
         positions[vi] = projection.xOf(east);
         positions[vi + 1] = projection.yOf(depth);
         positions[vi + 2] = projection.zOf(north);
+        if (uvs != null) {
+          final f = imageryFrame!;
+          final uvi = (r * cols + c) * 2;
+          uvs[uvi] = (mercatorX(lon) - f.u0MercX) / (f.u1MercX - f.u0MercX);
+          uvs[uvi + 1] = (mercatorY(lat) - f.v0MercY) / (f.v1MercY - f.v0MercY);
+        }
         final Color color;
-        if (raw == null || raw <= 0) {
-          color = _land;
+        if (surfaceMode == SeascapeSurfaceMode.imagery) {
+          // The photo carries the surface; vertex colors stay neutral so
+          // only the baked flat shading modulates it.
+          color = const Color(0xFFFFFFFF);
+        } else if (raw == null || raw <= 0) {
+          color = landColor;
         } else {
-          final t = (depth / maxDepth).clamp(0.0, 1.0);
-          color = Color.lerp(_shallow, _deep, t)!;
+          final ramp = math.max(rampMaxDepthMeters ?? maxDepth, 1.0);
+          color = depthColor(depth / ramp, banded: rampBanded);
         }
         colors[vi] = color.r;
         colors[vi + 1] = color.g;
@@ -91,6 +126,7 @@ class BathymetryTerrainBuilder {
       positions: positions,
       indices: _gridIndices(rows, cols),
       colors: colors,
+      textureCoordinates: uvs,
     );
 
     final b = enuBounds(grid, center);

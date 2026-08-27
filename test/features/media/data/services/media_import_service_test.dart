@@ -515,5 +515,77 @@ void main() {
             });
       });
     });
+
+    group('importPhotosForDive - takenAt normalisation', () {
+      // AssetInfo.createDateTime is contractually LOCAL (photo_manager's
+      // convention on mobile, which the desktop picker mirrors by
+      // reinterpreting the file's wall-clock capture digits into a local
+      // DateTime). MediaItem.takenAt is wall-clock-UTC: MediaRepository
+      // persists `takenAt.millisecondsSinceEpoch` verbatim and hydrates it
+      // back with `isUtc: true`. Carrying the local value across without
+      // TripMediaScanner.toWallClockUtc bakes the host's UTC offset into the
+      // stored number, and the fullscreen viewer's metadata overlay -- which
+      // formats the hydrated UTC value directly -- then shows a capture time
+      // shifted by that offset.
+      Future<MediaItem?> persistOne(AssetInfo asset) async {
+        when(
+          mockMediaRepository.getLinkedAssetIdsForDive('dive-1'),
+        ).thenAnswer((_) async => <String>{});
+
+        MediaItem? persisted;
+        when(mockMediaRepository.createMedia(any)).thenAnswer((
+          invocation,
+        ) async {
+          persisted = invocation.positionalArguments[0] as MediaItem;
+          return _savedMediaItem(
+            id: 'media-1',
+            diveId: 'dive-1',
+            platformAssetId: persisted!.platformAssetId ?? '',
+          );
+        });
+
+        await service.importPhotosForDive(
+          selectedAssets: [asset],
+          dive: testDive,
+        );
+        return persisted;
+      }
+
+      test(
+        'stores a local-file asset capture time as wall-clock UTC',
+        () async {
+          final persisted = await persistOne(
+            _testAsset('42_998877', filePath: '/photos/DIVE_0042.JPG'),
+          );
+
+          expect(persisted, isNotNull);
+          expect(persisted!.takenAt.isUtc, isTrue);
+          expect(persisted.takenAt, DateTime.utc(2024, 1, 15, 10, 30));
+        },
+      );
+
+      test('stores a gallery asset capture time as wall-clock UTC', () async {
+        final persisted = await persistOne(_testAsset('asset-1'));
+
+        expect(persisted, isNotNull);
+        expect(persisted!.takenAt.isUtc, isTrue);
+        expect(persisted.takenAt, DateTime.utc(2024, 1, 15, 10, 30));
+      });
+
+      test('leaves an already-UTC capture time unchanged', () async {
+        final persisted = await persistOne(
+          AssetInfo(
+            id: 'asset-utc',
+            type: AssetType.image,
+            createDateTime: DateTime.utc(2024, 1, 15, 10, 30),
+            width: 1920,
+            height: 1080,
+          ),
+        );
+
+        expect(persisted, isNotNull);
+        expect(persisted!.takenAt, DateTime.utc(2024, 1, 15, 10, 30));
+      });
+    });
   });
 }

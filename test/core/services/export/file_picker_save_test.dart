@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
+import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -101,6 +105,43 @@ void main() {
     test('savePdfToFile returns null when cancelled', () async {
       mockPicker.saveFileResult = null;
       expect(await savePdfToFile([1, 2, 3], 'test.pdf'), isNull);
+    });
+  });
+
+  group('UddfExportService save to file', () {
+    late UddfExportService service;
+    setUp(() => service = UddfExportService());
+
+    test('saveDivesToUddfFile returns null when cancelled', () async {
+      mockPicker.saveFileResult = null;
+      expect(await service.saveDivesToUddfFile([]), isNull);
+    });
+
+    test('saveDivesToUddfFile writes the UDDF to the chosen path', () async {
+      final dir = await Directory.systemTemp.createTemp('uddf_save_test');
+      addTearDown(() => dir.delete(recursive: true));
+      final target = '${dir.path}/dives.uddf';
+      mockPicker.saveFileResult = Uri.file(target);
+
+      expect(await service.saveDivesToUddfFile([]), target);
+      expect(await File(target).readAsString(), contains('<uddf'));
+    });
+  });
+
+  group('ExportService facade', () {
+    test('saveDivesToUddfFile delegates to the UDDF service', () async {
+      final dir = await Directory.systemTemp.createTemp('uddf_facade_test');
+      addTearDown(() => dir.delete(recursive: true));
+      final target = '${dir.path}/facade.uddf';
+      mockPicker.saveFileResult = Uri.file(target);
+
+      expect(await ExportService().saveDivesToUddfFile([]), target);
+      expect(await File(target).readAsString(), contains('<uddf'));
+    });
+
+    test('saveDivesToUddfFile propagates cancellation', () async {
+      mockPicker.saveFileResult = null;
+      expect(await ExportService().saveDivesToUddfFile([]), isNull);
     });
   });
 }

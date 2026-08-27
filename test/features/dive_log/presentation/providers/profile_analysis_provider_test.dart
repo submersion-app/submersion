@@ -900,6 +900,89 @@ void main() {
       expect(result.o2SensorCurves, isNull);
     });
 
+    test('O2 cell millivolts are exposed as per-cell curves', () {
+      final profile = baseProfile
+          .map(
+            (p) => p.copyWith(
+              ppO2: 1.19,
+              o2SensorMv1: 58,
+              o2SensorMv2: 61,
+              o2SensorMv3: 43,
+            ),
+          )
+          .toList();
+
+      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+
+      expect(result.o2CellMvCurves, isNotNull);
+      expect(result.o2CellMvCurves!.length, 3);
+      expect(result.o2CellMvCurves![0].first, 58);
+      expect(result.o2CellMvCurves![2].first, 43);
+    });
+
+    test(
+      'a silent lower cell keeps its slot so higher cells stay numbered',
+      () {
+        // Cell 2 reports nothing for the whole dive. Dropping it would shift
+        // cell 3 down to index 1 and mislabel it in the tooltip and legend, so
+        // it is padded with an all-null curve instead.
+        final profile = baseProfile
+            .map((p) => p.copyWith(o2SensorMv1: 58, o2SensorMv3: 43))
+            .toList();
+
+        final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+
+        expect(result.o2CellMvCurves!.length, 3);
+        expect(result.o2CellMvCurves![0].first, 58);
+        expect(result.o2CellMvCurves![1], everyElement(isNull));
+        expect(result.o2CellMvCurves![2].first, 43);
+      },
+    );
+
+    test('millivolt curves survive with no ppO2, cells or setpoint', () {
+      // Issue #810 in full: an untrusted calibration means no per-cell bar
+      // value, so resolveRebreatherPpO2 bails and the overlay early-returns.
+      // The millivolt curves must not be lost on that path.
+      final profile = baseProfile
+          .map((p) => p.copyWith(o2SensorMv1: 58, o2SensorMv2: 61))
+          .toList();
+
+      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+
+      // No ppO2 was resolved, so nothing about the ppO2 overlay changed.
+      expect(result.ppO2FromSensorAverage, isFalse);
+      expect(result.o2SensorCurves, isNull);
+      expect(result.o2CellMvCurves, isNotNull);
+      expect(result.o2CellMvCurves!.length, 2);
+      expect(result.o2CellMvCurves![1].first, 61);
+    });
+
+    test('a millivolt gap stays null rather than carrying the last value', () {
+      // A cell that stops reporting must break its line, not interpolate.
+      final profile = <DiveProfilePoint>[];
+      for (var i = 0; i < baseProfile.length; i++) {
+        profile.add(
+          i.isEven ? baseProfile[i].copyWith(o2SensorMv1: 58) : baseProfile[i],
+        );
+      }
+
+      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+
+      expect(result.o2CellMvCurves![0][0], 58);
+      expect(result.o2CellMvCurves![0][1], isNull);
+    });
+
+    test('no millivolt data leaves the curves null', () {
+      final profile = baseProfile
+          .map((p) => p.copyWith(o2Sensor1: 1.1, ppO2: 1.1))
+          .toList();
+
+      final (result, _) = overlayComputerDecoData(baseAnalysis, profile);
+
+      expect(result.o2SensorCurves, isNotNull);
+      expect(result.o2CellMvCurves, isNull);
+    });
+
     test('OC (no setpoint/cells/ppO2) leaves ppO2 curve untouched', () {
       final (result, _) = overlayComputerDecoData(baseAnalysis, baseProfile);
       expect(result.ppO2Curve, equals(baseAnalysis.ppO2Curve));

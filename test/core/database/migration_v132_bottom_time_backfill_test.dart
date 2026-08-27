@@ -6,7 +6,9 @@ import 'package:submersion/core/database/database.dart';
 /// v132 backfill: earlier imports (Subsurface/MacDive/CSV via the UDDF entity
 /// importer) stored the total dive time in `bottom_time`, making it equal
 /// `runtime`. When a profile exists, the migration recomputes bottom time from
-/// the primary profile the same way [Dive.calculateBottomTimeFromProfile] does.
+/// the primary profile with the (now retired) 85%-of-max-depth heuristic.
+/// Fixtures stamped at v130 also run the v146 multilevel correction; expected
+/// values reflect both steps.
 void main() {
   // Builds a pre-v132 database (stamped at main's v130) with just the tables
   // the backfill touches, then seeds dives + primary/secondary profile rows.
@@ -49,8 +51,12 @@ void main() {
     );
   }
 
-  // A clear bottom window: 85% of 30 m = 25.5 m; the diver is at/above it from
-  // t=60 to t=1200, so bottom time is 1140 s.
+  // A clear bottom window: 85% of 30 m = 25.5 m; the diver is at/above it
+  // from t=60 to t=1200, so the v132 backfill writes 1140 s. Fixtures here
+  // migrate 130 -> current, so the v146 multilevel correction then runs:
+  // 1140 s matches the old-heuristic fingerprint and is recomputed to
+  // 1200 s (surface departure t=0 to the last sample at/deeper than 9.9 m
+  // at t=1200).
   void insertBottomWindowProfile(
     dynamic rawDb,
     String diveId, {
@@ -101,7 +107,7 @@ void main() {
       );
       addTearDown(db.close);
 
-      expect(await bottomTimeOf(db, 'd1'), 1140);
+      expect(await bottomTimeOf(db, 'd1'), 1200);
     },
   );
 
@@ -120,7 +126,7 @@ void main() {
   );
 
   test(
-    'leaves an already-correct dive untouched (bottom time != runtime)',
+    'v132 skips bottom time != runtime; v146 still corrects the fingerprint',
     () async {
       final db = AppDatabase(
         setupDb((rawDb) {
@@ -130,7 +136,10 @@ void main() {
       );
       addTearDown(db.close);
 
-      expect(await bottomTimeOf(db, 'd3'), 1140);
+      // The v132 backfill leaves this dive alone (bottom_time != runtime),
+      // but 1140 s reproduces the old heuristic for this profile, so the
+      // v146 step recognizes it as machine-derived and recomputes it.
+      expect(await bottomTimeOf(db, 'd3'), 1200);
     },
   );
 
@@ -162,7 +171,7 @@ void main() {
       );
       addTearDown(db.close);
 
-      expect(await bottomTimeOf(db, 'd4'), 1140);
+      expect(await bottomTimeOf(db, 'd4'), 1200);
     },
   );
 
@@ -177,7 +186,7 @@ void main() {
       );
       addTearDown(db.close);
 
-      expect(await bottomTimeOf(db, 'd5'), 1140);
+      expect(await bottomTimeOf(db, 'd5'), 1200);
       final row = await db
           .customSelect(
             'SELECT hlc FROM dives WHERE id = ?',

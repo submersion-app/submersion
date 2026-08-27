@@ -4,7 +4,9 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart'
@@ -16,6 +18,71 @@ class EquipmentSetRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _equipmentRepo = EquipmentRepository();
+  final _log = LoggerService.forClass(EquipmentSetRepository);
+
+  /// Debounce for [watchSetChanges] so a multi-changeset sync refreshes the
+  /// set surfaces once on the settled DB state instead of once per commit
+  /// (mirrors DiveRepository.changeTickDebounce).
+  static const changeTickDebounce = Duration(milliseconds: 300);
+
+  /// Emits whenever anything an equipment set renders changes, so the
+  /// set providers can self-invalidate after ANY write -- including a sync or
+  /// an import applying changes straight to the DB, which bypasses the
+  /// notifier paths that invalidate caches on local edits.
+  ///
+  /// Watches the hydration sources, not just `equipment_sets`:
+  /// - `equipment_set_items` -- membership. This is also the target of drift's
+  ///   generated `WritePropagation` for the `equipment` ON DELETE CASCADE, so
+  ///   deleting a gear item ticks here even though the DELETE statement only
+  ///   named `equipment` (see `streamUpdateRules` in database.g.dart).
+  /// - `equipment` -- [getSetById] with `includeItems` hydrates full items, and
+  ///   the cascade propagation above is delete-only, so a RENAME of a member
+  ///   only surfaces if this table is watched directly.
+  /// - `equipment_set_geofences` -- hydrated by the set detail/edit providers.
+  ///
+  /// Without this, deleting a gear item left every cached set carrying the dead
+  /// id; the edit form then re-inserted it and the save died on the FK
+  /// (issue #819).
+  Stream<void> watchSetChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.equipmentSets),
+          TableUpdateQuery.onTable(_db.equipmentSetItems),
+          TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentSetGeofences),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// The subset of [ids] that still has an `equipment` row, preserving order.
+  ///
+  /// A caller can legitimately hold ids that no longer exist: SQLite cascades
+  /// the junction rows away the instant a gear item is deleted, but an
+  /// in-memory equipment set -- or an edit form already on screen -- keeps its
+  /// snapshot of the membership. Inserting such an id fails the
+  /// foreign key and aborts the entire save (issue #819), so drop it instead.
+  ///
+  /// Deliberately NOT `InsertMode.insertOrIgnore`: this is a foreign-key
+  /// violation rather than a uniqueness conflict, and ignoring it would hide
+  /// the drop entirely. The set is the diver's data and must still save, but a
+  /// silent prune would also mask a genuine provider-staleness regression --
+  /// hence the warning.
+  Future<List<String>> _liveEquipmentIds(String setId, List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final rows = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.isIn(ids))).get();
+    final live = rows.map((r) => r.id).toSet();
+    final kept = ids.where(live.contains).toList();
+    if (kept.length != ids.length) {
+      final missing = ids.where((id) => !live.contains(id));
+      _log.warning(
+        'Equipment set $setId: dropping ${ids.length - kept.length} member(s) '
+        'whose equipment no longer exists (${missing.join(', ')})',
+      );
+    }
+    return kept;
+  }
 
   /// Get all equipment sets
   Future<List<domain.EquipmentSet>> getAllSets({String? diverId}) async {
@@ -67,39 +134,50 @@ class EquipmentSetRepository {
     return rows.map((r) => r.equipmentId).toList();
   }
 
-  /// Create a new equipment set
+  /// Create a new equipment set.
+  ///
+  /// The set row and its membership are one logical write, so they share a
+  /// transaction: a failing member insert must not leave a named set behind
+  /// with a partial roster. Sync bookkeeping runs after the commit so a
+  /// rollback leaves no stray pending markers (mirrors DivePlanRepository).
   Future<domain.EquipmentSet> createSet(domain.EquipmentSet set) async {
     final id = set.id.isEmpty ? _uuid.v4() : set.id;
     final now = DateTime.now().millisecondsSinceEpoch;
+    late final List<String> members;
 
-    await _db
-        .into(_db.equipmentSets)
-        .insert(
-          EquipmentSetsCompanion(
-            id: Value(id),
-            diverId: Value(set.diverId),
-            name: Value(set.name),
-            description: Value(set.description),
-            createdAt: Value(now),
-            updatedAt: Value(now),
-          ),
-        );
+    await _db.transaction(() async {
+      await _db
+          .into(_db.equipmentSets)
+          .insert(
+            EquipmentSetsCompanion(
+              id: Value(id),
+              diverId: Value(set.diverId),
+              name: Value(set.name),
+              description: Value(set.description),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      members = await _liveEquipmentIds(id, set.equipmentIds);
+      for (final equipmentId in members) {
+        await _db
+            .into(_db.equipmentSetItems)
+            .insert(
+              EquipmentSetItemsCompanion(
+                setId: Value(id),
+                equipmentId: Value(equipmentId),
+              ),
+            );
+      }
+    });
+
     await _syncRepository.markRecordPending(
       entityType: 'equipmentSets',
       recordId: id,
       localUpdatedAt: now,
     );
-
-    // Add equipment items to set
-    for (final equipmentId in set.equipmentIds) {
-      await _db
-          .into(_db.equipmentSetItems)
-          .insert(
-            EquipmentSetItemsCompanion(
-              setId: Value(id),
-              equipmentId: Value(equipmentId),
-            ),
-          );
+    for (final equipmentId in members) {
       await _syncRepository.markRecordPending(
         entityType: 'equipmentSetItems',
         recordId: '$id|$equipmentId',
@@ -110,56 +188,88 @@ class EquipmentSetRepository {
 
     return set.copyWith(
       id: id,
+      equipmentIds: members,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
     );
   }
 
-  /// Update an equipment set
+  /// Update an equipment set.
+  ///
+  /// Membership is reconciled as a DIFF rather than delete-all-then-reinsert.
+  /// The old shape had two defects this flow hits hard: it was untransacted, so
+  /// a failing re-insert left the set empty with every member already
+  /// tombstoned (issue #819); and it tombstoned + re-marked every member on
+  /// every save even when nothing changed, which is the churn the
+  /// contradicted-key handling in SyncService exists to absorb. Diffing removes
+  /// both. Mirrors the composite-PK junction handling in
+  /// DivePlanRepository.updatePlan, including running sync bookkeeping only
+  /// after the transaction commits.
   Future<void> updateSet(domain.EquipmentSet set) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    final added = <String>[];
+    final removed = <String>[];
 
-    await (_db.update(
-      _db.equipmentSets,
-    )..where((t) => t.id.equals(set.id))).write(
-      EquipmentSetsCompanion(
-        name: Value(set.name),
-        description: Value(set.description),
-        updatedAt: Value(now),
-      ),
-    );
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.equipmentSets,
+      )..where((t) => t.id.equals(set.id))).write(
+        EquipmentSetsCompanion(
+          name: Value(set.name),
+          description: Value(set.description),
+          updatedAt: Value(now),
+        ),
+      );
+
+      final desired = (await _liveEquipmentIds(
+        set.id,
+        set.equipmentIds,
+      )).toSet();
+      final existing =
+          (await (_db.select(
+                _db.equipmentSetItems,
+              )..where((t) => t.setId.equals(set.id))).get())
+              .map((r) => r.equipmentId)
+              .toSet();
+
+      added.addAll(desired.difference(existing));
+      removed.addAll(existing.difference(desired));
+
+      for (final equipmentId in added) {
+        await _db
+            .into(_db.equipmentSetItems)
+            .insert(
+              EquipmentSetItemsCompanion(
+                setId: Value(set.id),
+                equipmentId: Value(equipmentId),
+              ),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+      for (final equipmentId in removed) {
+        await (_db.delete(_db.equipmentSetItems)..where(
+              (t) => t.setId.equals(set.id) & t.equipmentId.equals(equipmentId),
+            ))
+            .go();
+      }
+    });
+
     await _syncRepository.markRecordPending(
       entityType: 'equipmentSets',
       recordId: set.id,
       localUpdatedAt: now,
     );
-
-    // Update equipment items: delete and re-insert
-    final existingItems = await (_db.select(
-      _db.equipmentSetItems,
-    )..where((t) => t.setId.equals(set.id))).get();
-    await (_db.delete(
-      _db.equipmentSetItems,
-    )..where((t) => t.setId.equals(set.id))).go();
-    for (final item in existingItems) {
-      await _syncRepository.logDeletion(
-        entityType: 'equipmentSetItems',
-        recordId: '${item.setId}|${item.equipmentId}',
-      );
-    }
-    for (final equipmentId in set.equipmentIds) {
-      await _db
-          .into(_db.equipmentSetItems)
-          .insert(
-            EquipmentSetItemsCompanion(
-              setId: Value(set.id),
-              equipmentId: Value(equipmentId),
-            ),
-          );
+    for (final equipmentId in added) {
       await _syncRepository.markRecordPending(
         entityType: 'equipmentSetItems',
         recordId: '${set.id}|$equipmentId',
         localUpdatedAt: now,
+      );
+    }
+    for (final equipmentId in removed) {
+      await _syncRepository.logDeletion(
+        entityType: 'equipmentSetItems',
+        recordId: '${set.id}|$equipmentId',
       );
     }
     SyncEventBus.notifyLocalChange();

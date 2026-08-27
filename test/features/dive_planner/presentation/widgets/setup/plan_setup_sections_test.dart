@@ -31,14 +31,15 @@ Widget _harness(Widget child) => testApp(
 );
 
 void main() {
-  testWidgets('deco section renders both GF sliders with defaults', (
+  testWidgets('deco section renders both GF sliders at the diver settings', (
     tester,
   ) async {
     await tester.pumpWidget(_harness(const PlanDecoSection()));
     await tester.pumpAndSettle();
     expect(find.byType(Slider), findsNWidgets(2));
-    expect(find.text('30%'), findsOneWidget);
-    expect(find.text('70%'), findsOneWidget);
+    // AppSettings defaults: GF 50/85.
+    expect(find.text('50%'), findsOneWidget);
+    expect(find.text('85%'), findsOneWidget);
   });
 
   testWidgets('gas section shows SAC slider and reserve field with unit', (

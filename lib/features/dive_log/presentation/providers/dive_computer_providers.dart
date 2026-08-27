@@ -4,6 +4,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider for dive computers
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -18,6 +19,7 @@ final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchComputersChanges());
   return repository.getAllComputers(diverId: validatedDiverId);
 });
 
@@ -43,6 +45,7 @@ final diveComputerByIdProvider = FutureProvider.family<DiveComputer?, String>((
   id,
 ) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchComputersChanges());
   return repository.getComputerById(id);
 });
 
@@ -52,6 +55,7 @@ final favoriteDiveComputerProvider = FutureProvider<DiveComputer?>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchComputersChanges());
   return repository.getFavoriteComputer(diverId: validatedDiverId);
 });
 
@@ -65,12 +69,19 @@ final computersForDiveProvider =
       return repository.getComputersForDive(diveId);
     });
 
-/// Get the primary computer ID for a dive
+/// Get the primary computer ID for a dive.
+///
+/// Takes the dive DETAIL tick, not the computers tick: this reads the per-dive
+/// `dive_data_sources` rows, so it goes stale when a download or a sync adds a
+/// source to the dive, not when the computer registry changes.
 final primaryComputerIdProvider = FutureProvider.family<String?, String>((
   ref,
   diveId,
 ) async {
   final repository = ref.watch(diveComputerRepositoryProvider);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return repository.getPrimaryComputerId(diveId);
 });
 
@@ -80,7 +91,11 @@ class SelectedComputerNotifier extends StateNotifier<String?> {
   final String _diveId;
 
   SelectedComputerNotifier(this._repository, this._diveId) : super(null) {
-    _loadPrimaryComputer();
+    logFailure(
+      _loadPrimaryComputer(),
+      SelectedComputerNotifier,
+      'load primary computer',
+    );
   }
 
   Future<void> _loadPrimaryComputer() async {
@@ -125,7 +140,11 @@ class DiveComputerNotifier
 
   DiveComputerNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveComputerNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -133,7 +152,11 @@ class DiveComputerNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allDiveComputersProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveComputerNotifier,
+          'initialize and load',
+        );
       }
     });
   }

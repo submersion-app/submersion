@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
 
@@ -152,6 +154,137 @@ void main() {
       expect(observation.tanks.single.material, isNull);
     },
   );
+
+  group('gear-carried lead (issue #1103)', () {
+    Future<EquipmentItem> createWeights(
+      String name, {
+      double? dryWeightKg,
+      double? buoyancyKg,
+      String? style,
+    }) => equipmentRepository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: name,
+        type: EquipmentType.weights,
+        attributes: [
+          if (dryWeightKg != null)
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.dryWeightKg,
+              valueNum: dryWeightKg,
+            ),
+          if (buoyancyKg != null)
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.buoyancyKg,
+              valueNum: buoyancyKg,
+            ),
+          if (style != null)
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.weightStyle,
+              valueText: style,
+            ),
+        ],
+      ),
+    );
+
+    test(
+      'a dive whose only lead is weighted gear becomes an observation',
+      () async {
+        final plate = await createWeights('Weighted BPW', dryWeightKg: 3.63);
+        final sta = await createWeights('Weighted STA', buoyancyKg: -4.17);
+
+        await diveRepository.createDive(
+          Dive(
+            id: '',
+            diverId: diverId,
+            dateTime: DateTime(2026, 1, 1),
+            equipment: [plate, sta],
+          ),
+        );
+
+        // Before #1103 this dive carried 0 and was dropped by the
+        // `carried <= 0` gate, so the diver had no training data at all.
+        final observation = (await repository.observationsForDiver(
+          diverId,
+        )).single;
+        expect(observation.carriedKg, closeTo(7.8, 1e-9));
+        // Neither item names a weight_style, so no placement is invented.
+        expect(observation.placement, isEmpty);
+      },
+    );
+
+    test('gear ballast adds to typed rows and merges into placement', () async {
+      final belt = await createWeights(
+        'Belt blocks',
+        dryWeightKg: 1.0,
+        style: 'belt',
+      );
+
+      await diveRepository.createDive(
+        Dive(
+          id: '',
+          diverId: diverId,
+          dateTime: DateTime(2026, 1, 1),
+          equipment: [belt],
+          weights: const [
+            DiveWeight(
+              id: 'w1',
+              diveId: '',
+              weightType: WeightType.belt,
+              amountKg: 3.0,
+            ),
+          ],
+        ),
+      );
+
+      final observation = (await repository.observationsForDiver(
+        diverId,
+      )).single;
+      expect(observation.carriedKg, closeTo(4.0, 1e-9));
+      expect(observation.placement, {'belt': closeTo(4.0, 1e-9)});
+    });
+
+    test('weights gear with no declared mass leaves a dive excluded', () async {
+      final bare = await createWeights('Unspecified weights');
+      await diveRepository.createDive(
+        Dive(
+          id: '',
+          diverId: diverId,
+          dateTime: DateTime(2026, 1, 1),
+          equipment: [bare],
+        ),
+      );
+      expect(await repository.observationsForDiver(diverId), isEmpty);
+    });
+
+    test('non-weights gear contributes no lead', () async {
+      final bcd = await equipmentRepository.createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Wing',
+          type: EquipmentType.bcd,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.dryWeightKg,
+              valueNum: 3.5,
+            ),
+          ],
+        ),
+      );
+      await diveRepository.createDive(
+        Dive(
+          id: '',
+          diverId: diverId,
+          dateTime: DateTime(2026, 1, 1),
+          equipment: [bcd],
+        ),
+      );
+      expect(await repository.observationsForDiver(diverId), isEmpty);
+    });
+  });
 
   test('dives of other divers are excluded', () async {
     final db = DatabaseService.instance.database;

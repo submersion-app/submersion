@@ -131,6 +131,12 @@ void main() {
 
   Widget app({
     bool apple = true,
+    // Pinned, not inherited: googleDriveAvailableProvider resolves to
+    // GoogleDriveClientConfig.isSupportedOnThisPlatform, which is false on a
+    // Windows/Linux HOST with no Desktop client secret compiled in. Reading it
+    // ambiently made these expectations pass on macOS and fail on the Linux
+    // CI runners.
+    bool googleDriveAvailable = true,
     String? statusHint,
     MediaTransferSummary summary = const MediaTransferSummary(),
     // Riverpod 3 does not export the Override type; mirror the
@@ -147,6 +153,9 @@ void main() {
       mediaStoreStatusHintProvider.overrideWith((ref) async => statusHint),
       mediaTransferSummaryProvider.overrideWith((ref) => Stream.value(summary)),
       isApplePlatformProvider.overrideWithValue(apple),
+      googleDriveAvailableProvider.overrideWith(
+        (ref) async => googleDriveAvailable,
+      ),
       // Last, so callers can genuinely override any of the defaults above.
       // (Plain spread: dynamic elements implicitly cast, and Riverpod 3
       // does not export the Override type to name in a cast<T>().)

@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -34,16 +35,22 @@ enum HomeChipType {
   backup,
   sync,
   dataQuality,
+  flightWindow,
 }
 
 /// The worst service clock for one equipment type, shown as one chip.
 class GearGauge {
   final EquipmentType type;
+
+  /// Id of the item the chip names, so the tap can open that item rather
+  /// than the equipment list (issue #816).
+  final String itemId;
   final String itemName;
   final ServiceClockStatus status;
 
   const GearGauge({
     required this.type,
+    required this.itemId,
     required this.itemName,
     required this.status,
   });
@@ -84,6 +91,9 @@ class DashboardGauges {
   /// Open data-quality findings.
   final int dataQualityFindings;
 
+  /// Dive window before the active trip's return flight, if one is set.
+  final FlightWindowStatus? flightWindow;
+
   const DashboardGauges({
     required this.gearGauges,
     required this.hasGear,
@@ -99,6 +109,7 @@ class DashboardGauges {
     this.syncEnabled = false,
     this.syncPending = 0,
     this.dataQualityFindings = 0,
+    this.flightWindow,
   });
 }
 
@@ -117,6 +128,7 @@ List<GearGauge> worstGaugePerType(List<EquipmentClocks> clocks) {
     for (final status in entry.statuses) {
       final candidate = GearGauge(
         type: entry.item.type,
+        itemId: entry.item.id,
         itemName: entry.item.name,
         status: status,
       );
@@ -181,6 +193,7 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
   final clocks = await ref.watch(activeEquipmentClocksProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
   final noFly = await ref.watch(noFlyStatusProvider.future);
+  final flightWindow = await ref.watch(activeTripFlightWindowProvider.future);
   final daysSince = await ref.watch(daysSinceLastDiveProvider.future);
   final certCount = await ref.watch(expiringCertificationCountProvider.future);
   final trips = await ref.watch(allTripsProvider.future);
@@ -212,5 +225,6 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
     syncEnabled: syncEnabled,
     syncPending: syncPending,
     dataQualityFindings: findings,
+    flightWindow: flightWindow,
   );
 });

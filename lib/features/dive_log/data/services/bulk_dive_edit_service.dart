@@ -49,6 +49,7 @@ class BulkDiveEditService {
     Map<String, List<String>>? priorEquipmentIds;
     Map<String, List<BuddyWithRole>>? priorBuddies;
     Map<String, List<DiveTank>>? priorTanks;
+    List<DiveTank>? priorTankSpecRows;
     Map<String, List<DiveWeight>>? priorWeights;
     Map<String, List<Sighting>>? priorSightings;
 
@@ -101,6 +102,11 @@ class BulkDiveEditService {
           for (final r in rows) {
             priorTanks[r.diveId]!.add(r);
           }
+        case TankSpecsOp():
+          // Flat list, not keyed by dive: the restore matches on row id.
+          priorTankSpecRows = await (_db.select(
+            _db.diveTanks,
+          )..where((t) => t.diveId.isIn(ids))).get();
         case WeightsOp():
           final rows = await (_db.select(
             _db.diveWeights,
@@ -141,6 +147,7 @@ class BulkDiveEditService {
       priorEquipmentIds: priorEquipmentIds,
       priorBuddies: priorBuddies,
       priorTanks: priorTanks,
+      priorTankSpecRows: priorTankSpecRows,
       priorWeights: priorWeights,
       priorSightings: priorSightings,
     );
@@ -199,6 +206,10 @@ class BulkDiveEditService {
           ], _tanksFromRows(tanks[id] ?? const []));
         }
       }
+      final tankSpecRows = snapshot.priorTankSpecRows;
+      if (tankSpecRows != null) {
+        await _diveRepo.bulkRestoreTankRows(tankSpecRows);
+      }
       final weights = snapshot.priorWeights;
       if (weights != null) {
         for (final id in ids) {
@@ -230,6 +241,8 @@ class BulkDiveEditService {
             await _diveRepo.bulkRemoveTags(ids, tagIds);
           case BulkCollectionMode.replace:
             await _diveRepo.bulkReplaceTags(ids, tagIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Tags have no in-place update');
         }
       case DiveTypesOp(:final mode, :final diveTypeIds):
         switch (mode) {
@@ -239,6 +252,8 @@ class BulkDiveEditService {
             await _diveRepo.bulkRemoveDiveTypes(ids, diveTypeIds);
           case BulkCollectionMode.replace:
             await _diveRepo.bulkReplaceDiveTypes(ids, diveTypeIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Dive types have no in-place update');
         }
       case EquipmentOp(:final mode, :final equipmentIds):
         switch (mode) {
@@ -248,11 +263,17 @@ class BulkDiveEditService {
             await _diveRepo.bulkRemoveEquipment(ids, equipmentIds);
           case BulkCollectionMode.replace:
             await _diveRepo.bulkReplaceEquipment(ids, equipmentIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Equipment has no in-place update');
         }
-      case BuddiesOp(:final mode, :final buddies):
+      case BuddiesOp(:final mode, :final buddies, :final overwriteRole):
         switch (mode) {
           case BulkCollectionMode.add:
-            await _buddyRepo.bulkAddBuddies(ids, buddies);
+            await _buddyRepo.bulkAddBuddies(
+              ids,
+              buddies,
+              overwriteRole: overwriteRole,
+            );
           case BulkCollectionMode.remove:
             await _buddyRepo.bulkRemoveBuddies(
               ids,
@@ -260,9 +281,17 @@ class BulkDiveEditService {
             );
           case BulkCollectionMode.replace:
             await _buddyRepo.bulkReplaceBuddies(ids, buddies);
+          case BulkCollectionMode.update:
+            // Role-only: rewrite the links each dive already has and insert
+            // nothing, so changing the role of a buddy who is on some of the
+            // selection cannot add them to the rest (#1220). A role change
+            // that SHOULD travel with membership still rides
+            // add + overwriteRole (#893).
+            await _buddyRepo.bulkUpdateBuddyRoles(ids, buddies);
         }
-      // Owned collections support only add/replace; reject remove explicitly
-      // so a misconstructed op fails fast instead of silently doing an add.
+      // Owned collections never support remove; reject it explicitly so a
+      // misconstructed op fails fast instead of silently doing an add. Tanks
+      // additionally support an in-place update, carried by TankSpecsOp.
       case TanksOp(:final mode, :final tanks, :final onlyIfEmpty):
         switch (mode) {
           case BulkCollectionMode.replace:
@@ -273,7 +302,13 @@ class BulkDiveEditService {
             throw UnsupportedError(
               'Tanks support only add/replace, not remove',
             );
+          case BulkCollectionMode.update:
+            // In-place spec edits arrive as TankSpecsOp, which carries the
+            // field mask a plain tank list cannot express.
+            throw UnsupportedError('Use TankSpecsOp to update tanks in place');
         }
+      case TankSpecsOp(:final specs, :final fields):
+        await _diveRepo.bulkUpdateTankSpecs(ids, specs, fields);
       case WeightsOp(:final mode, :final weights):
         switch (mode) {
           case BulkCollectionMode.replace:
@@ -284,6 +319,8 @@ class BulkDiveEditService {
             throw UnsupportedError(
               'Weights support only add/replace, not remove',
             );
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Weights have no in-place update');
         }
       case SightingsOp(:final mode, :final sightings):
         switch (mode) {
@@ -295,6 +332,8 @@ class BulkDiveEditService {
             throw UnsupportedError(
               'Sightings support only add/replace, not remove',
             );
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Sightings have no in-place update');
         }
     }
   }

@@ -25,6 +25,12 @@ class ConnectedAccountsRepository {
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
+  /// Emits whenever the `connected_accounts` table changes so the roster
+  /// providers refresh after a sync or any other write that bypasses the
+  /// notifiers.
+  Stream<void> watchAccountsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.connectedAccounts));
+
   /// Creates an account row. [id] is injectable so migrations can preserve
   /// pre-existing ids (Lightroom connector adoption keys scan state and
   /// suggestion rows on them).

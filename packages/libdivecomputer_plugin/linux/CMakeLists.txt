@@ -127,8 +127,10 @@ set(LIBDC_SOURCES
     ${LIBDC_DIR}/src/serial_posix.c
 )
 
-# Build libdivecomputer as a static library
+# Build libdivecomputer as a static library. It ends up linked into the
+# shared plugin library below, so it must be position-independent.
 add_library(divecomputer STATIC ${LIBDC_SOURCES})
+set_target_properties(divecomputer PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(divecomputer PRIVATE
     ${LIBDC_DIR}/include
     ${LIBDC_DIR}/src

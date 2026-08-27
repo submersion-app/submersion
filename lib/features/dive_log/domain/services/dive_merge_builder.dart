@@ -328,6 +328,7 @@ class DiveMergeBuilder {
       diverRoleId: _firstNonNull(sorted, (d) => d.diverRoleId),
       rating: _firstNonNull(sorted, (d) => d.rating),
       visibility: _firstNonNull(sorted, (d) => d.visibility),
+      visibilityMeters: _firstNonNull(sorted, (d) => d.visibilityMeters),
       waterTemp: _firstNonNull(sorted, (d) => d.waterTemp),
       airTemp: _firstNonNull(sorted, (d) => d.airTemp),
       currentDirection: _firstNonNull(sorted, (d) => d.currentDirection),

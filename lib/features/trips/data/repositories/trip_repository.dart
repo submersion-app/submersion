@@ -85,33 +85,7 @@ class TripRepository {
       ORDER BY start_date DESC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Trip(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        startDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['start_date'] as int,
-        ),
-        endDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['end_date'] as int,
-        ),
-        location: row.data['location'] as String?,
-        resortName: row.data['resort_name'] as String?,
-        liveaboardName: row.data['liveaboard_name'] as String?,
-        notes: (row.data['notes'] as String?) ?? '',
-        tripType: TripType.fromName(
-          (row.data['trip_type'] as String?) ?? 'shore',
-        ),
-        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map((row) => _mapDataToTrip(row.data)).toList();
   }
 
   /// Create a new trip
@@ -136,6 +110,9 @@ class TripRepository {
               notes: Value(trip.notes),
               tripType: Value(trip.tripType.name),
               isShared: Value(trip.isShared),
+              returnFlightAt: Value(
+                trip.returnFlightAt?.millisecondsSinceEpoch,
+              ),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -177,6 +154,8 @@ class TripRepository {
           notes: Value(trip.notes),
           tripType: Value(trip.tripType.name),
           isShared: Value(trip.isShared),
+          // Value(null) writes SQL NULL, so clearing the flight time works.
+          returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
           updatedAt: Value(now),
         ),
       );
@@ -539,7 +518,7 @@ class TripRepository {
     final statsResult = await _db.customSelect('''
       SELECT
         COUNT(*) as dive_count,
-        COALESCE(SUM(bottom_time), 0) as total_bottom_time,
+        COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_depth
       FROM dives
@@ -550,7 +529,7 @@ class TripRepository {
     return domain.TripWithStats(
       trip: trip,
       diveCount: statsResult.data['dive_count'] as int? ?? 0,
-      totalBottomTime: statsResult.data['total_bottom_time'] as int? ?? 0,
+      totalRuntime: statsResult.data['total_runtime'] as int? ?? 0,
       maxDepth: statsResult.data['max_depth'] as double?,
       avgDepth: statsResult.data['avg_depth'] as double?,
     );
@@ -580,31 +559,7 @@ class TripRepository {
 
     if (result == null) return null;
 
-    return domain.Trip(
-      id: result.data['id'] as String,
-      diverId: result.data['diver_id'] as String?,
-      name: result.data['name'] as String,
-      startDate: DateTime.fromMillisecondsSinceEpoch(
-        result.data['start_date'] as int,
-      ),
-      endDate: DateTime.fromMillisecondsSinceEpoch(
-        result.data['end_date'] as int,
-      ),
-      location: result.data['location'] as String?,
-      resortName: result.data['resort_name'] as String?,
-      liveaboardName: result.data['liveaboard_name'] as String?,
-      notes: (result.data['notes'] as String?) ?? '',
-      tripType: TripType.fromName(
-        (result.data['trip_type'] as String?) ?? 'shore',
-      ),
-      isShared: (result.data['is_shared'] as int? ?? 0) != 0,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        result.data['created_at'] as int,
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        result.data['updated_at'] as int,
-      ),
-    );
+    return _mapDataToTrip(result.data);
   }
 
   /// Get all trips with their statistics.
@@ -642,7 +597,7 @@ class TripRepository {
       SELECT
         t.*,
         COUNT(DISTINCT d.id) AS dive_count,
-        COALESCE(SUM(d.bottom_time), 0) AS total_bottom_time,
+        COALESCE(SUM(COALESCE(d.runtime, d.bottom_time)), 0) AS total_runtime,
         MAX(d.max_depth) AS max_depth,
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
@@ -653,35 +608,11 @@ class TripRepository {
     ''', variables: variables).get();
 
     return rows.map((row) {
-      final trip = domain.Trip(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        startDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['start_date'] as int,
-        ),
-        endDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['end_date'] as int,
-        ),
-        location: row.data['location'] as String?,
-        resortName: row.data['resort_name'] as String?,
-        liveaboardName: row.data['liveaboard_name'] as String?,
-        notes: (row.data['notes'] as String?) ?? '',
-        tripType: TripType.fromName(
-          (row.data['trip_type'] as String?) ?? 'shore',
-        ),
-        isShared: (row.data['is_shared'] as int? ?? 0) != 0,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
+      final trip = _mapDataToTrip(row.data);
       return domain.TripWithStats(
         trip: trip,
         diveCount: row.data['dive_count'] as int,
-        totalBottomTime: row.data['total_bottom_time'] as int,
+        totalRuntime: row.data['total_runtime'] as int,
         maxDepth: row.data['max_depth'] as double?,
         avgDepth: row.data['avg_depth'] as double?,
       );
@@ -701,8 +632,45 @@ class TripRepository {
       notes: row.notes,
       tripType: TripType.fromName(row.tripType),
       isShared: row.isShared,
+      // Wall-clock-as-UTC: decode with isUtc so the stored components are
+      // preserved rather than shifted into the device's timezone.
+      returnFlightAt: row.returnFlightAt != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              row.returnFlightAt!,
+              isUtc: true,
+            )
+          : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+    );
+  }
+
+  /// Shared mapper for customSelect rows (searchTrips, findTripForDate,
+  /// getAllTripsWithStats) so a new trips column cannot silently miss one
+  /// of the hand-written sites.
+  domain.Trip _mapDataToTrip(Map<String, Object?> data) {
+    return domain.Trip(
+      id: data['id'] as String,
+      diverId: data['diver_id'] as String?,
+      name: data['name'] as String,
+      startDate: DateTime.fromMillisecondsSinceEpoch(data['start_date'] as int),
+      endDate: DateTime.fromMillisecondsSinceEpoch(data['end_date'] as int),
+      location: data['location'] as String?,
+      resortName: data['resort_name'] as String?,
+      liveaboardName: data['liveaboard_name'] as String?,
+      notes: (data['notes'] as String?) ?? '',
+      tripType: TripType.fromName((data['trip_type'] as String?) ?? 'shore'),
+      isShared: (data['is_shared'] as int? ?? 0) != 0,
+      // Wall-clock-as-UTC: decode with isUtc so the stored components are
+      // preserved rather than shifted into the device's timezone.
+      returnFlightAt: data['return_flight_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              data['return_flight_at'] as int,
+              isUtc: true,
+            )
+          : null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
     );
   }
 }

@@ -36,9 +36,9 @@ class _FakeBackupOp extends StateNotifier<BackupOperationState>
 
 class _FakeSyncInit implements SyncInitializer {
   @override
-  Future<List<CloudFileInfo>> peerSyncFiles(
+  Future<PeerLibraryState> peerLibraryState(
     CloudStorageProvider provider,
-  ) async => const [];
+  ) async => PeerLibraryState.none;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

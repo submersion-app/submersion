@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -132,6 +133,247 @@ void main() {
         expect(Directory(container).existsSync(), isTrue);
       },
     );
+  });
+
+  group('path-based transfers', () {
+    late String containerPath;
+
+    setUp(() {
+      containerPath = p.join(tempDir.path, 'container');
+      Directory(containerPath).createSync(recursive: true);
+    });
+
+    ICloudStorageProvider transferProvider({
+      Future<bool> Function(String source, String destination)? move,
+      Future<bool> Function(String path)? download,
+    }) {
+      return ICloudStorageProvider(
+        platform: ICloudHostPlatform.ios,
+        containerPathLookup: () async => containerPath,
+        containerFileMove:
+            move ??
+            (source, destination) async {
+              File(source).renameSync(destination);
+              return true;
+            },
+        ensureDownloaded: download ?? (path) async => true,
+      );
+    }
+
+    test('uploadFileFromPath copies, moves into the container, and cleans '
+        'the staging file', () async {
+      final src = File(p.join(tempDir.path, 'backup.db'));
+      src.writeAsStringSync('payload');
+
+      final result = await transferProvider().uploadFileFromPath(
+        src.path,
+        'submersion_backup_x.db',
+      );
+
+      expect(File(result.fileId).readAsStringSync(), 'payload');
+      expect(
+        File('${result.fileId}.uploading').existsSync(),
+        isFalse,
+        reason: 'staging sibling must not be left behind',
+      );
+      // The source file is untouched (copied, not moved).
+      expect(src.existsSync(), isTrue);
+    });
+
+    test('uploadFileFromPath cleans the staging file when the coordinated '
+        'move fails', () async {
+      final src = File(p.join(tempDir.path, 'backup.db'));
+      src.writeAsStringSync('payload');
+      final provider = transferProvider(move: (_, _) async => false);
+
+      await expectLater(
+        provider.uploadFileFromPath(src.path, 'submersion_backup_x.db'),
+        throwsA(isA<CloudStorageException>()),
+      );
+
+      final syncDir = Directory(containerPath).listSync(recursive: true);
+      expect(
+        syncDir.whereType<File>().where((f) => f.path.endsWith('.uploading')),
+        isEmpty,
+        reason: 'a failed move must not strand its staging copy',
+      );
+    });
+
+    test('uploadFileFromPath cleans the staging file when the copy itself '
+        'fails', () async {
+      // A missing source makes the staging copy throw before the move ever
+      // runs; the cleanup guard must cover this leg too (a real-world failed
+      // copy — disk full — can leave a partial staging file).
+      final provider = transferProvider(
+        move: (_, _) async => fail('move must not run when the copy fails'),
+      );
+
+      await expectLater(
+        provider.uploadFileFromPath(
+          p.join(tempDir.path, 'does-not-exist.db'),
+          'submersion_backup_x.db',
+        ),
+        throwsA(isA<CloudStorageException>()),
+      );
+
+      final syncDir = Directory(containerPath).listSync(recursive: true);
+      expect(
+        syncDir.whereType<File>().where((f) => f.path.endsWith('.uploading')),
+        isEmpty,
+      );
+    });
+
+    test('downloadToFile materializes and copies the container file', () async {
+      final containerFile = File(p.join(containerPath, 'b.db'))
+        ..writeAsStringSync('bytes');
+      final dest = p.join(tempDir.path, 'restored.db');
+      final downloadedPaths = <String>[];
+      final provider = transferProvider(
+        download: (path) async {
+          downloadedPaths.add(path);
+          return true;
+        },
+      );
+
+      await provider.downloadToFile(containerFile.path, dest);
+
+      expect(File(dest).readAsStringSync(), 'bytes');
+      expect(downloadedPaths, [containerFile.path]);
+    });
+
+    test('downloadToFile throws when the container file is missing', () async {
+      final dest = p.join(tempDir.path, 'restored.db');
+      await expectLater(
+        transferProvider().downloadToFile(
+          p.join(containerPath, 'missing.db'),
+          dest,
+        ),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(File(dest).existsSync(), isFalse);
+    });
+
+    test(
+      'downloadToFile throws when iCloud cannot materialize the file',
+      () async {
+        final containerFile = File(p.join(containerPath, 'b.db'))
+          ..writeAsStringSync('bytes');
+        final dest = p.join(tempDir.path, 'restored.db');
+        final provider = transferProvider(download: (_) async => false);
+
+        await expectLater(
+          provider.downloadToFile(containerFile.path, dest),
+          throwsA(isA<CloudStorageException>()),
+        );
+        expect(File(dest).existsSync(), isFalse);
+      },
+    );
+  });
+
+  group('upload target folder', () {
+    // BackupService resolves 'Submersion Backups' via createFolder and hands
+    // it to the upload as folderId. Every other provider honours that
+    // parameter; iCloud silently dropped it and filed every backup among the
+    // sync files (issue #653).
+    late String containerPath;
+    late List<String> writtenPaths;
+
+    setUp(() {
+      containerPath = p.join(tempDir.path, 'container');
+      Directory(containerPath).createSync(recursive: true);
+      writtenPaths = [];
+    });
+
+    String syncFolderPath() =>
+        p.join(containerPath, CloudStorageProviderMixin.syncFolderName);
+
+    String backupFolderPath() => p.join(containerPath, 'Submersion Backups');
+
+    ICloudStorageProvider uploadProvider() {
+      return ICloudStorageProvider(
+        platform: ICloudHostPlatform.ios,
+        containerPathLookup: () async => containerPath,
+        containerFileMove: (source, destination) async {
+          File(source).renameSync(destination);
+          return true;
+        },
+        containerFileWrite: (path, data) async {
+          writtenPaths.add(path);
+          await File(path).writeAsBytes(data);
+        },
+      );
+    }
+
+    test(
+      'uploadFileFromPath writes into the folder the caller named',
+      () async {
+        Directory(backupFolderPath()).createSync();
+        final src = File(p.join(tempDir.path, 'backup.db'))
+          ..writeAsStringSync('payload');
+
+        final result = await uploadProvider().uploadFileFromPath(
+          src.path,
+          'submersion_backup_x.db',
+          folderId: backupFolderPath(),
+        );
+
+        expect(
+          result.fileId,
+          p.join(backupFolderPath(), 'submersion_backup_x.db'),
+        );
+        expect(File(result.fileId).readAsStringSync(), 'payload');
+        expect(
+          Directory(syncFolderPath()).existsSync(),
+          isFalse,
+          reason: 'a backup upload must not even reach the sync folder',
+        );
+      },
+    );
+
+    test('uploadFileFromPath falls back to the sync folder when the caller '
+        'names none', () async {
+      final src = File(p.join(tempDir.path, 'sync.json'))
+        ..writeAsStringSync('{}');
+
+      final result = await uploadProvider().uploadFileFromPath(
+        src.path,
+        'submersion_sync.json',
+      );
+
+      expect(result.fileId, p.join(syncFolderPath(), 'submersion_sync.json'));
+    });
+
+    test('uploadFile writes into the folder the caller named', () async {
+      Directory(backupFolderPath()).createSync();
+
+      final result = await uploadProvider().uploadFile(
+        Uint8List.fromList([1, 2, 3]),
+        'submersion_backup_x.db',
+        folderId: backupFolderPath(),
+      );
+
+      expect(
+        result.fileId,
+        p.join(backupFolderPath(), 'submersion_backup_x.db'),
+      );
+      expect(writtenPaths, [result.fileId]);
+      expect(
+        Directory(syncFolderPath()).existsSync(),
+        isFalse,
+        reason: 'a backup upload must not even reach the sync folder',
+      );
+    });
+
+    test('uploadFile falls back to the sync folder when the caller names '
+        'none', () async {
+      final result = await uploadProvider().uploadFile(
+        Uint8List.fromList([1, 2, 3]),
+        'submersion_sync.json',
+      );
+
+      expect(result.fileId, p.join(syncFolderPath(), 'submersion_sync.json'));
+      expect(writtenPaths, [result.fileId]);
+    });
   });
 
   group('ICloudHostPlatform', () {

@@ -10,6 +10,11 @@ class OfflineMapRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   static const _uuid = Uuid();
 
+  /// Emits whenever the `cached_regions` table changes so the offline-map
+  /// providers refresh after a download completes or a region is evicted.
+  Stream<void> watchRegionsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.cachedRegions));
+
   /// Get all cached regions.
   Future<List<domain.CachedRegion>> getAllRegions() async {
     final rows = await _db.select(_db.cachedRegions).get();

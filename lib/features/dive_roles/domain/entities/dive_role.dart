@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 /// A per-dive role (built-in or user-defined) from the dive_roles table.
-/// Built-in ids are the legacy BuddyRole enum names; custom ids are UUIDs.
+/// Built-in ids are the historical per-dive role names (buddy, diveGuide,
+/// instructor, student, diveMaster, solo); custom ids are UUIDs.
 class DiveRole extends Equatable {
   final String id;
   final String? diverId;
@@ -52,7 +53,8 @@ class DiveRole extends Equatable {
     return DiveRole(id: slug, name: slug, createdAt: epoch, updatedAt: epoch);
   }
 
-  /// The default role, used where legacy code assumed BuddyRole.buddy.
+  /// The default role, used where legacy code assumed the built-in buddy
+  /// role.
   factory DiveRole.builtInBuddy() {
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
     return DiveRole(

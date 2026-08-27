@@ -196,14 +196,22 @@ class StatisticsProfilePage extends ConsumerWidget {
       subtitle: context.l10n.statistics_profile_deco_subtitle,
       child: decoAsync.when(
         data: (data) {
-          if (data.totalCount == 0) {
+          // The rate is over classified dives only. Dives whose source
+          // recorded no deco data and whose profile cannot be analyzed are
+          // reported separately rather than folded into the no-deco count,
+          // which is what made this card claim 0% for a library of deco
+          // dives (#623).
+          final classified = data.decoCount + data.noDecoCount;
+          if (classified == 0 && data.unknownCount == 0) {
             return StatEmptyState(
               icon: Icons.stop_circle,
               message: context.l10n.statistics_profile_deco_empty,
             );
           }
 
-          final percentage = data.decoCount / data.totalCount * 100;
+          final percentage = classified == 0
+              ? 0.0
+              : data.decoCount / classified * 100;
 
           return Column(
             children: [
@@ -219,7 +227,7 @@ class StatisticsProfilePage extends ConsumerWidget {
                   _buildDecoStat(
                     context,
                     context.l10n.statistics_profile_deco_noDeco,
-                    (data.totalCount - data.decoCount).toString(),
+                    data.noDecoCount.toString(),
                     Colors.green,
                   ),
                   _buildDecoStat(
@@ -230,6 +238,18 @@ class StatisticsProfilePage extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (data.unknownCount > 0) ...[
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.statistics_profile_deco_notRecordedHint(
+                    data.unknownCount,
+                  ),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               Semantics(
                 label: context.l10n.statistics_profile_deco_semanticLabel(
@@ -246,21 +266,26 @@ class StatisticsProfilePage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
+              // The bar paints the deco share in orange from the leading edge
+              // and leaves the no-deco remainder in green, so the legend has
+              // to name them in that order. Row and LinearProgressIndicator
+              // are both direction-aware, which keeps the pairing intact in
+              // RTL locales.
               ExcludeSemantics(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      context.l10n.statistics_profile_deco_noDeco,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
-                    ),
-                    Text(
                       context.l10n.statistics_profile_deco_decoLabel,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.orange),
+                    ),
+                    Text(
+                      context.l10n.statistics_profile_deco_noDeco,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
                     ),
                   ],
                 ),

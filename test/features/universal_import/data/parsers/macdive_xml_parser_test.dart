@@ -32,6 +32,47 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.dives).length, 1);
     });
 
+    // #912: the reader has always parsed <types>, but the parser dropped it,
+    // so every MacDive XML dive imported as "recreational".
+    test('maps <types> onto dive type ids', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+
+      final types = payload.entitiesOf(ImportEntityType.diveTypes);
+      expect(types.map((t) => t['id']), containsAll(['shore', 'aquarium']));
+      // "Shore" slugs onto the built-in id; "Aquarium" becomes a custom type
+      // carrying MacDive's own label.
+      expect(
+        types.firstWhere((t) => t['id'] == 'aquarium')['name'],
+        'Aquarium',
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveTypeIds'], containsAll(['shore', 'aquarium']));
+    });
+
+    // #912: the operator was written to a free-text column and never became
+    // a dive center.
+    test('maps <diveOperator> onto a dive center and a per-dive ref', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+
+      final centers = payload.entitiesOf(ImportEntityType.diveCenters);
+      expect(centers, hasLength(1));
+      expect(centers.single['name'], 'Test Operator');
+      expect(centers.single['uddfId'], 'Test Operator');
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['diveCenterRef'], 'Test Operator');
+      // The free-text column is still populated for round-tripping.
+      expect(dive['diveOperator'], 'Test Operator');
+    });
+
+    test('emits decoAlgorithm, the key the importer reads', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      // Emitting only `decoModel` dropped it silently on every import.
+      expect(dive.containsKey('decoModel'), isFalse);
+    });
+
     test('produces one site, one buddy, one equipment, two tags', () async {
       final payload = await const MacDiveXmlParser().parse(bytes);
       expect(payload.entitiesOf(ImportEntityType.sites).length, 1);
@@ -197,6 +238,50 @@ void main() {
       // dive's entryMethod at its default, rather than writing a garbage
       // value.
       expect(dive.containsKey('entryMethod'), isFalse);
+    });
+
+    // #1135: MacDive's native XML exporter never writes certification or
+    // service-record elements, even when the library has them. Verified
+    // against a 540-dive export whose MacDive.sqlite held 4 certifications
+    // and 1 service record while the XML held neither. Nothing can be parsed
+    // out of the file, so the parser says so rather than leaving the diver to
+    // wonder why their cards never arrived.
+    test('warns that MacDive XML omits certifications and service '
+        'records', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+
+      final notices = payload.warnings
+          .where((w) => w.severity == ImportWarningSeverity.info)
+          .where((w) => w.message.contains('certifications'))
+          .toList();
+      expect(notices, hasLength(1));
+
+      final message = notices.single.message;
+      expect(message, contains('service records'));
+      expect(
+        message,
+        contains('MacDive.sqlite'),
+        reason: 'the notice must name the export that does carry them',
+      );
+      expect(
+        payload.entitiesOf(ImportEntityType.certifications),
+        isEmpty,
+        reason: 'the notice explains an absence, it does not invent entities',
+      );
+    });
+
+    test('omits the format notice when the file has no dives', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema></dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      expect(
+        payload.warnings.where((w) => w.message.contains('certifications')),
+        isEmpty,
+        reason: 'an empty logbook has no import for the notice to qualify',
+      );
     });
   });
 

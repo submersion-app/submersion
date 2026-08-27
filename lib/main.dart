@@ -6,8 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/network/trusted_http_overrides.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/app.dart';
@@ -15,8 +17,6 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
-import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 // main() and the _bootstrap signature are untestable startup wiring (they
 // never run under test); the zone-error logging is unit-tested via
@@ -74,6 +74,11 @@ Future<void> _bootstrap() async {
   final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
   if (debugEnabled) {
     LoggerService.setFileService(logFileService);
+    // Stamp the build and device at the top of the session so a log file that
+    // spans several app versions attributes each run to the build that wrote
+    // it (issue #1246). Not awaited: startup must not block on a platform
+    // channel, and the write is serialized behind LoggerService's queue.
+    unawaited(logSessionEnvironment());
   }
 
   // Create location service and get storage config
@@ -128,10 +133,10 @@ class SubmersionRestart extends StatelessWidget {
       builder: (context, key, _) {
         return ProviderScope(
           key: key,
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            logFileServiceProvider.overrideWithValue(logFileService),
-          ],
+          overrides: rootProviderOverrides(
+            prefs: prefs,
+            logFileService: logFileService,
+          ).cast(),
           child: const SubmersionApp(),
         );
       },

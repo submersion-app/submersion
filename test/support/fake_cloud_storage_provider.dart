@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -8,6 +9,12 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 /// just-written file invisible to listFiles for N calls) to exercise the
 /// eventual-consistency / transient-missing paths in later phases.
 class FakeCloudStorageProvider implements CloudStorageProvider {
+  /// When set, uploads beyond this many calls throw. Models an app killed or a
+  /// connection dropped in the middle of a large base publish.
+  int? failUploadsAfter;
+
+  /// Total uploadFile calls, including the ones that threw.
+  int uploadCount = 0;
   FakeCloudStorageProvider({this.providerId = 's3', this.listLagCalls = 0});
 
   @override
@@ -21,6 +28,7 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
   final Map<String, Uint8List> _files = {};
   final Map<String, int> _modified = {};
   final Map<String, int> _visibleAfterCall = {};
+  final List<String> _downloaded = [];
   int _clock = 0;
   int _listCalls = 0;
 
@@ -55,6 +63,15 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     String filename, {
     String? folderId,
   }) async {
+    // Counted BEFORE the guard: `&&` short-circuits, so folding the increment
+    // into the condition only counted uploads while a failure was being
+    // simulated, contradicting this counter's contract (PR #1033 review).
+    uploadCount++;
+    // Models an upload dying partway through a multi-part base: the parts
+    // before the cut land, everything after throws (issue #1032 resume tests).
+    if (failUploadsAfter != null && uploadCount > failUploadsAfter!) {
+      throw const CloudStorageException('upload interrupted (test)');
+    }
     final key = _key(folderId, filename);
     _files[key] = Uint8List.fromList(data);
     _modified[key] = ++_clock;
@@ -76,7 +93,31 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     if (data == null) {
       throw CloudStorageException('Fake: not found: $fileId');
     }
+    _downloaded.add(fileId.substring(fileId.lastIndexOf('/') + 1));
     return Uint8List.fromList(data);
+  }
+
+  /// Names (final path segment) downloaded since the last [resetDownloadLog],
+  /// so a test can assert what a sync actually pulled over the wire -- the
+  /// difference between an incremental sync and a full re-download.
+  List<String> get downloadedNames => List.unmodifiable(_downloaded);
+
+  void resetDownloadLog() => _downloaded.clear();
+
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    final data = await File(sourcePath).readAsBytes();
+    return uploadFile(data, filename, folderId: folderId);
+  }
+
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    final bytes = await downloadFile(fileId);
+    await File(destinationPath).writeAsBytes(bytes, flush: true);
   }
 
   @override

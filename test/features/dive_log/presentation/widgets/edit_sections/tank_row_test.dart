@@ -20,7 +20,7 @@ const _testTank = DiveTank(
   gasMix: GasMix(o2: 32),
 );
 
-Future<void> _pump(WidgetTester tester) async {
+Future<void> _pump(WidgetTester tester, {DiveTank tank = _testTank}) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
     ProviderScope(
@@ -29,13 +29,17 @@ Future<void> _pump(WidgetTester tester) async {
         customTankPresetsProvider.overrideWith((ref) async => []),
       ],
       child: MaterialApp(
+        // Pinned: flutter_test forwards the host machine's locale list, so an
+        // unpinned MaterialApp translates "Tank 1" and "Done" out from under
+        // the finders on a non-English dev machine.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
             child: Material(
               child: TankRow(
-                tank: _testTank,
+                tank: tank,
                 tankNumber: 1,
                 units: const UnitFormatter(AppSettings()),
                 onChanged: (_) {},
@@ -65,6 +69,30 @@ void main() {
     // The old hero cells are gone.
     expect(find.text('PRESSURE'), findsNothing);
     expect(find.text('Edit'), findsNothing);
+  });
+
+  testWidgets('collapsed: subtitle keeps a fractional tank size intact', (
+    tester,
+  ) async {
+    // Regression for #955: a 1.5 L stage rendered as "2 L", which is
+    // indistinguishable from the 2 L bottle many divers carry alongside it.
+    await _pump(
+      tester,
+      tank: _testTank.copyWith(volume: 1.5, workingPressure: 200),
+    );
+    expect(find.textContaining('1.5 L'), findsOneWidget);
+    expect(find.textContaining('2 L'), findsNothing);
+  });
+
+  testWidgets('collapsed: subtitle drops the trailing zero on whole sizes', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      tank: _testTank.copyWith(volume: 12, workingPressure: 232),
+    );
+    expect(find.textContaining('12 L'), findsOneWidget);
+    expect(find.textContaining('12.0 L'), findsNothing);
   });
 
   testWidgets('tap expands inline editor; Done collapses', (tester) async {

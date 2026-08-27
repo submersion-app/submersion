@@ -31,6 +31,7 @@ class ComparedPlan {
 final planComparisonProvider =
     FutureProvider.family<List<ComparedPlan>, String>((ref, joinedIds) async {
       final repository = ref.watch(divePlanRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchPlanChanges());
       final config = ref.watch(planEngineConfigProvider);
       final engine = PlanEngine(config: config);
 

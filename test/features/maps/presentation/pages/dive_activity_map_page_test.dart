@@ -54,8 +54,8 @@ void main() {
           ...base,
           sitesWithCountsProvider.overrideWith(
             (ref) async => [
-              SiteWithDiveCount(site: site, diveCount: 3),
-              SiteWithDiveCount(site: site2, diveCount: 1),
+              const SiteWithDiveCount(site: site, diveCount: 3),
+              const SiteWithDiveCount(site: site2, diveCount: 1),
             ],
           ),
           sortedFilteredDivesProvider.overrideWithValue(

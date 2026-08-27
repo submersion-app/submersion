@@ -32,6 +32,17 @@ class StorageVolumeChooserDialog extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
+        // Neither volume is cloud-synced and Android cannot offer one for
+        // the live database, so name the surface that DOES reach a synced
+        // folder instead of leaving the user to assume the app is broken
+        // (#311).
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+          child: Text(
+            context.l10n.db_location_backup_note,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
       ],
     );
   }

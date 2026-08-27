@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
 /// Enumeration of every displayable field for the course table view.
@@ -47,6 +48,35 @@ enum CourseField implements EntityField {
     CourseField.location => 'Location',
     CourseField.isCompleted => 'Done',
     CourseField.notes => 'Notes',
+  };
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    CourseField.courseName => l10n.enum_courseField_courseName,
+    CourseField.agency => l10n.enum_courseField_agency,
+    CourseField.startDate => l10n.enum_courseField_startDate,
+    CourseField.completionDate => l10n.enum_courseField_completionDate,
+    CourseField.durationDays => l10n.enum_courseField_durationDays,
+    CourseField.instructorName => l10n.enum_courseField_instructorName,
+    CourseField.instructorNumber => l10n.enum_courseField_instructorNumber,
+    CourseField.location => l10n.enum_courseField_location,
+    CourseField.isCompleted => l10n.enum_courseField_isCompleted,
+    CourseField.notes => l10n.enum_courseField_notes,
+  };
+
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    CourseField.courseName => l10n.enum_courseField_courseName_short,
+    CourseField.agency => l10n.enum_courseField_agency_short,
+    CourseField.startDate => l10n.enum_courseField_startDate_short,
+    CourseField.completionDate => l10n.enum_courseField_completionDate_short,
+    CourseField.durationDays => l10n.enum_courseField_durationDays_short,
+    CourseField.instructorName => l10n.enum_courseField_instructorName_short,
+    CourseField.instructorNumber =>
+      l10n.enum_courseField_instructorNumber_short,
+    CourseField.location => l10n.enum_courseField_location_short,
+    CourseField.isCompleted => l10n.enum_courseField_isCompleted_short,
+    CourseField.notes => l10n.enum_courseField_notes_short,
   };
 
   @override

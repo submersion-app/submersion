@@ -18,6 +18,10 @@ class SceneBounds {
   static const double zHalfWidth = 0.09;
   static const double zSlabHalfWidth = 1.0;
 
+  /// Half of the Z span the single-dive path scene uses when a metric is on
+  /// the Z axis. The compare/career slab width stays at [zSlabHalfWidth].
+  static const double zPathHalfSpan = 2.5;
+
   const SceneBounds({
     required this.durationSeconds,
     required this.maxDepthMeters,

@@ -6,6 +6,7 @@ import 'package:submersion/features/dashboard/presentation/providers/milestone_p
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -90,9 +91,11 @@ void main() {
   group('milestonesProvider', () {
     late ProviderContainer container;
     var totalDives = 0;
+    int? priorDives;
     var certs = <Certification>[];
 
     setUp(() {
+      priorDives = null;
       container = ProviderContainer(
         overrides: [
           currentDiverIdProvider.overrideWith(
@@ -110,6 +113,15 @@ void main() {
               totalSites: 0,
             ),
           ),
+          currentDiverProvider.overrideWith(
+            (ref) async => Diver(
+              id: '1',
+              name: 'Eric Griffin',
+              priorDiveCount: priorDives,
+              createdAt: DateTime(2026, 1, 1),
+              updatedAt: DateTime(2026, 1, 1),
+            ),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -121,6 +133,28 @@ void main() {
 
       expect(milestones.nextMilestone, 250);
       expect(milestones.divesRemaining, 3);
+      expect(milestones.isEmpty, isFalse);
+    });
+
+    test('counts prior dives toward the next milestone (#808)', () async {
+      totalDives = 30;
+      priorDives = 480;
+
+      final milestones = await container.read(milestonesProvider.future);
+
+      // 510 combined, not the 30 logged in-app.
+      expect(milestones.nextMilestone, 1000);
+      expect(milestones.divesRemaining, 490);
+    });
+
+    test('prior dives alone produce a milestone with nothing logged', () async {
+      totalDives = 0;
+      priorDives = 240;
+
+      final milestones = await container.read(milestonesProvider.future);
+
+      expect(milestones.nextMilestone, 250);
+      expect(milestones.divesRemaining, 10);
       expect(milestones.isEmpty, isFalse);
     });
 

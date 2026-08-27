@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -174,6 +175,106 @@ void main() {
     );
   });
 
+  group('path-based transfers', () {
+    late Directory tempDir;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('enc_provider_test_');
+    });
+
+    tearDown(() async {
+      await tempDir.delete(recursive: true);
+    });
+
+    test('uploadFileFromPath seals non-exempt files; downloadToFile '
+        'round-trips plaintext', () async {
+      final src = File('${tempDir.path}/src.json');
+      await src.writeAsString('{"cs":1}');
+
+      final up = await provider.uploadFileFromPath(
+        src.path,
+        'ssv1.devA.cs.00001.json',
+      );
+      // At rest (inner fake) the bytes must be an envelope:
+      final atRest = await inner.downloadFile(up.fileId);
+      expect(SyncEnvelope.hasMagic(atRest), isTrue);
+
+      // Through the decorator the file lands as plaintext:
+      final dest = File('${tempDir.path}/dest.json');
+      await provider.downloadToFile(up.fileId, dest.path);
+      expect(await dest.readAsString(), '{"cs":1}');
+    });
+
+    test('uploadFileFromPath streams exempt backups through untouched '
+        '(never buffers into an envelope)', () async {
+      final framed = Uint8List.fromList([
+        ...SyncEnvelope.magic,
+        ...List<int>.filled(64, 7),
+      ]);
+      final src = File('${tempDir.path}/backup.sbe');
+      await src.writeAsBytes(framed);
+
+      final up = await provider.uploadFileFromPath(
+        src.path,
+        'submersion_backup_2026-08-05.sbe',
+      );
+      final atRest = await inner.downloadFile(up.fileId);
+      expect(atRest, framed, reason: 'exempt artifact must pass through raw');
+    });
+
+    test('downloadToFile passes framed backups through untouched', () async {
+      final framed = Uint8List.fromList([
+        ...SyncEnvelope.magic,
+        ...List<int>.filled(64, 7),
+      ]);
+      final up = await inner.uploadFile(
+        framed,
+        'submersion_backup_2026-08-05.sbe',
+      );
+      await provider.listFiles(namePattern: 'submersion_backup_');
+
+      final dest = File('${tempDir.path}/restored.sbe');
+      await provider.downloadToFile(up.fileId, dest.path);
+      expect(
+        await dest.readAsBytes(),
+        framed,
+        reason: 'exempt artifact must not be decrypted',
+      );
+    });
+
+    test('downloadToFile passes plaintext files through untouched', () async {
+      final up = await inner.uploadFile(
+        bytesOf('{"legacy":true}'),
+        'submersion_library_epoch.json',
+      );
+      final dest = File('${tempDir.path}/epoch.json');
+      await provider.downloadToFile(up.fileId, dest.path);
+      expect(await dest.readAsString(), '{"legacy":true}');
+    });
+
+    test('downloadToFile deletes the file when the name is unresolvable '
+        '(never leaves ciphertext behind)', () async {
+      final sealed = await SyncEnvelope.seal(
+        plaintext: bytesOf('{"x":1}'),
+        dataKey: dataKey,
+        libraryKeyId: _keyId,
+        filename: 'ssv1.devA.cs.9.json',
+      );
+      final nameless = _NamelessProvider(sealed);
+      final wrapped = EncryptingCloudStorageProvider(
+        nameless,
+        dataKey: dataKey,
+        libraryKeyId: _keyId,
+      );
+      final dest = File('${tempDir.path}/leaky.json');
+      await expectLater(
+        wrapped.downloadToFile('whatever', dest.path),
+        throwsA(isA<EnvelopeCorruptException>()),
+      );
+      expect(await dest.exists(), isFalse);
+    });
+  });
+
   test(
     'download throws when an encrypted file has no resolvable name',
     () async {
@@ -208,6 +309,11 @@ class _NamelessProvider extends Fake implements CloudStorageProvider {
 
   @override
   Future<Uint8List> downloadFile(String fileId) async => _bytes;
+
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    await File(destinationPath).writeAsBytes(_bytes, flush: true);
+  }
 
   @override
   Future<CloudFileInfo?> getFileInfo(String fileId) async => null;

@@ -3,9 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/statistics/domain/career_totals.dart';
+import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -15,13 +16,16 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// At desktop widths (>=800) the app logo anchors left and subdued
 /// lifetime stats fill the center; on phones the header keeps the
 /// compact greeting + headline stats layout.
+///
+/// Dive and time totals come from [careerTotalsProvider], so they include the
+/// diver's pre-app logbook and agree with the Statistics overview (issue #808).
 class HeroHeader extends ConsumerWidget {
   const HeroHeader({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diverAsync = ref.watch(dashboardDiverProvider);
-    final statsAsync = ref.watch(diveStatisticsProvider);
+    final careerAsync = ref.watch(careerTotalsProvider);
     final theme = Theme.of(context);
     final isDesktop = ResponsiveBreakpoints.isDesktop(context);
 
@@ -90,14 +94,14 @@ class HeroHeader extends ConsumerWidget {
                       )
                     else
                       // Headline stats (phone)
-                      statsAsync.when(
-                        data: (stats) {
+                      careerAsync.when(
+                        data: (career) {
                           final screenWidth = MediaQuery.sizeOf(context).width;
                           final isNarrow = screenWidth < 600;
                           return Text(
                             _buildHeadlineStats(
                               context,
-                              stats,
+                              career,
                               isNarrow: isNarrow,
                             ),
                             style: theme.textTheme.bodyLarge?.copyWith(
@@ -149,26 +153,39 @@ class HeroHeader extends ConsumerWidget {
 
   String _buildHeadlineStats(
     BuildContext context,
-    DiveStatistics stats, {
+    CareerTotals career, {
     bool isNarrow = false,
   }) {
-    if (stats.totalDives == 0) return context.l10n.dashboard_hero_noDives;
+    final dives = career.combinedDives;
+    if (dives == 0) return context.l10n.dashboard_hero_noDives;
 
     final parts = <String>[];
 
-    final diveText = stats.totalDives == 1
-        ? context.l10n.dashboard_hero_divesLoggedOne
-        : context.l10n.dashboard_hero_divesLoggedOther(stats.totalDives);
+    // "N dives logged" would misdescribe a total that includes the diver's
+    // prior offset -- those dives are precisely the ones NOT logged in-app, and
+    // the Statistics breakdown reserves "logged" for the in-app count. Divers
+    // without prior experience keep the original copy.
+    final String diveText;
+    if (career.hasPriorDives) {
+      diveText = dives == 1
+          ? context.l10n.dashboard_hero_divesTotalOne
+          : context.l10n.dashboard_hero_divesTotalOther(dives);
+    } else {
+      diveText = dives == 1
+          ? context.l10n.dashboard_hero_divesLoggedOne
+          : context.l10n.dashboard_hero_divesLoggedOther(dives);
+    }
     parts.add(diveText);
 
-    final hours = stats.totalTimeSeconds / 3600;
+    final totalTimeSeconds = career.combinedTimeSeconds;
+    final hours = totalTimeSeconds / 3600;
     if (hours >= 1) {
       final hoursStr = hours < 10
           ? hours.toStringAsFixed(1)
           : hours.round().toString();
       parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
-    } else if (stats.totalTimeSeconds > 0) {
-      final minutes = stats.totalTimeSeconds ~/ 60;
+    } else if (totalTimeSeconds > 0) {
+      final minutes = totalTimeSeconds ~/ 60;
       parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
     }
 
@@ -184,19 +201,26 @@ class _QuietStats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(diveStatisticsProvider);
+    final careerAsync = ref.watch(careerTotalsProvider);
     final quickAsync = ref.watch(dashboardQuickStatsProvider);
-    final stats = statsAsync.valueOrNull;
-    if (stats == null || stats.totalDives == 0) {
+    final career = careerAsync.valueOrNull;
+    if (career == null || career.combinedDives == 0) {
       return const SizedBox.shrink();
     }
+    // Sites stay logged-only: the prior-experience offset records dives and
+    // time, not the distinct sites behind them.
+    final totalSites = ref
+        .watch(diveStatisticsProvider)
+        .valueOrNull
+        ?.totalSites;
     final countries = quickAsync.valueOrNull?.countriesVisited ?? 0;
-    final hours = (stats.totalTimeSeconds / 3600).round();
+    final hours = (career.combinedTimeSeconds / 3600).round();
 
     final items = <(String, String)>[
-      ('${stats.totalDives}', context.l10n.dashboard_hero_statDives),
+      ('${career.combinedDives}', context.l10n.dashboard_hero_statDives),
       ('$hours', context.l10n.dashboard_hero_statHours),
-      ('${stats.totalSites}', context.l10n.dashboard_hero_statSites),
+      if (totalSites != null)
+        ('$totalSites', context.l10n.dashboard_hero_statSites),
       if (countries > 0)
         ('$countries', context.l10n.dashboard_hero_statCountries),
     ];

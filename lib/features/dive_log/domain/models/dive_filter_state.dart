@@ -16,7 +16,29 @@ class DiveFilterState {
   final double? minDepth;
   final double? maxDepth;
   final bool? favoritesOnly;
+
+  /// Decompression status, derived from the recorded profile signal: a
+  /// deco-stop profile point, a `decoStopStart` event, or a positive ceiling
+  /// on a profile carrying no deco-type data at all (mirroring
+  /// `scanRecordedDecoSignals` in StatisticsRepository). Null means no filter;
+  /// true/false restrict to deco/no-deco dives. Dives whose status is
+  /// unrecorded (no profile, or a profile needing the computed fallback)
+  /// match neither.
+  ///
+  /// This axis is SQL-only. It is applied by `decoSignalCondition` in the
+  /// query paths and deliberately NOT by [apply]; see the note there.
+  final bool? decoOnly;
+
+  /// True to restrict the list to dives with no buddy assigned: neither the
+  /// legacy free-text `buddy` field nor a linked buddy is set.
+  final bool? noBuddyOnly;
   final List<String> tagIds;
+
+  /// Restricts results to dives whose [Dive.dateTime] falls on one of these
+  /// weekdays, using [DateTime.weekday] numbering (1 = Monday, 7 = Sunday).
+  /// ANDs with [startDate]/[endDate] when both are set, like every other
+  /// axis in this filter.
+  final List<int> weekdays;
 
   // v1.5: Additional filter criteria
   final List<String> equipmentIds;
@@ -28,7 +50,14 @@ class DiveFilterState {
   final int? minRating;
   final int? minBottomTimeMinutes;
   final int? maxBottomTimeMinutes;
-  final String? computerSerial;
+
+  /// Registered dive computer to restrict the list to, matched on
+  /// `dives.computer_id`.
+  ///
+  /// Keyed on the computer id rather than its serial number: firmware often
+  /// reports no serial, which used to leave those computers unfilterable
+  /// (issue #1064).
+  final String? computerId;
   final String? customFieldKey;
   final String? customFieldValue;
 
@@ -49,7 +78,10 @@ class DiveFilterState {
     this.minDepth,
     this.maxDepth,
     this.favoritesOnly,
+    this.decoOnly,
+    this.noBuddyOnly,
     this.tagIds = const [],
+    this.weekdays = const [],
     this.equipmentIds = const [],
     this.buddyNameFilter,
     this.buddyId,
@@ -59,7 +91,7 @@ class DiveFilterState {
     this.minRating,
     this.minBottomTimeMinutes,
     this.maxBottomTimeMinutes,
-    this.computerSerial,
+    this.computerId,
     this.customFieldKey,
     this.customFieldValue,
     this.equipmentAttrKey,
@@ -78,7 +110,10 @@ class DiveFilterState {
       minDepth != null ||
       maxDepth != null ||
       favoritesOnly == true ||
+      decoOnly != null ||
+      noBuddyOnly == true ||
       tagIds.isNotEmpty ||
+      weekdays.isNotEmpty ||
       equipmentIds.isNotEmpty ||
       (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
       buddyId != null ||
@@ -88,7 +123,7 @@ class DiveFilterState {
       minRating != null ||
       minBottomTimeMinutes != null ||
       maxBottomTimeMinutes != null ||
-      computerSerial != null ||
+      computerId != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty) ||
       equipmentAttrKey != null;
 
@@ -102,7 +137,10 @@ class DiveFilterState {
     double? minDepth,
     double? maxDepth,
     bool? favoritesOnly,
+    bool? decoOnly,
+    bool? noBuddyOnly,
     List<String>? tagIds,
+    List<int>? weekdays,
     List<String>? equipmentIds,
     String? buddyNameFilter,
     String? buddyId,
@@ -112,7 +150,7 @@ class DiveFilterState {
     int? minRating,
     int? minBottomTimeMinutes,
     int? maxBottomTimeMinutes,
-    String? computerSerial,
+    String? computerId,
     String? customFieldKey,
     String? customFieldValue,
     String? equipmentAttrKey,
@@ -128,7 +166,10 @@ class DiveFilterState {
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
     bool clearFavoritesOnly = false,
+    bool clearDecoOnly = false,
+    bool clearNoBuddyOnly = false,
     bool clearTagIds = false,
+    bool clearWeekdays = false,
     bool clearEquipmentIds = false,
     bool clearBuddyNameFilter = false,
     bool clearBuddyId = false,
@@ -138,7 +179,7 @@ class DiveFilterState {
     bool clearMinRating = false,
     bool clearMinBottomTimeMinutes = false,
     bool clearMaxBottomTimeMinutes = false,
-    bool clearComputerSerial = false,
+    bool clearComputerId = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
     bool clearEquipmentAttr = false,
@@ -157,7 +198,10 @@ class DiveFilterState {
       favoritesOnly: clearFavoritesOnly
           ? null
           : (favoritesOnly ?? this.favoritesOnly),
+      decoOnly: clearDecoOnly ? null : (decoOnly ?? this.decoOnly),
+      noBuddyOnly: clearNoBuddyOnly ? null : (noBuddyOnly ?? this.noBuddyOnly),
       tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
+      weekdays: clearWeekdays ? const [] : (weekdays ?? this.weekdays),
       equipmentIds: clearEquipmentIds
           ? const []
           : (equipmentIds ?? this.equipmentIds),
@@ -179,9 +223,7 @@ class DiveFilterState {
       maxBottomTimeMinutes: clearMaxBottomTimeMinutes
           ? null
           : (maxBottomTimeMinutes ?? this.maxBottomTimeMinutes),
-      computerSerial: clearComputerSerial
-          ? null
-          : (computerSerial ?? this.computerSerial),
+      computerId: clearComputerId ? null : (computerId ?? this.computerId),
       customFieldKey: clearCustomFieldKey
           ? null
           : (customFieldKey ?? this.customFieldKey),
@@ -211,6 +253,13 @@ class DiveFilterState {
   /// buildFilteredDiveIdSubquery), so non-paginated views stay consistent with
   /// the SQL-backed list. It relies on dive.equipment being hydrated with its
   /// curated attributes (getAllDives does this).
+  ///
+  /// [decoOnly] is the one axis this method does NOT apply. getAllDives skips
+  /// profile hydration for list views and deco-stop events never reach the
+  /// entity, so there is nothing here to classify a dive from; evaluating it
+  /// anyway would silently match no dive at all. Callers that honour the deco
+  /// axis intersect this result with `decoFilteredDiveIdsProvider`, which
+  /// resolves it through the same SQL condition the paginated list uses.
   List<Dive> apply(List<Dive> dives) {
     return dives.where((dive) {
       if (startDate != null && dive.dateTime.isBefore(startDate!)) {
@@ -249,20 +298,37 @@ class DiveFilterState {
       if (favoritesOnly == true && !dive.isFavorite) {
         return false;
       }
+      if (noBuddyOnly == true) {
+        final hasLegacyBuddy = dive.buddy != null && dive.buddy!.isNotEmpty;
+        if (hasLegacyBuddy || dive.buddies.isNotEmpty) {
+          return false;
+        }
+      }
       if (tagIds.isNotEmpty) {
         final diveTagIds = dive.tags.map((t) => t.id).toSet();
         if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
           return false;
         }
       }
+      if (weekdays.isNotEmpty && !weekdays.contains(dive.dateTime.weekday)) {
+        return false;
+      }
       if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
-        final query = buddyNameFilter!.toLowerCase();
-        final matchesLegacy = (dive.buddy?.toLowerCase() ?? '').contains(query);
-        final matchesJunction = dive.buddies.any(
-          (b) => b.buddy.name.toLowerCase().contains(query),
-        );
-        if (!matchesLegacy && !matchesJunction) {
-          return false;
+        final filters = buddyNameFilter!
+            .split(',')
+            .map((s) => s.trim().toLowerCase())
+            .where((s) => s.isNotEmpty)
+            .toList();
+
+        for (final filterLower in filters) {
+          final legacyBuddyText = dive.buddy?.toLowerCase() ?? '';
+          final hasLegacyMatch = legacyBuddyText.contains(filterLower);
+          final hasLinkedBuddyMatch = dive.buddies.any(
+            (b) => b.buddy.name.toLowerCase().contains(filterLower),
+          );
+          if (!hasLegacyMatch && !hasLinkedBuddyMatch) {
+            return false;
+          }
         }
       }
       if (diveIds.isNotEmpty && !diveIds.contains(dive.id)) {
@@ -282,7 +348,7 @@ class DiveFilterState {
         if (dive.rating == null || dive.rating! < minRating!) return false;
       }
       if (minBottomTimeMinutes != null || maxBottomTimeMinutes != null) {
-        final durationMinutes = dive.bottomTime?.inMinutes;
+        final durationMinutes = (dive.bottomTime)?.inMinutes;
         if (durationMinutes == null) return false;
         if (minBottomTimeMinutes != null &&
             durationMinutes < minBottomTimeMinutes!) {
@@ -293,8 +359,8 @@ class DiveFilterState {
           return false;
         }
       }
-      if (computerSerial != null) {
-        if (dive.diveComputerSerial != computerSerial) return false;
+      if (computerId != null) {
+        if (dive.computerId != computerId) return false;
       }
       if (customFieldKey != null && customFieldKey!.isNotEmpty) {
         final hasMatch = dive.customFields.any((cf) {

@@ -8,6 +8,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -37,6 +38,15 @@ final metricSourceInfoProvider = StateProvider<MetricSourceInfo?>(
 final diveComputerEventsProvider =
     FutureProvider.family<List<ProfileEvent>, String>((ref, diveId) async {
       final repository = ref.watch(diveComputerRepositoryProvider);
+      // The analysis-input tick, not the broad detail tick: every
+      // profileAnalysisProvider watches this provider, so its invalidation
+      // re-runs the whole Buhlmann chain. The detail tick fired for media
+      // and 15 other tables this query never reads -- and, being built
+      // before dive_profile_events existed, never fired for the one table
+      // it DOES read.
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+      );
       final dbEvents = await repository.getEventsForDive(diveId);
       return dbEvents.map(mapDiveProfileEventToProfileEvent).toList();
     });
@@ -350,26 +360,36 @@ List<AvailableGas> buildAvailableGases(
 
 /// Creates a ProfileAnalysisService using dive-specific GF and environment
 /// (altitude, water type) when available, falling back to user settings.
+///
+/// [recordedAlgorithm] is the dive's own `decoAlgorithm`. It changes no
+/// calculation -- the app always decompresses with Buhlmann-GF -- but it
+/// travels with the resolved [GradientFactorSource] so a display can say that
+/// a dive computed on, say, VPM was analyzed here with the diver's gradient
+/// factors instead (#1047).
 ProfileAnalysisService _resolveAnalysisService(
   Ref ref,
   int? gradientFactorLow,
   int? gradientFactorHigh, {
   DiveEnvironment environment = DiveEnvironment.standard,
+  String? recordedAlgorithm,
 }) {
-  if (gradientFactorLow == null &&
-      gradientFactorHigh == null &&
-      environment == DiveEnvironment.standard) {
+  final gfSource = GradientFactorSource.resolve(
+    diveGfLow: gradientFactorLow,
+    diveGfHigh: gradientFactorHigh,
+    settingsGfLow: ref.watch(gfLowProvider),
+    settingsGfHigh: ref.watch(gfHighProvider),
+    recordedAlgorithm: recordedAlgorithm,
+  );
+  // The shared, settings-configured service already stamps exactly this
+  // source -- the diver's own gradient factors with no dive-recorded model to
+  // name -- so reuse it rather than building a per-dive copy.
+  if (environment == DiveEnvironment.standard &&
+      gfSource.isFromDiverSettings &&
+      gfSource.recordedAlgorithm == null) {
     return ref.watch(profileAnalysisServiceProvider);
   }
-  final gfLow = gradientFactorLow != null && gradientFactorHigh != null
-      ? (gradientFactorLow / 100.0).clamp(0.0, 1.0)
-      : ref.watch(gfLowProvider) / 100.0;
-  final gfHigh = gradientFactorLow != null && gradientFactorHigh != null
-      ? (gradientFactorHigh / 100.0).clamp(0.0, 1.0)
-      : ref.watch(gfHighProvider) / 100.0;
   return ProfileAnalysisService(
-    gfLow: gfLow,
-    gfHigh: gfHigh,
+    gfSource: gfSource,
     ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
     ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
     cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
@@ -436,6 +456,7 @@ ProfileAnalysisService _resolveAnalysisService(
   final resolvedPpO2 = resolved?.curve;
   final o2SensorCurves = resolved?.sensorCurves;
   final ppO2FromSensorAverage = resolved?.fromSensorAverage ?? false;
+  final o2CellMvCurves = resolveO2CellMvCurves(profile);
 
   // Report actual source used (fallback to calculated if no data)
   final sourceInfo = (
@@ -456,6 +477,11 @@ ProfileAnalysisService _resolveAnalysisService(
       !useTts &&
       !useCns &&
       resolvedPpO2 == null) {
+    // Millivolts stand alone: a dive can carry them with no ppO2, cells or
+    // setpoint to overlay, and they must not be dropped on this path (#810).
+    if (o2CellMvCurves != null) {
+      return (analysis.copyWith(o2CellMvCurves: o2CellMvCurves), sourceInfo);
+    }
     return (analysis, sourceInfo);
   }
 
@@ -510,6 +536,7 @@ ProfileAnalysisService _resolveAnalysisService(
     // ppO2 from sensor/setpoint (null keeps the calculated curve).
     ppO2Curve: resolvedPpO2,
     o2SensorCurves: o2SensorCurves,
+    o2CellMvCurves: o2CellMvCurves,
     ppO2FromSensorAverage: resolvedPpO2 != null ? ppO2FromSensorAverage : null,
   );
 
@@ -532,6 +559,55 @@ const _cellAccessors = <double? Function(DiveProfilePoint)>[
   _o2Sensor5,
   _o2Sensor6,
 ];
+
+int? _o2SensorMv1(DiveProfilePoint p) => p.o2SensorMv1;
+int? _o2SensorMv2(DiveProfilePoint p) => p.o2SensorMv2;
+int? _o2SensorMv3(DiveProfilePoint p) => p.o2SensorMv3;
+int? _o2SensorMv4(DiveProfilePoint p) => p.o2SensorMv4;
+int? _o2SensorMv5(DiveProfilePoint p) => p.o2SensorMv5;
+int? _o2SensorMv6(DiveProfilePoint p) => p.o2SensorMv6;
+
+const _cellMvAccessors = <int? Function(DiveProfilePoint)>[
+  _o2SensorMv1,
+  _o2SensorMv2,
+  _o2SensorMv3,
+  _o2SensorMv4,
+  _o2SensorMv5,
+  _o2SensorMv6,
+];
+
+/// Builds one curve per cell, indexed by physical cell position (curve index
+/// i == cell i+1), up to the highest-numbered cell that has any reading. A
+/// lower cell that reports nothing still gets an all-null curve rather than
+/// being dropped, so physical cell numbering stays correct even when cells are
+/// absent or non-contiguous (e.g. a dead cell 2 on a three-cell head keeps
+/// cell 3 at index 2). Cells above the highest reporting one are not emitted
+/// at all. Null when no cell reports anything.
+List<List<T?>>? _resolveCellCurves<T>(
+  List<DiveProfilePoint> profile,
+  List<T? Function(DiveProfilePoint)> accessors,
+) {
+  var highestCell = -1;
+  for (var i = 0; i < accessors.length; i++) {
+    if (profile.any((p) => accessors[i](p) != null)) highestCell = i;
+  }
+  if (highestCell < 0) return null;
+  return [
+    for (var i = 0; i <= highestCell; i++) profile.map(accessors[i]).toList(),
+  ];
+}
+
+/// Exposes each O2 cell's raw output as its own per-sample curve, indexed by
+/// physical cell position (curve index i == cell i+1), or null when no cell
+/// reports millivolts.
+///
+/// Deliberately independent of [resolveRebreatherPpO2]: that resolver gates on
+/// the cells' bar values, which are absent whenever the logged calibration
+/// could not be trusted (issue #810). Deriving these from it would make the
+/// graph depend on an unrelated aggregate ppO2 sample happening to exist.
+/// Gaps stay null so a cell that stops reporting breaks its line.
+List<List<int?>>? resolveO2CellMvCurves(List<DiveProfilePoint> profile) =>
+    _resolveCellCurves(profile, _cellMvAccessors);
 
 double? _cellAverage(DiveProfilePoint p) {
   var sum = 0.0;
@@ -595,21 +671,8 @@ RebreatherPpO2? resolveRebreatherPpO2(List<DiveProfilePoint> profile) {
 
   // Expose each cell as its own per-sample curve, indexed by physical cell
   // position so the tooltip labels them correctly (curve index i == Sensor
-  // i+1). Build curves up to the highest-numbered cell that has any reading;
-  // any lower cell with no readings stays an all-null curve, which the chart
-  // skips per-sample. This keeps labels right even when cells are absent or
-  // non-contiguous (e.g. a failed/unreported cell).
-  List<List<double?>>? sensorCurves;
-  var highestCell = -1;
-  for (var i = 0; i < _cellAccessors.length; i++) {
-    if (profile.any((p) => _cellAccessors[i](p) != null)) highestCell = i;
-  }
-  if (highestCell >= 0) {
-    sensorCurves = [
-      for (var i = 0; i <= highestCell; i++)
-        profile.map(_cellAccessors[i]).toList(),
-    ];
-  }
+  // i+1).
+  final sensorCurves = _resolveCellCurves(profile, _cellAccessors);
 
   return (
     curve: curve,
@@ -766,15 +829,18 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
 /// performance). keepAlive family, so a residual-chain walk over a
 /// repetitive dive week hydrates each prior dive once per session instead
 /// of fully re-hydrating on every detail open. Self-invalidates on the
-/// detail-table tick exactly like diveProvider, preserving the analysis
-/// refresh behavior that previously arrived transitively through
-/// diveProvider.
+/// analysis-input tick (the tables this hydration actually reads), so the
+/// residual-chain cache survives writes to unrelated detail tables such as
+/// media.
 final analysisDiveProvider = FutureProvider.family<Dive?, String>((
   ref,
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+  // Analysis-input tick only: this provider feeds profileAnalysisProvider,
+  // so invalidating it on the broad detail tick (which includes media)
+  // re-ran the full analysis cascade after merely viewing a photo.
+  ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
   return repository.getDiveForAnalysis(diveId);
 });
 
@@ -863,19 +929,22 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
               .where((t) => t.computerId == null || t.computerId == computerId)
               .toList();
     final repository = ref.watch(diveRepositoryProvider);
-    // Resolve GF values: use dive-specific if provided, else user settings
-    final double gfLow;
-    final double gfHigh;
-    if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+    // Resolve GF values: use dive-specific if provided, else user settings.
+    // Resolved here rather than inside the isolate because only this side
+    // knows the dive; the source is stamped onto the returned analysis below
+    // so a display can name the origin of every deco number it prints (#1047).
+    final gfSource = GradientFactorSource.resolve(
+      diveGfLow: dive.gradientFactorLow,
+      diveGfHigh: dive.gradientFactorHigh,
+      settingsGfLow: ref.watch(gfLowProvider),
+      settingsGfHigh: ref.watch(gfHighProvider),
+      recordedAlgorithm: dive.decoAlgorithm,
+    );
+    if (gfSource.origin == GfOrigin.computer) {
       _log.debug(
-        'Using dive-specific GF ${dive.gradientFactorLow}/'
-        '${dive.gradientFactorHigh} for dive $diveId',
+        'Using dive-specific GF ${gfSource.low}/${gfSource.high} '
+        'for dive $diveId',
       );
-      gfLow = (dive.gradientFactorLow! / 100.0).clamp(0.0, 1.0);
-      gfHigh = (dive.gradientFactorHigh! / 100.0).clamp(0.0, 1.0);
-    } else {
-      gfLow = ref.watch(gfLowProvider) / 100.0;
-      gfHigh = ref.watch(gfHighProvider) / 100.0;
     }
 
     // Extract profile data
@@ -989,11 +1058,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       'pressures: ${pressures?.length ?? 0}, mode: ${dive.diveMode}, '
       'startCns: ${startCns.toStringAsFixed(1)}',
     );
-    final analysis = await compute(
+    final computed = await compute(
       _runProfileAnalysis,
       _ProfileAnalysisInput(
-        gfLow: gfLow,
-        gfHigh: gfHigh,
+        gfLow: gfSource.lowFraction,
+        gfHigh: gfSource.highFraction,
         ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
         ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
         cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
@@ -1028,6 +1097,10 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         rebreatherPpO2Curve: rebreatherPpO2?.curve,
       ),
     );
+    // The isolate only ever saw two fractions, so it stamped the conservative
+    // settings origin. Restore the source resolved above, whose fractions are
+    // the very ones it decompressed with.
+    final analysis = computed.copyWith(gfSource: gfSource);
 
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
@@ -1347,9 +1420,16 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
   ref,
   diveId,
 ) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  // Sums OTU across every dive in the surrounding week, so it goes stale when
+  // ANY of those dives is added or removed -- not just this one. The dives
+  // tick covers exactly that, or the "Prior" figure keeps counting a
+  // merged-away same-week dive after the rest of the page has refreshed
+  // (issue #974). watchAnalysisInputChanges, which the rest of the file now
+  // subscribes to, would also fire (it includes dives); the plain dives tick
+  // simply names the one table this query reads.
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   try {
-    final repository = ref.watch(diveRepositoryProvider);
-
     final currentDive = await repository.getDiveTimes(diveId);
     if (currentDive == null) return 0.0;
 
@@ -1443,6 +1523,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
         waterType: dive.waterType,
         surfacePressureBar: dive.surfacePressure,
       ),
+      recordedAlgorithm: dive.decoAlgorithm,
     );
 
     // Extract profile data

@@ -162,6 +162,81 @@ void main() {
     );
   });
 
+  test('a travel-flagged tank gets a lost-gas outcome regardless of role', () {
+    // A pony bottle isn't deco/stage, so it wouldn't normally qualify -- but
+    // flagging it as travel gas (breathed on the descent) makes losing it a
+    // contingency worth planning for too.
+    const pony = DiveTank(
+      id: 'pony',
+      volume: 3.0,
+      startPressure: 200,
+      gasMix: GasMix(o2: 32),
+      role: TankRole.pony,
+      isTravelGas: true,
+    );
+    final plan = _plan(tanks: const [_backTank, _ean50, pony]);
+
+    final lost = service.lostGas(plan);
+    expect(lost.map((l) => l.tank.id), containsAll(['ean50', 'pony']));
+  });
+
+  test('a non-deco/stage tank without the travel flag is never lost', () {
+    const pony = DiveTank(
+      id: 'pony',
+      volume: 3.0,
+      startPressure: 200,
+      gasMix: GasMix(o2: 32),
+      role: TankRole.pony,
+    );
+    final plan = _plan(tanks: const [_backTank, pony]);
+
+    expect(service.lostGas(plan), isEmpty);
+  });
+
+  test('falls back to the first remaining tank when none is back gas', () {
+    // Both carried cylinders are lost-gas-eligible and neither is back gas
+    // (an all-travel/deco loadout); losing one must still remap onto
+    // whatever is left rather than finding no fallback at all.
+    const pony = DiveTank(
+      id: 'pony',
+      volume: 3.0,
+      startPressure: 200,
+      gasMix: GasMix(o2: 32),
+      role: TankRole.pony,
+      isTravelGas: true,
+    );
+    final plan = domain.DivePlan(
+      id: 'plan-no-backgas',
+      name: 'No back gas',
+      gfLow: 50,
+      gfHigh: 80,
+      tanks: const [_ean50, pony],
+      segments: [
+        PlanSegment.descent(
+          id: 'seg-1',
+          targetDepth: 30.0,
+          tankId: 'ean50',
+          gasMix: const GasMix(o2: 50),
+          order: 0,
+        ),
+        PlanSegment.bottom(
+          id: 'seg-2',
+          depth: 30.0,
+          durationMinutes: 20,
+          tankId: 'ean50',
+          gasMix: const GasMix(o2: 50),
+          order: 1,
+        ),
+      ],
+      createdAt: DateTime(2026, 7, 5),
+      updatedAt: DateTime(2026, 7, 5),
+    );
+
+    final lost = service.lostGasFor(plan, 'ean50');
+    expect(lost, isNotNull);
+    expect(lost!.plan.segments.every((s) => s.tankId == 'pony'), isTrue);
+  });
+
   test('losing the only cylinder yields no lost-gas outcome', () {
     final plan = _plan(tanks: const [_ean50]);
     expect(service.lostGas(plan), isEmpty);

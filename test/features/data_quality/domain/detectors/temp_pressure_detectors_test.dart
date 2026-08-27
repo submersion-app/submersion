@@ -66,6 +66,33 @@ void main() {
       expect(out, hasLength(1));
       expect(out.single.params['waterTempC'], 99);
     });
+
+    // The scalar finding carries the same conversion facts the sample-channel
+    // finding does, so `repairOptionsFor` can offer a one-tap fix for a
+    // water temperature that was recorded on the wrong scale.
+    test('scalar waterTemp of 78 reads as Fahrenheit', () {
+      // 78 F is 25.6 C -- plausible water, so the scale is the explanation.
+      final ctx = makeContext(dive: makeTestDive(waterTemp: 78));
+      final params = det.detect(ctx).single.params;
+      expect(params['fahrenheitSuspected'], true);
+      expect(params['fahrenheitAsKelvinSuspected'], false);
+    });
+
+    test('scalar waterTemp of 297 reads as Fahrenheit-as-Kelvin', () {
+      // 297 K is 23.9 C; read as Fahrenheit it would be 147 C.
+      final ctx = makeContext(dive: makeTestDive(waterTemp: 297));
+      final params = det.detect(ctx).single.params;
+      expect(params['fahrenheitAsKelvinSuspected'], true);
+      expect(params['fahrenheitSuspected'], false);
+    });
+
+    test('scalar waterTemp of -50 suspects no scale', () {
+      // No reinterpretation lands in range, so no automatic repair is offered.
+      final ctx = makeContext(dive: makeTestDive(waterTemp: -50));
+      final params = det.detect(ctx).single.params;
+      expect(params['fahrenheitSuspected'], false);
+      expect(params['fahrenheitAsKelvinSuspected'], false);
+    });
   });
 
   group('PressureAnomalyDetector', () {

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -34,6 +35,7 @@ Future<void> _pump(
   WidgetTester tester,
   Diver diver, {
   DiveStatistics? stats,
+  DiveFilterState? filter,
 }) async {
   tester.view.physicalSize = const Size(800, 2000);
   tester.view.devicePixelRatio = 1.0;
@@ -48,6 +50,8 @@ Future<void> _pump(
         filteredDiveStatisticsProvider.overrideWith(
           (ref) async => stats ?? _stats(),
         ),
+        if (filter != null)
+          statisticsFilterProvider.overrideWith((ref) => filter),
         currentDiverProvider.overrideWith((ref) async => diver),
       ],
       child: const MaterialApp(
@@ -92,6 +96,35 @@ void main() {
     );
     // Not the empty state: the combined career total (0 logged + 1200) shows.
     expect(find.text('1200'), findsOneWidget);
+    expect(find.textContaining('1990'), findsOneWidget);
+  });
+
+  testWidgets('an active filter drops the prior offset from the total', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _diver(count: 1200, seconds: 1150 * 3600, since: DateTime(1990)),
+      filter: DiveFilterState(startDate: DateTime(2024)),
+    );
+
+    // The 312 dives matching the filter, not 312 + a whole pre-app career.
+    expect(find.text('312'), findsOneWidget);
+    expect(find.textContaining('1512'), findsNothing);
+    expect(find.textContaining('prior'), findsNothing);
+    expect(find.textContaining('Diving since'), findsNothing);
+  });
+
+  testWidgets('clearing the filter restores the combined career total', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _diver(count: 1200, seconds: 1150 * 3600, since: DateTime(1990)),
+      filter: const DiveFilterState(),
+    );
+
+    expect(find.textContaining('1512'), findsWidgets);
     expect(find.textContaining('1990'), findsOneWidget);
   });
 

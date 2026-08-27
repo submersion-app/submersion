@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -39,17 +42,58 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
+  /// Device fix resolved by the sheet itself, used only when the caller
+  /// supplied neither a dive nor a device location.
+  LocationResult? _deviceLocation;
+  bool _isLocating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Callers that already know where the dive is (or where the device is)
+    // cost nothing here. The rest — editing an imported dive, bulk edit —
+    // would otherwise fall back to the repository's alphabetical order (#965).
+    if (widget.diveLocation == null && widget.currentLocation == null) {
+      unawaited(_resolveDeviceLocation());
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  /// The point distances are measured from: the dive's GPS if present,
-  /// otherwise the device location (today's behavior).
+  /// Resolve a device fix in the background. Runs once, from [initState]:
+  /// `build` re-runs on every keystroke in the search field, so resolving
+  /// there would fire a GPS request per character.
+  Future<void> _resolveDeviceLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final location = await ref
+          .read(locationServiceProvider)
+          .getCurrentLocation(
+            // Coordinates are all the distance sort needs; skip geocoding.
+            includeGeocoding: false,
+            timeout: const Duration(seconds: 10),
+          );
+      if (mounted && location != null) {
+        setState(() => _deviceLocation = location);
+      }
+    } catch (_) {
+      // Proximity sorting is a convenience; the list stays usable without it.
+    } finally {
+      if (mounted) {
+        setState(() => _isLocating = false);
+      }
+    }
+  }
+
+  /// The point distances are measured from: the dive's GPS if present, then a
+  /// device location supplied by the caller, then one this sheet resolved.
   GeoPoint? get _anchor {
     if (widget.diveLocation != null) return widget.diveLocation;
-    final cl = widget.currentLocation;
+    final cl = widget.currentLocation ?? _deviceLocation;
     return cl == null ? null : GeoPoint(cl.latitude, cl.longitude);
   }
 
@@ -111,6 +155,31 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                                         .diveLog_sitePicker_sortedByDistance,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: colorScheme.primary),
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (_isLocating)
+                      Row(
+                        children: [
+                          // Deliberately a static icon, not a spinner: an
+                          // indeterminate indicator schedules frames forever,
+                          // so it hangs pumpAndSettle in every consumer test
+                          // that opens this sheet. Reusing the resolved-state
+                          // icon also avoids a swap when the fix lands.
+                          Icon(
+                            Icons.my_location,
+                            size: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              context.l10n.diveLog_edit_gettingLocation,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           ),
                         ],

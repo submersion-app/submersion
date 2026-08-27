@@ -29,6 +29,7 @@ void main() {
     final cloud = FakeCloudStorageProvider();
     final container = ProviderContainer(
       overrides: [
+        localeProvider.overrideWithValue('en'),
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(cloud),
       ],

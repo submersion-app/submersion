@@ -2,7 +2,10 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/enums.dart'
+    show TankMaterial, TankRole, WeightType;
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart'
+    show TankSpecField;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
@@ -265,6 +268,236 @@ void main() {
         expect(rows.length, 2); // both tanks added, not just the first
       },
     );
+  });
+
+  group('bulkUpdateTankSpecs', () {
+    // A tank as MacDive imports it: pressures present, everything that
+    // identifies the cylinder missing (#797).
+    const imported = domain.DiveTank(
+      id: '',
+      startPressure: 200,
+      endPressure: 50,
+      gasMix: domain.GasMix(o2: 21),
+    );
+
+    const al80 = domain.DiveTank(
+      id: '',
+      name: 'Primary',
+      volume: 11.1,
+      workingPressure: 207,
+      material: TankMaterial.aluminum,
+      role: TankRole.stage,
+      presetName: 'al80',
+      gasMix: domain.GasMix(o2: 32),
+    );
+
+    test('writes gated fields and leaves start/end pressure alone', () async {
+      await seed('d1');
+      await repository.bulkAddTank(['d1'], imported);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        al80,
+        const {
+          TankSpecField.preset,
+          TankSpecField.volume,
+          TankSpecField.workingPressure,
+          TankSpecField.material,
+          TankSpecField.role,
+        },
+      );
+
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).getSingle();
+      expect(row.presetName, 'al80');
+      expect(row.volume, 11.1);
+      expect(row.workingPressure, 207);
+      expect(row.tankMaterial, 'aluminum');
+      expect(row.tankRole, 'stage');
+      // The whole point of #797: pressure data survives.
+      expect(row.startPressure, 200);
+      expect(row.endPressure, 50);
+    });
+
+    test('leaves ungated fields untouched', () async {
+      await seed('d1');
+      await repository.bulkAddTank(['d1'], imported);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        al80,
+        const {TankSpecField.volume},
+      );
+
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).getSingle();
+      expect(row.volume, 11.1);
+      expect(row.presetName, isNull);
+      expect(row.workingPressure, isNull);
+      expect(row.tankMaterial, isNull);
+      expect(row.tankName, isNull);
+      expect(row.tankRole, 'backGas'); // the imported tank's default
+      expect(row.o2Percent, 21); // gas mix was not gated on
+    });
+
+    test('gasMix gates both o2 and he together', () async {
+      await seed('d1');
+      await repository.bulkAddTank(['d1'], imported);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: '', gasMix: domain.GasMix(o2: 18, he: 45)),
+        const {TankSpecField.gasMix},
+      );
+
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).getSingle();
+      expect(row.o2Percent, 18);
+      expect(row.hePercent, 45);
+    });
+
+    test('updates every tank on a dive, preserving row id and order', () async {
+      await seed('d1');
+      await repository.bulkAddTanks(['d1'], const [imported, imported]);
+      final before =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals('d1'))
+                ..orderBy([(t) => OrderingTerm(expression: t.tankOrder)]))
+              .get();
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        al80,
+        const {TankSpecField.volume},
+      );
+
+      final after =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals('d1'))
+                ..orderBy([(t) => OrderingTerm(expression: t.tankOrder)]))
+              .get();
+      expect(after.map((r) => r.id), before.map((r) => r.id));
+      expect(after.map((r) => r.tankOrder), [0, 1]);
+      expect(after.every((r) => r.volume == 11.1), isTrue);
+    });
+
+    test('skips dives with no tanks and returns the touched count', () async {
+      await seed('hasTank');
+      await seed('tankless');
+      await repository.bulkAddTank(['hasTank'], imported);
+
+      final touched = await repository.bulkUpdateTankSpecs(
+        ['hasTank', 'tankless'],
+        al80,
+        const {TankSpecField.volume},
+      );
+
+      expect(touched, 1);
+      final rows = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('tankless'))).get();
+      expect(rows, isEmpty); // no tank conjured up for a tankless dive
+    });
+
+    test('is a no-op when no fields are gated on', () async {
+      await seed('d1');
+      await repository.bulkAddTank(['d1'], imported);
+      await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+        const DivesCompanion(updatedAt: Value(123)),
+      );
+
+      final touched = await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        al80,
+        const {},
+      );
+
+      expect(touched, 0);
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('d1'))).getSingle();
+      expect(dive.updatedAt, 123); // no sync-visible touch
+    });
+  });
+
+  group('divesWithoutTanksCount', () {
+    test('counts only the selected dives that have no tank rows', () async {
+      await seed('hasOne');
+      await seed('hasTwo');
+      await seed('tankless');
+      await seed('outsideSelection');
+      const bare = domain.DiveTank(id: '');
+      await repository.bulkAddTank(['hasOne'], bare);
+      await repository.bulkAddTanks(['hasTwo'], const [bare, bare]);
+
+      expect(
+        await repository.divesWithoutTanksCount([
+          'hasOne',
+          'hasTwo',
+          'tankless',
+        ]),
+        1, // outsideSelection is tankless too, but was not selected
+      );
+      expect(await repository.divesWithoutTanksCount(const []), 0);
+    });
+  });
+
+  group('bulkRestoreTankRows', () {
+    test('writes prior column values back onto the same row ids', () async {
+      await seed('d1');
+      await repository.bulkAddTank(
+        ['d1'],
+        const domain.DiveTank(
+          id: '',
+          volume: 11.1,
+          startPressure: 200,
+          endPressure: 50,
+        ),
+      );
+      final prior = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).get();
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: '', volume: 24),
+        const {TankSpecField.volume},
+      );
+      await repository.bulkRestoreTankRows(prior);
+
+      final after = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).getSingle();
+      expect(after.id, prior.single.id); // same row, not a re-insert
+      expect(after.volume, 11.1);
+      expect(after.startPressure, 200);
+    });
+
+    test('restores a column that the update had set from null', () async {
+      await seed('d1');
+      await repository.bulkAddTank([
+        'd1',
+      ], const domain.DiveTank(id: '', startPressure: 200));
+      final prior = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      expect(prior.single.volume, isNull);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: '', volume: 24),
+        const {TankSpecField.volume},
+      );
+      await repository.bulkRestoreTankRows(prior);
+
+      final after = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).getSingle();
+      expect(after.volume, isNull); // prior NULL restored, not left at 24
+    });
   });
 
   group('bulk weights', () {

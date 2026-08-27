@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -52,9 +57,13 @@ Widget _buildDetailPage(Dive dive, List<Override> overrides) {
 
 Future<void> _pumpDetailPage(WidgetTester tester, Dive dive) async {
   final overrides = await getBaseOverrides();
+  // Restore via addTearDown so a throwing pump cannot leak the filtered
+  // handler into later tests; the immediate restore below keeps the filter
+  // scoped to the pump itself on the happy path.
   final originalOnError = FlutterError.onError;
+  addTearDown(() => FlutterError.onError = originalOnError);
   FlutterError.onError = (d) {
-    if (d.toString().contains('overflowed')) return;
+    if (d.exceptionAsString().contains('overflowed')) return;
     originalOnError?.call(d);
   };
   await tester.pumpWidget(_buildDetailPage(dive, overrides));
@@ -991,6 +1000,69 @@ void main() {
       expect(find.byType(CompactTissueLoadingCard), findsOneWidget);
       expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
     });
+
+    testWidgets('tissue card 3D button opens the 3D view in tissue mode', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      final base = await getBaseOverrides();
+      final originalOnError = FlutterError.onError;
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...panelOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysisWithDeco()),
+            ),
+            // The pushed page only has to build, not render a surface: a null
+            // surface parks it on its loading indicator, so this test stays
+            // about the navigation wiring.
+            tissueSurfaceProvider(dive.id).overrideWith((ref) async => null),
+            tissueDecoStatusesProvider(
+              dive.id,
+            ).overrideWith((ref) async => <DecoStatus>[]),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Scoped to the tissue card: the profile section has a 3D button of its
+      // own, and that one must still open the dive scene.
+      final button = find.descendant(
+        of: find.byType(CompactTissueLoadingCard),
+        matching: find.byIcon(Icons.view_in_ar),
+      );
+      expect(button, findsOneWidget);
+
+      // The card sits below the fold on the 800x600 test surface.
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final page = tester.widget<Dive3dPage>(find.byType(Dive3dPage));
+      expect(page.diveId, dive.id);
+      expect(page.initialMode, SceneKind.tissue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    });
   });
 
   group('DiveDetailPage SAC-by-segment last-good retention', () {
@@ -1337,6 +1409,178 @@ void main() {
             '0.8 bar/min converted on the 7.0 L cylinder -- a single shared '
             'volume would print 8.8 L/min here too',
       );
+    });
+  });
+
+  group('safety finding highlight wiring', () {
+    Dive diveWithProfile() => Dive(
+      id: 'dive-highlight',
+      dateTime: DateTime(2026, 1, 1, 10),
+      profile: List.generate(
+        20,
+        (i) => DiveProfilePoint(timestamp: i * 60, depth: 15),
+      ),
+    );
+
+    SafetyFinding laneFinding(String diveId, {DateTime? dismissedAt}) =>
+        SafetyFinding(
+          id: 'f-lane',
+          diveId: diveId,
+          ruleId: SafetyRuleId.rapidAscent,
+          severity: SafetySeverity.caution,
+          startTimestamp: 300,
+          endTimestamp: 420,
+          value: 14.0,
+          engineVersion: 1,
+          dismissedAt: dismissedAt,
+          createdAt: DateTime.utc(2026, 8, 9),
+        );
+
+    Future<void> pumpWithReview(
+      WidgetTester tester,
+      Dive dive,
+      SafetyFinding finding,
+    ) async {
+      final overrides = await getBaseOverrides();
+      overrides.add(
+        safetyReviewProvider(dive.id).overrideWith(
+          (ref) async => SafetyReview(
+            diveId: dive.id,
+            engineVersion: 1,
+            reviewedAt: DateTime.utc(2026, 8, 9),
+            findings: [finding],
+          ),
+        ),
+      );
+      // Restore via addTearDown so a throwing pump cannot leak the filtered
+      // handler into later tests; the immediate restore below keeps the
+      // filter scoped to the pump itself on the happy path.
+      final originalOnError = FlutterError.onError;
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.exceptionAsString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+      await tester.pumpWidget(_buildDetailPage(dive, overrides));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      FlutterError.onError = originalOnError;
+    }
+
+    testWidgets('selected finding reaches the chart as a highlight range', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      final finding = laneFinding(dive.id);
+      await pumpWithReview(tester, dive, finding);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(selectedSafetyFindingProvider(dive.id).notifier).state =
+          finding;
+      await tester.pump();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.highlightRange, isNotNull);
+      expect(chart.highlightRange!.startTimestamp, 300);
+      expect(chart.highlightRange!.endTimestamp, 420);
+    });
+
+    testWidgets('no selection means no highlight range', (tester) async {
+      final dive = diveWithProfile();
+      await _pumpDetailPage(tester, dive);
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.highlightRange, isNull);
+    });
+
+    testWidgets('a selection outside the gated lane renders no highlight', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      // The stored review's only finding is dismissed, so the lane (and the
+      // section tile) hide it; the highlight must be gated off with it.
+      final dismissed = laneFinding(
+        dive.id,
+        dismissedAt: DateTime.utc(2026, 8, 9),
+      );
+      await pumpWithReview(tester, dive, dismissed);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(selectedSafetyFindingProvider(dive.id).notifier).state =
+          dismissed;
+      await tester.pump();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.highlightRange, isNull);
+      expect(chart.selectedSafetyFindingId, isNull);
+    });
+
+    testWidgets('active findings reach the chart as lane findings', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      await pumpWithReview(tester, dive, laneFinding(dive.id));
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.safetyFindings, isNotNull);
+      expect(chart.safetyFindings!.map((f) => f.id), ['f-lane']);
+      expect(chart.onSafetyFindingTap, isNotNull);
+      expect(chart.onSafetyFindingDismiss, isNotNull);
+      expect(chart.onSafetyFindingDetails, isNotNull);
+    });
+
+    testWidgets('chart tap callback toggles the selection provider', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      final finding = laneFinding(dive.id);
+      await pumpWithReview(tester, dive, finding);
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+
+      chart.onSafetyFindingTap!(finding);
+      expect(
+        container.read(selectedSafetyFindingProvider(dive.id))?.id,
+        'f-lane',
+      );
+
+      chart.onSafetyFindingTap!(finding);
+      expect(container.read(selectedSafetyFindingProvider(dive.id)), isNull);
+    });
+  });
+
+  group('DiveDetailPage dive mode badge', () {
+    testWidgets('shows the short code for a CCR dive', (tester) async {
+      final dive = createTestDiveWithBottomTime().copyWith(
+        diveMode: DiveMode.ccr,
+      );
+      await _pumpDetailPage(tester, dive);
+
+      expect(find.text('CCR'), findsOneWidget);
+    });
+
+    testWidgets('shows OC for the default open-circuit dive', (tester) async {
+      final dive = createTestDiveWithBottomTime();
+      await _pumpDetailPage(tester, dive);
+
+      expect(find.text('OC'), findsOneWidget);
     });
   });
 }

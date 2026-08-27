@@ -43,7 +43,9 @@ class SpatialPathBuilder {
         tx /= len;
         tz /= len;
       }
-      final px = -tz, pz = tx; // perpendicular in xz
+      // Perpendicular in xz, rotated the way the map frame turns: scene Z
+      // runs SOUTH (see SpatialProjection), so the sense is (tz, -tx).
+      final px = tz, pz = -tx;
       final t = proj.maxDepth <= 0
           ? 0.0
           : (pts[i].depth / proj.maxDepth).clamp(0.0, 1.0);

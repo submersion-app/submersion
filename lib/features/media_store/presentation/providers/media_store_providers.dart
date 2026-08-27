@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -31,10 +31,8 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
-import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
-import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
 /// attach; disposed and rebuilt on connect/disconnect via provider
@@ -102,6 +100,10 @@ final mediaTransferQueueRepositoryProvider =
 /// idempotent for the process lifetime. Uses ref.read, not ref.watch, so an
 /// invalidation/override of the repository provider (e.g. in a nested test
 /// scope) cannot recompute this future and trigger a second reclaim pass.
+// no-tick: recomputing is the bug, not the fix. The cached result is what
+// makes the reclaim idempotent for the process lifetime; a tick would run a
+// second reclaim pass over the queue on every write. The doc comment above
+// spells out why it deliberately uses ref.read rather than ref.watch.
 final FutureProvider<void> mediaTransferQueueReclaimProvider =
     FutureProvider<void>((ref) async {
       await ref.read(mediaTransferQueueRepositoryProvider).requeueStale();
@@ -128,6 +130,9 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
 /// fleet-wide timestamp on success, and kicks a drain for any queued
 /// repairs (orphan-prevention spec 6.3). Throws StateError when no store
 /// is attached; the settings action only renders in the connected state.
+// no-tick: the value is a CLOSURE, not a query result. Every repository read
+// happens inside it at call time via ref.read, so there is no cached row that
+// could go stale.
 final mediaVerifyRunnerProvider =
     Provider<Future<VerifyLibraryReport> Function()>((ref) {
       return () async {
@@ -152,6 +157,51 @@ final mediaVerifyRunnerProvider =
         return report;
       };
     });
+
+/// Resumes an outstanding transfer queue at app launch and on app resume
+/// (issue #1270).
+///
+/// Every other drain trigger is downstream of [mediaStoreRuntimeProvider]
+/// already existing: the runtime is what kicks the first drain, subscribes to
+/// connectivity changes, and lets the worker arm its retry wakeup. Nothing in
+/// the launch path ever built it, and the display surfaces cannot stand in for
+/// one - the media grid only reaches the store for a row that is already
+/// backed up (`MediaItemView`'s storeConfirmed gate), which on a device that
+/// has never finished an upload is never true. So a queue that stopped for any
+/// reason - the app quit mid-import, a moment offline, a policy hold - had no
+/// way back, and the reporter's 196 rows survived every restart untouched.
+///
+/// Two cheap guards run before anything expensive, because building the
+/// runtime opens the keychain and reads the store marker out of the bucket:
+/// [mediaStoreAttachedProvider] is one SharedPreferences read (and is
+/// documented never to error, which is exactly why it exists), and
+/// [MediaTransferQueueRepository.nextPending] is one indexed local read that
+/// means precisely "there is work a drain could take right now". A queue
+/// holding only deferred rows is left to the worker's own wakeup timer.
+///
+/// Contains its own failures rather than propagating them: both call sites are
+/// fire-and-forget, so an escaping throw would land in the zone handler with
+/// nothing to catch it - the shape of #942.
+// no-tick: the value is a CLOSURE, not a query result. Every read happens
+// inside it at call time via ref.read, so there is no cached row to go stale.
+final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    try {
+      if (!await ref.read(mediaStoreAttachedProvider.future)) return;
+      final queue = ref.read(mediaTransferQueueRepositoryProvider);
+      if (await queue.nextPending(DateTime.now()) == null) return;
+      // Building the runtime is the kick: see the unawaited drain at the end
+      // of mediaStoreRuntimeProvider.
+      await ref.read(mediaStoreRuntimeProvider.future);
+    } on Object catch (e, stackTrace) {
+      LoggerService.forClass(MediaStoreWorker).warning(
+        'Could not resume media transfers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  };
+});
 
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
@@ -211,79 +261,6 @@ void invalidateMediaStoreAttachment(WidgetRef ref) {
   ref.invalidate(mediaStoreAttachedProvider);
 }
 
-/// Per-tile badge status. Transient transfer state outranks persistent
-/// backup state: failed > transferring > queued > notBackedUp > none.
-///
-/// A failed, transferring, or pending queue row maps straight through. A
-/// done or absent row is a settled item, and settles to notBackedUp only
-/// when a store is attached, the source is uploadable, and the item has no
-/// upload stamps.
-///
-/// The settled check re-reads the row rather than trusting [item]: the
-/// tile's snapshot comes from mediaForDiveProvider, a FutureProvider that
-/// an upload's stamp write does not invalidate, so the snapshot goes stale
-/// the moment an upload completes. Re-reading is race-free because the
-/// pipeline calls stampRemoteUploaded before markDone, so the emission
-/// reporting done always follows the stamp write.
-///
-/// Defensive against an uninitialized local cache database or an absent
-/// media repository (widget tests): any error reads as none.
-final mediaBadgeStateProvider =
-    StreamProvider.family<MediaBadgeState, MediaItem>((ref, item) {
-      // Synchronous build phase. Every ref.watch must happen here, not in
-      // the generator below: an async* body does not start running until
-      // Riverpod subscribes to the stream it returns, by which point the
-      // build phase is over and a watched dependency's failure becomes
-      // this provider's error state instead of a catchable exception.
-      // That is what makes the StateError guard below work at all.
-      // The repository constructor resolves its database lazily, so the
-      // StateError surfaces from watchLatestForMedia, not from the watch.
-      // Both must sit inside the guard.
-      final Stream<MediaTransferQueueEntry?> rows;
-      try {
-        rows = ref
-            .watch(mediaTransferQueueRepositoryProvider)
-            .watchLatestForMedia(item.id);
-      } on StateError {
-        return Stream.value(MediaBadgeState.none);
-      }
-      final mediaRepository = ref.watch(mediaRepositoryProvider);
-      final attachedFuture = ref.watch(mediaStoreAttachedProvider.future);
-      final eligible = kUploadableSources.contains(item.sourceType);
-
-      return () async* {
-        final attached = await attachedFuture;
-
-        // Re-evaluated per settled emission so a just-completed upload
-        // clears the badge without waiting for the tile snapshot to
-        // refresh. getMediaById is a plain call, so its failure on an
-        // uninitialized database is catchable here.
-        Future<MediaBadgeState> settled() async {
-          if (!attached || !eligible) return MediaBadgeState.none;
-          try {
-            final fresh = await mediaRepository.getMediaById(item.id);
-            if (fresh == null || isBackedUp(fresh)) return MediaBadgeState.none;
-            return MediaBadgeState.notBackedUp;
-          } on Object {
-            return MediaBadgeState.none;
-          }
-        }
-
-        await for (final row in rows) {
-          switch (row?.state) {
-            case 'failed':
-              yield MediaBadgeState.failed;
-            case 'transferring':
-              yield MediaBadgeState.transferring;
-            case 'pending':
-              yield MediaBadgeState.queued;
-            default:
-              yield await settled();
-          }
-        }
-      }();
-    });
-
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(
   (ref) => MediaStoresRepository(),
 );
@@ -305,6 +282,10 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
 // registry -> lightroom providers -> this file -> registry), and Dart's
 // top-level inference cannot resolve initializer-inferred declarations
 // that participate in a cycle.
+// no-tick: builds a runtime SERVICE, not a cached query result. Its
+// getMediaById call sits inside the queue-drain callback and runs per entry at
+// drain time. Lifecycle is imperative by design -- invalidated on store connect
+// and disconnect -- and a tick would rebuild the store mid-drain.
 final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
     FutureProvider<MediaStoreRuntime?>((ref) async {
       final attachState = ref.watch(mediaStoreAttachStateProvider);
@@ -481,7 +462,9 @@ final mediaStoreResolverProvider = Provider<MediaStoreResolver?>((ref) {
 final mediaStoreStatusHintProvider = FutureProvider<String?>((ref) async {
   final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   if (runtime == null) return null;
-  final active = await ref.watch(mediaStoresRepositoryProvider).getActive();
+  final storesRepository = ref.watch(mediaStoresRepositoryProvider);
+  ref.invalidateSelfWhen(storesRepository.watchStoresChanges());
+  final active = await storesRepository.getActive();
   return active?.displayHint ?? runtime.storeId;
 });
 

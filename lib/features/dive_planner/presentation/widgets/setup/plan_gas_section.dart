@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -10,8 +11,8 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Gas settings for the Setup accordion: SAC (with one-tap logged average)
-/// and reserve pressure. Bottom/deco SAC split and SAC factor land here in
+/// Gas settings for the Setup accordion: RMV (with one-tap logged average)
+/// and reserve pressure. Bottom/deco RMV split and RMV factor land here in
 /// later phases (spec G25).
 class PlanGasSection extends ConsumerWidget {
   const PlanGasSection({super.key});
@@ -34,8 +35,10 @@ class PlanGasSection extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Semantics(
-                label:
-                    'SAC Rate: ${planState.sacRate.toStringAsFixed(0)} ${units.volumeSymbol} per minute',
+                label: context.l10n.divePlanner_semantics_sacRate(
+                  planState.sacRate.toStringAsFixed(0),
+                  units.volumeSymbol,
+                ),
                 child: Slider(
                   value: planState.sacRate,
                   min: 8,
@@ -58,7 +61,7 @@ class PlanGasSection extends ConsumerWidget {
             ),
           ],
         ),
-        _LoggedSacButton(currentSac: planState.sacRate, units: units),
+        _LoggedRmvButton(currentRmv: planState.sacRate, units: units),
         const SizedBox(height: 12),
         _ReservePressureInput(
           reservePressure: planState.reservePressure,
@@ -79,23 +82,23 @@ class PlanGasSection extends ConsumerWidget {
   }
 }
 
-/// One-tap SAC auto-fill from the diver's logged average ("from your log").
+/// One-tap RMV auto-fill from the diver's logged average ("from your log").
 /// Hidden when no logged average exists or it already matches the plan.
-class _LoggedSacButton extends ConsumerWidget {
-  const _LoggedSacButton({required this.currentSac, required this.units});
+class _LoggedRmvButton extends ConsumerWidget {
+  const _LoggedRmvButton({required this.currentRmv, required this.units});
 
-  final double currentSac;
+  final double currentRmv;
   final UnitFormatter units;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loggedSac = ref.watch(loggedAverageSacProvider).valueOrNull;
-    if (loggedSac == null || (loggedSac - currentSac).abs() < 0.5) {
+    final loggedRmv = ref.watch(loggedAverageSacProvider).valueOrNull;
+    if (loggedRmv == null || (loggedRmv - currentRmv).abs() < 0.5) {
       return const SizedBox.shrink();
     }
 
     final display =
-        '${units.convertVolume(loggedSac).toStringAsFixed(1)} '
+        '${units.convertVolume(loggedRmv).toStringAsFixed(1)} '
         '${units.volumeSymbol}/min';
     return Align(
       alignment: Alignment.centerLeft,
@@ -104,7 +107,7 @@ class _LoggedSacButton extends ConsumerWidget {
         label: Text(context.l10n.plannerCanvas_sac_useLogged(display)),
         onPressed: () => ref
             .read(divePlanNotifierProvider.notifier)
-            .updateSacRate(loggedSac.clamp(8.0, 30.0)),
+            .updateSacRate(loggedRmv.clamp(8.0, 30.0)),
       ),
     );
   }
@@ -137,23 +140,23 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
   String? _messageText;
   bool _isError = false;
 
+  /// The seed and the parse must share one convention, so a whole-pressure
+  /// seed is rendered in the diver's locale rather than with toStringAsFixed
+  /// (#1091).
+  String _seed(double bar) =>
+      formatDecimalForInput(widget.units.convertPressure(bar).roundToDouble());
+
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-      text: widget.units
-          .convertPressure(widget.reservePressure)
-          .toStringAsFixed(0),
-    );
+    _controller = TextEditingController(text: _seed(widget.reservePressure));
   }
 
   @override
   void didUpdateWidget(_ReservePressureInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.reservePressure != widget.reservePressure) {
-      final newText = widget.units
-          .convertPressure(widget.reservePressure)
-          .toStringAsFixed(0);
+      final newText = _seed(widget.reservePressure);
       if (_controller.text != newText) {
         _controller.text = newText;
       }
@@ -175,7 +178,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
   }
 
   String? _getError(String value) {
-    final parsed = double.tryParse(value);
+    final parsed = parseUserDecimal(value);
     if (parsed == null) return null;
     final bar = widget.units.pressureToBar(parsed);
     if (bar <= 0) return context.l10n.divePlanner_error_reserveMustBePositive;
@@ -191,9 +194,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
 
   void _validate(String value) {
     if (value.isEmpty) {
-      final defaultDisplay = widget.units
-          .convertPressure(widget.defaultPressureBar)
-          .toStringAsFixed(0);
+      final defaultDisplay = _seed(widget.defaultPressureBar);
       setState(() {
         _messageText = context.l10n.divePlanner_info_reserveDefault(
           widget.units.pressureSymbol,
@@ -210,7 +211,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
       _isError = error != null;
     });
     if (error == null) {
-      final parsed = double.tryParse(value);
+      final parsed = parseUserDecimal(value);
       if (parsed != null) {
         widget.onChanged(widget.units.pressureToBar(parsed));
       }
@@ -222,7 +223,9 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
     final textField = SizedBox(
       width: 80,
       child: Semantics(
-        label: 'Reserve pressure in ${widget.units.pressureSymbol}',
+        label: context.l10n.divePlanner_semantics_reservePressure(
+          widget.units.pressureSymbol,
+        ),
         child: TextField(
           controller: _controller,
           decoration: InputDecoration(

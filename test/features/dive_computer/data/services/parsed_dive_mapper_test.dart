@@ -231,6 +231,37 @@ void main() {
       expect(p.o2Sensor6, isNull);
     });
 
+    test('maps O2 cell millivolts (absent cells stay null)', () {
+      // Issue #810: the Petrel 3 logs a default calibration, so libdivecomputer
+      // withholds the per-cell ppO2 and reports the raw output instead. The
+      // millivolts must survive even with no bar value beside them.
+      final parsed = makeParsedDive(
+        fingerprint: 'cellmv1',
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 0.0,
+            ppo2: 0.7,
+            o2SensorMv1: 58,
+            o2SensorMv2: 61,
+            o2SensorMv3: 43,
+          ),
+        ],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+      final p = downloaded.profile.single;
+
+      expect(p.o2SensorMv1, 58);
+      expect(p.o2SensorMv2, 61);
+      expect(p.o2SensorMv3, 43);
+      expect(p.o2SensorMv4, isNull);
+      expect(p.o2SensorMv5, isNull);
+      expect(p.o2SensorMv6, isNull);
+      // No calibration anchor, so no per-cell partial pressure.
+      expect(p.o2Sensor1, isNull);
+    });
+
     test('carries heading into domain ProfileSample', () {
       final parsed = makeParsedDive(
         fingerprint: 'heading-test',

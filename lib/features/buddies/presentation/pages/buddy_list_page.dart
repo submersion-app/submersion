@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -77,21 +78,24 @@ class BuddyListPage extends ConsumerWidget {
           },
           columnSettingsAction: IconButton(
             icon: const Icon(Icons.view_column_outlined),
-            tooltip: 'Column settings',
-            onPressed: () {
-              final config = ref.read(buddyTableConfigProvider);
-              final notifier = ref.read(buddyTableConfigProvider.notifier);
-              showEntityTableColumnPicker<BuddyField>(
-                context,
-                config: config,
-                adapter: BuddyFieldAdapter.instance,
-                onToggleColumn: notifier.toggleColumn,
-                onReorderColumn: notifier.reorderColumn,
-                onTogglePin: notifier.togglePin,
-              );
-            },
+            tooltip: context.l10n.columnConfig_tooltip_columnSettings,
+            onPressed: () => showEntityTableColumnPicker<BuddyField>(
+              context,
+              configProvider: buddyTableConfigProvider,
+              adapter: BuddyFieldAdapter.instance,
+            ),
           ),
           appBarActions: [
+            IconButton(
+              icon: const Icon(Icons.search, size: 20),
+              tooltip: context.l10n.buddies_action_search,
+              onPressed: () {
+                showSearch(
+                  context: context,
+                  delegate: BuddySearchDelegate(ref),
+                );
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
               tooltip: context.l10n.buddies_action_sort,
@@ -103,7 +107,8 @@ class BuddyListPage extends ConsumerWidget {
                   currentField: sort.field,
                   currentDirection: sort.direction,
                   fields: BuddySortField.values,
-                  getFieldDisplayName: (field) => field.displayName,
+                  getFieldDisplayName: (field) =>
+                      field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
                     ref.read(buddySortProvider.notifier).state = SortState(
@@ -111,16 +116,6 @@ class BuddyListPage extends ConsumerWidget {
                       direction: direction,
                     );
                   },
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
-              tooltip: context.l10n.buddies_action_search,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: BuddySearchDelegate(ref),
                 );
               },
             ),

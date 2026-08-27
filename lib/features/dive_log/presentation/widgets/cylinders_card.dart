@@ -114,7 +114,7 @@ class CylindersCard extends ConsumerWidget {
             ? units.formatTankVolume(
                 tank.volume,
                 tank.workingPressure,
-                decimals: 1,
+                cuftDecimals: 1,
               )
             : null);
     final tankTitle = tank.name != null && tank.name!.isNotEmpty

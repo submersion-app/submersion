@@ -1,32 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/dashboard/presentation/home_cards.dart';
+import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
-import 'package:submersion/features/dashboard/presentation/providers/photo_providers.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/active_course_progress_card.dart';
+import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/milestones_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/on_this_day_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/photo_ribbon_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/urgent_banner.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/year_in_review_card.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/pre_dive/presentation/widgets/pre_dive_dashboard_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dashboard home page: monitor-first status gauges over a responsive
 /// card grid that reflows from one phone column to a 3-column desktop
-/// layout (one ordered block list drives both).
+/// layout (one ordered block list drives both). The user's card order and
+/// visibility come from settings; the urgent banner is pinned on top.
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
@@ -42,41 +37,48 @@ class DashboardPage extends ConsumerWidget {
 
     final alerts = ref.watch(dashboardAlertsProvider);
     final milestones = ref.watch(milestonesProvider);
-    final photos = ref.watch(recentPhotosProvider);
+    final media = ref.watch(recentMediaProvider);
     final onThisDay = ref.watch(onThisDayProvider);
     final yearInReview = ref.watch(yearInReviewProvider);
     final courses = ref.watch(activeCoursesProgressProvider);
     final sites = ref.watch(recentSitesProvider);
 
+    final homeCardOrder = ref.watch(
+      settingsProvider.select((s) => s.homeCardOrder),
+    );
+    final hiddenHomeCards = ref.watch(
+      settingsProvider.select((s) => s.hiddenHomeCards),
+    );
+
+    bool hasContent(HomeCardType card) => switch (card) {
+      HomeCardType.milestones => show(milestones, (m) => !m.isEmpty),
+      HomeCardType.photoRibbon => show(media, (m) => m.isNotEmpty),
+      HomeCardType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
+      HomeCardType.yearInReview => show(yearInReview, (y) => y != null),
+      HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
+      HomeCardType.recentSitesMap => show(sites, (s) => s.isNotEmpty),
+      _ => true,
+    };
+
+    final visibleCards = [
+      for (final card in reconcileHomeCardOrder(homeCardOrder))
+        if (!hiddenHomeCards.contains(card.name) && hasContent(card)) card,
+    ];
+
+    final showUrgent = show(
+      alerts,
+      (a) =>
+          a.serviceClocksDue.any(
+            (c) => c.status.severity == ServiceClockSeverity.overdue,
+          ) ||
+          a.insuranceExpired,
+    );
+
+    // The urgent banner is pinned: never hideable, never reorderable,
+    // always above all customizable content.
     final entries = <DashboardEntry>[
-      const FullBlock(HeroHeader()),
-      const FullBlock(GaugeStrip()),
-      if (show(
-        alerts,
-        (a) =>
-            a.serviceClocksDue.any(
-              (c) => c.status.severity == ServiceClockSeverity.overdue,
-            ) ||
-            a.insuranceExpired,
-      ))
-        const FullBlock(UrgentBanner()),
-      const FullBlock(PreDiveDashboardCard()),
-      LeadSideGroup(
-        lead: const RecentDivesCard(),
-        side: [
-          const QuickActionsCard(),
-          if (show(milestones, (m) => !m.isEmpty)) const MilestonesCard(),
-        ],
-      ),
-      if (show(photos, (p) => p.isNotEmpty)) const FullBlock(PhotoRibbonCard()),
-      if (show(onThisDay, (d) => d.isNotEmpty))
-        const ThirdBlock(OnThisDayCard()),
-      if (show(yearInReview, (y) => y != null))
-        const ThirdBlock(YearInReviewCard()),
-      if (show(courses, (c) => c.isNotEmpty))
-        const ThirdBlock(ActiveCourseProgressCard()),
-      if (show(sites, (s) => s.isNotEmpty))
-        const FullBlock(RecentSitesMapCard()),
+      if (showUrgent) const FullBlock(UrgentBanner()),
+      ...buildDashboardEntries(visibleCards),
     ];
 
     return Scaffold(
@@ -90,7 +92,7 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(daysSinceLastDiveProvider);
             ref.invalidate(dashboardQuickStatsProvider);
             ref.invalidate(milestonesProvider);
-            ref.invalidate(recentPhotosProvider);
+            ref.invalidate(recentMediaProvider);
             ref.invalidate(onThisDayProvider);
             ref.invalidate(yearInReviewProvider);
             ref.invalidate(recentSitesProvider);
@@ -103,9 +105,48 @@ class DashboardPage extends ConsumerWidget {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
-            child: DashboardGrid(entries: entries),
+            // Keyed off visibleCards, not entries: entries includes the
+            // pinned urgent banner, which must not suppress the
+            // all-cards-hidden CTA (it renders above it instead).
+            child: visibleCards.isEmpty
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showUrgent) const UrgentBanner(),
+                      const _AllCardsHiddenState(),
+                    ],
+                  )
+                : DashboardGrid(entries: entries),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shown when the user has hidden every home card: points at the settings
+/// page where cards can be re-enabled instead of leaving a blank page.
+class _AllCardsHiddenState extends StatelessWidget {
+  const _AllCardsHiddenState();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 96),
+      child: Column(
+        children: [
+          Text(
+            l10n.dashboard_allHidden_message,
+            style: Theme.of(context).textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.tonal(
+            onPressed: () => context.push('/settings/appearance/home'),
+            child: Text(l10n.dashboard_allHidden_customize),
+          ),
+        ],
       ),
     );
   }

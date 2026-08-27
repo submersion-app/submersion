@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -87,7 +86,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
         data: (data) => TrendLineChart(
           data: data,
           lineColor: Colors.teal,
-          valueFormatter: (value) => '${value.toStringAsFixed(0)} min',
+          valueFormatter: (value) => context.l10n
+              .surfaceInterval_format_minutes(value.toStringAsFixed(0)),
         ),
         loading: () => const SizedBox(
           height: 200,
@@ -119,13 +119,17 @@ class StatisticsProgressionPage extends ConsumerWidget {
               .map((d) => (label: '${d.year}', count: d.count))
               .toList();
           final description = data
-              .map((d) => '${d.count} dives in ${d.year}')
+              .map(
+                (d) => context.l10n
+                    .statistics_progression_divesPerYear_countInYear(
+                      d.count,
+                      '${d.year}',
+                    ),
+              )
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: description,
-            ),
+            label: context.l10n
+                .statistics_progression_divesPerYear_semanticLabel(description),
             child: CategoryBarChart(
               data: chartData,
               barColor: Theme.of(context).colorScheme.primary,
@@ -182,10 +186,10 @@ class StatisticsProgressionPage extends ConsumerWidget {
               .map((d) => '${label(d.mm)}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: description,
-            ),
+            label: context.l10n
+                .statistics_progression_divesBySuitThickness_semanticLabel(
+                  description,
+                ),
             child: CategoryBarChart(
               data: chartData,
               barColor: Theme.of(context).colorScheme.tertiary,

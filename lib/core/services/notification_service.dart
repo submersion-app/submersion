@@ -276,6 +276,40 @@ class NotificationService {
     return notificationId;
   }
 
+  /// Title for [showBackupNotification]. Pure, so the wording is testable
+  /// without the platform channel (as with [serviceReminderBody]).
+  static String backupNotificationTitle({
+    required bool success,
+    required bool cloudCopyMissing,
+  }) {
+    if (!success) return 'Backup Failed';
+    return cloudCopyMissing
+        ? 'Backup Complete (device only)'
+        : 'Backup Complete';
+  }
+
+  /// Body for [showBackupNotification].
+  ///
+  /// [cloudCopyMissing] means the user has cloud backup switched on but this
+  /// run produced no cloud copy -- an unreachable provider, expired auth, or
+  /// no network. The local backup is intact, so this is not a failure, but
+  /// saying "backed up successfully" would tell the user their off-device
+  /// copy is safe when it is not.
+  static String backupNotificationBody({
+    required bool success,
+    required bool cloudCopyMissing,
+    String? error,
+  }) {
+    if (!success) {
+      return 'Automatic backup failed'
+          '${error != null ? ': $error' : '. Please try a manual backup.'}';
+    }
+    return cloudCopyMissing
+        ? 'Your dive data was backed up on this device. The cloud copy could '
+              'not be uploaded -- it will be retried at the next backup.'
+        : 'Your dive data has been backed up successfully.';
+  }
+
   /// Show an immediate notification for backup results.
   ///
   /// Used by both foreground operations and background tasks.
@@ -283,6 +317,7 @@ class NotificationService {
   Future<void> showBackupNotification({
     required bool success,
     String? error,
+    bool cloudCopyMissing = false,
   }) async {
     if (!_isMobilePlatform) return;
 
@@ -306,18 +341,20 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    final title = success ? 'Backup Complete' : 'Backup Failed';
-    final body = success
-        ? 'Your dive data has been backed up successfully.'
-        : 'Automatic backup failed${error != null ? ': $error' : '. Please try a manual backup.'}';
-
     // Use a fixed ID so repeated backup notifications replace each other
     const backupNotificationId = 99000;
 
     await _plugin.show(
       id: backupNotificationId,
-      title: title,
-      body: body,
+      title: backupNotificationTitle(
+        success: success,
+        cloudCopyMissing: cloudCopyMissing,
+      ),
+      body: backupNotificationBody(
+        success: success,
+        cloudCopyMissing: cloudCopyMissing,
+        error: error,
+      ),
       notificationDetails: details,
     );
 

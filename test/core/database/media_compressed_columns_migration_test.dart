@@ -19,9 +19,8 @@ void main() {
   });
 
   test('v134 migration is present', () {
-    // Relaxed from an exact-latest tripwire: v136 (media_stores sweep
-    // timestamp) now owns the exact assertion in
-    // migration_v136_media_stores_sweep_test.dart.
+    // Relaxed from an exact-latest tripwire: newer migrations (v135 accents,
+    // v136 media_stores sweep, v137 weather code) sit above it now.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(134));
     expect(AppDatabase.migrationVersions, contains(134));
   });

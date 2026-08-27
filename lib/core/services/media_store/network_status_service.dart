@@ -18,9 +18,11 @@ class NetworkStatusService {
       ConnectivityResult.vpn,
     };
     if (results.any(unmetered.contains)) return NetworkKind.unmetered;
-    if (results.contains(ConnectivityResult.mobile)) {
-      return NetworkKind.cellular;
-    }
+    // Satellite (added in connectivity_plus 7) is metered and expensive, so it
+    // shares the cellular policy. Classifying it as offline instead would make
+    // a working link look like no link and block transfers outright.
+    const metered = {ConnectivityResult.mobile, ConnectivityResult.satellite};
+    if (results.any(metered.contains)) return NetworkKind.cellular;
     return NetworkKind.offline;
   }
 

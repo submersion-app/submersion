@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -29,13 +30,16 @@ class _ContingencySettingsSectionState
     final state = ref.read(divePlanNotifierProvider);
     final units = UnitFormatter(ref.read(settingsProvider));
     _depthController = TextEditingController(
-      text: units.convertDepth(state.deviationDepthDelta).toStringAsFixed(0),
+      text: formatRoundedForInput(
+        units.convertDepth(state.deviationDepthDelta),
+        0,
+      ),
     );
     _timeController = TextEditingController(
-      text: state.deviationTimeMinutes.toString(),
+      text: formatDecimalForInput(state.deviationTimeMinutes.toDouble()),
     );
     _fractionController = TextEditingController(
-      text: (state.turnPressureFraction ?? (1 / 3)).toStringAsFixed(2),
+      text: formatRoundedForInput(state.turnPressureFraction ?? (1 / 3), 2),
     );
   }
 
@@ -90,7 +94,7 @@ class _ContingencySettingsSectionState
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (text) {
-                    final parsed = double.tryParse(text);
+                    final parsed = parseUserDecimal(text);
                     if (parsed == null || parsed <= 0) return;
                     final factor = units.convertDepth(1.0);
                     notifier.updateContingencies(
@@ -110,7 +114,7 @@ class _ContingencySettingsSectionState
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (text) {
-                    final parsed = int.tryParse(text);
+                    final parsed = parseUserInt(text);
                     if (parsed == null || parsed <= 0) return;
                     notifier.updateContingencies(timeMinutes: parsed);
                   },
@@ -158,7 +162,7 @@ class _ContingencySettingsSectionState
                       decimal: true,
                     ),
                     onChanged: (text) {
-                      final parsed = double.tryParse(text);
+                      final parsed = parseUserDecimal(text);
                       if (parsed == null || parsed <= 0 || parsed > 1) return;
                       notifier.updateContingencies(turnFraction: parsed);
                     },

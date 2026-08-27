@@ -650,6 +650,17 @@ static int jni_io_close(void *userdata) {
     return LIBDC_STATUS_SUCCESS;
 }
 
+// Context for the libdivecomputer log callback: WARNING/ERROR messages are
+// forwarded to NativeTrace.writeLibdc so they land in the user-exportable
+// debug log, not only logcat. Cached once per process; the global ref and
+// jmethodID stay valid for the app's lifetime.
+struct LogForwardContext {
+    JavaVM *jvm;
+    jobject traceInstance;  // global ref to NativeTrace.INSTANCE
+    jmethodID writeLibdc;   // writeLibdc(String, String)
+};
+static LogForwardContext g_log_forward = {nullptr, nullptr, nullptr};
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
     JNIEnv *env, jclass,
@@ -737,11 +748,37 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         }
     }
 
+    // Resolve NativeTrace once so the libdivecomputer log callback can
+    // forward WARNING/ERROR diagnostics into the user-exportable debug log.
+    // Issue #766 took three rounds of user logs to localize because the
+    // protocol-level messages only ever reached logcat.
+    if (g_log_forward.traceInstance == nullptr) {
+        jclass traceCls =
+            env->FindClass("com/submersion/libdivecomputer/NativeTrace");
+        if (traceCls != nullptr) {
+            jfieldID instField = env->GetStaticFieldID(traceCls, "INSTANCE",
+                "Lcom/submersion/libdivecomputer/NativeTrace;");
+            jmethodID writeMethod = env->GetMethodID(traceCls, "writeLibdc",
+                "(Ljava/lang/String;Ljava/lang/String;)V");
+            if (instField != nullptr && writeMethod != nullptr) {
+                jobject inst = env->GetStaticObjectField(traceCls, instField);
+                if (inst != nullptr) {
+                    g_log_forward.jvm = jvm;
+                    g_log_forward.writeLibdc = writeMethod;
+                    g_log_forward.traceInstance = env->NewGlobalRef(inst);
+                    env->DeleteLocalRef(inst);
+                }
+            }
+            env->DeleteLocalRef(traceCls);
+        }
+        env->ExceptionClear();
+    }
+
     // Register libdivecomputer log callback so internal diagnostic messages
     // appear in logcat. Android's NativeLogger already wraps Log.d(), so
     // logcat output is captured by the platform-level logging infrastructure.
     libdc_set_log_callback(
-        [](int level, const char *message, void *) {
+        [](int level, const char *message, void *userdata) {
             // Map dc_loglevel_t: ERROR=1, WARNING=2, INFO=3, DEBUG=4+
             android_LogPriority priority;
             switch (level) {
@@ -759,8 +796,30 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
                 break;
             }
             __android_log_print(priority, "libdc", "%s", message);
+
+            // Forward WARNING/ERROR into the crash-survivable debug log so
+            // protocol-level failures reach user-exported logs.
+            auto *fwd = static_cast<LogForwardContext *>(userdata);
+            if (fwd == nullptr || fwd->traceInstance == nullptr || level > 2)
+                return;
+            JNIEnv *cbEnv;
+            if (fwd->jvm->GetEnv(reinterpret_cast<void **>(&cbEnv),
+                                 JNI_VERSION_1_6) != JNI_OK) {
+                // Only forward from already-attached threads (the download
+                // thread entered through JNI); logging must stay passive.
+                return;
+            }
+            jstring jlevel = cbEnv->NewStringUTF(level == 1 ? "ERROR" : "WARN");
+            jstring jmessage = cbEnv->NewStringUTF(message);
+            if (jlevel != nullptr && jmessage != nullptr) {
+                cbEnv->CallVoidMethod(fwd->traceInstance, fwd->writeLibdc,
+                                      jlevel, jmessage);
+            }
+            cbEnv->ExceptionClear();
+            if (jlevel != nullptr) cbEnv->DeleteLocalRef(jlevel);
+            if (jmessage != nullptr) cbEnv->DeleteLocalRef(jmessage);
         },
-        nullptr
+        &g_log_forward
     );
 
     // Run the download.
@@ -939,6 +998,13 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSampleCount(
     return static_cast<jint>(dive->sample_count);
 }
 
+// Must match SAMPLE_FIELD_COUNT in SampleDecoder.kt.
+#define LIBDC_SAMPLE_FIELD_COUNT (28 + LIBDC_MAX_TANKS)
+
+// Index of the first per-tank pressure slot; must match TANK_PRESSURE_OFFSET in
+// SampleDecoder.kt.
+#define LIBDC_TANK_PRESSURE_OFFSET 28
+
 extern "C" JNIEXPORT jdoubleArray JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     JNIEnv *env, jclass, jlong divePtr, jint index) {
@@ -946,10 +1012,12 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->sample_count) return nullptr;
 
     const libdc_sample_t *s = &dive->samples[index];
-    // All 22 fields (14 base + 6 O2 cells + gas mix + heading). Integer sentinels
-    // (UINT32_MAX) are cast to double; NAN doubles pass through and become null
-    // on the Kotlin side.
-    jdouble values[22] = {
+    // 28 scalar fields (14 base + 6 O2 cells + gas mix + heading + 6 cell mV),
+    // then one slot per tank for the per-transmitter pressures (issue #1223).
+    // Integer sentinels (UINT32_MAX) are cast to double; NAN doubles pass
+    // through and become null on the Kotlin side. Kotlin indexes this array
+    // positionally (see SampleDecoder.kt): append only, never insert.
+    jdouble values[LIBDC_SAMPLE_FIELD_COUNT] = {
         static_cast<jdouble>(s->time_ms),
         s->depth,
         s->temperature,
@@ -971,10 +1039,19 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
         s->o2_sensor[4],
         s->o2_sensor[5],
         static_cast<jdouble>(s->gasmix),
-        static_cast<jdouble>(s->heading)
+        static_cast<jdouble>(s->heading),
+        static_cast<jdouble>(s->o2_sensor_mv[0]),
+        static_cast<jdouble>(s->o2_sensor_mv[1]),
+        static_cast<jdouble>(s->o2_sensor_mv[2]),
+        static_cast<jdouble>(s->o2_sensor_mv[3]),
+        static_cast<jdouble>(s->o2_sensor_mv[4]),
+        static_cast<jdouble>(s->o2_sensor_mv[5])
     };
-    jdoubleArray result = env->NewDoubleArray(22);
-    env->SetDoubleArrayRegion(result, 0, 22, values);
+    for (unsigned int t = 0; t < LIBDC_MAX_TANKS; t++) {
+        values[LIBDC_TANK_PRESSURE_OFFSET + t] = s->tank_pressure[t];
+    }
+    jdoubleArray result = env->NewDoubleArray(LIBDC_SAMPLE_FIELD_COUNT);
+    env->SetDoubleArrayRegion(result, 0, LIBDC_SAMPLE_FIELD_COUNT, values);
     return result;
 }
 

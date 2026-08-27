@@ -11,16 +11,27 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dart';
+
+/// Version of the deco computation behind [ProfileAnalysis].
+///
+/// Bump this whenever a change could flip [ProfileAnalysis.hadDecoObligation]
+/// for an unchanged profile: a different algorithm, altered coefficients, or a
+/// changed ceiling convention. Consumers that memoize an analysis-derived
+/// answer fold it into their cache key, so a bump invalidates their stored
+/// results. Currently used by the statistics deco-classification cache (#623).
+const int analysisEngineVersion = 1;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
@@ -235,6 +246,12 @@ class ProfileAnalysis {
   /// with null where that cell had no reading. Null when the dive has no cells.
   final List<List<double?>>? o2SensorCurves;
 
+  /// Raw O2 cell output at each profile point (mV), shaped like
+  /// [o2SensorCurves]. Derived independently of the ppO2 resolution: a computer
+  /// with an untrusted calibration reports these and no bar value at all
+  /// (issue #810). Null when no cell reports millivolts.
+  final List<List<int?>>? o2CellMvCurves;
+
   /// True when [ppO2Curve] values are derived from averaging O2 cells (no
   /// computer-supplied ppO2 was available). Used to label the chart tooltip.
   final bool ppO2FromSensorAverage;
@@ -290,6 +307,22 @@ class ProfileAnalysis {
   /// Dive duration in seconds
   final int durationSeconds;
 
+  /// The gradient factors this analysis ran with, and where they came from.
+  ///
+  /// Every deco-derived number here -- [ceilingCurve], [ndlCurve], [ttsCurve],
+  /// [gfCurve], [surfaceGfCurve], [decoStatuses] -- is a function of this pair,
+  /// so a surface that prints any of them can say what produced them. When the
+  /// dive recorded no gradient factors the origin is [GfOrigin.diverSettings],
+  /// and displaying the numbers without that qualifier is the #1047 bug.
+  ///
+  /// Null means unattributed, which is a state rather than a number: an
+  /// analysis nobody configured has no business claiming any diver's settings.
+  /// [ProfileAnalysisService] always stamps its own, so null in practice means
+  /// a directly-constructed [ProfileAnalysis] (chiefly [ProfileAnalysis.empty]
+  /// and tests built on it). Consumers fall back to the per-sample
+  /// [DecoStatus] pair and show no provenance.
+  final GradientFactorSource? gfSource;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -302,6 +335,7 @@ class ProfileAnalysis {
     required this.o2Exposure,
     required this.ppO2Curve,
     this.o2SensorCurves,
+    this.o2CellMvCurves,
     this.ppO2FromSensorAverage = false,
     this.sacCurve,
     this.smoothedSacCurve,
@@ -320,6 +354,7 @@ class ProfileAnalysis {
     required this.averageDepth,
     required this.maxDepthTimestamp,
     required this.durationSeconds,
+    this.gfSource,
   });
 
   /// Whether diver went into decompression obligation
@@ -392,6 +427,7 @@ class ProfileAnalysis {
     O2Exposure? o2Exposure,
     List<double>? ppO2Curve,
     List<List<double?>>? o2SensorCurves,
+    List<List<int?>>? o2CellMvCurves,
     bool? ppO2FromSensorAverage,
     List<double>? sacCurve,
     List<double>? smoothedSacCurve,
@@ -410,6 +446,7 @@ class ProfileAnalysis {
     double? averageDepth,
     int? maxDepthTimestamp,
     int? durationSeconds,
+    GradientFactorSource? gfSource,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -423,6 +460,7 @@ class ProfileAnalysis {
       o2Exposure: o2Exposure ?? this.o2Exposure,
       ppO2Curve: ppO2Curve ?? this.ppO2Curve,
       o2SensorCurves: o2SensorCurves ?? this.o2SensorCurves,
+      o2CellMvCurves: o2CellMvCurves ?? this.o2CellMvCurves,
       ppO2FromSensorAverage:
           ppO2FromSensorAverage ?? this.ppO2FromSensorAverage,
       sacCurve: sacCurve ?? this.sacCurve,
@@ -442,6 +480,7 @@ class ProfileAnalysis {
       averageDepth: averageDepth ?? this.averageDepth,
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
+      gfSource: gfSource ?? this.gfSource,
     );
   }
 
@@ -478,8 +517,15 @@ class ProfileAnalysisService {
   final AscentRateCalculator _ascentRateCalculator;
   final O2ToxicityCalculator _o2ToxicityCalculator;
   final BuhlmannAlgorithm _buhlmannAlgorithm;
+  final GradientFactorSource _gfSource;
   final Uuid _uuid;
 
+  /// [gfSource] names the gradient factors AND where they came from, and takes
+  /// precedence over [gfLow]/[gfHigh] when given (#1047). Passing the pair and
+  /// its provenance as one value is what stops the analysis from reporting one
+  /// set of numbers while having decompressed on another. Callers that supply
+  /// only [gfLow]/[gfHigh] are, by construction, configuring the service from
+  /// the diver's own settings, so the derived source says so.
   ProfileAnalysisService({
     double ascentRateWarning = 9.0,
     double ascentRateCritical = 12.0,
@@ -488,6 +534,7 @@ class ProfileAnalysisService {
     int cnsWarningThreshold = 80,
     double gfLow = 0.30,
     double gfHigh = 0.70,
+    GradientFactorSource? gfSource,
     double lastStopDepth = 3.0,
     double decoStopIncrement = 3.0,
     DiveEnvironment environment = DiveEnvironment.standard,
@@ -503,13 +550,23 @@ class ProfileAnalysisService {
          cnsMethod: cnsCalculationMethod,
        ),
        _buhlmannAlgorithm = BuhlmannAlgorithm(
-         gfLow: gfLow,
-         gfHigh: gfHigh,
+         gfLow: gfSource?.lowFraction ?? gfLow,
+         gfHigh: gfSource?.highFraction ?? gfHigh,
          lastStopDepth: lastStopDepth,
          stopIncrement: decoStopIncrement,
          environment: environment,
        ),
+       _gfSource =
+           gfSource ??
+           GradientFactorSource(
+             low: (gfLow * 100).round(),
+             high: (gfHigh * 100).round(),
+             origin: GfOrigin.diverSettings,
+           ),
        _uuid = const Uuid();
+
+  /// The gradient factors this service decompresses with, and their origin.
+  GradientFactorSource get gfSource => _gfSource;
 
   /// Analyze a complete dive profile.
   ///
@@ -560,8 +617,18 @@ class ProfileAnalysisService {
     List<double>? rebreatherPpO2Curve,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
-      return ProfileAnalysis.empty();
+      // Still an answer from a configured service, so it can say which
+      // gradient factors it would have used.
+      return ProfileAnalysis.empty().copyWith(gfSource: _gfSource);
     }
+
+    // Repair implausible single-sample depth readings once, here, so every
+    // curve derived below (ascent rates, ceilings, NDL, tissue state, events)
+    // sees the same series. Sanitizing further downstream would let the
+    // Buhlmann replay and the ascent-rate overlay disagree about the depth at
+    // a given sample. The repair preserves length, which consumers rely on to
+    // index analysis curves against the raw profile.
+    depths = repairDepthOutliers(depths, timestamps);
 
     if (startOtu < 0) {
       throw ArgumentError('startOtu must be non-negative, got $startOtu');
@@ -623,6 +690,7 @@ class ProfileAnalysisService {
         durationSeconds: timestamps.isNotEmpty
             ? timestamps.last - timestamps.first
             : 0,
+        gfSource: _gfSource,
       );
     }
 
@@ -907,6 +975,7 @@ class ProfileAnalysisService {
       averageDepth: averageDepth,
       maxDepthTimestamp: maxDepthTimestamp,
       durationSeconds: durationSeconds,
+      gfSource: _gfSource,
     );
   }
 

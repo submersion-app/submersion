@@ -8,6 +8,7 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/security/database_security_sidecar.dart';
 
 /// Minimal location-service fake: the migration methods drive real temp
 /// files for everything except configuration/bookmark bookkeeping, which we
@@ -87,6 +88,45 @@ void main() {
     return DatabaseMigrationService(DatabaseService.instance, location);
   }
 
+  test('replaceExistingDatabase keeps the overwritten database recoverable, '
+      'sidecar included', () async {
+    final service = await initServiceAt(p.join(root.path, 'default'));
+
+    // A database already sitting in the target folder, in WAL mode with an
+    // uncheckpointed sidecar -- the state a force-killed install leaves. It is
+    // about to be overwritten, and this copy is the only way back.
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create(recursive: true);
+    final victimPath = p.join(
+      targetDir,
+      DatabaseLocationService.databaseFilename,
+    );
+    await _seedDatabase(victimPath);
+    File('$victimPath-wal').writeAsStringSync('uncheckpointed frames');
+
+    final result = await service.replaceExistingDatabase(targetDir);
+    expect(result.success, isTrue, reason: result.errorMessage);
+
+    final copies = Directory(targetDir)
+        .listSync()
+        .whereType<File>()
+        .map((f) => p.basename(f.path))
+        .where((name) => name.contains('_backup_'))
+        .toList();
+    expect(
+      copies.where((name) => name.endsWith('.db')),
+      hasLength(1),
+      reason: 'the overwritten database should have been copied aside',
+    );
+    expect(
+      copies.where((name) => name.endsWith('.db-wal')),
+      hasLength(1),
+      reason:
+          'a copy of `<db>` alone is not the database: the rows in the '
+          'sidecar would be unrecoverable',
+    );
+  });
+
   test('migrateToCustomFolder closes strictly and reopens at the new '
       'folder', () async {
     final service = await initServiceAt(p.join(root.path, 'default'));
@@ -108,6 +148,24 @@ void main() {
         .customSelect('SELECT 1 AS v')
         .getSingle();
     expect(one.read<int>('v'), 1);
+  });
+
+  test('migrateToCustomFolder carries the security keyslot sidecar', () async {
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create(recursive: true);
+    // A sidecar next to the live DB (as enableSecurity would write it).
+    final sidecarPath = DatabaseSecuritySidecar.pathFor(currentPath);
+    File(sidecarPath).writeAsStringSync('{"version":1}');
+
+    final result = await service.migrateToCustomFolder(targetDir);
+
+    expect(result.success, isTrue, reason: result.errorMessage);
+    expect(
+      File(p.join(targetDir, DatabaseSecuritySidecar.fileName)).existsSync(),
+      isTrue,
+      reason: 'sidecar must travel with the database on a storage move',
+    );
   });
 
   test('migrateToDefault closes strictly and reopens at the default '

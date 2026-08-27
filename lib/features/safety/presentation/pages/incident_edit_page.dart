@@ -8,6 +8,7 @@ import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Create/edit form for a near-miss report. Non-punitive framing: what
 /// happened, what contributed, what would help next time.
@@ -222,7 +223,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     // from _occurredAt's wall-clock Y/M/D, then normalize the chosen day back
     // to a timezone-stable UTC wall-clock date.
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: DateTime(
         _occurredAt.year,

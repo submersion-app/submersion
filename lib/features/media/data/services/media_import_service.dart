@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
@@ -64,20 +65,38 @@ class MediaImportService {
   final void Function(String mediaId)? onMediaCreated;
 
   /// Copies [sourceFile] into the app documents directory (subdir
-  /// 'scanned_logs/') and creates a localFile media row linked to
-  /// [diveId]. Used by the OCR scan flow to attach the source page photo.
+  /// [subdirectory]) and creates a localFile media row linked to [diveId].
+  ///
+  /// [subdirectory] defaults to 'scanned_logs' for the OCR scan flow that
+  /// introduced this method; file imports pass their own so an imported
+  /// logbook's photos are not filed as scanned pages.
+  ///
+  /// [latitude] and [longitude] are the photo's own coordinates when the
+  /// source recorded them, which is not the same as the dive site's.
   Future<MediaItem> importLocalFileForDive({
     required File sourceFile,
     required String diveId,
     DateTime? takenAt,
+    double? latitude,
+    double? longitude,
+    String subdirectory = 'scanned_logs',
   }) async {
     final docs = await _documentsDirectory();
-    final dir = Directory(p.join(docs.path, 'scanned_logs'));
+    final dir = Directory(p.join(docs.path, subdirectory));
     await dir.create(recursive: true);
     final sourceExt = p.extension(sourceFile.path);
     final ext = sourceExt.isEmpty ? '.jpg' : sourceExt;
-    final destName = '${DateTime.now().millisecondsSinceEpoch}$ext';
-    final dest = await sourceFile.copy(p.join(dir.path, destName));
+    // A millisecond stamp alone collides when a batch import copies two
+    // photos inside the same millisecond, and the second copy would
+    // overwrite the first. Disambiguate with a counter.
+    var destName = '${DateTime.now().millisecondsSinceEpoch}$ext';
+    var destPath = p.join(dir.path, destName);
+    var counter = 1;
+    while (File(destPath).existsSync()) {
+      destName = '${DateTime.now().millisecondsSinceEpoch}_${counter++}$ext';
+      destPath = p.join(dir.path, destName);
+    }
+    final dest = await sourceFile.copy(destPath);
     final now = DateTime.now();
     final item = MediaItem(
       id: '',
@@ -86,6 +105,8 @@ class MediaImportService {
       sourceType: MediaSourceType.localFile,
       filePath: dest.path,
       originalFilename: p.basename(sourceFile.path),
+      latitude: latitude,
+      longitude: longitude,
       takenAt: takenAt ?? now,
       createdAt: now,
       updatedAt: now,
@@ -146,7 +167,7 @@ class MediaImportService {
     for (final asset in newAssets) {
       try {
         // Create MediaItem
-        final mediaItem = _createMediaItemFromAsset(asset, dive.id);
+        final mediaItem = _createMediaItemFromAsset(asset, diveId: dive.id);
 
         // Save to database
         final saved = await _mediaRepository.createMedia(mediaItem);
@@ -187,7 +208,72 @@ class MediaImportService {
     );
   }
 
-  MediaItem _createMediaItemFromAsset(AssetInfo asset, String diveId) {
+  /// Import selected assets as direct site attachments. Same dedupe
+  /// contract as [importPhotosForDive]; no enrichment (sites have no
+  /// profile to position photos on).
+  Future<ImportResult> importPhotosForSite({
+    required List<AssetInfo> selectedAssets,
+    required String siteId,
+  }) async {
+    final List<MediaItem> imported = [];
+    final Map<String, String> failures = {};
+
+    _log.info(
+      'Starting import of ${selectedAssets.length} assets for site $siteId',
+    );
+
+    // Same two-key dedupe as the dive import: gallery picks match on the
+    // platform asset id, desktop picks on the path.
+    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
+    final anyPaths = selectedAssets.any(hasPath);
+    final anyGallery = selectedAssets.any((a) => !hasPath(a));
+
+    final existingAssetIds = anyGallery
+        ? await _mediaRepository.getLinkedAssetIdsForSite(siteId)
+        : const <String>{};
+    final existingPaths = anyPaths
+        ? await _mediaRepository.getLinkedLocalPathsForSite(siteId)
+        : const <String>{};
+
+    final newAssets = selectedAssets.where((a) {
+      if (hasPath(a)) return !existingPaths.contains(a.filePath);
+      return !existingAssetIds.contains(a.id);
+    }).toList();
+    final skippedCount = selectedAssets.length - newAssets.length;
+
+    for (final asset in newAssets) {
+      try {
+        final mediaItem = _createMediaItemFromAsset(asset, siteId: siteId);
+        final saved = await _mediaRepository.createMedia(mediaItem);
+        imported.add(saved);
+        onMediaCreated?.call(saved.id);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to import asset ${asset.id} for site',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        failures[asset.id] = e.toString();
+      }
+    }
+
+    _log.info(
+      'Site import complete: ${imported.length} succeeded, '
+      '${failures.length} failed, $skippedCount skipped',
+    );
+
+    return ImportResult(
+      imported: imported,
+      failures: failures,
+      skippedDuplicates: skippedCount,
+    );
+  }
+
+  MediaItem _createMediaItemFromAsset(
+    AssetInfo asset, {
+    String? diveId,
+    String? siteId,
+  }) {
     final now = DateTime.now();
 
     // Windows / Linux have no platform photo library: the picker opens a file
@@ -205,6 +291,7 @@ class MediaImportService {
     return MediaItem(
       id: '',
       diveId: diveId,
+      siteId: siteId,
       // Deliberately null for a localFile row. The desktop picker's asset id
       // is a synthetic in-memory key, and several features gate purely on
       // `platformAssetId != null` -- MediaItem.isGalleryPhoto,
@@ -221,7 +308,17 @@ class MediaImportService {
       localPath: isLocalFile ? path : null,
       latitude: asset.latitude,
       longitude: asset.longitude,
-      takenAt: asset.createDateTime,
+      // AssetInfo.createDateTime is contractually LOCAL (photo_manager's
+      // convention on mobile; the desktop picker mirrors it by reinterpreting
+      // the file's wall-clock capture digits as a local DateTime). MediaItem
+      // .takenAt is wall-clock-UTC -- MediaRepository persists
+      // `takenAt.millisecondsSinceEpoch` verbatim and hydrates it back with
+      // `isUtc: true`. Storing the local value would bake the host's UTC
+      // offset into that number, and the fullscreen viewer's metadata overlay,
+      // which formats the hydrated UTC value directly, would show a capture
+      // time shifted by that offset. The gallery-scan write path
+      // (TripMediaScanner) already normalises the same way.
+      takenAt: TripMediaScanner.toWallClockUtc(asset.createDateTime),
       width: asset.width,
       height: asset.height,
       durationSeconds: asset.durationSeconds,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 /// In-memory stand-in for [AppSettingsRepository] so tests can exercise
 /// settings-backed policies without a database.
@@ -33,6 +34,11 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
     values[key] = value;
   }
 
+  /// No database, so nothing ever ticks. Providers under test still subscribe,
+  /// they just never self-invalidate.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
   // Members these tests do not use -- stub to satisfy the interface.
   @override
   Future<bool> getShareByDefault() async =>
@@ -48,5 +54,12 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
 
   @override
   Future<void> setNavPrimaryIds(List<String> ids) async =>
+      throw UnimplementedError('not used by these tests');
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async =>
+      throw UnimplementedError('not used by these tests');
+
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async =>
       throw UnimplementedError('not used by these tests');
 }

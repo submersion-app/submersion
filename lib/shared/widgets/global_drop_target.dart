@@ -95,7 +95,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
           .read(universalImportNotifierProvider.notifier)
           .loadFilesFromPaths(paths);
       if (!mounted) return;
-      context.go('/transfer/import-wizard');
+      context.push('/transfer/import-wizard');
       return;
     }
 
@@ -126,7 +126,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     if (!mounted) return;
 
     if (shouldNavigate) {
-      context.go('/transfer/import-wizard');
+      context.push('/transfer/import-wizard');
     }
   }
 }

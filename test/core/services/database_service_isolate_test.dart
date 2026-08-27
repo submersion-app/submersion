@@ -101,7 +101,7 @@ void main() {
     raw.execute(
       'PRAGMA user_version = ${AppDatabase.currentSchemaVersion - 1}',
     );
-    raw.dispose();
+    raw.close();
 
     await DatabaseService.instance.initialize(
       locationService: _FakeLocation(dbPath),
@@ -132,7 +132,7 @@ void main() {
       raw.execute(
         'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
       );
-      raw.dispose();
+      raw.close();
 
       await expectLater(
         DatabaseService.instance.initialize(
@@ -215,7 +215,7 @@ void main() {
     await seed.close();
     final raw = sqlite3.sqlite3.open(dbPath);
     raw.execute('PRAGMA user_version = 58');
-    raw.dispose();
+    raw.close();
 
     await expectLater(
       DatabaseService.instance.initialize(
@@ -325,6 +325,116 @@ void main() {
     },
   );
 
+  test('a newer-schema file rejected at the post-swap reopen rolls back '
+      '(no data loss)', () async {
+    // The sibling test above covers a failed SWAP, which the rename's own
+    // catch already handled. This covers the REOPEN: the version guard
+    // fires after the new file is live, which left the app with no working
+    // database until issue #1089.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    // Written AFTER the backup, so this row proves the ORIGINAL database
+    // came back rather than the restored copy.
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+    );
+
+    // Stamp the backup with a schema this build cannot open. The file is a
+    // genuine Submersion database in every other respect, so it swaps in
+    // cleanly and only fails at the reopen.
+    final raw = sqlite3.sqlite3.open(backupPath);
+    raw.execute(
+      'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+    );
+    raw.close();
+
+    await expectLater(
+      DatabaseService.instance.restore(backupPath),
+      throwsA(isA<DatabaseVersionMismatchException>()),
+    );
+
+    // THE FIX: the pre-restore database is back, open, and intact.
+    final divers = await DiverRepository().getAllDivers();
+    expect(
+      divers.map((d) => d.name),
+      contains('Keep Me'),
+      reason:
+          'the guard fired after the swap; without rollback the app is '
+          'left with the unopenable file live and no database',
+    );
+    expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+    expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+  });
+
+  test(
+    'a failed swap rolls back the WAL sidecar too, not just the main file',
+    () async {
+      // The main database is opened from two isolates, so `close(strict:true)`
+      // is not always the LAST close: a second connection keeps the -wal alive
+      // with committed rows still in it. Deleting the sidecar at that point
+      // would leave the .pre-restore copy incomplete, and the rollback below
+      // would put back a database missing its newest data.
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      // Force the lazy open so the database file exists before it is backed up.
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      // Written AFTER the backup, so this row can only come from the original
+      // database, and only survives if its WAL sidecar did.
+      final now = DateTime.now();
+      await DiverRepository().createDiver(
+        domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+      );
+
+      // Stand in for the headless isolate: a second connection that outlives
+      // the restore's close, so SQLite cannot checkpoint the -wal away.
+      final sibling = DatabaseService.openRaw(defaultPath);
+      addTearDown(sibling.close);
+      sibling.select('SELECT 1');
+
+      // Sabotage the swap so the rollback path runs.
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        expect(
+          File('$defaultPath-wal').existsSync(),
+          isTrue,
+          reason:
+              'the sibling connection should have kept the -wal from being '
+              'checkpointed away by the close, or this proves nothing',
+        );
+        File(stagingPath).deleteSync();
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      final divers = await DiverRepository().getAllDivers();
+      expect(
+        divers.map((d) => d.name),
+        contains('Keep Me'),
+        reason:
+            'the row was WAL-resident; dropping the sidecar on the way aside '
+            'would have lost it',
+      );
+      expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+      expect(File('$defaultPath.pre-restore-wal').existsSync(), isFalse);
+      expect(File('$defaultPath.pre-restore-shm').existsSync(), isFalse);
+    },
+  );
+
   test(
     'the restore window seam is one-shot and does not leak across restores',
     () async {
@@ -380,6 +490,47 @@ void main() {
       expect(one.read<int>('v'), 1);
     },
   );
+
+  test('restore succeeds while a watch() subscription is paused', () async {
+    // Riverpod 3 auto-pauses the streams of providers nobody is listening to,
+    // and drift's graceful close() awaits streamQueries.close(), which hangs
+    // while ANY watch() subscription is paused. In a real session there is
+    // almost always at least one paused watch stream (any previously visited
+    // page), so a strict close that trusts the graceful close with a throwing
+    // timeout makes restore fail with TimeoutException until retried.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    // Simulate Riverpod's auto-pause: subscribe to a watch() stream, then
+    // pause the subscription and leave it paused across the restore.
+    final subscription = DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .watch()
+        .listen((_) {});
+    subscription.pause();
+    addTearDown(() async {
+      try {
+        await subscription.cancel();
+      } catch (_) {
+        // The stream's database was closed by the restore; a cancel error
+        // here is irrelevant to the assertion.
+      }
+    });
+
+    await DatabaseService.instance.restore(backupPath);
+
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+  });
 
   test('restore with a missing backup file leaves the live DB open', () async {
     // A restore pointed at a nonexistent file must be a true no-op: it must

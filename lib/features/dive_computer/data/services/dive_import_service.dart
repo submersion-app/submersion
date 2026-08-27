@@ -5,7 +5,9 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/downloaded_tank_defaults.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -230,22 +232,42 @@ class ImportResult {
   int get totalProcessed => imported + skipped + updated;
 }
 
+/// Supplies the default tank preset to fill downloaded cylinders with, or
+/// null when the diver has not opted in (or the preset no longer exists).
+typedef DefaultTankPresetLoader = Future<TankPresetEntity?> Function();
+
 /// Service for importing downloaded dives into the app's database.
 class DiveImportService {
   final DiveComputerRepository _repository;
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
   final GpsTrackMatchService? _gpsTrackMatchService;
+  final DefaultTankPresetLoader? _defaultTankPresetForImports;
 
   DiveImportService({
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
     DiveParser? parser,
     GpsTrackMatchService? gpsTrackMatchService,
+    DefaultTankPresetLoader? defaultTankPresetForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
-       _gpsTrackMatchService = gpsTrackMatchService;
+       _gpsTrackMatchService = gpsTrackMatchService,
+       _defaultTankPresetForImports = defaultTankPresetForImports;
+
+  /// The preset to fill downloaded cylinders with.
+  ///
+  /// [importDives] resolves it once for the whole batch. The wizard's
+  /// per-dive entry points ([importSingleDiveAsNew], [resolveConflict])
+  /// resolve it per call: one small preset lookup beside a profile write of
+  /// thousands of samples, and deliberately not cached across calls so a
+  /// toggle flipped in Settings applies to the next download.
+  Future<TankPresetEntity?> _loadDefaultTankPreset() async {
+    final loader = _defaultTankPresetForImports;
+    if (loader == null) return null;
+    return loader();
+  }
 
   /// Import a list of downloaded dives.
   ///
@@ -289,6 +311,8 @@ class DiveImportService {
     final sourceKeysCache = _diveRepository != null
         ? await _diveRepository.getSourceKeysByDiveId()
         : null;
+
+    final defaultTankPreset = await _loadDefaultTankPreset();
 
     for (final dive in sortedDives) {
       try {
@@ -343,6 +367,7 @@ class DiveImportService {
                 computer.id,
                 diverId,
                 forceNew: true,
+                defaultTankPreset: defaultTankPreset,
                 descriptorVendor: descriptorVendor,
                 descriptorProduct: descriptorProduct,
                 descriptorModel: descriptorModel,
@@ -372,6 +397,7 @@ class DiveImportService {
               computer.id,
               diverId,
               forceNew: true,
+              defaultTankPreset: defaultTankPreset,
               descriptorVendor: descriptorVendor,
               descriptorProduct: descriptorProduct,
               descriptorModel: descriptorModel,
@@ -387,6 +413,7 @@ class DiveImportService {
             dive,
             computer.id,
             diverId,
+            defaultTankPreset: defaultTankPreset,
             descriptorVendor: descriptorVendor,
             descriptorProduct: descriptorProduct,
             descriptorModel: descriptorModel,
@@ -499,11 +526,15 @@ class DiveImportService {
   }
 
   /// Import a downloaded dive as a new dive.
+  ///
+  /// [defaultTankPreset], when given, fills the cylinder size the computer
+  /// did not report so volumetric SAC is reachable on the new dive.
   Future<String> _importNewDive(
     DownloadedDive dive,
     String computerId,
     String? diverId, {
     bool forceNew = false,
+    TankPresetEntity? defaultTankPreset,
     String? descriptorVendor,
     String? descriptorProduct,
     int? descriptorModel,
@@ -521,8 +552,12 @@ class DiveImportService {
     // Parse profile data
     final profilePoints = _parser.parseProfile(dive);
 
-    // Convert tanks to TankData
-    final tanks = _parser.parseTanks(dive);
+    // Convert tanks to TankData, filling the cylinder size from the default
+    // preset when the diver opted in (computers report pressure, not size).
+    final parsedTanks = _parser.parseTanks(dive);
+    final tanks = defaultTankPreset == null
+        ? parsedTanks
+        : applyDefaultPresetToTanks(parsedTanks, defaultTankPreset);
 
     // Convert events to EventData
     final events = _convertEvents(dive.events);
@@ -583,6 +618,7 @@ class DiveImportService {
       computerId,
       diverId,
       forceNew: true,
+      defaultTankPreset: await _loadDefaultTankPreset(),
       descriptorVendor: descriptorVendor,
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
@@ -683,6 +719,7 @@ class DiveImportService {
           conflict.downloaded,
           computerId,
           diverId,
+          defaultTankPreset: await _loadDefaultTankPreset(),
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

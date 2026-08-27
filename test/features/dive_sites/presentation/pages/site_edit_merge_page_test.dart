@@ -307,16 +307,17 @@ void main() {
       );
       expect(gpsCycleButton, findsOneWidget);
 
-      // Verify initial coordinates (site1)
-      expect(find.text('17.288'), findsOneWidget);
-      expect(find.text('-87.812'), findsOneWidget);
+      // Verify initial coordinates (site1). The coordinate fields render at a
+      // fixed six decimal places whatever precision the site was stored with.
+      expect(find.text('17.288000'), findsOneWidget);
+      expect(find.text('-87.812000'), findsOneWidget);
 
       await tester.tap(gpsCycleButton);
       await tester.pumpAndSettle();
 
       // After cycling, should show site2 coordinates
-      expect(find.text('-8.409'), findsOneWidget);
-      expect(find.text('115.189'), findsOneWidget);
+      expect(find.text('-8.409000'), findsOneWidget);
+      expect(find.text('115.189000'), findsOneWidget);
     },
   );
 

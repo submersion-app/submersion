@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A collapsed/expandable card summarising one duplicate item.
 ///
@@ -129,7 +130,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'Dive data not available for comparison.',
+          context.l10n.universalImport_compare_noDiveData,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -142,7 +143,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       incoming: diveData,
       existingDiveId: widget.existingDiveId,
       matchScore: widget.matchResult.score,
-      incomingLabel: 'Incoming',
+      incomingLabel: context.l10n.universalImport_compare_incoming,
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
@@ -277,7 +278,7 @@ class _CollapsedHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '$percent% match',
+                    context.l10n.universalImport_label_percentMatch(percent),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: badgeBorderColor,
                       fontWeight: FontWeight.bold,
@@ -304,11 +305,24 @@ class _ActionBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final (label, color) = switch (action) {
-      DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
-      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
-      DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
-      DuplicateAction.replaceSource => ('REPLACE', Colors.blue.shade700),
+      DuplicateAction.skip => (
+        l10n.universalImport_entityAction_skipBadge,
+        theme.colorScheme.error,
+      ),
+      DuplicateAction.importAsNew => (
+        l10n.universalImport_entityAction_importBadge,
+        Colors.green.shade700,
+      ),
+      DuplicateAction.consolidate => (
+        l10n.universalImport_entityAction_consolidateBadge,
+        Colors.green.shade700,
+      ),
+      DuplicateAction.replaceSource => (
+        l10n.universalImport_entityAction_replaceBadge,
+        Colors.blue.shade700,
+      ),
     };
 
     return Container(

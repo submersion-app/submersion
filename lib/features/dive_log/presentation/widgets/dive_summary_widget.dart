@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/statistics/domain/career_totals.dart';
+import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
 ///
 /// Displays aggregate statistics about the user's dive history,
 /// including total dives, hours logged, records, and recent activity.
+///
+/// Dive count and dive time are career totals (logged + prior dives), matching
+/// the Statistics overview and the home hero header (issue #808).
 class DiveSummaryWidget extends ConsumerWidget {
   const DiveSummaryWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(diveStatisticsProvider);
+    final careerAsync = ref.watch(careerTotalsProvider);
     final recordsAsync = ref.watch(diveRecordsProvider);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -30,8 +36,17 @@ class DiveSummaryWidget extends ConsumerWidget {
           children: [
             _buildHeader(context),
             const SizedBox(height: 24),
-            statsAsync.when(
-              data: (stats) => _buildStatsSummary(context, stats, units),
+            careerAsync.when(
+              // careerTotalsProvider awaits diveStatisticsProvider, so stats
+              // are resolved by the time career totals are; the null branch is
+              // only reachable while a refresh is in flight.
+              data: (career) {
+                final stats = statsAsync.valueOrNull;
+                if (stats == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return _buildStatsSummary(context, stats, career, units);
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error: $e')),
             ),
@@ -86,10 +101,12 @@ class DiveSummaryWidget extends ConsumerWidget {
   Widget _buildStatsSummary(
     BuildContext context,
     DiveStatistics stats,
+    CareerTotals career,
     UnitFormatter units,
   ) {
-    final hours = stats.totalTimeSeconds ~/ 3600;
-    final minutes = (stats.totalTimeSeconds % 3600) ~/ 60;
+    final totalTimeSeconds = career.combinedTimeSeconds;
+    final hours = totalTimeSeconds ~/ 3600;
+    final minutes = (totalTimeSeconds % 3600) ~/ 60;
     final timeString = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
 
     return Column(
@@ -109,8 +126,14 @@ class DiveSummaryWidget extends ConsumerWidget {
             _buildStatCard(
               context,
               icon: Icons.tag,
-              value: '${stats.totalDives}',
+              value: '${career.combinedDives}',
               label: context.l10n.diveLog_summary_stat_totalDives,
+              subtitle: career.hasPriorDives
+                  ? context.l10n.statistics_priorBreakdown(
+                      '${career.loggedDives}',
+                      '${career.priorDives}',
+                    )
+                  : null,
               color: Colors.blue,
             ),
             _buildStatCard(
@@ -118,6 +141,12 @@ class DiveSummaryWidget extends ConsumerWidget {
               icon: Icons.timer,
               value: timeString,
               label: context.l10n.diveLog_summary_stat_diveTime,
+              subtitle: career.hasPriorTime
+                  ? context.l10n.statistics_priorBreakdown(
+                      career.loggedTimeFormatted,
+                      career.priorTimeFormatted,
+                    )
+                  : null,
               color: Colors.teal,
             ),
             _buildStatCard(
@@ -166,6 +195,7 @@ class DiveSummaryWidget extends ConsumerWidget {
     required String value,
     required String label,
     required Color color,
+    String? subtitle,
   }) {
     return SizedBox(
       width: 140,
@@ -199,6 +229,16 @@ class DiveSummaryWidget extends ConsumerWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),

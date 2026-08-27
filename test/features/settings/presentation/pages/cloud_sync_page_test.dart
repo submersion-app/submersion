@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType, SyncRepository;
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
@@ -35,6 +37,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
     show sharedPreferencesProvider;
+import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
+    show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -107,13 +111,19 @@ class _NoopBackupAdapter implements BackupDatabaseAdapter {
   Future<void> backup(String destinationPath) async {}
 
   @override
-  Future<void> restore(String backupPath) async {}
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async {}
 
   @override
   Future<String> get databasePath async => '/noop';
 
   @override
   AppDatabase get database => throw UnimplementedError();
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 /// Fake [BackupService] recording safety-backup calls from the adopt flow.
@@ -163,6 +173,13 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   Future<void> performSync({bool auto = false}) async => performSyncCalls++;
 
   @override
+  Future<ReplacePreflight> replacePreflight() async =>
+      const ReplacePreflight(localDiveCount: 0, peerFileCount: 0);
+
+  @override
+  Future<void> replaceCloudLibraryFromThisDevice() async {}
+
+  @override
   Future<void> disableForDatabaseReset() async {}
 
   @override
@@ -208,17 +225,28 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
 
   int removeThisDeviceCloudFilesCalls = 0;
   @override
-  Future<void> removeThisDeviceCloudFiles() async =>
-      removeThisDeviceCloudFilesCalls++;
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    removeThisDeviceCloudFilesCalls++;
+    return const SyncCleanupOutcome();
+  }
 
   int wipeAllCloudSyncDataCalls = 0;
   @override
-  Future<void> wipeAllCloudSyncData() async => wipeAllCloudSyncDataCalls++;
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    wipeAllCloudSyncDataCalls++;
+    return const SyncCleanupOutcome();
+  }
 
   int rebuildBackendFromThisDeviceCalls = 0;
   @override
-  Future<void> rebuildBackendFromThisDevice() async =>
-      rebuildBackendFromThisDeviceCalls++;
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+    void Function()? onPublishStarted,
+  }) async => rebuildBackendFromThisDeviceCalls++;
 
   @override
   Future<void> signOut() async => signOutCalls++;
@@ -237,6 +265,19 @@ class _ThrowingCloudStorageProvider extends FakeCloudStorageProvider {
   @override
   Future<void> authenticate() async {
     throw const CloudStorageException('auth denied');
+  }
+}
+
+/// [FakeCloudStorageProvider] whose [authenticate] blocks on a completer, so
+/// tests can hold the desktop browser-wait dialog open and resolve (or fail)
+/// the sign-in at a chosen moment.
+class _PendingAuthCloudStorageProvider extends FakeCloudStorageProvider {
+  final authCompleter = Completer<void>();
+
+  @override
+  Future<void> authenticate() async {
+    await authCompleter.future;
+    await super.authenticate();
   }
 }
 
@@ -365,6 +406,11 @@ void main() {
     ),
     ICloudAvailability iCloudAvailability = ICloudAvailability.available,
     bool applePlatform = true,
+    bool googleDriveAvailable = true,
+    String? googleDriveEmail,
+    // Android, where a "custom folder" is an app-specific device volume that
+    // no sync service can read (#311).
+    bool customFolderIsDeviceVolumeOnly = false,
   }) async {
     final base = await getBaseOverrides();
     final fakeSync = _FakeSyncNotifier(syncState);
@@ -391,8 +437,23 @@ void main() {
             (ref) async => iCloudAvailability,
           ),
           isApplePlatformProvider.overrideWithValue(applePlatform),
+          googleDriveAvailableProvider.overrideWith(
+            (ref) async => googleDriveAvailable,
+          ),
+          googleDriveAccountEmailProvider.overrideWith(
+            (ref) async => googleDriveEmail,
+          ),
           isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(
             customFolderMode,
+          ),
+          storagePlatformCapabilitiesProvider.overrideWithValue(
+            StoragePlatformCapabilities(
+              supportsCustomFolder: true,
+              supportsICloud: applePlatform,
+              supportsGoogleDrive: true,
+              isDesktop: !customFolderIsDeviceVolumeOnly,
+              customFolderIsDeviceVolumeOnly: customFolderIsDeviceVolumeOnly,
+            ),
           ),
           duplicateDiverGroupsProvider.overrideWith(
             (ref) async => duplicateGroups,
@@ -420,6 +481,9 @@ void main() {
             ),
         ],
         child: const MaterialApp(
+          // Pinned so the English literals these tests assert on cannot
+          // depend on the host's default locale.
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: CloudSyncPage(),
@@ -593,11 +657,10 @@ void main() {
       await pumpPage(tester);
 
       expect(find.text('Database Cloud Sync'), findsOneWidget);
-      // Provider section header and provider tiles. Google Drive is hidden
-      // until its integration is fully implemented.
+      // Provider section header and provider tiles.
       expect(find.text('Cloud Provider'), findsOneWidget);
       expect(find.text('iCloud'), findsOneWidget);
-      expect(find.text('Google Drive'), findsNothing);
+      expect(find.text('Google Drive'), findsOneWidget);
       // Behavior section.
       expect(find.text('Sync Behavior'), findsOneWidget);
       expect(find.text('Auto Sync'), findsOneWidget);
@@ -628,6 +691,13 @@ void main() {
       await pumpPage(tester);
       expect(find.text('Duplicate diver profiles'), findsNothing);
     });
+
+    // Issue #990: SyncState's counts and cursor are otherwise only recomputed
+    // by a sync, so opening the page could report state from app launch.
+    testWidgets('refreshes sync state when opened', (tester) async {
+      final handles = await pumpPage(tester);
+      expect(handles.sync.refreshStateCalls, greaterThan(0));
+    });
   });
 
   group('CloudSyncPage - custom folder banner', () {
@@ -648,6 +718,48 @@ void main() {
       for (final s in switches) {
         expect(s.onChanged, isNull);
       }
+    });
+
+    testWidgets('credits the folder\'s sync service where folders really sync', (
+      tester,
+    ) async {
+      await pumpPage(tester, customFolderMode: true);
+
+      expect(
+        find.text(
+          "App-managed cloud sync is disabled because you're using a custom "
+          "storage folder. Your folder's sync service (Dropbox, Google Drive, "
+          'OneDrive, etc.) handles synchronization.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not credit a sync service on device-volume-only '
+        'platforms', (tester) async {
+      await pumpPage(
+        tester,
+        customFolderMode: true,
+        customFolderIsDeviceVolumeOnly: true,
+      );
+
+      // On Android the custom folder is an app-specific volume under
+      // Android/data, which no sync client can read. Naming Dropbox/Drive
+      // here tells the user something covers a library that is in fact
+      // syncing nowhere (#311).
+      expect(
+        find.textContaining('handles synchronization'),
+        findsNothing,
+        reason: 'no sync service can reach an app-specific Android volume',
+      );
+      expect(
+        find.text(
+          'App-managed cloud sync is disabled while the database sits on a '
+          'device storage volume. No sync service can reach that folder on '
+          'Android, so use Backup & Restore to keep copies elsewhere.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('tapping Storage Settings pushes the storage route', (
@@ -696,6 +808,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -852,20 +965,41 @@ void main() {
       expect(find.text('Select a cloud provider to enable sync'), findsNothing);
     });
 
+    testWidgets('persisted googledrive selection selects the tile', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        googleDriveEmail: 'diver@example.com',
+      );
+
+      // The Google Drive tile shows the connected check icon.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      // The subtitle shows the signed-in account.
+      expect(find.text('diver@example.com'), findsOneWidget);
+      // Sync Now is enabled (no coercion to "no provider" anymore).
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Sync Now'),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
     testWidgets(
-      'persisted googledrive selection reads as no provider since the tile is hidden',
+      'persisted googledrive selection does not enable Sync Now when Drive is unavailable',
       (tester) async {
         // SyncRepository.getCloudProvider() falls back to googledrive when
         // the stored enum name does not match, and getLastProvider() returns
-        // a previously persisted googledrive choice verbatim. With the tile
-        // removed, the UI must treat that as "no provider" so Sync Now is
-        // disabled and the select-provider hint stays visible. Otherwise the
-        // user sees no selected tile but a green Sync Now -- inconsistent.
-        await pumpPage(tester, selectedProvider: CloudProviderType.googledrive);
+        // a previously persisted googledrive choice verbatim. On a build
+        // where Drive is unavailable the tile is disabled, so Sync Now must
+        // stay disabled too -- otherwise the user sees no selectable tile
+        // but a green Sync Now, which is inconsistent.
+        await pumpPage(
+          tester,
+          selectedProvider: CloudProviderType.googledrive,
+          googleDriveAvailable: false,
+        );
 
-        // No tile shows the connected check icon (googledrive tile is hidden).
-        expect(find.byIcon(Icons.check_circle), findsNothing);
-        // Sync Now is disabled and the hint is shown.
         final button = tester.widget<FilledButton>(
           find.widgetWithText(FilledButton, 'Sync Now'),
         );
@@ -877,21 +1011,46 @@ void main() {
       },
     );
 
-    testWidgets(
-      'tapping the iCloud tile authenticates and shows snackbar',
-      (tester) async {
-        final handles = await pumpPage(tester);
+    testWidgets('Google Drive tile is disabled when unavailable', (
+      tester,
+    ) async {
+      await pumpPage(tester, googleDriveAvailable: false);
 
-        await tester.tap(find.text('iCloud'));
-        await tester.pumpAndSettle();
+      final tile = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Google Drive'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(tile.enabled, isFalse);
+    });
 
-        // Fake provider authenticates successfully -> success snackbar +
-        // refreshState() on the sync notifier.
-        expect(find.text('Connected to Fake'), findsOneWidget);
-        expect(handles.sync.refreshStateCalls, greaterThan(0));
-      },
-      skip: tapUnavailable,
-    );
+    // Unlike the iCloud tile, the Google Drive tile is enabled on every
+    // platform, so this one needs no Apple-only skip.
+    testWidgets('tapping Google Drive authenticates and connects', (
+      tester,
+    ) async {
+      await pumpPage(tester, cloudProvider: FakeCloudStorageProvider());
+
+      await tester.tap(find.text('Google Drive'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Connected to'), findsOneWidget);
+    });
+
+    testWidgets('tapping the iCloud tile authenticates and shows snackbar', (
+      tester,
+    ) async {
+      final handles = await pumpPage(tester);
+
+      await tester.tap(find.text('iCloud'));
+      await tester.pumpAndSettle();
+
+      // Fake provider authenticates successfully -> success snackbar +
+      // refreshState() on the sync notifier.
+      expect(find.text('Connected to Fake'), findsOneWidget);
+      expect(handles.sync.refreshStateCalls, greaterThan(0));
+    }, skip: tapUnavailable);
 
     testWidgets('null cloud provider shows initialize-failed snackbar', (
       tester,
@@ -904,18 +1063,74 @@ void main() {
       expect(find.text('Failed to initialize icloud provider'), findsOneWidget);
     }, skip: tapUnavailable);
 
-    testWidgets(
-      'authentication failure shows connection-failed snackbar',
-      (tester) async {
-        await pumpPage(tester, cloudProvider: _ThrowingCloudStorageProvider());
+    testWidgets('authentication failure shows connection-failed snackbar', (
+      tester,
+    ) async {
+      await pumpPage(tester, cloudProvider: _ThrowingCloudStorageProvider());
 
-        await tester.tap(find.text('iCloud'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('iCloud'));
+      await tester.pumpAndSettle();
 
-        expect(find.textContaining('Fake connection failed:'), findsOneWidget);
-      },
-      skip: tapUnavailable,
-    );
+      expect(find.textContaining('Fake connection failed:'), findsOneWidget);
+    }, skip: tapUnavailable);
+  });
+
+  group('CloudSyncPage - Google Drive desktop browser-wait dialog', () {
+    // _authenticateWithBrowserWait only shows the dialog on Windows/Linux
+    // (desktop loopback OAuth). These tests are the inverse of this file's
+    // Apple-only tile-tap tests: they run on the Linux CI runner and are
+    // skipped on macOS developer machines, where the branch is unreachable.
+    final dialogReachable = Platform.isWindows || Platform.isLinux;
+
+    testWidgets('shows the wait dialog and connects when auth completes', (
+      tester,
+    ) async {
+      final fake = _PendingAuthCloudStorageProvider();
+      await pumpPage(tester, cloudProvider: fake);
+
+      await tester.tap(find.text('Google Drive'));
+      await tester.pump();
+
+      // The browser-wait dialog is up while authenticate() is pending.
+      expect(find.text('Continue in your browser'), findsOneWidget);
+
+      fake.authCompleter.complete();
+      await tester.pumpAndSettle();
+
+      // Dialog dismissed itself and the success snackbar is shown.
+      expect(find.text('Continue in your browser'), findsNothing);
+      expect(find.textContaining('Connected to'), findsOneWidget);
+    }, skip: !dialogReachable);
+
+    testWidgets('Cancel abandons the sign-in and clears the selection', (
+      tester,
+    ) async {
+      final fake = _PendingAuthCloudStorageProvider();
+      await pumpPage(tester, cloudProvider: fake);
+
+      await tester.tap(find.text('Google Drive'));
+      await tester.pump();
+
+      final cancelLabel = MaterialLocalizations.of(
+        tester.element(find.byType(AlertDialog)),
+      ).cancelButtonLabel;
+      await tester.tap(find.text(cancelLabel));
+      await tester.pumpAndSettle();
+
+      // Dialog gone, selection cleared (no connected check icon), and the
+      // connection-failed snackbar shown.
+      expect(find.text('Continue in your browser'), findsNothing);
+      expect(find.byIcon(Icons.check_circle), findsNothing);
+      expect(find.textContaining('connection failed'), findsOneWidget);
+
+      // The abandoned flow's eventual error must be swallowed; nothing
+      // may surface after the user has already cancelled.
+      fake.authCompleter.completeError(
+        const CloudStorageException('loopback timeout'),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    }, skip: !dialogReachable);
   });
 
   group('CloudSyncPage - sync actions', () {
@@ -1022,7 +1237,12 @@ void main() {
       await pumpPage(
         tester,
         selectedProvider: CloudProviderType.icloud,
-        syncState: const SyncState(newerSchemaPeerCount: 2),
+        syncState: const SyncState(
+          newerSchemaPeerLabels: [
+            (name: 'Living Room Mac', shortId: 'aaa11111'),
+            (name: 'Dive iPad', shortId: 'bbb22222'),
+          ],
+        ),
       );
 
       expect(
@@ -1037,7 +1257,12 @@ void main() {
       await pumpPage(
         tester,
         selectedProvider: CloudProviderType.icloud,
-        syncState: const SyncState(newerSchemaPeerCount: 2),
+        syncState: const SyncState(
+          newerSchemaPeerLabels: [
+            (name: 'Living Room Mac', shortId: 'aaa11111'),
+            (name: 'Dive iPad', shortId: 'bbb22222'),
+          ],
+        ),
       );
 
       // Material does not re-derive text colour from the Card background, so
@@ -1638,6 +1863,7 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
@@ -1721,6 +1947,7 @@ void main() {
             ],
             child: MaterialApp.router(
               routerConfig: router,
+              locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
             ),

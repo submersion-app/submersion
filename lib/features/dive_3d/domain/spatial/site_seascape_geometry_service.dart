@@ -2,15 +2,21 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
+import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/wall_highlight_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -24,6 +30,27 @@ class SiteDivePathInput {
     required this.diveId,
     required this.path,
     required this.anchor,
+  });
+}
+
+/// A diver-placed annotation, flattened to plain sendable data for the
+/// compute() boundary: the domain entity and its lat/lon stay UI-side.
+class SiteFeatureMarkerInput {
+  final String id;
+  final String typeName;
+  final String label;
+  final ({double east, double north}) offset;
+
+  /// Meters, when the diver recorded one; null drapes the marker on the
+  /// sampled seafloor instead.
+  final double? depthMeters;
+
+  const SiteFeatureMarkerInput({
+    required this.id,
+    required this.typeName,
+    required this.label,
+    required this.offset,
+    this.depthMeters,
   });
 }
 
@@ -49,6 +76,15 @@ class SiteSeascapeInput {
   final double? siteMaxDepth;
   final List<SiteDivePathInput> divePaths;
   final List<NearbySiteInput> nearbySites;
+  final List<SiteFeatureMarkerInput> features;
+  final SeascapeAppearance appearance;
+  final double displayUnitInMeters;
+  final String depthSymbol;
+
+  /// The stitched imagery's mercator mapping when the surface drapes map
+  /// tiles; null renders the depth ramp. Plain data so the whole input
+  /// still crosses compute().
+  final TerrainImageryFrame? imageryFrame;
 
   const SiteSeascapeInput({
     required this.grid,
@@ -57,6 +93,11 @@ class SiteSeascapeInput {
     this.siteMaxDepth,
     required this.divePaths,
     required this.nearbySites,
+    this.features = const [],
+    this.appearance = const SeascapeAppearance(),
+    this.displayUnitInMeters = 1.0,
+    this.depthSymbol = 'm',
+    this.imageryFrame,
   });
 }
 
@@ -70,7 +111,11 @@ class SiteSeascapeGeometryService {
 
   const SiteSeascapeGeometryService();
 
-  Scene3d build(SiteSeascapeInput input) {
+  Scene3d build(SiteSeascapeInput input) => buildWithLabels(input).scene;
+
+  ({Scene3d scene, List<ContourLabelSpec> contourLabels}) buildWithLabels(
+    SiteSeascapeInput input,
+  ) {
     final box = BathymetryTerrainBuilder.enuBounds(input.grid, input.center);
     final maxDepth = math.max(
       math.max(input.grid.maxDepthMeters, input.siteMaxDepth ?? 0),
@@ -88,9 +133,37 @@ class SiteSeascapeGeometryService {
       grid: input.grid,
       center: input.center,
       projection: proj,
+      rampMaxDepthMeters: input.appearance.rampMaxDepthMeters,
+      rampBanded: input.appearance.rampBanded,
+      imageryFrame: input.imageryFrame,
+      surfaceMode: input.appearance.surfaceMode,
+    );
+    final contours = buildContourLayers(
+      grid: input.grid,
+      center: input.center,
+      projection: proj,
+      appearance: input.appearance,
+      displayUnitInMeters: input.displayUnitInMeters,
+      depthSymbol: input.depthSymbol,
+    );
+    final wallMesh = buildWallHighlightMesh(
+      grid: input.grid,
+      center: input.center,
+      projection: proj,
+      thresholdDeg: input.appearance.wallAngleDeg,
     );
 
     final layers = <SceneLayer>[SceneLayer(terrain.terrain)];
+    layers.addAll(contours.layers);
+    if (wallMesh != null) {
+      layers.add(
+        SceneLayer(
+          wallMesh,
+          overlay: SceneOverlay.steepWalls,
+          drapedOnTerrain: true,
+        ),
+      );
+    }
     for (final d in input.divePaths) {
       final placed = offsetReckonedPath(d.path, d.anchor);
       if (placed.points.length < 2) continue;
@@ -124,7 +197,7 @@ class SiteSeascapeGeometryService {
     }
     layers
       ..add(SceneLayer(_sitePin(proj, input.siteMaxDepth ?? maxDepth)))
-      ..add(SceneLayer(terrain.water));
+      ..add(SceneLayer(terrain.water, overlay: SceneOverlay.water));
 
     final markers = <SceneMarker>[
       SceneMarker(
@@ -146,10 +219,22 @@ class SiteSeascapeGeometryService {
           z: proj.zOf(n.offset.north),
           timestampSeconds: 0,
         ),
+      for (final f in input.features)
+        SceneMarker(
+          kind: SceneMarkerKind.siteFeature,
+          refId: f.id,
+          label: f.label.isNotEmpty ? f.label : f.typeName,
+          x: proj.xOf(f.offset.east),
+          y: f.depthMeters != null
+              ? proj.yOf(f.depthMeters!)
+              : _featureY(input.grid, input.center, f.offset, proj),
+          z: proj.zOf(f.offset.north),
+          timestampSeconds: 0,
+        ),
     ];
 
     final zHalf = proj.zHalfExtent + SceneBounds.zHalfWidth;
-    return Scene3d(
+    final scene = Scene3d(
       layers: layers,
       markers: markers,
       bounds: SceneBounds(
@@ -161,6 +246,27 @@ class SiteSeascapeGeometryService {
         sceneMaxZ: zHalf,
       ),
     );
+    return (scene: scene, contourLabels: contours.labels);
+  }
+
+  /// Scene y for a feature with no recorded depth: the measured seafloor
+  /// under it, so the marker sits ON the terrain rather than floating at
+  /// an invented depth. Falls back to the surface float when the grid has
+  /// nothing there (nodata, land, or outside).
+  double _featureY(
+    BathymetryGrid grid,
+    GeoPoint center,
+    ({double east, double north}) offset,
+    SpatialProjection proj,
+  ) {
+    final lat =
+        center.latitude +
+        offset.north / BathymetryTerrainBuilder.metersPerDegLat;
+    final lon =
+        center.longitude +
+        offset.east / metersPerDegreeLongitude(center.latitude);
+    final depth = sampleGridDepth(grid, lat, lon);
+    return depth == null ? _markerFloat : proj.yOf(depth);
   }
 
   /// A thin vertical quad from the surface down to the site's recorded max

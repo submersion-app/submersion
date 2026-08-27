@@ -301,15 +301,23 @@ class _DivePhotoSection extends StatelessWidget {
         dive.site?.name ?? context.l10n.trips_detail_dives_unknownSite;
     final diveNumber = dive.diveNumber ?? '-';
     final photoCount = media.length;
-    final photoLabel = photoCount == 1 ? 'photo' : 'photos';
+    final photoLabel = context.l10n.trips_gallery_diveSection_photoCount(
+      photoCount,
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
         initiallyExpanded: true,
-        title: Text('Dive #$diveNumber - $siteName'),
+        title: Text(
+          context.l10n.trips_gallery_diveSection_title(diveNumber, siteName),
+        ),
         subtitle: Text(
-          '${dateFormat.format(dive.dateTime)} ($photoCount $photoLabel)',
+          context.l10n.trips_gallery_diveSection_subtitle(
+            dateFormat.format(dive.dateTime),
+            photoCount,
+            photoLabel,
+          ),
         ),
         children: [
           Padding(
@@ -358,12 +366,18 @@ class _GridThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final mediaType = item.isVideo ? 'Video' : 'Photo';
-    final statusStr = item.isOrphaned ? ', missing from device' : '';
+    final l10n = context.l10n;
+    final semanticsLabel = item.isOrphaned
+        ? (item.isVideo
+              ? l10n.trips_gallery_thumbnail_videoMissing
+              : l10n.trips_gallery_thumbnail_photoMissing)
+        : (item.isVideo
+              ? l10n.trips_gallery_thumbnail_video
+              : l10n.trips_gallery_thumbnail_photo);
 
     return Semantics(
       button: true,
-      label: '$mediaType thumbnail$statusStr. Tap to view full screen',
+      label: semanticsLabel,
       child: GestureDetector(
         onTap: () => _openViewer(context),
         child: ClipRRect(

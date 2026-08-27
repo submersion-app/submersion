@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Table widget displaying high and low tide times.
@@ -43,6 +44,10 @@ class TideTimesTable extends StatelessWidget {
   /// Time format preference (12h or 24h). Defaults to 24-hour if not specified.
   final TimeFormat timeFormat;
 
+  /// Date format preference, which decides whether dates read month-first
+  /// ("Jan 15") or day-first ("15 Jan"). Defaults to month-first.
+  final DateFormatPreference dateFormat;
+
   const TideTimesTable({
     super.key,
     required this.extremes,
@@ -52,6 +57,7 @@ class TideTimesTable extends StatelessWidget {
     this.compact = false,
     this.depthUnit = DepthUnit.meters,
     this.timeFormat = TimeFormat.twentyFourHour,
+    this.dateFormat = DateFormatPreference.mmddyyyy,
   });
 
   @override
@@ -155,7 +161,9 @@ class TideTimesTable extends StatelessWidget {
 
     // Format time using user preference
     final timeFormatter = DateFormat(timeFormat.pattern);
-    final dateFormat = DateFormat('EEE, MMM d');
+    final dateFormatter = DateFormat(
+      UnitFormatter.weekdayMonthDayPattern(dateFormat),
+    );
     final isToday = _isSameDay(extreme.time, reference);
     final isTomorrow = _isSameDay(
       extreme.time,
@@ -168,7 +176,7 @@ class TideTimesTable extends StatelessWidget {
     } else if (isTomorrow) {
       dateLabel = context.l10n.tides_label_tomorrow;
     } else {
-      dateLabel = dateFormat.format(extreme.time);
+      dateLabel = dateFormatter.format(extreme.time);
     }
 
     // Colors based on type

@@ -193,4 +193,19 @@ void main() {
     expect(notifier.updated!.allergies, isNull);
     expect(notifier.updated!.bloodType, 'O+');
   });
+
+  testWidgets('the clearance-date button opens the date picker (#765)', (
+    tester,
+  ) async {
+    await pump(tester, makeDiver());
+
+    await tester.tap(find.byIcon(Icons.edit_calendar));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsNothing);
+  });
 }

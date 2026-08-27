@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -31,9 +32,16 @@ class TripStoryDay extends Equatable {
 
   int get diveCount => dives.length;
 
-  Duration get totalBottomTime => dives.fold(
+  /// Total time in the water for the day.
+  ///
+  /// Runtime (surface to surface) is what divers add up when they talk about
+  /// how long they were in the water, and it is what the rest of the app sums
+  /// (`COALESCE(runtime, bottom_time)` in the statistics and dive-log
+  /// queries). Bottom time stays as the fallback so hand-logged dives that
+  /// only carry one still contribute.
+  Duration get totalRuntime => dives.fold(
     Duration.zero,
-    (sum, dive) => sum + (dive.bottomTime ?? Duration.zero),
+    (sum, dive) => sum + (dive.runtime ?? dive.bottomTime ?? Duration.zero),
   );
 
   double? get maxDepth {
@@ -68,11 +76,37 @@ class TripStoryDay extends Equatable {
     return ids.length;
   }
 
+  /// Day-level weather summary, or null when no dive logged any weather.
+  ///
+  /// Each field is the first non-null value across the day's dives in dive
+  /// order, so a morning dive that logged only air temperature and an
+  /// afternoon dive that logged only sky conditions still combine into one
+  /// complete summary.
+  TripStoryDayWeather? get weather {
+    double? airTemp;
+    CloudCover? cloudCover;
+    Precipitation? precipitation;
+    for (final dive in dives) {
+      airTemp ??= dive.airTemp;
+      cloudCover ??= dive.cloudCover;
+      precipitation ??= dive.precipitation;
+    }
+    if (airTemp == null && cloudCover == null && precipitation == null) {
+      return null;
+    }
+    return TripStoryDayWeather(
+      airTemp: airTemp,
+      cloudCover: cloudCover,
+      precipitation: precipitation,
+    );
+  }
+
   bool get hasContent =>
       dives.isNotEmpty || media.isNotEmpty || itineraryDay != null;
 
   /// A day with nothing to show: no dives, media, or itinerary entry, and not
-  /// a planned (future) day. Rendered as a slim row with no sticky header.
+  /// a planned (future) day. Still gets the standard sticky day header, labeled
+  /// "Surface day" in place of a day type; only its card body is empty.
   bool get isSurface => !hasContent && kind != TripStoryDayKind.future;
 
   @override
@@ -85,6 +119,22 @@ class TripStoryDay extends Equatable {
     sightings,
     kind,
   ];
+}
+
+/// Compact weather summary for one story day, shown in the day header.
+class TripStoryDayWeather extends Equatable {
+  final double? airTemp; // celsius
+  final CloudCover? cloudCover;
+  final Precipitation? precipitation;
+
+  const TripStoryDayWeather({
+    this.airTemp,
+    this.cloudCover,
+    this.precipitation,
+  });
+
+  @override
+  List<Object?> get props => [airTemp, cloudCover, precipitation];
 }
 
 /// A mappable point contributed by a story day (dive site or itinerary port).
@@ -118,6 +168,21 @@ class TripStoryMapGeometry extends Equatable {
 
   List<TripStoryMapPoint> pointsForDay(int dayIndex) =>
       points.where((p) => p.dayIndex == dayIndex).toList();
+
+  /// The map point closest to [dayIndex], preserving route order when two
+  /// points are equally distant.
+  TripStoryMapPoint? nearestPointForDay(int dayIndex) {
+    TripStoryMapPoint? nearest;
+    int? nearestDistance;
+    for (final point in points) {
+      final distance = (point.dayIndex - dayIndex).abs();
+      if (nearestDistance == null || distance < nearestDistance) {
+        nearest = point;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
+  }
 
   @override
   List<Object?> get props => [points];

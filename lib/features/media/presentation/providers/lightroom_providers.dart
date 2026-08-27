@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -37,11 +37,13 @@ final lightroomRedirectCaptureProvider = Provider<LightroomRedirectCapture>(
 
 /// The library's Lightroom account (synced roster row), or null when none
 /// exists. Invalidate after connect/disconnect.
-final lightroomAccountProvider = FutureProvider<domain.ConnectedAccount?>(
-  (ref) => ref
-      .watch(connectedAccountsRepositoryProvider)
-      .getByKind(AccountKind.adobeLightroom),
-);
+final lightroomAccountProvider = FutureProvider<domain.ConnectedAccount?>((
+  ref,
+) {
+  final repository = ref.watch(connectedAccountsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchAccountsChanges());
+  return repository.getByKind(AccountKind.adobeLightroom);
+});
 
 /// This device's Lightroom connection state. The roster row syncs but
 /// credentials are per-device, so a device that received the synced
@@ -135,11 +137,14 @@ final connectorMediaResolverProvider = Provider<ConnectorMediaResolver>((ref) {
 
 /// Live pending suggestions for a dive (gallery and connector alike).
 final pendingSuggestionsForDiveProvider =
-    FutureProvider.family<List<domain.PendingPhotoSuggestion>, String>(
-      (ref, diveId) => ref
-          .watch(mediaRepositoryProvider)
-          .getPendingSuggestionsForDive(diveId),
-    );
+    FutureProvider.family<List<domain.PendingPhotoSuggestion>, String>((
+      ref,
+      diveId,
+    ) {
+      final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
+      return repository.getPendingSuggestionsForDive(diveId);
+    });
 
 /// Fire-and-forget startup poll. Runs at most once per 6 hours per
 /// device, only when an account exists and auto-poll is enabled. Errors

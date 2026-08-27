@@ -9,7 +9,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  // Null means "leave at the AppSettings default", so these fixtures cannot
+  // drift away from the real defaults.
+  _TestSettingsNotifier({int? gfLow, int? gfHigh})
+    : super(const AppSettings().copyWith(gfLow: gfLow, gfHigh: gfHigh));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -19,15 +22,22 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ProviderContainer _container() {
+ProviderContainer _container({int? gfLow, int? gfHigh}) {
   final container = ProviderContainer(
     overrides: [
-      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      settingsProvider.overrideWith(
+        (ref) => _TestSettingsNotifier(gfLow: gfLow, gfHigh: gfHigh),
+      ),
     ],
   );
   addTearDown(container.dispose);
   return container;
 }
+
+int _totalStopSeconds(ProviderContainer container) => container
+    .read(planOutcomeProvider)
+    .stops
+    .fold(0, (sum, stop) => sum + stop.durationSeconds);
 
 void main() {
   test('scrub provider defaults to null', () {
@@ -55,6 +65,31 @@ void main() {
     }
     expect(series.maxDepth, 30.0);
     expect(series.depthAt(0), 0);
+  });
+
+  test('new plan adopts the diver gradient factor settings', () {
+    final container = _container(gfLow: 35, gfHigh: 75);
+    final state = container.read(divePlanNotifierProvider);
+
+    expect(state.gfLow, 35);
+    expect(state.gfHigh, 75);
+  });
+
+  test('conservative gradient factors lengthen the computed deco', () {
+    final conservative = _container(gfLow: 20, gfHigh: 55);
+    conservative
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+
+    final liberal = _container(gfLow: 90, gfHigh: 95);
+    liberal
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+
+    expect(
+      _totalStopSeconds(conservative),
+      greaterThan(_totalStopSeconds(liberal)),
+    );
   });
 
   test('deco plan appends stop flats and stop markers', () {

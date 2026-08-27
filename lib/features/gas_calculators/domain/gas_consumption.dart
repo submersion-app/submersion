@@ -1,5 +1,7 @@
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart'
     show ambientPressureAtDepth;
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 
 /// Round [value] up to the next multiple of [grid].
@@ -20,11 +22,15 @@ class ConsumptionInputs {
   final double sacLitersPerMin;
   final TankSpec tank;
 
+  /// Equation of state used to price the cylinder's contents (issue #828).
+  final GasModel gasModel;
+
   const ConsumptionInputs({
     required this.avgDepthMeters,
     required this.minutes,
     required this.sacLitersPerMin,
     required this.tank,
+    this.gasModel = GasModel.real,
   });
 }
 
@@ -58,14 +64,40 @@ ConsumptionResult computeConsumption(ConsumptionInputs inputs) {
   final consumed = atDepth * inputs.minutes;
 
   final water = inputs.tank.waterVolumeLiters;
-  final barConsumed = water > 0 ? consumed / water : 0.0;
+  final freeGas = inputs.tank.freeGasLitersFor(inputs.gasModel);
+
+  // The plan overruns the cylinder when it wants more gas than the cylinder
+  // holds. Deciding this on liters rather than on bar keeps the flag right
+  // when the pressure conversion saturates at empty.
+  final exceeds = consumed > freeGas;
+
+  // Bar the plan costs: the working pressure less whatever pressure still
+  // holds the leftover gas, so the conversion honors the same gas model in
+  // both directions. Past empty there is no cylinder left to model, so the
+  // surplus is priced at the cylinder's nominal rate -- enough to keep
+  // barConsumed above the working pressure and agree with [exceeds].
+  final double barConsumed;
+  if (water <= 0) {
+    barConsumed = 0.0;
+  } else if (exceeds) {
+    barConsumed = inputs.tank.workingPressureBar + (consumed - freeGas) / water;
+  } else {
+    barConsumed =
+        inputs.tank.workingPressureBar -
+        pressureHoldingVolume(
+          tankSizeLiters: water,
+          litersRequired: freeGas - consumed,
+          o2Percent: 21,
+          model: inputs.gasModel,
+        );
+  }
 
   return ConsumptionResult(
     litersConsumed: consumed,
     barConsumed: barConsumed,
-    litersRemaining: inputs.tank.freeGasLiters - consumed,
+    litersRemaining: freeGas - consumed,
     barRemaining: inputs.tank.workingPressureBar - barConsumed,
-    exceedsTank: barConsumed > inputs.tank.workingPressureBar,
+    exceedsTank: exceeds,
     gasAtDepthLitersPerMin: atDepth,
   );
 }

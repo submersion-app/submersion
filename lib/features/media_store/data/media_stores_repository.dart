@@ -25,6 +25,11 @@ class MediaStoresRepository {
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
+  /// Emits whenever the `media_stores` table changes so providers holding the
+  /// active store refresh after a sync switches or retires it.
+  Stream<void> watchStoresChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.mediaStores));
+
   Future<void> upsertActive({
     required String storeId,
     required String providerType,

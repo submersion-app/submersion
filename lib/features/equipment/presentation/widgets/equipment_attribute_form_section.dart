@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Renders one input per catalog definition for [type]. Values are keyed by
 /// attrKey in [values]; edits emit whole EquipmentAttribute objects through
@@ -117,9 +119,11 @@ class EquipmentAttributeFormSection extends StatelessWidget {
               onCleared(def.key);
               return;
             }
-            // Tolerate a comma decimal separator (many locales' numeric
-            // keyboards produce "7,5"), like the suit-thickness filter bounds.
-            final parsed = double.tryParse(trimmed.replaceAll(',', '.'));
+            // Read in the diver's locale, matching how the field is seeded by
+            // formatAttributeNumberForEditing. A blanket replaceAll(',', '.')
+            // would misread the en_US thousands separator, turning "1,250"
+            // into 1.25.
+            final parsed = parseUserDecimal(trimmed);
             if (parsed != null) {
               onChanged(
                 _base(def.key).copyWith(
@@ -142,7 +146,10 @@ class EquipmentAttributeFormSection extends StatelessWidget {
           initialValue: current?.valueText,
           decoration: InputDecoration(labelText: label),
           items: [
-            const DropdownMenuItem<String?>(value: null, child: Text('--')),
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text(context.l10n.common_placeholder_noValue),
+            ),
             for (final option in def.choiceKeys)
               DropdownMenuItem(
                 value: option,
@@ -182,7 +189,7 @@ class EquipmentAttributeFormSection extends StatelessWidget {
             // stored future date would otherwise trip showDatePicker's
             // initialDate <= lastDate assertion.
             final now = DateTime.now();
-            final picked = await showDatePicker(
+            final picked = await showAppDatePicker(
               context: context,
               initialDate: (date == null || date.isAfter(now)) ? now : date,
               firstDate: DateTime(1970),

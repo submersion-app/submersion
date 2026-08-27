@@ -108,6 +108,7 @@ class ProfileSample {
     this.temperatureCelsius,
     this.pressureBar,
     this.tankIndex,
+    this.tankPressuresBar,
     this.heartRate,
     this.heading,
     this.setpoint,
@@ -124,6 +125,12 @@ class ProfileSample {
     this.o2Sensor4,
     this.o2Sensor5,
     this.o2Sensor6,
+    this.o2SensorMv1,
+    this.o2SensorMv2,
+    this.o2SensorMv3,
+    this.o2SensorMv4,
+    this.o2SensorMv5,
+    this.o2SensorMv6,
     this.gasMixIndex,
   });
 
@@ -136,6 +143,15 @@ class ProfileSample {
   double? pressureBar;
 
   int? tankIndex;
+
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer fires one pressure
+  /// reading per air-integrated transmitter, so a single sample can carry
+  /// several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  /// rest (issue #1223). Null when the sample carries no pressure at all, and
+  /// trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  /// short list per sample.
+  List<double?>? tankPressuresBar;
 
   int? heartRate;
 
@@ -174,6 +190,21 @@ class ProfileSample {
 
   double? o2Sensor6;
 
+  /// Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  /// reports none. Present even when the cell's ppO2 is unavailable because the
+  /// logged calibration could not be trusted (issue #810).
+  int? o2SensorMv1;
+
+  int? o2SensorMv2;
+
+  int? o2SensorMv3;
+
+  int? o2SensorMv4;
+
+  int? o2SensorMv5;
+
+  int? o2SensorMv6;
+
   /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   /// from the most recent gas switch; null if the computer reported no gas.
   int? gasMixIndex;
@@ -185,6 +216,7 @@ class ProfileSample {
       temperatureCelsius,
       pressureBar,
       tankIndex,
+      tankPressuresBar,
       heartRate,
       heading,
       setpoint,
@@ -201,6 +233,12 @@ class ProfileSample {
       o2Sensor4,
       o2Sensor5,
       o2Sensor6,
+      o2SensorMv1,
+      o2SensorMv2,
+      o2SensorMv3,
+      o2SensorMv4,
+      o2SensorMv5,
+      o2SensorMv6,
       gasMixIndex,
     ];
   }
@@ -213,23 +251,30 @@ class ProfileSample {
       temperatureCelsius: result[2] as double?,
       pressureBar: result[3] as double?,
       tankIndex: result[4] as int?,
-      heartRate: result[5] as int?,
-      heading: result[6] as double?,
-      setpoint: result[7] as double?,
-      ppo2: result[8] as double?,
-      cns: result[9] as double?,
-      rbt: result[10] as int?,
-      decoType: result[11] as int?,
-      decoTime: result[12] as int?,
-      decoDepth: result[13] as double?,
-      tts: result[14] as int?,
-      o2Sensor1: result[15] as double?,
-      o2Sensor2: result[16] as double?,
-      o2Sensor3: result[17] as double?,
-      o2Sensor4: result[18] as double?,
-      o2Sensor5: result[19] as double?,
-      o2Sensor6: result[20] as double?,
-      gasMixIndex: result[21] as int?,
+      tankPressuresBar: (result[5] as List<Object?>?)?.cast<double?>(),
+      heartRate: result[6] as int?,
+      heading: result[7] as double?,
+      setpoint: result[8] as double?,
+      ppo2: result[9] as double?,
+      cns: result[10] as double?,
+      rbt: result[11] as int?,
+      decoType: result[12] as int?,
+      decoTime: result[13] as int?,
+      decoDepth: result[14] as double?,
+      tts: result[15] as int?,
+      o2Sensor1: result[16] as double?,
+      o2Sensor2: result[17] as double?,
+      o2Sensor3: result[18] as double?,
+      o2Sensor4: result[19] as double?,
+      o2Sensor5: result[20] as double?,
+      o2Sensor6: result[21] as double?,
+      o2SensorMv1: result[22] as int?,
+      o2SensorMv2: result[23] as int?,
+      o2SensorMv3: result[24] as int?,
+      o2SensorMv4: result[25] as int?,
+      o2SensorMv5: result[26] as int?,
+      o2SensorMv6: result[27] as int?,
+      gasMixIndex: result[28] as int?,
     );
   }
 }

@@ -1,12 +1,16 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
@@ -18,6 +22,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -45,6 +50,17 @@ class DiverSettingsRepository {
     }
   }
 
+  /// True when the diver's settings row exists AND has ever stored a
+  /// seascape appearance. Drives the one-time adoption of the legacy
+  /// device-local pref: a null column marks a pre-v151 row (or a diver
+  /// with no row yet), the only cases where the pref may seed the value.
+  Future<bool> hasSeascapeAppearance(String diverId) async {
+    final query = _db.select(_db.diverSettings)
+      ..where((t) => t.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row?.seascapeAppearance != null;
+  }
+
   /// Create default settings for a diver
   Future<AppSettings> createSettingsForDiver(
     String diverId, {
@@ -68,11 +84,23 @@ class DiverSettingsRepository {
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
               sacUnit: Value(s.sacUnit.name),
+              gasModel: Value(s.gasModel.name),
+              defaultCurrency: Value(s.defaultCurrency),
+              visibilityScalePreset: Value(s.visibilityScalePreset.name),
+              visibilityScaleExcellentM: Value(s.visibilityScaleExcellentM),
+              visibilityScaleGoodM: Value(s.visibilityScaleGoodM),
+              visibilityScaleModerateM: Value(s.visibilityScaleModerateM),
+              coordinateFormat: Value(s.coordinateFormat.name),
+              seascapeAppearance: Value(s.seascapeAppearance.encode()),
               timeFormat: Value(s.timeFormat.name),
               dateFormat: Value(s.dateFormat.name),
               themeMode: Value(_themeModeToString(s.themeMode)),
               themePreset: Value(s.themePresetId),
+              accentNavIcons: Value(s.accentNavIcons),
+              accentSectionHeaders: Value(s.accentSectionHeaders),
+              accentListIcons: Value(s.accentListIcons),
               locale: Value(s.locale),
+              placeNameLanguage: Value(s.placeNameLanguage),
               defaultDiveType: Value(s.defaultDiveType),
               defaultTankVolume: Value(s.defaultTankVolume),
               defaultStartPressure: Value(s.defaultStartPressure),
@@ -151,6 +179,10 @@ class DiverSettingsRepository {
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
               defaultShowPhotoMarkers: Value(s.defaultShowPhotoMarkers),
               defaultShowGasTimeline: Value(s.defaultShowGasTimeline),
+              defaultShowO2CellMv: Value(s.defaultShowO2CellMv),
+              defaultShowEstimatedTankPressure: Value(
+                s.defaultShowEstimatedTankPressure,
+              ),
               defaultShowAscentRateLine: Value(s.defaultShowAscentRateLine),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
@@ -216,11 +248,23 @@ class DiverSettingsRepository {
           weightUnit: Value(settings.weightUnit.name),
           altitudeUnit: Value(settings.altitudeUnit.name),
           sacUnit: Value(settings.sacUnit.name),
+          gasModel: Value(settings.gasModel.name),
+          defaultCurrency: Value(settings.defaultCurrency),
+          visibilityScalePreset: Value(settings.visibilityScalePreset.name),
+          visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
+          visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
+          visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
+          coordinateFormat: Value(settings.coordinateFormat.name),
+          seascapeAppearance: Value(settings.seascapeAppearance.encode()),
           timeFormat: Value(settings.timeFormat.name),
           dateFormat: Value(settings.dateFormat.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
           themePreset: Value(settings.themePresetId),
+          accentNavIcons: Value(settings.accentNavIcons),
+          accentSectionHeaders: Value(settings.accentSectionHeaders),
+          accentListIcons: Value(settings.accentListIcons),
           locale: Value(settings.locale),
+          placeNameLanguage: Value(settings.placeNameLanguage),
           defaultDiveType: Value(settings.defaultDiveType),
           defaultTankVolume: Value(settings.defaultTankVolume),
           defaultStartPressure: Value(settings.defaultStartPressure),
@@ -303,6 +347,10 @@ class DiverSettingsRepository {
           ),
           defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
           defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
+          defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
+          defaultShowEstimatedTankPressure: Value(
+            settings.defaultShowEstimatedTankPressure,
+          ),
           defaultShowAscentRateLine: Value(settings.defaultShowAscentRateLine),
           notificationsEnabled: Value(settings.notificationsEnabled),
           serviceReminderDays: Value(
@@ -406,11 +454,25 @@ class DiverSettingsRepository {
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
       sacUnit: _parseSacUnit(row.sacUnit),
+      gasModel: GasModel.fromName(row.gasModel),
+      defaultCurrency: row.defaultCurrency,
+      visibilityScalePreset: _parseVisibilityScalePreset(
+        row.visibilityScalePreset,
+      ),
+      visibilityScaleExcellentM: row.visibilityScaleExcellentM,
+      visibilityScaleGoodM: row.visibilityScaleGoodM,
+      visibilityScaleModerateM: row.visibilityScaleModerateM,
+      coordinateFormat: _parseCoordinateFormat(row.coordinateFormat),
+      seascapeAppearance: SeascapeAppearance.decode(row.seascapeAppearance),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
       themeMode: _parseThemeMode(row.themeMode),
       themePresetId: row.themePreset,
+      accentNavIcons: row.accentNavIcons,
+      accentSectionHeaders: row.accentSectionHeaders,
+      accentListIcons: row.accentListIcons,
       locale: row.locale,
+      placeNameLanguage: PlaceNameLanguage.normalize(row.placeNameLanguage),
       defaultDiveType: row.defaultDiveType,
       defaultTankVolume: row.defaultTankVolume,
       defaultStartPressure: row.defaultStartPressure,
@@ -491,6 +553,8 @@ class DiverSettingsRepository {
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
       defaultShowPhotoMarkers: row.defaultShowPhotoMarkers,
       defaultShowGasTimeline: row.defaultShowGasTimeline,
+      defaultShowO2CellMv: row.defaultShowO2CellMv,
+      defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
@@ -565,6 +629,26 @@ class DiverSettingsRepository {
     return SacUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => SacUnit.pressurePerMin,
+    );
+  }
+
+  /// Falls back to tropical, which reproduces the pre-v144 thresholds, so an
+  /// unrecognized stored value degrades to the previous behaviour rather than
+  /// throwing.
+  VisibilityScalePreset _parseVisibilityScalePreset(String value) {
+    return VisibilityScalePreset.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => VisibilityScalePreset.tropical,
+    );
+  }
+
+  /// Falls back to decimal degrees, which is what the app rendered before
+  /// v150, so an unrecognized stored value degrades to the previous
+  /// behaviour rather than throwing.
+  CoordinateFormat _parseCoordinateFormat(String value) {
+    return CoordinateFormat.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => CoordinateFormat.decimalDegrees,
     );
   }
 

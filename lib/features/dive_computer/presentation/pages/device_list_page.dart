@@ -2,69 +2,165 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 
 /// Page displaying a list of saved dive computers.
-class DeviceListPage extends ConsumerWidget {
+class DeviceListPage extends ConsumerStatefulWidget {
   const DeviceListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeviceListPage> createState() => _DeviceListPageState();
+}
+
+class _DeviceListPageState extends ConsumerState<DeviceListPage> {
+  /// Owns the bulk-selection state machine for this page.
+  final SelectionController _selection = SelectionController();
+
+  /// Convenience mirrors of the controller, so the widget tree reads clearly.
+  bool get _isSelectionMode => _selection.value.isActive;
+  Set<String> get _selectedIds => _selection.value.checkedIds;
+
+  @override
+  void dispose() {
+    _selection.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final computersAsync = ref.watch(allDiveComputersProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.diveComputer_list_title),
+    final visibleIds =
+        computersAsync.value?.map((c) => c.id).toList() ?? const <String>[];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) => Scaffold(
+          appBar: selection.isActive
+              ? SelectionAppBar(
+                  controller: _selection,
+                  selectableIds: visibleIds,
+                  // Delete only: favourite reads as singular, and a multi-device
+                  // download would be a new flow rather than a lifted action.
+                  actions: const [],
+                  shell: SelectionBarShell.appBar,
+                  onDelete: _confirmAndDelete,
+                )
+              : AppBar(
+                  title: Text(context.l10n.diveComputer_list_title),
+                  actions: [
+                    IconButton(
+                      key: const ValueKey('enter_selection'),
+                      icon: const Icon(Icons.checklist),
+                      tooltip: context.l10n.common_selection_enterTooltip,
+                      onPressed: _selection.enterExplicit,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.help_outline),
+                      onPressed: () => _showHelpDialog(context),
+                      tooltip: context.l10n.diveComputer_list_helpTooltip,
+                    ),
+                  ],
+                ),
+          body: computersAsync.when(
+            data: (computers) {
+              if (computers.isEmpty) {
+                return _buildEmptyState(context, colorScheme);
+              }
+              return _buildComputerList(context, ref, computers);
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.l10n.diveComputer_list_loadFailed,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: theme.textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => ref.invalidate(allDiveComputersProvider),
+                    icon: const Icon(Icons.refresh),
+                    label: Text(context.l10n.diveComputer_list_retry),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          floatingActionButton: selection.isActive
+              ? null
+              : FloatingActionButton.extended(
+                  onPressed: () => context.push('/dive-computers/discover'),
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.diveComputer_list_addComputer),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmAndDelete() async {
+    final ids = _selectedIds.toList();
+    if (ids.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
+        content: Text(ctx.l10n.common_bulkDelete_body),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => _showHelpDialog(context),
-            tooltip: context.l10n.diveComputer_list_helpTooltip,
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(ctx.l10n.common_action_delete),
           ),
         ],
       ),
-      body: computersAsync.when(
-        data: (computers) {
-          if (computers.isEmpty) {
-            return _buildEmptyState(context, colorScheme);
-          }
-          return _buildComputerList(context, ref, computers);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text(
-                context.l10n.diveComputer_list_loadFailed,
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: theme.textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: () => ref.invalidate(allDiveComputersProvider),
-                icon: const Icon(Icons.refresh),
-                label: Text(context.l10n.diveComputer_list_retry),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/dive-computers/discover'),
-        icon: const Icon(Icons.add),
-        label: Text(context.l10n.diveComputer_list_addComputer),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(diveComputerNotifierProvider.notifier);
+    _selection.exit();
+    for (final id in ids) {
+      await notifier.delete(id);
+    }
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
   }
@@ -120,8 +216,21 @@ class DeviceListPage extends ConsumerWidget {
         final computer = computers[index];
         return _ComputerCard(
           computer: computer,
-          onTap: () => context.push('/dive-computers/${computer.id}'),
+          onTap: () {
+            if (SelectableListScope.isModifierPressed()) {
+              _selection.enterImplicit(computer.id);
+              return;
+            }
+            if (_isSelectionMode) {
+              _selection.toggle(computer.id);
+              return;
+            }
+            context.push('/dive-computers/${computer.id}');
+          },
           onDownload: () => _startQuickDownload(context, ref, computer),
+          isSelectionMode: _isSelectionMode,
+          isChecked: _selectedIds.contains(computer.id),
+          onCheckChanged: (_) => _selection.toggle(computer.id),
         );
       },
     );
@@ -189,11 +298,17 @@ class _ComputerCard extends StatelessWidget {
   final DiveComputer computer;
   final VoidCallback onTap;
   final VoidCallback onDownload;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const _ComputerCard({
     required this.computer,
     required this.onTap,
     required this.onDownload,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -215,21 +330,26 @@ class _ComputerCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: computer.isFavorite
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getConnectionIcon(computer.connectionType),
-                    color: computer.isFavorite
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
+                // Icon, which becomes the checkbox in selection mode.
+                SelectionLeading(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: computer.isFavorite
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getConnectionIcon(computer.connectionType),
+                      color: computer.isFavorite
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -289,7 +409,7 @@ class _ComputerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            computer.lastDownloadFormatted,
+                            formatLastDownload(context, computer.lastDownload),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),

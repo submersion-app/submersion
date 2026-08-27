@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 
 /// A cylinder described the way gas planning needs it: water capacity plus a
 /// working pressure.
@@ -33,11 +35,17 @@ class TankSpec extends Equatable {
 
   /// Free gas at the surface, in liters, at the rated working pressure.
   ///
-  /// Ideal-gas figure. It runs a few percent above the manufacturer's rated
-  /// capacity for high-pressure cylinders because it ignores compressibility;
-  /// that is acceptable for planning and matches what the rest of the app
-  /// already does in [TankPreset.volumeCuft].
-  double get freeGasLiters => waterVolumeLiters * workingPressureBar;
+  /// Under [GasModel.ideal] this is simply water volume times working
+  /// pressure, which runs a few percent above the manufacturer's rated
+  /// capacity for high-pressure cylinders because it ignores compressibility.
+  /// Under [GasModel.real] it honors compressibility and lands close to the
+  /// rated figure (issue #828).
+  double freeGasLitersFor(GasModel model) => gasVolume(
+    tankSizeLiters: waterVolumeLiters,
+    pressureBar: workingPressureBar,
+    o2Percent: 21,
+    model: model,
+  );
 
   factory TankSpec.fromPreset(TankPreset preset) => TankSpec(
     waterVolumeLiters: preset.volumeLiters,
@@ -75,4 +83,23 @@ List<TankSpec> imperialTankChoices() => [
   TankSpec.fromPreset(TankPresets.al80),
   TankSpec.fromPreset(TankPresets.hp100),
   TankSpec.fromPreset(TankPresets.hp120),
+];
+
+/// Cylinder choices a gas blender actually fills, named by the reporter of
+/// issue #1100: the small decant bottles oxygen and helium come in, a common
+/// aluminium single, and a steel twinset.
+///
+/// Deliberately separate from [metricTankChoices] and [imperialTankChoices],
+/// which describe what a diver breathes from. A blending bench sees 2 and 3
+/// litre bottles that never go in the water, and it sees a twinset as one
+/// 24 litre vessel rather than as a pair.
+List<TankSpec> blenderTankChoices() => [
+  const TankSpec(waterVolumeLiters: 2, workingPressureBar: 200, label: '2 L'),
+  const TankSpec(waterVolumeLiters: 3, workingPressureBar: 200, label: '3 L'),
+  TankSpec.fromPreset(TankPresets.al80),
+  const TankSpec(
+    waterVolumeLiters: 24,
+    workingPressureBar: 232,
+    label: 'Steel 12 L twinset',
+  ),
 ];

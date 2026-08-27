@@ -100,6 +100,30 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                                    : std::optional<double>(s.o2_sensor[c]);
             }
 
+            // Per-cell raw O2 output: UINT32_MAX -> nullptr.
+            std::optional<int64_t> o2_sensor_mv[6];
+            for (int c = 0; c < 6; c++) {
+                o2_sensor_mv[c] =
+                    (s.o2_sensor_mv[c] == UINT32_MAX)
+                        ? std::nullopt
+                        : std::optional<int64_t>(
+                              static_cast<int64_t>(s.o2_sensor_mv[c]));
+            }
+
+            // Every tank's pressure at this sample (issue #1223): a sample can
+            // carry one reading per air-integrated transmitter, and `pressure`
+            // above holds only the last of them. NaN -> null, trailing nulls
+            // trimmed, all-NaN -> no list at all.
+            std::optional<flutter::EncodableList> tank_pressures;
+            for (int t = LIBDC_MAX_TANKS - 1; t >= 0; t--) {
+                if (!tank_pressures && std::isnan(s.tank_pressure[t])) continue;
+                if (!tank_pressures) tank_pressures.emplace(t + 1);
+                (*tank_pressures)[t] =
+                    std::isnan(s.tank_pressure[t])
+                        ? flutter::EncodableValue()
+                        : flutter::EncodableValue(s.tank_pressure[t]);
+            }
+
             // Nullable ints: UINT32_MAX -> nullptr.
             std::optional<int64_t> tank_index =
                 (s.tank == UINT32_MAX)
@@ -146,6 +170,7 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     temp_c ? &*temp_c : nullptr,
                     pressure ? &*pressure : nullptr,
                     tank_index ? &*tank_index : nullptr,
+                    tank_pressures ? &*tank_pressures : nullptr,
                     heart_rate ? &*heart_rate : nullptr,
                     heading ? &*heading : nullptr,
                     setpoint ? &*setpoint : nullptr,
@@ -162,6 +187,12 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     o2_sensor[3] ? &*o2_sensor[3] : nullptr,
                     o2_sensor[4] ? &*o2_sensor[4] : nullptr,
                     o2_sensor[5] ? &*o2_sensor[5] : nullptr,
+                    o2_sensor_mv[0] ? &*o2_sensor_mv[0] : nullptr,
+                    o2_sensor_mv[1] ? &*o2_sensor_mv[1] : nullptr,
+                    o2_sensor_mv[2] ? &*o2_sensor_mv[2] : nullptr,
+                    o2_sensor_mv[3] ? &*o2_sensor_mv[3] : nullptr,
+                    o2_sensor_mv[4] ? &*o2_sensor_mv[4] : nullptr,
+                    o2_sensor_mv[5] ? &*o2_sensor_mv[5] : nullptr,
                     gas_mix_index ? &*gas_mix_index : nullptr)));
         }
     }

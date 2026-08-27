@@ -35,9 +35,11 @@ void main() {
     );
 
     final dist = await stats.getDiveTypeDistribution();
+    // The repository emits the dive-type id as a stable key; the presentation
+    // layer resolves it to localized display text.
     final byLabel = {for (final s in dist) s.label: s.count};
-    expect(byLabel['Night'], 2); // both dives
-    expect(byLabel['Wreck'], 1); // only dive 'a'
+    expect(byLabel['night'], 2); // both dives
+    expect(byLabel['wreck'], 1); // only dive 'a'
   });
 
   test('isDiveTypeInUse is true when a type is on any dive', () async {

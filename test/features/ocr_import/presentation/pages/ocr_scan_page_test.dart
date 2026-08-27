@@ -18,6 +18,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../fixtures/logbook_fixtures.dart';
 
+import '../../../../helpers/mock_file_picker_platform.dart';
+
 class FakeEngine implements OcrEngine {
   final OcrResult result;
   final bool available;
@@ -35,21 +37,38 @@ void main() {
   late Directory tmpDir;
   late String photoPath;
 
+  late FilePickerPlatform originalPicker;
+
   setUp(() async {
     tmpDir = await Directory.systemTemp.createTemp('ocr_scan_test');
     final file = File('${tmpDir.path}/page.jpg');
     await file.writeAsBytes([0xFF, 0xD8, 0xFF, 0xE0]);
     photoPath = file.path;
+
+    // file_picker 12's default platform throws UnimplementedError for every
+    // method: the real ones ship in the per-platform packages, which do not
+    // register in unit tests. The desktop pick path therefore has to be
+    // stubbed rather than left to the default.
+    originalPicker = FilePickerPlatform.instance;
+    FilePickerPlatform.instance = MockFilePickerPlatform()
+      ..pickFilesResult = [FakePlatformFile(photoPath)];
   });
 
   tearDown(() async {
+    FilePickerPlatform.instance = originalPicker;
     await tmpDir.delete(recursive: true);
   });
 
-  // Taps a button whose handler does real file IO (readAsBytes), which
-  // only progresses inside runAsync in the FakeAsync test zone. Bounded
-  // pumps instead of pumpAndSettle: the processing spinner animates
-  // until navigation replaces the page.
+  // Taps a button whose handler does real file IO (readAsBytes) and awaits a
+  // database-backed provider, both of which only progress inside runAsync in
+  // the FakeAsync test zone. Bounded pumps instead of pumpAndSettle: the
+  // processing spinner animates until navigation replaces the page.
+  //
+  // The handler's duration is real wall-clock time and scales with machine
+  // load, so a single fixed delay is a race: when it expires early the widget
+  // unmounts mid-flight and the handler's `ref` use throws. Wait for the
+  // spinner to actually clear instead, with a ceiling so a genuine hang still
+  // fails rather than spinning forever.
   Future<void> tapAndProcess(WidgetTester tester, String label) async {
     await tester.runAsync(() async {
       await tester.tap(find.text(label));
@@ -57,6 +76,15 @@ void main() {
     });
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
+
+    for (var i = 0; i < 100; i++) {
+      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) return;
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    }
   }
 
   Future<({List<Object?> pushedExtras})> pumpScanPage(
@@ -103,6 +131,26 @@ void main() {
     await tester.pumpAndSettle();
     return (pushedExtras: pushedExtras);
   }
+
+  testWidgets('desktop pick goes through file_picker', (tester) async {
+    // No pickImageOverride and not the mobile layout, so `_pick` takes the
+    // FilePicker branch -- the one file_picker 12 moved to `pickFile()`.
+    // The picker is stubbed in setUp to return the fixture photo.
+    final result = await pumpScanPage(
+      tester,
+      engine: FakeEngine(padiTrainingMetric()),
+    );
+
+    await tapAndProcess(tester, 'Choose Photo');
+
+    expect(
+      result.pushedExtras,
+      hasLength(1),
+      reason:
+          'the desktop pick must reach OCR and navigate on, exactly as '
+          'the overridden path does',
+    );
+  });
 
   testWidgets('engine unavailable shows install guidance', (tester) async {
     await pumpScanPage(

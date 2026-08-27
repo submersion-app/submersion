@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 
+import '../helpers/l10n_test_helpers.dart';
+
 void main() {
   setUp(() {
     ShortcutCatalog.instance.clear();
@@ -20,7 +22,12 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -42,7 +49,12 @@ void main() {
         ),
       ]);
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -65,7 +77,12 @@ void main() {
         ),
       ]);
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -83,7 +100,12 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -100,7 +122,12 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -124,7 +151,12 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -161,7 +193,12 @@ void main() {
         ),
       ]);
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();
@@ -181,7 +218,12 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(),
+        ),
+      );
 
       showShortcutsHelpDialog(tester.element(find.byType(Scaffold)));
       await tester.pumpAndSettle();

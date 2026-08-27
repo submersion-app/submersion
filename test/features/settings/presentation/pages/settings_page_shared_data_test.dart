@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -24,14 +26,17 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
@@ -91,6 +96,10 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
   bool setShareByDefaultCalled = false;
   bool? lastSetValue;
 
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
   @override
   Future<bool> getShareByDefault() async => _shareByDefault;
 
@@ -112,12 +121,36 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier() : super(const AppSettings());
+
+  /// Already "loaded": the mock's state is supplied up front.
+  @override
+  Future<void> get initialLoad async {}
+
+  @override
+  Future<void> setAccentNavIcons(bool value) async =>
+      state = state.copyWith(accentNavIcons: value);
+
+  @override
+  Future<void> setAccentSectionHeaders(bool value) async =>
+      state = state.copyWith(accentSectionHeaders: value);
+
+  @override
+  Future<void> setAccentListIcons(bool value) async =>
+      state = state.copyWith(accentListIcons: value);
+
+  @override
+  Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
+      state = state.copyWith(seascapeAppearance: appearance);
 
   @override
   Future<void> setChamberHidden(String chamberId, bool hidden) async {
@@ -152,6 +185,27 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     }
     state = state.copyWith(hiddenHomeChips: hidden);
   }
+
+  @override
+  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
+    final hidden = {...state.hiddenHomeCards};
+    if (enabled) {
+      hidden.remove(cardId);
+    } else {
+      hidden.add(cardId);
+    }
+    state = state.copyWith(hiddenHomeCards: hidden);
+  }
+
+  @override
+  Future<void> setHomeCardOrder(List<String> order) async =>
+      state = state.copyWith(homeCardOrder: order);
+
+  @override
+  Future<void> resetHomeCards() async => state = state.copyWith(
+    homeCardOrder: const <String>[],
+    hiddenHomeCards: const <String>{},
+  );
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
@@ -191,6 +245,28 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSacUnit(SacUnit unit) async =>
       state = state.copyWith(sacUnit: unit);
+
+  @override
+  Future<void> setGasModel(GasModel model) async =>
+      state = state.copyWith(gasModel: model);
+  @override
+  Future<void> setDefaultCurrency(String currencyCode) async =>
+      state = state.copyWith(defaultCurrency: currencyCode);
+  @override
+  Future<void> setVisibilityScale({
+    required VisibilityScalePreset preset,
+    double? excellentM,
+    double? goodM,
+    double? moderateM,
+  }) async => state = state.copyWith(
+    visibilityScalePreset: preset,
+    visibilityScaleExcellentM: excellentM,
+    visibilityScaleGoodM: goodM,
+    visibilityScaleModerateM: moderateM,
+  );
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
@@ -209,6 +285,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setLocale(String locale) async =>
       state = state.copyWith(locale: locale);
+  @override
+  Future<void> setPlaceNameLanguage(String code) async =>
+      state = state.copyWith(placeNameLanguage: code);
   @override
   Future<void> setDefaultDiveType(String diveType) async =>
       state = state.copyWith(defaultDiveType: diveType);
@@ -452,6 +531,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultShowOtu(bool value) async =>
       state = state.copyWith(defaultShowOtu: value);
   @override
+  Future<void> setDefaultShowO2CellMv(bool value) async =>
+      state = state.copyWith(defaultShowO2CellMv: value);
+  @override
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
+      state = state.copyWith(defaultShowEstimatedTankPressure: value);
+  @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
@@ -464,14 +549,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
-  @override
-  Future<void> setFullscreenTilePreferences({
-    required List<String> order,
-    required List<String> hidden,
-  }) async => state = state.copyWith(
-    fullscreenTileOrder: order,
-    fullscreenHiddenTiles: hidden,
-  );
 
   @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
@@ -479,6 +556,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
       );
+
+  @override
+  Future<void> setProfileMetricsFollowViewport(bool value) async =>
+      state = state.copyWith(profileMetricsFollowViewport: value);
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>

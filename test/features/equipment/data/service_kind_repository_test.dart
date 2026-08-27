@@ -17,13 +17,21 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  test('getAllKinds returns the 9 built-ins', () async {
+  test('getAllKinds returns the 12 built-ins', () async {
     final kinds = await repo.getAllKinds();
-    expect(kinds.length, 9);
+    expect(kinds.length, 12);
     expect(kinds.every((k) => k.isBuiltIn), isTrue);
     final hydro = kinds.firstWhere((k) => k.id == 'hydro');
     expect(hydro.applicableTypes, [EquipmentType.tank]);
     expect(hydro.defaultIntervalDays, 1825);
+
+    // applicable_types round-trips through the repository for the rebreather
+    // kinds too, so they surface on a rebreather's clock picker.
+    final scrubber = kinds.firstWhere((k) => k.id == 'scrubber-repack');
+    expect(scrubber.applicableTypes, [EquipmentType.rebreather]);
+    expect(scrubber.defaultIntervalHours, 3.0);
+    expect(scrubber.appliesTo(EquipmentType.rebreather), isTrue);
+    expect(scrubber.appliesTo(EquipmentType.tank), isFalse);
   });
 
   test('custom kind CRUD; built-ins are protected', () async {

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -260,7 +259,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
           child: Icon(
-            _getIconForType(item.type),
+            equipmentTypeIcon(item.type),
             color: Theme.of(context).colorScheme.onTertiaryContainer,
           ),
         ),
@@ -331,36 +330,6 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           );
         }
       }
-    }
-  }
-
-  IconData _getIconForType(EquipmentType type) {
-    switch (type) {
-      case EquipmentType.regulator:
-        return Icons.air;
-      case EquipmentType.bcd:
-        return Icons.accessibility_new;
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return Icons.checkroom;
-      case EquipmentType.fins:
-        return Icons.directions_walk;
-      case EquipmentType.mask:
-        return Icons.visibility;
-      case EquipmentType.computer:
-        return Icons.watch;
-      case EquipmentType.tank:
-        return MdiIcons.divingScubaTank;
-      case EquipmentType.weights:
-        return Icons.fitness_center;
-      case EquipmentType.light:
-        return Icons.flashlight_on;
-      case EquipmentType.camera:
-        return Icons.camera_alt;
-      case EquipmentType.transmitter:
-        return Icons.sensors;
-      default:
-        return Icons.backpack;
     }
   }
 }

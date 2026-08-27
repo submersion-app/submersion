@@ -26,6 +26,25 @@ enum PreDiveItemState {
       .firstWhere((e) => e.name == raw, orElse: () => PreDiveItemState.pending);
 }
 
+/// Item tallies for one session, aggregated in SQL so a list of sessions can
+/// render progress and flag badges without loading every item row.
+class PreDiveSessionStats extends Equatable {
+  final int total;
+  final int resolved;
+  final int flagged;
+
+  const PreDiveSessionStats({
+    this.total = 0,
+    this.resolved = 0,
+    this.flagged = 0,
+  });
+
+  bool get hasFlagged => flagged > 0;
+
+  @override
+  List<Object?> get props => [total, resolved, flagged];
+}
+
 /// A pre-dive checklist run. Completed/aborted sessions are immutable.
 class PreDiveSession extends Equatable {
   final String id;

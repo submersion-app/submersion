@@ -85,17 +85,17 @@ class ProfileChartViewport {
 enum ChartDragIntent { pan, scrub, zoomPan, none }
 
 /// Decides the meaning of an in-progress gesture from the active pointer kind,
-/// the pointer count, and whether a double-tap-hold is active. Keying off the
+/// the pointer count, and whether the viewport is zoomed in. Keying off the
 /// pointer kind (not the platform) is what lets one-finger touch keep scrubbing
-/// while a mouse drag pans.
+/// while a mouse drag pans. A zoomed viewport flips one-finger touch from
+/// scrub to pan ("drag to pan", matching the on-screen zoom hint); scrubbing
+/// while zoomed remains available via tap and long-press drag.
 ChartDragIntent chartDragIntent({
   required PointerDeviceKind kind,
   required int pointerCount,
-  required bool doubleTapHold,
+  required bool isZoomed,
 }) {
   if (pointerCount >= 2) return ChartDragIntent.zoomPan;
-  if (doubleTapHold) return ChartDragIntent.pan;
-  return kind == PointerDeviceKind.touch
-      ? ChartDragIntent.scrub
-      : ChartDragIntent.pan;
+  if (kind != PointerDeviceKind.touch) return ChartDragIntent.pan;
+  return isZoomed ? ChartDragIntent.pan : ChartDragIntent.scrub;
 }

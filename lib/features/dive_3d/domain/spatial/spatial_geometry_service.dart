@@ -1,14 +1,19 @@
 import 'dart:math' as math;
 
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/wall_highlight_builder.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Assembles the spatial seascape [Scene3d]: seafloor, water surface, the
@@ -29,23 +34,40 @@ class SpatialGeometryService {
     BathymetryGrid? grid,
     GeoPoint? gridCenter,
     ({double east, double north}) pathAnchor = (east: 0.0, north: 0.0),
+    SeascapeAppearance appearance = const SeascapeAppearance(),
+    double displayUnitInMeters = 1.0,
+    String depthSymbol = 'm',
+    TerrainImageryFrame? imageryFrame,
   }) => buildWithFrame(
     path,
     siteMaxDepth: siteMaxDepth,
     grid: grid,
     gridCenter: gridCenter,
     pathAnchor: pathAnchor,
+    appearance: appearance,
+    displayUnitInMeters: displayUnitInMeters,
+    depthSymbol: depthSymbol,
+    imageryFrame: imageryFrame,
   ).scene;
 
   /// [build], plus the scene-frame numbers ([SeascapeAxisInputs]) the axes
-  /// are derived from — captured here because only this method knows the
-  /// union box of terrain and path.
-  ({Scene3d scene, SeascapeAxisInputs frame}) buildWithFrame(
+  /// are derived from (captured here because only this method knows the
+  /// union box of terrain and path) and the contour label anchors.
+  ({
+    Scene3d scene,
+    SeascapeAxisInputs frame,
+    List<ContourLabelSpec> contourLabels,
+  })
+  buildWithFrame(
     ReckonedPath path, {
     double? siteMaxDepth,
     BathymetryGrid? grid,
     GeoPoint? gridCenter,
     ({double east, double north}) pathAnchor = (east: 0.0, north: 0.0),
+    SeascapeAppearance appearance = const SeascapeAppearance(),
+    double displayUnitInMeters = 1.0,
+    String depthSymbol = 'm',
+    TerrainImageryFrame? imageryFrame,
   }) {
     if (path.points.length < 2) {
       return (
@@ -61,6 +83,7 @@ class SpatialGeometryService {
           maxNorth: 0.0,
           maxDepth: 1.0,
         ),
+        contourLabels: const <ContourLabelSpec>[],
       );
     }
 
@@ -103,6 +126,10 @@ class SpatialGeometryService {
             grid: grid,
             center: gridCenter,
             projection: proj,
+            rampMaxDepthMeters: appearance.rampMaxDepthMeters,
+            rampBanded: appearance.rampBanded,
+            imageryFrame: imageryFrame,
+            surfaceMode: appearance.surfaceMode,
           )
         : TerrainBuilder.build(
             path: placed,
@@ -112,6 +139,26 @@ class SpatialGeometryService {
             minNorth: minN,
             maxNorth: maxN,
           );
+    // Contours and walls assert real measured terrain; the synthesized
+    // fallback is invented data and gets neither (honesty rule).
+    final contours = useBathymetry
+        ? buildContourLayers(
+            grid: grid,
+            center: gridCenter,
+            projection: proj,
+            appearance: appearance,
+            displayUnitInMeters: displayUnitInMeters,
+            depthSymbol: depthSymbol,
+          )
+        : ContourBuildResult.empty;
+    final wallMesh = useBathymetry
+        ? buildWallHighlightMesh(
+            grid: grid,
+            center: gridCenter,
+            projection: proj,
+            thresholdDeg: appearance.wallAngleDeg,
+          )
+        : null;
     final ribbon = SpatialPathBuilder.buildRibbon(placed, proj);
     final entryPin = SpatialPathBuilder.buildPin(
       placed.points.first,
@@ -143,13 +190,21 @@ class SpatialGeometryService {
     );
 
     final scene = Scene3d(
-      // Back-to-front: seafloor, path, pins, translucent water on top.
+      // Back-to-front: seafloor, contours/walls riding it, path, pins,
+      // translucent water on top (overlay-gated so chart mode hides it).
       layers: [
         SceneLayer(terrain.terrain),
+        ...contours.layers,
+        if (wallMesh != null)
+          SceneLayer(
+            wallMesh,
+            overlay: SceneOverlay.steepWalls,
+            drapedOnTerrain: true,
+          ),
         SceneLayer(ribbon),
         SceneLayer(entryPin),
         SceneLayer(exitPin),
-        SceneLayer(terrain.water),
+        SceneLayer(terrain.water, overlay: SceneOverlay.water),
       ],
       markers: const [],
       bounds: bounds,
@@ -164,6 +219,7 @@ class SpatialGeometryService {
         maxNorth: maxN,
         maxDepth: maxDepth,
       ),
+      contourLabels: contours.labels,
     );
   }
 }

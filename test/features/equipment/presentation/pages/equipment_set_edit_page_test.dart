@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -35,11 +37,12 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildPage({String? setId}) async {
+  Future<Widget> buildPage({String? setId, bool realEquipment = false}) async {
     final overrides = await getBaseOverrides();
     overrides.addAll([
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
-      activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
+      if (!realEquipment)
+        activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
       sitesProvider.overrideWith(
         (ref) async => const [
           DiveSite(
@@ -150,5 +153,80 @@ void main() {
     expect(sets, hasLength(1));
     expect(sets.first.isDefault, isTrue);
     expect(await repo.getGeofencesForSet(sets.first.id), hasLength(1));
+  });
+
+  testWidgets('saving a set survives a member being deleted while the form is '
+      'open (issue #819)', (tester) async {
+    final db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    for (final id in ['e1', 'e2', 'e3']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'bcd',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('d1'),
+            ),
+          );
+    }
+    final repo = EquipmentSetRepository();
+    await repo.createSet(
+      EquipmentSet(
+        id: 's1',
+        diverId: 'd1',
+        name: 'My Equipment',
+        equipmentIds: const ['e1', 'e2', 'e3'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    // Open the editor: the set provider caches all three members.
+    await tester.pumpWidget(await buildPage(setId: 's1', realEquipment: true));
+    await tester.pumpAndSettle();
+    expect(find.text('e2'), findsOneWidget);
+
+    // The diver deletes the BCD from the equipment tab -- through the same
+    // notifier that tab uses, so activeEquipmentProvider refreshes and the
+    // checkbox disappears. SQLite cascades the junction row away; before the
+    // fix the cached set kept the dead id and the save below died on
+    // SqliteException(787).
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentSetEditPage)),
+    );
+    await container
+        .read(equipmentListNotifierProvider.notifier)
+        .deleteEquipment('e2');
+    await tester.pump(EquipmentSetRepository.changeTickDebounce * 2);
+    await tester.pumpAndSettle();
+    expect(find.text('e2'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'Save Changes'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Error saving equipment set'),
+      findsNothing,
+      reason: 'the stale member must not abort the save',
+    );
+    expect(
+      find.text('home'),
+      findsOneWidget,
+      reason: 'the form pops on success',
+    );
+    expect(
+      await repo.getEquipmentIdsInSet('s1'),
+      unorderedEquals(['e1', 'e3']),
+      reason: 'the surviving members must still be saved, not wiped',
+    );
   });
 }

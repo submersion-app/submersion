@@ -39,6 +39,11 @@ enum BulkField {
   diluentGas,
   scrubberType,
   scrubberDuration,
+
+  /// The active diver's own role on the dive. Lives in the Buddies group of
+  /// the form even though it is a scalar column, because that is where the
+  /// single-dive editor puts it (#1220).
+  diverRole,
   notes,
 }
 
@@ -63,7 +68,7 @@ class BulkScalarInputs {
     this.rating,
     this.isFavorite,
     this.waterType,
-    this.visibility,
+    this.visibilityMeters,
     this.currentDirection,
     this.currentStrength,
     this.swellHeight,
@@ -91,6 +96,7 @@ class BulkScalarInputs {
     this.diluentHe,
     this.scrubberType,
     this.scrubberDuration,
+    this.diverRoleId,
     this.notes,
   });
 
@@ -100,7 +106,11 @@ class BulkScalarInputs {
   final int? rating;
   final bool? isFavorite;
   final String? waterType;
-  final String? visibility;
+
+  /// Measured visibility in meters. Replaces the pre-v144 bucket string:
+  /// applying it also clears the legacy bucket on every touched dive, matching
+  /// the precedence rule in the dive repository.
+  final double? visibilityMeters;
   final String? currentDirection;
   final String? currentStrength;
   final double? swellHeight;
@@ -128,6 +138,9 @@ class BulkScalarInputs {
   final double? diluentHe;
   final String? scrubberType;
   final int? scrubberDuration;
+
+  /// dive_roles id for the active diver's own role, or null to clear it.
+  final String? diverRoleId;
   final String? notes;
 }
 
@@ -148,7 +161,12 @@ DivesCompanion buildScalarCompanion(
         isFavorite: Value(i.isFavorite ?? false),
       ),
       BulkField.waterType => c.copyWith(waterType: Value(i.waterType)),
-      BulkField.visibility => c.copyWith(visibility: Value(i.visibility)),
+      BulkField.visibility => c.copyWith(
+        visibilityMeters: Value(i.visibilityMeters),
+        // Clear the legacy bucket so a bulk-set measurement cannot leave a
+        // dive carrying a contradicting band.
+        visibility: const Value(null),
+      ),
       BulkField.currentDirection => c.copyWith(
         currentDirection: Value(i.currentDirection),
       ),
@@ -204,6 +222,7 @@ DivesCompanion buildScalarCompanion(
       BulkField.scrubberDuration => c.copyWith(
         scrubberDurationMinutes: Value(i.scrubberDuration),
       ),
+      BulkField.diverRole => c.copyWith(diverRole: Value(i.diverRoleId)),
       BulkField.notes => c.copyWith(notes: Value(i.notes ?? '')),
     };
   }

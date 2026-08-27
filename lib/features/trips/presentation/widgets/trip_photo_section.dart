@@ -232,11 +232,13 @@ class _PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaType = item.isVideo ? 'Video' : 'Photo';
+    final semanticsLabel = item.isVideo
+        ? context.l10n.trips_photos_thumbnail_video
+        : context.l10n.trips_photos_thumbnail_photo;
 
     return Semantics(
       button: true,
-      label: '$mediaType thumbnail. Tap to open gallery',
+      label: semanticsLabel,
       child: GestureDetector(
         onTap: () => context.push('/trips/$tripId/gallery'),
         child: ClipRRect(

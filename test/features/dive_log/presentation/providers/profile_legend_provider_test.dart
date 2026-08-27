@@ -56,6 +56,74 @@ void main() {
     );
   });
 
+  group('metricsFollowViewport', () {
+    ProviderContainer containerWith(AppSettings settings) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(settings),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container;
+    }
+
+    test('defaults to off, preserving the original zoom behaviour', () {
+      final container = containerWith(const AppSettings());
+
+      expect(
+        container.read(profileLegendProvider).metricsFollowViewport,
+        isFalse,
+      );
+    });
+
+    test('seeds from the global setting', () {
+      final container = containerWith(
+        const AppSettings(profileMetricsFollowViewport: true),
+      );
+
+      expect(
+        container.read(profileLegendProvider).metricsFollowViewport,
+        isTrue,
+      );
+    });
+
+    test('the per-chart toggle overrides the global default per session', () {
+      final container = containerWith(const AppSettings());
+      final notifier = container.read(profileLegendProvider.notifier);
+
+      notifier.toggleMetricsFollowViewport();
+      expect(
+        container.read(profileLegendProvider).metricsFollowViewport,
+        isTrue,
+      );
+
+      notifier.toggleMetricsFollowViewport();
+      expect(
+        container.read(profileLegendProvider).metricsFollowViewport,
+        isFalse,
+      );
+    });
+
+    test('is a render mode, so it never counts as an active overlay', () {
+      // The "More options" badge counts visible series. This toggle draws no
+      // line, so counting it would inflate the badge.
+      final container = containerWith(
+        const AppSettings(profileMetricsFollowViewport: true),
+      );
+
+      final state = container.read(profileLegendProvider);
+      expect(state.metricsFollowViewport, isTrue);
+      expect(
+        state.activeSecondaryCount,
+        const ProfileLegendState().activeSecondaryCount,
+      );
+    });
+  });
+
   group('ProfileLegendState', () {
     group('sectionExpanded', () {
       test('defaults to expected initial values', () {
@@ -397,6 +465,69 @@ void main() {
       expect(container.read(profileLegendProvider).showPhotoMarkers, isTrue);
       container.read(profileLegendProvider.notifier).togglePhotoMarkers();
       expect(container.read(profileLegendProvider).showPhotoMarkers, isFalse);
+    });
+  });
+
+  group('O2 cell millivolts (issue #810)', () {
+    test('default to hidden and copyWith flips them', () {
+      const state = ProfileLegendState();
+      expect(state.showO2CellMv, isFalse);
+      expect(state.copyWith(showO2CellMv: true).showO2CellMv, isTrue);
+    });
+
+    test('showing them counts as an active secondary toggle', () {
+      const off = ProfileLegendState();
+      final on = off.copyWith(showO2CellMv: true);
+      expect(on.activeSecondaryCount, off.activeSecondaryCount + 1);
+    });
+
+    test('participate in equality and hashCode', () {
+      const off = ProfileLegendState();
+      final on = off.copyWith(showO2CellMv: true);
+      expect(on, isNot(equals(off)));
+      expect(on.hashCode, isNot(equals(off.hashCode)));
+    });
+
+    test('toggleO2CellMv flips the state', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
+      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+    });
+
+    test('showO2CellMv seeds from defaultShowO2CellMv when true', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowO2CellMv: true),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+    });
+
+    test('showO2CellMv seeds from defaultShowO2CellMv when false', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowO2CellMv: false),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
     });
   });
 }

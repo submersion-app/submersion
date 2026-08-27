@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -543,17 +542,11 @@ class UddfFullExportService {
       dialogTitle: 'Save UDDF File',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['uddf', 'xml'],
       bytes: Uint8List.fromList(utf8.encode(xmlString)),
+      mimeType: 'application/xml',
     );
 
     if (result == null) return null;
-
-    if (!Platform.isAndroid) {
-      final file = File(result);
-      await file.writeAsString(xmlString);
-    }
-
-    return result;
+    return savedFileLocation(result);
   }
 }

@@ -571,6 +571,40 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // SAC By Tank Role: the two units are genuinely different calculations
+  // ---------------------------------------------------------------------------
+
+  group('SAC by tank role across units', () {
+    // Issues #160 and #219: the card once read one query for both settings,
+    // so switching bar/min to L/min swapped the unit label while leaving the
+    // number untouched (1.6 bar/min became 1.6 L/min).
+    test('volume and pressure roles report different magnitudes', () async {
+      await insertDiveWithTank(
+        id: 'dive-units',
+        bottomTimeSeconds: 35 * 60,
+        runtimeSeconds: 42 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        tankRole: 'backGas',
+        volume: 12.0,
+      );
+
+      final pressureByRole = await repository.getSacPressureByTankRole();
+      final volumeByRole = await repository.getSacVolumeByTankRole();
+
+      // 150 bar over 42 min at 3 ata.
+      expect(pressureByRole['backGas']!, closeTo(150 / 42 / 3, 0.01));
+      // The same drop through a 12 L cylinder is an order of magnitude larger
+      // in litres, so the displayed number must move when the unit does.
+      expect(
+        volumeByRole['backGas']!,
+        greaterThan(pressureByRole['backGas']! * 5),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Bottom Time Trend (uses bottom_time column directly)
   // ---------------------------------------------------------------------------
 

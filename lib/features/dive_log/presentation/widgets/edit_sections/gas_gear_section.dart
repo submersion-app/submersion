@@ -22,6 +22,7 @@ class GasGearSection extends StatelessWidget {
     required this.equipmentChild,
     required this.weightChild,
     this.rebreatherPanel,
+    this.applyConfigChild,
     this.showTankControls = true,
     this.errorCount = 0,
   });
@@ -40,6 +41,10 @@ class GasGearSection extends StatelessWidget {
 
   /// CcrSettingsPanel / ScrSettingsPanel when the mode requires one.
   final Widget? rebreatherPanel;
+
+  /// ApplyConfigurationMenu, when the diver has saved configurations. Sits
+  /// below the add-cylinder row because it is the bulk alternative to it.
+  final Widget? applyConfigChild;
 
   /// False for gauge dives, which log depth and time only.
   final bool showTankControls;
@@ -67,6 +72,7 @@ class GasGearSection extends StatelessWidget {
               FormOverline(label: l10n.diveLog_edit_overline_tanks),
               ...tanks,
               FormAppendRow(label: addTankLabel, onTap: onAddTank),
+              ?applyConfigChild,
             ],
           ),
         equipmentChild,

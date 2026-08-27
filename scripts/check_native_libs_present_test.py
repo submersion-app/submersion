@@ -5,7 +5,7 @@ Run: python3 scripts/check_native_libs_present_test.py
 
 These exercise the APK/AAB native-library presence parser and its pass/fail
 contract, including the issue #433 regression (an archive that ships its ABIs
-but no libsqlite3.so) which the Build Android integration step would only catch
+but no SQLite/SQLCipher engine) which the Build Android integration step would only catch
 by actually crashing on a device.
 """
 
@@ -26,8 +26,13 @@ _spec = importlib.util.spec_from_file_location(
 guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
-# The standard Flutter release ABI set; sqlite3-native-library ships all three.
+# The standard Flutter release ABI set; the SQLCipher AAR ships all three.
 ABIS = ("arm64-v8a", "armeabi-v7a", "x86_64")
+
+# Derived from the guard rather than hardcoded: when the engine changes (as it
+# did from libsqlite3.so to libsqlcipher.so), these tests must follow the
+# constant automatically instead of silently testing the wrong library name.
+REQUIRED = guard.REQUIRED_LIBS[0]
 
 
 def _zip_bytes(names):
@@ -43,38 +48,39 @@ def _open_zip(names):
     return zipfile.ZipFile(io.BytesIO(_zip_bytes(names)))
 
 
-def _apk(prefix="lib", libs=("libsqlite3.so", "libflutter.so"), abis=ABIS):
+def _apk(prefix="lib", libs=None, abis=ABIS):
     """Entry names for an archive bundling ``libs`` under each ABI."""
+    libs = libs if libs is not None else (REQUIRED, "libflutter.so")
     return [f"{prefix}/{abi}/{lib}" for abi in abis for lib in libs]
 
 
 class AbiToLibsTests(unittest.TestCase):
     def test_apk_layout(self):
-        m = guard.abi_to_libs(_open_zip(["lib/arm64-v8a/libsqlite3.so"]))
-        self.assertEqual(m, {"arm64-v8a": {"libsqlite3.so"}})
+        m = guard.abi_to_libs(_open_zip([f"lib/arm64-v8a/{REQUIRED}"]))
+        self.assertEqual(m, {"arm64-v8a": {REQUIRED}})
 
     def test_aab_layout(self):
-        m = guard.abi_to_libs(_open_zip(["base/lib/arm64-v8a/libsqlite3.so"]))
-        self.assertEqual(m, {"arm64-v8a": {"libsqlite3.so"}})
+        m = guard.abi_to_libs(_open_zip([f"base/lib/arm64-v8a/{REQUIRED}"]))
+        self.assertEqual(m, {"arm64-v8a": {REQUIRED}})
 
     def test_groups_multiple_libs_per_abi(self):
         m = guard.abi_to_libs(_open_zip(_apk()))
         self.assertEqual(set(m), set(ABIS))
         for abi in ABIS:
-            self.assertEqual(m[abi], {"libsqlite3.so", "libflutter.so"})
+            self.assertEqual(m[abi], {REQUIRED, "libflutter.so"})
 
     def test_ignores_non_lib_and_nested_paths(self):
         m = guard.abi_to_libs(
             _open_zip(
                 [
-                    "lib/arm64-v8a/libsqlite3.so",  # counted
+                    f"lib/arm64-v8a/{REQUIRED}",  # counted
                     "assets/foo.so",                # not under lib/<abi>/
                     "lib/arm64-v8a/sub/deep.so",    # nested deeper than <abi>/
                     "classes.dex",                  # not a .so
                 ]
             )
         )
-        self.assertEqual(m, {"arm64-v8a": {"libsqlite3.so"}})
+        self.assertEqual(m, {"arm64-v8a": {REQUIRED}})
 
 
 class CheckArchiveTests(unittest.TestCase):
@@ -94,10 +100,10 @@ class CheckArchiveTests(unittest.TestCase):
         self.assertTrue(all("ok" in line for line in lines))
 
     def test_red_issue_433_no_sqlite_anywhere(self):
-        # Ships its ABIs but libsqlite3.so was dropped (the 0.6.0+eol regression).
+        # Ships its ABIs but the engine lib was dropped (the +eol regression).
         ok, lines = self._run(_apk(libs=("libflutter.so", "libapp.so")))
         self.assertFalse(ok)
-        self.assertTrue(any("missing libsqlite3.so" in line for line in lines))
+        self.assertTrue(any(f"missing {REQUIRED}" in line for line in lines))
 
     def test_partial_abi_drop_fails(self):
         # Present for arm64 but missing for armeabi-v7a -> still a failure.

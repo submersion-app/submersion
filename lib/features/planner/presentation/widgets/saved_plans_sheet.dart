@@ -46,10 +46,10 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
     // Render stale data during a reload rather than flashing a spinner.
     final plans = summaries.valueOrNull;
 
-    // The compare-mode toggle only renders with >=2 plans. If an in-mode delete
-    // drops the count below that, actually leave compare mode (not merely hide
-    // it) so the sheet can't silently re-enter it when the count later climbs
-    // back to >=2 (e.g. via Import while the sheet is still open).
+    // The compare-mode toggle only renders with >=2 plans. If the count drops
+    // below that while the sheet is open, actually leave compare mode (not
+    // merely hide it) so the sheet can't silently re-enter it when the count
+    // later climbs back to >=2 (e.g. via Import while the sheet is open).
     ref.listen(divePlanSummariesProvider, (_, next) {
       if (_selecting && (next.valueOrNull?.length ?? 0) < 2) {
         setState(() {
@@ -133,17 +133,10 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                               _selected.remove(plans[i].id);
                             }
                           }),
-                          secondary: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            color: theme.colorScheme.error,
-                            tooltip: context.l10n.common_action_delete,
-                            onPressed: () => _confirmAndDeletePlan(
-                              context,
-                              ref,
-                              plans[i].id,
-                              plans[i].name,
-                            ),
-                          ),
+                          // No per-row trash while selecting: a destructive
+                          // one-tap action does not belong beside a checkbox
+                          // whose whole purpose is to gather rows for a
+                          // different action. Delete stays on the normal row.
                         )
                       : _PlanTile(summary: plans[i], units: units),
                 ),
@@ -158,7 +151,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                           Navigator.of(context).pop();
                           GoRouter.of(
                             context,
-                          ).go('/planning/dive-planner/compare?ids=$ids');
+                          ).push('/planning/dive-planner/compare?ids=$ids');
                         }
                       : null,
                   child: Text(
@@ -179,8 +172,8 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
     final router = GoRouter.of(context);
     final navigator = Navigator.of(context);
 
-    final result = await FilePicker.pickFiles(type: FileType.any);
-    final path = result?.files.single.path;
+    final result = await FilePicker.pickFile(type: FileType.any);
+    final path = result?.path;
     if (path == null) return;
 
     try {
@@ -188,7 +181,9 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
       final plan = subplanFromJson(source);
       await ref.read(divePlanRepositoryProvider).savePlan(plan);
       navigator.pop();
-      router.go('/planning/dive-planner/${plan.id}');
+      // PUSH (not go): keep the canvas poppable so system back does not
+      // close the app (#647).
+      router.push('/planning/dive-planner/${plan.id}');
     } on FormatException catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -237,7 +232,7 @@ class _PlanTile extends ConsumerWidget {
       subtitle: Text(subtitleParts.join(' · ')),
       onTap: () {
         context.pop();
-        context.go('/planning/dive-planner/${summary.id}');
+        context.push('/planning/dive-planner/${summary.id}');
       },
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -219,6 +220,181 @@ void main() {
     final p = provider(mockApi((_) async => json({})));
     await p.signOut();
     expect(await store.load(), isNull);
+  });
+
+  group('path-based transfers', () {
+    // 8 MiB, matching the provider's transfer chunk size.
+    const chunk = 8 * 1024 * 1024;
+    late Directory tempDir;
+
+    setUp(() async {
+      await connect();
+      tempDir = Directory.systemTemp.createTempSync('dropbox_provider_test');
+    });
+
+    tearDown(() => tempDir.deleteSync(recursive: true));
+
+    File writeSource(int length) {
+      final file = File('${tempDir.path}/src.bin');
+      file.writeAsBytesSync(
+        Uint8List.fromList(List<int>.generate(length, (i) => i % 251)),
+      );
+      return file;
+    }
+
+    Map<String, Object?> fileEntrySized(String name, int size) => {
+      ...fileEntry(name),
+      'size': size,
+    };
+
+    test('small uploads take the single upload endpoint', () async {
+      final src = writeSource(1024);
+      final paths = <String>[];
+      final p = provider(
+        mockApi((request) async {
+          paths.add(request.url.path);
+          return json(fileEntry('small.db'));
+        }),
+      );
+
+      final result = await p.uploadFileFromPath(src.path, 'small.db');
+
+      expect(paths, ['/2/files/upload']);
+      expect(result.fileId, '/small.db');
+    });
+
+    test(
+      'large uploads stream through an upload session, byte-identical',
+      () async {
+        final src = writeSource(2 * chunk + 1024); // start + append + finish
+        final paths = <String>[];
+        final received = BytesBuilder(copy: false);
+        final p = provider(
+          mockApi((request) async {
+            paths.add(request.url.path);
+            received.add(request.bodyBytes);
+            switch (request.url.path) {
+              case '/2/files/upload_session/start':
+                return json({'session_id': 's1'});
+              case '/2/files/upload_session/append_v2':
+                return json({});
+              case '/2/files/upload_session/finish':
+                return json(fileEntrySized('big.db', 2 * chunk + 1024));
+              default:
+                return http.Response('unexpected', 500);
+            }
+          }),
+        );
+
+        final result = await p.uploadFileFromPath(src.path, 'big.db');
+
+        expect(paths, [
+          '/2/files/upload_session/start',
+          '/2/files/upload_session/append_v2',
+          '/2/files/upload_session/finish',
+        ]);
+        expect(
+          received.takeBytes(),
+          src.readAsBytesSync(),
+          reason: 'session chunks must reassemble byte-identical',
+        );
+        expect(result.fileId, '/big.db');
+      },
+    );
+
+    test('small downloads take the single download endpoint', () async {
+      final p = provider(
+        mockApi((request) async {
+          if (request.url.path == '/2/files/get_metadata') {
+            return json(fileEntry('f.db'));
+          }
+          return http.Response.bytes([1, 2, 3], 200);
+        }),
+      );
+      final dest = File('${tempDir.path}/out.bin');
+
+      await p.downloadToFile('/f.db', dest.path);
+
+      expect(dest.readAsBytesSync(), [1, 2, 3]);
+    });
+
+    test('large downloads stream by ranges, byte-identical', () async {
+      final data = Uint8List.fromList(
+        List<int>.generate(chunk + 4096, (i) => i % 249),
+      );
+      final p = provider(
+        mockApi((request) async {
+          if (request.url.path == '/2/files/get_metadata') {
+            return json(fileEntrySized('big.db', data.length));
+          }
+          final range = request.headers['Range']!;
+          final m = RegExp(r'bytes=(\d+)-(\d+)').firstMatch(range)!;
+          final start = int.parse(m.group(1)!);
+          final end = int.parse(m.group(2)!).clamp(0, data.length - 1);
+          return http.Response.bytes(
+            Uint8List.sublistView(data, start, end + 1),
+            206,
+            headers: {'content-range': 'bytes $start-$end/${data.length}'},
+          );
+        }),
+      );
+      final dest = File('${tempDir.path}/out.bin');
+
+      await p.downloadToFile('/big.db', dest.path);
+
+      expect(dest.readAsBytesSync(), data);
+    });
+
+    test('a missing file throws and leaves no destination file', () async {
+      final p = provider(
+        mockApi(
+          (request) async => http.Response(
+            jsonEncode({'error_summary': 'path/not_found/..'}),
+            409,
+          ),
+        ),
+      );
+      final dest = File('${tempDir.path}/out.bin');
+
+      await expectLater(
+        p.downloadToFile('/nope.db', dest.path),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(dest.existsSync(), isFalse);
+    });
+
+    test('a mid-range failure deletes the partial download', () async {
+      final data = Uint8List.fromList(
+        List<int>.generate(chunk + 4096, (i) => i % 249),
+      );
+      final p = provider(
+        mockApi((request) async {
+          if (request.url.path == '/2/files/get_metadata') {
+            return json(fileEntrySized('big.db', data.length));
+          }
+          final range = request.headers['Range']!;
+          if (!range.startsWith('bytes=0-')) {
+            return http.Response('boom', 500);
+          }
+          return http.Response.bytes(
+            Uint8List.sublistView(data, 0, chunk),
+            206,
+            headers: {'content-range': 'bytes 0-${chunk - 1}/${data.length}'},
+          );
+        }),
+      );
+      final dest = File('${tempDir.path}/out.bin');
+
+      await expectLater(
+        p.downloadToFile('/big.db', dest.path),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(
+        dest.existsSync(),
+        isFalse,
+        reason: 'a truncated download must never be left for the caller',
+      );
+    });
   });
 
   test('mixin conflict detection matches Dropbox conflicted-copy names', () {

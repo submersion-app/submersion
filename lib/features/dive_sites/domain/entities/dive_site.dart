@@ -56,7 +56,12 @@ class DiveSite extends Equatable {
   final String? parkingInfo; // Parking availability and tips
   final double?
   altitude; // Altitude above sea level in meters (for altitude diving)
-  final SiteConditions? conditions;
+  /// Typical way into the water at this site (issue #1104). Snapped onto a
+  /// dive when the site is assigned; the diver can always override it.
+  final EntryMethod? entryMethod;
+
+  /// Typical way out of the water at this site. Null means "same as entry".
+  final EntryMethod? exitMethod;
   final bool isShared;
 
   const DiveSite({
@@ -82,7 +87,8 @@ class DiveSite extends Equatable {
     this.mooringNumber,
     this.parkingInfo,
     this.altitude,
-    this.conditions,
+    this.entryMethod,
+    this.exitMethod,
     this.isShared = false,
   });
 
@@ -146,7 +152,8 @@ class DiveSite extends Equatable {
     String? mooringNumber,
     String? parkingInfo,
     double? altitude,
-    SiteConditions? conditions,
+    EntryMethod? entryMethod,
+    EntryMethod? exitMethod,
     bool? isShared,
   }) {
     return DiveSite(
@@ -172,7 +179,8 @@ class DiveSite extends Equatable {
       mooringNumber: mooringNumber ?? this.mooringNumber,
       parkingInfo: parkingInfo ?? this.parkingInfo,
       altitude: altitude ?? this.altitude,
-      conditions: conditions ?? this.conditions,
+      entryMethod: entryMethod ?? this.entryMethod,
+      exitMethod: exitMethod ?? this.exitMethod,
       isShared: isShared ?? this.isShared,
     );
   }
@@ -201,7 +209,8 @@ class DiveSite extends Equatable {
     mooringNumber,
     parkingInfo,
     altitude,
-    conditions,
+    entryMethod,
+    exitMethod,
     isShared,
   ];
 }
@@ -219,36 +228,4 @@ class GeoPoint extends Equatable {
   @override
   String toString() =>
       '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
-}
-
-/// Typical conditions at a dive site
-class SiteConditions extends Equatable {
-  final String? waterType; // salt, fresh, brackish
-  final String? typicalVisibility;
-  final String? typicalCurrent;
-  final String? bestSeason;
-  final double? minTemp; // celsius
-  final double? maxTemp; // celsius
-  final String? entryType; // shore, boat
-
-  const SiteConditions({
-    this.waterType,
-    this.typicalVisibility,
-    this.typicalCurrent,
-    this.bestSeason,
-    this.minTemp,
-    this.maxTemp,
-    this.entryType,
-  });
-
-  @override
-  List<Object?> get props => [
-    waterType,
-    typicalVisibility,
-    typicalCurrent,
-    bestSeason,
-    minTemp,
-    maxTemp,
-    entryType,
-  ];
 }

@@ -122,4 +122,212 @@ void main() {
     );
     expect(count, 0);
   });
+  group('attachResolvedPhotos', () {
+    test('attaches each resolved photo to its own dive', () async {
+      final attached = <({String path, String diveId, DateTime? takenAt})>[];
+
+      final count = await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {
+            'filename': '/home/jai/Pictures/a.jpg',
+            'offsetSeconds': 200,
+            '_diveIndex': 0,
+          },
+          {
+            'filename': '/home/jai/Pictures/b.jpg',
+            'offsetSeconds': null,
+            '_diveIndex': 1,
+          },
+        ],
+        resolvedPathByIndex: const {
+          0: '/Users/eric/Photos/a.jpg',
+          1: '/Users/eric/Photos/b.jpg',
+        },
+        diveIdByIndex: const {0: 'dive-a', 1: 'dive-b'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+          {'dateTime': DateTime.utc(2025, 1, 16, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          attached.add((path: file.path, diveId: diveId, takenAt: takenAt));
+        },
+      );
+
+      expect(count, 2);
+      expect(attached, hasLength(2));
+      final byDive = {for (final a in attached) a.diveId: a};
+      // Dive start plus the 3:20 offset.
+      expect(byDive['dive-a']!.takenAt, DateTime.utc(2025, 1, 15, 10, 3, 20));
+      // No offset: falls back to the dive's own start.
+      expect(byDive['dive-b']!.takenAt, DateTime.utc(2025, 1, 16, 10));
+    });
+
+    test('applies a negative offset before the dive start', () async {
+      DateTime? seen;
+
+      await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {'filename': '/p/a.jpg', 'offsetSeconds': -65, '_diveIndex': 0},
+        ],
+        resolvedPathByIndex: const {0: '/x/a.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          seen = takenAt;
+        },
+      );
+
+      expect(seen, DateTime.utc(2025, 1, 15, 9, 58, 55));
+    });
+
+    test('drops photos whose dive was folded away by consolidation', () async {
+      var attachCalls = 0;
+
+      final count = await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {'filename': '/p/a.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+        ],
+        resolvedPathByIndex: const {0: '/Users/eric/Photos/a.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {'dive-a'},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          attachCalls++;
+        },
+      );
+
+      expect(count, 0);
+      expect(attachCalls, 0);
+    });
+
+    test('counts a failed copy without failing the import', () async {
+      final count = await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {'filename': '/p/a.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+          {'filename': '/p/b.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+        ],
+        resolvedPathByIndex: const {0: '/x/a.jpg', 1: '/x/b.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          if (file.path.endsWith('b.jpg')) {
+            throw const FileSystemException('copy failed');
+          }
+        },
+      );
+
+      expect(count, 1);
+    });
+
+    test('passes the picture coordinates through', () async {
+      double? seenLatitude;
+      double? seenLongitude;
+
+      await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {
+            'filename': '/p/a.jpg',
+            'offsetSeconds': 0,
+            'latitude': 18.465562,
+            'longitude': -66.084902,
+            '_diveIndex': 0,
+          },
+        ],
+        resolvedPathByIndex: const {0: '/x/a.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          seenLatitude = latitude;
+          seenLongitude = longitude;
+        },
+      );
+
+      expect(seenLatitude, closeTo(18.465562, 1e-6));
+      expect(seenLongitude, closeTo(-66.084902, 1e-6));
+    });
+
+    test('leaves out a photo the user deselected in review', () async {
+      final attached = <String>[];
+
+      final count = await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {'filename': '/p/a.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+          {'filename': '/p/b.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+        ],
+        resolvedPathByIndex: const {0: '/x/a.jpg', 1: '/x/b.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        selectedIndices: const {0},
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          attached.add(file.path);
+        },
+      );
+
+      expect(count, 1);
+      expect(attached, ['/x/a.jpg']);
+    });
+
+    test('a null selection attaches every resolved photo', () async {
+      var attachCalls = 0;
+
+      final count = await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          {'filename': '/p/a.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+          {'filename': '/p/b.jpg', 'offsetSeconds': 0, '_diveIndex': 0},
+        ],
+        resolvedPathByIndex: const {0: '/x/a.jpg', 1: '/x/b.jpg'},
+        diveIdByIndex: const {0: 'dive-a'},
+        removedDiveIds: const {},
+        dives: [
+          {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+        ],
+        attach: (file, diveId, takenAt, latitude, longitude) async {
+          attachCalls++;
+        },
+      );
+
+      expect(count, 2);
+      expect(attachCalls, 2);
+    });
+
+    test(
+      'ignores a picture whose dive never made it into the import',
+      () async {
+        var attachCalls = 0;
+
+        final count = await UniversalAdapter.attachResolvedPhotos(
+          media: [
+            {'filename': '/p/a.jpg', 'offsetSeconds': 0, '_diveIndex': 7},
+          ],
+          resolvedPathByIndex: const {0: '/x/a.jpg'},
+          diveIdByIndex: const {0: 'dive-a'},
+          removedDiveIds: const {},
+          dives: [
+            {'dateTime': DateTime.utc(2025, 1, 15, 10)},
+          ],
+          attach: (file, diveId, takenAt, latitude, longitude) async {
+            attachCalls++;
+          },
+        );
+
+        expect(count, 0);
+        expect(attachCalls, 0);
+      },
+    );
+  });
 }

@@ -24,13 +24,12 @@ double _norm(double radians) {
 
 void main() {
   test('near top-down with no yaw, the needle is vertical on screen', () {
-    // In this engine's camera convention, positive pitch tips scene-north
-    // toward the screen bottom: +Z projects to +pi/2 (canvas y is down).
-    // The compass's job is to reflect the projection truthfully, whatever
-    // the convention.
+    // The map frame is right-handed (scene Z runs south), so at yaw 0 a
+    // positive pitch puts geographic north at the screen TOP: -pi/2 in
+    // canvas angles, where y grows downward.
     final angle = compassNeedleAngle(projector(yaw: 0, pitch: 80));
     expect(angle, isNotNull);
-    expect(_norm(angle! - math.pi / 2), closeTo(0, 0.05));
+    expect(_norm(angle! + math.pi / 2), closeTo(0, 0.05));
   });
 
   test('rotating the camera yaw rotates the needle by the same amount', () {
@@ -40,8 +39,9 @@ void main() {
   });
 
   test('viewing straight along north yields no needle', () {
-    // yaw 0, pitch 0: +Z runs along the view axis; the projected delta
-    // collapses, so the compass must hide rather than point a lie.
+    // yaw 0, pitch 0: the north axis runs along the view axis; the
+    // projected delta collapses, so the compass must hide rather than
+    // point a lie.
     expect(compassNeedleAngle(projector(yaw: 0, pitch: 0)), isNull);
   });
 }

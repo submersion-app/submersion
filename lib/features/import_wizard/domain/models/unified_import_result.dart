@@ -1,5 +1,6 @@
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 
 /// The outcome of a completed unified import wizard run.
 ///
@@ -37,6 +38,10 @@ class UnifiedImportResult {
   /// the summary so photos are never silently dropped.
   final int unmatchedPhotoCount;
 
+  /// Data the source files did not contain, grouped by kind. The import still
+  /// succeeded; these explain why an expected figure is blank.
+  final List<ImportNotice> notices;
+
   const UnifiedImportResult({
     required this.importedCounts,
     required this.consolidatedCount,
@@ -47,5 +52,6 @@ class UnifiedImportResult {
     this.fileOutcomes = const [],
     this.attachedPhotoCount = 0,
     this.unmatchedPhotoCount = 0,
+    this.notices = const [],
   });
 }

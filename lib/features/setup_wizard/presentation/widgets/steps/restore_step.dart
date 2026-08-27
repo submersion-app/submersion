@@ -25,9 +25,8 @@ class RestoreStep extends ConsumerWidget {
   final Future<PickedBackupFile?> Function() pickBackupFile;
 
   static Future<PickedBackupFile?> _pickViaFilePicker() async {
-    final result = await FilePicker.pickFiles(type: FileType.any);
-    if (result == null || result.files.isEmpty) return null;
-    final file = result.files.single;
+    final file = await FilePicker.pickFile(type: FileType.any);
+    if (file == null) return null;
     final path = file.path;
     return path == null ? null : (path: path, name: file.name);
   }

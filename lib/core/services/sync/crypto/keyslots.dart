@@ -184,7 +184,14 @@ abstract final class Keyslots {
     return null;
   }
 
-  static Future<SecretKey> deriveDataKey(SecretKey mlk) async {
+  /// Derives a purpose-bound subkey from the master key. [info] namespaces
+  /// the derivation ('sbe:v1:data' for backup/sync payloads, 'sdb:v1:dbkey'
+  /// for the SQLCipher database key), so the master key itself never touches
+  /// data directly and the derivations cannot collide.
+  static Future<SecretKey> deriveSubKey(
+    SecretKey mlk, {
+    required String info,
+  }) async {
     // Pinned to the pure-Dart HKDF: the salt is empty (RFC 5869 default),
     // HKDF keys its extract HMAC with the salt, and the cryptography_flutter
     // implementation that auto-registers as Cryptography.instance on Android
@@ -194,9 +201,12 @@ abstract final class Keyslots {
     return hkdf.deriveKey(
       secretKey: mlk,
       nonce: const <int>[],
-      info: utf8.encode('sbe:v1:data'),
+      info: utf8.encode(info),
     );
   }
+
+  static Future<SecretKey> deriveDataKey(SecretKey mlk) =>
+      deriveSubKey(mlk, info: 'sbe:v1:data');
 
   static Uint8List _randomBytes(int n) {
     final r = Random.secure();

@@ -23,6 +23,10 @@ class FileSelectionStep extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final hasFile = state.files.isNotEmpty;
+    // Only offer the Garmin option when a device is actually mounted, so the
+    // import dialog stays clean for everyone who doesn't own one.
+    final hasGarminDevice =
+        ref.watch(garminDevicesProvider).valueOrNull?.isNotEmpty ?? false;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -66,6 +70,23 @@ class FileSelectionStep extends ConsumerWidget {
                           .pickFolder(),
               ),
             ),
+            if (hasGarminDevice) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.watch),
+                  label: Text(
+                    context.l10n.universalImport_action_importFromGarmin,
+                  ),
+                  onPressed: state.isLoading
+                      ? null
+                      : () => ref
+                            .read(universalImportNotifierProvider.notifier)
+                            .importFromGarminDevice(),
+                ),
+              ),
+            ],
           ],
           if (state.error != null) ...[
             const SizedBox(height: 16),

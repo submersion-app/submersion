@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -14,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
@@ -74,23 +77,40 @@ class _RecordingPicker extends MockFilePickerPlatform {
   String? requestedFileName;
 
   @override
-  Future<String?> saveFile({
+  Future<Uri?> saveFile({
+    required String fileName,
+    required Uint8List bytes,
+    required String mimeType,
     String? dialogTitle,
-    String? fileName,
     String? initialDirectory,
-    FileType type = FileType.any,
-    List<String>? allowedExtensions,
-    Uint8List? bytes,
-    bool lockParentWindow = false,
+    Function(FilePickerStatus)? onFileSaving,
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
   }) async {
     requestedFileName = fileName;
-    return saveFileResult;
+    return super.saveFile(
+      fileName: fileName,
+      bytes: bytes,
+      mimeType: mimeType,
+      dialogTitle: dialogTitle,
+      initialDirectory: initialDirectory,
+    );
   }
 }
 
 /// Both PDF logbook paths - share and save-to-file - must run through the same
 /// template-aware builder, so the chosen detail level, page size, certification
 /// cards and diver personalization survive (#644).
+/// Pins the diver's settings so the export path cannot fall back to defaults.
+class _FixedSettings extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _FixedSettings(super.settings);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -171,12 +191,20 @@ void main() {
     ),
   ];
 
-  ProviderContainer makeContainer({List<Dive>? divesOverride}) {
+  ProviderContainer makeContainer({
+    List<Dive>? divesOverride,
+    AppSettings? settings,
+  }) {
     final container = ProviderContainer(
       overrides: [
         divesProvider.overrideWith((ref) async => divesOverride ?? dives),
         currentDiverProvider.overrideWith((ref) async => diver),
         allCertificationsProvider.overrideWith((ref) async => certifications),
+        // The PDF path reads the diver's date and time preferences (#964), and
+        // the real notifier needs SharedPreferences, so pin it here.
+        settingsProvider.overrideWith(
+          (ref) => _FixedSettings(settings ?? const AppSettings()),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -279,6 +307,35 @@ void main() {
       );
     });
 
+    test('renders dates and times the way the diver reads them', () async {
+      // #964: the logbook is a printed document, so it follows the diver's
+      // DateFormatPreference and TimeFormat instead of ISO. Only the file name
+      // stays ISO, so a folder of exports still sorts chronologically.
+      final container = makeContainer(
+        settings: const AppSettings(
+          dateFormat: DateFormatPreference.ddmmyyyy,
+          timeFormat: TimeFormat.twelveHour,
+        ),
+      );
+      await notifierOf(container).exportDivesToPdf(
+        const PdfExportOptions(template: PdfTemplate.detailed),
+      );
+
+      final state = container.read(exportNotifierProvider);
+      expect(state.status, ExportStatus.success);
+
+      final text = await textAt(state.filePath!);
+      expect(text, contains('16/01/2026'));
+      expect(text, contains('9:00'));
+      expect(text, contains('AM'));
+      expect(text, isNot(contains('2026-01-16')));
+      expect(
+        state.filePath,
+        contains(DateFormat('yyyy-MM-dd').format(DateTime.now())),
+        reason: 'the shared file name stays sortable ISO',
+      );
+    });
+
     test('reports an error when there is nothing to export', () async {
       final container = makeContainer(divesOverride: const []);
       await notifierOf(container).exportDivesToPdf();
@@ -292,7 +349,7 @@ void main() {
   group('savePdfToFile', () {
     test('saves the template the user picked, not the legacy layout', () async {
       final target = '${workDir.path}/saved_simple.pdf';
-      picker.saveFileResult = target;
+      picker.saveFileResult = Uri.file(target);
 
       final container = makeContainer();
       await notifierOf(
@@ -322,7 +379,7 @@ void main() {
 
     test('the detailed template saves a different document', () async {
       final target = '${workDir.path}/saved_detailed.pdf';
-      picker.saveFileResult = target;
+      picker.saveFileResult = Uri.file(target);
 
       final container = makeContainer();
       await notifierOf(

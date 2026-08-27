@@ -6,13 +6,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
@@ -29,13 +32,17 @@ import 'package:submersion/features/universal_import/data/parsers/import_parser.
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
+import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
+import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
+import 'package:submersion/core/services/files/picked_file_materializer.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
@@ -45,12 +52,18 @@ export 'package:submersion/features/universal_import/presentation/providers/univ
 
 /// Manages the universal import wizard flow.
 class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
+  static const _log = LoggerService('UniversalImportNotifier');
+
   UniversalImportNotifier(
     this._ref, {
     BatchParseService batchParseService = const BatchParseService(),
     ZipExpansionService zipExpansionService = const ZipExpansionService(),
+    GarminDeviceDetector garminDeviceDetector = const GarminDeviceDetector(),
+    FitParserService fitParserService = const FitParserService(),
   }) : _batchParseService = batchParseService,
        _zipExpansion = zipExpansionService,
+       _garminDetector = garminDeviceDetector,
+       _fitParser = fitParserService,
        super(const UniversalImportState());
 
   final Ref _ref;
@@ -62,6 +75,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Expands ZIP archives (DiveCloud exports) into their member files at
   /// intake so members flow through normal detection and batching.
   final ZipExpansionService _zipExpansion;
+
+  /// Detects a Garmin dive computer mounted as a USB drive. Injectable so
+  /// tests can point it at a temporary directory tree.
+  final GarminDeviceDetector _garminDetector;
+
+  /// Filters dive FITs from non-dive activities when importing from a Garmin
+  /// device (it returns null for runs/rides/corrupt files).
+  final FitParserService _fitParser;
 
   /// Build a [PresetRegistry] that includes both built-in and user-saved
   /// presets so auto-detection scores against all of them.
@@ -267,19 +288,19 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     );
 
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.any,
-        allowMultiple: true,
-      );
+      final result = await FilePicker.pickFiles(type: FileType.any);
 
-      if (result == null || result.files.isEmpty) {
+      if (result.isEmpty) {
         state = state.copyWith(isLoading: false);
         return;
       }
 
+      // Copy in any handle without a local path (Android SAF picks) rather
+      // than filtering it out: dropping them silently would shrink the
+      // selection and then report "no importable files" for a pick the user
+      // made correctly.
       final pickedPaths = [
-        for (final f in result.files)
-          if (f.path != null) f.path!,
+        for (final f in await materializePickedFiles(result)) f.path,
       ];
       final expansion = await _zipExpansion.expandAll(pickedPaths);
       _applyExpansionExtras(expansion);
@@ -384,6 +405,49 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(wasLoadedExternally: true);
   }
 
+  /// Resolves the payload's referenced photos against [rootPath].
+  ///
+  /// Never throws into the wizard: a scan failure resolves to zero matches
+  /// and the user can pick a different folder or skip. Photos must not be
+  /// able to block a dive import.
+  Future<void> resolvePhotosIn(String rootPath) async {
+    final media = state.payload?.entitiesOf(ImportEntityType.media);
+    if (media == null || media.isEmpty) return;
+
+    state = state.copyWith(photoFolderPath: rootPath, isLoading: true);
+
+    ImportMediaResolution resolution;
+    try {
+      resolution = await const ImportMediaResolver().resolve(
+        media: media,
+        rootPath: rootPath,
+      );
+    } catch (e) {
+      _log.warning('Photo resolution failed under $rootPath: $e');
+      resolution = ImportMediaResolution(
+        resolvedPathByIndex: const {},
+        reRootedCount: 0,
+        filenameOnlyCount: 0,
+        notFoundCount: media.length,
+      );
+    }
+
+    state = state.copyWith(
+      photoResolution: resolution,
+      photosSkipped: false,
+      isLoading: false,
+    );
+  }
+
+  /// Proceeds without photos.
+  void skipPhotos() {
+    state = state.copyWith(
+      photosSkipped: true,
+      clearPhotoResolution: true,
+      clearPhotoFolderPath: true,
+    );
+  }
+
   /// Desktop only: pick a folder and recursively gather importable files.
   Future<void> pickFolder() async {
     state = state.copyWith(
@@ -435,6 +499,73 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         error: 'Failed to scan folder: $e',
       );
     }
+  }
+
+  /// Desktop only: detect a Garmin dive computer connected as a USB drive
+  /// and load its dive activities into the wizard.
+  ///
+  /// Garmin watches expose activities as FIT files under `GARMIN/Activity`,
+  /// a folder that mixes dives with runs/rides; non-dive FITs are filtered
+  /// out before triage. When several Garmin volumes are mounted the first is
+  /// used.
+  Future<void> importFromGarminDevice() async {
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      currentStep: ImportWizardStep.fileSelection,
+    );
+
+    try {
+      final devices = await _garminDetector.detect();
+      if (devices.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          error:
+              'No connected Garmin device found. Connect it by cable, '
+              "or use Choose Folder to select the device's GARMIN/Activity "
+              'folder.',
+        );
+        return;
+      }
+      await _loadDiveFitsFromFolder(devices.first.activityDirPath);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to read Garmin device: $e',
+      );
+    }
+  }
+
+  /// Scan [activityDirPath] for FIT files, keep only dive activities, and
+  /// enter the wizard's single/batch flow. Corrupt or non-dive FITs (which
+  /// parse to null) are skipped so triage lists only dives.
+  Future<void> _loadDiveFitsFromFolder(String activityDirPath) async {
+    final fitPaths = await _garminDetector.listFitFiles(activityDirPath);
+    final divePaths = <String>[];
+    for (final path in fitPaths) {
+      try {
+        final bytes = await File(path).readAsBytes();
+        final dive = await _fitParser.parseFitFile(bytes);
+        if (dive != null) divePaths.add(path);
+      } catch (_) {
+        // Unreadable/corrupt FIT: skip it and keep scanning the rest.
+      }
+    }
+
+    if (divePaths.isEmpty) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'No dives found on the connected Garmin device.',
+      );
+      return;
+    }
+
+    if (divePaths.length == 1) {
+      await _loadSingleFromFilePath(divePaths.first);
+    } else {
+      await _loadBatchFromPaths(divePaths);
+    }
+    state = state.copyWith(wasLoadedExternally: true);
   }
 
   // -- Step 1: Source Confirmation --
@@ -536,27 +667,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.any,
-        allowMultiple: false,
-      );
+      final pickedFile = await FilePicker.pickFile(type: FileType.any);
 
-      if (result == null || result.files.isEmpty) {
+      if (pickedFile == null) {
         state = state.copyWith(isLoading: false);
         return;
       }
 
-      final pickedFile = result.files.first;
-      final filePath = pickedFile.path;
-      if (filePath == null) {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Could not access file',
-        );
-        return;
-      }
-
-      final bytes = await File(filePath).readAsBytes();
+      // Reads through the handle, so a SAF pick with no local path works
+      // instead of failing with "Could not access file".
+      final bytes = await pickedFile.readAsBytes();
 
       state = state.copyWith(
         isLoading: false,
@@ -823,6 +943,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingDiveTypes: existingDiveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
+      units: UnitFormatter(_ref.read(settingsProvider)),
     );
   }
 
@@ -885,3 +1006,13 @@ final universalImportNotifierProvider =
     StateNotifierProvider<UniversalImportNotifier, UniversalImportState>((ref) {
       return UniversalImportNotifier(ref);
     });
+
+/// Garmin dive computers currently mounted as USB drives. Empty on mobile or
+/// when none is connected; the import UI shows the Garmin option only when a
+/// device is actually present, so it stays hidden for everyone else.
+final garminDevicesProvider = FutureProvider.autoDispose<List<GarminDevice>>((
+  ref,
+) async {
+  if (!GarminDeviceDetector.isSupportedPlatform) return const [];
+  return const GarminDeviceDetector().detect();
+});

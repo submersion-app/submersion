@@ -23,6 +23,7 @@ build/
 # Platform build artifacts (but track source files)
 /android/.gradle/
 packages/*/android/.gradle/
+/android/.kotlin/
 /android/app/build/
 /android/build/
 /android/local.properties
@@ -65,6 +66,10 @@ integration_test/fixtures/
 ios/fastlane/api_key.json
 ios/fastlane/AuthKey_*.p8
 android/fastlane/play-store-key.json
+
+# Play release notes, written per build by the upload_beta lane so they always
+# match the AAB being uploaded rather than whatever was last committed.
+android/fastlane/metadata/
 
 # Python
 *__pycache__/

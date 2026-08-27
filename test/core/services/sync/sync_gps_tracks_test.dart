@@ -1,4 +1,9 @@
+// Only Value is needed here; a bare drift import collides with matcher's
+// isNull/isNotNull.
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -89,4 +94,51 @@ void main() {
       hasLength(1),
     );
   });
+
+  test('v145 columns survive a serialize round trip', () async {
+    final id = await seedTrack();
+    final db = DatabaseService.instance.database;
+    await (db.update(db.gpsTracks)..where((t) => t.id.equals(id))).write(
+      const GpsTracksCompanion(
+        source: Value('gpx'),
+        sourceRef: Value('cozumel-day-3.gpx'),
+        name: Value('Palancar morning'),
+        trimStartTime: Value(1700000600000),
+        trimEndTime: Value(1700003000000),
+      ),
+    );
+
+    final fetched = await serializer.fetchRecord('gpsTracks', id);
+    expect(fetched!['source'], 'gpx');
+    expect(fetched['sourceRef'], 'cozumel-day-3.gpx');
+    expect(fetched['name'], 'Palancar morning');
+    expect(fetched['trimStartTime'], 1700000600000);
+    expect(fetched['trimEndTime'], 1700003000000);
+  });
+
+  test(
+    'an incoming payload without source hydrates the phone default',
+    () async {
+      // A peer on a pre-v145 schema omits the column entirely. It must land as
+      // 'phone', never as null, or effectivePoints and the import dedupe rule
+      // both see a source they cannot match. Handled generically by
+      // _withSchemaDefaults (#858 / PR #867), not by a per-entity fallback map.
+      await serializer.upsertRecord('gpsTracks', {
+        'id': 'peer-track',
+        'startTime': 1700000000000,
+        'endTime': 1700003600000,
+        'tzOffsetMinutes': -300,
+        'pointCount': 0,
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+      });
+
+      final db = DatabaseService.instance.database;
+      final row = await (db.select(
+        db.gpsTracks,
+      )..where((t) => t.id.equals('peer-track'))).getSingle();
+      expect(row.source, 'phone');
+      expect(row.trimStartTime, isNull);
+    },
+  );
 }

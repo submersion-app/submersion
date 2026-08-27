@@ -82,14 +82,12 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
   Widget _buildOverview(BuildContext context, WidgetRef ref, List centers) {
     // Find highest rated center
     double? highestRating;
-    String? highestRatedName;
     int withCoordinates = 0;
 
     for (final center in centers) {
       if (center.rating != null) {
         if (highestRating == null || center.rating > highestRating) {
           highestRating = center.rating;
-          highestRatedName = center.name;
         }
       }
       if (center.latitude != null && center.longitude != null) {
@@ -139,38 +137,6 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
         if (centers.isNotEmpty) ...[
           const SizedBox(height: 24),
           _buildCenterListPreview(context, centers),
-        ],
-        if (highestRatedName != null) ...[
-          const SizedBox(height: 16),
-          Card(
-            color: Colors.amber.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Icon(Icons.star, color: Colors.amber.shade700),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.l10n.diveCenters_summary_topRated,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.amber.shade900),
-                        ),
-                        Text(
-                          highestRatedName,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ],
     );

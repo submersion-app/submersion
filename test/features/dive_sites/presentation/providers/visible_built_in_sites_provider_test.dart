@@ -45,8 +45,8 @@ void main() {
           ),
           sitesWithCountsProvider.overrideWith(
             (ref) async => [
-              SiteWithDiveCount(
-                site: const DiveSite(
+              const SiteWithDiveCount(
+                site: DiveSite(
                   id: 'u',
                   name: 'u',
                   location: GeoPoint(10.0, 20.0),

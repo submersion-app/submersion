@@ -15,6 +15,12 @@ class BulkEditSnapshot {
   final Map<String, List<String>>? priorEquipmentIds;
   final Map<String, List<BuddyWithRole>>? priorBuddies;
   final Map<String, List<DiveTank>>? priorTanks; // Drift DiveTanks rows
+
+  /// Prior tank rows captured for a `TankSpecsOp`. Restored in place by row id
+  /// rather than through [priorTanks]' delete-and-reinsert path, so undoing a
+  /// spec update cannot destroy the pressure profiles the update preserved.
+  final List<DiveTank>? priorTankSpecRows;
+
   final Map<String, List<DiveWeight>>? priorWeights; // Drift DiveWeights rows
   final Map<String, List<Sighting>>? priorSightings; // Drift Sightings rows
 
@@ -25,6 +31,7 @@ class BulkEditSnapshot {
     this.priorEquipmentIds,
     this.priorBuddies,
     this.priorTanks,
+    this.priorTankSpecRows,
     this.priorWeights,
     this.priorSightings,
   });

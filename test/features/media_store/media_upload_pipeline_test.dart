@@ -46,6 +46,24 @@ class _PutThrowsStore extends InMemoryMediaObjectStore {
   }
 }
 
+/// A store whose uploads fail with an Error rather than an Exception.
+/// StateError is what an uninitialized singleton throws (the pattern
+/// MediaDeletionCoordinator already documents), and a staging read of a large
+/// original can raise OutOfMemoryError; neither is an Exception.
+class _PutThrowsErrorStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> putFile(
+    String key,
+    File source, {
+    required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
+  }) async {
+    throw StateError('LocalCacheDatabaseService is not initialized');
+  }
+}
+
 class _FakeLocalFileResolver implements MediaSourceResolver {
   _FakeLocalFileResolver(this.data);
 
@@ -439,6 +457,38 @@ void main() {
     expect(row.attempts, 1);
     expect(row.errorMessage, isNotNull);
     expect(failingStore.objects, isEmpty);
+  });
+
+  // Issue #1270: process() marks the row 'transferring' before it does any
+  // work, and nextPending deliberately never selects that state. An Error
+  // escaping the catch therefore left the row invisible to the drainer for
+  // the rest of the process - unretryable (failed-only) and unclearable
+  // (done-only) from the Transfers UI - until the next launch's reclaim pass
+  // handed it back to whatever raised the Error in the first place.
+  test('an upload Error fails the row rather than stranding it in '
+      'transferring', () async {
+    final erroringStore = _PutThrowsErrorStore();
+    final registry = MediaSourceResolverRegistry({
+      MediaSourceType.localFile: resolver,
+    });
+    final erroringPipeline = MediaUploadPipeline(
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: erroringStore,
+      registry: registry,
+      cache: cache,
+      thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+      now: () => DateTime(2026, 7, 10, 12),
+    );
+
+    await enqueueLocalFileItem(bytes: [1, 2, 3], name: 'error.jpg');
+    final entry = (await queue.nextPending(DateTime.now()))!;
+
+    expect(await erroringPipeline.process(entry), UploadOutcome.failed);
+    final row = (await queue.allForTesting()).single;
+    expect(row.state, 'pending', reason: 'the drainer must see it again');
+    expect(row.attempts, 1);
+    expect(row.errorMessage, contains('not initialized'));
   });
 
   group('serviceConnector rows', () {

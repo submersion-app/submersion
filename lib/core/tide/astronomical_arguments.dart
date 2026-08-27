@@ -81,8 +81,10 @@ class AstronomicalArguments {
     );
 
     // Mean longitude of the Sun (h)
-    // Based on mean anomaly and longitude of perihelion
-    final h = _normalize(280.4664567 + 360007.6982779 * T + 0.03032028 * T * T);
+    // Meeus 25.2 with T in Julian centuries. (A previous version used the
+    // Julian-millennia coefficients with a century argument, advancing the
+    // Sun 10x too fast.)
+    final h = _normalize(280.46646 + 36000.76983 * T + 0.0003032 * T * T);
 
     // Mean longitude of lunar perigee (p)
     // Longitude of the Moon's closest approach point
@@ -136,7 +138,8 @@ class AstronomicalArguments {
         doodson[2] * h +
         doodson[3] * p +
         doodson[4] * (-n) + // Note: Doodson uses N' = -N
-        doodson[5] * ps;
+        doodson[5] * ps +
+        (doodsonPhaseConstants[constituent] ?? 0.0);
 
     // Add nodal correction u
     final u = nodalAngle(constituent);
@@ -354,14 +357,16 @@ class AstronomicalArguments {
     final y2 = y + 4800 - a;
     final m2 = m + 12 * a - 3;
 
-    // Gregorian calendar
+    // Gregorian calendar. The integer day-count formula yields the
+    // noon-based Julian Day Number; subtract the extra half day so a
+    // midnight input produces the true midnight Julian Date.
     return d +
         ((153 * m2 + 2) / 5).floor() +
         365 * y2 +
         (y2 / 4).floor() -
         (y2 / 100).floor() +
         (y2 / 400).floor() -
-        32045;
+        32045.5;
   }
 
   /// Normalize angle to 0-360 degrees.

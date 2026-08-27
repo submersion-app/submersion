@@ -76,7 +76,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Drift'), findsWidgets);
-    expect(find.text('12.34567, 98.76543'), findsOneWidget);
+    expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget);
     expect(find.text('Open in Maps'), findsNothing);
   });
 

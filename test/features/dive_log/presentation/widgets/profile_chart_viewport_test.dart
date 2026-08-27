@@ -164,49 +164,53 @@ void main() {
   group('chartDragIntent', () {
     test('two or more pointers always zoom+pan', () {
       for (final k in [PointerDeviceKind.touch, PointerDeviceKind.mouse]) {
+        for (final zoomed in [false, true]) {
+          expect(
+            chartDragIntent(kind: k, pointerCount: 2, isZoomed: zoomed),
+            ChartDragIntent.zoomPan,
+          );
+        }
+      }
+    });
+
+    test('single mouse/trackpad pointer pans regardless of zoom', () {
+      for (final zoomed in [false, true]) {
         expect(
-          chartDragIntent(kind: k, pointerCount: 2, doubleTapHold: false),
-          ChartDragIntent.zoomPan,
+          chartDragIntent(
+            kind: PointerDeviceKind.mouse,
+            pointerCount: 1,
+            isZoomed: zoomed,
+          ),
+          ChartDragIntent.pan,
+        );
+        expect(
+          chartDragIntent(
+            kind: PointerDeviceKind.trackpad,
+            pointerCount: 1,
+            isZoomed: zoomed,
+          ),
+          ChartDragIntent.pan,
         );
       }
     });
 
-    test('single mouse/trackpad pointer pans', () {
-      expect(
-        chartDragIntent(
-          kind: PointerDeviceKind.mouse,
-          pointerCount: 1,
-          doubleTapHold: false,
-        ),
-        ChartDragIntent.pan,
-      );
-      expect(
-        chartDragIntent(
-          kind: PointerDeviceKind.trackpad,
-          pointerCount: 1,
-          doubleTapHold: false,
-        ),
-        ChartDragIntent.pan,
-      );
-    });
-
-    test('single touch pointer scrubs', () {
+    test('single touch pointer scrubs at zoom 1', () {
       expect(
         chartDragIntent(
           kind: PointerDeviceKind.touch,
           pointerCount: 1,
-          doubleTapHold: false,
+          isZoomed: false,
         ),
         ChartDragIntent.scrub,
       );
     });
 
-    test('single touch pointer pans during double-tap-hold', () {
+    test('single touch pointer pans when zoomed', () {
       expect(
         chartDragIntent(
           kind: PointerDeviceKind.touch,
           pointerCount: 1,
-          doubleTapHold: true,
+          isZoomed: true,
         ),
         ChartDragIntent.pan,
       );

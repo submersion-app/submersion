@@ -3,24 +3,29 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/security/database_security_sidecar.dart'
+    show isEncryptedDatabaseFile;
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
-import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/library_replace_intent.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
+import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/core/services/database_service.dart'
+    show DatabaseService;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -171,15 +176,13 @@ class BackupService {
     final String storedName;
     if (encKey == null) {
       storedName = filename;
-      // Write the backup; ref is a filesystem path or a content:// document URI.
-      ref = await target.write(_dbAdapter, filename);
-
-      // SAF refs are content URIs (no File length). The backup is a byte copy
-      // of the live DB, so its size equals the source's. Filesystem refs keep
-      // the existing File(ref).length() behavior.
-      sizeBytes = isSafRef(ref)
-          ? await File(await _dbAdapter.databasePath).length()
-          : await File(ref).length();
+      // Write the backup; ref is a filesystem path or a content:// document
+      // URI, and the size comes back with it. A SAF ref has no File length to
+      // ask, and the live database file's length is not the answer either: the
+      // export is compacted and folds in rows that were still in the WAL.
+      final written = await target.write(_dbAdapter, filename);
+      ref = written.ref;
+      sizeBytes = written.sizeBytes;
     } else {
       // Backup encryption on: encrypt to a temp .sbe off to the side, then
       // write that into the target (filesystem copy or SAF stream).
@@ -230,8 +233,16 @@ class BackupService {
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
-        location = BackupLocation.both;
-        _log.info('Backup uploaded to cloud: $cloudFileId');
+        // Only a real file id means a cloud copy exists: the upload also
+        // gives up (returning null) when the backup folder is unreachable,
+        // and history that claims `both` with no id sends restore looking
+        // for a file that was never written.
+        if (cloudFileId != null) {
+          location = BackupLocation.both;
+          _log.info('Backup uploaded to cloud: $cloudFileId');
+        } else {
+          _log.warning('Cloud upload skipped, backup is local-only');
+        }
       } catch (e, stack) {
         _log.error(
           'Cloud upload failed, backup is local-only',
@@ -544,7 +555,19 @@ class BackupService {
   ///
   /// Checks: file exists, has correct extension, is a valid SQLite database,
   /// and contains expected Submersion tables.
-  Future<BackupValidationResult> validateBackupFile(String filePath) async {
+  ///
+  /// [allowLiveDatabaseEncryption] opts into the one artifact kind that may
+  /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] copy,
+  /// which is a raw byte copy of the live database and so carries the live
+  /// database's encryption. Such a file is deep-checked with the live key
+  /// instead of being rejected. Portable backups keep the strict plaintext
+  /// rule: they are decrypted on export precisely so they restore on a
+  /// device where the database password is unknown, and an encrypted-looking
+  /// one is a real problem that must fail loudly.
+  Future<BackupValidationResult> validateBackupFile(
+    String filePath, {
+    bool allowLiveDatabaseEncryption = false,
+  }) async {
     final file = File(filePath);
 
     // Check file exists
@@ -579,13 +602,44 @@ class BackupService {
       return const BackupValidationResult.invalid('File is empty');
     }
 
+    // A pre-migration copy of a protected database is SQLCipher ciphertext,
+    // so the deep check below needs the live key. With one, a keyed open
+    // settles the question: it succeeds on a real encrypted copy and fails
+    // on anything else, which lands in the generic invalid-database result.
+    //
+    // Without one there is nothing to open the file with, and nothing a
+    // restore could do with it either, since the key is the only way back to
+    // the data. The report must stay honest about WHY, though: a corrupt
+    // plaintext database and an encrypted one are indistinguishable at the
+    // header, so isEncryptedDatabaseFile alone must never conclude
+    // "encrypted" (see DatabaseSecuritySidecar.existsFor, which is the
+    // corroborating signal the startup gate and schema probe use). That
+    // signal is unavailable here: the sidecar lives next to the live
+    // database and is never copied into the backups directory. So name both
+    // possibilities rather than asserting one the file cannot prove.
+    String? deepCheckKeyHex;
+    if (allowLiveDatabaseEncryption && isEncryptedDatabaseFile(filePath)) {
+      deepCheckKeyHex = _dbAdapter.databaseKeyHex;
+      if (deepCheckKeyHex == null) {
+        return const BackupValidationResult.invalid(
+          'This safety copy cannot be opened. It was either taken from a '
+          'protected database whose key this install no longer has, or the '
+          'file is corrupt.',
+        );
+      }
+    }
+
     // Use sqlite3 directly in read-only mode to avoid Drift's migration
     // system triggering ALTER TABLE on older-schema backups. The backup file
     // may also be in a read-only sandboxed directory (iOS/macOS file picker).
+    // Keyless unless the caller opted in above: backup artifacts are portable
+    // plaintext by design, and an encrypted-looking file should fail
+    // validation loudly.
     try {
-      final testDb = sqlite3.sqlite3.open(
+      final testDb = DatabaseService.openRaw(
         filePath,
         mode: sqlite3.OpenMode.readOnly,
+        keyHex: deepCheckKeyHex,
       );
       try {
         // Verify it's a valid SQLite database
@@ -602,9 +656,30 @@ class BackupService {
           );
         }
 
+        // Reject a backup written by a NEWER schema before restore can swap
+        // it in; the post-swap open guard would otherwise fire with the file
+        // already live (issue #1089). Read from this already-open read-only
+        // handle rather than reopening: DatabaseService.getStoredSchemaVersion
+        // opens read-write, which fails on the sandboxed read-only backup
+        // directories this method is documented to accept. An older schema is
+        // fine and stays valid; the reopen runs the migration ladder.
+        final storedSchema = testDb.select('PRAGMA user_version');
+        final backupSchema = storedSchema.isEmpty
+            ? null
+            : storedSchema.first.values.first as int?;
+        if (backupSchema != null &&
+            backupSchema > AppDatabase.currentSchemaVersion) {
+          return BackupValidationResult.invalid(
+            'This backup was created by a newer version of Submersion '
+            '(database v$backupSchema; this app supports up to '
+            'v${AppDatabase.currentSchemaVersion}). Update Submersion, then '
+            'restore.',
+          );
+        }
+
         return BackupValidationResult.valid(sizeBytes: sizeBytes);
       } finally {
-        testDb.dispose();
+        testDb.close();
       }
     } catch (e) {
       return BackupValidationResult.invalid('File is not a valid database: $e');
@@ -625,12 +700,9 @@ class BackupService {
     BackupRecord record, {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     _log.info('Starting restore from: ${record.filename} (mode: $mode)');
-
-    // Create a proper backup before restoring so the user can find it
-    // in their configured backup location and in the history list.
-    await performBackup();
 
     // Determine backup source path. A SAF (content://) ref is streamed to a
     // temp file first; SQLite open + validation need a real filesystem path.
@@ -667,17 +739,37 @@ class BackupService {
     try {
       // Parity with the file-picker path: the file on disk (or the fresh
       // download) may have been corrupted since the record was written.
-      final validation = await validateBackupFile(materialized.path);
+      //
+      // A pre-migration copy is the one kind that may legitimately be
+      // SQLCipher ciphertext (it is a raw copy of the live file, taken before
+      // the migration with the database closed), so it is deep-checked with
+      // the live key rather than rejected. DatabaseService.restore already
+      // handles such a source: it detects the encrypted header and skips the
+      // re-encryption it would otherwise apply.
+      final validation = await validateBackupFile(
+        materialized.path,
+        allowLiveDatabaseEncryption: record.type == BackupType.preMigration,
+      );
       if (!validation.isValid) {
         throw BackupException(
           validation.error ?? 'Backup file failed validation',
         );
       }
 
+      // Create a proper backup before restoring so the user can find it
+      // in their configured backup location and in the history list. Runs
+      // only after decryption + validation succeeded, so a wrong passphrase
+      // or corrupt artifact aborts the flow without side effects (parity
+      // with restoreFromFile).
+      await performBackup();
+
       // Restore using DatabaseService (handles close/copy/reinitialize), then
       // re-baseline sync so the restored data syncs cleanly instead of
       // replaying the backup's stale sync position.
-      await _replaceDatabaseAndRebaselineSync(materialized.path);
+      await _replaceDatabaseAndRebaselineSync(
+        materialized.path,
+        onMigrationProgress: onMigrationProgress,
+      );
     } finally {
       await materialized.cleanUp();
     }
@@ -703,6 +795,7 @@ class BackupService {
     String filePath, {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     _log.info('Starting restore from file: $filePath (mode: $mode)');
 
@@ -718,13 +811,45 @@ class BackupService {
       encryptionSecret: encryptionSecret,
     );
     try {
+      // Refuse a newer-schema backup here, before performBackup and before
+      // any swap, so the refusal has zero side effects. This runs on the
+      // MATERIALIZED plaintext, which is the only place an encrypted
+      // artifact's schema is readable at all (issue #1089). The copy is
+      // always plaintext, so no key is needed.
+      //
+      // The read is best-effort BY DESIGN. getStoredSchemaVersion rethrows on
+      // a corrupt or unreadable file so its startup callers can route to
+      // corruption recovery or the unlock screen; neither concerns this
+      // guard, whose only job is to refuse a schema it can positively read as
+      // newer. Anything unreadable falls through to the existing restore
+      // path, which surfaces the real failure exactly as it did before this
+      // guard existed.
+      int? restoredSchema;
+      try {
+        restoredSchema = DatabaseService.getStoredSchemaVersion(
+          materialized.path,
+        );
+      } catch (_) {
+        restoredSchema = null;
+      }
+      if (restoredSchema != null &&
+          restoredSchema > AppDatabase.currentSchemaVersion) {
+        throw BackupNewerSchemaException(
+          backupSchemaVersion: restoredSchema,
+          supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+        );
+      }
+
       // Create a proper backup before restoring so the user can find it
       // in their configured backup location and in the history list.
       await performBackup();
 
       // Restore using DatabaseService, then re-baseline sync (see
       // _replaceDatabaseAndRebaselineSync).
-      await _replaceDatabaseAndRebaselineSync(materialized.path);
+      await _replaceDatabaseAndRebaselineSync(
+        materialized.path,
+        onMigrationProgress: onMigrationProgress,
+      );
     } finally {
       await materialized.cleanUp();
     }
@@ -748,7 +873,10 @@ class BackupService {
   /// resurrect from a peer's still-live copy. This preserves the live device
   /// identity (captured before the swap) and clears the sync position so the
   /// next sync cleanly reconciles the restored data.
-  Future<void> _replaceDatabaseAndRebaselineSync(String sourcePath) async {
+  Future<void> _replaceDatabaseAndRebaselineSync(
+    String sourcePath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     String liveDeviceId;
     try {
       liveDeviceId = await _syncRepository.getDeviceId();
@@ -780,7 +908,10 @@ class BackupService {
       liveEpochId = _epochStore?.lastAcceptedEpochId;
     }
 
-    await _dbAdapter.restore(sourcePath);
+    await _dbAdapter.restore(
+      sourcePath,
+      onMigrationProgress: onMigrationProgress,
+    );
 
     try {
       await _syncRepository.rebaselineAfterRestore(
@@ -807,34 +938,10 @@ class BackupService {
       _log.warning('Replace mode requested but no epoch store is configured');
       return;
     }
-    String deviceId;
-    try {
-      deviceId = await _syncRepository.getDeviceId();
-    } catch (_) {
-      // Non-empty sentinel: the marker's origin is shown in peer banners
-      // and dialogs, so it must always be displayable.
-      deviceId = 'unknown';
-    }
-    String? deviceName;
-    try {
-      deviceName = Platform.localHostname;
-    } catch (_) {
-      deviceName = null;
-    }
-    String? appVersion;
-    try {
-      appVersion = (await PackageInfo.fromPlatform()).version;
-    } catch (_) {
-      appVersion = null;
-    }
-    final marker = LibraryEpochMarker(
-      epochId: _uuid.v4(),
-      replacedAt: DateTime.now().millisecondsSinceEpoch,
-      deviceId: deviceId,
-      deviceName: deviceName,
-      appVersion: appVersion,
-    );
-    await store.setPendingReplace(marker);
+    final marker = await LibraryReplaceIntent(
+      SyncDeviceMetadata(_syncRepository).resolve,
+      store,
+    ).mint();
     _log.info('Minted pending library replace (epoch ${marker.epochId})');
   }
 
@@ -1060,7 +1167,39 @@ class BackupService {
       // filesystem path -- SAF content:// locations were already handled
       // above). Security-scoped bookmarks are an Apple-only concept, so a bare
       // custom filesystem path here persists and works without scoping.
-      return BackupDirLease(await _ensureDir(custom), _noRelease);
+      try {
+        return BackupDirLease(await _ensureDir(custom), _noRelease);
+      } on FileSystemException {
+        // The stored path is not a directory this process can create or reach:
+        // an ejected SD card or unmounted network share, or a path fabricated
+        // by file_picker from a SAF tree whose document id has no
+        // "volume:path" shape. A Google Drive pick yields
+        // "/storage/emulated/0/acc=2;doc=encoded=...", which is not a
+        // content:// ref (so the guard above misses it) and which scoped
+        // storage refuses to mkdir with errno 13.
+        //
+        // Self-heal rather than propagate, matching the Apple dead-bookmark
+        // and revoked SAF-grant branches: clearing the location stops it being
+        // retried and makes the settings subtitle revert, signaling a re-pick
+        // is needed.
+        //
+        // Both callers need this to be total. Normal backups arrive via
+        // resolveBackupTargetLeased, and would otherwise throw on every
+        // scheduled and manual run for as long as the location stays dead. The
+        // pre-migration safety copy arrives through a provider that
+        // PreMigrationBackupService invokes inside its fallback guard, so an
+        // escaping exception is recoverable there today -- but only because
+        // StartupPage resolves lazily. When it resolved eagerly the throw
+        // landed outside that guard, surfaced as a bare FileSystemException
+        // instead of a BackupFailedException, and stranded startup on the
+        // terminal "Database upgrade failed" screen, which offers no route
+        // back into settings to correct the location.
+        await preferences.setBackupLocation(null);
+        return BackupDirLease(
+          await resolveDefaultBackupsDirectory(),
+          _noRelease,
+        );
+      }
     }
     final port = bookmarks ?? const _DefaultBackupBookmarkPort();
     final bytes = preferences.getBackupLocationBookmark();
@@ -1227,9 +1366,10 @@ class BackupService {
     }
 
     try {
-      final bytes = await File(uploadPath).readAsBytes();
-      final result = await _cloudProvider.uploadFile(
-        Uint8List.fromList(bytes),
+      // Path-based upload: providers stream from disk, so a multi-hundred-MB
+      // backup is never resident in memory.
+      final result = await _cloudProvider.uploadFileFromPath(
+        uploadPath,
         uploadName,
         folderId: folderId,
       );
@@ -1331,10 +1471,11 @@ class BackupService {
       throw const BackupException('No cloud provider available for download');
     }
 
-    final bytes = await _cloudProvider.downloadFile(cloudFileId);
     final tempDir = await resolveSyncTempDir();
     final tempPath = p.join(tempDir.path, filename);
-    await File(tempPath).writeAsBytes(bytes);
+    // Path-based download: providers stream to disk and delete a partial
+    // file on failure, so the backup is never resident in memory.
+    await _cloudProvider.downloadToFile(cloudFileId, tempPath);
     return tempPath;
   }
 
@@ -1362,6 +1503,23 @@ class BackupException implements Exception {
 
   @override
   String toString() => 'BackupException: $message';
+}
+
+/// A backup written by a NEWER schema than this build supports. Restoring it
+/// would swap in a database the running app cannot open, and the version
+/// guard only fires once the file is already live (issue #1089).
+class BackupNewerSchemaException extends BackupException {
+  final int backupSchemaVersion;
+  final int supportedSchemaVersion;
+
+  BackupNewerSchemaException({
+    required this.backupSchemaVersion,
+    required this.supportedSchemaVersion,
+  }) : super(
+         'This backup was created by a newer version of Submersion '
+         '(database v$backupSchemaVersion; this app supports up to '
+         'v$supportedSchemaVersion). Update Submersion, then restore.',
+       );
 }
 
 /// Result of validating a backup file

@@ -165,14 +165,14 @@ void main() {
       );
     });
 
-    test('three 6 m excursions produce a sawtooth caution', () {
+    test('four 8 m excursions produce a sawtooth caution', () {
       final findings = reviewProfile(sawtoothProfile());
       final sawtooth = findings
           .where((f) => f.ruleId == SafetyRuleId.sawtoothProfile)
           .toList();
       expect(sawtooth, hasLength(1));
       expect(sawtooth.first.severity, SafetySeverity.caution);
-      expect(sawtooth.first.value, greaterThanOrEqualTo(3));
+      expect(sawtooth.first.value, greaterThanOrEqualTo(4));
     });
   });
 }

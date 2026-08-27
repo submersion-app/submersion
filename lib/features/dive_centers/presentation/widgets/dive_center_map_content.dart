@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -206,6 +207,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
               initialZoom: zoom,
               minZoom: 2.0,
               maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
               onMapReady: () {
                 _mapReady = true;
               },

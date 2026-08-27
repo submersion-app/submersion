@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
@@ -84,7 +85,7 @@ class LifeNotesSection extends StatelessWidget {
                         size: 16,
                         color: colorScheme.primary,
                       ),
-                      label: Text(s.commonName),
+                      label: Text(s.localizedCommonName(l10n)),
                       deleteIcon: const Icon(Icons.close, size: 16),
                       onDeleted: () => onRemoveSpecies(s),
                     );

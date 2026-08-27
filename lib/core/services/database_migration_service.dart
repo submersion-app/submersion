@@ -8,6 +8,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/security/database_security_sidecar.dart';
 
 /// Result of a database migration operation
 class MigrationResult {
@@ -518,11 +519,12 @@ class DatabaseMigrationService {
       DatabaseLocationService.databaseFilename,
     );
 
-    // Create backup of the existing database at target before overwriting
-    final existingFile = File(newPath);
-    if (await existingFile.exists()) {
-      final existingBackupPath = _generateBackupPath(newPath);
-      await existingFile.copy(existingBackupPath);
+    // Create backup of the existing database at target before overwriting.
+    // Through _createBackup so the copy carries the target's `-wal`: that file
+    // is not ours and may well have been left with an uncheckpointed sidecar,
+    // and this copy is the only way back from an overwrite.
+    if (await File(newPath).exists()) {
+      await _createBackup(newPath);
     }
 
     return migrateToCustomFolder(folderPath);
@@ -546,8 +548,12 @@ class DatabaseMigrationService {
       debugInfo?.writeln('DEBUG: File exists, size: $fileSize bytes');
 
       // Use sqlite3 directly to avoid Drift's migration system triggering
-      // when opening a database with a different schema version
-      final db = sqlite3.sqlite3.open(dbPath);
+      // when opening a database with a different schema version. openRaw
+      // applies the cipher key when the live database is encrypted.
+      final db = DatabaseService.openRaw(
+        dbPath,
+        keyHex: DatabaseService.instance.databaseKeyHex,
+      );
       try {
         // Run integrity check (quick_check is faster and avoids long stalls)
         final result = db.select('PRAGMA quick_check');
@@ -573,7 +579,7 @@ class DatabaseMigrationService {
         debugInfo?.writeln('DEBUG: Parsed status: "$status"');
         return status == 'ok';
       } finally {
-        db.dispose();
+        db.close();
         // Small delay to ensure SQLite fully releases the file lock
         await Future.delayed(const Duration(milliseconds: 50));
       }
@@ -625,6 +631,14 @@ class DatabaseMigrationService {
     final walSource = File('$sourcePath-wal');
     if (await walSource.exists()) {
       await walSource.copy('$destPath-wal');
+    }
+
+    // The security keyslot sidecar must travel with the database: without it
+    // a keychain wipe at the new location would leave the encrypted file
+    // permanently unopenable (the sidecar is the durable wrapped key copy).
+    final sidecarSource = File(DatabaseSecuritySidecar.pathFor(sourcePath));
+    if (await sidecarSource.exists()) {
+      await sidecarSource.copy(DatabaseSecuritySidecar.pathFor(destPath));
     }
   }
 
@@ -689,8 +703,12 @@ class DatabaseMigrationService {
 
   Future<_DatabaseCounts> _fetchDatabaseCounts(String dbPath) async {
     // Use sqlite3 directly to avoid Drift's migration system triggering
-    // when opening a database with a different schema version
-    final db = sqlite3.sqlite3.open(dbPath);
+    // when opening a database with a different schema version. openRaw
+    // applies the cipher key when the live database is encrypted.
+    final db = DatabaseService.openRaw(
+      dbPath,
+      keyHex: DatabaseService.instance.databaseKeyHex,
+    );
     try {
       // Query each table individually to handle missing tables gracefully
       // (older database versions may not have all tables)
@@ -708,7 +726,7 @@ class DatabaseMigrationService {
         buddyCount: buddyCount,
       );
     } finally {
-      db.dispose();
+      db.close();
       await Future.delayed(const Duration(milliseconds: 50));
     }
   }

@@ -6,9 +6,15 @@ import 'package:submersion/features/settings/presentation/pages/nav_customizatio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
+
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
   @override
   Future<List<String>?> getNavPrimaryIdsRaw() async => stored;
   @override
@@ -24,6 +30,10 @@ class _FakeRepo implements AppSettingsRepository {
   Future<String?> getRawSetting(String key) async => null;
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {
@@ -168,18 +178,18 @@ void main() {
     testWidgets('move-up on first overflow row promotes it to primary', (
       tester,
     ) async {
-      // Default primary: [dives, sites, trips]; first overflow = equipment.
+      // Default primary: [dives, sites, trips]; first overflow = media.
       final repo = _FakeRepo();
       await tester.pumpWidget(buildHarness(repo));
       await tester.pumpAndSettle();
 
-      // Find the move-up button whose tooltip targets Equipment.
-      await tester.tap(find.byTooltip('Move Equipment up'));
+      // Find the move-up button whose tooltip targets Media.
+      await tester.tap(find.byTooltip('Move Media up'));
       await tester.pumpAndSettle();
 
-      // Equipment should now be primary; trips (the last default primary)
+      // Media should now be primary; trips (the last default primary)
       // should drop to overflow.
-      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, contains('media'));
       expect(repo.stored, isNot(contains('trips')));
     });
 
@@ -194,9 +204,9 @@ void main() {
       await tester.tap(find.byTooltip('Move Trips down'));
       await tester.pumpAndSettle();
 
-      // Trips should be displaced; equipment (first overflow originally)
+      // Trips should be displaced; media (first overflow originally)
       // should now be primary.
-      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, contains('media'));
       expect(repo.stored, isNot(contains('trips')));
     });
 

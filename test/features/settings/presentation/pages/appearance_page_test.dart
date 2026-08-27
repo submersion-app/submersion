@@ -18,6 +18,18 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setAccentNavIcons(bool value) async =>
+      state = state.copyWith(accentNavIcons: value);
+
+  @override
+  Future<void> setAccentSectionHeaders(bool value) async =>
+      state = state.copyWith(accentSectionHeaders: value);
+
+  @override
+  Future<void> setAccentListIcons(bool value) async =>
+      state = state.copyWith(accentListIcons: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -166,6 +178,46 @@ void main() {
       expect(pushed, '/settings/appearance/home');
     });
 
+    testWidgets('App Language tile pushes the language page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const AppearancePage()),
+          GoRoute(
+            path: '/settings/language',
+            builder: (_, _) => const Scaffold(body: Text('language page')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            sharedPreferencesProvider.overrideWithValue(_prefs),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('App Language'));
+      await tester.pumpAndSettle();
+
+      // PUSH (not go): the settings page stays underneath, so the Android
+      // system back button returns to it instead of closing the app (#647).
+      expect(find.text('language page'), findsOneWidget);
+      expect(router.routerDelegate.canPop(), isTrue);
+    });
+
     testWidgets('does NOT show old inline settings', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -176,6 +228,51 @@ void main() {
       expect(find.text('Dive List View'), findsNothing);
       expect(find.text('Show Profile Panel in Table View'), findsNothing);
       expect(find.text('Show details pane in table mode'), findsNothing);
+    });
+  });
+
+  group('AppearancePage color accents', () {
+    testWidgets('shows the three accent toggles, all off by default', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Color accents'), findsOneWidget);
+      expect(find.text('Colored navigation icons'), findsOneWidget);
+      expect(find.text('Colored section headers'), findsOneWidget);
+      expect(find.text('Colored list icons'), findsOneWidget);
+
+      final switches = tester
+          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      expect(switches, hasLength(3));
+      expect(switches.every((s) => s.value == false), isTrue);
+    });
+
+    testWidgets('tapping a toggle turns only that surface on', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Colored navigation icons'));
+      await tester.pumpAndSettle();
+
+      SwitchListTile tileFor(String title) => tester.widget<SwitchListTile>(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(SwitchListTile),
+        ),
+      );
+
+      expect(tileFor('Colored navigation icons').value, isTrue);
+      expect(tileFor('Colored section headers').value, isFalse);
+      expect(tileFor('Colored list icons').value, isFalse);
     });
   });
 }

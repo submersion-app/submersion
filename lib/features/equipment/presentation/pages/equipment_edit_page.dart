@@ -3,6 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -41,7 +44,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _modelController = TextEditingController();
   final _serialController = TextEditingController();
   final _purchasePriceController = TextEditingController();
-  final _purchaseCurrencyController = TextEditingController(text: 'USD');
+  // Filled from the diver's default (new items) or the stored value (existing
+  // items); left blank until then so a stale 'USD' never flashes on load.
+  final _purchaseCurrencyController = TextEditingController();
   final _notesController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
@@ -53,9 +58,19 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   bool? _customReminderEnabled;
   List<int> _customReminderDays = [7, 14, 30];
 
+  /// The code this form opened with. Currency is free text, so it can be
+  /// outside the presets; keeping it lets the dropdown still offer it.
+  String _initialCurrencyCode = '';
+
   @override
   void initState() {
     super.initState();
+    // New items start in the diver's default currency; existing items get
+    // their stored currency from _loadEquipment.
+    if (widget.equipmentId == null) {
+      _initialCurrencyCode = ref.read(defaultCurrencyProvider);
+      _purchaseCurrencyController.text = _initialCurrencyCode;
+    }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);
     _modelController.addListener(_onFieldChanged);
@@ -63,6 +78,13 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _purchasePriceController.addListener(_onFieldChanged);
     _purchaseCurrencyController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+  }
+
+  /// The code to store when the currency field is left blank: the diver's
+  /// default, or USD if that is somehow unset (the column is NOT NULL).
+  String _fallbackCurrencyCode() {
+    final code = ref.read(defaultCurrencyProvider).trim().toUpperCase();
+    return code.isEmpty ? 'USD' : code;
   }
 
   void _onFieldChanged() {
@@ -104,8 +126,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.text = equipment.brand ?? '';
     _modelController.text = equipment.model ?? '';
     _serialController.text = equipment.serialNumber ?? '';
-    _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
-    _purchaseCurrencyController.text = equipment.purchaseCurrency;
+    // Seeded in the diver's locale convention, matching how the field is read
+    // back on save. double.toString() would seed "12.5" even where ',' is the
+    // decimal separator and '.' groups thousands, so an untouched re-save
+    // would store 125 (#1091).
+    final price = equipment.purchasePrice;
+    _purchasePriceController.text = price == null
+        ? ''
+        : formatDecimalForInput(price);
+    _initialCurrencyCode = equipment.purchaseCurrency;
+    _purchaseCurrencyController.text = _initialCurrencyCode;
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
     // A legacy row can carry isActive=false with a non-retired status.
@@ -562,27 +592,70 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 2,
-                  child: TextFormField(
-                    controller: _purchasePriceController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.equipment_edit_purchasePriceLabel,
-                      prefixIcon: const Icon(Icons.attach_money),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                  // Rebuild the price field when the currency changes so its
+                  // prefix shows the right symbol (€, $, £ ...).
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _purchaseCurrencyController,
+                    builder: (context, value, _) {
+                      final symbol = currencySymbol(value.text);
+                      return TextFormField(
+                        key: const ValueKey('equipment-purchase-price'),
+                        controller: _purchasePriceController,
+                        decoration: InputDecoration(
+                          labelText:
+                              context.l10n.equipment_edit_purchasePriceLabel,
+                          prefixText: symbol.isEmpty ? null : '$symbol ',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        // A price that cannot be read has to be reported. The
+                        // repository writes Value(null) rather than
+                        // Value.absent(), so accepting the save would erase
+                        // the stored price instead of leaving it alone.
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          return parseUserDecimal(text) == null
+                              ? context
+                                    .l10n
+                                    .equipment_edit_purchasePriceValidation
+                              : null;
+                        },
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: TextFormField(
+                  // Editable dropdown: common currencies as presets, but any
+                  // ISO code can still be typed.
+                  child: DropdownMenu<String>(
                     controller: _purchaseCurrencyController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.equipment_edit_currencyLabel,
-                    ),
+                    expandedInsets: EdgeInsets.zero,
+                    requestFocusOnTap: true,
+                    enableFilter: true,
+                    label: Text(context.l10n.equipment_edit_currencyLabel),
+                    dropdownMenuEntries: [
+                      // The stored code leads the list when it is outside the
+                      // presets, so an item priced in, say, ISK stays visible
+                      // and re-selectable.
+                      for (final code in currencyCodesWith(
+                        _initialCurrencyCode,
+                      ))
+                        DropdownMenuEntry(
+                          value: code,
+                          label: code,
+                          leadingIcon: SizedBox(
+                            width: 28,
+                            child: Center(child: Text(currencySymbol(code))),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -719,7 +792,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   }
 
   Future<void> _selectPurchaseDate() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: _purchaseDate ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -775,11 +848,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ? null
             : _serialController.text.trim(),
         purchaseDate: _purchaseDate,
-        purchasePrice: _purchasePriceController.text.isNotEmpty
-            ? double.tryParse(_purchasePriceController.text)
-            : null,
+        // Blank means "no price"; anything unreadable was already stopped by
+        // the field validator, so null here can only mean blank.
+        purchasePrice: parseUserDecimal(_purchasePriceController.text),
         purchaseCurrency: _purchaseCurrencyController.text.trim().isEmpty
-            ? 'USD'
+            ? _fallbackCurrencyCode()
             : _purchaseCurrencyController.text.trim(),
         // Legacy service fields are frozen: service is managed via clocks on
         // the detail page. Preserve any existing values for export/import.

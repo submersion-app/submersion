@@ -5,6 +5,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
+/// Numeric entry filter for the decimal rows. Both separators are allowed
+/// because the diver's locale decides which one their keyboard offers, and the
+/// page reads the field back with `parseUserDecimal`. Allowing only '.' would
+/// strip the comma out of a comma-locale seed mid-edit (#1091).
+final _decimalFilter = FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]'));
+
 /// Group 1 of the dive form: always expanded, owns the core facts.
 /// Rows: dive number, entry, exit, surface interval, max depth, avg depth,
 /// bottom time, runtime, site, then site extras and the profile block.
@@ -102,9 +108,7 @@ class TheDiveSection extends StatelessWidget {
           controller: maxDepthController,
           suffixText: depthSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
-          ],
+          inputFormatters: [_decimalFilter],
           profileSuggestion: maxDepthSuggestion,
         ),
         FormRow.text(
@@ -112,9 +116,7 @@ class TheDiveSection extends StatelessWidget {
           controller: avgDepthController,
           suffixText: depthSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
-          ],
+          inputFormatters: [_decimalFilter],
           profileSuggestion: avgDepthSuggestion,
         ),
         FormRow.text(

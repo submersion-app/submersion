@@ -63,6 +63,7 @@ String planToSubplanJson(domain.DivePlan plan) {
             'o2': tank.gasMix.o2,
             'he': tank.gasMix.he,
             'role': tank.role.name,
+            'isTravelGas': tank.isTravelGas,
             'order': tank.order,
           },
       ],
@@ -143,6 +144,7 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
           he: (tank['he'] as num?)?.toDouble() ?? 0.0,
         ),
         role: TankRole.values.asNameMap()[tank['role']] ?? TankRole.backGas,
+        isTravelGas: tank['isTravelGas'] as bool? ?? false,
         order: (tank['order'] as num?)?.toInt() ?? index,
       ),
     );

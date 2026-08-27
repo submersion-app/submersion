@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' show Size;
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -13,6 +14,22 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+
+/// How long a mount-root probe is trusted before it is re-run (#1182).
+///
+/// Short because the cost of being wrong is a stale "volume offline" tile
+/// after the user reconnects a share; long enough that one grid fling does
+/// not re-probe. See [VolumeStatus.newExpiringProbe].
+const Duration kVolumeProbeTtl = Duration(seconds: 5);
+
+/// Ceiling on simultaneous local-file resolutions.
+///
+/// Higher than the media store's cap: a local stat is microseconds against a
+/// healthy disk, so this is not a throughput throttle. It exists for the one
+/// case the volume memo cannot cover -- a mount that is PRESENT but hung,
+/// where the root probe succeeds and every per-file stat behind it still
+/// parks a `dart:io` pool thread until the mount's own timeout.
+const int kLocalResolveConcurrency = 8;
 
 /// Resolves [MediaSourceType.localFile] items across all platforms.
 ///
@@ -43,18 +60,42 @@ class LocalFileResolver implements MediaSourceResolver {
     required ExifExtractor exifExtractor,
     VideoThumbnailService? videoThumbnails,
     VolumeStatus? volumeStatus,
+    Duration volumeProbeTtl = kVolumeProbeTtl,
+    DateTime Function()? clock,
+    MediaFetchGate? gate,
     bool Function()? usesSecurityScopedBookmarks,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
-       _volumeStatus = volumeStatus ?? VolumeStatus(),
+       _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
+         ttl: volumeProbeTtl,
+         clock: clock,
+       ),
+       _gate = gate ?? MediaFetchGate(maxConcurrent: kLocalResolveConcurrency),
        _usesSecurityScopedBookmarks =
            usesSecurityScopedBookmarks ??
            (() => Platform.isIOS || Platform.isMacOS);
 
   final VideoThumbnailService? _videoThumbnails;
-  final VolumeStatus _volumeStatus;
+
+  /// Whether the volume under a path is mounted, memoized per mount root for
+  /// [kVolumeProbeTtl].
+  ///
+  /// This resolver is a long-lived singleton and the highest-volume caller of
+  /// the probe there is: one call per grid tile, and a 140 px grid puts 30-60
+  /// tiles on screen on desktop. Un-memoized, a library on one unreachable
+  /// share paid that share's stat timeout once per tile.
+  ///
+  /// A path on the system volume short-circuits inside the probe before any
+  /// filesystem call, so an all-internal-disk library pays nothing.
+  final Future<bool> Function(String path) _volumeOnline;
+
+  /// Caps simultaneous resolutions and shares one in flight between rows
+  /// pointing at the same file. Its own instance rather than the media
+  /// store's: a dead mount must not consume the budget the gallery needs for
+  /// store fetches.
+  final MediaFetchGate _gate;
 
   /// Whether this host resolves local files through security-scoped
   /// bookmarks (iOS / macOS) rather than a plain path.
@@ -76,11 +117,56 @@ class LocalFileResolver implements MediaSourceResolver {
     return true;
   }
 
+  /// Coalescing key: rows are reference-linked, so the same photo attached to
+  /// two dives is two rows pointing at one file. Sharing one in-flight
+  /// resolution between them saves a stat per row on the same file.
+  ///
+  /// Keyed on BOTH pointers, not just the path. [_resolveInner] falls through
+  /// from the path to the bookmark, so two rows with a common path but
+  /// different bookmarks do not have the same answer -- keying on the path
+  /// alone would hand the second row the first row's bytes whenever the path
+  /// failed. Rows that share a key share every input that resolution reads.
+  ///
+  /// Falls back to the row id when neither pointer is set, so rows that
+  /// cannot resolve anything never share one another's result.
+  static String _gateKey(MediaItem item) {
+    final path = item.localPath ?? item.filePath ?? '';
+    final ref = item.bookmarkRef ?? '';
+    if (path.isEmpty && ref.isEmpty) return item.id;
+    // NUL separator: it cannot occur in a filesystem path or a keychain
+    // ref, so no (path, ref) pair can collide with a different pair.
+    return '$path\u0000$ref';
+  }
+
   @override
   Future<MediaSourceData> resolve(MediaItem item) async {
+    final data = await _gate.run(_gateKey(item), () => _resolveInner(item));
+    // [MediaFetchGate]'s payload is nullable for the media store, where null
+    // means "not in the store". _resolveInner is declared non-nullable and
+    // always answers, so this fallback cannot be reached; it is written as a
+    // total function rather than a `!` so a future change cannot turn a
+    // resolver bug into a crash on a grid tile.
+    return data ?? const UnavailableData(kind: UnavailableKind.notFound);
+  }
+
+  Future<MediaSourceData> _resolveInner(MediaItem item) async {
     // Desktop path: localPath set, no bookmark needed.
     final localPath = item.localPath ?? item.filePath;
     if (localPath != null && localPath.isNotEmpty) {
+      // Ask whether the volume is even mounted BEFORE touching the file
+      // (#1182). The check used to sit after the exists() below, which meant
+      // a library on a dead share paid a per-tile stat against that share --
+      // each one parking a `dart:io` pool thread until the mount timed out --
+      // and only then consulted a probe that could have answered for free.
+      // Both databases run on this isolate with a synchronous
+      // NativeDatabase, so starving that pool stalls SQLite too, which is how
+      // a thumbnail problem became an app-wide freeze.
+      //
+      // Costs nothing for a path on the system volume: the probe resolves
+      // those without a filesystem call at all.
+      if (!await _volumeOnlineOrAssumed(localPath)) {
+        return const UnavailableData(kind: UnavailableKind.volumeOffline);
+      }
       try {
         final f = File(localPath);
         // Existence alone is not enough: the macOS sandbox allows STAT on
@@ -91,7 +177,9 @@ class LocalFileResolver implements MediaSourceResolver {
         // on macOS — when the direct read is denied.
         if (await f.exists()) {
           final blocker = await _readBlocker(f);
-          if (blocker == null) return FileData(file: f);
+          if (blocker == null) {
+            return FileData(file: f, servedFrom: ServedFrom.localDisk);
+          }
           _log.debug(
             'localPath exists but cannot be opened (sandbox?), falling '
             'back to bookmark: $localPath [item ${item.id}]',
@@ -106,7 +194,7 @@ class LocalFileResolver implements MediaSourceResolver {
         // Missing file on an unmounted volume (network share, external
         // disk) is a temporary condition, not a dead pointer: report it
         // as such so nothing orphans the row while the share is offline.
-        if (!await _volumeStatus.isVolumeOnline(localPath)) {
+        if (!await _volumeOnlineOrAssumed(localPath)) {
           return const UnavailableData(kind: UnavailableKind.volumeOffline);
         }
       }
@@ -119,7 +207,7 @@ class LocalFileResolver implements MediaSourceResolver {
         // Offline network mounts commonly THROW here rather than return
         // false; an offline volume must still read volumeOffline, not
         // fall through to a hard notFound (which cleanup could orphan).
-        if (!await _volumeStatus.isVolumeOnline(localPath)) {
+        if (!await _volumeOnlineOrAssumed(localPath)) {
           return const UnavailableData(kind: UnavailableKind.volumeOffline);
         }
         // Otherwise fall through to bookmark path or unavailable.
@@ -143,7 +231,7 @@ class LocalFileResolver implements MediaSourceResolver {
       // bookmark-bytes branch below, which is unit-tested.
       try {
         final bytes = await _platform.readUriBytes(ref);
-        return BytesData(bytes: bytes);
+        return BytesData(bytes: bytes, servedFrom: ServedFrom.localDisk);
       } catch (e, st) {
         _log.warning(
           'readUriBytes failed for item ${item.id}',
@@ -171,7 +259,7 @@ class LocalFileResolver implements MediaSourceResolver {
         // FileData from a resolved bookmark handle) avoids leaking the
         // security scope when callers forget to invoke releaseBookmark.
         final bytes = await _platform.readBookmarkBytes(blob);
-        return BytesData(bytes: bytes);
+        return BytesData(bytes: bytes, servedFrom: ServedFrom.localDisk);
       } catch (e, st) {
         _log.warning(
           'readBookmarkBytes failed for item ${item.id}',
@@ -183,6 +271,22 @@ class LocalFileResolver implements MediaSourceResolver {
     }
 
     return const UnavailableData(kind: UnavailableKind.notFound);
+  }
+
+  /// [_volumeOnline], with a probe that itself failed treated as online.
+  ///
+  /// The probe is a filesystem call and can throw on the exact mounts it
+  /// exists to classify. Reporting volumeOffline on a throw would be a guess;
+  /// assuming online falls through to the file itself, which is what this
+  /// resolver did before the probe was hoisted ahead of it, and lets the
+  /// existing exists() / open() path produce the real answer.
+  Future<bool> _volumeOnlineOrAssumed(String path) async {
+    try {
+      return await _volumeOnline(path);
+    } on FileSystemException catch (e) {
+      _log.debug('Volume probe failed for $path; assuming online', error: e);
+      return true;
+    }
   }
 
   /// Returns null when [f] can actually be opened for reading, otherwise the
@@ -232,7 +336,13 @@ class LocalFileResolver implements MediaSourceResolver {
         item,
         maxDimension: maxDim,
       );
-      if (poster != null) return BytesData(bytes: poster);
+      if (poster != null) {
+        return BytesData(
+          bytes: poster,
+          servedFrom: ServedFrom.localDisk,
+          servedTier: ServedTier.thumbnail,
+        );
+      }
     }
     return resolve(item);
   }
@@ -273,6 +383,14 @@ class LocalFileResolver implements MediaSourceResolver {
     if (data is! UnavailableData) return VerifyResult.available;
     if (data.kind == UnavailableKind.volumeOffline) {
       return VerifyResult.volumeOffline;
+    }
+    // "Still fetching" is a statement about time, not about whether the file
+    // is there: the read outlived the gate's budget and is very likely still
+    // running. Falling through would put a hung-but-mounted share on the
+    // notFound path below, and notFound flips isOrphaned, so a share that was
+    // merely slow during a sweep would mark its whole library missing.
+    if (data.kind == UnavailableKind.stillFetching) {
+      return VerifyResult.transientError;
     }
     // A file that is present but unreadable (sandbox denial, revoked
     // permission) is not a dead pointer: the bytes are still on disk and a

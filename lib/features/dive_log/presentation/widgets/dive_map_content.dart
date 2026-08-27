@@ -18,6 +18,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -297,6 +298,7 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
               initialZoom: zoom,
               minZoom: 2.0,
               maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
               onMapReady: () {
                 _mapReady = true;
               },

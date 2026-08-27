@@ -341,7 +341,43 @@ void main() {
     });
   });
 
-  group('TripWithStats.formattedBottomTime', () {
+  group('Trip.returnFlightAt', () {
+    final base = Trip(
+      id: 't1',
+      name: 'Red Sea',
+      startDate: DateTime.utc(2026, 8, 1),
+      endDate: DateTime.utc(2026, 8, 10),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    test('defaults to null and is preserved by unrelated copyWith', () {
+      expect(base.returnFlightAt, isNull);
+      final withFlight = base.copyWith(
+        returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30),
+      );
+      expect(
+        withFlight.copyWith(name: 'Renamed').returnFlightAt,
+        DateTime.utc(2026, 8, 10, 14, 30),
+      );
+    });
+
+    test('copyWith clears returnFlightAt with an explicit null', () {
+      final withFlight = base.copyWith(
+        returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30),
+      );
+      expect(withFlight.copyWith(returnFlightAt: null).returnFlightAt, isNull);
+    });
+
+    test('participates in equality', () {
+      expect(
+        base.copyWith(returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30)),
+        isNot(equals(base)),
+      );
+    });
+  });
+
+  group('TripWithStats.formattedRuntime', () {
     Trip makeTrip() => Trip(
       id: 't1',
       name: 'T',
@@ -352,18 +388,18 @@ void main() {
     );
 
     test('shows "Xm" when under an hour', () {
-      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 1800);
-      expect(stats.formattedBottomTime, equals('30m'));
+      final stats = TripWithStats(trip: makeTrip(), totalRuntime: 1800);
+      expect(stats.formattedRuntime, equals('30m'));
     });
 
     test('shows "Yh Xm" when an hour or more', () {
-      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 3665);
-      expect(stats.formattedBottomTime, equals('1h 1m'));
+      final stats = TripWithStats(trip: makeTrip(), totalRuntime: 3665);
+      expect(stats.formattedRuntime, equals('1h 1m'));
     });
 
-    test('handles zero bottom time', () {
-      final stats = TripWithStats(trip: makeTrip(), totalBottomTime: 0);
-      expect(stats.formattedBottomTime, equals('0m'));
+    test('handles zero runtime', () {
+      final stats = TripWithStats(trip: makeTrip(), totalRuntime: 0);
+      expect(stats.formattedRuntime, equals('0m'));
     });
 
     test('props distinguishes different stats', () {

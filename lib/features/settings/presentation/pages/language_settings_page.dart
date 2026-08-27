@@ -2,40 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class LanguageSettingsPage extends ConsumerWidget {
   const LanguageSettingsPage({super.key});
 
   static const supportedLocales = [
-    _LocaleOption(
-      code: 'system',
-      nativeName: 'System Default',
-      englishName: '',
-    ),
-    _LocaleOption(code: 'en', nativeName: 'English', englishName: 'English'),
-    _LocaleOption(code: 'es', nativeName: 'Espanol', englishName: 'Spanish'),
-    _LocaleOption(code: 'fr', nativeName: 'Francais', englishName: 'French'),
-    _LocaleOption(code: 'de', nativeName: 'Deutsch', englishName: 'German'),
-    _LocaleOption(code: 'it', nativeName: 'Italiano', englishName: 'Italian'),
-    _LocaleOption(code: 'nl', nativeName: 'Nederlands', englishName: 'Dutch'),
-    _LocaleOption(
+    LocaleOption(code: 'system', nativeName: 'System Default', englishName: ''),
+    LocaleOption(code: 'en', nativeName: 'English', englishName: 'English'),
+    LocaleOption(code: 'es', nativeName: 'Español', englishName: 'Spanish'),
+    LocaleOption(code: 'fr', nativeName: 'Français', englishName: 'French'),
+    LocaleOption(code: 'de', nativeName: 'Deutsch', englishName: 'German'),
+    LocaleOption(code: 'it', nativeName: 'Italiano', englishName: 'Italian'),
+    LocaleOption(code: 'nl', nativeName: 'Nederlands', englishName: 'Dutch'),
+    LocaleOption(
       code: 'pt',
-      nativeName: 'Portugues',
+      nativeName: 'Português',
       englishName: 'Portuguese',
     ),
-    _LocaleOption(code: 'hu', nativeName: 'Magyar', englishName: 'Hungarian'),
-    _LocaleOption(
+    LocaleOption(code: 'hu', nativeName: 'Magyar', englishName: 'Hungarian'),
+    LocaleOption(
       code: 'ar',
       nativeName: '\u0627\u0644\u0639\u0631\u0628\u064A\u0629',
       englishName: 'Arabic',
     ),
-    _LocaleOption(
+    LocaleOption(
       code: 'he',
       nativeName: '\u05E2\u05D1\u05E8\u05D9\u05EA',
       englishName: 'Hebrew',
     ),
-    _LocaleOption(
+    LocaleOption(
       code: 'zh',
       nativeName: '简体中文',
       englishName: 'Chinese (Simplified)',
@@ -86,22 +83,22 @@ class LanguageSettingsPage extends ConsumerWidget {
     );
   }
 
-  static String getDisplayName(String localeCode) {
+  static String getDisplayName(AppLocalizations l10n, String localeCode) {
     final option = supportedLocales.firstWhere(
       (o) => o.code == localeCode,
       orElse: () => supportedLocales.first,
     );
-    if (option.code == 'system') return 'System Default';
+    if (option.code == 'system') return l10n.settings_language_systemDefault;
     return option.nativeName;
   }
 }
 
-class _LocaleOption {
+class LocaleOption {
   final String code;
   final String nativeName;
   final String englishName;
 
-  const _LocaleOption({
+  const LocaleOption({
     required this.code,
     required this.nativeName,
     required this.englishName,

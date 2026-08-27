@@ -4,11 +4,14 @@ import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Page for selecting photos from the device gallery within a date range.
 ///
@@ -27,12 +30,17 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
   /// Called when user confirms selection with the selected assets.
   final void Function(List<AssetInfo> selectedAssets)? onSelectionConfirmed;
 
-  /// The dive this picker was opened from, when there is one.
+  /// What this picker session attaches media to, when it has an owner.
   ///
-  /// Passed to the Files tab so photos the date matcher rejects can still be
-  /// linked to the dive the user was looking at. Null when the picker is
-  /// opened outside a dive context.
-  final String? diveId;
+  /// Only the Gallery tab hands its selection back to the caller; the Files
+  /// and URL tabs write rows themselves, so they need to be told the target
+  /// or they cannot link anything. Passing only a dive id (as this used to)
+  /// left a session opened from a dive site with no reachable commit path at
+  /// all: issue #1098.
+  ///
+  /// Null when the picker is opened with no owning entity, e.g. the library
+  /// importer.
+  final MediaAttachTarget? target;
 
   const PhotoPickerPage({
     super.key,
@@ -40,7 +48,7 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
     required this.endTime,
     this.alreadyLinkedIds = const {},
     this.onSelectionConfirmed,
-    this.diveId,
+    this.target,
   });
 
   @override
@@ -53,7 +61,25 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   @override
   void initState() {
     super.initState();
-    _checkPermissionAndLoad();
+    Future.microtask(_clearStaleStaging);
+    logFailure(
+      _checkPermissionAndLoad(),
+      _PhotoPickerPageState,
+      'check permission and load',
+    );
+  }
+
+  /// Drops files staged by an earlier session that was abandoned rather than
+  /// committed: `filesTabNotifierProvider` is not autoDispose, and this
+  /// session may well attach to a different dive, or to a site.
+  ///
+  /// Deferred by a microtask because Riverpod forbids mutating a provider
+  /// inside a widget life-cycle. It still lands before the first frame the
+  /// user can interact with, and well before the Files tab is reachable
+  /// (it is not even the initially-selected tab).
+  void _clearStaleStaging() {
+    if (!mounted) return;
+    ref.read(filesTabNotifierProvider.notifier).clearStagedFiles();
   }
 
   Future<void> _checkPermissionAndLoad() async {
@@ -65,7 +91,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
 
     final state = ref.read(photoPickerNotifierProvider);
     if (state.hasPermission) {
-      _loadAssets();
+      logFailure(_loadAssets(), _PhotoPickerPageState, 'load assets');
     }
   }
 
@@ -170,8 +196,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
             body: TabBarView(
               children: [
                 _galleryTab(context),
-                FilesTab(diveId: widget.diveId),
-                const UrlTab(),
+                FilesTab(target: widget.target),
+                UrlTab(target: widget.target),
               ],
             ),
           );
@@ -698,7 +724,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
   required DateTime diveEndTime,
   Set<String> alreadyLinkedIds = const {},
   Duration buffer = const Duration(minutes: 30),
-  String? diveId,
+  MediaAttachTarget? target,
 }) {
   final startTime = diveStartTime.subtract(buffer);
   final endTime = diveEndTime.add(buffer);
@@ -710,7 +736,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
         startTime: startTime,
         endTime: endTime,
         alreadyLinkedIds: alreadyLinkedIds,
-        diveId: diveId,
+        target: target,
       ),
     ),
   );

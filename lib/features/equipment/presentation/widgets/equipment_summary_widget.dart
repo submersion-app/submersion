@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown when no equipment is selected.
@@ -82,16 +84,20 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   ) {
     // Calculate stats
     int activeCount = 0;
-    double totalValue = 0;
-
     for (final item in equipment) {
       if (item.isActive) {
         activeCount++;
       }
-      if (item.purchasePrice != null) {
-        totalValue += item.purchasePrice;
-      }
     }
+
+    // Equipment can be priced in different currencies, so totals are kept
+    // per currency rather than added into one figure under a single symbol.
+    final totalsByCurrency = sumByCurrency<dynamic>(
+      equipment,
+      amountOf: (item) => item.purchasePrice as double?,
+      currencyOf: (item) => item.purchaseCurrency as String,
+      fallbackCode: ref.watch(defaultCurrencyProvider),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,14 +135,16 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 label: context.l10n.equipment_summary_serviceDue,
                 color: Colors.red,
               ),
-            if (totalValue > 0)
-              _buildStatCard(
-                context,
-                icon: Icons.attach_money,
-                value: '\$${totalValue.toStringAsFixed(0)}',
-                label: context.l10n.equipment_summary_totalValue,
-                color: Colors.orange,
-              ),
+            for (final entry in totalsByCurrency)
+              if (entry.value > 0)
+                _buildStatCard(
+                  context,
+                  icon: Icons.attach_money,
+                  value:
+                      '${currencySymbol(entry.key)}${entry.value.toStringAsFixed(0)}',
+                  label: context.l10n.equipment_summary_totalValue,
+                  color: Colors.orange,
+                ),
           ],
         ),
         if (serviceDue.isNotEmpty) ...[
@@ -223,7 +231,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             children: serviceDue.take(3).map((item) {
               return Semantics(
                 button: true,
-                label: '${item.name}, ${item.type.displayName}, service due',
+                label: context.l10n.equipment_summary_serviceDueSemanticLabel(
+                  item.name,
+                  item.type.displayName,
+                ),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -283,7 +294,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             children: previewItems.map((item) {
               return Semantics(
                 button: true,
-                label: '${item.name}, ${item.type.displayName}',
+                label: context.l10n.equipment_summary_recentSemanticLabel(
+                  item.name,
+                  item.type.displayName,
+                ),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Theme.of(

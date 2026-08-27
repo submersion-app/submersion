@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for displaying and managing plan segments.
@@ -169,7 +170,7 @@ class _SegmentTile extends StatelessWidget {
       onTap: onSelect,
       leading: _SegmentIcon(type: segment.type),
       title: Text(
-        _formatDescription(),
+        _formatDescription(context.l10n),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
@@ -209,24 +210,24 @@ class _SegmentTile extends StatelessWidget {
   }
 
   /// Format the segment description with proper unit settings.
-  String _formatDescription() {
+  String _formatDescription(AppLocalizations l10n) {
     final startDepth = units.formatDepth(segment.startDepth);
     final endDepth = units.formatDepth(segment.endDepth);
     final durationMin = segment.durationSeconds ~/ 60;
 
     switch (segment.type) {
       case SegmentType.descent:
-        return 'Descent $startDepth → $endDepth';
+        return l10n.divePlanner_segmentList_descent(startDepth, endDepth);
       case SegmentType.bottom:
-        return 'Bottom $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_bottom(startDepth, durationMin);
       case SegmentType.ascent:
-        return 'Ascent $startDepth → $endDepth';
+        return l10n.divePlanner_segmentList_ascent(startDepth, endDepth);
       case SegmentType.decoStop:
-        return 'Deco $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_deco(startDepth, durationMin);
       case SegmentType.gasSwitch:
-        return 'Gas switch to ${segment.gasMix.name}';
+        return l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name);
       case SegmentType.safetyStop:
-        return 'Safety stop $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_safetyStop(startDepth, durationMin);
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +31,19 @@ S3ApiClient clientWith(S3Config config, MockClient mock) => S3ApiClient(
   now: () => DateTime.utc(2026, 6, 9, 12),
   retryDelay: Duration.zero,
 );
+
+/// Always picks the low end of the jitter range, so a backoff test asserts
+/// the guaranteed floor rather than a random draw above it.
+class _MinJitter implements Random {
+  @override
+  int nextInt(int max) => 0;
+
+  @override
+  bool nextBool() => false;
+
+  @override
+  double nextDouble() => 0;
+}
 
 String malformedAuthBody(String expectedRegion) =>
     '<?xml version="1.0" encoding="UTF-8"?>'
@@ -235,6 +249,165 @@ void main() {
         );
       },
     );
+
+    // Issue #942: a base publish is 15+ sequential multi-megabyte PUTs. With
+    // only two attempts 500ms apart - the same network moment on a mobile
+    // radio - one routine blip aborted the whole sync, and nothing is
+    // resumable, so the next attempt re-uploaded the entire base. Success was
+    // p^N and never improved.
+    test(
+      'rides out a burst of transport errors within the attempt budget',
+      () async {
+        var calls = 0;
+        final mock = MockClient((_) async {
+          calls++;
+          if (calls < 4) throw const SocketException('network unreachable');
+          return http.Response('', 200);
+        });
+        await clientWith(
+          minioConfig(),
+          mock,
+        ).putObject('k', Uint8List.fromList([1]));
+        expect(calls, 4);
+      },
+    );
+
+    test('gives up after maxAttempts rather than retrying forever', () async {
+      var calls = 0;
+      final mock = MockClient((_) async {
+        calls++;
+        throw http.ClientException('refused');
+      });
+      final client = S3ApiClient(
+        minioConfig(),
+        httpClient: mock,
+        now: () => DateTime.utc(2026, 6, 9, 12),
+        retryDelay: Duration.zero,
+        maxAttempts: 3,
+      );
+
+      await expectLater(
+        client.getObject('k'),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(calls, 3);
+    });
+
+    test('retries a 5xx across the whole attempt budget', () async {
+      var calls = 0;
+      final mock = MockClient((_) async {
+        calls++;
+        return http.Response('oops', calls < 4 ? 503 : 200);
+      });
+      await clientWith(
+        minioConfig(),
+        mock,
+      ).putObject('k', Uint8List.fromList([1]));
+      expect(calls, 4);
+    });
+
+    // 503 SlowDown is the AWS throttle signal and was already retried as a
+    // 5xx; R2/B2/MinIO use 429 for the same condition and it was not.
+    test('retries a 429 throttle response', () async {
+      var calls = 0;
+      final mock = MockClient((_) async {
+        calls++;
+        return http.Response('slow down', calls == 1 ? 429 : 200);
+      });
+      await clientWith(
+        minioConfig(),
+        mock,
+      ).putObject('k', Uint8List.fromList([1]));
+      expect(calls, 2);
+    });
+
+    test('backoff grows exponentially and is capped', () {
+      const base = Duration(milliseconds: 500);
+      const cap = Duration(seconds: 8);
+      Duration at(int attempt) =>
+          S3ApiClient.backoffCeilingFor(base, attempt, cap);
+
+      expect(at(1), const Duration(milliseconds: 500));
+      expect(at(2), const Duration(seconds: 1));
+      expect(at(3), const Duration(seconds: 2));
+      expect(at(4), const Duration(seconds: 4));
+      expect(at(5), cap);
+      expect(at(9), cap, reason: 'must not overflow past the cap');
+    });
+
+    test('a zero base delay stays zero at every attempt', () {
+      for (var attempt = 1; attempt <= 6; attempt++) {
+        expect(
+          S3ApiClient.backoffCeilingFor(
+            Duration.zero,
+            attempt,
+            const Duration(seconds: 8),
+          ),
+          Duration.zero,
+        );
+      }
+    });
+
+    // A negative delay survives backoffCeilingFor (it is below the cap, so it
+    // is returned as-is) and reaches Random.nextInt with a non-positive max,
+    // which throws RangeError deep inside a retry. Fail at construction
+    // instead, where the misconfiguration is visible.
+    test('rejects a retry configuration that cannot produce a delay', () {
+      S3ApiClient build({
+        int maxAttempts = 6,
+        Duration retryDelay = const Duration(milliseconds: 500),
+        Duration maxRetryDelay = const Duration(seconds: 16),
+      }) => S3ApiClient(
+        minioConfig(),
+        httpClient: MockClient((_) async => http.Response('', 200)),
+        maxAttempts: maxAttempts,
+        retryDelay: retryDelay,
+        maxRetryDelay: maxRetryDelay,
+      );
+
+      expect(() => build(maxAttempts: 0), throwsA(isA<AssertionError>()));
+      expect(
+        () => build(retryDelay: const Duration(milliseconds: -1)),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => build(maxRetryDelay: const Duration(seconds: -1)),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(build, returnsNormally);
+    });
+
+    // Equal jitter, not full jitter: the floor is the point. A run of
+    // near-zero waits would spend the whole budget inside the dropout the
+    // backoff exists to outlast.
+    test('the jittered wait never drops below half the ceiling', () async {
+      var calls = 0;
+      final mock = MockClient((_) async {
+        calls++;
+        throw http.ClientException('refused');
+      });
+      final client = S3ApiClient(
+        minioConfig(),
+        httpClient: mock,
+        now: () => DateTime.utc(2026, 6, 9, 12),
+        retryDelay: const Duration(milliseconds: 40),
+        maxAttempts: 3,
+        maxRetryDelay: const Duration(seconds: 8),
+        random: _MinJitter(),
+      );
+
+      final stopwatch = Stopwatch()..start();
+      await expectLater(
+        client.getObject('k'),
+        throwsA(isA<CloudStorageException>()),
+      );
+      stopwatch.stop();
+
+      expect(calls, 3);
+      // Ceilings 40ms then 80ms; the floor is half of each. Asserted as a
+      // lower bound only, so a loaded machine cannot flake it.
+      expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(60));
+    });
   });
 
   group('headObject', () {

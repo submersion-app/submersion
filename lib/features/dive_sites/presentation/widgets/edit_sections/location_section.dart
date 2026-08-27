@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
@@ -19,6 +22,7 @@ class LocationSection extends StatelessWidget {
     this.errorCount = 0,
     required this.latitudeController,
     required this.longitudeController,
+    required this.coordinateFormat,
     required this.altitudeController,
     required this.latValidator,
     required this.lonValidator,
@@ -26,6 +30,7 @@ class LocationSection extends StatelessWidget {
     required this.isGettingLocation,
     required this.onUseMyLocation,
     required this.onPickFromMap,
+    required this.onLookupFromCoordinates,
     required this.units,
     this.coordinatesExtras,
     this.altitudeExtras,
@@ -38,6 +43,9 @@ class LocationSection extends StatelessWidget {
   final int errorCount;
   final TextEditingController latitudeController;
   final TextEditingController longitudeController;
+
+  /// The notation the coordinate fields render and accept.
+  final CoordinateFormat coordinateFormat;
   final TextEditingController altitudeController;
   final String? Function(String?) latValidator;
   final String? Function(String?) lonValidator;
@@ -45,6 +53,10 @@ class LocationSection extends StatelessWidget {
   final bool isGettingLocation;
   final VoidCallback onUseMyLocation;
   final VoidCallback onPickFromMap;
+
+  /// Reverse-geocodes the typed coordinates (issue #1187). Null while the
+  /// coordinates do not parse, which disables the button.
+  final VoidCallback? onLookupFromCoordinates;
   final UnitFormatter units;
   final MergeFieldExtras? coordinatesExtras;
   final MergeFieldExtras? altitudeExtras;
@@ -70,29 +82,27 @@ class LocationSection extends StatelessWidget {
                 sourceLabel: coordinatesExtras!.sourceLabel,
                 onCycle: coordinatesExtras!.onCycle,
               ),
-            FormRow.text(
-              label: l10n.diveSites_edit_gps_latitude_label,
-              controller: latitudeController,
-              placeholder: l10n.diveSites_edit_gps_latitude_hint,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              validator: latValidator,
-            ),
-            FormRow.text(
-              label: l10n.diveSites_edit_gps_longitude_label,
-              controller: longitudeController,
-              placeholder: l10n.diveSites_edit_gps_longitude_hint,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              validator: lonValidator,
+            CoordinateFieldGroup(
+              latitudeController: latitudeController,
+              longitudeController: longitudeController,
+              format: coordinateFormat,
+              latitudeLabel: l10n.diveSites_edit_gps_latitude_label,
+              longitudeLabel: l10n.diveSites_edit_gps_longitude_label,
+              // The group covers both axes, so a single message carries
+              // whichever axis is wrong.
+              errorText:
+                  latValidator(latitudeController.text) ??
+                  lonValidator(longitudeController.text),
+              // Shown while what is typed is not a position at all. The
+              // controllers keep the last good value in that state, so the
+              // range validators above have nothing to complain about.
+              invalidMessage: l10n.diveSites_edit_gps_latitude_validation,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),
-              child: Row(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 4,
                 children: [
                   TextButton.icon(
                     onPressed: isGettingLocation ? null : onUseMyLocation,
@@ -109,11 +119,17 @@ class LocationSection extends StatelessWidget {
                           : l10n.diveSites_edit_gps_useMyLocation,
                     ),
                   ),
-                  const SizedBox(width: 12),
                   TextButton.icon(
                     onPressed: onPickFromMap,
                     icon: const Icon(Icons.map, size: 16),
                     label: Text(l10n.diveSites_edit_gps_pickFromMap),
+                  ),
+                  TextButton.icon(
+                    onPressed: isGettingLocation
+                        ? null
+                        : onLookupFromCoordinates,
+                    icon: const Icon(Icons.travel_explore, size: 16),
+                    label: Text(l10n.diveSites_edit_gps_lookupFromCoordinates),
                   ),
                 ],
               ),
@@ -123,7 +139,7 @@ class LocationSection extends StatelessWidget {
         ValueListenableBuilder<TextEditingValue>(
           valueListenable: altitudeController,
           builder: (context, altitude, _) {
-            final altitudeInput = double.tryParse(altitude.text);
+            final altitudeInput = parseUserDecimal(altitude.text);
             final altitudeMeters = altitudeInput != null
                 ? units.altitudeToMeters(altitudeInput)
                 : null;

@@ -54,6 +54,10 @@ class ProfileLegendState {
   final bool showCns;
   final bool showOtu;
 
+  /// Raw O2 cell output lines (issue #810). Seeds from the persisted
+  /// [AppSettings.defaultShowO2CellMv] default (issue #1235).
+  final bool showO2CellMv;
+
   // Per-metric data source preferences (session overrides).
   // The ceiling line has no source toggle: every import path stores only the
   // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
@@ -72,6 +76,13 @@ class ProfileLegendState {
 
   // Collapsible section expanded/collapsed state (session-only)
   final Map<String, bool> sectionExpanded;
+
+  /// Whether secondary-axis metric overlays follow the visible depth window
+  /// when zoomed, instead of magnifying with the depth axis and potentially
+  /// leaving the viewport. Seeds from the device-local
+  /// [AppSettings.profileMetricsFollowViewport]; this is a rendering mode, not
+  /// a series toggle, so it is excluded from [activeSecondaryCount].
+  final bool metricsFollowViewport;
 
   const ProfileLegendState({
     this.rightAxisMetric,
@@ -101,6 +112,7 @@ class ProfileLegendState {
     this.showTts = false,
     this.showCns = false,
     this.showOtu = false,
+    this.showO2CellMv = false,
     this.ndlSource = MetricDataSource.calculated,
     this.ttsSource = MetricDataSource.calculated,
     this.cnsSource = MetricDataSource.calculated,
@@ -115,7 +127,9 @@ class ProfileLegendState {
       'gasAnalysis': false,
       'other': false,
       'tankPressures': true,
+      'display': false,
     },
+    this.metricsFollowViewport = false,
   });
 
   /// Count of active secondary toggles (for badge display)
@@ -143,6 +157,7 @@ class ProfileLegendState {
     if (showTts) count++;
     if (showCns) count++;
     if (showOtu) count++;
+    if (showO2CellMv) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
   }
@@ -179,6 +194,7 @@ class ProfileLegendState {
     bool? showTts,
     bool? showCns,
     bool? showOtu,
+    bool? showO2CellMv,
     MetricDataSource? ndlSource,
     MetricDataSource? ttsSource,
     MetricDataSource? cnsSource,
@@ -186,6 +202,7 @@ class ProfileLegendState {
     Map<String, bool>? showTankPressure,
     bool? showGas,
     Map<String, bool>? sectionExpanded,
+    bool? metricsFollowViewport,
   }) {
     return ProfileLegendState(
       rightAxisMetric: clearRightAxisMetric
@@ -217,6 +234,7 @@ class ProfileLegendState {
       showTts: showTts ?? this.showTts,
       showCns: showCns ?? this.showCns,
       showOtu: showOtu ?? this.showOtu,
+      showO2CellMv: showO2CellMv ?? this.showO2CellMv,
       ndlSource: ndlSource ?? this.ndlSource,
       ttsSource: ttsSource ?? this.ttsSource,
       cnsSource: cnsSource ?? this.cnsSource,
@@ -224,6 +242,8 @@ class ProfileLegendState {
       showTankPressure: showTankPressure ?? this.showTankPressure,
       showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
+      metricsFollowViewport:
+          metricsFollowViewport ?? this.metricsFollowViewport,
     );
   }
 
@@ -259,12 +279,14 @@ class ProfileLegendState {
           showTts == other.showTts &&
           showCns == other.showCns &&
           showOtu == other.showOtu &&
+          showO2CellMv == other.showO2CellMv &&
           ndlSource == other.ndlSource &&
           ttsSource == other.ttsSource &&
           cnsSource == other.cnsSource &&
           decoStopSource == other.decoStopSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
+          metricsFollowViewport == other.metricsFollowViewport &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
   @override
@@ -296,12 +318,14 @@ class ProfileLegendState {
     showTts,
     showCns,
     showOtu,
+    showO2CellMv,
     ndlSource,
     ttsSource,
     cnsSource,
     decoStopSource,
     ...showTankPressure.entries,
     showGas,
+    metricsFollowViewport,
     ...sectionExpanded.entries,
   ]);
 }
@@ -340,6 +364,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
           defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
           defaultShowGasTimeline: s.defaultShowGasTimeline,
+          defaultShowO2CellMv: s.defaultShowO2CellMv,
           showNdlOnProfile: s.showNdlOnProfile,
           defaultShowPpO2: s.defaultShowPpO2,
           defaultShowPpN2: s.defaultShowPpN2,
@@ -355,6 +380,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultTtsSource: s.defaultTtsSource,
           defaultCnsSource: s.defaultCnsSource,
           defaultDecoStopSource: s.defaultDecoStopSource,
+          profileMetricsFollowViewport: s.profileMetricsFollowViewport,
         ),
       ),
     );
@@ -374,6 +400,7 @@ class ProfileLegend extends _$ProfileLegend {
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
       showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
+      showO2CellMv: settings.defaultShowO2CellMv,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
       showPpN2: settings.defaultShowPpN2,
@@ -390,7 +417,14 @@ class ProfileLegend extends _$ProfileLegend {
       ttsSource: settings.defaultTtsSource,
       cnsSource: settings.defaultCnsSource,
       decoStopSource: settings.defaultDecoStopSource,
+      metricsFollowViewport: settings.profileMetricsFollowViewport,
     );
+  }
+
+  /// Flip the overlay scaling mode for this chart session only, leaving the
+  /// device-local default untouched.
+  void toggleMetricsFollowViewport() {
+    state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
   }
 
   /// Set the right axis metric for this session (also un-hides it)
@@ -516,6 +550,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleOtu() {
     state = state.copyWith(showOtu: !state.showOtu);
+  }
+
+  void toggleO2CellMv() {
+    state = state.copyWith(showO2CellMv: !state.showO2CellMv);
   }
 
   // Data source set methods (for SegmentedButton)

@@ -1,12 +1,32 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+
+/// Per-dive outcome of the recorded (non-computed) deco classification.
+///
+/// The four groups partition the filtered dive library. [needsCompute] maps
+/// dive id to that dive's `dives.updated_at`, which the computed fallback
+/// uses as the profile revision in its cache fingerprint; the lean `Dive`
+/// hydration used by the analysis pipeline carries no `updatedAt`, so this
+/// scan is the only place that value is cheaply available. [noProfile] holds
+/// dives that can never be classified from stored data.
+typedef DecoSignalScan = ({
+  Set<String> recordedDeco,
+  Set<String> recordedNoDeco,
+  Map<String, int> needsCompute,
+  Set<String> noProfile,
+});
 
 /// Data point for line chart trends
 class TrendDataPoint {
@@ -53,10 +73,117 @@ class DistributionSegment {
   });
 }
 
+/// One observed (entry method, exit method) pairing and how often it occurs.
+///
+/// Both values are stored EntryMethod enum names; the presentation layer
+/// translates them.
+class EntryExitPairCount {
+  const EntryExitPairCount({
+    required this.entryMethod,
+    required this.exitMethod,
+    required this.count,
+  });
+
+  final String entryMethod;
+  final String? exitMethod;
+  final int count;
+}
+
 /// Repository for all advanced statistics queries
 class StatisticsRepository {
+  /// Equation of state used to convert cylinder pressure to gas volume.
+  ///
+  /// Injected from `gasModelProvider` so flipping the preference rebuilds this
+  /// repository and refreshes every gas statistic (issue #828).
+  final GasModel gasModel;
+
+  StatisticsRepository({this.gasModel = GasModel.real});
+
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(StatisticsRepository);
+
+  /// Emits whenever any table the statistics queries read is written, so every
+  /// statistics provider refreshes after a merge, a bulk delete, an import, or
+  /// a sync pull -- none of which go through a notifier.
+  ///
+  /// Broader than [DiveRepository.watchDivesChanges] because the aggregate SQL
+  /// joins well beyond the `dives` table: `dive_tanks` and
+  /// `tank_pressure_profiles` carry all of the SAC math, `sightings`/`species`
+  /// the marine-life stats, `dive_sites`/`dive_centers`/`trips` the geographic
+  /// stats. Subscribing only to the dives tick would leave every SAC chart
+  /// stale after a sync applied a tank-pressure-only changeset, which never
+  /// touches the `dives` row.
+  ///
+  /// Narrower than [DiveRepository.watchDiveDetailChanges], which also fires on
+  /// media, tide records, and safety findings that no statistic reads.
+  ///
+  /// Replaces `statisticsVersionProvider`, a counter incremented from exactly
+  /// one line in the app (inside `PaginatedDiveListNotifier`), which merge,
+  /// consolidate, import, and sync never reached (issue #974).
+  ///
+  /// [DiveRepository.changeTickDebounce]-debounced so a multi-changeset sync
+  /// recomputes the charts once on the settled state rather than once per
+  /// intermediate commit.
+  Stream<void> watchStatisticsChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.diveProfiles),
+          TableUpdateQuery.onTable(_db.diveTanks),
+          TableUpdateQuery.onTable(_db.tankPressureProfiles),
+          TableUpdateQuery.onTable(_db.diveEquipment),
+          TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.diveWeights),
+          TableUpdateQuery.onTable(_db.diveDiveTypes),
+          TableUpdateQuery.onTable(_db.diveBuddies),
+          TableUpdateQuery.onTable(_db.buddies),
+          TableUpdateQuery.onTable(_db.sightings),
+          TableUpdateQuery.onTable(_db.species),
+          TableUpdateQuery.onTable(_db.diveSites),
+          TableUpdateQuery.onTable(_db.diveCenters),
+          TableUpdateQuery.onTable(_db.trips),
+        ]),
+      )
+      .debounce(DiveRepository.changeTickDebounce);
+
+  /// Smoothing interval used by [getAscentDescentRates], in seconds.
+  ///
+  /// Kept in sync with the per-dive calculator's configured target interval so
+  /// the two cannot drift apart on how much of a profile they smooth over. The
+  /// filters themselves differ: [AscentRateCalculator] takes an overlapping,
+  /// centred moving average over point-to-point rates (window rounded to an odd
+  /// count of samples, minimum three), while this query averages depth into
+  /// fixed non-overlapping buckets and differences consecutive bucket means.
+  /// Both suppress the same short-timescale noise; neither is a reimplementation
+  /// of the other, and their per-profile outputs are close but not identical.
+  static const int _rateWindowSeconds =
+      AscentRateCalculator.defaultSmoothingWindowSeconds;
+
+  /// Slowest vertical rate that counts as ascending or descending rather than
+  /// working a multi-level profile, in m/min.
+  ///
+  /// A recreational profile spends most of its windows drifting slowly around
+  /// the bottom: on a representative library, windows in the 0.5-3 m/min band
+  /// outnumber genuine transit roughly four to one. Averaging those in drags
+  /// both figures down to around 2.4 m/min, which tells a diver nothing and is
+  /// not comparable to the ascent-rate limits they are trained against. Only
+  /// counting sustained movement keeps the card answering "how fast do I
+  /// actually go up and down".
+  static const double _sustainedTransitThreshold = 3.0;
+
+  /// How many times its own mean sample interval a profile may skip before
+  /// [getTimeAtDepthRanges] stops crediting the skip as time at that depth.
+  ///
+  /// Recording gaps are real: a computer paused mid-dive, a surface interval
+  /// swallowed into one dive record, a profile stitched from two downloads.
+  /// Charging the whole pause to whichever bucket the last sample before it
+  /// happened to sit in would invent hours of bottom time. The bound is
+  /// relative to the profile's own cadence rather than an absolute number of
+  /// seconds because recording intervals in a real library run from 1 s to a
+  /// minute or more, and a manually keyed profile is sparser still. Four times
+  /// the mean leaves room for ordinary jitter and the occasional dropped
+  /// sample while cutting anything an order of magnitude larger down to size.
+  static const int _maxSampleGapFactor = 4;
 
   /// Builds the `AND <alias>.id IN (<subquery>)` fragment + raw params for a
   /// stats filter. Empty (no-op) when the filter has no active axes.
@@ -134,12 +261,14 @@ class StatisticsRepository {
               pressureBar: startP,
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             ) -
             gasVolume(
               tankSizeLiters: vol,
               pressureBar: endP,
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             );
         if (gasUsed <= 0) continue;
 
@@ -381,12 +510,14 @@ class StatisticsRepository {
               pressureBar: row.read<double>('start_pressure'),
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             ) -
             gasVolume(
               tankSizeLiters: vol,
               pressureBar: row.read<double>('end_pressure'),
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             );
         if (used <= 0) continue;
 
@@ -561,18 +692,20 @@ class StatisticsRepository {
               pressureBar: row.read<double>('start_pressure'),
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             ) -
             gasVolume(
               tankSizeLiters: vol,
               pressureBar: row.read<double>('end_pressure'),
               o2Percent: o2,
               hePercent: he,
+              model: gasModel,
             );
         if (used <= 0) continue;
 
         final durationMin = row.read<int>('duration_sec') / 60.0;
-        final ambientAtm = (row.read<double>('avg_depth') / 10.0) + 1.0;
-        final sac = used / durationMin / ambientAtm;
+        final ambientBar = (row.read<double>('avg_depth') / 10.0) + 1.0;
+        final sac = used / durationMin / ambientBar;
         if (sac > 0) {
           sacsByRole.putIfAbsent(role, () => []).add(sac);
         }
@@ -648,7 +781,12 @@ class StatisticsRepository {
     }
   }
 
-  /// Get dive type distribution (recreational, night, deep, wreck, etc.)
+  /// Get dive type distribution (recreational, night, deep, wreck, etc.).
+  ///
+  /// Emits the dive-type id as a stable key, not display text: the
+  /// presentation layer resolves it through the built-in translation table
+  /// (see `diveTypeDistributionLabel`). Capitalizing the slug here is what
+  /// left this chart English under every locale.
   Future<List<DistributionSegment>> getDiveTypeDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -677,11 +815,7 @@ class StatisticsRepository {
 
       return results.map((row) {
         final count = row.read<int>('count');
-        final rawType = row.read<String>('dive_type');
-        // Capitalize first letter for display
-        final label = rawType.isNotEmpty
-            ? '${rawType[0].toUpperCase()}${rawType.substring(1)}'
-            : 'Unknown';
+        final label = row.read<String>('dive_type');
         return DistributionSegment(
           label: label,
           count: count,
@@ -967,36 +1101,83 @@ class StatisticsRepository {
   // Conditions & Environment Statistics
   // ============================================================================
 
-  /// Get visibility distribution
+  /// Get visibility distribution, binned by the diver's calibration.
+  ///
+  /// The calibration thresholds are passed into SQL as variables, so SQLite
+  /// still does the aggregation and only the handful of grouped rows cross
+  /// into Dart. Changing the calibration re-bins the same dives, which is the
+  /// whole point of storing a measurement rather than a judgment.
+  ///
+  /// Labels are stable keys, not display text: a measured dive yields the
+  /// [VisibilityBand] name, and a pre-v144 dive yields `legacy_<bucket>`. The
+  /// two never merge, because a bucket does not say where in its range the
+  /// dive fell, so it cannot be assigned a calibrated adjective. The page
+  /// turns these keys into localized text.
   Future<List<DistributionSegment>> getVisibilityDistribution({
+    required VisibilityScale scale,
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'dives');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+      // Threshold variables come first: they appear before the diver and
+      // filter placeholders in the statement below, and Drift binds
+      // positionally.
+      final scaleParams = [
+        scale.excellentAtOrAboveM,
+        scale.goodAtOrAboveM,
+        scale.moderateAtOrAboveM,
+      ];
+      final params = diverId != null
+          ? [...scaleParams, diverId, ...df.params]
+          : [...scaleParams, ...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          visibility,
-          COUNT(*) AS count
-        FROM dives
-        WHERE visibility IS NOT NULL AND visibility != '' $diverFilter ${df.clause}
-        GROUP BY visibility
-        ORDER BY count DESC
+        SELECT bucket, COUNT(*) AS count FROM (
+          SELECT CASE
+            WHEN visibility_meters IS NOT NULL THEN
+              CASE
+                WHEN visibility_meters >= ? THEN 'excellent'
+                WHEN visibility_meters >= ? THEN 'good'
+                WHEN visibility_meters >= ? THEN 'moderate'
+                ELSE 'poor'
+              END
+            ELSE 'legacy_' || visibility
+          END AS bucket
+          FROM dives
+          WHERE (
+            visibility_meters IS NOT NULL
+            OR (visibility IS NOT NULL AND visibility != '')
+          ) $diverFilter ${df.clause}
+        )
+        GROUP BY bucket
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final total = results.fold<int>(
-        0,
-        (sum, row) => sum + row.read<int>('count'),
-      );
+      final counts = <String, int>{
+        for (final row in results)
+          row.read<String>('bucket'): row.read<int>('count'),
+      };
+
+      final total = counts.values.fold<int>(0, (sum, c) => sum + c);
       if (total == 0) return [];
 
-      return results.map((row) {
-        final count = row.read<int>('count');
+      // Calibrated bands first, best to worst, then whatever legacy buckets
+      // remain. The legacy segments shrink naturally as old dives are edited.
+      final ordered = <String>[
+        ...[
+          VisibilityBand.excellent,
+          VisibilityBand.good,
+          VisibilityBand.moderate,
+          VisibilityBand.poor,
+        ].map((b) => b.name).where(counts.containsKey),
+        ...counts.keys.where((k) => k.startsWith('legacy_')).toList()..sort(),
+      ];
+
+      return ordered.map((key) {
+        final count = counts[key]!;
         return DistributionSegment(
-          label: row.read<String>('visibility'),
+          label: key,
           count: count,
           percentage: count / total * 100,
         );
@@ -1011,7 +1192,10 @@ class StatisticsRepository {
     }
   }
 
-  /// Get water type distribution (salt/fresh)
+  /// Get water type distribution (salt/fresh).
+  ///
+  /// Emits the stored WaterType enum name as a stable key; the presentation
+  /// layer translates it (see `waterTypeDistributionLabel`).
   Future<List<DistributionSegment>> getWaterTypeDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1023,7 +1207,7 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          COALESCE(water_type, 'Unknown') AS water_type,
+          water_type,
           COUNT(*) AS count
         FROM dives
         WHERE water_type IS NOT NULL AND water_type != '' $diverFilter ${df.clause}
@@ -1055,7 +1239,10 @@ class StatisticsRepository {
     }
   }
 
-  /// Get entry method distribution
+  /// Get entry method distribution.
+  ///
+  /// Emits the stored EntryMethod enum name as a stable key; the
+  /// presentation layer translates it (see `entryMethodDistributionLabel`).
   Future<List<DistributionSegment>> getEntryMethodDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1092,6 +1279,53 @@ class StatisticsRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get entry method distribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Observed entry/exit method pairings among a diver's dives at one site,
+  /// most frequent first (issue #1104).
+  ///
+  /// Grouping on the pair is deliberate, not incidental. The dive form
+  /// defaults exit method to mirror entry, so taking the most common
+  /// exit_method independently would over-report "in and out the same way"
+  /// for values the diver never actually set. Rows with no entry method carry
+  /// no information and are excluded; a null exit method is meaningful and is
+  /// carried through as null.
+  Future<List<EntryExitPairCount>> getEntryExitMethodPairsForSite({
+    required String siteId,
+    String? diverId,
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final params = diverId != null ? [siteId, diverId] : [siteId];
+
+      final results = await _db.customSelect('''
+        SELECT
+          entry_method,
+          exit_method,
+          COUNT(*) AS count
+        FROM dives
+        WHERE site_id = ?
+          AND entry_method IS NOT NULL AND entry_method != '' $diverFilter
+        GROUP BY entry_method, exit_method
+        ORDER BY count DESC
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      return results.map((row) {
+        final exit = row.read<String?>('exit_method');
+        return EntryExitPairCount(
+          entryMethod: row.read<String>('entry_method'),
+          exitMethod: (exit == null || exit.isEmpty) ? null : exit,
+          count: row.read<int>('count'),
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get entry/exit method pairs for site: $siteId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -1669,7 +1903,13 @@ class StatisticsRepository {
     }
   }
 
-  /// Get dives by time of day (morning, afternoon, evening, night)
+  /// Get dives by time of day (morning, afternoon, evening, night).
+  ///
+  /// The bucket names are stable keys, not display text: the same literals
+  /// are the ORDER BY sort keys below, so translating them in SQL would
+  /// reorder the chart per locale (and break the fixed colour order in the
+  /// legend). The presentation layer translates them instead, through
+  /// `timeOfDayDistributionLabel`.
   Future<List<DistributionSegment>> getDivesByTimeOfDay({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1920,7 +2160,32 @@ class StatisticsRepository {
   // Profile Analysis Statistics
   // ============================================================================
 
-  /// Get average ascent/descent rates
+  /// Get average ascent/descent rates in m/min, or null when the filtered
+  /// dives hold no vertical movement to average.
+  ///
+  /// Rates are derived from the stored depth samples rather than read from
+  /// `dive_profiles.ascent_rate`: no download or import path ever populates
+  /// that column (libdivecomputer reports no ascent-rate sample type), so it is
+  /// null for every row and averaging it always yielded an empty section.
+  ///
+  /// The derivation follows the same conventions as [AscentRateCalculator],
+  /// which computes rates per-dive for the profile chart, but smooths by a
+  /// different (cheaper, set-based) filter -- see [_rateWindowSeconds]:
+  ///
+  /// - Samples are averaged into fixed [_rateWindowSeconds] buckets, which
+  ///   makes the result independent of the computer's sample interval and keeps
+  ///   depth-resolution noise from dominating (0.1 m between two 1 s samples is
+  ///   already 6 m/min of pure quantisation noise).
+  /// - The rate between two buckets uses their mean sample times, not the
+  ///   bucket width, so uneven occupancy at the edges cannot distort the
+  ///   interval.
+  /// - Positive is ascending, matching [AscentRatePoint.rateMetersPerMin].
+  /// - Buckets slower than [_sustainedTransitThreshold] are excluded, so
+  ///   working a multi-level profile does not read as ascending or descending.
+  ///
+  /// Only primary profile rows are considered, so a dive logged by two
+  /// computers — or one whose original profile was demoted by an edit — is
+  /// counted once rather than interleaving two sample streams.
   Future<({double? avgAscent, double? avgDescent})> getAscentDescentRates({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1931,12 +2196,38 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
+        WITH windows AS (
+          SELECT
+            p.dive_id AS dive_id,
+            p.computer_id AS computer_id,
+            p.timestamp / $_rateWindowSeconds AS window_index,
+            AVG(p.depth) AS depth,
+            AVG(p.timestamp) AS at
+          FROM dive_profiles p
+          JOIN dives d ON d.id = p.dive_id
+          WHERE p.is_primary = 1 $diverFilter ${df.clause}
+          GROUP BY p.dive_id, p.computer_id, p.timestamp / $_rateWindowSeconds
+        ),
+        paired AS (
+          SELECT
+            depth,
+            at,
+            LAG(depth) OVER w AS prev_depth,
+            LAG(at) OVER w AS prev_at
+          FROM windows
+          WINDOW w AS (PARTITION BY dive_id, computer_id ORDER BY window_index)
+        ),
+        rates AS (
+          SELECT (prev_depth - depth) * 60.0 / (at - prev_at) AS rate
+          FROM paired
+          WHERE prev_at IS NOT NULL AND at > prev_at
+        )
         SELECT
-          AVG(CASE WHEN p.ascent_rate < 0 THEN ABS(p.ascent_rate) ELSE NULL END) AS avg_ascent,
-          AVG(CASE WHEN p.ascent_rate > 0 THEN p.ascent_rate ELSE NULL END) AS avg_descent
-        FROM dive_profiles p
-        JOIN dives d ON d.id = p.dive_id
-        WHERE p.ascent_rate IS NOT NULL $diverFilter ${df.clause}
+          AVG(CASE WHEN rate >= $_sustainedTransitThreshold THEN rate END)
+            AS avg_ascent,
+          AVG(CASE WHEN rate <= -$_sustainedTransitThreshold THEN -rate END)
+            AS avg_descent
+        FROM rates
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       if (results.isEmpty) return (avgAscent: null, avgDescent: null);
@@ -1960,6 +2251,37 @@ class StatisticsRepository {
   /// display layer converts to the user's preferred depth unit so the chart's
   /// axis label and bucket labels match the setting. The top bucket is
   /// open-ended ([upperDepth] is null).
+  ///
+  /// Minutes come from the sample timestamps, not from a row count: the
+  /// interval between one sample and the next is credited to the bucket the
+  /// earlier sample sits in. Counting rows and calling each one a second, as
+  /// this query used to, is only right for a computer sampling at 1 Hz: for
+  /// the many that record every 2, 4, 5, 10 or 20 seconds it divides every
+  /// bucket by that interval. Differencing timestamps needs no
+  /// assumption about the recording rate at all, and it makes duplicate rows
+  /// from a repeated import harmless: the repeat adds a zero-length interval
+  /// rather than a second helping of time.
+  ///
+  /// Each dive's intervals are capped at [_maxSampleGapFactor] times that
+  /// profile's own mean interval so a recording pause is not banked as bottom
+  /// time. A profile's total therefore spans its first sample to its last: the
+  /// last sample opens no interval, and whatever time the diver spent after it
+  /// was never recorded and cannot be recovered here.
+  ///
+  /// Samples are ordered by `(timestamp, id)` rather than timestamp alone.
+  /// Ties cannot lose time whichever way they fall -- every row but the last
+  /// of a tied group yields a zero-length interval, and the last carries the
+  /// whole step to the next timestamp -- but if tied rows sit in different
+  /// buckets, the tie order decides which bucket that step lands in. Ordering
+  /// by row id makes that choice reproducible instead of leaving it to
+  /// SQLite.
+  ///
+  /// Only primary profile rows are counted, matching [getAscentDescentRates]:
+  /// a dive logged by two computers, or one whose original profile was demoted
+  /// by an edit, otherwise contributes both sample streams and roughly doubles
+  /// every bucket. Note that a dive left with no primary rows at all is
+  /// skipped entirely -- see issue #1149, which tracks the promotion bug that
+  /// can produce that state.
   Future<List<({int lowerDepth, int? upperDepth, int minutes})>>
   getTimeAtDepthRanges({
     String? diverId,
@@ -1971,31 +2293,61 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
+        WITH samples AS (
+          SELECT
+            p.dive_id AS dive_id,
+            p.computer_id AS computer_id,
+            p.id AS sample_id,
+            p.timestamp AS at,
+            p.depth AS depth
+          FROM dive_profiles p
+          JOIN dives d ON d.id = p.dive_id
+          WHERE p.is_primary = 1 $diverFilter ${df.clause}
+        ),
+        cadence AS (
+          SELECT
+            dive_id,
+            computer_id,
+            (MAX(at) - MIN(at)) * $_maxSampleGapFactor / (COUNT(*) - 1.0)
+              AS max_interval
+          FROM samples
+          GROUP BY dive_id, computer_id
+          HAVING COUNT(*) > 1
+        ),
+        intervals AS (
+          SELECT
+            dive_id,
+            computer_id,
+            depth,
+            LEAD(at) OVER w - at AS seconds
+          FROM samples
+          WINDOW w AS (
+            PARTITION BY dive_id, computer_id ORDER BY at, sample_id
+          )
+        )
         SELECT
           CASE
-            WHEN p.depth < 10 THEN 0
-            WHEN p.depth < 20 THEN 10
-            WHEN p.depth < 30 THEN 20
-            WHEN p.depth < 40 THEN 30
+            WHEN i.depth < 10 THEN 0
+            WHEN i.depth < 20 THEN 10
+            WHEN i.depth < 30 THEN 20
+            WHEN i.depth < 40 THEN 30
             ELSE 40
           END AS bucket_lo,
-          COUNT(*) AS sample_count
-        FROM dive_profiles p
-        JOIN dives d ON d.id = p.dive_id
-        WHERE 1=1 $diverFilter ${df.clause}
+          SUM(MIN(i.seconds * 1.0, c.max_interval)) AS seconds
+        FROM intervals i
+        JOIN cadence c
+          ON c.dive_id = i.dive_id AND c.computer_id IS i.computer_id
+        WHERE i.seconds > 0
         GROUP BY bucket_lo
         ORDER BY bucket_lo
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      // Sample count approximates minutes (profiles are usually sampled every
-      // second or few seconds) — a rough estimate matching the original
-      // implementation.
       return results.map((row) {
         final lo = row.read<int>('bucket_lo');
         return (
           lowerDepth: lo,
           upperDepth: lo >= 40 ? null : lo + 10,
-          minutes: (row.read<int>('sample_count') / 60).round(),
+          minutes: (row.read<double>('seconds') / 60).round(),
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -2008,8 +2360,28 @@ class StatisticsRepository {
     }
   }
 
-  /// Get percentage of dives with decompression obligation
-  Future<({int decoCount, int totalCount})> getDecoObligationStats({
+  /// Classifies each filtered dive's decompression obligation from recorded
+  /// profile data alone.
+  ///
+  /// Resolution order, highest confidence first:
+  ///
+  /// 1. `deco_type = 2` (DC_DECO_DECOSTOP per libdc_wrapper.h) or a
+  ///    `decoStopStart` profile event means deco. Types 1 and 3 are safety
+  ///    and deep stops, which are not decompression obligations; the old
+  ///    `ceiling > 0` test counted both, because both profile mappers write
+  ///    `ceiling = decoDepth` for any non-zero deco type.
+  /// 2. A profile that carries `deco_type` values, none of which is 2, means
+  ///    no deco. The computer was recording obligations and reported none.
+  /// 3. `ceiling > 0` on a profile with no `deco_type` at all means deco.
+  ///    Subsurface XML, DAN DL7 and FIT write a stop depth without a type,
+  ///    so this clause keeps them working without re-admitting safety stops.
+  /// 4. Anything else with a profile needs the computed fallback: many
+  ///    sources (MacDive, Shearwater Cloud, generic UDDF, CSV, OCR) record no
+  ///    deco columns at all, and for those the app's own analysis is the only
+  ///    evidence there is. It is also what the dive detail page displays.
+  /// 5. A dive with no profile is unclassifiable and must not be counted as
+  ///    no-deco.
+  Future<DecoSignalScan> scanRecordedDecoSignals({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
@@ -2019,27 +2391,108 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
+        WITH scoped AS (
+          SELECT d.id AS dive_id
+          FROM dives d
+          WHERE 1=1 $diverFilter ${df.clause}
+        ),
+        signals AS (
+          SELECT
+            s.dive_id AS dive_id,
+            MAX(CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END) AS has_profile,
+            MAX(CASE WHEN p.deco_type IS NOT NULL THEN 1 ELSE 0 END)
+              AS has_deco_type,
+            MAX(CASE WHEN p.deco_type = 2 THEN 1 ELSE 0 END) AS deco_stop,
+            MAX(CASE WHEN p.ceiling > 0 THEN 1 ELSE 0 END) AS positive_ceiling
+          FROM scoped s
+          LEFT JOIN dive_profiles p ON p.dive_id = s.dive_id
+          GROUP BY s.dive_id
+        ),
+        stop_events AS (
+          SELECT DISTINCT e.dive_id AS dive_id
+          FROM dive_profile_events e
+          JOIN scoped s ON s.dive_id = e.dive_id
+          WHERE e.event_type = 'decoStopStart'
+        )
         SELECT
-          COUNT(DISTINCT CASE WHEN p.ceiling > 0 THEN d.id END) AS deco_count,
-          COUNT(DISTINCT d.id) AS total_count
-        FROM dives d
-        LEFT JOIN dive_profiles p ON p.dive_id = d.id
-        WHERE 1=1 $diverFilter ${df.clause}
+          sig.dive_id AS dive_id,
+          d.updated_at AS updated_at,
+          CASE
+            WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
+            WHEN sig.has_deco_type = 1 THEN 'no_deco'
+            WHEN sig.positive_ceiling = 1 THEN 'deco'
+            WHEN sig.has_profile = 1 THEN 'compute'
+            ELSE 'no_profile'
+          END AS classification
+        FROM signals sig
+        JOIN dives d ON d.id = sig.dive_id
+        LEFT JOIN stop_events ev ON ev.dive_id = sig.dive_id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      if (results.isEmpty) return (decoCount: 0, totalCount: 0);
+      final recordedDeco = <String>{};
+      final recordedNoDeco = <String>{};
+      final needsCompute = <String, int>{};
+      final noProfile = <String>{};
+      for (final row in results) {
+        final id = row.read<String>('dive_id');
+        switch (row.read<String>('classification')) {
+          case 'deco':
+            recordedDeco.add(id);
+          case 'no_deco':
+            recordedNoDeco.add(id);
+          case 'compute':
+            // Non-null read on purpose. `dives.updated_at` is a non-nullable
+            // column and the query inner-joins dives, so a null here means the
+            // schema or the query drifted. Defaulting to 0 would silently
+            // collapse every dive onto one fingerprint component and stop
+            // edits invalidating the computed classification cache, so fail
+            // loudly instead.
+            needsCompute[id] = row.read<int>('updated_at');
+          default:
+            noProfile.add(id);
+        }
+      }
       return (
-        decoCount: results.first.read<int?>('deco_count') ?? 0,
-        totalCount: results.first.read<int?>('total_count') ?? 0,
+        recordedDeco: recordedDeco,
+        recordedNoDeco: recordedNoDeco,
+        needsCompute: needsCompute,
+        noProfile: noProfile,
       );
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get deco obligation stats',
+        'Failed to scan recorded deco signals',
         error: e,
         stackTrace: stackTrace,
       );
-      return (decoCount: 0, totalCount: 0);
+      return (
+        recordedDeco: const <String>{},
+        recordedNoDeco: const <String>{},
+        needsCompute: const <String, int>{},
+        noProfile: const <String>{},
+      );
     }
+  }
+
+  /// Deco obligation counts from recorded data alone.
+  ///
+  /// Dives needing the computed fallback are reported as unknown here. The
+  /// statistics provider composes this with the computed classification
+  /// cache; this method is the recorded-only view, used by tests and by any
+  /// caller that must not trigger analysis work.
+  Future<({int decoCount, int noDecoCount, int unknownCount})>
+  getDecoObligationStats({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    final scan = await scanRecordedDecoSignals(
+      diverId: diverId,
+      filter: filter,
+    );
+    return (
+      decoCount: scan.recordedDeco.length,
+      noDecoCount: scan.recordedNoDeco.length,
+      unknownCount: scan.needsCompute.length + scan.noProfile.length,
+    );
   }
 
   /// Aggregates of one diver's history at a site, matched by exact

@@ -95,41 +95,51 @@ class _TemplateTile extends ConsumerWidget {
       if (template.category != null) template.category!,
       if (template.strictOrder) l10n.preDive_templates_strictOrderBadge,
     ];
+    final subtitleText = subtitleParts.isEmpty
+        ? (template.description.isEmpty ? null : template.description)
+        : subtitleParts.join(' - ');
+
+    // The built-in badge sits in the subtitle rather than in trailing: a
+    // ListTile measures its trailing widget against the full tile width, so a
+    // translated badge label there starves the title column (issue #935).
     return ListTile(
       leading: Icon(template.isBuiltIn ? Icons.lock_outline : Icons.fact_check),
-      title: Text(template.name),
-      subtitle: subtitleParts.isEmpty
-          ? (template.description.isEmpty ? null : Text(template.description))
-          : Text(subtitleParts.join(' - ')),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (template.isBuiltIn)
-            Chip(
-              label: Text(l10n.preDive_templates_builtInBadge),
-              visualDensity: VisualDensity.compact,
+      title: Text(template.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+      isThreeLine: template.isBuiltIn && subtitleText != null,
+      subtitle: subtitleText == null && !template.isBuiltIn
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (subtitleText != null) Text(subtitleText),
+                if (template.isBuiltIn)
+                  Chip(
+                    label: Text(l10n.preDive_templates_builtInBadge),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+              ],
             ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'clone':
-                  _clone(context, ref);
-                case 'delete':
-                  _confirmDelete(context, ref);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'clone',
-                child: Text(l10n.preDive_templates_clone),
-              ),
-              if (!template.isBuiltIn)
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Text(l10n.preDive_templates_delete),
-                ),
-            ],
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) {
+          switch (value) {
+            case 'clone':
+              _clone(context, ref);
+            case 'delete':
+              _confirmDelete(context, ref);
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'clone',
+            child: Text(l10n.preDive_templates_clone),
           ),
+          if (!template.isBuiltIn)
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(l10n.preDive_templates_delete),
+            ),
         ],
       ),
       onTap: template.isBuiltIn

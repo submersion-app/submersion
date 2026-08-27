@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -11,8 +12,8 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 
 import '../../../helpers/mock_providers.dart';
 
-DiveProfilePoint point(int t, double d) =>
-    DiveProfilePoint(timestamp: t, depth: d);
+DiveProfilePoint point(int t, double d, {double? temp}) =>
+    DiveProfilePoint(timestamp: t, depth: d, temperature: temp);
 
 Future<ProviderContainer> makeContainer({
   Map<String, SourceProfile> sourceProfiles = const {},
@@ -82,7 +83,8 @@ void main() {
       await empty.read(
         dive3dGeometryProvider((
           diveId: 'd1',
-          metric: SceneMetric.depth,
+          colorMetric: SceneMetric.depth,
+          zMetric: null,
         )).future,
       ),
       isNull,
@@ -99,16 +101,52 @@ void main() {
       },
     );
     final scene = await container.read(
-      dive3dGeometryProvider((diveId: 'd1', metric: SceneMetric.depth)).future,
+      dive3dGeometryProvider((
+        diveId: 'd1',
+        colorMetric: SceneMetric.depth,
+        zMetric: null,
+      )).future,
     );
     expect(scene, isNotNull);
     // Ribbon (last structural layer): 3 samples x 2 vertices.
     expect(
       scene!.layers.lastWhere((l) => l.overlay == null).mesh.vertexCount,
-      6,
+      12,
     );
-    // Grid (first structural layer) present for a 10m dive at 10m steps.
-    expect(scene.layers.first.overlay, isNull);
+    expect(scene.layers.last.overlay, isNull); // the path
     expect(scene.scrubPath, isNotNull);
+  });
+
+  test('a Z metric puts shadows in the scene and exposes its axis', () async {
+    final container = await makeContainer(
+      sourceProfiles: {
+        'src': SourceProfile(
+          sourceId: 'src',
+          computerId: null,
+          isEdited: false,
+          points: [
+            point(0, 0, temp: 22),
+            point(60, 10, temp: 14),
+            point(120, 0, temp: 20),
+          ],
+        ),
+      },
+    );
+    await container.read(dive3dSceneDataProvider('d1').future);
+    final axis = container.read(
+      dive3dZAxisProvider((diveId: 'd1', zMetric: SceneMetric.temperature)),
+    );
+    expect(axis!.spec.symbol, '°C');
+    final scene = await container.read(
+      dive3dGeometryProvider((
+        diveId: 'd1',
+        colorMetric: SceneMetric.depth,
+        zMetric: SceneMetric.temperature,
+      )).future,
+    );
+    expect(
+      scene!.layers.where((l) => l.overlay == SceneOverlay.shadows),
+      hasLength(2),
+    );
   });
 }

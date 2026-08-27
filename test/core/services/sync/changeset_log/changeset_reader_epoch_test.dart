@@ -51,6 +51,7 @@ void main() {
     String peerId, {
     String? epochId,
     int? manifestUpdatedAt,
+    String? deviceName,
   }) async {
     await writer.publish(
       provider: provider,
@@ -58,6 +59,7 @@ void main() {
       folderId: folder,
       deletions: const [],
       epochId: epochId,
+      deviceName: deviceName,
     );
     if (manifestUpdatedAt != null) {
       final manifestFile = (await provider.listFiles(
@@ -121,6 +123,32 @@ void main() {
     expect(result.peersProcessed, 0);
     expect(applied, isEmpty);
     expect(result.skippedPeerDeviceIds, {'peer-1'});
+  });
+
+  test('collects display names for skipped peers only', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publishPeer(
+      'stale-named',
+      epochId: 'epoch-OLD',
+      deviceName: 'Erics-iPhone',
+    );
+    await publishPeer('stale-unnamed', epochId: 'epoch-OLD');
+    await publishPeer(
+      'healthy',
+      epochId: 'epoch-NEW',
+      deviceName: 'Erics-iPad',
+    );
+
+    final result = await pull(currentEpochId: 'epoch-NEW');
+
+    expect(result.skippedPeerDeviceIds, {'stale-named', 'stale-unnamed'});
+    // Only the named stale peer resolves. The unnamed one is absent so the UI
+    // falls back to an id label rather than inventing a name.
+    expect(result.skippedPeerNames, {'stale-named': 'Erics-iPhone'});
+    // A healthy peer is never listed, named or not.
+    expect(result.skippedPeerNames.containsKey('healthy'), isFalse);
   });
 
   test('skips unstamped peers regardless of manifest timestamp', () async {

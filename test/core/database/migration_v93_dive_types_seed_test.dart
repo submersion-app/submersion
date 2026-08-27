@@ -64,7 +64,7 @@ void main() {
     expect(custom.length, 1);
     expect(custom.first['name'], 'Reef Cleanup');
 
-    db.dispose();
+    db.close();
   });
 
   test('v93 is in the migration ladder', () {

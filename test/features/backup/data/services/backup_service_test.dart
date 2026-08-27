@@ -43,7 +43,10 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   }
 
   @override
-  Future<void> restore(String backupPath) async {
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async {
     restoreCallCount++;
     lastRestorePath = backupPath;
   }
@@ -54,6 +57,9 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
   AppDatabase get database =>
       throw UnimplementedError('Fake database does not support direct queries');
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 /// Spy sync repository: records the post-restore re-baseline without touching a
@@ -111,6 +117,11 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
   bool shouldFailUpload = false;
   bool shouldFailDelete = false;
   bool shouldFailDownload = false;
+
+  /// Models a provider that is reachable for auth but cannot serve the backup
+  /// folder (offline, revoked scope, quota) -- the path where the upload is
+  /// abandoned before any bytes are sent.
+  bool shouldFailCreateFolder = false;
   String? createdFolder;
   int uploadCallCount = 0;
 
@@ -155,6 +166,22 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
   }
 
   @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    final data = await File(sourcePath).readAsBytes();
+    return uploadFile(data, filename, folderId: folderId);
+  }
+
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    final bytes = await downloadFile(fileId);
+    await File(destinationPath).writeAsBytes(bytes, flush: true);
+  }
+
+  @override
   Future<CloudFileInfo?> getFileInfo(String fileId) async => null;
 
   @override
@@ -183,6 +210,9 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
     String folderName, {
     String? parentFolderId,
   }) async {
+    if (shouldFailCreateFolder) {
+      throw const CloudStorageException('Folder unavailable');
+    }
     createdFolder = folderName;
     return 'folder-$folderName';
   }
@@ -195,7 +225,21 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
 // Tests
 // =============================================================================
 
+/// Per-file temp root, so the backup service's fixed `Submersion/Backups`
+/// subtree does not collide with the other suites that mock path_provider the
+/// same way. `flutter test` runs files in parallel isolates against one real
+/// $TMPDIR, so sharing it let one suite truncate or encrypt another's artifact
+/// mid-assert.
+final _isolatedTempDir = Directory.systemTemp.createTempSync(
+  'backup_svc_test_',
+);
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   group('BackupService', () {
     late BackupPreferences preferences;
     late FakeCloudStorageProvider fakeCloud;
@@ -208,10 +252,10 @@ void main() {
             const MethodChannel('plugins.flutter.io/path_provider'),
             (MethodCall methodCall) async {
               if (methodCall.method == 'getTemporaryDirectory') {
-                return Directory.systemTemp.path;
+                return _isolatedTempDir.path;
               }
               if (methodCall.method == 'getApplicationDocumentsDirectory') {
-                return Directory.systemTemp.path;
+                return _isolatedTempDir.path;
               }
               return null;
             },
@@ -675,7 +719,7 @@ void main() {
         final db = sqlite3.sqlite3.open(dbFile.path);
         db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
         db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
-        db.dispose();
+        db.close();
 
         final service = BackupService(
           dbAdapter: fakeDb,
@@ -707,7 +751,7 @@ void main() {
             'CREATE TABLE dive_sites (id TEXT PRIMARY KEY, name TEXT)',
           );
           db.execute('PRAGMA user_version = 20');
-          db.dispose();
+          db.close();
 
           final service = BackupService(
             dbAdapter: fakeDb,
@@ -731,7 +775,7 @@ void main() {
                   .toList();
               expect(columnNames, isNot(contains('wearable_source')));
             } finally {
-              verifyDb.dispose();
+              verifyDb.close();
             }
           } finally {
             await tempDir.delete(recursive: true);
@@ -766,7 +810,7 @@ void main() {
 
           final db = sqlite3.sqlite3.open(dbFile.path);
           db.execute('CREATE TABLE some_other_table (id TEXT PRIMARY KEY)');
-          db.dispose();
+          db.close();
 
           final service = BackupService(
             dbAdapter: fakeDb,
@@ -976,6 +1020,45 @@ void main() {
         expect(fakeDb.lastBackupPath, contains('Submersion'));
         expect(fakeDb.lastBackupPath, contains('Backups'));
       });
+    });
+
+    group('performBackup cloud upload', () {
+      test('records both locations when the upload lands', () async {
+        await preferences.setCloudBackupEnabled(true);
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: fakeCloud,
+        );
+
+        final record = await service.performBackup(isAutomatic: true);
+
+        expect(fakeCloud.uploadedFiles, hasLength(1));
+        expect(record.location, BackupLocation.both);
+        expect(record.cloudFileId, isNotNull);
+      });
+
+      test(
+        'records local-only when the cloud folder cannot be reached: '
+        'history must never claim a cloud copy that does not exist',
+        () async {
+          await preferences.setCloudBackupEnabled(true);
+          fakeCloud.shouldFailCreateFolder = true;
+
+          final service = BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+            cloudProvider: fakeCloud,
+          );
+
+          final record = await service.performBackup();
+
+          expect(fakeCloud.uploadedFiles, isEmpty);
+          expect(record.cloudFileId, isNull);
+          expect(record.location, BackupLocation.local);
+        },
+      );
     });
 
     group('resolveBackupsDirectory', () {

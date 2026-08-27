@@ -35,7 +35,7 @@ File buildSyntheticMacDiveDb(String path) {
     _createSchema(db);
     _insertFixtureRows(db);
   } finally {
-    db.dispose();
+    db.close();
   }
   return f;
 }
@@ -99,7 +99,8 @@ void _createSchema(Database db) {
       ZNAME VARCHAR, ZMANUFACTURER VARCHAR, ZMODEL VARCHAR, ZSERIAL VARCHAR,
       ZTYPE VARCHAR, ZWEIGHT FLOAT, ZPRICE FLOAT,
       ZDATEPURCHASE TIMESTAMP, ZDATENEXTSERVICE TIMESTAMP,
-      ZNOTES VARCHAR, ZURL VARCHAR, ZWARRANTY VARCHAR, ZUUID VARCHAR
+      ZNOTES VARCHAR, ZURL VARCHAR, ZWARRANTY VARCHAR, ZUUID VARCHAR,
+      ZCURRENCY VARCHAR, ZDISABLED INTEGER
     )
   ''');
   db.execute('''
@@ -149,6 +150,7 @@ void _createSchema(Database db) {
       ZNAME VARCHAR, ZAGENCY VARCHAR,
       ZATTAINED TIMESTAMP, ZEXPIRY TIMESTAMP,
       ZINSTRUCTORNAME VARCHAR, ZINSTRUCTORNUMBER VARCHAR,
+      ZINSTRUCTORSHOP VARCHAR, ZDIVERNUMBER VARCHAR,
       ZCARDFRONT VARCHAR, ZCARDBACK VARCHAR, ZUUID VARCHAR
     )
   ''');
@@ -164,6 +166,31 @@ void _createSchema(Database db) {
       Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
       ZRELATIONSHIPEVENTTODIVE INTEGER,
       ZTYPE INTEGER, ZTIME FLOAT, ZDETAIL VARCHAR, ZUUID VARCHAR
+    )
+  ''');
+  db.execute('''
+    CREATE TABLE ZDIVETYPE (
+      Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
+      ZNAME VARCHAR, ZUUID VARCHAR
+    )
+  ''');
+  db.execute('''
+    CREATE TABLE Z_5RELATIONSHIPDIVETYPES (
+      Z_5RELATIONSHIPTYPETODIVES INTEGER, Z_10RELATIONSHIPDIVETYPES INTEGER
+    )
+  ''');
+  db.execute('''
+    CREATE TABLE ZDIVELOG (
+      Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
+      ZISGROUP INTEGER, ZSORTORDER INTEGER, ZIMAGE VARCHAR,
+      ZNAME VARCHAR, ZUUID VARCHAR, ZPREDICATE BLOB
+    )
+  ''');
+  db.execute('''
+    CREATE TABLE ZDIVER (
+      Z_PK INTEGER PRIMARY KEY, Z_ENT INTEGER, Z_OPT INTEGER,
+      ZFIRSTNAME VARCHAR, ZLASTNAME VARCHAR, ZEMAILADDRESS VARCHAR,
+      ZUUID VARCHAR
     )
   ''');
   db.execute('''
@@ -216,8 +243,43 @@ void _insertFixtureRows(Database db) {
 
   // ---- gear ----
   db.execute('''
-    INSERT INTO ZGEARITEM (Z_PK, ZNAME, ZMANUFACTURER, ZMODEL, ZTYPE, ZUUID)
-    VALUES (1, 'Hydros Pro', 'Scubapro', 'Hydros Pro', 'BCD', 'gear-uuid-1')
+    INSERT INTO ZGEARITEM (Z_PK, ZNAME, ZMANUFACTURER, ZMODEL, ZTYPE, ZUUID,
+                           ZPRICE, ZCURRENCY, ZDISABLED)
+    VALUES
+      (1, 'Hydros Pro', 'Scubapro', 'Hydros Pro', 'BCD - Wing', 'gear-uuid-1',
+        499.0, 'USD', 0),
+      (2, 'Old Regs', 'Aqualung', 'Titan', 'Reg - Longhose', 'gear-uuid-2',
+        NULL, NULL, 1)
+  ''');
+
+  // ---- dive types ----
+  db.execute('''
+    INSERT INTO ZDIVETYPE (Z_PK, ZNAME, ZUUID) VALUES
+      (1, 'Shore',    'divetype-uuid-1'),
+      (2, 'Aquarium', 'divetype-uuid-2')
+  ''');
+
+  // ---- service records ----
+  db.execute('''
+    INSERT INTO ZSERVICERECORD (Z_PK, ZRELATIONSHIPGEARITEM, ZSERVICEDATE,
+                                ZSERVICEDBY, ZNOTES, ZUUID)
+    VALUES (1, 1, 738936000.0, 'Seals Watersports', 'Swapped yoke to DIN',
+            'service-uuid-1')
+  ''');
+
+  // ---- certifications ----
+  db.execute('''
+    INSERT INTO ZCERTIFICATION (Z_PK, ZNAME, ZAGENCY, ZATTAINED,
+                                ZINSTRUCTORNAME, ZINSTRUCTORSHOP,
+                                ZDIVERNUMBER, ZUUID)
+    VALUES (1, 'Rescue Scuba Diver', 'NAUI', 738936000.0,
+            'Jose Salazar', 'Bamboo Reef', '2649227', 'cert-uuid-1')
+  ''');
+
+  // ---- logbooks (all smart groups, as MacDive really stores them) ----
+  db.execute('''
+    INSERT INTO ZDIVELOG (Z_PK, ZISGROUP, ZSORTORDER, ZNAME, ZUUID, ZPREDICATE)
+    VALUES (1, 0, 1, 'Tropical', 'divelog-uuid-1', X'0102030405')
   ''');
 
   // ---- dives ----
@@ -264,6 +326,14 @@ void _insertFixtureRows(Database db) {
     INSERT INTO Z_5RELATIONSHIPGEARITEMS
     (Z_5RELATIONSHIPGEARTODIVES, Z_14RELATIONSHIPGEARITEMS)
     VALUES (1, 1)
+  ''');
+
+  // ---- dive-divetype junctions ----
+  // Dive 1: Shore + Aquarium. Dive 2: Aquarium. Dive 3: none.
+  db.execute('''
+    INSERT INTO Z_5RELATIONSHIPDIVETYPES
+    (Z_5RELATIONSHIPTYPETODIVES, Z_10RELATIONSHIPDIVETYPES)
+    VALUES (1, 1), (1, 2), (2, 2)
   ''');
 
   // ---- tank + gas linkage ----

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -12,9 +16,14 @@ import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
+    show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/replace_cloud_library_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/newer_schema_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
@@ -50,21 +59,40 @@ String connectionErrorMessage(
   return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
 }
 
-class CloudSyncPage extends ConsumerWidget {
+class CloudSyncPage extends ConsumerStatefulWidget {
   const CloudSyncPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CloudSyncPage> createState() => _CloudSyncPageState();
+}
+
+class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Recompute on entry. SyncState's counts and cursor are otherwise only
+    // written by a sync, so without this the page could report the state as of
+    // whenever the notifier was built -- the stale reading behind issue #990.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(syncStateProvider.notifier).refreshState();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final syncState = ref.watch(syncStateProvider);
-    // Google Drive is hidden until its integration is implemented, but a
-    // persisted selection or SyncRepository's fallback can still surface
-    // `googledrive`. Treat it as no provider so the page can never show
-    // Sync Now enabled with no selected tile.
-    final rawProvider = ref.watch(selectedCloudProviderTypeProvider);
-    final selectedProvider = rawProvider == CloudProviderType.googledrive
-        ? null
-        : rawProvider;
-    final hasProvider = selectedProvider != null;
+    final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
+    // A persisted Google Drive selection must not enable Sync Now on a build
+    // where Drive is unavailable (e.g. a desktop build without the OAuth
+    // client compiled in) -- the tile is disabled in that case, so an enabled
+    // Sync Now with no usable provider would be inconsistent.
+    final googleDriveAvailable =
+        ref.watch(googleDriveAvailableProvider).value ?? false;
+    final selectionUsable =
+        selectedProvider != CloudProviderType.googledrive ||
+        googleDriveAvailable;
+    final hasProvider = selectedProvider != null && selectionUsable;
     final isCustomFolderMode = ref.watch(
       isCloudSyncDisabledByCustomFolderProvider,
     );
@@ -75,7 +103,11 @@ class CloudSyncPage extends ConsumerWidget {
       body: ListView(
         children: [
           // Show banner when custom folder mode is active
-          if (isCustomFolderMode) _buildCustomFolderBanner(context),
+          if (isCustomFolderMode)
+            _buildCustomFolderBanner(
+              context,
+              ref.watch(storagePlatformCapabilitiesProvider),
+            ),
           // Surface apparent duplicate diver profiles created across devices.
           _buildDuplicateDiversBanner(context, ref),
           _buildSyncStatusCard(context, ref, syncState),
@@ -97,14 +129,23 @@ class CloudSyncPage extends ConsumerWidget {
           const Divider(),
           const EncryptionSettingsSection(),
           const Divider(),
-          _buildAdvancedSection(context, ref),
+          _buildAdvancedSection(context, ref, hasProvider),
         ],
       ),
     );
   }
 
-  Widget _buildCustomFolderBanner(BuildContext context) {
+  Widget _buildCustomFolderBanner(
+    BuildContext context,
+    StoragePlatformCapabilities platformCaps,
+  ) {
     final theme = Theme.of(context);
+    // Where the custom folder can only be an app-specific device volume, no
+    // sync service can read it, so handing credit to the folder's own sync
+    // hides that the library is now syncing nowhere at all (#311).
+    final content = platformCaps.customFolderIsDeviceVolumeOnly
+        ? context.l10n.settings_storage_customFolder_deviceOnly_noCloudSync
+        : context.l10n.settings_cloudSync_disabledBanner_content;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -134,7 +175,7 @@ class CloudSyncPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            context.l10n.settings_cloudSync_disabledBanner_content,
+            content,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface,
             ),
@@ -143,7 +184,7 @@ class CloudSyncPage extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => context.push('/settings/storage'),
             icon: const Icon(Icons.settings),
-            label: const Text('Storage Settings'),
+            label: Text(context.l10n.settings_cloudSync_storageSettings),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.orange.shade800,
               side: BorderSide(color: Colors.orange.shade800),
@@ -323,16 +364,18 @@ class CloudSyncPage extends ConsumerWidget {
     SyncState syncState,
   ) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Semantics(
-      label:
-          _getStatusTitle(syncState.status) +
-          (syncState.lastSync != null
-              ? ', last synced ${_formatDateTime(syncState.lastSync!)}'
-              : '') +
-          (syncState.pendingChanges > 0
-              ? ', ${syncState.pendingChanges} pending changes'
-              : ''),
+      label: [
+        _getStatusTitle(l10n, syncState.status),
+        if (syncState.lastSync != null)
+          l10n.settings_cloudSync_lastSynced(
+            _formatDateTime(l10n, syncState.lastSync!),
+          ),
+        if (syncState.pendingChanges > 0)
+          l10n.settings_cloudSync_pendingChanges(syncState.pendingChanges),
+      ].join(', '),
       liveRegion: syncState.status == SyncStatus.syncing,
       child: Card(
         margin: const EdgeInsets.all(16),
@@ -360,7 +403,7 @@ class CloudSyncPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _getStatusTitle(syncState.status),
+                            _getStatusTitle(l10n, syncState.status),
                             style: theme.textTheme.titleMedium,
                           ),
                           if (syncState.message != null)
@@ -379,15 +422,18 @@ class CloudSyncPage extends ConsumerWidget {
                     syncState.progress != null) ...[
                   const SizedBox(height: 16),
                   Semantics(
-                    label:
-                        'Sync progress: ${(syncState.progress! * 100).toStringAsFixed(0)} percent',
+                    label: l10n.settings_cloudSync_syncProgressPercent(
+                      (syncState.progress! * 100).toStringAsFixed(0),
+                    ),
                     child: LinearProgressIndicator(value: syncState.progress),
                   ),
                 ],
                 if (syncState.lastSync != null) ...[
                   const SizedBox(height: 12),
                   Text(
-                    'Last synced: ${_formatDateTime(syncState.lastSync!)}',
+                    l10n.settings_cloudSync_lastSynced(
+                      _formatDateTime(l10n, syncState.lastSync!),
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -396,7 +442,9 @@ class CloudSyncPage extends ConsumerWidget {
                 if (syncState.pendingChanges > 0) ...[
                   const SizedBox(height: 4),
                   Text(
-                    '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
+                    l10n.settings_cloudSync_pendingChanges(
+                      syncState.pendingChanges,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -429,18 +477,18 @@ class CloudSyncPage extends ConsumerWidget {
     }
   }
 
-  String _getStatusTitle(SyncStatus status) {
+  String _getStatusTitle(AppLocalizations l10n, SyncStatus status) {
     switch (status) {
       case SyncStatus.idle:
-        return 'Ready to sync';
+        return l10n.settings_cloudSync_status_readyToSync;
       case SyncStatus.syncing:
-        return 'Syncing...';
+        return l10n.settings_cloudSync_status_syncing;
       case SyncStatus.success:
-        return 'Sync complete';
+        return l10n.settings_cloudSync_status_syncComplete;
       case SyncStatus.error:
-        return 'Sync error';
+        return l10n.settings_cloudSync_status_syncError;
       case SyncStatus.hasConflicts:
-        return 'Conflicts detected';
+        return l10n.settings_cloudSync_status_conflictsDetected;
     }
   }
 
@@ -465,7 +513,7 @@ class CloudSyncPage extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            'Cloud Provider',
+            l10n.settings_cloudSync_header_cloudProvider,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -475,16 +523,14 @@ class CloudSyncPage extends ConsumerWidget {
           context,
           ref,
           provider: CloudProviderType.icloud,
-          title: 'iCloud',
-          subtitle: 'Sync via Apple iCloud',
+          title: l10n.settings_cloudSync_provider_icloud,
+          subtitle: l10n.settings_cloudSync_provider_icloud_subtitle,
           icon: Icons.cloud,
           isSelected: selectedProvider == CloudProviderType.icloud,
           isAvailable: isApple && !iCloudUnsupported,
           disabledSubtitle: iCloudDisabledSubtitle,
         ),
-        // Google Drive is hidden until its integration is fully
-        // implemented; the CloudProviderType and provider plumbing remain
-        // so re-enabling is just restoring this tile.
+        _buildGoogleDriveProviderTile(context, ref, selectedProvider),
         _buildS3ProviderTile(context, ref, selectedProvider),
         // The tile disappears in builds without a Dropbox app key
         // (dropboxAppKey empty) so users never see a connect dialog that
@@ -519,6 +565,45 @@ class CloudSyncPage extends ConsumerWidget {
                     l10n.settings_cloudSync_provider_notAvailable),
         ),
         trailing: isSelected
+            ? Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: l10n.settings_cloudSync_provider_connected,
+              )
+            : null,
+        enabled: isAvailable,
+        onTap: isAvailable
+            ? () => _selectProvider(context, ref, provider)
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildGoogleDriveProviderTile(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType? selectedProvider,
+  ) {
+    final l10n = context.l10n;
+    final isSelected = selectedProvider == CloudProviderType.googledrive;
+    // Render from AsyncValue.value so a provider reload does not flash the
+    // tile through a disabled state.
+    final isAvailable = ref.watch(googleDriveAvailableProvider).value ?? false;
+    final email = ref.watch(googleDriveAccountEmailProvider).value;
+
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: const Icon(Icons.add_to_drive),
+        title: Text(l10n.settings_cloudSync_provider_googleDrive),
+        subtitle: Text(
+          !isAvailable
+              ? l10n.settings_cloudSync_googleDrive_desktopNotConfigured
+              : (isSelected && email != null
+                    ? email
+                    : l10n.settings_cloudSync_provider_googleDrive_subtitle),
+        ),
+        trailing: isSelected
             ? const Icon(
                 Icons.check_circle,
                 color: Colors.green,
@@ -527,7 +612,7 @@ class CloudSyncPage extends ConsumerWidget {
             : null,
         enabled: isAvailable,
         onTap: isAvailable
-            ? () => _selectProvider(context, ref, provider)
+            ? () => _selectProvider(context, ref, CloudProviderType.googledrive)
             : null,
       ),
     );
@@ -557,10 +642,10 @@ class CloudSyncPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check_circle,
                 color: Colors.green,
-                semanticLabel: 'Connected',
+                semanticLabel: l10n.settings_cloudSync_provider_connected,
               ),
             IconButton(
               icon: const Icon(Icons.settings_outlined),
@@ -604,10 +689,10 @@ class CloudSyncPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check_circle,
                 color: Colors.green,
-                semanticLabel: 'Connected',
+                semanticLabel: l10n.settings_cloudSync_provider_connected,
               ),
             if (isConnected)
               IconButton(
@@ -759,7 +844,9 @@ class CloudSyncPage extends ConsumerWidget {
     if (cloudProvider == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to initialize ${provider.name} provider'),
+          content: Text(
+            context.l10n.settings_cloudSync_provider_initFailed(provider.name),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -768,12 +855,16 @@ class CloudSyncPage extends ConsumerWidget {
 
     try {
       // Authenticate with the provider
-      await cloudProvider.authenticate();
+      await _authenticateWithBrowserWait(context, cloudProvider, provider);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Connected to ${cloudProvider.providerName}'),
+            content: Text(
+              context.l10n.settings_cloudSync_provider_connectedTo(
+                cloudProvider.providerName,
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -805,6 +896,76 @@ class CloudSyncPage extends ConsumerWidget {
         );
       }
     }
+  }
+
+  /// On desktop, Google Drive authentication round-trips through the
+  /// system browser (loopback OAuth); keep a cancellable waiting dialog up
+  /// while it completes so the page does not look frozen. Other providers
+  /// and platforms authenticate directly.
+  Future<void> _authenticateWithBrowserWait(
+    BuildContext context,
+    CloudStorageProvider cloudProvider,
+    CloudProviderType provider,
+  ) async {
+    final needsDialog =
+        provider == CloudProviderType.googledrive &&
+        (Platform.isWindows || Platform.isLinux);
+    if (!needsDialog) {
+      await cloudProvider.authenticate();
+      return;
+    }
+
+    // Single synchronously-checked guard: whichever happens first -- auth
+    // settling or the user tapping Cancel -- closes the dialog exactly once.
+    // Because dialogClosed is checked and set with no intervening await, the
+    // two paths can never interleave, so the pop always targets the dialog
+    // (showDialog pushes it synchronously below, before any await yields to
+    // the auth microtask) and never the page route.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    var dialogClosed = false;
+    void closeDialog(bool cancelled) {
+      if (dialogClosed) return;
+      dialogClosed = true;
+      navigator.pop(cancelled);
+    }
+
+    final auth = cloudProvider.authenticate();
+    unawaited(
+      auth.then((_) => closeDialog(false), onError: (_) => closeDialog(false)),
+    );
+    final cancelled =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              dialogContext
+                  .l10n
+                  .settings_cloudSync_googleDrive_browserWait_title,
+            ),
+            content: Text(
+              dialogContext
+                  .l10n
+                  .settings_cloudSync_googleDrive_browserWait_message,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => closeDialog(true),
+                child: Text(
+                  MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (cancelled) {
+      // Abandon the pending flow; the loopback listener times out on its
+      // own. Swallow its eventual error so nothing surfaces later.
+      unawaited(auth.catchError((_) {}));
+      throw const CloudStorageException('Google Sign-In was cancelled');
+    }
+    await auth;
   }
 
   /// Localized connection-failure message. For iCloud, the wording reflects
@@ -993,45 +1154,8 @@ class CloudSyncPage extends ConsumerWidget {
                 ),
               ),
             ),
-          if (syncState.newerSchemaPeerCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Card(
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.system_update_alt,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSecondaryContainer,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          context.l10n
-                              .settings_cloudSync_peerRequiresUpdate_banner(
-                                syncState.newerSchemaPeerCount,
-                              ),
-                          // Card is secondaryContainer, and Material does not
-                          // re-derive text colour from its background, so
-                          // bodyMedium would keep onSurface. Pair it with the
-                          // container explicitly, as the icon already is.
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSecondaryContainer,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          SkippedPeerBanner(peers: syncState.skippedPeerLabels),
+          NewerSchemaPeerBanner(peers: syncState.newerSchemaPeerLabels),
           if (syncState.movedMarker != null)
             _buildMovedBanner(context, ref, syncState.movedMarker!),
           if (syncState.cleanupOldBackendProviderId != null)
@@ -1056,13 +1180,17 @@ class CloudSyncPage extends ConsumerWidget {
                     ),
                   )
                 : const Icon(Icons.sync),
-            label: Text(isSyncing ? 'Syncing...' : 'Sync Now'),
+            label: Text(
+              isSyncing
+                  ? context.l10n.settings_cloudSync_status_syncing
+                  : context.l10n.settings_cloudSync_syncNow,
+            ),
           ),
           if (!hasProvider)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                'Select a cloud provider to enable sync',
+                context.l10n.settings_cloudSync_selectProviderHint,
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -1191,15 +1319,15 @@ class CloudSyncPage extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            'Sync Behavior',
+            context.l10n.settings_cloudSync_header_syncBehavior,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
         SwitchListTile(
-          title: const Text('Auto Sync'),
-          subtitle: const Text('Sync automatically after changes'),
+          title: Text(context.l10n.settings_cloudSync_autoSync),
+          subtitle: Text(context.l10n.settings_cloudSync_autoSync_subtitle),
           value: settings.autoSyncEnabled,
           onChanged: disabled
               ? null
@@ -1208,8 +1336,8 @@ class CloudSyncPage extends ConsumerWidget {
                     .setAutoSyncEnabled(value),
         ),
         SwitchListTile(
-          title: const Text('Sync on Launch'),
-          subtitle: const Text('Check for updates at startup'),
+          title: Text(context.l10n.settings_cloudSync_syncOnLaunch),
+          subtitle: Text(context.l10n.settings_cloudSync_syncOnLaunch_subtitle),
           value: settings.syncOnLaunch,
           onChanged: disabled
               ? null
@@ -1218,8 +1346,8 @@ class CloudSyncPage extends ConsumerWidget {
                     .setSyncOnLaunch(value),
         ),
         SwitchListTile(
-          title: const Text('Sync on Resume'),
-          subtitle: const Text('Check for updates when app becomes active'),
+          title: Text(context.l10n.settings_cloudSync_syncOnResume),
+          subtitle: Text(context.l10n.settings_cloudSync_syncOnResume_subtitle),
           value: settings.syncOnResume,
           onChanged: disabled
               ? null
@@ -1246,7 +1374,9 @@ class CloudSyncPage extends ConsumerWidget {
               const Icon(Icons.warning, color: Colors.orange, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Conflicts (${syncState.conflicts})',
+                context.l10n.settings_cloudSync_header_conflicts(
+                  syncState.conflicts,
+                ),
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(color: Colors.orange),
@@ -1256,9 +1386,9 @@ class CloudSyncPage extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.merge_type),
-          title: const Text('Resolve Conflicts'),
+          title: Text(context.l10n.settings_cloudSync_resolveConflicts),
           subtitle: Text(
-            '${syncState.conflicts} item${syncState.conflicts == 1 ? '' : 's'} need${syncState.conflicts == 1 ? 's' : ''} attention',
+            context.l10n.settings_cloudSync_conflictItems(syncState.conflicts),
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showConflictResolution(context, ref),
@@ -1279,7 +1409,11 @@ class CloudSyncPage extends ConsumerWidget {
     ref.read(syncStateProvider.notifier).refreshState();
   }
 
-  Widget _buildAdvancedSection(BuildContext context, WidgetRef ref) {
+  Widget _buildAdvancedSection(
+    BuildContext context,
+    WidgetRef ref,
+    bool hasProvider,
+  ) {
     // Recovery resets sync identity/cursors and cloud files; doing that while a
     // sync is writing races it. Disable the entry during an active sync, as the
     // former "Reset Sync State" tile did. A sync ERROR (the banner route) is not
@@ -1291,7 +1425,7 @@ class CloudSyncPage extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            'Advanced',
+            context.l10n.settings_cloudSync_header_advanced,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -1299,8 +1433,10 @@ class CloudSyncPage extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.build),
-          title: const Text('Troubleshoot Sync'),
-          subtitle: const Text('Fix a stuck sync or free cloud space'),
+          title: Text(context.l10n.settings_troubleshootSync_appBar_title),
+          subtitle: Text(
+            context.l10n.settings_cloudSync_troubleshoot_tileSubtitle,
+          ),
           enabled: !isSyncing,
           onTap: isSyncing
               ? null
@@ -1312,58 +1448,58 @@ class CloudSyncPage extends ConsumerWidget {
         ),
         ListTile(
           leading: const Icon(Icons.logout),
-          title: const Text('Sign Out'),
-          subtitle: const Text('Disconnect from cloud provider'),
+          title: Text(context.l10n.settings_cloudSync_signOut),
+          subtitle: Text(context.l10n.settings_cloudSync_signOut_subtitle),
           onTap: () => _confirmSignOut(context, ref),
         ),
+        // Replacing the cloud library is only meaningful once a backend is
+        // configured, and racing it against a running sync would have the
+        // writer publishing under the epoch the replace is about to wipe.
+        if (hasProvider) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              context.l10n.settings_cloudSync_dangerZone,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.published_with_changes,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(context.l10n.settings_cloudSync_replaceLibrary_tile),
+            subtitle: Text(
+              context.l10n.settings_cloudSync_replaceLibrary_tileSubtitle,
+            ),
+            enabled: !isSyncing,
+            onTap: isSyncing
+                ? null
+                : () => _onReplaceCloudLibraryPressed(context, ref),
+          ),
+        ],
       ],
     );
   }
 
-  /// Run a sync, first handling the two gated cases: a replaced cloud
-  /// library awaiting adoption, and the device's first library-combining
-  /// contact with existing cloud data.
-  Future<void> _onSyncNowPressed(BuildContext context, WidgetRef ref) async {
+  /// Gather the blast radius, then confirm. The preflight runs before the
+  /// dialog so the confirmation can name what is about to be overwritten.
+  Future<void> _onReplaceCloudLibraryPressed(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final notifier = ref.read(syncStateProvider.notifier);
-    final replaceInfo = await notifier.libraryReplaceInfo();
-    if (replaceInfo != null) {
-      if (!context.mounted) return;
-      await showAdoptReplacedLibraryDialog(context, ref, replaceInfo);
-      return;
-    }
-    final info = await notifier.firstSyncMergeInfo();
-    if (info == null) {
-      await notifier.performSync();
-      return;
-    }
+    final preflight = await notifier.replacePreflight();
     if (!context.mounted) return;
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.settings_cloudSync_firstSync_dialogTitle),
-        content: Text(
-          l10n.settings_cloudSync_firstSync_dialogContent(
-            info.peerFileCount,
-            info.localDiveCount,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.settings_cloudSync_firstSync_dialogConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await notifier.performSync();
-    }
+    await showReplaceCloudLibraryDialog(context, ref, preflight);
   }
+
+  /// The gated sync flow lives in [runSyncNow]: the Home sync chip runs it too.
+  Future<void> _onSyncNowPressed(BuildContext context, WidgetRef ref) =>
+      runSyncNow(context, ref);
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
     // Cloud backup uploads ride on the sync provider; losing it changes
@@ -1397,24 +1533,25 @@ class CloudSyncPage extends ConsumerWidget {
       await ref.read(backupSettingsProvider.notifier).disableCloudBackup();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signed out from cloud provider')),
+          SnackBar(
+            content: Text(context.l10n.settings_cloudSync_signOutSuccess),
+          ),
         );
       }
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+  String _formatDateTime(AppLocalizations l10n, DateTime dateTime) {
+    final difference = DateTime.now().difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return l10n.settings_cloudSync_time_justNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_minutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_hoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+      return l10n.settings_cloudSync_time_daysAgo(difference.inDays);
     } else {
       return DateFormat.yMMMd().format(dateTime);
     }

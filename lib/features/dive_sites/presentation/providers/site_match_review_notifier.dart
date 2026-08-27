@@ -220,6 +220,10 @@ class ImportedDiveIds extends Equatable {
 /// Of the given imported dive ids, which are eligible for site matching
 /// (have GPS and no assigned site). Used to decide whether to surface the
 /// post-download "match" button and what count to show.
+// no-tick: autoDispose and read fresh at action time -- it computes the count
+// on the post-download "match" button from an explicit id list handed to it by
+// the caller. It uses ref.read, not ref.watch, and is torn down with the sheet,
+// so no cached value survives to render.
 final eligibleImportedDivesProvider = FutureProvider.autoDispose
     .family<List<String>, ImportedDiveIds>((ref, arg) async {
       if (arg.ids.isEmpty) return const [];

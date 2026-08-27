@@ -201,7 +201,8 @@ class DatabaseLocationService {
     try {
       final result = await FilePicker.getDirectoryPath(
         dialogTitle: 'Choose Database Storage Location',
-        lockParentWindow: true,
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
+        linuxOptions: const LinuxOptions(lockParentWindow: true),
       );
 
       if (result == null) return null;

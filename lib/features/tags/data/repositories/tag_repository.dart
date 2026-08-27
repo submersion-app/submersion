@@ -57,15 +57,28 @@ class TagRepository {
     }
   }
 
-  /// Get a tag by name (case-insensitive)
+  /// Get a tag by name (case-insensitive, whitespace-insensitive)
+  ///
+  /// Normalizes both sides exactly as `idx_tags_diver_name_unique` does
+  /// (`lower(trim(name))`), so a lookup can never miss a row the index
+  /// considers the same tag.
+  ///
+  /// Deliberately takes the lowest id rather than asserting a single match:
+  /// an unscoped lookup legitimately spans two divers who both use "Wreck",
+  /// and `getSingleOrNull()` threw "too many elements" there -- which is what
+  /// the import wizard reported as "tagging failed" (#1032). Ordering by id
+  /// makes the winner the same row the uniqueness collapse keeps.
   Future<domain.Tag?> getTagByName(String name, {String? diverId}) async {
     try {
       final query = _db.select(_db.tags)
-        ..where((t) => t.name.lower().equals(name.toLowerCase()));
+        ..where((t) => t.name.trim().lower().equals(name.trim().toLowerCase()));
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
+      query
+        ..orderBy([(t) => OrderingTerm.asc(t.id)])
+        ..limit(1);
 
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToTag(row) : null;
@@ -79,25 +92,80 @@ class TagRepository {
     }
   }
 
-  /// Create a new tag
+  /// The tag occupying [name]'s uniqueness slot in [diverId]'s scope, if any.
+  ///
+  /// Mirrors `idx_tags_diver_name_unique` exactly -- (COALESCE(diver_id, ''),
+  /// lower(trim(name))) -- so a caller that checks here can never be surprised by
+  /// the index. A NULL `diverId` is the shared "unassigned" scope, not a scope
+  /// of its own per row.
+  Future<domain.Tag?> _tagOccupying(String name, String? diverId) async {
+    final rows =
+        await (_db.select(_db.tags)
+              ..where(
+                (t) =>
+                    t.name.trim().lower().equals(name.trim().toLowerCase()) &
+                    coalesce([
+                      t.diverId,
+                      const Constant(''),
+                    ]).equals(diverId ?? ''),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.id)])
+              ..limit(1))
+            .get();
+    return rows.isEmpty ? null : _mapRowToTag(rows.first);
+  }
+
+  /// Create a new tag, or return the one already holding the name.
+  ///
+  /// `tags` is uniquely indexed on (diver scope, case-folded name) since v149,
+  /// so inserting a second row for a name the scope already has would throw.
+  /// Returning the incumbent keeps every caller's contract ("a tag with this
+  /// name now exists and here it is") while never creating the duplicate that
+  /// made a dive show one tag twice (#1032).
   Future<domain.Tag> createTag(domain.Tag tag) async {
     try {
-      _log.info('Creating tag: ${tag.name}');
+      final incumbent = await _tagOccupying(tag.name, tag.diverId);
+      if (incumbent != null) {
+        _log.info('Tag "${tag.name}" already exists as ${incumbent.id}');
+        return incumbent;
+      }
+
+      // Store the SAME normalization the index and every lookup key on.
+      // Persisting the raw value while matching on a trimmed one is what let
+      // " Wreck" and "Wreck" coexist as two rows (PR #1033 review).
+      final name = tag.name.trim();
+      _log.info('Creating tag: $name');
       final id = tag.id.isEmpty ? _uuid.v4() : tag.id;
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await _db
+      // Conflict-aware rather than a bare insert. The incumbent check above is
+      // an `await`, so two callers can both pass it and the loser would then
+      // throw on idx_tags_diver_name_unique -- failing an operation whose whole
+      // contract is "a tag with this name now exists" (PR #1033 review). A null
+      // return means someone won the race; fall back to reading their row,
+      // which is the same answer the incumbent check would have given.
+      final created = await _db
           .into(_db.tags)
-          .insert(
+          .insertReturningOrNull(
             TagsCompanion(
               id: Value(id),
               diverId: Value(tag.diverId),
-              name: Value(tag.name),
+              name: Value(name),
               color: Value(tag.colorHex),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
+            onConflict: DoNothing<$TagsTable, Tag>(target: const []),
           );
+      if (created == null) {
+        final winner = await _tagOccupying(name, tag.diverId);
+        _log.info('Tag "$name" was created concurrently as ${winner?.id}');
+        if (winner != null) return winner;
+        // Vanishingly unlikely: the conflicting row was deleted between the
+        // insert and this read. Surfacing it beats returning a tag id that
+        // does not exist.
+        throw StateError('Tag "$name" conflicted but could not be read back');
+      }
 
       await _syncRepository.markRecordPending(
         entityType: 'tags',
@@ -107,7 +175,7 @@ class TagRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created tag with id: $id');
-      return tag.copyWith(id: id);
+      return tag.copyWith(id: id, name: name);
     } catch (e, stackTrace) {
       _log.error('Failed to create tag', error: e, stackTrace: stackTrace);
       rethrow;
@@ -129,7 +197,7 @@ class TagRepository {
 
       // Create new tag
       final now = DateTime.now();
-      return createTag(
+      return await createTag(
         domain.Tag(
           id: _uuid.v4(),
           diverId: diverId,
@@ -149,15 +217,37 @@ class TagRepository {
     }
   }
 
-  /// Update an existing tag
+  /// Update an existing tag.
+  ///
+  /// Renaming onto a name the scope already uses folds the two tags together
+  /// rather than throwing on `idx_tags_diver_name_unique`: the user asked for
+  /// one tag by that name, and every dive on either side keeps it. This is the
+  /// same outcome the tag merge sheet produces, so it reuses [mergeTags].
   Future<void> updateTag(domain.Tag tag) async {
     try {
+      // Normalized before both the uniqueness check and the write, so a rename
+      // cannot store a spelling the index would key differently.
+      final name = tag.name.trim();
+      final incumbent = await _tagOccupying(name, tag.diverId);
+      if (incumbent != null && incumbent.id != tag.id) {
+        _log.info(
+          'Renaming ${tag.id} onto "$name" merges into ${incumbent.id}',
+        );
+        await mergeTags(
+          sourceTagIds: [tag.id],
+          survivingTagId: incumbent.id,
+          name: name,
+          colorHex: tag.colorHex,
+        );
+        return;
+      }
+
       _log.info('Updating tag: ${tag.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
         TagsCompanion(
-          name: Value(tag.name),
+          name: Value(name),
           color: Value(tag.colorHex),
           updatedAt: Value(now),
         ),
@@ -200,10 +290,12 @@ class TagRepository {
   /// Get tags for a specific dive
   Future<List<domain.Tag>> getTagsForDive(String diveId) async {
     try {
+      // DISTINCT so a legacy database that has not yet been through the v149
+      // collapse still renders each tag once (#1032).
       final result = await _db
           .customSelect(
             '''
-        SELECT t.* FROM tags t
+        SELECT DISTINCT t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
         ORDER BY t.name
@@ -247,7 +339,7 @@ class TagRepository {
       final placeholders = diveIds.map((_) => '?').join(',');
       final result = await _db.customSelect(
         '''
-        SELECT dt.dive_id, t.* FROM tags t
+        SELECT DISTINCT dt.dive_id, t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id IN ($placeholders)
         ORDER BY t.name
@@ -302,9 +394,13 @@ class TagRepository {
         );
       }
 
-      // Insert new tags
+      // Insert new tags. Deduplicated by id: `dive_tags` is uniquely indexed
+      // on (dive_id, tag_id) since v149, so the same tag listed twice would
+      // throw rather than quietly double up.
       final now = DateTime.now().millisecondsSinceEpoch;
+      final seen = <String>{};
       for (final tag in tags) {
+        if (!seen.add(tag.id)) continue;
         final id = _uuid.v4();
         await _db
             .into(_db.diveTags)
@@ -344,23 +440,37 @@ class TagRepository {
     }
   }
 
-  /// Add a tag to a dive
+  /// Add a tag to a dive.
+  ///
+  /// A no-op when the dive already carries the tag. Re-running an import used
+  /// to blind-insert a second junction row under a fresh uuid, which is how
+  /// one dive ended up showing the same import tag several times (#1032).
   Future<void> addTagToDive(String diveId, String tagId) async {
     try {
       _log.info('Adding tag $tagId to dive: $diveId');
       final now = DateTime.now().millisecondsSinceEpoch;
       final id = _uuid.v4();
 
-      await _db
+      // One statement rather than read-then-insert. A separate existence check
+      // is both an extra round trip and still racy: two callers can each see
+      // "missing" and the loser then throws on idx_dive_tags_dive_tag_unique.
+      // Letting the database decide makes the duplicate a true no-op, and a
+      // null return says the pair was already there (PR #1033 review).
+      final inserted = await _db
           .into(_db.diveTags)
-          .insert(
+          .insertReturningOrNull(
             DiveTagsCompanion(
               id: Value(id),
               diveId: Value(diveId),
               tagId: Value(tagId),
               createdAt: Value(now),
             ),
+            onConflict: DoNothing<$DiveTagsTable, DiveTag>(target: const []),
           );
+      if (inserted == null) {
+        _log.info('Dive $diveId already carries tag $tagId');
+        return;
+      }
 
       await _syncRepository.markRecordPending(
         entityType: 'diveTags',
@@ -517,7 +627,7 @@ class TagRepository {
   /// Search tags by name (for autocomplete)
   Future<List<domain.Tag>> searchTags(String query, {String? diverId}) async {
     try {
-      if (query.isEmpty) return getAllTags(diverId: diverId);
+      if (query.isEmpty) return await getAllTags(diverId: diverId);
 
       final searchQuery = _db.select(_db.tags)
         ..where((t) => t.name.lower().contains(query.toLowerCase()))

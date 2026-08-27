@@ -97,6 +97,7 @@ class _EnableEncryptionDialogState extends State<EnableEncryptionDialog> {
                     errorText: _passphraseError,
                   ),
                 ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _confirm,
                   obscureText: true,

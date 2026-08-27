@@ -9,7 +9,11 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart'
     show Sighting;
 
 /// How a collection edit is applied across the selected dives.
-enum BulkCollectionMode { add, remove, replace }
+///
+/// [update] edits the rows a dive already has instead of inserting or deleting
+/// any. Only tanks support it today (see [TankSpecsOp]); every other collection
+/// rejects it, the same way owned collections reject [remove].
+enum BulkCollectionMode { add, remove, replace, update }
 
 /// One collection mutation in a bulk edit. Sealed so the service can switch
 /// over every variant exhaustively.
@@ -39,7 +43,17 @@ class BuddiesOp extends BulkCollectionOp {
   final BulkCollectionMode mode;
   // For remove, the buddy ids are read from each entry's .buddy.id.
   final List<BuddyWithRole> buddies;
-  const BuddiesOp({required this.mode, required this.buddies});
+
+  /// Add mode only: whether each entry's role replaces the role on links that
+  /// already exist. False for a membership-only add, where the user asked for
+  /// the buddy on every dive but never touched their role (#893).
+  final bool overwriteRole;
+
+  const BuddiesOp({
+    required this.mode,
+    required this.buddies,
+    this.overwriteRole = true,
+  });
 }
 
 class TanksOp extends BulkCollectionOp {
@@ -51,6 +65,35 @@ class TanksOp extends BulkCollectionOp {
     required this.tanks,
     this.onlyIfEmpty = false,
   });
+}
+
+/// One editable attribute of a cylinder, used as a field mask by [TankSpecsOp].
+///
+/// Start and end pressure are deliberately absent: the whole point of an
+/// in-place spec update is that measured pressure data survives it (#797).
+/// [gasMix] covers the o2 and he columns together, since a mix is meaningless
+/// split in half.
+enum TankSpecField {
+  preset,
+  role,
+  volume,
+  workingPressure,
+  material,
+  gasMix,
+  name,
+}
+
+/// Overwrite selected attributes of the tanks each dive already has, leaving
+/// every other column (start/end pressure above all) as it was.
+///
+/// Unlike [TanksOp] this carries a field mask rather than a list of tanks:
+/// [specs] is a template whose values are read only for the fields named in
+/// [fields]. Dives with no tanks are skipped; nothing is inserted or deleted,
+/// so tank_pressure_profiles and gas_switches keep their rows.
+class TankSpecsOp extends BulkCollectionOp {
+  final DiveTank specs;
+  final Set<TankSpecField> fields;
+  const TankSpecsOp({required this.specs, required this.fields});
 }
 
 class WeightsOp extends BulkCollectionOp {

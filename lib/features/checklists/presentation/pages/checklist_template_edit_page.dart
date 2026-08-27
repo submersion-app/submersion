@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -240,8 +241,11 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
       text: widget.item?.category ?? '',
     );
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
+    final offsetDays = widget.item?.dueOffsetDays;
     _offsetController = TextEditingController(
-      text: widget.item?.dueOffsetDays?.toString() ?? '',
+      text: offsetDays == null
+          ? ''
+          : formatDecimalForInput(offsetDays.toDouble()),
     );
   }
 
@@ -264,7 +268,7 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
         title: _titleController.text.trim(),
         category: category.isEmpty ? null : category,
         notes: _notesController.text.trim(),
-        dueOffsetDays: int.tryParse(_offsetController.text.trim()),
+        dueOffsetDays: parseUserInt(_offsetController.text),
         sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
         createdAt: widget.item?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -312,7 +316,7 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return null;
-                  final parsed = int.tryParse(value.trim());
+                  final parsed = parseUserInt(value);
                   return (parsed == null || parsed < 0)
                       ? context.l10n.checklists_item_dueOffsetInvalid
                       : null;

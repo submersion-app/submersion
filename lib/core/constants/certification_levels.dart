@@ -26,6 +26,7 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.advancedOpenWater,
     CertificationLevel.rescue,
     CertificationLevel.masterDiver,
+    CertificationLevel.diveGuide,
     CertificationLevel.diveMaster,
     CertificationLevel.assistantInstructor,
     CertificationLevel.instructor,
@@ -38,6 +39,7 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.advancedOpenWater,
     CertificationLevel.rescue,
     CertificationLevel.masterDiver,
+    CertificationLevel.diveGuide,
     CertificationLevel.diveMaster,
     CertificationLevel.assistantInstructor,
     CertificationLevel.instructor,
@@ -48,6 +50,7 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.advancedOpenWater,
     CertificationLevel.rescue,
     CertificationLevel.masterDiver,
+    CertificationLevel.diveGuide,
     CertificationLevel.diveMaster,
     CertificationLevel.assistantInstructor,
     CertificationLevel.instructor,
@@ -59,6 +62,7 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.advancedOpenWater,
     CertificationLevel.rescue,
     CertificationLevel.masterDiver,
+    CertificationLevel.diveGuide,
     CertificationLevel.diveMaster,
     CertificationLevel.instructor,
   ];
@@ -129,6 +133,14 @@ abstract final class CertificationLevelCatalog {
         CertificationAgency.other || null => _genericLadder,
       };
 
+  /// Specialties offered for [agency] that are not already on its ladder.
+  /// Used to render the dropdown's "Specialties" group without repeating a
+  /// level that the ladder already lists.
+  static List<CertificationLevel> specialtiesFor(CertificationAgency? agency) {
+    final ladder = ladderFor(agency);
+    return specialties.where((s) => !ladder.contains(s)).toList();
+  }
+
   /// Full dropdown list for an agency: ladder, then specialties not already
   /// on the ladder, then [CertificationLevel.other] last. When [ensure] is
   /// provided and missing from the list (a stored value from another
@@ -138,11 +150,7 @@ abstract final class CertificationLevelCatalog {
     CertificationAgency? agency, {
     CertificationLevel? ensure,
   }) {
-    final ladder = ladderFor(agency);
-    final result = [
-      ...ladder,
-      ...specialties.where((s) => !ladder.contains(s)),
-    ];
+    final result = [...ladderFor(agency), ...specialtiesFor(agency)];
     if (ensure != null &&
         ensure != CertificationLevel.other &&
         !result.contains(ensure)) {

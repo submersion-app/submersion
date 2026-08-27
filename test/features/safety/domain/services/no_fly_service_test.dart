@@ -105,4 +105,98 @@ void main() {
     expect(NoFlyPreset.fromDbValue('nonsense'), NoFlyPreset.standard);
     expect(NoFlyPreset.strict.dbValue, 'strict');
   });
+
+  group('flightWindow', () {
+    final flightAt = DateTime.utc(2026, 8, 10, 9); // Mon 09:00 departure
+
+    test('open: standard repetitive deadline is departure - 18h', () {
+      final windowNow = DateTime.utc(2026, 8, 9, 10);
+      final status = service.flightWindow(
+        flightAt: flightAt,
+        preset: NoFlyPreset.standard,
+        prospectiveCategory: NoFlyCategory.repetitive,
+        currentNoFlyUntil: null,
+        now: windowNow,
+      );
+      expect(status!.state, FlightWindowState.open);
+      expect(status.deadline, DateTime.utc(2026, 8, 9, 15));
+      expect(status.remaining(windowNow), const Duration(hours: 5));
+    });
+
+    test('closed: past the deadline but before departure', () {
+      final windowNow = DateTime.utc(2026, 8, 9, 16);
+      final status = service.flightWindow(
+        flightAt: flightAt,
+        preset: NoFlyPreset.standard,
+        prospectiveCategory: NoFlyCategory.repetitive,
+        currentNoFlyUntil: null,
+        now: windowNow,
+      );
+      expect(status!.state, FlightWindowState.closed);
+      expect(status.remaining(windowNow), Duration.zero);
+    });
+
+    test('exactly at the deadline counts as closed', () {
+      final windowNow = DateTime.utc(2026, 8, 9, 15);
+      final status = service.flightWindow(
+        flightAt: flightAt,
+        preset: NoFlyPreset.standard,
+        prospectiveCategory: NoFlyCategory.repetitive,
+        currentNoFlyUntil: null,
+        now: windowNow,
+      );
+      expect(status!.state, FlightWindowState.closed);
+    });
+
+    test('conflict: existing no-fly reaches past departure, beats open', () {
+      final windowNow = DateTime.utc(2026, 8, 9, 10);
+      final status = service.flightWindow(
+        flightAt: flightAt,
+        preset: NoFlyPreset.standard,
+        prospectiveCategory: NoFlyCategory.deco,
+        currentNoFlyUntil: DateTime.utc(2026, 8, 10, 12),
+        now: windowNow,
+      );
+      expect(status!.state, FlightWindowState.conflict);
+    });
+
+    test('strict deco: deadline is departure - 48h', () {
+      final windowNow = DateTime.utc(2026, 8, 8, 8);
+      final status = service.flightWindow(
+        flightAt: flightAt,
+        preset: NoFlyPreset.strict,
+        prospectiveCategory: NoFlyCategory.deco,
+        currentNoFlyUntil: null,
+        now: windowNow,
+      );
+      expect(status!.deadline, DateTime.utc(2026, 8, 8, 9));
+      expect(status.state, FlightWindowState.open);
+      expect(status.interval, const Duration(hours: 48));
+    });
+
+    test('returns null once the flight has departed', () {
+      final windowNow = DateTime.utc(2026, 8, 10, 10);
+      expect(
+        service.flightWindow(
+          flightAt: flightAt,
+          preset: NoFlyPreset.standard,
+          prospectiveCategory: NoFlyCategory.repetitive,
+          currentNoFlyUntil: null,
+          now: windowNow,
+        ),
+        isNull,
+      );
+    });
+  });
+
+  test('intervalFor matches the table evaluate() uses', () {
+    expect(
+      NoFlyService.intervalFor(NoFlyPreset.standard, NoFlyCategory.single),
+      const Duration(hours: 12),
+    );
+    expect(
+      NoFlyService.intervalFor(NoFlyPreset.strict, NoFlyCategory.repetitive),
+      const Duration(hours: 24),
+    );
+  });
 }

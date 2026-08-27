@@ -213,6 +213,13 @@ void main() {
         );
         expect(checklistTile, findsOneWidget);
 
+        // scrollUntilVisible stops as soon as the finder matches, and slivers
+        // build children inside the cache extent — so the tile can be "found"
+        // while still below the fold, where a tap hits nothing. Pull it fully
+        // on screen before tapping rather than relying on the story's height.
+        await tester.ensureVisible(checklistTile);
+        await tester.pumpAndSettle();
+
         // Expanding it reveals the checklist item.
         await tester.tap(checklistTile);
         await tester.pumpAndSettle();

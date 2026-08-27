@@ -46,6 +46,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
     as wizard
@@ -386,12 +387,64 @@ void main() {
       );
     });
 
-    testWidgets('acquisitionSteps has three steps', (tester) async {
+    testWidgets('duplicateActionsFor offers replaceSource on sites only', (
+      tester,
+    ) async {
       await _runWithAdapter(
         tester,
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
-          expect(adapter.acquisitionSteps, hasLength(3));
+          // Overwrite-in-place is implemented for sites (via siteOverrides).
+          expect(
+            adapter.duplicateActionsFor(wizard.ImportEntityType.sites),
+            contains(DuplicateAction.replaceSource),
+          );
+
+          // Every other tab must NOT offer it: the importer has no override
+          // channel for those types, so a "decided" row would be dropped.
+          for (final type in wizard.ImportEntityType.values) {
+            if (type == wizard.ImportEntityType.sites) continue;
+            expect(
+              adapter.duplicateActionsFor(type),
+              isNot(contains(DuplicateAction.replaceSource)),
+              reason: '$type must not offer replaceSource',
+            );
+          }
+        },
+      );
+    });
+
+    testWidgets('duplicateActionsFor keeps the shared actions on every type', (
+      tester,
+    ) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          for (final type in wizard.ImportEntityType.values) {
+            expect(
+              adapter.duplicateActionsFor(type),
+              containsAll([
+                DuplicateAction.skip,
+                DuplicateAction.importAsNew,
+                DuplicateAction.consolidate,
+              ]),
+              reason: '$type lost a base action',
+            );
+          }
+        },
+      );
+    });
+
+    testWidgets('acquisitionSteps has four steps', (tester) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          // Select File, Confirm Source, Map Fields, Photos. The Photos step
+          // auto-advances away when the payload references no photos.
+          expect(adapter.acquisitionSteps, hasLength(4));
+          expect(adapter.acquisitionSteps.last.label, 'Photos');
         },
       );
     });
@@ -965,8 +1018,10 @@ void main() {
           final item = bundle.groups[ImportEntityType.sites]!.items.first;
 
           expect(item.title, equals('Blue Hole'));
-          expect(item.subtitle, contains('17.3155'));
-          expect(item.subtitle, contains('-87.5347'));
+          // Rendered in the diver's coordinate notation: hemisphere letters
+          // rather than a leading minus, at a fixed six decimal places.
+          expect(item.subtitle, contains('17.315500° N'));
+          expect(item.subtitle, contains('87.534700° W'));
         },
       );
     });
@@ -2091,6 +2146,87 @@ void main() {
         },
       );
     });
+
+    testWidgets(
+      'replaceSource on a site overwrites the match without also creating a '
+      'twin',
+      (tester) async {
+        // ImportWizardNotifier.setDuplicateAction adds every non-skip index
+        // to the base selection set, so a replaceSource site arrives here in
+        // BOTH the selections and the duplicate-actions map. It must resolve
+        // to an overwrite only -- never an overwrite plus a fresh row.
+        const existingSite = DiveSite(
+          id: 'existing-site-1',
+          name: 'Blue Hole',
+          diverId: 'test-diver',
+        );
+
+        final mockSiteRepo = MockSiteRepository();
+        when(
+          mockSiteRepo.getAllSites(diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => [existingSite]);
+        when(
+          mockSiteRepo.updateSiteWithImportedMetadata(any, any),
+        ).thenAnswer((_) async {});
+        when(mockSiteRepo.createSite(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as DiveSite,
+        );
+
+        const payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.sites: [
+              {'name': 'Blue Hole', 'uddfId': 'site-1'},
+            ],
+          },
+        );
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockSiteRepo: mockSiteRepo,
+          ),
+          callback: (adapter) async {
+            final base = await adapter.buildBundle();
+            final bundle = ImportBundle(
+              source: base.source,
+              groups: {
+                wizard.ImportEntityType.sites: EntityGroup(
+                  items: base.groups[wizard.ImportEntityType.sites]!.items,
+                  duplicateIndices: const {0},
+                  entityMatches: const {
+                    0: EntityMatchResult(
+                      existingId: 'existing-site-1',
+                      existingName: 'Blue Hole',
+                      existingFields: {'Name': 'Blue Hole'},
+                      incomingFields: {'Name': 'Blue Hole'},
+                    ),
+                  },
+                ),
+              },
+            );
+
+            await adapter.performImport(
+              bundle,
+              {
+                wizard.ImportEntityType.sites: {0},
+              },
+              {
+                wizard.ImportEntityType.sites: {
+                  0: DuplicateAction.replaceSource,
+                },
+              },
+            );
+
+            verify(
+              mockSiteRepo.updateSiteWithImportedMetadata(any, any),
+            ).called(1);
+            verifyNever(mockSiteRepo.createSite(any));
+          },
+        );
+      },
+    );
   });
 
   // -------------------------------------------------------------------------

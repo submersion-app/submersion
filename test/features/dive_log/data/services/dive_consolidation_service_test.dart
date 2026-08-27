@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -101,6 +103,9 @@ void main() {
     bool isPrimary = true,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
   }) async {
     await db
         .into(db.diveDataSources)
@@ -115,6 +120,9 @@ void main() {
             computerId: Value(computerId),
             rawData: Value(rawData),
             rawFingerprint: Value(rawFingerprint),
+            descriptorVendor: Value(descriptorVendor),
+            descriptorProduct: Value(descriptorProduct),
+            descriptorModel: Value(descriptorModel),
           ),
         );
   }
@@ -532,6 +540,32 @@ void main() {
       expect(repointed.rawData, [1, 2, 3]);
       expect(repointed.rawFingerprint, [9, 9]);
     });
+
+    test(
+      'scenario 3a: the carried source records the time offset its '
+      'profile was re-based by, and the primary records none (#1177)',
+      () async {
+        await seedConsolidatableFixture();
+
+        await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+        final sources = await (db.select(
+          db.diveDataSources,
+        )..where((t) => t.diveId.equals('t'))).get();
+
+        // The offset cannot be recovered from the raw bytes, so a re-parse can
+        // only put the secondary strand back on the dive's clock if the number
+        // is persisted here. The fixture's secondary starts 60s after the
+        // target, which is the same shift its profile rows were re-based by.
+        final carried = sources.firstWhere((s) => !s.isPrimary);
+        expect(carried.timeOffsetSeconds, 60);
+
+        // The target's own source was never re-based; claiming an offset for
+        // it would shift the primary strand on the next re-parse.
+        final primary = sources.firstWhere((s) => s.isPrimary);
+        expect(primary.timeOffsetSeconds, anyOf(isNull, 0));
+      },
+    );
 
     test('scenario 3b: secondary with NO dive_data_sources row (manual/file '
         'import) gets a synthesized non-primary source on the target, '
@@ -1158,5 +1192,106 @@ void main() {
         expect(target.exitLongitude, isNull);
       },
     );
+  });
+
+  group('consolidate then re-parse (#1177)', () {
+    test('the secondary strand stays aligned with the primary across a '
+        're-parse of the consolidated dive', () async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        profile: const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 0),
+          domain.DiveProfilePoint(timestamp: 60, depth: 12),
+          domain.DiveProfilePoint(timestamp: 120, depth: 18),
+        ],
+      );
+      await seedDataSource('src-t', diveId: 't', computerId: 'comp-t');
+
+      // The secondary computer's clock runs 60s behind the target's, which
+      // is exactly why consolidation re-bases it.
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        profile: const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 0),
+          domain.DiveProfilePoint(timestamp: 60, depth: 11),
+          domain.DiveProfilePoint(timestamp: 120, depth: 17),
+        ],
+      );
+      await seedDataSource(
+        'src-s',
+        diveId: 's',
+        computerId: 'comp-s',
+        rawData: Uint8List.fromList([1, 2, 3]),
+        descriptorVendor: 'Suunto',
+        descriptorProduct: 'D5',
+        descriptorModel: 1,
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final beforeReparse =
+          await (db.select(db.diveProfiles)
+                ..where((t) => t.computerId.equals('comp-s'))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      expect(beforeReparse.map((p) => p.timestamp), [60, 120, 180]);
+
+      // Re-parse the whole dive, as the dive detail page and a post-upgrade
+      // bulk re-parse from the device page both do.
+      final result = await ReparseService(db: db).reparseDive(
+        't',
+        parseFn: (vendor, product, model, rawData) async => pigeon.ParsedDive(
+          fingerprint: 'fp',
+          dateTimeYear: 2026,
+          dateTimeMonth: 7,
+          dateTimeDay: 1,
+          dateTimeHour: 9,
+          dateTimeMinute: 1,
+          dateTimeSecond: 0,
+          maxDepthMeters: 17,
+          avgDepthMeters: 10,
+          durationSeconds: 120,
+          // Raw parse output is always on the computer's own clock: it has
+          // no idea consolidation moved it.
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0),
+            pigeon.ProfileSample(timeSeconds: 60, depthMeters: 11),
+            pigeon.ProfileSample(timeSeconds: 120, depthMeters: 17),
+          ],
+          tanks: const [],
+          gasMixes: const [],
+          events: const [],
+        ),
+      );
+      expect(result.errors, isEmpty);
+      // A consolidated dive keeps a primary source row, so #1164's ownership
+      // guard lets the secondary strand re-parse rather than preserving it.
+      // That is exactly why the offset has to be reapplied here.
+      expect(result.profilesPreserved, 0);
+
+      final afterReparse =
+          await (db.select(db.diveProfiles)
+                ..where((t) => t.computerId.equals('comp-s'))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      expect(afterReparse.map((p) => p.timestamp), [60, 120, 180]);
+
+      // The primary strand is untouched, so the two still share a clock.
+      // Consolidation leaves the target's own profile rows on a null
+      // computerId (null means "the dive's primary source"); only tanks,
+      // pressures and events get stamped with the primary computer.
+      final primary =
+          await (db.select(db.diveProfiles)
+                ..where((t) => t.diveId.equals('t') & t.computerId.isNull())
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      expect(primary.map((p) => p.timestamp), [0, 60, 120]);
+    });
   });
 }

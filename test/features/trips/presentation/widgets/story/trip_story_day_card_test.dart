@@ -103,14 +103,109 @@ void main() {
     expect(find.byType(DiveListItem), findsOneWidget);
   });
 
-  testWidgets('surface day renders the slim variant', (tester) async {
+  testWidgets('stats and rhythm bar share one tinted summary band', (
+    tester,
+  ) async {
+    final dive = createTestDiveWithBottomTime(
+      id: 'd1',
+      diveNumber: 42,
+      bottomTime: const Duration(minutes: 47),
+      maxDepth: 28.0,
+    );
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [dive],
+    );
+    await pumpCard(tester, day);
+
+    // The day-at-a-glance cluster: stat strip and rhythm bar live inside one
+    // tinted container so they group as a unit, distinct from the dive rows.
+    final band = find.byKey(const Key('day-summary-band'));
+    expect(band, findsOneWidget);
+    expect(
+      find.descendant(of: band, matching: find.byType(DayRhythmBar)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: band, matching: find.textContaining('Dives')),
+      findsOneWidget,
+    );
+    final context = tester.element(band);
+    final container = tester.widget<Container>(
+      find
+          .ancestor(
+            of: find.byType(DayRhythmBar),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    final decoration = container.decoration as BoxDecoration?;
+    expect(
+      decoration?.color,
+      Theme.of(context).colorScheme.surfaceContainerLow,
+    );
+    // The dive rows stay outside the band: they are the primary content.
+    expect(
+      find.descendant(of: band, matching: find.byType(DiveListItem)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('photo strip carries a Photos caption', (tester) async {
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+      media: [_media('m1')],
+    );
+    await pumpCard(tester, day);
+
+    expect(find.text('Photos'), findsOneWidget);
+  });
+
+  testWidgets('sighting chips carry a Species seen caption', (tester) async {
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+      sightings: [_sighting('s1', 'Turtle')],
+    );
+    await pumpCard(tester, day);
+
+    expect(find.text('Species seen'), findsOneWidget);
+  });
+
+  testWidgets('no captions render for a day without photos or sightings', (
+    tester,
+  ) async {
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+    );
+    await pumpCard(tester, day);
+
+    expect(find.text('Photos'), findsNothing);
+    expect(find.text('Species seen'), findsNothing);
+  });
+
+  testWidgets('surface day renders no card body', (tester) async {
+    // The whole day is now its sticky header - title, date, and the "Surface
+    // day" label all live there, leaving the card with nothing to draw.
     final day = TripStoryDay(
       date: DateTime(2026, 3, 9),
       dayNumber: 3,
       kind: TripStoryDayKind.past,
     );
     await pumpCard(tester, day);
-    expect(find.textContaining('Surface day'), findsOneWidget);
+    expect(find.textContaining('Surface day'), findsNothing);
+    expect(find.textContaining('Day 3'), findsNothing);
+    expect(find.byType(Card), findsNothing);
     expect(find.byType(DayRhythmBar), findsNothing);
   });
 

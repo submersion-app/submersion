@@ -117,6 +117,7 @@ class BailoutSolver {
             pressureBar: tank.startPressure ?? 0,
             o2Percent: tank.gasMix.o2,
             hePercent: tank.gasMix.he,
+            model: config.gasModel,
           ),
     );
 

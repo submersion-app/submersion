@@ -10,6 +10,7 @@ Widget _wrap({
   List<TooltipRow>? rows,
   Offset? initialFraction,
   ValueChanged<Offset>? onDragEnd,
+  EdgeInsets placementInsets = const EdgeInsets.all(12),
 }) {
   return MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -25,6 +26,7 @@ Widget _wrap({
               DraggableReadoutCard(
                 rows: rows,
                 initialFraction: initialFraction,
+                placementInsets: placementInsets,
                 onDragEnd: onDragEnd ?? (_) {},
               ),
             ],
@@ -72,6 +74,24 @@ void main() {
     // Right edge inset by the 12px padding; top edge likewise.
     expect(cardRect.right, closeTo(stackRect.right - 12, 1.0));
     expect(cardRect.top, closeTo(stackRect.top + 12, 1.0));
+  });
+
+  testWidgets('custom placement insets reserve the phone header area', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        rows: null,
+        initialFraction: Offset.zero,
+        placementInsets: const EdgeInsets.fromLTRB(12, 56, 12, 12),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final stackRect = tester.getRect(find.byKey(const ValueKey('arena')));
+    final cardRect = tester.getRect(find.byKey(_cardKey));
+    expect(cardRect.left, closeTo(stackRect.left + 12, 1.0));
+    expect(cardRect.top, closeTo(stackRect.top + 56, 1.0));
   });
 
   testWidgets('an out-of-range initial fraction is clamped into view', (

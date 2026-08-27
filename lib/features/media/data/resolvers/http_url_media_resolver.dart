@@ -97,7 +97,10 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     // which already runs through the auth-header injection wired up by
     // Phase 3a's image-cache provider. We do not pre-fetch bytes here —
     // that would defeat the disk cache.
-    return NetworkData(url: uri);
+    // [ServedFrom] records the byte transport, not the link provenance, so
+    // both source types this resolver serves stamp the same value. What
+    // distinguishes them stays on [MediaItem.sourceType].
+    return NetworkData(url: uri, servedFrom: ServedFrom.networkUrl);
   }
 
   @override

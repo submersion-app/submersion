@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {
@@ -80,6 +81,7 @@ final diveCenterByIdProvider = FutureProvider.family<DiveCenter?, String>((
   id,
 ) async {
   final repository = ref.watch(diveCenterRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
   return repository.getDiveCenterById(id);
 });
 
@@ -91,6 +93,7 @@ final diveCentersWithCoordinatesProvider = FutureProvider<List<DiveCenter>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
   return repository.getDiveCentersWithCoordinates(diverId: validatedDiverId);
 });
 
@@ -104,6 +107,7 @@ final diveCenterSearchProvider =
         return ref.watch(allDiveCentersProvider).value ?? [];
       }
       final repository = ref.watch(diveCenterRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
       return repository.searchDiveCenters(query, diverId: validatedDiverId);
     });
 
@@ -114,6 +118,7 @@ final diveCentersByCountryProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
+      ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
       return repository.getDiveCentersByCountry(
         country,
         diverId: validatedDiverId,
@@ -126,6 +131,7 @@ final diveCenterCountriesProvider = FutureProvider<List<String>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
   return repository.getCountries(diverId: validatedDiverId);
 });
 
@@ -150,7 +156,11 @@ class DiveCenterListNotifier
 
   DiveCenterListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveCenterListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -158,7 +168,11 @@ class DiveCenterListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allDiveCentersProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveCenterListNotifier,
+          'initialize and load',
+        );
       }
     });
 

@@ -69,6 +69,12 @@ class ConnectorMediaResolver implements MediaSourceResolver {
     return VerifyResult.available;
   }
 
+  /// The cache pool a rendition request targets also names its tier: the
+  /// connector fetches a 'thumbnail2x' rendition into the thumb pool and a
+  /// '2048' rendition into the originals pool.
+  ServedTier _tierFor(MediaCacheKind kind) =>
+      kind == MediaCacheKind.thumb ? ServedTier.thumbnail : ServedTier.original;
+
   Future<MediaSourceData> _resolveRendition(
     MediaItem item, {
     required String size,
@@ -95,7 +101,14 @@ class ConnectorMediaResolver implements MediaSourceResolver {
 
       if (cache != null && contentHash != null) {
         final cached = await cache.get(contentHash, kind);
-        if (cached != null) return FileData(file: cached, isPoster: isPoster);
+        if (cached != null) {
+          return FileData(
+            file: cached,
+            isPoster: isPoster,
+            servedFrom: ServedFrom.connectorCache,
+            servedTier: _tierFor(kind),
+          );
+        }
       }
 
       final api = await _apiClient();
@@ -124,7 +137,12 @@ class ConnectorMediaResolver implements MediaSourceResolver {
               staging,
               extension: 'jpg',
             );
-            return FileData(file: file, isPoster: isPoster);
+            return FileData(
+              file: file,
+              isPoster: isPoster,
+              servedFrom: ServedFrom.connectorNetwork,
+              servedTier: _tierFor(kind),
+            );
           }
           final digest = await sha256OfFile(staging);
           if (digest.hash == contentHash) {
@@ -134,7 +152,12 @@ class ConnectorMediaResolver implements MediaSourceResolver {
               staging,
               extension: 'jpg',
             );
-            return FileData(file: file, isPoster: isPoster);
+            return FileData(
+              file: file,
+              isPoster: isPoster,
+              servedFrom: ServedFrom.connectorNetwork,
+              servedTier: _tierFor(kind),
+            );
           }
         } finally {
           if (await staging.exists()) {
@@ -142,7 +165,14 @@ class ConnectorMediaResolver implements MediaSourceResolver {
           }
         }
       }
-      return BytesData(bytes: bytes);
+      // Reached only when the bytes could not enter the content-addressed
+      // cache (no hash on the row, or a rendition that failed verification),
+      // so they were still pulled from the API on this call.
+      return BytesData(
+        bytes: bytes,
+        servedFrom: ServedFrom.connectorNetwork,
+        servedTier: _tierFor(kind),
+      );
     } on LightroomApiException catch (e) {
       _log.warning('Lightroom rendition $size failed for ${item.id}: $e');
       return UnavailableData(

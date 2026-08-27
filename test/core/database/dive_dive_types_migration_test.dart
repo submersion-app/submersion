@@ -31,7 +31,7 @@ void main() {
       // ids are unique and non-empty
       final ids = db.select('SELECT id FROM dive_dive_types');
       expect(ids.map((r) => r['id']).toSet().length, 3);
-      db.dispose();
+      db.close();
     },
   );
 

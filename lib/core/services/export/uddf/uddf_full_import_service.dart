@@ -115,8 +115,12 @@ class UddfFullImportService {
             'gradientfactorhigh',
           );
           decoModels[modelId] = {
-            'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
-            'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
+            'gfLow': gfLowText != null
+                ? UddfImportParsers.parseUddfInt(gfLowText) ?? 0
+                : 0,
+            'gfHigh': gfHighText != null
+                ? UddfImportParsers.parseUddfInt(gfHighText) ?? 0
+                : 0,
           };
         }
       }
@@ -152,6 +156,9 @@ class UddfFullImportService {
                 'model': model ?? '',
                 'serial': serial ?? '',
                 'firmware': firmware ?? '',
+                'manufacturer':
+                    UddfImportParsers.getManufacturerName(computerElement) ??
+                    '',
               };
             }
           }
@@ -773,7 +780,7 @@ class UddfFullImportService {
           sighting['speciesRef'] = sightingElement.getAttribute('speciesref');
           final countStr = sightingElement.getAttribute('count');
           sighting['count'] = countStr != null
-              ? int.tryParse(countStr) ?? 1
+              ? UddfImportParsers.parseUddfInt(countStr) ?? 1
               : 1;
           sighting['notes'] =
               UddfImportParsers.getElementText(sightingElement, 'notes') ?? '';
@@ -898,7 +905,7 @@ class UddfFullImportService {
           final event = <String, dynamic>{};
           final time = UddfImportParsers.getElementText(eventElement, 'time');
           if (time != null) {
-            event['timestamp'] = int.tryParse(time);
+            event['timestamp'] = UddfImportParsers.parseUddfInt(time);
           }
           final eventType = UddfImportParsers.getElementText(
             eventElement,
@@ -947,7 +954,7 @@ class UddfFullImportService {
           final gs = <String, dynamic>{};
           final time = UddfImportParsers.getElementText(gsElement, 'time');
           if (time != null) {
-            gs['timestamp'] = int.tryParse(time);
+            gs['timestamp'] = UddfImportParsers.parseUddfInt(time);
           }
           final depth = UddfImportParsers.getElementText(gsElement, 'depth');
           if (depth != null) {
@@ -1101,14 +1108,18 @@ class UddfFullImportService {
         'scrubberdurationminutes',
       );
       if (scrubDur != null) {
-        diveData['scrubberDurationMinutes'] = int.tryParse(scrubDur);
+        diveData['scrubberDurationMinutes'] = UddfImportParsers.parseUddfInt(
+          scrubDur,
+        );
       }
       final scrubRem = UddfImportParsers.getElementText(
         rebreatherElement,
         'scrubberremainingminutes',
       );
       if (scrubRem != null) {
-        diveData['scrubberRemainingMinutes'] = int.tryParse(scrubRem);
+        diveData['scrubberRemainingMinutes'] = UddfImportParsers.parseUddfInt(
+          scrubRem,
+        );
       }
     }
 
@@ -1151,7 +1162,7 @@ class UddfFullImportService {
         'divenumber',
       );
       if (diveNumText != null) {
-        diveData['diveNumber'] = int.tryParse(diveNumText);
+        diveData['diveNumber'] = UddfImportParsers.parseUddfInt(diveNumText);
       }
 
       final airTempText = UddfImportParsers.getElementText(
@@ -1198,7 +1209,7 @@ class UddfFullImportService {
           'passedtime',
         );
         if (passedTimeText != null) {
-          final seconds = int.tryParse(passedTimeText);
+          final seconds = UddfImportParsers.parseUddfInt(passedTimeText);
           if (seconds != null && seconds > 0) {
             diveData['surfaceInterval'] = Duration(seconds: seconds);
           }
@@ -1215,7 +1226,7 @@ class UddfFullImportService {
           'leadquantity',
         );
         if (leadText != null) {
-          final leadKg = double.tryParse(leadText);
+          final leadKg = UddfImportParsers.parseUddfDouble(leadText);
           if (leadKg != null) {
             diveData['weightUsed'] = leadKg;
           }
@@ -1282,6 +1293,9 @@ class UddfFullImportService {
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
             }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
+            }
           }
         }
       }
@@ -1300,6 +1314,9 @@ class UddfFullImportService {
             }
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
+            }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
             }
           }
         }
@@ -1339,6 +1356,25 @@ class UddfFullImportService {
 
         if (existingRefs.isNotEmpty) {
           diveData['equipmentRefs'] = existingRefs;
+        }
+
+        // Lead weight, when the exporter put <equipmentused> here rather
+        // than in <informationbeforedive>. UDDF is ambiguous about which
+        // half of the dive owns the element and exporters disagree
+        // (Oceanic Plus and MacDive both write it after), so it is read
+        // from whichever side supplies it. The before-dive value wins to
+        // keep this a fallback rather than an override.
+        if (diveData['weightUsed'] == null) {
+          final leadText = UddfImportParsers.getElementText(
+            afterEquipmentElement,
+            'leadquantity',
+          );
+          if (leadText != null) {
+            final leadKg = UddfImportParsers.parseUddfDouble(leadText);
+            if (leadKg != null) {
+              diveData['weightUsed'] = leadKg;
+            }
+          }
         }
       }
     }
@@ -1464,7 +1500,7 @@ class UddfFullImportService {
         'tankorder',
       );
       if (tankOrder != null) {
-        tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
+        tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
       }
 
       // Validate tank data before adding
@@ -1568,7 +1604,7 @@ class UddfFullImportService {
 
         final timeText = UddfImportParsers.getElementText(waypoint, 'divetime');
         if (timeText != null) {
-          point['timestamp'] = int.tryParse(timeText) ?? 0;
+          point['timestamp'] = UddfImportParsers.parseUddfInt(timeText) ?? 0;
         }
 
         final depthText = UddfImportParsers.getElementText(waypoint, 'depth');
@@ -1697,7 +1733,7 @@ class UddfFullImportService {
           'heartrate',
         );
         if (heartRateText != null) {
-          point['heartRate'] = int.tryParse(heartRateText);
+          point['heartRate'] = UddfImportParsers.parseUddfInt(heartRateText);
         }
 
         final cnsText = UddfImportParsers.getElementText(waypoint, 'cns');
@@ -1773,7 +1809,7 @@ class UddfFullImportService {
           'nodecotime',
         );
         if (ndlText != null) {
-          point['ndl'] = int.tryParse(ndlText);
+          point['ndl'] = UddfImportParsers.parseUddfInt(ndlText);
         }
 
         final decoStop = waypoint.findElements('decostop').firstOrNull;
@@ -1824,7 +1860,7 @@ class UddfFullImportService {
         );
         final rbtText = remainingBottomTimeText ?? remainingO2TimeText;
         if (rbtText != null) {
-          point['rbt'] = int.tryParse(rbtText);
+          point['rbt'] = UddfImportParsers.parseUddfInt(rbtText);
         }
 
         if (point.containsKey('timestamp') && point.containsKey('depth')) {
@@ -1940,7 +1976,7 @@ class UddfFullImportService {
         'diveduration',
       );
       if (durationText != null) {
-        final seconds = int.tryParse(durationText);
+        final seconds = UddfImportParsers.parseUddfInt(durationText);
         if (seconds != null) {
           diveData['runtime'] = Duration(seconds: seconds);
         }
@@ -1989,7 +2025,12 @@ class UddfFullImportService {
         'visibility',
       );
       if (visibilityText != null) {
-        diveData['visibility'] = _parseUddfVisibility(visibilityText);
+        // UDDF carries visibility as a distance in meters. Keep the measured
+        // value rather than collapsing it into a bucket (see v144).
+        final meters = double.tryParse(visibilityText);
+        if (meters != null && meters > 0) {
+          diveData['visibilityMeters'] = meters;
+        }
       }
 
       // Parse rating
@@ -2000,7 +2041,7 @@ class UddfFullImportService {
           'ratingvalue',
         );
         if (ratingValue != null) {
-          diveData['rating'] = int.tryParse(ratingValue);
+          diveData['rating'] = UddfImportParsers.parseUddfInt(ratingValue);
         }
       }
 
@@ -2075,20 +2116,6 @@ class UddfFullImportService {
     }
 
     return diveData;
-  }
-
-  enums.Visibility _parseUddfVisibility(String value) {
-    final meters = double.tryParse(value) ?? 0;
-    if (meters >= 30) {
-      return enums.Visibility.excellent;
-    } else if (meters >= 15) {
-      return enums.Visibility.good;
-    } else if (meters >= 5) {
-      return enums.Visibility.moderate;
-    } else if (meters > 0) {
-      return enums.Visibility.poor;
-    }
-    return enums.Visibility.unknown;
   }
 
   /// Interpolates sparse temperature data across profile points.

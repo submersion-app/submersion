@@ -28,7 +28,7 @@ final _trip = Trip(
 final _stats = TripWithStats(
   trip: _trip,
   diveCount: 2,
-  totalBottomTime: 75 * 60,
+  totalRuntime: 75 * 60,
   maxDepth: 30.0,
 );
 
@@ -88,8 +88,17 @@ void main() {
     );
 
     expect(find.byType(TripStoryDayCard), findsNWidgets(2));
-    expect(find.textContaining('Day 1'), findsWidgets);
-    expect(find.textContaining('Day 2'), findsWidgets);
+    // The day number lives in each sticky header's leading badge now.
+    final badges = find.byKey(const Key('day-number-badge'));
+    expect(badges, findsNWidgets(2));
+    expect(
+      find.descendant(of: badges.at(0), matching: find.text('1')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: badges.at(1), matching: find.text('2')),
+      findsOneWidget,
+    );
     expect(find.byType(DiveListItem), findsNWidgets(2));
   });
 

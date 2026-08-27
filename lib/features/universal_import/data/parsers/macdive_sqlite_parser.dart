@@ -53,7 +53,7 @@ class MacDiveSqliteParser implements ImportParser {
           ],
         );
       }
-      return MacDiveDiveMapper.toPayload(logbook);
+      return await MacDiveDiveMapper.toPayload(logbook);
     } catch (e) {
       return ImportPayload(
         entities: const {},

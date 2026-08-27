@@ -70,6 +70,13 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_trips,
   ),
   NavDestination(
+    id: 'media',
+    route: '/media',
+    icon: Icons.photo_library_outlined,
+    selectedIcon: Icons.photo_library,
+    label: (l10n) => l10n.nav_media,
+  ),
+  NavDestination(
     id: 'equipment',
     route: '/equipment',
     icon: Icons.backpack_outlined,

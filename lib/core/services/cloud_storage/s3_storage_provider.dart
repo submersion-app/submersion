@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -161,6 +163,124 @@ class S3StorageProvider
   Future<Uint8List> downloadFile(String fileId) async {
     final session = await _requireSession();
     return session.client.getObject(fileId);
+  }
+
+  /// Chunk/part size for streamed transfers; matches S3MediaObjectStore.
+  static const int _transferChunkBytes = 8 * 1024 * 1024;
+
+  /// Streams the local file up as a multipart upload in 8 MiB parts
+  /// (mirroring S3MediaObjectStore._putMultipart, minus resume state:
+  /// backups are one-shot artifacts). SigV4 signs each part's own payload
+  /// hash, so per-part signing works where a single streamed PUT cannot.
+  /// A failed upload aborts the session so parts never strand and bill.
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    final source = File(sourcePath);
+    final length = await source.length();
+    if (length <= _transferChunkBytes) {
+      return uploadFile(
+        await source.readAsBytes(),
+        filename,
+        folderId: folderId,
+      );
+    }
+
+    final session = await _requireSession();
+    final key = '${folderId ?? session.config.prefix}$filename';
+    String? uploadId;
+    try {
+      uploadId = await session.client.createMultipartUpload(
+        key,
+        contentType: 'application/octet-stream',
+      );
+      final parts = <S3PartInfo>[];
+      final totalParts =
+          (length + _transferChunkBytes - 1) ~/ _transferChunkBytes;
+      final raf = await source.open();
+      try {
+        for (var n = 1; n <= totalParts; n++) {
+          final offset = (n - 1) * _transferChunkBytes;
+          await raf.setPosition(offset);
+          final chunk = await raf.read(
+            min(_transferChunkBytes, length - offset),
+          );
+          final etag = await session.client.uploadPart(
+            key,
+            uploadId: uploadId,
+            partNumber: n,
+            bytes: chunk,
+          );
+          parts.add(S3PartInfo(partNumber: n, etag: etag));
+        }
+      } finally {
+        await raf.close();
+      }
+      await session.client.completeMultipartUpload(
+        key,
+        uploadId: uploadId,
+        parts: parts,
+      );
+      return UploadResult(fileId: key, uploadTime: DateTime.now().toUtc());
+    } catch (_) {
+      if (uploadId != null) {
+        try {
+          await session.client.abortMultipartUpload(key, uploadId: uploadId);
+        } catch (_) {
+          // Best-effort abort; the original error is the one that matters.
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Ranged download straight to disk (mirroring S3MediaObjectStore.getFile),
+  /// one 8 MiB slice resident at a time.
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    final session = await _requireSession();
+    final dest = File(destinationPath);
+    try {
+      final info = await session.client.headObject(fileId);
+      if (info == null) {
+        throw CloudStorageException('File not found in S3: $fileId');
+      }
+      final total = info.size;
+      if (total == null || total <= _transferChunkBytes) {
+        final bytes = await session.client.getObject(fileId);
+        await dest.writeAsBytes(bytes, flush: true);
+        return;
+      }
+      final raf = await dest.open(mode: FileMode.write);
+      try {
+        var received = 0;
+        while (received < total) {
+          final end = min(received + _transferChunkBytes, total) - 1;
+          final range = await session.client.getObjectRange(
+            fileId,
+            start: received,
+            endInclusive: end,
+          );
+          await raf.writeFrom(range.bytes);
+          received += range.bytes.length;
+        }
+        await raf.flush();
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      if (await dest.exists()) {
+        try {
+          await dest.delete();
+        } catch (_) {
+          // Best-effort cleanup of a partial download.
+        }
+      }
+      rethrow;
+    }
   }
 
   @override

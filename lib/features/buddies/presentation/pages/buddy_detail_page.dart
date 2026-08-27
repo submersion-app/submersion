@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -138,9 +140,6 @@ class _BuddyDetailContent extends ConsumerWidget {
           // table, with an empty state.
           _buildCertificationSection(context, ref),
           const SizedBox(height: 24),
-
-          // Professional roles
-          _buildRolesSection(context, ref),
 
           // Statistics
           _buildStatsSection(context, statsAsync),
@@ -334,6 +333,12 @@ class _BuddyDetailContent extends ConsumerWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 
+    final destination = await showExportDestinationSheet(
+      context,
+      title: l10n.buddies_action_shareDives,
+    );
+    if (destination == null) return;
+
     // Show preparing message
     scaffoldMessenger.showSnackBar(
       SnackBar(
@@ -381,12 +386,16 @@ class _BuddyDetailContent extends ConsumerWidget {
 
       scaffoldMessenger.hideCurrentSnackBar();
 
-      // Export to UDDF (this opens the share sheet)
+      // Hand the UDDF to the share sheet, or to a save panel on the user's
+      // request. Either way no success snackbar follows: the share sheet and
+      // the save panel each provide their own feedback.
       final exportService = ref.read(exportServiceProvider);
-      await exportService.exportDivesToUddf(dives, sites: sites);
-
-      // Note: Success snackbar may not show if share sheet is still active
-      // That's fine - the share sheet itself provides feedback
+      switch (destination) {
+        case ExportDestination.share:
+          await exportService.exportDivesToUddf(dives, sites: sites);
+        case ExportDestination.saveToFile:
+          await exportService.saveDivesToUddfFile(dives, sites: sites);
+      }
     } catch (e) {
       scaffoldMessenger.hideCurrentSnackBar();
       scaffoldMessenger.showSnackBar(
@@ -495,8 +504,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.card_membership),
-                            title: Text(cert.level?.displayName ?? cert.name),
-                            subtitle: Text(cert.agency.displayName),
+                            title: Text(certificationTitle(cert)),
+                            subtitle: Text(certificationAgencyAndLevel(cert)),
                           ),
                       ],
                     ),
@@ -504,44 +513,6 @@ class _BuddyDetailContent extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildRolesSection(BuildContext context, WidgetRef ref) {
-    final rolesAsync = ref.watch(buddyRolesProvider(buddy.id));
-    final roles = rolesAsync.value;
-    if (roles == null || roles.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.buddies_detail_section_professionalRoles,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                for (final credential in roles)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.workspace_premium),
-                    title: Text(credential.displayLabel),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-      ],
     );
   }
 
@@ -626,7 +597,9 @@ class _BuddyDetailContent extends ConsumerWidget {
     final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddy.id));
     final divesAsync = ref.watch(divesForBuddyProvider(buddy.id));
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMd();
+    // Includes the year: shared dives routinely span several years, so a bare
+    // "Mar 28" is ambiguous (#982). Matches the stats card above.
+    final dateFormat = DateFormat.yMMMd();
 
     return Card(
       child: Padding(

@@ -372,6 +372,14 @@ class MediaTransferQueueRepository {
     _db.mediaTransferQueue,
   )..where((t) => t.state.equals('done'))).go();
 
+  /// Removes a single queue entry.
+  ///
+  /// The queue is local bookkeeping, not synced data, so a plain delete is
+  /// enough -- no tombstone. Callers must not delete a row that is currently
+  /// `transferring`; see the guard in the transfers page.
+  Future<int> delete(int id) =>
+      (_db.delete(_db.mediaTransferQueue)..where((t) => t.id.equals(id))).go();
+
   /// Live split of the outstanding queue for the settings page.
   ///
   /// Replaces a plain pending+transferring count, which reported a row
@@ -432,6 +440,12 @@ class MediaTransferQueueRepository {
   /// suspended - offline, or a failed preflight - both of which have their
   /// own triggers. Arming a timer for an already-due row would spin a tight
   /// loop against a drain that keeps declining to run.
+  ///
+  /// That leaves a row whose backoff expired *during* a drain that ran fine
+  /// answering to neither this query nor the drain's own (#1210). Closing that
+  /// gap is the caller's job rather than this query's, because only the worker
+  /// knows which of the two cases its drain was. See the immediate-wakeup
+  /// branch of `MediaStoreWorker._armWakeup`, in media_store_worker.dart.
   Future<DateTime?> earliestPendingWakeup(DateTime now) async {
     final soonest = _db.mediaTransferQueue.nextAttemptAt.min();
     final query = _db.selectOnly(_db.mediaTransferQueue)

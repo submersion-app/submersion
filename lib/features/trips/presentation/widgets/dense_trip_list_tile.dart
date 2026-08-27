@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the trip list (maximum density).
 ///
 /// Row: Trip name (expanded) | Abbreviated date range (~100px) | Dive count (~40px) | Chevron
-class DenseTripListTile extends StatelessWidget {
+class DenseTripListTile extends ConsumerWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
   final bool showSharedBadge;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DenseTripListTile({
     super.key,
@@ -19,19 +25,13 @@ class DenseTripListTile extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
-  /// Formats a date as "MMM d", adding the year if it is not the current year.
-  String _formatAbbreviated(DateTime date) {
-    final now = DateTime.now();
-    if (date.year != now.year) {
-      return DateFormat('MMM d, yyyy').format(date);
-    }
-    return DateFormat('MMM d').format(date);
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isSelected
@@ -39,8 +39,11 @@ class DenseTripListTile extends StatelessWidget {
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
 
-    final startStr = _formatAbbreviated(trip.startDate);
-    final endStr = _formatAbbreviated(trip.endDate);
+    // Month and day, plus the year outside the current one, ordered by the
+    // diver's date format preference (#964).
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final startStr = units.formatMonthDayWithYear(trip.startDate);
+    final endStr = units.formatMonthDayWithYear(trip.endDate);
     final dateRangeStr = '$startStr - $endStr';
 
     return Semantics(
@@ -62,6 +65,12 @@ class DenseTripListTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  gap: 8,
+                ),
                 // Trip name (expanded)
                 Expanded(
                   child: Text(

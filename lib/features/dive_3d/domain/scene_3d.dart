@@ -8,11 +8,22 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 /// One renderable mesh in a scene. A null [overlay] means the layer is
 /// structural (grid, ribbon, tissue surface) and always drawn; a non-null
 /// overlay is gated by the viewport's visible-overlays set.
+///
+/// [drapedOnTerrain] marks layers that ride the terrain surface (contour
+/// ribbons, wall highlights): the renderer depth-sorts their triangles
+/// TOGETHER with the terrain mesh so far-side geometry hides behind
+/// hills. Plain layer order cannot do that: each mesh painted whole would
+/// put every draped triangle on top of the terrain.
+///
+/// Sharing the sort has a catch, though: a drape that is much smaller than
+/// the terrain triangle it rides loses the centroid comparison on rough
+/// ground. Thin drapes fix that by declaring [MeshData.sortHeights].
 class SceneLayer {
   final MeshData mesh;
   final SceneOverlay? overlay;
+  final bool drapedOnTerrain;
 
-  const SceneLayer(this.mesh, {this.overlay});
+  const SceneLayer(this.mesh, {this.overlay, this.drapedOnTerrain = false});
 }
 
 /// The path the scrub cursor follows, as scene-space (x, y) nodes keyed by

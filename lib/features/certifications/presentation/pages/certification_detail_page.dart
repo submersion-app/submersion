@@ -10,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -174,7 +175,7 @@ class _CertificationDetailContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(certification.name),
+        title: Text(certificationTitle(certification)),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -250,7 +251,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  certification.name,
+                  certificationTitle(certification),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -449,7 +450,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            certification.name,
+            certificationTitle(certification),
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
@@ -479,11 +480,14 @@ class _CertificationDetailContent extends ConsumerWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _InfoRow(
-              icon: Icons.card_membership,
-              label: context.l10n.certifications_detail_label_type,
-              value: certification.name,
-            ),
+            // Only shown when the stored name says something the agency and
+            // certification rows do not already say.
+            if (customNameOrNull(certification) != null)
+              _InfoRow(
+                icon: Icons.card_membership,
+                label: context.l10n.certifications_detail_label_type,
+                value: customNameOrNull(certification)!,
+              ),
             _InfoRow(
               icon: Icons.business,
               label: context.l10n.certifications_detail_label_agency,
@@ -491,8 +495,8 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             if (certification.level != null)
               _InfoRow(
-                icon: Icons.stairs,
-                label: context.l10n.certifications_detail_label_level,
+                icon: Icons.workspace_premium,
+                label: context.l10n.certifications_detail_label_certification,
                 value: certification.level!.displayName,
               ),
             if (certification.cardNumber != null)
@@ -765,7 +769,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           label: context.l10n
               .certifications_detail_semanticLabel_photoTapToView(
                 label,
-                certification.name,
+                certificationTitle(certification),
               ),
           child: GestureDetector(
             onTap: () => _showFullscreenPhoto(context, imageData, label),
@@ -834,7 +838,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(
               context.l10n.certifications_detail_photo_fullscreenTitle(
                 label,
-                certification.name,
+                certificationTitle(certification),
               ),
             ),
           ),
@@ -900,7 +904,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(context.l10n.certifications_detail_dialog_deleteTitle),
             content: Text(
               context.l10n.certifications_detail_dialog_deleteContent(
-                certification.name,
+                certificationTitle(certification),
               ),
             ),
             actions: [

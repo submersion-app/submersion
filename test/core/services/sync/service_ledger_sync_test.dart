@@ -112,6 +112,70 @@ void main() {
     expect(await serializer.fetchRecord('serviceKinds', 'k-solo'), isNull);
   });
 
+  test('serviceKinds carry the v154 default price over the wire', () async {
+    await serializer.upsertRecord('serviceKinds', {
+      'id': 'k-priced',
+      'name': 'Disinfect',
+      'applicableTypes': '[]',
+      'defaultCost': 12.5,
+      'defaultCurrency': 'EUR',
+      'autoAttach': false,
+      'isBuiltIn': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final row = await serializer.fetchRecord('serviceKinds', 'k-priced');
+    expect(row!['defaultCost'], 12.5);
+    expect(row['defaultCurrency'], 'EUR');
+  });
+
+  test('a payload omitting defaultCost leaves it null, not absent', () async {
+    // Direction that matters for cross-version peers: an older build knows
+    // nothing about these columns and simply does not send them.
+    await serializer.upsertRecord('serviceKinds', {
+      'id': 'k-legacy',
+      'name': 'Legacy kind',
+      'applicableTypes': '[]',
+      'autoAttach': false,
+      'isBuiltIn': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final row = await serializer.fetchRecord('serviceKinds', 'k-legacy');
+    expect(row!.containsKey('defaultCost'), isTrue);
+    expect(row['defaultCost'], isNull);
+  });
+
+  test('serviceSchedules carry the v154 default price over the wire', () async {
+    await serializer.upsertRecord('equipment', {
+      'id': 'e-priced',
+      'name': 'JJ-CCR',
+      'type': 'rebreather',
+      'status': 'active',
+      'purchaseCurrency': 'EUR',
+      'notes': '',
+      'isActive': true,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    await serializer.upsertRecord('serviceSchedules', {
+      'id': 's-priced',
+      'equipmentId': 'e-priced',
+      'serviceKindId': 'hydro',
+      'defaultCost': 45.0,
+      'defaultCurrency': 'EUR',
+      'enabled': true,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final row = await serializer.fetchRecord('serviceSchedules', 's-priced');
+    expect(row!['defaultCost'], 45.0);
+    expect(row['defaultCurrency'], 'EUR');
+  });
+
   test('serviceSchedules round-trip through batch paths', () async {
     await serializer.upsertRecord('equipment', {
       'id': 'e1',

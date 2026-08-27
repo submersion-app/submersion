@@ -255,7 +255,7 @@ void main() {
             id: 'm-temp',
             detectorId: 'temp_anomaly',
             category: QualityCategory.temperature,
-            params: const {'deltaC': 6.0},
+            params: const {'deltaC': 6.0, 'spikeShaped': true},
           ),
           _f(
             id: 'm-sac',
@@ -615,13 +615,29 @@ void main() {
       id: 'r-smooth',
       detectorId: 'temp_anomaly',
       category: QualityCategory.temperature,
-      params: const {'deltaC': 6.0},
+      params: const {'deltaC': 6.0, 'spikeShaped': true},
     ),
     'convert temperature': _f(
       id: 'r-convert',
       detectorId: 'temp_anomaly',
       category: QualityCategory.temperature,
-      params: const {'minTempC': 250.0, 'maxTempC': 260.0},
+      params: const {
+        'minTempC': 285.0,
+        'maxTempC': 290.0,
+        'fahrenheitAsKelvinSuspected': true,
+      },
+    ),
+    'smooth impossible rates': _f(
+      id: 'r-rates',
+      detectorId: 'impossible_rate',
+      category: QualityCategory.profile,
+      params: const {'startSeconds': 120, 'interpolatable': true},
+    ),
+    'clamp negative depths': _f(
+      id: 'r-clamp',
+      detectorId: 'depth_spike',
+      category: QualityCategory.profile,
+      params: const {'sampleCount': 3, 'minDepth': -2.0},
     ),
     'swap tank pressures': _f(
       id: 'r-swapp',
@@ -708,6 +724,43 @@ void main() {
     // Exercise the undo action wired onto the SnackBar.
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('scalar water-temp repair converts the dive and can undo', (
+    tester,
+  ) async {
+    // 78 recorded as Celsius is 25.6 C read as Fahrenheit.
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1), waterTemp: 78),
+    );
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-temp-scalar',
+            detectorId: 'temp_anomaly',
+            category: QualityCategory.temperature,
+            params: const {'waterTempC': 78.0, 'fahrenheitSuspected': true},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    expect(
+      (await DiveRepository().getDiveById('d1'))!.waterTemp,
+      closeTo(25.5556, 1e-3),
+    );
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+    expect((await DiveRepository().getDiveById('d1'))!.waterTemp, 78);
   });
 
   testWidgets('consolidate-duplicate repair reports through a SnackBar', (

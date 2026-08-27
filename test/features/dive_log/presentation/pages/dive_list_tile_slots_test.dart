@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -174,6 +175,40 @@ void main() {
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('DiveListTile dive mode badge', () {
+    testWidgets('shows the short code from the summary', (tester) async {
+      await tester.pumpWidget(
+        buildTile(
+          config: CardViewConfig.defaultDetailed(),
+          diveSummary: DiveSummary(
+            id: 'd1',
+            diveNumber: 7,
+            dateTime: DateTime(2024, 6, 1),
+            siteName: 'Blue Hole',
+            maxDepth: 30.0,
+            sortTimestamp: 0,
+            diveMode: DiveMode.ccr,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('CCR'), findsOneWidget);
+    });
+
+    testWidgets('defaults to OC when the summary omits a mode', (tester) async {
+      await tester.pumpWidget(
+        buildTile(
+          config: CardViewConfig.defaultDetailed(),
+          diveSummary: summary(siteName: 'Blue Hole'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('OC'), findsOneWidget);
     });
   });
 }

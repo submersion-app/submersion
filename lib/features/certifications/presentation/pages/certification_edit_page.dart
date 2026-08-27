@@ -12,8 +12,11 @@ import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -73,7 +76,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
-  bool _isNameManuallyEdited = false;
   Certification? _originalCertification;
   String? _instructorId;
 
@@ -92,44 +94,12 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       _prefillFrom(widget.initialCertification!);
     } else if (isEditing) {
       _loadCertification();
-    } else {
-      // New certification: set initial default name
-      _updateNameIfDefault();
     }
     _nameController.addListener(_onFieldChanged);
     _cardNumberController.addListener(_onFieldChanged);
     _instructorNameController.addListener(_onFieldChanged);
     _instructorNumberController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
-    _nameController.addListener(_onNameChanged);
-  }
-
-  void _onNameChanged() {
-    final defaultName = _generateDefaultName();
-    if (_nameController.text != defaultName) {
-      _isNameManuallyEdited = true;
-    } else {
-      // If it matches exactly (even if they typed it), we can consider it
-      // "following the default" again.
-      _isNameManuallyEdited = false;
-    }
-    _onFieldChanged();
-  }
-
-  void _updateNameIfDefault() {
-    if (!_isNameManuallyEdited) {
-      final newName = _generateDefaultName();
-      if (_nameController.text != newName) {
-        _nameController.text = newName;
-      }
-    }
-  }
-
-  String _generateDefaultName() {
-    if (_level == null) return '';
-    final agencyPart = _agency.displayName;
-    final levelPart = _level!.displayName;
-    return '$agencyPart : $levelPart';
   }
 
   void _onFieldChanged() {
@@ -142,17 +112,15 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   /// used by staging mode instead of loading by id.
   void _prefillFrom(Certification cert) {
     _originalCertification = cert;
-    _nameController.text = cert.name;
+    // A name that merely repeats agency + level is shown as blank, so the
+    // field's hint offers the derivation instead of duplicating it.
+    _nameController.text = hasDerivedName(cert) ? '' : cert.name;
     _cardNumberController.text = cert.cardNumber ?? '';
     _instructorNameController.text = cert.instructorName ?? '';
     _instructorNumberController.text = cert.instructorNumber ?? '';
     _notesController.text = cert.notes;
     _agency = cert.agency;
     _level = cert.level;
-
-    // When prefilling/loading an existing cert, we assume the name is intentional
-    // unless it's empty (which shouldn't happen for existing certs but just in case)
-    _isNameManuallyEdited = cert.name.isNotEmpty;
 
     _issueDate = cert.issueDate;
     _expiryDate = cert.expiryDate;
@@ -169,7 +137,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           .getCertificationById(widget.certificationId!);
       if (cert != null && mounted) {
         _originalCertification = cert;
-        _nameController.text = cert.name;
+        // See _prefillFrom: a derived name renders as a blank field.
+        _nameController.text = hasDerivedName(cert) ? '' : cert.name;
         _cardNumberController.text = cert.cardNumber ?? '';
         _instructorNameController.text = cert.instructorName ?? '';
         _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -177,7 +146,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         setState(() {
           _agency = cert.agency;
           _level = cert.level;
-          _isNameManuallyEdited = cert.name.isNotEmpty;
           _issueDate = cert.issueDate;
           _expiryDate = cert.expiryDate;
           _photoFront = cert.photoFront;
@@ -371,7 +339,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   @override
   void dispose() {
-    _nameController.removeListener(_onNameChanged);
     _nameController.removeListener(_onFieldChanged);
     _nameController.dispose();
     _cardNumberController.dispose();
@@ -379,6 +346,65 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _instructorNumberController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  /// Items for the certification dropdown, grouped into the agency's
+  /// progression ladder and the cross-agency specialties.
+  ///
+  /// Headers are disabled items carrying their own [CertificationOption.header]
+  /// value, so no two rows share a value -- see [CertificationOption] for why
+  /// DropdownButton requires that. "Not specified" leads the list because it is
+  /// the clear-selection choice, not for any correctness reason.
+  List<DropdownMenuItem<CertificationOption>> _certificationItems(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(context);
+    final ladder = CertificationLevelCatalog.ladderFor(_agency);
+    final specialties = CertificationLevelCatalog.specialtiesFor(_agency);
+
+    // A stored value from another agency's catalog still has to render.
+    final level = _level;
+    final extra =
+        (level != null &&
+            level != CertificationLevel.other &&
+            !ladder.contains(level) &&
+            !specialties.contains(level))
+        ? level
+        : null;
+
+    DropdownMenuItem<CertificationOption> header(String key, String text) =>
+        DropdownMenuItem<CertificationOption>(
+          enabled: false,
+          value: CertificationOption.header(key),
+          child: Text(
+            text,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+
+    DropdownMenuItem<CertificationOption> item(CertificationLevel value) =>
+        DropdownMenuItem<CertificationOption>(
+          value: CertificationOption.value(value),
+          child: Text(value.displayName),
+        );
+
+    return [
+      DropdownMenuItem<CertificationOption>(
+        value: const CertificationOption.value(null),
+        child: Text(
+          context.l10n.certifications_edit_certification_notSpecified,
+        ),
+      ),
+      header('progression', context.l10n.certifications_edit_group_progression),
+      ...ladder.map(item),
+      header('specialties', context.l10n.certifications_edit_group_specialties),
+      ...specialties.map(item),
+      if (extra != null) item(extra),
+      item(CertificationLevel.other),
+    ];
   }
 
   @override
@@ -392,30 +418,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Certification name field
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: context
-                          .l10n
-                          .certifications_edit_label_certificationName,
-                      prefixIcon: const Icon(Icons.card_membership),
-                      hintText: context
-                          .l10n
-                          .certifications_edit_hint_certificationName,
-                    ),
-                    textCapitalization: TextCapitalization.words,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return context
-                            .l10n
-                            .certifications_edit_validation_nameRequired;
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
                   // Agency dropdown
                   DropdownButtonFormField<CertificationAgency>(
                     initialValue: _agency,
@@ -441,7 +443,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                               ).contains(_level)) {
                             _level = null;
                           }
-                          _updateNameIfDefault();
                           _hasChanges = true;
                         });
                       }
@@ -449,41 +450,50 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Level dropdown (options depend on the selected agency)
-                  DropdownButtonFormField<CertificationLevel>(
+                  // Certification dropdown (options depend on the agency)
+                  DropdownButtonFormField<CertificationOption>(
                     // DropdownButtonFormField keeps its selection in its own
                     // FormFieldState; the key forces a remount when the
                     // agency changes or the level is reset externally, so
                     // initialValue is re-read.
                     key: ValueKey('level-${_agency.name}-${_level?.name}'),
-                    initialValue: _level,
+                    initialValue: CertificationOption.value(_level),
                     decoration: InputDecoration(
-                      labelText: context.l10n.certifications_edit_label_level,
-                      prefixIcon: const Icon(Icons.stairs),
+                      labelText:
+                          context.l10n.certifications_edit_label_certification,
+                      prefixIcon: const Icon(Icons.workspace_premium),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(
-                          context.l10n.certifications_edit_level_notSpecified,
-                        ),
-                      ),
-                      ...CertificationLevelCatalog.levelsFor(
-                        _agency,
-                        ensure: _level,
-                      ).map((level) {
-                        return DropdownMenuItem(
-                          value: level,
-                          child: Text(level.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
+                    items: _certificationItems(context),
+                    onChanged: (option) {
                       setState(() {
-                        _level = value;
-                        _updateNameIfDefault();
+                        _level = option?.level;
                         _hasChanges = true;
                       });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Name on card: optional. Blank means "use the derived
+                  // title", which the hint shows live.
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.certifications_edit_label_nameOnCard,
+                      prefixIcon: const Icon(Icons.card_membership),
+                      hintText: derivedCertificationTitle(_agency, _level),
+                      helperText:
+                          context.l10n.certifications_edit_helper_nameOnCard,
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if ((value == null || value.trim().isEmpty) &&
+                          _level == null) {
+                        return context
+                            .l10n
+                            .certifications_edit_validation_certificationOrNameRequired;
+                      }
+                      return null;
                     },
                   ),
                   const SizedBox(height: 16),
@@ -552,18 +562,18 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
                   InstructorPickerField(
                     instructorId: _instructorId,
-                    onSelected: (buddy, credential) {
+                    onSelected: (buddy, instructorCert) {
                       setState(() {
                         _instructorId = buddy?.id;
                         _hasChanges = true;
                         if (buddy != null) {
                           // Snapshot the picked buddy fully: overwrite both
                           // name and number so switching to a buddy without a
-                          // credential number clears a stale one rather than
+                          // card number clears a stale one rather than
                           // leaving the previous selection's value behind.
                           _instructorNameController.text = buddy.name;
                           _instructorNumberController.text =
-                              credential?.credentialNumber ?? '';
+                              instructorCert?.cardNumber ?? '';
                         }
                         // Clearing to None keeps the text fields untouched.
                       });
@@ -1064,7 +1074,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: value ?? DateTime.now(),
       firstDate: DateTime(1950),

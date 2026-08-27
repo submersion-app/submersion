@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -310,8 +311,9 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
   @override
   void initState() {
     super.initState();
+    final value = widget.item.valueNumber;
     _valueController = TextEditingController(
-      text: widget.item.valueNumber?.toString() ?? '',
+      text: value == null ? '' : formatDecimalForInput(value),
     );
     _noteController = TextEditingController(text: widget.item.note);
   }
@@ -340,6 +342,7 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
               suffixText: widget.item.valueUnit,
             ),
           ),
+          const SizedBox(height: 16),
           TextField(
             controller: _noteController,
             decoration: InputDecoration(labelText: l10n.preDive_runner_addNote),
@@ -353,7 +356,7 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop((
-            value: double.tryParse(_valueController.text.trim()),
+            value: parseUserDecimal(_valueController.text),
             note: _noteController.text.trim(),
           )),
           child: Text(l10n.common_action_ok),

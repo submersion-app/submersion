@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
@@ -35,12 +36,13 @@ void main() {
           minutes: 45,
           sacLitersPerMin: 15,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       // 15 L/min * 3 bar * 45 min = 2025 L.
       expect(r.litersConsumed, closeTo(2025, 0.1));
       expect(r.gasAtDepthLitersPerMin, closeTo(45, 0.1));
-      // 2025 L / 12 L = 168.75 bar.
+      // Ideal gas: 2025 L / 12 L = 168.75 bar.
       expect(r.barConsumed, closeTo(168.75, 0.1));
     });
 
@@ -51,11 +53,15 @@ void main() {
           minutes: 45,
           sacLitersPerMin: 15,
           tank: _al80,
+          gasModel: GasModel.ideal,
         ),
       );
       // AL80 is 206.843 bar, so remaining is 206.843 - consumed, not 200 -.
       expect(r.barRemaining, closeTo(206.843 - r.barConsumed, 0.01));
-      expect(r.litersRemaining, closeTo(_al80.freeGasLiters - 2025, 1.0));
+      expect(
+        r.litersRemaining,
+        closeTo(_al80.freeGasLitersFor(GasModel.ideal) - 2025, 1.0),
+      );
     });
 
     test('flags a plan that exceeds the cylinder', () {
@@ -65,6 +71,7 @@ void main() {
           minutes: 90,
           sacLitersPerMin: 25,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.exceedsTank, isTrue);
@@ -77,6 +84,7 @@ void main() {
           minutes: 45,
           sacLitersPerMin: 15,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.exceedsTank, isFalse);
@@ -92,6 +100,7 @@ void main() {
         minutes: 60,
         sacLitersPerMin: 15,
         tank: tank,
+        gasModel: GasModel.ideal,
       );
 
       final onHp100 = computeConsumption(

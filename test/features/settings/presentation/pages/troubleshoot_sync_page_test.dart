@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart' show StateNotifier;
+import 'package:submersion/core/services/screen_awake.dart';
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
@@ -30,6 +34,11 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   _FakeSyncNotifier() : super(const SyncState());
 
   int repairSyncCalls = 0;
+
+  /// When set, [repairSync] blocks on it, so a test can inspect the screen
+  /// while the repair is still running.
+  Completer<void>? repairGate;
+
   int removeThisDeviceCalls = 0;
   int wipeAllCalls = 0;
   int rebuildCalls = 0;
@@ -38,17 +47,37 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   /// state in [SyncStatus.error] with this message (mirrors the real notifier).
   String? rebuildFailureMessage;
 
-  @override
-  Future<void> repairSync() async => repairSyncCalls++;
+  /// What the cleanup calls report back. Defaults to a clean no-op; tests that
+  /// care about partial failure override it (issue #1032).
+  SyncCleanupOutcome cleanupOutcome = const SyncCleanupOutcome();
 
   @override
-  Future<void> removeThisDeviceCloudFiles() async => removeThisDeviceCalls++;
+  Future<void> repairSync() async {
+    repairSyncCalls++;
+    await repairGate?.future;
+  }
 
   @override
-  Future<void> wipeAllCloudSyncData() async => wipeAllCalls++;
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    removeThisDeviceCalls++;
+    return cleanupOutcome;
+  }
 
   @override
-  Future<void> rebuildBackendFromThisDevice() async {
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async {
+    wipeAllCalls++;
+    return cleanupOutcome;
+  }
+
+  @override
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+    void Function()? onPublishStarted,
+  }) async {
     rebuildCalls++;
     final msg = rebuildFailureMessage;
     if (msg != null) {
@@ -62,8 +91,23 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
 
 /// Pumps the page with [fake] backing syncStateProvider. Returns the fake.
 /// SharedPreferences backs the encryption-status row (preference flag read).
+/// The page is a ListView of tall, wordy tiles and keeps gaining rows (the
+/// device browser landed in #1032). Off-screen ListView children are never
+/// built, so on the default 800x600 surface the last action silently stops
+/// existing and every finder for it reports "found 0". Give the tests room for
+/// the whole page rather than teaching each one to scroll.
+void _useTallSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1000, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+}
+
 Future<_FakeSyncNotifier> _pump(WidgetTester tester) async {
   final fake = _FakeSyncNotifier();
+  _useTallSurface(tester);
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
@@ -86,6 +130,7 @@ Future<_FakeSyncNotifier> _pump(WidgetTester tester) async {
 /// Pump without a fake notifier, for display-only assertions. Preferences
 /// still need backing (the encryption-status row reads the flag).
 Future<void> _pumpBare(WidgetTester tester) async {
+  _useTallSurface(tester);
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
@@ -263,6 +308,42 @@ void main() {
     expect(find.text('Sync repaired'), findsOneWidget);
   });
 
+  // Issue #1194: repair ran behind a live page, so a long repair looked like
+  // nothing happening and the phone was free to lock and suspend it.
+  testWidgets('Repair runs behind the blocking dialog, screen held awake', (
+    tester,
+  ) async {
+    final toggles = <bool>[];
+    ScreenAwake.debugToggle = ({required bool enable}) async =>
+        toggles.add(enable);
+    addTearDown(ScreenAwake.debugReset);
+
+    final fake = await _pump(tester);
+    final gate = Completer<void>();
+    fake.repairGate = gate;
+
+    await tester.tap(find.text('Repair Sync'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Repair'));
+    await tester.pump();
+
+    expect(find.text('Repairing sync'), findsOneWidget);
+    expect(find.text('Clearing local sync state'), findsOneWidget);
+    expect(
+      find.textContaining('Keep the app open'),
+      findsOneWidget,
+      reason: 'the same promise the other maintenance actions make',
+    );
+    expect(toggles, [true]);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(toggles, [true, false]);
+    expect(find.text('Sync repaired'), findsOneWidget);
+  });
+
   testWidgets('Repair cancel does not call repairSync', (tester) async {
     final fake = await _pump(tester);
 
@@ -312,7 +393,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fake.removeThisDeviceCalls, 1);
-    expect(find.text('Removed this device’s cloud files'), findsOneWidget);
+    // The snackbar now reports what was actually removed rather than asserting
+    // success unconditionally (issue #1032). The fake returns an empty outcome.
+    expect(find.text('Removed 0 files'), findsOneWidget);
   });
 
   testWidgets('Wipe-all confirm (after typing WIPE) calls the notifier', (
@@ -328,7 +411,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fake.wipeAllCalls, 1);
-    expect(find.text('Wiped all sync data'), findsOneWidget);
+    expect(find.text('Wiped 0 files'), findsOneWidget);
+  });
+
+  testWidgets('a partial wipe says so instead of claiming success', (
+    tester,
+  ) async {
+    // The reported failure mode: the marker listing timed out, files survived,
+    // and the app still said "Wiped all sync data" (issue #1032).
+    final fake = await _pump(tester);
+    fake.cleanupOutcome = const SyncCleanupOutcome(
+      deleted: 400,
+      failed: 3,
+      listIncomplete: true,
+    );
+
+    await tester.tap(find.text('Wipe all sync data on this backend'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'WIPE');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Wipe everything'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('3 could not be deleted'),
+      findsOneWidget,
+      reason: 'the user must learn the backend is not actually clean',
+    );
+    expect(find.textContaining('could not be listed'), findsOneWidget);
   });
 
   testWidgets('cancelling each dialog invokes no notifier action', (

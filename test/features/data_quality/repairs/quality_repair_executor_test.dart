@@ -58,7 +58,7 @@ void main() {
     );
     final finding = await seedFindingForDive('d1');
 
-    final undo = await executor.shiftTimes(
+    final result = await executor.shiftTimes(
       diveIds: ['d1'],
       offset: const Duration(hours: -6),
       findingId: finding.id,
@@ -71,7 +71,7 @@ void main() {
     final resolved = await findingsRepo.getFindings(diveId: 'd1');
     expect(resolved.single.status, QualityStatus.resolved);
 
-    await undo!();
+    await result.undo!();
     expect((await diveRepo.getDiveById('d1'))!.entryTime, entry);
   });
 
@@ -104,21 +104,86 @@ void main() {
       (await findingsRepo.getFindings(diveId: diveId)).single.status;
 
   group('applyProfileRepair', () {
-    test('returns null when the primary profile is empty', () async {
+    test('reports no change when the primary profile is empty', () async {
       await diveRepo.createDive(
         domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1)),
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.applyProfileRepair(
+      final result = await executor.applyProfileRepair(
         diveId: 'd1',
         findingId: finding.id,
         compute: (pts) => pts,
       );
 
-      expect(undo, isNull);
+      expect(result.changed, isFalse);
       // Early-exit leaves the finding untouched.
       expect(await statusOf('d1'), QualityStatus.open);
+    });
+
+    test('reports no change and leaves the finding open when the repair '
+        'computes the stored series', () async {
+      // The repair found nothing to fix. Writing an identical series would
+      // stack another edited-profile layer, and resolving the finding would
+      // only have the next scan reopen it -- which is what made the repair
+      // buttons look dead (issue #1001).
+      final profile = [
+        const domain.DiveProfilePoint(timestamp: 0, depth: 5),
+        const domain.DiveProfilePoint(
+          timestamp: 60,
+          depth: 10,
+          temperature: 12,
+        ),
+      ];
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          profile: profile,
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.applyProfileRepair(
+        diveId: 'd1',
+        findingId: finding.id,
+        compute: (pts) => [for (final p in pts) p.copyWith()],
+      );
+
+      expect(result.changed, isFalse);
+      expect(result.undo, isNull);
+      expect(await statusOf('d1'), QualityStatus.open);
+      expect(
+        (await diveRepo.getDiveProfile('d1')).map((p) => p.depth).toList(),
+        [5.0, 10.0],
+      );
+    });
+
+    test('a repair touching a channel other than depth/temperature still '
+        'counts as a change', () async {
+      // The no-change check compares WHOLE samples, so a repair that
+      // rewrites ppO2, an o2 sensor or a deco field is not mistaken for a
+      // no-op just because depth and temperature are untouched.
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          profile: const [
+            domain.DiveProfilePoint(timestamp: 0, depth: 5),
+            domain.DiveProfilePoint(timestamp: 60, depth: 10),
+          ],
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.applyProfileRepair(
+        diveId: 'd1',
+        findingId: finding.id,
+        compute: (pts) => [for (final p in pts) p.copyWith(ppO2: 1.2)],
+      );
+
+      expect(result.changed, isTrue);
+      expect(await statusOf('d1'), QualityStatus.resolved);
     });
 
     test('applies the computed profile, resolves, and undo restores', () async {
@@ -136,7 +201,7 @@ void main() {
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.applyProfileRepair(
+      final result = await executor.applyProfileRepair(
         diveId: 'd1',
         findingId: finding.id,
         compute: (pts) => [for (final p in pts) p.copyWith(depth: p.depth * 2)],
@@ -148,7 +213,7 @@ void main() {
       );
       expect(await statusOf('d1'), QualityStatus.resolved);
 
-      await undo!();
+      await result.undo!();
       expect(
         (await diveRepo.getDiveProfile('d1')).map((p) => p.depth).toList(),
         [5.0, 10.0, 15.0],
@@ -157,13 +222,13 @@ void main() {
   });
 
   group('recomputeMetrics', () {
-    test('returns null when the dive is missing', () async {
+    test('reports no change when the dive is missing', () async {
       // Returns before touching the finding, so no seeding is needed.
-      final undo = await executor.recomputeMetrics(
+      final result = await executor.recomputeMetrics(
         diveId: 'ghost',
         findingId: 'irrelevant',
       );
-      expect(undo, isNull);
+      expect(result.changed, isFalse);
     });
 
     test('recomputes maxDepth/avgDepth and undo restores prior', () async {
@@ -183,7 +248,7 @@ void main() {
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.recomputeMetrics(
+      final result = await executor.recomputeMetrics(
         diveId: 'd1',
         findingId: finding.id,
       );
@@ -193,10 +258,132 @@ void main() {
       expect(fixed.avgDepth, 20);
       expect(await statusOf('d1'), QualityStatus.resolved);
 
-      await undo!();
+      await result.undo!();
       final restored = (await diveRepo.getDiveById('d1'))!;
       expect(restored.maxDepth, 99);
       expect(restored.avgDepth, 99);
+    });
+  });
+
+  group('convertWaterTemp', () {
+    test('reports no change when the dive is missing', () async {
+      final result = await executor.convertWaterTemp(
+        diveId: 'ghost',
+        kelvinScale: false,
+        findingId: 'irrelevant',
+      );
+      expect(result.changed, isFalse);
+    });
+
+    test('reports no change when the dive has no water temperature', () async {
+      await diveRepo.createDive(
+        domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1)),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.convertWaterTemp(
+        diveId: 'd1',
+        kelvinScale: false,
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isFalse);
+      expect(await statusOf('d1'), QualityStatus.open);
+    });
+
+    test('converts Fahrenheit to Celsius and undo restores prior', () async {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          waterTemp: 78,
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.convertWaterTemp(
+        diveId: 'd1',
+        kelvinScale: false,
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isTrue);
+      expect(
+        (await diveRepo.getDiveById('d1'))!.waterTemp,
+        closeTo(25.5556, 1e-3),
+      );
+      expect(await statusOf('d1'), QualityStatus.resolved);
+
+      await result.undo!();
+      expect((await diveRepo.getDiveById('d1'))!.waterTemp, 78);
+    });
+
+    test('refuses a scale that does not land the reading in range', () async {
+      // -50 read as Fahrenheit is -45.6 C: still implausible, so converting
+      // would resolve a finding the next scan reopens.
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          waterTemp: -50,
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.convertWaterTemp(
+        diveId: 'd1',
+        kelvinScale: false,
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isFalse);
+      expect((await diveRepo.getDiveById('d1'))!.waterTemp, -50);
+      expect(await statusOf('d1'), QualityStatus.open);
+    });
+
+    test('refuses when the dive was corrected between scan and tap', () async {
+      // The finding was raised against a bad value, but the diver fixed it by
+      // hand first. Converting a plausible 25 C would turn it into -3.9 C.
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          waterTemp: 25,
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      final result = await executor.convertWaterTemp(
+        diveId: 'd1',
+        kelvinScale: false,
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isFalse);
+      expect((await diveRepo.getDiveById('d1'))!.waterTemp, 25);
+      expect(await statusOf('d1'), QualityStatus.open);
+    });
+
+    test('converts a Fahrenheit-as-Kelvin reading', () async {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 7, 1),
+          waterTemp: 297,
+        ),
+      );
+      final finding = await seedFindingForDive('d1');
+
+      await executor.convertWaterTemp(
+        diveId: 'd1',
+        kelvinScale: true,
+        findingId: finding.id,
+      );
+
+      expect(
+        (await diveRepo.getDiveById('d1'))!.waterTemp,
+        closeTo(23.85, 1e-3),
+      );
     });
   });
 
@@ -214,7 +401,7 @@ void main() {
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.swapTankRecordPressures(
+      final result = await executor.swapTankRecordPressures(
         diveId: 'd1',
         tankId: 't1',
         newStartBar: 200,
@@ -227,7 +414,7 @@ void main() {
       expect(tank.endPressure, 50);
       expect(await statusOf('d1'), QualityStatus.resolved);
 
-      await undo!();
+      await result.undo!();
       tank = (await diveRepo.getDiveById('d1'))!.tanks.single;
       expect(tank.startPressure, 50);
       expect(tank.endPressure, 200);
@@ -235,13 +422,13 @@ void main() {
   );
 
   group('setTankRecordEndpoint', () {
-    test('returns null when the tank is not found', () async {
+    test('reports no change when the tank is not found', () async {
       await diveRepo.createDive(
         domain.Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1)),
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.setTankRecordEndpoint(
+      final result = await executor.setTankRecordEndpoint(
         diveId: 'd1',
         tankId: 'missing',
         endpoint: 'start',
@@ -249,7 +436,7 @@ void main() {
         findingId: finding.id,
       );
 
-      expect(undo, isNull);
+      expect(result.changed, isFalse);
       // Nothing was written, so the finding stays open.
       expect(await statusOf('d1'), QualityStatus.open);
     });
@@ -266,7 +453,7 @@ void main() {
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.setTankRecordEndpoint(
+      final result = await executor.setTankRecordEndpoint(
         diveId: 'd1',
         tankId: 't1',
         endpoint: 'start',
@@ -279,7 +466,7 @@ void main() {
       expect(tank.endPressure, 200, reason: 'end untouched');
       expect(await statusOf('d1'), QualityStatus.resolved);
 
-      await undo!();
+      await result.undo!();
       tank = (await diveRepo.getDiveById('d1'))!.tanks.single;
       expect(tank.startPressure, 50);
       expect(tank.endPressure, 200);
@@ -297,7 +484,7 @@ void main() {
       );
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.setTankRecordEndpoint(
+      final result = await executor.setTankRecordEndpoint(
         diveId: 'd1',
         tankId: 't1',
         endpoint: 'end',
@@ -309,13 +496,13 @@ void main() {
       expect(tank.startPressure, 50, reason: 'start untouched');
       expect(tank.endPressure, 60);
 
-      await undo!();
+      await result.undo!();
       tank = (await diveRepo.getDiveById('d1'))!.tanks.single;
       expect(tank.endPressure, 200);
     });
 
     test(
-      'writes but returns null undo when the prior endpoint was null',
+      'writes but offers no undo when the prior endpoint was null',
       () async {
         await diveRepo.createDive(
           domain.Dive(
@@ -329,7 +516,7 @@ void main() {
         );
         final finding = await seedFindingForDive('d1');
 
-        final undo = await executor.setTankRecordEndpoint(
+        final result = await executor.setTankRecordEndpoint(
           diveId: 'd1',
           tankId: 't1',
           endpoint: 'start',
@@ -337,7 +524,8 @@ void main() {
           findingId: finding.id,
         );
 
-        expect(undo, isNull);
+        expect(result.changed, isTrue);
+        expect(result.undo, isNull);
         // The write still happened and the finding is resolved.
         final tank = (await diveRepo.getDiveById('d1'))!.tanks.single;
         expect(tank.startPressure, 210);
@@ -364,7 +552,7 @@ void main() {
     });
     final finding = await seedFindingForDive('d1');
 
-    final undo = await executor.swapPressureSeries(
+    final result = await executor.swapPressureSeries(
       diveId: 'd1',
       tankIdA: 't1',
       tankIdB: 't2',
@@ -381,7 +569,7 @@ void main() {
     );
     expect(await statusOf('d1'), QualityStatus.resolved);
 
-    await undo!();
+    await result.undo!();
     expect(
       (await tankRepo.getPressuresForTank('d1', 't1')).single.pressure,
       200,
@@ -409,7 +597,7 @@ void main() {
     });
     final finding = await seedFindingForDive('d1');
 
-    final undo = await executor.reassignPressureSeries(
+    final result = await executor.reassignPressureSeries(
       diveId: 'd1',
       fromTankId: 't1',
       toTankId: 't2',
@@ -423,7 +611,7 @@ void main() {
     );
     expect(await statusOf('d1'), QualityStatus.resolved);
 
-    await undo!();
+    await result.undo!();
     expect(
       (await tankRepo.getPressuresForTank('d1', 't1')).single.pressure,
       200,
@@ -432,7 +620,7 @@ void main() {
   });
 
   test(
-    'setPrimarySource promotes the source, resolves, returns null undo',
+    'setPrimarySource promotes the source, resolves, offers no undo',
     () async {
       final db = DatabaseService.instance.database;
       await diveRepo.createDive(
@@ -454,13 +642,13 @@ void main() {
       await insertSource('src2', false);
       final finding = await seedFindingForDive('d1');
 
-      final undo = await executor.setPrimarySource(
+      final result = await executor.setPrimarySource(
         diveId: 'd1',
         sourceId: 'src2',
         findingId: finding.id,
       );
 
-      expect(undo, isNull);
+      expect(result.undo, isNull);
       final sources = await diveRepo.getDataSources('d1');
       expect(sources.firstWhere((s) => s.id == 'src2').isPrimary, isTrue);
       expect(sources.firstWhere((s) => s.id == 'src1').isPrimary, isFalse);

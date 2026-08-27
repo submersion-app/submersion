@@ -173,6 +173,7 @@ class ProfileSample {
     const double* temperature_celsius,
     const double* pressure_bar,
     const int64_t* tank_index,
+    const flutter::EncodableList* tank_pressures_bar,
     const int64_t* heart_rate,
     const double* heading,
     const double* setpoint,
@@ -189,6 +190,12 @@ class ProfileSample {
     const double* o2_sensor4,
     const double* o2_sensor5,
     const double* o2_sensor6,
+    const int64_t* o2_sensor_mv1,
+    const int64_t* o2_sensor_mv2,
+    const int64_t* o2_sensor_mv3,
+    const int64_t* o2_sensor_mv4,
+    const int64_t* o2_sensor_mv5,
+    const int64_t* o2_sensor_mv6,
     const int64_t* gas_mix_index);
 
   int64_t time_seconds() const;
@@ -208,6 +215,17 @@ class ProfileSample {
   const int64_t* tank_index() const;
   void set_tank_index(const int64_t* value_arg);
   void set_tank_index(int64_t value_arg);
+
+  // Every tank's pressure in bar at this sample, indexed by tank index, with
+  // null where that tank reported nothing. libdivecomputer fires one pressure
+  // reading per air-integrated transmitter, so a single sample can carry
+  // several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  // rest (issue #1223). Null when the sample carries no pressure at all, and
+  // trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  // short list per sample.
+  const flutter::EncodableList* tank_pressures_bar() const;
+  void set_tank_pressures_bar(const flutter::EncodableList* value_arg);
+  void set_tank_pressures_bar(const flutter::EncodableList& value_arg);
 
   const int64_t* heart_rate() const;
   void set_heart_rate(const int64_t* value_arg);
@@ -278,6 +296,33 @@ class ProfileSample {
   void set_o2_sensor6(const double* value_arg);
   void set_o2_sensor6(double value_arg);
 
+  // Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  // reports none. Present even when the cell's ppO2 is unavailable because the
+  // logged calibration could not be trusted (issue #810).
+  const int64_t* o2_sensor_mv1() const;
+  void set_o2_sensor_mv1(const int64_t* value_arg);
+  void set_o2_sensor_mv1(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv2() const;
+  void set_o2_sensor_mv2(const int64_t* value_arg);
+  void set_o2_sensor_mv2(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv3() const;
+  void set_o2_sensor_mv3(const int64_t* value_arg);
+  void set_o2_sensor_mv3(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv4() const;
+  void set_o2_sensor_mv4(const int64_t* value_arg);
+  void set_o2_sensor_mv4(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv5() const;
+  void set_o2_sensor_mv5(const int64_t* value_arg);
+  void set_o2_sensor_mv5(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv6() const;
+  void set_o2_sensor_mv6(const int64_t* value_arg);
+  void set_o2_sensor_mv6(int64_t value_arg);
+
   // Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   // from the most recent gas switch; null if the computer reported no gas.
   const int64_t* gas_mix_index() const;
@@ -296,6 +341,7 @@ class ProfileSample {
   std::optional<double> temperature_celsius_;
   std::optional<double> pressure_bar_;
   std::optional<int64_t> tank_index_;
+  std::optional<flutter::EncodableList> tank_pressures_bar_;
   std::optional<int64_t> heart_rate_;
   std::optional<double> heading_;
   std::optional<double> setpoint_;
@@ -312,6 +358,12 @@ class ProfileSample {
   std::optional<double> o2_sensor4_;
   std::optional<double> o2_sensor5_;
   std::optional<double> o2_sensor6_;
+  std::optional<int64_t> o2_sensor_mv1_;
+  std::optional<int64_t> o2_sensor_mv2_;
+  std::optional<int64_t> o2_sensor_mv3_;
+  std::optional<int64_t> o2_sensor_mv4_;
+  std::optional<int64_t> o2_sensor_mv5_;
+  std::optional<int64_t> o2_sensor_mv6_;
   std::optional<int64_t> gas_mix_index_;
 
 };

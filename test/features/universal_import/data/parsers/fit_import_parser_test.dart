@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 
 /// A rich dive FIT file (deco records, gas, settings, summary, GPS) built with
@@ -218,6 +219,44 @@ void main() {
       expect(reading['pressure'], closeTo(220.0, 1e-6));
     },
   );
+
+  group('missing tank pressure', () {
+    // Some dive computers and vendor apps (Suunto's, notably) write a FIT file
+    // with dive_gas but no tank_summary/tank_update, so there is no pressure to
+    // read. The import must say so rather than leave the diver wondering why
+    // air consumption is blank.
+    test('a file with no tank pressure is flagged', () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+
+      final notice = payload.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.noTankPressure,
+      );
+      expect(notice.severity, ImportWarningSeverity.info);
+      expect(notice.entityType, ImportEntityType.dives);
+      expect(notice.message, contains('tank pressure'));
+    });
+
+    test('a file that does carry tank pressure is not flagged', () async {
+      final payload = await const FitImportParser().parse(_aiFitBytes());
+
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.noTankPressure,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('the flag does not make the payload look like a failure', () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+
+      expect(payload.isEmpty, isFalse);
+      expect(
+        payload.warnings.any((w) => w.severity == ImportWarningSeverity.error),
+        isFalse,
+      );
+    });
+  });
 
   group('dive name from source filename', () {
     ImportOptions optsWithFile(String name) => ImportOptions(

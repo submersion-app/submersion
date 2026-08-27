@@ -69,6 +69,7 @@ void main() {
       final mesh = RibbonBuilder.curtain(
         times: times,
         depths: depths,
+        zs: List<double>.filled(times.length, 0),
         bounds: bounds,
       );
       expect(mesh.vertexCount, 6);
@@ -76,6 +77,18 @@ void main() {
       expect(mesh.positions[1], 0.0); // sample 0 top y
       expect(mesh.positions[4], -SceneBounds.ySpan); // sample 0 bottom y
       expect(mesh.opacity, lessThan(0.5));
+    });
+
+    test('curtain hangs at the path Z of each sample', () {
+      final mesh = RibbonBuilder.curtain(
+        times: [0, 100],
+        depths: [10, 20],
+        zs: [-1.5, 2.0],
+        bounds: const SceneBounds(durationSeconds: 100, maxDepthMeters: 20),
+      );
+      expect(mesh.positions[2], -1.5); // top vertex, sample 0
+      expect(mesh.positions[5], -1.5); // floor vertex, sample 0
+      expect(mesh.positions[8], 2.0); // top vertex, sample 1
     });
   });
 }

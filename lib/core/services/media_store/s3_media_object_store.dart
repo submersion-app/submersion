@@ -315,6 +315,25 @@ class S3MediaObjectStore implements MediaObjectStore {
             start: received,
             endInclusive: end,
           );
+          // A chunk that delivers nothing leaves `received` where it was, so
+          // the loop would re-issue the identical request forever -- a silent
+          // spin that downloads no bytes and never terminates (#1175). It
+          // means the object is shorter than the HEAD claimed, or something
+          // between here and the bucket is dropping the Range. Either way it
+          // is a failed transfer, and the queue's retry is the right place to
+          // deal with it.
+          if (range.bytes.isEmpty) {
+            // Thrown directly rather than through _map, which classifies by
+            // message text and would land this in `fatal`. Transient is the
+            // honest reading: an empty range says something on the path
+            // between here and the bucket answered badly, not that the object
+            // is permanently unusable, and the queue's backoff is the right
+            // response. The retry restarts getFile from byte zero.
+            throw MediaStoreException(
+              'empty range for $key at byte $received of $total',
+              kind: MediaStoreErrorKind.transient,
+            );
+          }
           await raf.writeFrom(range.bytes);
           received += range.bytes.length;
           onProgress?.call(received, total);

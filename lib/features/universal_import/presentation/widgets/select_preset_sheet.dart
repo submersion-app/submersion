@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
@@ -18,6 +19,7 @@ class SelectPresetSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final userPresetsAsync = ref.watch(userCsvPresetsProvider);
 
     return DraggableScrollableSheet(
@@ -44,14 +46,18 @@ class SelectPresetSheet extends ConsumerWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Text('Select Preset', style: theme.textTheme.titleLarge),
+              child: Text(
+                l10n.universalImport_preset_selectTitle,
+                style: theme.textTheme.titleLarge,
+              ),
             ),
             const Divider(),
             Expanded(
               child: userPresetsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) =>
-                    Center(child: Text('Failed to load presets: $e')),
+                error: (e, _) => Center(
+                  child: Text(l10n.universalImport_preset_loadFailed('$e')),
+                ),
                 data: (userPresets) => _buildPresetList(
                   context,
                   ref,
@@ -73,6 +79,7 @@ class SelectPresetSheet extends ConsumerWidget {
     ScrollController scrollController,
   ) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     // Score all presets directly without threshold filtering so the UI
     // shows partial match percentages even for low-scoring presets.
@@ -101,7 +108,10 @@ class SelectPresetSheet extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
         if (hasUserPresets) ...[
-          _SectionHeader(label: 'Saved Presets', theme: theme),
+          _SectionHeader(
+            label: l10n.universalImport_preset_sectionSaved,
+            theme: theme,
+          ),
           for (final preset in userPresets)
             _PresetCard(
               preset: preset,
@@ -112,7 +122,10 @@ class SelectPresetSheet extends ConsumerWidget {
             ),
           const SizedBox(height: 8),
         ],
-        _SectionHeader(label: 'Built-in Presets', theme: theme),
+        _SectionHeader(
+          label: l10n.universalImport_preset_sectionBuiltIn,
+          theme: theme,
+        ),
         for (final preset in builtInCsvPresets)
           _PresetCard(
             preset: preset,
@@ -132,16 +145,18 @@ class SelectPresetSheet extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Preset'),
-        content: Text('Delete "${preset.name}"? This cannot be undone.'),
+        title: Text(ctx.l10n.universalImport_preset_deleteTitle),
+        content: Text(
+          ctx.l10n.universalImport_preset_deleteConfirm(preset.name),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(ctx.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
+            child: Text(ctx.l10n.common_action_delete),
           ),
         ],
       ),
@@ -199,6 +214,7 @@ class _PresetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final matchedCount = (score * preset.signatureHeaders.length).round();
     final totalSig = preset.signatureHeaders.length;
     final scorePercent = (score * 100).round();
@@ -251,9 +267,12 @@ class _PresetCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       totalSig > 0
-                          ? '$matchedCount/$totalSig headers matched '
-                                '($scorePercent%)'
-                          : 'No signature headers',
+                          ? l10n.universalImport_preset_headersMatched(
+                              matchedCount,
+                              totalSig,
+                              scorePercent,
+                            )
+                          : l10n.universalImport_preset_noSignatureHeaders,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -266,7 +285,7 @@ class _PresetCard extends StatelessWidget {
                   icon: const Icon(Icons.delete_outline),
                   iconSize: 20,
                   onPressed: onDelete,
-                  tooltip: 'Delete preset',
+                  tooltip: l10n.universalImport_preset_deleteTooltip,
                 ),
             ],
           ),

@@ -7,6 +7,7 @@ import 'package:http/testing.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 
 import '../../../../support/fake_keychain_storage.dart';
@@ -265,6 +266,22 @@ void main() {
         throwsA(isA<CloudStorageException>()),
       );
       expect(await m.getAccessToken(), 'at-recovered');
+    });
+  });
+
+  group('transport', () {
+    test('defaults to a client with request deadlines', () {
+      // Token refresh is awaited inside DropboxApiClient's send loop, so a
+      // wedged refresh on a deadline-free client stalls every Dropbox
+      // request behind it (#1279).
+      final m = DropboxAuthManager(store: store);
+      addTearDown(() => m.transport.close());
+
+      expect(m.transport, isA<TimeoutHttpClient>());
+      expect(
+        (m.transport as TimeoutHttpClient).connectTimeout,
+        TimeoutHttpClient.defaultConnectTimeout,
+      );
     });
   });
 

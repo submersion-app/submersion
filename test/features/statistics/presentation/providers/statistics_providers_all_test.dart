@@ -50,6 +50,10 @@ void main() {
       (await container.read(filteredDiveStatisticsProvider.future)).totalDives,
       0,
     );
+    expect(
+      (await container.read(filteredDiveRecordsProvider.future)).deepestDive,
+      isNull,
+    );
     expect(await container.read(gasMixDistributionProvider.future), isEmpty);
     expect(await container.read(diveTypeDistributionProvider.future), isEmpty);
     expect(await container.read(depthProgressionTrendProvider.future), isEmpty);
@@ -96,7 +100,9 @@ void main() {
     expect(await container.read(timeAtDepthRangesProvider.future), isEmpty);
     expect(await container.read(divesBySuitThicknessProvider.future), isEmpty);
     final deco = await container.read(decoObligationStatsProvider.future);
-    expect(deco.totalCount, 0);
+    expect(deco.decoCount, 0);
+    expect(deco.noDecoCount, 0);
+    expect(deco.unknownCount, 0);
   });
 
   test('SAC providers use the pressure-per-minute branch by default', () async {
@@ -129,6 +135,10 @@ void main() {
     expect(
       (await container.read(filteredDiveStatisticsProvider.future)).totalDives,
       0,
+    );
+    expect(
+      (await container.read(filteredDiveRecordsProvider.future)).deepestDive,
+      isNull,
     );
     expect(await container.read(topBuddiesProvider.future), isEmpty);
     expect(await container.read(divesPerYearProvider.future), isEmpty);

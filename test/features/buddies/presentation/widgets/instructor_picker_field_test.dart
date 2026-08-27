@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -13,19 +14,21 @@ Buddy _makeBuddy(String id, String name) {
   return Buddy(id: id, name: name, createdAt: now, updatedAt: now);
 }
 
-BuddyRoleCredential _makeCredential({
+Certification _makeCertification({
+  required String id,
   required String buddyId,
-  BuddyRole role = BuddyRole.instructor,
-  String? credentialNumber,
-  CertificationAgency? agency,
+  CertificationAgency agency = CertificationAgency.padi,
+  CertificationLevel? level = CertificationLevel.instructor,
+  String? cardNumber,
 }) {
   final now = DateTime(2024, 1, 1);
-  return BuddyRoleCredential(
-    id: '$buddyId-${role.name}',
+  return Certification(
+    id: id,
     buddyId: buddyId,
-    role: role,
-    credentialNumber: credentialNumber,
+    name: 'Certification',
     agency: agency,
+    level: level,
+    cardNumber: cardNumber,
     createdAt: now,
     updatedAt: now,
   );
@@ -35,71 +38,126 @@ void main() {
   group('InstructorPickerField', () {
     final credentialedBuddy = _makeBuddy('buddy-1', 'Alice Instructor');
     final plainBuddy = _makeBuddy('buddy-2', 'Bob Plain');
-    final credential = _makeCredential(
+    final instructorCert = _makeCertification(
+      id: 'cert-1',
       buddyId: 'buddy-1',
-      credentialNumber: '12345',
       agency: CertificationAgency.padi,
+      level: CertificationLevel.instructor,
+      cardNumber: '12345',
     );
 
-    List<dynamic> overridesFor(List<Buddy> buddies, List<dynamic> extra) => [
+    List<dynamic> overridesFor(
+      List<Buddy> buddies,
+      Map<String, List<Certification>> certsByBuddy,
+      List<dynamic> extra,
+    ) => [
       allBuddiesProvider.overrideWith((ref) async => buddies),
-      allBuddyRolesProvider.overrideWith(
-        (ref) async => {
-          'buddy-1': [credential],
-        },
-      ),
+      allBuddyCertificationsProvider.overrideWith((ref) async => certsByBuddy),
       ...extra,
     ];
 
-    testWidgets(
-      'lists credentialed buddies first and shows the credential label',
-      (tester) async {
-        await tester.pumpWidget(
-          testApp(
-            overrides: overridesFor([plainBuddy, credentialedBuddy], []),
-            child: InstructorPickerField(
-              instructorId: null,
-              onSelected: (_, _) {},
-            ),
+    testWidgets('instructor-level buddies listed first with cert annotation', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: overridesFor(
+            [plainBuddy, credentialedBuddy],
+            {
+              'buddy-1': [instructorCert],
+            },
+            [],
           ),
-        );
-        await tester.pumpAndSettle();
+          child: InstructorPickerField(
+            instructorId: null,
+            onSelected: (_, _) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(DropdownButtonFormField<String?>));
-        await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String?>));
+      await tester.pumpAndSettle();
 
-        // Credentialed buddy is annotated with its credential label.
-        expect(
-          find.text('Alice Instructor (${credential.displayLabel})'),
-          findsOneWidget,
-        );
-        expect(find.text('Bob Plain'), findsOneWidget);
+      // Instructor-level buddy is annotated with the cert label.
+      expect(
+        find.text('Alice Instructor (PADI Instructor #12345)'),
+        findsOneWidget,
+      );
+      expect(find.text('Bob Plain'), findsOneWidget);
 
-        // Credentialed buddy appears before the plain buddy in menu order.
-        final aliceCenter = tester
-            .getCenter(
-              find.text('Alice Instructor (${credential.displayLabel})'),
-            )
-            .dy;
-        final bobCenter = tester.getCenter(find.text('Bob Plain')).dy;
-        expect(aliceCenter, lessThan(bobCenter));
-      },
-    );
+      // Instructor-level buddy appears before the plain buddy in menu order.
+      final aliceCenter = tester
+          .getCenter(find.text('Alice Instructor (PADI Instructor #12345)'))
+          .dy;
+      final bobCenter = tester.getCenter(find.text('Bob Plain')).dy;
+      expect(aliceCenter, lessThan(bobCenter));
+    });
+
+    testWidgets('Master Instructor qualifies', (tester) async {
+      final masterInstructorBuddy = _makeBuddy('buddy-3', 'Carol Master');
+      final masterInstructorCert = _makeCertification(
+        id: 'cert-2',
+        buddyId: 'buddy-3',
+        agency: CertificationAgency.ssi,
+        level: CertificationLevel.masterInstructor,
+        cardNumber: '99999',
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overridesFor(
+            [plainBuddy, masterInstructorBuddy],
+            {
+              'buddy-3': [masterInstructorCert],
+            },
+            [],
+          ),
+          child: InstructorPickerField(
+            instructorId: null,
+            onSelected: (_, _) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButtonFormField<String?>));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Carol Master (SSI Master Instructor #99999)'),
+        findsOneWidget,
+      );
+      expect(find.text('Bob Plain'), findsOneWidget);
+
+      // Master-instructor buddy is grouped first, ahead of the plain buddy.
+      final carolCenter = tester
+          .getCenter(find.text('Carol Master (SSI Master Instructor #99999)'))
+          .dy;
+      final bobCenter = tester.getCenter(find.text('Bob Plain')).dy;
+      expect(carolCenter, lessThan(bobCenter));
+    });
 
     testWidgets(
-      'selecting a credentialed buddy fires onSelected with buddy and credential',
+      'selecting an instructor-level buddy fires onSelected(buddy, cert)',
       (tester) async {
         Buddy? selectedBuddy;
-        BuddyRoleCredential? selectedCredential;
+        Certification? selectedCert;
 
         await tester.pumpWidget(
           testApp(
-            overrides: overridesFor([plainBuddy, credentialedBuddy], []),
+            overrides: overridesFor(
+              [plainBuddy, credentialedBuddy],
+              {
+                'buddy-1': [instructorCert],
+              },
+              [],
+            ),
             child: InstructorPickerField(
               instructorId: null,
-              onSelected: (buddy, cred) {
+              onSelected: (buddy, cert) {
                 selectedBuddy = buddy;
-                selectedCredential = cred;
+                selectedCert = cert;
               },
             ),
           ),
@@ -109,31 +167,38 @@ void main() {
         await tester.tap(find.byType(DropdownButtonFormField<String?>));
         await tester.pumpAndSettle();
         await tester.tap(
-          find.text('Alice Instructor (${credential.displayLabel})').last,
+          find.text('Alice Instructor (PADI Instructor #12345)').last,
         );
         await tester.pumpAndSettle();
 
         expect(selectedBuddy?.id, 'buddy-1');
-        expect(selectedCredential, credential);
+        expect(selectedCert, instructorCert);
+        expect(selectedCert?.cardNumber, '12345');
       },
     );
 
     testWidgets(
-      'selecting a non-credentialed buddy fires onSelected(buddy, null)',
+      'selecting a non-instructor buddy fires onSelected(buddy, null)',
       (tester) async {
         Buddy? selectedBuddy;
-        BuddyRoleCredential? selectedCredential;
+        Certification? selectedCert;
         bool wasCalled = false;
 
         await tester.pumpWidget(
           testApp(
-            overrides: overridesFor([plainBuddy, credentialedBuddy], []),
+            overrides: overridesFor(
+              [plainBuddy, credentialedBuddy],
+              {
+                'buddy-1': [instructorCert],
+              },
+              [],
+            ),
             child: InstructorPickerField(
               instructorId: null,
-              onSelected: (buddy, cred) {
+              onSelected: (buddy, cert) {
                 wasCalled = true;
                 selectedBuddy = buddy;
-                selectedCredential = cred;
+                selectedCert = cert;
               },
             ),
           ),
@@ -147,24 +212,30 @@ void main() {
 
         expect(wasCalled, isTrue);
         expect(selectedBuddy?.id, 'buddy-2');
-        expect(selectedCredential, isNull);
+        expect(selectedCert, isNull);
       },
     );
 
     testWidgets('selecting None fires onSelected(null, null)', (tester) async {
       Buddy? selectedBuddy = credentialedBuddy;
-      BuddyRoleCredential? selectedCredential = credential;
+      Certification? selectedCert = instructorCert;
       bool wasCalled = false;
 
       await tester.pumpWidget(
         testApp(
-          overrides: overridesFor([plainBuddy, credentialedBuddy], []),
+          overrides: overridesFor(
+            [plainBuddy, credentialedBuddy],
+            {
+              'buddy-1': [instructorCert],
+            },
+            [],
+          ),
           child: InstructorPickerField(
             instructorId: 'buddy-1',
-            onSelected: (buddy, cred) {
+            onSelected: (buddy, cert) {
               wasCalled = true;
               selectedBuddy = buddy;
-              selectedCredential = cred;
+              selectedCert = cert;
             },
           ),
         ),
@@ -178,7 +249,61 @@ void main() {
 
       expect(wasCalled, isTrue);
       expect(selectedBuddy, isNull);
-      expect(selectedCredential, isNull);
+      expect(selectedCert, isNull);
     });
+
+    testWidgets(
+      'divemaster-only buddy is NOT grouped first (instructor-level only)',
+      (tester) async {
+        final divemasterBuddy = _makeBuddy('buddy-4', 'Dana Divemaster');
+        final divemasterCert = _makeCertification(
+          id: 'cert-3',
+          buddyId: 'buddy-4',
+          agency: CertificationAgency.padi,
+          level: CertificationLevel.diveMaster,
+          cardNumber: '55555',
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: overridesFor(
+              // Divemaster-only buddy comes first in the source list; if it
+              // were wrongly treated as instructor-level it would stay
+              // first in the grouped-first ordering below.
+              [divemasterBuddy, credentialedBuddy],
+              {
+                'buddy-4': [divemasterCert],
+                'buddy-1': [instructorCert],
+              },
+              [],
+            ),
+            child: InstructorPickerField(
+              instructorId: null,
+              onSelected: (_, _) {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(DropdownButtonFormField<String?>));
+        await tester.pumpAndSettle();
+
+        // Divemaster-only buddy is not annotated -- it does not qualify.
+        expect(find.text('Dana Divemaster'), findsOneWidget);
+        expect(
+          find.text('Alice Instructor (PADI Instructor #12345)'),
+          findsOneWidget,
+        );
+
+        // The genuinely instructor-level buddy is grouped ahead of the
+        // divemaster-only buddy, even though it appeared later in the
+        // source list.
+        final aliceCenter = tester
+            .getCenter(find.text('Alice Instructor (PADI Instructor #12345)'))
+            .dy;
+        final danaCenter = tester.getCenter(find.text('Dana Divemaster')).dy;
+        expect(aliceCenter, lessThan(danaCenter));
+      },
+    );
   });
 }

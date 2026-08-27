@@ -4,19 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 
-/// Reproduction + regression for the Riverpod 3 auto-pause assertion:
+/// Regression cover for the Riverpod 3 auto-pause assertion:
 ///
 ///   Expected pausedActiveSubscriptionCount to be 3, but was 4.
 ///
 /// A `FutureProvider` that self-invalidates from a raw change-stream
-/// (`stream.listen((_) => ref.invalidateSelf())`) keeps firing while the
-/// provider is paused (its widgets are off-screen via `TickerMode`). The
-/// deferred invalidation flushes during the next TickerMode *resume*, cascading
-/// a re-entrant pause/invalidate through the provider's `ref.watch` dependents
+/// (`stream.listen((_) => ref.invalidateSelf())`) kept firing while the
+/// provider was paused (its widgets off-screen via `TickerMode`). The deferred
+/// invalidation flushed during the next TickerMode *resume*, cascading a
+/// re-entrant pause/invalidate through the provider's `ref.watch` dependents
 /// and tripping Riverpod's internal pause-state accounting.
 ///
-/// The raw pattern reproduces the crash; [Ref.invalidateSelfWhen] (which defers
-/// the catch-up invalidation past the pause) must not.
+/// Riverpod 3.3.2 fixed that accounting, so the raw pattern is clean again and
+/// the first test now asserts the absence of the error rather than its
+/// presence. [Ref.invalidateSelfWhen] stays the app-wide pattern regardless:
+/// it is broadcast-safe (it defers instead of pausing, so a tick arriving
+/// while off-screen is never dropped), which is a separate guarantee from the
+/// assertion this file started out documenting.
 void main() {
   /// Drives [body] in its own error-capturing zone so the assertion that
   /// Riverpod reports through `runBinaryGuarded` -> `Zone.handleUncaughtError`
@@ -94,19 +98,20 @@ void main() {
   }
 
   test(
-    'raw stream.listen((_) => ref.invalidateSelf()) trips the pause assertion '
-    'on resume (reproduction)',
+    'raw stream.listen((_) => ref.invalidateSelf()) no longer trips the pause '
+    'assertion (fixed upstream in riverpod 3.3.2)',
     () async {
       final errors = await runPauseResume((ref, changes) {
         final sub = changes.listen((_) => ref.invalidateSelf());
         ref.onDispose(sub.cancel);
       });
-      // Documents the bug: the raw pattern reports the pause-state assertion.
-      expect(errors, isNotEmpty);
-      expect(
-        errors.first.toString(),
-        contains('pausedActiveSubscriptionCount'),
-      );
+      // Was a reproduction: under riverpod 3.2.1 this reported
+      // "Expected pausedActiveSubscriptionCount to be N, but was N+1".
+      // Riverpod 3.3.2 fixed the pause-state accounting, so the raw pattern
+      // is clean again. Kept as a guard: if a future riverpod regresses this,
+      // the ~40 invalidateSelfWhen call sites are what stands between the app
+      // and the crash, and this test says so out loud.
+      expect(errors, isEmpty);
     },
   );
 

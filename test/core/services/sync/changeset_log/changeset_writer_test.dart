@@ -571,4 +571,101 @@ void main() {
       expect(result.kind, ChangesetWriteKind.noop);
     });
   });
+
+  group('forceBase (stale-restore republish, #997)', () {
+    Future<ChangesetWriteResult> publishForced() async {
+      final deviceId = await SyncRepository().getDeviceId();
+      return writer.publish(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: folder,
+        deletions: await SyncRepository().getAllDeletions(),
+        forceBase: true,
+      );
+    }
+
+    Future<SyncManifest> ownManifest() async {
+      final deviceId = await SyncRepository().getDeviceId();
+      return SyncManifest.fromBytes(
+        await provider.downloadFile(
+          '$folder/${ChangesetLogLayout.manifestName(deviceId)}',
+        ),
+      );
+    }
+
+    test(
+      'lowers a published watermark the device can no longer back',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'f1', diveNumber: 1),
+        );
+        await publish();
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'f2', diveNumber: 2),
+        );
+        await publish();
+        final claimed = (await ownManifest()).publishedHlcHigh;
+
+        // The rewind a restore leaves behind: f2 is gone with no tombstone.
+        await DatabaseService.instance.database.customStatement(
+          "DELETE FROM dives WHERE id = 'f2'",
+        );
+
+        final result = await publishForced();
+
+        expect(result.kind, ChangesetWriteKind.base);
+        final after = await ownManifest();
+        expect(
+          after.publishedHlcHigh,
+          await SyncRepository().maxRowHlc(),
+          reason: 'the manifest must describe what the device actually holds',
+        );
+        expect(after.publishedHlcHigh!.compareTo(claimed!), lessThan(0));
+      },
+    );
+
+    test('prunes the base it supersedes', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'p1', diveNumber: 1),
+      );
+      final first = await publish();
+      expect(first.kind, ChangesetWriteKind.base);
+
+      final forced = await publishForced();
+
+      final ns = await names();
+      expect(
+        ns.where((n) => ChangesetLogLayout.basePartOf(n)?.baseSeq == first.seq),
+        isEmpty,
+        reason: 'the superseded base parts must not be left orphaned',
+      );
+      expect(
+        ns.where(
+          (n) => ChangesetLogLayout.basePartOf(n)?.baseSeq == forced.seq,
+        ),
+        isNotEmpty,
+      );
+    });
+
+    test('publishes an honest empty base when the library is gone', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'e1', diveNumber: 1),
+      );
+      await publish();
+      await DatabaseService.instance.database.customStatement(
+        'DELETE FROM dives',
+      );
+
+      final result = await publishForced();
+
+      expect(
+        result.kind,
+        ChangesetWriteKind.base,
+        reason:
+            'a noop here would leave the manifest over-claiming forever, so '
+            'every later sync re-fires the stale-restore cold-start',
+      );
+      expect((await ownManifest()).publishedHlcHigh, isNull);
+    });
+  });
 }

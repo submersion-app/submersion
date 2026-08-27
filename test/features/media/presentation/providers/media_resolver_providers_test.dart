@@ -23,9 +23,6 @@ class _StubDiagnosticsService implements LocalFilesDiagnosticsService {
   }
 
   @override
-  Future<int> reverifyAll() async => 0;
-
-  @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName} should not be called');
 }

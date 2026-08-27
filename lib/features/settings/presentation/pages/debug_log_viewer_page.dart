@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_entry_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_filter_bar.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen debug log viewer with filtering and export capabilities.
 class DebugLogViewerPage extends ConsumerStatefulWidget {
@@ -35,8 +37,8 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search logs...',
+                decoration: InputDecoration(
+                  hintText: context.l10n.settings_debugLog_search_hint,
                   border: InputBorder.none,
                 ),
                 onChanged: (query) {
@@ -45,7 +47,7 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                       .setSearchQuery(query);
                 },
               )
-            : const Text('Debug Logs'),
+            : Text(context.l10n.settings_debugLog_appBar_title),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -75,11 +77,14 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'disable',
-                child: Text('Disable Debug Mode'),
+                child: Text(context.l10n.settings_debugLog_disableDebugMode),
               ),
-              const PopupMenuItem(value: 'clear', child: Text('Clear Logs')),
+              PopupMenuItem(
+                value: 'clear',
+                child: Text(context.l10n.settings_debugLog_clearLogs),
+              ),
             ],
           ),
         ],
@@ -92,8 +97,8 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
             child: filteredEntriesAsync.when(
               data: (entries) {
                 if (entries.isEmpty) {
-                  return const Center(
-                    child: Text('No log entries match the current filters'),
+                  return Center(
+                    child: Text(context.l10n.settings_debugLog_empty),
                   );
                 }
                 return ListView.builder(
@@ -104,8 +109,9 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) =>
-                  Center(child: Text('Error loading logs: $error')),
+              error: (error, _) => Center(
+                child: Text(context.l10n.settings_debugLog_loadError(error)),
+              ),
             ),
           ),
         ],
@@ -124,13 +130,22 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final service = ref.read(logFileServiceProvider);
-                  await shareLogFile(service);
-                },
-                icon: const Icon(Icons.share, size: 18),
-                label: const Text('Share'),
+              // Builder so the iPad share popover anchors to this button;
+              // shareLogFile lives in the provider layer and has no context.
+              child: Builder(
+                builder: (buttonContext) => OutlinedButton.icon(
+                  onPressed: () async {
+                    final l10n = context.l10n;
+                    final service = ref.read(logFileServiceProvider);
+                    await shareLogFile(
+                      service,
+                      l10n,
+                      sharePositionOrigin: shareAnchorFrom(buttonContext),
+                    );
+                  },
+                  icon: const Icon(Icons.share, size: 18),
+                  label: Text(context.l10n.common_action_share),
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -142,35 +157,38 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                     await copyFilteredLogs(entries);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Filtered logs copied to clipboard'),
-                          duration: Duration(seconds: 2),
+                        SnackBar(
+                          content: Text(
+                            context.l10n.settings_debugLog_copiedSnack,
+                          ),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     }
                   }
                 },
                 icon: const Icon(Icons.copy, size: 18),
-                label: const Text('Copy'),
+                label: Text(context.l10n.common_action_copy),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () async {
+                  final l10n = context.l10n;
                   final service = ref.read(logFileServiceProvider);
-                  final path = await saveLogFile(service);
+                  final path = await saveLogFile(service, l10n);
                   if (path != null && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Logs saved to $path'),
+                        content: Text(l10n.settings_debugLog_savedSnack(path)),
                         duration: const Duration(seconds: 2),
                       ),
                     );
                   }
                 },
                 icon: const Icon(Icons.save_alt, size: 18),
-                label: const Text('Save'),
+                label: Text(context.l10n.common_action_save),
               ),
             ),
           ],

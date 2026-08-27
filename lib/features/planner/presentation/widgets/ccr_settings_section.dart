@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -25,16 +26,19 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
     super.initState();
     final state = ref.read(divePlanNotifierProvider);
     final units = UnitFormatter(ref.read(settingsProvider));
+    // A setpoint is decimal by nature (1,2 bar for a comma-decimal diver), so
+    // the seed and the parse both go through the locale helpers (#1091).
     _lowController = TextEditingController(
-      text: (state.setpointLow ?? 0.7).toStringAsFixed(1),
+      text: formatRoundedForInput(state.setpointLow ?? 0.7, 1),
     );
     _highController = TextEditingController(
-      text: (state.setpointHigh ?? 1.3).toStringAsFixed(1),
+      text: formatRoundedForInput(state.setpointHigh ?? 1.3, 1),
     );
     _switchController = TextEditingController(
-      text: units
-          .convertDepth(state.setpointSwitchDepth ?? 10.0)
-          .toStringAsFixed(0),
+      text: formatRoundedForInput(
+        units.convertDepth(state.setpointSwitchDepth ?? 10.0),
+        0,
+      ),
     );
   }
 
@@ -68,7 +72,7 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (text) {
-            final parsed = double.tryParse(text);
+            final parsed = parseUserDecimal(text);
             // Setpoints must be positive; a switch depth of 0 (surface) is a
             // valid, useful configuration, so it opts into allowZero.
             if (parsed == null || (allowZero ? parsed < 0 : parsed <= 0)) {

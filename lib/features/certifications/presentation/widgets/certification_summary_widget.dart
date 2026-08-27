@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -220,8 +221,8 @@ class CertificationSummaryWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                title: Text(cert.name),
-                subtitle: Text(cert.agency.displayName),
+                title: Text(certificationTitle(cert)),
+                subtitle: Text(certificationAgencyAndLevel(cert)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   final state = GoRouterState.of(context);

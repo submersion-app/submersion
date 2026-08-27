@@ -18,7 +18,7 @@ class ScheduledNotificationRepository {
     try {
       final query = _db.select(_db.scheduledNotifications)
         ..where((t) => t.equipmentId.equals(equipmentId));
-      return query.get();
+      return await query.get();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get scheduled notifications for equipment: $equipmentId',
@@ -134,7 +134,7 @@ class ScheduledNotificationRepository {
   /// Get all scheduled notifications
   Future<List<ScheduledNotification>> getAll() async {
     try {
-      return _db.select(_db.scheduledNotifications).get();
+      return await _db.select(_db.scheduledNotifications).get();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all scheduled notifications',

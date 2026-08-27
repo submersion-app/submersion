@@ -150,6 +150,91 @@ class SafetyFindingsRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Chunk size for the `dive_id IN (...)` clause of a bulk dismiss. SQLite
+  /// caps the number of bound variables per statement, and one transaction
+  /// spanning a whole logbook would hold the write lock for the entire run.
+  static const int dismissChunkSize = 200;
+
+  /// Dismisses or restores every finding on [diveIds] whose rule is in
+  /// [enabledRuleIds], returning how many findings actually changed.
+  ///
+  /// [enabledRuleIds] carries the rules the user has switched on, so a rule
+  /// hidden in settings is never silently dismissed. It also excludes rows
+  /// whose rule_id this build does not recognise (a newer app or sync payload):
+  /// dismissing an observation we cannot render would hide it for good.
+  ///
+  /// Only rows whose dismissed state really flips are touched. An
+  /// unconditional UPDATE would mark every listed dive pending, and the
+  /// incremental exporter gates on `dives.hlc`, so a no-op tap would push the
+  /// whole logbook.
+  Future<int> setDismissedForDives({
+    required List<String> diveIds,
+    required bool dismissed,
+    required Set<String> enabledRuleIds,
+    required DateTime now,
+    int chunkSize = dismissChunkSize,
+  }) async {
+    if (diveIds.isEmpty || enabledRuleIds.isEmpty) return 0;
+    final nowMs = now.millisecondsSinceEpoch;
+    final ruleIds = enabledRuleIds.toList();
+    var changed = 0;
+
+    try {
+      for (var start = 0; start < diveIds.length; start += chunkSize) {
+        final end = start + chunkSize;
+        final chunk = diveIds.sublist(
+          start,
+          end < diveIds.length ? end : diveIds.length,
+        );
+        Expression<bool> pending($DiveSafetyFindingsTable t) =>
+            t.diveId.isIn(chunk) &
+            t.ruleId.isIn(ruleIds) &
+            (dismissed ? t.dismissedAt.isNull() : t.dismissedAt.isNotNull());
+
+        await _db.transaction(() async {
+          // Read the affected ids first: the UPDATE below cannot report which
+          // rows it touched, and each one needs its own markRecordPending.
+          final rows = await (_db.select(
+            _db.diveSafetyFindings,
+          )..where(pending)).get();
+          if (rows.isEmpty) return;
+
+          await (_db.update(_db.diveSafetyFindings)..where(pending)).write(
+            DiveSafetyFindingsCompanion(
+              dismissedAt: Value(dismissed ? nowMs : null),
+            ),
+          );
+          for (final row in rows) {
+            await _syncRepository.markRecordPending(
+              entityType: 'diveSafetyFindings',
+              recordId: row.id,
+              localUpdatedAt: nowMs,
+            );
+          }
+          // Same parent-HLC rule as setDismissed: findings carry no HLC
+          // of their own, so the incremental exporter only picks them up
+          // for dives whose HLC advanced. Bump only the dives that
+          // actually changed.
+          for (final diveId in {for (final row in rows) row.diveId}) {
+            await _syncRepository.markRecordPending(
+              entityType: 'dives',
+              recordId: diveId,
+              localUpdatedAt: nowMs,
+            );
+          }
+          changed += rows.length;
+        });
+      }
+    } finally {
+      // Each chunk is its own transaction, so a failure partway through
+      // leaves the earlier ones committed and marked pending. Announce them
+      // anyway or those records sit unsynced until an unrelated write happens
+      // to kick the sync layer.
+      if (changed > 0) SyncEventBus.notifyLocalChange();
+    }
+    return changed;
+  }
+
   /// Invalidation hook for profile writes: drops the review so the next view
   /// recomputes against the new profile. Static so both dive repositories
   /// can call it without holding a SafetyFindingsRepository.

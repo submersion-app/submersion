@@ -3,6 +3,12 @@ import 'dart:ui';
 
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
+/// The chart-mode camera pose: straight down, north-up, east-right. Plain
+/// yaw/pitch is enough because the map frame is right-handed
+/// (SpatialProjection runs Z south); no screen-space mirror is involved.
+const double chartYawDegrees = 0.0;
+const double chartPitchDegrees = 90.0;
+
 /// Orthographic projector: yaw about Y then pitch about X, drop view z,
 /// fit to canvas, scale by zoom. The single camera model for every dive_3d
 /// renderer -- preview card, interactive viewport, and deterministic tests.
@@ -78,4 +84,12 @@ class SceneProjector {
 
   /// Larger = nearer to camera. Used for back-to-front triangle sorting.
   double viewDepth(double x, double y, double z) => _view(x, y, z).$3;
+
+  /// How much view depth one scene-Y unit buys at this pitch, exactly (view
+  /// depth is affine in y). Lets the renderer re-sort a vertex at a
+  /// different height without projecting it twice, and makes the shift
+  /// self-scaling: straight down it is the whole depth axis, edge-on it is
+  /// nothing -- which is also where the ordering it corrects stops
+  /// mattering. See [MeshData.sortHeights].
+  double get depthPerUnitY => _sp;
 }

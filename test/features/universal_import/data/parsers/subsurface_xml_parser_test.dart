@@ -920,6 +920,299 @@ void main() {
     });
   });
 
+  group('site folding and coordinate retention', () {
+    String divelog(String divesites, String dives) =>
+        '''
+<divelog program='subsurface' version='3'>
+<divesites>
+$divesites
+</divesites>
+<dives>
+$dives
+</dives>
+</divelog>
+''';
+
+    String dive(String uuid, {int number = 1}) =>
+        '''
+<dive number='$number' divesiteid='$uuid' date='2025-01-15' time='1$number:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+''';
+
+    String siteRefOf(Map<String, dynamic> diveData) =>
+        (diveData['site'] as Map<String, dynamic>)['uddfId'] as String;
+
+    test(
+      'folds same-named sites logged within a kilometre of each other',
+      () async {
+        // Subsurface splits a site whenever a dive's GPS drifts more than 20 m,
+        // so one real location accumulates many same-named site entries.
+        final result = await parser.parse(
+          xmlBytes(
+            divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' name='Blue Hole' gps='18.470562 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+          ),
+        );
+
+        final sites = result.entitiesOf(ImportEntityType.sites);
+        expect(sites.length, 1);
+        expect(sites[0]['uddfId'], 'aaa');
+
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives.map(siteRefOf), ['aaa', 'aaa']);
+      },
+    );
+
+    test('keeps same-named sites that are kilometres apart', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' name='Blue Hole' gps='18.665562 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 2);
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives.map(siteRefOf), ['aaa', 'bbb']);
+    });
+
+    test('folds a same-named site that carries no coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' name='Blue Hole'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives.map(siteRefOf), ['aaa', 'aaa']);
+    });
+
+    test('folds case- and whitespace-variant names together', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' name='  blue   hole ' gps='18.465562 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.sites).length, 1);
+    });
+
+    test('keeps an unnamed site and names it from its coordinates', () async {
+      // Subsurface omits the name attribute entirely for unnamed sites.
+      // Dropping the site strands the dive with no coordinates at all.
+      final result = await parser.parse(
+        xmlBytes(
+          divelog("<site uuid='aaa' gps='18.465562 -66.084902'/>", dive('aaa')),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0]['name'], '18.465562, -66.084902');
+      expect(sites[0]['latitude'], closeTo(18.465562, 0.000001));
+      expect(sites[0]['longitude'], closeTo(-66.084902, 0.000001));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(siteRefOf(dives.first), 'aaa');
+    });
+
+    test('folds an unnamed site into a named site within 100 metres', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' gps='18.465862 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0]['name'], 'Blue Hole');
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives.map(siteRefOf), ['aaa', 'aaa']);
+    });
+
+    test('folds two unnamed sites that sit on each other', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' gps='18.465562 -66.084902'/>
+<site uuid='bbb' gps='18.465862 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0]['name'], '18.465562, -66.084902');
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives.map(siteRefOf), ['aaa', 'aaa']);
+    });
+
+    test('keeps an unnamed site that is far from any named site', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' gps='18.475562 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.sites).length, 2);
+    });
+
+    test('never folds two named sites on proximity alone', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole' gps='18.465562 -66.084902'/>
+<site uuid='bbb' name='Coral Gardens' gps='18.465562 -66.084902'/>
+''', '${dive('aaa')}${dive('bbb', number: 2)}'),
+        ),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.sites).length, 2);
+    });
+
+    test('survivor inherits fields the first entry was missing', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog('''
+<site uuid='aaa' name='Blue Hole'/>
+<site uuid='bbb' name='Blue Hole' gps='18.465562 -66.084902'>
+  <geo cat='2' origin='2' value='Puerto Rico'/>
+  <geo cat='3' origin='0' value='Isabela'/>
+  <notes>Wall dive on the north side.</notes>
+</site>
+''', dive('aaa')),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0]['uddfId'], 'aaa');
+      expect(sites[0]['latitude'], closeTo(18.465562, 0.000001));
+      expect(sites[0]['country'], 'Puerto Rico');
+      expect(sites[0]['region'], 'Isabela');
+      expect(sites[0]['notes'], 'Wall dive on the north side.');
+    });
+
+    test('parses comma-separated coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='aaa' name='Blue Hole' gps='18.465562,-66.084902'/>",
+            dive('aaa'),
+          ),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites[0]['latitude'], closeTo(18.465562, 0.000001));
+      expect(sites[0]['longitude'], closeTo(-66.084902, 0.000001));
+    });
+
+    test('drops coordinates outside the valid range', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='aaa' name='Blue Hole' gps='118.465562 -66.084902'/>",
+            dive('aaa'),
+          ),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0]['name'], 'Blue Hole');
+      expect(sites[0].containsKey('latitude'), isFalse);
+      expect(sites[0].containsKey('longitude'), isFalse);
+    });
+
+    test('drops non-finite coordinates', () async {
+      // double.tryParse('NaN') succeeds, and every comparison against NaN is
+      // false, so a range check alone lets it through.
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='aaa' name='Blue Hole' gps='NaN NaN'/>",
+            dive('aaa'),
+          ),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0].containsKey('latitude'), isFalse);
+      expect(sites[0].containsKey('longitude'), isFalse);
+    });
+
+    test('trims whitespace off the stored site name', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog("<site uuid='aaa' name='  Blue Hole  '/>", dive('aaa')),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites[0]['name'], 'Blue Hole');
+    });
+
+    test('stores no uddfId when the uuid attribute is blank', () async {
+      final result = await parser.parse(
+        xmlBytes(divelog("<site uuid='  ' name='Blue Hole'/>", dive('aaa'))),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1);
+      expect(sites[0].containsKey('uddfId'), isFalse);
+    });
+
+    test('skips a site with neither a name nor coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes(divelog("<site uuid='aaa'/>", dive('aaa'))),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.sites), isEmpty);
+    });
+
+    test('reads the site description attribute', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='aaa' name='Blue Hole' description='Boat access only'/>",
+            dive('aaa'),
+          ),
+        ),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites[0]['description'], 'Boat access only');
+    });
+  });
+
   group('trips', () {
     test('parses trip wrapper and links child dives', () async {
       final result = await parser.parse(
@@ -1121,8 +1414,29 @@ $diveXml
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives.length, 16);
 
+      // The export holds six site entries, two of which are 'Maclearie Park'
+      // 1.8 m apart -- Subsurface split them on GPS drift between two entries.
+      // They fold back into one site, and every dive that referenced either
+      // uuid follows the survivor.
       final sites = result.entitiesOf(ImportEntityType.sites);
-      expect(sites.length, 5);
+      expect(sites.length, 4);
+      expect(
+        sites.map((s) => s['name']),
+        containsAll(<String>['Maclearie Park']),
+      );
+      expect(
+        sites.where((s) => s['name'] == 'Maclearie Park').length,
+        1,
+        reason: 'GPS-drift duplicates of one site must not import twice',
+      );
+
+      final maclearieId = sites.firstWhere(
+        (s) => s['name'] == 'Maclearie Park',
+      )['uddfId'];
+      final maclearieDives = dives.where(
+        (d) => (d['site'] as Map<String, dynamic>?)?['uddfId'] == maclearieId,
+      );
+      expect(maclearieDives.length, greaterThan(1));
 
       // Verify a specific dive has expected data
       final dive1 = dives.firstWhere((d) => d['diveNumber'] == 1);
@@ -2152,5 +2466,207 @@ $diveXml
         expect(profile.last['ceiling'], isNull);
       },
     );
+  });
+  group('picture parsing', () {
+    test(
+      'parses filename, offset and gps, pointing at the owning dive',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='40:00 min'>
+  <picture filename='/home/jai/Pictures/2025/dive042.jpg' offset='+3:20 min' gps='18.465562 -66.084902'/>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final media = result.entitiesOf(ImportEntityType.media);
+        expect(media, hasLength(1));
+        expect(media.first['filename'], '/home/jai/Pictures/2025/dive042.jpg');
+        expect(media.first['offsetSeconds'], 200);
+        expect(media.first['latitude'], closeTo(18.465562, 1e-6));
+        expect(media.first['longitude'], closeTo(-66.084902, 1e-6));
+        expect(media.first['_diveIndex'], 0);
+      },
+    );
+
+    test('accepts comma-separated picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='18.465562, -66.084902'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], closeTo(18.465562, 1e-6));
+      expect(media.single['longitude'], closeTo(-66.084902, 1e-6));
+    });
+
+    test('rejects NaN picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='NaN NaN'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      // double.tryParse happily parses 'NaN', and every comparison against
+      // NaN is false, so a range check alone would wave it through.
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], isNull);
+      expect(media.single['longitude'], isNull);
+    });
+
+    test('rejects out-of-range picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='91.0 -200.0'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], isNull);
+      expect(media.single['longitude'], isNull);
+    });
+
+    test('parses a negative offset', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/before.jpg' offset='-1:05 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(
+        result.entitiesOf(ImportEntityType.media).single['offsetSeconds'],
+        -65,
+      );
+    });
+
+    test('keeps a picture whose offset is unparseable', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/odd.jpg' offset='not a duration'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media, hasLength(1));
+      expect(media.single['offsetSeconds'], isNull);
+    });
+
+    test(
+      'keeps a Windows path verbatim for the resolver to normalise',
+      () async {
+        final result = await parser.parse(
+          xmlBytes(r'''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='C:\Users\jai\Pictures\dive042.jpg' offset='+1:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(
+          result.entitiesOf(ImportEntityType.media).single['filename'],
+          r'C:\Users\jai\Pictures\dive042.jpg',
+        );
+      },
+    );
+
+    test('drops a picture with no filename and warns', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture offset='+1:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.media), isEmpty);
+      expect(
+        result.warnings.any((w) => w.entityType == ImportEntityType.media),
+        isTrue,
+      );
+    });
+
+    test('collects pictures from trip-wrapped dives too', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' location='Bonaire'>
+  <dive number='1' date='2025-01-15' time='10:00:00'>
+    <picture filename='/p/trip.jpg' offset='+1:00 min'/>
+  </dive>
+</trip>
+<dive number='2' date='2025-01-16' time='10:00:00'>
+  <picture filename='/p/solo.jpg' offset='+2:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media, hasLength(2));
+      // Trip dives are walked first, so the trip picture points at dive 0.
+      expect(media.map((m) => [m['filename'], m['_diveIndex']]), [
+        ['/p/trip.jpg', 0],
+        ['/p/solo.jpg', 1],
+      ]);
+    });
+
+    test('omits the media key when a logbook has no pictures', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'/>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entities.containsKey(ImportEntityType.media), isFalse);
+    });
   });
 }

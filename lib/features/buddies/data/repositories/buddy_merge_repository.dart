@@ -25,29 +25,6 @@ class DiveBuddySnapshot {
   });
 }
 
-/// Snapshot of a buddy_roles row for undo.
-class BuddyRoleSnapshot {
-  final String id;
-  final String buddyId;
-  final String role;
-  final String? credentialNumber;
-  final String? agency;
-  final String notes;
-  final int createdAt;
-  final int updatedAt;
-
-  const BuddyRoleSnapshot({
-    required this.id,
-    required this.buddyId,
-    required this.role,
-    this.credentialNumber,
-    this.agency,
-    required this.notes,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-}
-
 /// Snapshot of a certification's instructor link for undo.
 class CertificationInstructorSnapshot {
   final String certificationId;
@@ -76,7 +53,6 @@ class BuddyMergeSnapshot {
   final List<domain.Buddy> deletedBuddies;
   final List<DiveBuddySnapshot> deletedDiveBuddyEntries;
   final List<DiveBuddySnapshot> modifiedDiveBuddyEntries;
-  final List<BuddyRoleSnapshot> deletedBuddyRoles;
   final List<CertificationInstructorSnapshot> repointedCertifications;
   final List<CertificationOwnerSnapshot> repointedOwnerCerts;
 
@@ -85,7 +61,6 @@ class BuddyMergeSnapshot {
     required this.deletedBuddies,
     required this.deletedDiveBuddyEntries,
     required this.modifiedDiveBuddyEntries,
-    this.deletedBuddyRoles = const [],
     this.repointedCertifications = const [],
     this.repointedOwnerCerts = const [],
   });
@@ -139,6 +114,7 @@ class BuddyMergeRepository {
       certificationAgency: null,
       photoPath: row.photoPath,
       notes: row.notes,
+      isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -216,7 +192,6 @@ class BuddyMergeRepository {
       // Track which survivor rows have already been snapshotted so that
       // 3+ buddy merges don't record intermediate roles.
       final modifiedRowIds = <String>{};
-      final deletedBuddyRoles = <BuddyRoleSnapshot>[];
       final repointedCertifications = <CertificationInstructorSnapshot>[];
       final repointedOwnerCerts = <CertificationOwnerSnapshot>[];
 
@@ -326,57 +301,6 @@ class BuddyMergeRepository {
           }
         }
 
-        // Move professional credentials (issue #395). Relink when the
-        // survivor lacks the role; drop the duplicate's row when the
-        // survivor already holds it. Snapshot everything for undo.
-        final survivorRoleRows = await (_db.select(
-          _db.buddyRoles,
-        )..where((t) => t.buddyId.equals(survivorId))).get();
-        final survivorRoles = survivorRoleRows.map((r) => r.role).toSet();
-        for (final duplicateId in duplicateIds) {
-          final dupRoleRows = await (_db.select(
-            _db.buddyRoles,
-          )..where((t) => t.buddyId.equals(duplicateId))).get();
-          for (final row in dupRoleRows) {
-            deletedBuddyRoles.add(
-              BuddyRoleSnapshot(
-                id: row.id,
-                buddyId: row.buddyId,
-                role: row.role,
-                credentialNumber: row.credentialNumber,
-                agency: row.agency,
-                notes: row.notes,
-                createdAt: row.createdAt,
-                updatedAt: row.updatedAt,
-              ),
-            );
-            if (survivorRoles.contains(row.role)) {
-              await (_db.delete(
-                _db.buddyRoles,
-              )..where((t) => t.id.equals(row.id))).go();
-              await _syncRepository.logDeletion(
-                entityType: 'buddyRoles',
-                recordId: row.id,
-              );
-            } else {
-              await (_db.update(
-                _db.buddyRoles,
-              )..where((t) => t.id.equals(row.id))).write(
-                BuddyRolesCompanion(
-                  buddyId: Value(survivorId),
-                  updatedAt: Value(now),
-                ),
-              );
-              await _syncRepository.markRecordPending(
-                entityType: 'buddyRoles',
-                recordId: row.id,
-                localUpdatedAt: now,
-              );
-              survivorRoles.add(row.role);
-            }
-          }
-        }
-
         // Re-point certification instructor links (issue #395).
         final linkedCerts = await (_db.select(
           _db.certifications,
@@ -476,7 +400,6 @@ class BuddyMergeRepository {
           deletedBuddies: deletedBuddies,
           deletedDiveBuddyEntries: allDeleted,
           modifiedDiveBuddyEntries: modifiedDiveBuddyEntries,
-          deletedBuddyRoles: deletedBuddyRoles,
           repointedCertifications: repointedCertifications,
           repointedOwnerCerts: repointedOwnerCerts,
         ),
@@ -522,6 +445,7 @@ class BuddyMergeRepository {
                   phone: Value(buddy.phone),
                   photoPath: Value(buddy.photoPath),
                   notes: Value(buddy.notes),
+                  isFavorite: Value(buddy.isFavorite),
                   createdAt: Value(buddy.createdAt.millisecondsSinceEpoch),
                   updatedAt: Value(buddy.updatedAt.millisecondsSinceEpoch),
                 ),
@@ -568,33 +492,7 @@ class BuddyMergeRepository {
           );
         }
 
-        // 5. Restore duplicate credentials. Relinked rows still exist
-        // (buddyId updated), truly-deleted rows do not - insertOrReplace
-        // handles both.
-        for (final entry in snapshot.deletedBuddyRoles) {
-          await _db
-              .into(_db.buddyRoles)
-              .insert(
-                BuddyRolesCompanion(
-                  id: Value(entry.id),
-                  buddyId: Value(entry.buddyId),
-                  role: Value(entry.role),
-                  credentialNumber: Value(entry.credentialNumber),
-                  agency: Value(entry.agency),
-                  notes: Value(entry.notes),
-                  createdAt: Value(entry.createdAt),
-                  updatedAt: Value(entry.updatedAt),
-                ),
-                mode: InsertMode.insertOrReplace,
-              );
-          await _syncRepository.markRecordPending(
-            entityType: 'buddyRoles',
-            recordId: entry.id,
-            localUpdatedAt: now,
-          );
-        }
-
-        // 6. Restore certification instructor links.
+        // 5. Restore certification instructor links.
         for (final entry in snapshot.repointedCertifications) {
           await (_db.update(
             _db.certifications,
@@ -611,7 +509,7 @@ class BuddyMergeRepository {
           );
         }
 
-        // 7. Restore certification buddy-owner links (issue #553). The deleted
+        // 6. Restore certification buddy-owner links (issue #553). The deleted
         // duplicate buddies were re-created in step 2, so the FK target exists.
         for (final entry in snapshot.repointedOwnerCerts) {
           await (_db.update(
@@ -695,6 +593,7 @@ class BuddyMergeRepository {
         phone: Value(buddy.phone),
         photoPath: Value(buddy.photoPath),
         notes: Value(buddy.notes),
+        isFavorite: Value(buddy.isFavorite),
         updatedAt: Value(now),
       ),
     );

@@ -301,23 +301,33 @@ class CourseRepository {
       _log.info('Updating course: ${course.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.courses,
-      )..where((t) => t.id.equals(course.id))).write(
-        CoursesCompanion(
-          name: Value(course.name),
-          agency: Value(course.agency.name),
-          startDate: Value(course.startDate.millisecondsSinceEpoch),
-          completionDate: Value(course.completionDate?.millisecondsSinceEpoch),
-          instructorId: Value(course.instructorId),
-          instructorName: Value(course.instructorName),
-          instructorNumber: Value(course.instructorNumber),
-          certificationId: Value(course.certificationId),
-          location: Value(course.location),
-          notes: Value(course.notes),
-          updatedAt: Value(now),
-        ),
-      );
+      final rowsAffected =
+          await (_db.update(
+            _db.courses,
+          )..where((t) => t.id.equals(course.id))).write(
+            CoursesCompanion(
+              name: Value(course.name),
+              agency: Value(course.agency.name),
+              startDate: Value(course.startDate.millisecondsSinceEpoch),
+              completionDate: Value(
+                course.completionDate?.millisecondsSinceEpoch,
+              ),
+              instructorId: Value(course.instructorId),
+              instructorName: Value(course.instructorName),
+              instructorNumber: Value(course.instructorNumber),
+              certificationId: Value(course.certificationId),
+              location: Value(course.location),
+              notes: Value(course.notes),
+              updatedAt: Value(now),
+            ),
+          );
+
+      // A `where` clause that matches nothing is not an error to SQLite, so an
+      // update against a missing (or empty) id would otherwise report success
+      // while persisting nothing. Fail loudly instead of losing the edit.
+      if (rowsAffected == 0) {
+        throw StateError('No course found to update with id "${course.id}"');
+      }
 
       await _syncRepository.markRecordPending(
         entityType: 'courses',

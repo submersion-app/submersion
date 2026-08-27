@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -100,7 +101,7 @@ class PlanStatusChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final outcome = ref.watch(planOutcomeProvider);
+    final outcome = ref.watch(activePlanOutcomeProvider);
     final cnsThreshold = ref.watch(cnsWarningThresholdProvider);
     final theme = Theme.of(context);
 
@@ -151,8 +152,61 @@ class PlanStatusChips extends ConsumerWidget {
             tint: planIssueSeverityColor(theme.colorScheme, maxSeverity),
             onTap: onIssuesTap,
           ),
+        const ContingencyPreviewChip(),
         const FollowingChip(),
       ],
+    );
+  }
+}
+
+/// "Previewing: {label}" indicator with tap-to-clear; renders nothing unless
+/// a contingency (deviation or lost-gas) is selected. Every headline stat
+/// above switches to that contingency's own outcome while one is selected --
+/// losing a deco/stage/travel gas changes the whole deco schedule, not just
+/// the chart ghost -- so this makes clear the numbers are a "what if", not
+/// the live plan.
+///
+/// Gated on [selectedContingencyProvider], not on the raw selection ids: a
+/// selection can go stale (the tank was removed, or stopped being losable)
+/// while its id lingers, and the stats fall back to the live plan in that
+/// case. Reading the same provider the stats read keeps the chip from
+/// claiming a preview that is not in effect.
+class ContingencyPreviewChip extends ConsumerWidget {
+  const ContingencyPreviewChip({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final preview = ref.watch(selectedContingencyProvider);
+    if (preview == null) return const SizedBox.shrink();
+
+    final state = ref.watch(divePlanNotifierProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
+
+    final lostTank = preview.lostTank;
+    final String label;
+    if (lostTank != null) {
+      label = context.l10n.plannerCanvas_contingency_lostGas(
+        lostTank.gasMix.name,
+      );
+    } else {
+      final depth =
+          '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
+      final time = '+${state.deviationTimeMinutes}′';
+      label = switch (ref.watch(selectedDeviationProvider)) {
+        'deeper' => depth,
+        'longer' => time,
+        _ => '$depth $time',
+      };
+    }
+
+    return PlanChip(
+      label: context.l10n.plannerCanvas_contingency_previewing(label),
+      value: '✕',
+      tint: Theme.of(context).colorScheme.tertiary,
+      onTap: () {
+        ref.read(selectedDeviationProvider.notifier).state = null;
+        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
+      },
     );
   }
 }

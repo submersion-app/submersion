@@ -11,6 +11,9 @@ import 'package:submersion/features/dive_sites/data/services/dive_site_api_servi
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
+import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
+import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_sites_toggle_button.dart';
@@ -21,6 +24,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -60,6 +64,9 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   bool _mapReady = false;
+
+  // Ephemeral morph state: each entry to this widget starts in 2D.
+  SiteScapeMode _scapeMode = SiteScapeMode.map2d;
 
   /// Externally-keyed selection for a tapped built-in (bundled) site. Held
   /// locally rather than in the shared selection, which is keyed to the user's
@@ -170,63 +177,78 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
               ?.site
         : null;
 
-    return Stack(
-      children: [
-        _buildMap(context, sitesWithCounts, heatMapAsync, heatMapSettings),
-        // Heat map toggle and fit all sites controls
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const BuiltInSitesToggleButton(),
-                  const HeatMapToggleButton(),
-                  IconButton(
-                    icon: const Icon(Icons.my_location, size: 20),
-                    tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
-                    onPressed: () => _fitAllSites(
-                      sitesWithCounts.map((s) => s.site).toList(),
+    return SiteScapeView(
+      mode: _scapeMode,
+      onModeChanged: (m) => setState(() => _scapeMode = m),
+      selectedSiteId: selectedSite?.id,
+      selectedSiteLocation: selectedSite?.location,
+      mapController: _mapController,
+      mapBuilder: (context) => Stack(
+        children: [
+          _buildMap(context, sitesWithCounts, heatMapAsync, heatMapSettings),
+          // Pane mode, heat map toggle and fit all sites controls. The 2D/3D
+          // pair leads this cluster rather than floating in its own card, so
+          // the pane controls read as one group in both modes.
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SiteScapeModeToggle(
+                      mode: _scapeMode,
+                      onModeChanged: (m) => setState(() => _scapeMode = m),
+                      selectedSiteId: selectedSite?.id,
+                      selectedSiteLocation: selectedSite?.location,
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (_selectedBuiltInId != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child:
-                    _buildBuiltInInfoCard(context) ?? const SizedBox.shrink(),
-              ),
-            ),
-          )
-        else if (selectedSite != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: _buildMapInfoCard(
-                  context,
-                  selectedSite,
-                  sitesWithCounts,
+                    const BuiltInSitesToggleButton(),
+                    const HeatMapToggleButton(),
+                    IconButton(
+                      icon: const Icon(Icons.my_location, size: 20),
+                      tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
+                      onPressed: () => _fitAllSites(
+                        sitesWithCounts.map((s) => s.site).toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-      ],
+          if (_selectedBuiltInId != null)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child:
+                      _buildBuiltInInfoCard(context) ?? const SizedBox.shrink(),
+                ),
+              ),
+            )
+          else if (selectedSite != null)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: _buildMapInfoCard(
+                    context,
+                    selectedSite,
+                    sitesWithCounts,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -245,17 +267,20 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
+    // The selected site also drives the depth overlay layer below.
+    final selectedSite = widget.selectedId == null
+        ? null
+        : sitesWithLocation
+              .where((s) => s.site.id == widget.selectedId)
+              .firstOrNull
+              ?.site;
+
     // Calculate initial center and zoom
     // If there's a selected site with location, start centered on it
     LatLng center = _defaultCenter;
     double zoom = _defaultZoom;
 
     if (widget.selectedId != null) {
-      // Find the selected site's location
-      final selectedSite = sitesWithLocation
-          .where((s) => s.site.id == widget.selectedId)
-          .firstOrNull
-          ?.site;
       if (selectedSite?.hasCoordinates == true) {
         center = LatLng(
           selectedSite!.location!.latitude,
@@ -286,6 +311,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
               initialZoom: zoom,
               minZoom: 2.0,
               maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
               onMapReady: () {
                 _mapReady = true;
               },
@@ -309,6 +335,10 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                     ? TileCacheService.instance.getTileProvider()
                     : null,
               ),
+              // Depth overlay: the selected site's bathymetry as a
+              // translucent ramp + contours, above tiles, below markers.
+              BathymetryDepthOverlayLayer(location: selectedSite?.location),
+              SiteFeatureMarkerLayer(siteId: selectedSite?.id),
               // Built-in (bundled) sites layer - below the user markers so the
               // user's own sites always draw on top. Shown only when toggled.
               Consumer(
@@ -465,6 +495,16 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
         backgroundColor: colorScheme.primaryContainer,
         child: Icon(Icons.location_on, color: colorScheme.primary),
       ),
+      // The same seascape entry point as the site detail app bar, so the
+      // 3D terrain is reachable from the map (issue #1065 placement).
+      trailing: site.hasCoordinates
+          ? IconButton(
+              icon: const Icon(Icons.terrain),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () =>
+                  setState(() => _scapeMode = SiteScapeMode.terrain3d),
+            )
+          : null,
       onDetailsTap: widget.onDetailsTap != null
           ? () => widget.onDetailsTap!(site.id)
           : () => context.push('/sites/${site.id}'),

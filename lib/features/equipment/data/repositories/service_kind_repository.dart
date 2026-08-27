@@ -19,6 +19,12 @@ class ServiceKindRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
+  /// Emits whenever the `service_kinds` table changes so the kind-catalog
+  /// providers refresh after a sync, a built-in re-seed, or any other write
+  /// that bypasses the notifiers.
+  Stream<void> watchServiceKindsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.serviceKinds));
+
   /// Built-ins plus the diver's custom kinds (all custom kinds when
   /// [diverId] is null).
   Future<List<domain.ServiceKind>> getAllKinds({String? diverId}) async {
@@ -59,6 +65,9 @@ class ServiceKindRepository {
             defaultIntervalDays: Value(kind.defaultIntervalDays),
             defaultIntervalDives: Value(kind.defaultIntervalDives),
             defaultIntervalHours: Value(kind.defaultIntervalHours),
+            defaultCost: Value(kind.defaultCost),
+            defaultCurrency: Value(kind.defaultCurrency),
+            defaultCategory: Value(kind.defaultCategory?.name),
             autoAttach: Value(kind.autoAttach),
             isBuiltIn: const Value(false),
             createdAt: Value(now.millisecondsSinceEpoch),
@@ -95,6 +104,9 @@ class ServiceKindRepository {
         defaultIntervalDays: Value(kind.defaultIntervalDays),
         defaultIntervalDives: Value(kind.defaultIntervalDives),
         defaultIntervalHours: Value(kind.defaultIntervalHours),
+        defaultCost: Value(kind.defaultCost),
+        defaultCurrency: Value(kind.defaultCurrency),
+        defaultCategory: Value(kind.defaultCategory?.name),
         autoAttach: Value(kind.autoAttach),
         updatedAt: Value(now),
       ),
@@ -155,6 +167,14 @@ class ServiceKindRepository {
       defaultIntervalDays: row.defaultIntervalDays,
       defaultIntervalDives: row.defaultIntervalDives,
       defaultIntervalHours: row.defaultIntervalHours,
+      defaultCost: row.defaultCost,
+      defaultCurrency: row.defaultCurrency,
+      defaultCategory: row.defaultCategory == null
+          ? null
+          : ServiceCategory.values.firstWhere(
+              (c) => c.name == row.defaultCategory,
+              orElse: () => ServiceCategory.other,
+            ),
       autoAttach: row.autoAttach,
       isBuiltIn: row.isBuiltIn,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),

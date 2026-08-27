@@ -18,6 +18,11 @@ class ViewConfigRepository {
 
   ViewConfigRepository(this._db);
 
+  /// Emits whenever a saved field preset changes so the preset providers
+  /// refresh after a sync or any other write that bypasses the notifiers.
+  Stream<void> watchPresetsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.fieldPresets));
+
   // ---------------------------------------------------------------------------
   // Table Config
   // ---------------------------------------------------------------------------

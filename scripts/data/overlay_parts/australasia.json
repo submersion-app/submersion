@@ -1,0 +1,163 @@
+{
+  "chambers": [
+    {
+      "id": "au-townsville",
+      "name": "Townsville University Hospital Hyperbaric Unit",
+      "country": "AU",
+      "city": "Townsville, QLD",
+      "phone": "+61-7-4433-2080",
+      "emergencyPhone": "+61-7-4433-1111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.townsville.health.qld.gov.au/services/services-a-z/hyperbaric-medicine/"
+      }
+    },
+    {
+      "id": "au-fionastanley",
+      "name": "Fiona Stanley Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Perth, WA",
+      "phone": "+61-8-6152-2222",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://fsfhg.health.wa.gov.au/Our-services/Hyperbaric-Medicine-Unit"
+      }
+    },
+    {
+      "id": "nz-slark",
+      "name": "Slark Hyperbaric Unit, North Shore Hospital",
+      "country": "NZ",
+      "city": "Auckland",
+      "phone": "+64-9-487-2212",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.healthpoint.co.nz/public/respiratory/slark-hyperbaric-unit-waitemata/"
+      }
+    },
+    {
+      "id": "au-pow",
+      "name": "Prince of Wales Hospital Diving and Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Sydney, NSW",
+      "phone": "+61-2-9382-3880",
+      "emergencyPhone": "+61-2-9382-2222",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.seslhd.health.nsw.gov.au/sites/default/files/groups/Prince_of_Wales_Hospital/Hyperbaric/Hyperbaric%20and%20Underwater%20Medicine%20Unit%20Patient%20Info.pdf"
+      }
+    },
+    {
+      "id": "au-alfred",
+      "name": "The Alfred Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Melbourne, VIC",
+      "phone": "+61-3-9076-2269",
+      "emergencyPhone": "+61-3-9076-2000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.alfredhealth.org.au/the-alfred/services/hyperbaric-medicine"
+      }
+    },
+    {
+      "id": "au-rhh",
+      "name": "Royal Hobart Hospital Department of Diving and Hyperbaric Medicine",
+      "country": "AU",
+      "city": "Hobart, TAS",
+      "phone": "+61-3-6166-8193",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.health.tas.gov.au/hospitals/outpatients/clinic-directory/diving-and-hyperbaric-medicine/diving"
+      }
+    },
+    {
+      "id": "au-rbwh",
+      "name": "Royal Brisbane and Women's Hospital Hyperbaric Medicine Service",
+      "country": "AU",
+      "city": "Brisbane, QLD",
+      "phone": "+61-7-3646-0241",
+      "emergencyPhone": "+61-7-3646-8111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://metronorth.health.qld.gov.au/rbwh/healthcare-services/hyperbaric-medicine"
+      }
+    },
+    {
+      "id": "au-rah",
+      "name": "Royal Adelaide Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Adelaide, SA",
+      "phone": "+61-8-7074-0180",
+      "emergencyPhone": "+61-1800-088-200",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.rah.sa.gov.au/services-clinics/hyperbaric-medicine-unit"
+      }
+    },
+    {
+      "id": "nz-chch",
+      "name": "Christchurch Hospital Hyperbaric Medicine Unit",
+      "country": "NZ",
+      "city": "Christchurch",
+      "phone": "+64-3-364-0045",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.healthnz.govt.nz/hospitals-services/hospitals/canterbury/hyperbaric-medicine-unit-canterbury"
+      }
+    },
+    {
+      "id": "pf-chpf",
+      "name": "Centre Hospitalier de Polynesie Francaise Caisson Hyperbare",
+      "country": "PF",
+      "city": "Pirae, Tahiti",
+      "phone": "+689-40-48-62-62",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.chpf.pf/2018/08/17/urgences-samu/"
+      }
+    },
+    {
+      "id": "pw-belau",
+      "name": "Belau National Hospital Hyperbaric Chamber",
+      "country": "PW",
+      "city": "Koror, Palau",
+      "phone": "+680-488-2552",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.palaugov.pw/executive-branch/ministries/health/bureau-of-hospital-clinical-services/"
+      }
+    }
+  ]
+}

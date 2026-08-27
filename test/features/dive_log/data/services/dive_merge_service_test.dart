@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -533,6 +535,174 @@ void main() {
       // restore if the parent tanks were re-inserted first.
       final pressures = await db.select(db.tankPressureProfiles).get();
       expect(pressures.map((p) => p.id).toSet(), {'tp-a', 'tp-b'});
+    });
+  });
+
+  group('same-computer provenance (#1045)', () {
+    /// Stamps [diveId]'s seeded data source row with a shared [computerId]
+    /// and payloads unique to that download, mirroring what a real
+    /// dive-computer download writes for each half of a split pair.
+    Future<void> stampSource(
+      String diveId, {
+      required String computerId,
+      required String sourceUuid,
+      required int fingerprintByte,
+    }) async {
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).write(
+        DiveDataSourcesCompanion(
+          computerId: Value(computerId),
+          sourceUuid: Value(sourceUuid),
+          rawFingerprint: Value(Uint8List.fromList([fingerprintByte])),
+          rawData: Value(Uint8List.fromList([fingerprintByte, 0xFF])),
+        ),
+      );
+    }
+
+    test(
+      'both source rows survive the merge with their own raw payloads, while '
+      'the read side collapses them to one canonical source',
+      () async {
+        await seedDive(
+          'a',
+          entry: DateTime.utc(2026, 7, 1, 9),
+          computerId: 'comp-1',
+        );
+        await seedDive(
+          'b',
+          entry: DateTime.utc(2026, 7, 1, 10),
+          computerId: 'comp-1',
+        );
+        await stampSource(
+          'a',
+          computerId: 'comp-1',
+          sourceUuid: 'uuid-a',
+          fingerprintByte: 0xA1,
+        );
+        await stampSource(
+          'b',
+          computerId: 'comp-1',
+          sourceUuid: 'uuid-b',
+          fingerprintByte: 0xB2,
+        );
+
+        final outcome = await service.apply(['a', 'b']);
+        final mergedId = outcome.mergedDive.id;
+
+        // Both rows are carried. They share a computerId but are NOT
+        // duplicates: each is the only surviving copy of one download's
+        // rawData / rawFingerprint / sourceUuid, since step 13 deletes the
+        // originals. Collapsing them here would destroy that half's bytes.
+        final rows = await (db.select(
+          db.diveDataSources,
+        )..where((t) => t.diveId.equals(mergedId))).get();
+        expect(rows, hasLength(2));
+        expect(rows.every((r) => r.computerId == 'comp-1'), isTrue);
+        expect(rows.map((r) => r.sourceUuid).toSet(), {'uuid-a', 'uuid-b'});
+        expect(rows.map((r) => r.rawFingerprint?.first).toSet(), {0xA1, 0xB2});
+        // ReparseService.getSourcesForDiveReparse selects on rawData, so
+        // both halves keep their bytes for a libdivecomputer upgrade. What
+        // a re-parse does with them is scoped by
+        // ReparseService._sourceOwnsProfileStrand: it refreshes each row's
+        // provenance snapshot but leaves the merged profile alone (#1164).
+        expect(rows.where((r) => r.rawData != null), hasLength(2));
+
+        // The import duplicate checker unions keys across ALL rows: a
+        // re-download of EITHER half must still resolve as a duplicate of
+        // the merged dive rather than landing as a new dive.
+        final keys = await diveRepo.getSourceKeysByDiveId();
+        expect(keys[mergedId], containsAll(<String>{'uuid-a', 'uuid-b'}));
+
+        // Read side: one computer, one chip. The duplicate is a display
+        // concern, canonicalized on read (#1005), not a storage defect.
+        final canonical = await diveRepo.getDataSources(mergedId);
+        expect(canonical, hasLength(1));
+      },
+    );
+  });
+
+  group('re-parsing a merged dive (#1164)', () {
+    /// Gives both originals' source rows the raw blob and descriptor triple
+    /// that make them eligible for re-parse, so the merged dive inherits two
+    /// re-parseable carried rows sharing one computer.
+    Future<void> makeSourceReparseable(String diveId) async {
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.id.equals('src-$diveId'))).write(
+        DiveDataSourcesCompanion(
+          computerId: const Value('comp-1'),
+          rawData: Value(Uint8List.fromList([1, 2, 3, 4])),
+          descriptorVendor: const Value('Shearwater'),
+          descriptorProduct: const Value('Perdix'),
+          descriptorModel: const Value(42),
+        ),
+      );
+    }
+
+    test('leaves the combined profile and its surface gap intact', () async {
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        depth: 10,
+        computerId: 'comp-1',
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        depth: 20,
+        runtimeMin: 20,
+        computerId: 'comp-1',
+      );
+      await makeSourceReparseable('a');
+      await makeSourceReparseable('b');
+
+      final mergedId = (await service.apply(['a', 'b'])).mergedDive.id;
+
+      Future<List<int>> profileTimestamps() async {
+        final rows =
+            await (db.select(db.diveProfiles)
+                  ..where((t) => t.diveId.equals(mergedId))
+                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+                .get();
+        return rows.map((r) => r.timestamp).toList();
+      }
+
+      final before = await profileTimestamps();
+      // Both halves plus the synthesized surface-gap fill.
+      expect(before.length, greaterThan(6));
+      expect(before.any((t) => t > 1800 && t < 3600), isTrue);
+
+      // The parser returns the first half's download verbatim: four samples
+      // in the original dive's frame, exactly what would overwrite the
+      // merged timeline if the guard were missing.
+      final result = await ReparseService(db: db).reparseDive(
+        mergedId,
+        parseFn: (vendor, product, model, rawData) async => pigeon.ParsedDive(
+          fingerprint: 'fp',
+          dateTimeYear: 2026,
+          dateTimeMonth: 7,
+          dateTimeDay: 1,
+          dateTimeHour: 9,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 10,
+          avgDepthMeters: 5,
+          durationSeconds: 1800,
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0),
+            pigeon.ProfileSample(timeSeconds: 900, depthMeters: 10),
+            pigeon.ProfileSample(timeSeconds: 1800, depthMeters: 0),
+          ],
+          tanks: const [],
+          gasMixes: const [],
+          events: const [],
+        ),
+      );
+
+      expect(await profileTimestamps(), before);
+      expect(result.errors, isEmpty);
+      expect(result.profilesPreserved, 2);
     });
   });
 }

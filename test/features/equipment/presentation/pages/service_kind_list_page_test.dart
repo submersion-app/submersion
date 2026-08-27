@@ -13,6 +13,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -39,6 +41,105 @@ void main() {
       ),
     );
   }
+
+  ServiceKind custom(String id, String name) => ServiceKind(
+    id: id,
+    name: name,
+    applicableTypes: const [EquipmentType.tank],
+    defaultIntervalDays: 180,
+    isBuiltIn: false,
+    createdAt: t0,
+    updatedAt: t0,
+  );
+
+  group('selection', () {
+    testWidgets('satisfies the shared selection contract', (tester) async {
+      final all = [
+        custom('c1', 'Aaa custom'),
+        custom('c2', 'Bbb custom'),
+        custom('c3', 'Ccc custom'),
+      ];
+      var visible = all;
+
+      await verifySelectionContract(
+        tester,
+        build: () => ProviderScope(
+          overrides: [
+            serviceKindsProvider.overrideWith((ref) async => visible),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ServiceKindListPage(),
+          ),
+        ),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        // Built-in kinds render isSelectable: false and so have no checkbox at
+        // all, which makes ListTile.first the wrong anchor. Pin to the custom
+        // row that is actually selectable.
+        rowRoot: find.ancestor(
+          of: find.text('Aaa custom'),
+          matching: find.byType(ListTile),
+        ),
+        firstRow: find.text('Aaa custom'),
+        applyFilter: (tester) async {
+          visible = [all.first];
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(ServiceKindListPage)),
+          );
+          container.invalidate(serviceKindsProvider);
+          await tester.pumpAndSettle();
+        },
+        visibleAfterFilter: 1,
+      );
+    });
+
+    testWidgets('selection mode hides the per-row delete action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildPage([custom('c1', 'Custom kind')]));
+      await tester.pumpAndSettle();
+
+      // Normal mode offers the row's own trash.
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // In selection mode the only delete is the bulk one, which the shared
+      // bar keeps behind its overflow menu.
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
+    });
+
+    testWidgets('built-in kinds render no checkbox and are excluded from '
+        'select-all', (tester) async {
+      await tester.pumpWidget(
+        buildPage([
+          builtIn('hydro', 'Hydrostatic test'),
+          custom('c1', 'Custom kind'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // Only the custom kind gets a checkbox; the built-in keeps its lock.
+      expect(find.byType(Checkbox), findsOneWidget);
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('1 selected'),
+        findsOneWidget,
+        reason: 'select-all must skip rows the repository refuses to delete',
+      );
+    });
+  });
 
   testWidgets('built-ins render locked without delete action', (tester) async {
     await tester.pumpWidget(
@@ -85,6 +186,48 @@ void main() {
 
     expect(find.text('Add service type'), findsOneWidget);
     expect(find.text('Attach automatically to new gear'), findsOneWidget);
+  });
+
+  group('bulk delete against the database', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await setUpTestDatabase();
+    });
+
+    tearDown(() async => tearDownTestDatabase());
+
+    testWidgets('removes the checked custom kinds and reports the count', (
+      tester,
+    ) async {
+      final repo = ServiceKindRepository();
+      final a = await repo.createKind(custom('c1', 'Aaa custom'));
+      final b = await repo.createKind(custom('c2', 'Bbb custom'));
+
+      await verifyBulkDelete(
+        tester,
+        build: () => ProviderScope(
+          overrides: [
+            serviceKindsProvider.overrideWith((ref) async => [a, b]),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ServiceKindListPage(),
+          ),
+        ),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        expectedDeletedCount: 2,
+      );
+
+      expect(find.text('2 deleted'), findsOneWidget);
+      final remaining = await repo.getAllKinds();
+      expect(
+        remaining.where((k) => !k.isBuiltIn),
+        isEmpty,
+        reason: 'both custom kinds must be gone from the database',
+      );
+    });
   });
 
   group('database-backed CRUD flows', () {
@@ -162,6 +305,88 @@ void main() {
       expect(custom.defaultIntervalHours, 5.0);
       expect(custom.applicableTypes, [EquipmentType.other]);
       expect(custom.autoAttach, isTrue);
+    });
+
+    testWidgets('a default price round-trips through the editor', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Disinfect',
+      );
+      await tester.ensureVisible(
+        find.byKey(const Key('service-kind-default-cost')),
+      );
+      await tester.enterText(
+        find.byKey(const Key('service-kind-default-cost')),
+        '12.5',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final kinds = await tester.runAsync(() => kindRepo.getAllKinds());
+      final custom = kinds!.firstWhere((k) => k.name == 'Disinfect');
+      expect(custom.defaultCost, 12.5);
+    });
+
+    testWidgets('a default currency can be cleared back to inherit', (
+      tester,
+    ) async {
+      // Review of #829: without a null entry in the dropdown there was no way
+      // back to "use the diver's default" once a currency had been picked.
+      await tester.runAsync(
+        () => kindRepo.createKind(
+          ServiceKind(
+            id: '',
+            diverId: diverId,
+            name: 'Priced kind',
+            defaultCost: 12.5,
+            defaultCurrency: 'EUR',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ),
+      );
+
+      // The edit dialog is taller than the default 800x600 test surface, and a
+      // clipped DropdownButton never opens on tap.
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 2400);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Priced kind'), 200);
+      await tester.tap(find.text('Priced kind'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.byKey(const Key('service-kind-default-currency')),
+      );
+      // Tap the rendered value rather than the form field: the field's centre
+      // lands on the decoration, not the dropdown button.
+      await tester.tap(find.text('EUR').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use default currency').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final kinds = await tester.runAsync(() => kindRepo.getAllKinds());
+      final updated = kinds!.firstWhere((k) => k.name == 'Priced kind');
+      expect(updated.defaultCurrency, isNull);
+      // Clearing the currency must not disturb the price.
+      expect(updated.defaultCost, 12.5);
     });
 
     testWidgets('editing a custom kind persists changes', (tester) async {

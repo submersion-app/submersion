@@ -87,6 +87,53 @@ void main() {
       expect(markers[0].elapsedSeconds, 0);
       expect(markers[1].elapsedSeconds, 3600);
     });
+
+    // Issue #1090: a capture time days outside the dive used to clamp to the
+    // start or end of the profile, so a wrong EXIF date drew a confident
+    // marker at the exit. Beyond the matcher's own buffers the position is
+    // not knowledge, and the chart must not invent one.
+    test('drops automatic positions beyond the dive window tolerance', () {
+      final markers = photoMarkersFromMedia([
+        _media(
+          id: 'years-early',
+          enrichment: _enrichment(
+            elapsedSeconds: -5554653 * 60,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+        _media(
+          id: 'days-late',
+          enrichment: _enrichment(
+            elapsedSeconds: 1879 * 60,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+        _media(
+          id: 'just-after',
+          enrichment: _enrichment(
+            elapsedSeconds: 3600 + 300,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+      ], maxProfileSeconds: 3600);
+      expect(markers.map((m) => m.item.id), ['just-after']);
+      expect(markers.single.elapsedSeconds, 3600);
+    });
+
+    test('keeps a manual position regardless of the tolerance', () {
+      final markers = photoMarkersFromMedia([
+        _media(
+          id: 'pinned',
+          enrichment: _enrichment(
+            elapsedSeconds: 1879 * 60,
+            confidence: MatchConfidence.manual,
+          ),
+        ),
+      ], maxProfileSeconds: 3600);
+      expect(markers, hasLength(1));
+      // A manual offset past a since-shortened profile still clamps to it.
+      expect(markers.single.elapsedSeconds, 3600);
+    });
   });
 
   group('clusterPhotoMarkers', () {

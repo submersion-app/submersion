@@ -153,3 +153,7 @@ final surfaceGpsSectionExpandedProvider = Provider<bool>((ref) {
     collapsibleSectionProvider.select((s) => s.surfaceGpsExpanded),
   );
 });
+
+/// Whether the Surface GPS map shows the whole recording rather than just
+/// the dive's own window plus margin.
+final surfaceGpsFullTrackProvider = StateProvider<bool>((ref) => false);

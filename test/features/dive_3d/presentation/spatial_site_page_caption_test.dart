@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_geometry_service.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -99,8 +100,7 @@ void main() {
     expect(viewport.axisFrame, isNotNull);
     expect(viewport.chromeStyle, isNotNull);
     // Real terrain also gets hover inspection.
-    expect(viewport.surfaceGrid, isNotNull);
-    expect(viewport.surfaceGrid!.isEmpty, isFalse);
+    expect(viewport.picker, isA<GridHoverPicker>());
     expect(viewport.hoverPick, isNotNull);
   });
 
@@ -111,7 +111,7 @@ void main() {
     final viewport = tester.widget<Dive3dInteractiveViewport>(
       find.byType(Dive3dInteractiveViewport),
     );
-    expect(viewport.surfaceGrid, isNull);
+    expect(viewport.picker, isNull);
     expect(viewport.hoverPick, isNull);
   });
 

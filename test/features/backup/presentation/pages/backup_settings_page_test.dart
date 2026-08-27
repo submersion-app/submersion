@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -210,6 +209,7 @@ void main() {
     Widget buildApp(BackupService service) {
       return ProviderScope(
         overrides: [
+          localeProvider.overrideWithValue('en'),
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
@@ -352,6 +352,7 @@ void main() {
     Widget buildApp() {
       return ProviderScope(
         overrides: [
+          localeProvider.overrideWithValue('en'),
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
@@ -378,12 +379,68 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('save-to-file picks a folder and streams into it', (
+      tester,
+    ) async {
+      // file_picker 12's saveFile wants the whole artifact as bytes, which a
+      // large library cannot afford, so the export picks a DIRECTORY and
+      // streams into it instead. Only the non-Android branch is reachable on
+      // a test host; the SAF branch is coverage-ignored.
+      mockPicker.directoryPathResult = tempDir.path;
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Export Backup'));
+      await tester.pumpAndSettle();
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save to File'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      expect(service.calls, contains('exportBackupToPath'));
+      expect(
+        service.exportedTo,
+        startsWith(tempDir.path),
+        reason: 'the chosen folder is the destination root',
+      );
+      expect(
+        service.exportedTo,
+        contains('submersion_backup_'),
+        reason:
+            'the default filename is composed by the page, since a folder '
+            'pick cannot supply one',
+      );
+    });
+
+    testWidgets('save-to-file does nothing when the folder pick is cancelled', (
+      tester,
+    ) async {
+      mockPicker.directoryPathResult = null;
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Export Backup'));
+      await tester.pumpAndSettle();
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save to File'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      expect(service.calls, isNot(contains('exportBackupToPath')));
+    });
+
     testWidgets(
       'restore-from-file confirms via the dialog and threads merge mode',
       (tester) async {
-        mockPicker.pickFilesResult = FilePickerResult([
-          PlatformFile(name: 'picked.db', size: 2, path: pickedPath),
-        ]);
+        mockPicker.pickFilesResult = [
+          FakePlatformFile(pickedPath, name: 'picked.db'),
+        ];
 
         await tester.pumpWidget(buildApp());
         await tester.pumpAndSettle();
@@ -407,9 +464,9 @@ void main() {
     testWidgets('cancelling the file-restore dialog restores nothing', (
       tester,
     ) async {
-      mockPicker.pickFilesResult = FilePickerResult([
-        PlatformFile(name: 'picked.db', size: 2, path: pickedPath),
-      ]);
+      mockPicker.pickFilesResult = [
+        FakePlatformFile(pickedPath, name: 'picked.db'),
+      ];
 
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
@@ -503,6 +560,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            localeProvider.overrideWithValue('en'),
             sharedPreferencesProvider.overrideWithValue(prefs),
             backupServiceProvider.overrideWithValue(
               _RecordingRestoreService(
@@ -603,8 +661,10 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
       throw UnimplementedError('not used');
 
   @override
-  Future<void> restore(String backupPath) async =>
-      throw UnimplementedError('not used');
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async => throw UnimplementedError('not used');
 
   @override
   Future<String> get databasePath async => '/fake/db/path';
@@ -612,6 +672,9 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
   AppDatabase get database =>
       throw UnimplementedError('Fake does not support direct queries');
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 /// BackupService override recording restore calls so page-level wiring can be
@@ -626,14 +689,17 @@ class _RecordingRestoreService extends BackupService {
   });
 
   @override
-  Future<BackupValidationResult> validateBackupFile(String filePath) async =>
-      const BackupValidationResult.valid(sizeBytes: 1);
+  Future<BackupValidationResult> validateBackupFile(
+    String filePath, {
+    bool allowLiveDatabaseEncryption = false,
+  }) async => const BackupValidationResult.valid(sizeBytes: 1);
 
   @override
   Future<void> restoreFromBackup(
     BackupRecord record, {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     calls.add('restoreFromBackup');
     lastMode = mode;
@@ -644,9 +710,29 @@ class _RecordingRestoreService extends BackupService {
     String filePath, {
     RestoreMode mode = RestoreMode.merge,
     String? encryptionSecret,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     calls.add('restoreFromFile');
     lastMode = mode;
+  }
+
+  /// Destination the manual export was pointed at.
+  String? exportedTo;
+
+  @override
+  Future<BackupRecord> exportBackupToPath(String destinationPath) async {
+    calls.add('exportBackupToPath');
+    exportedTo = destinationPath;
+    return BackupRecord(
+      id: 'exported',
+      filename: destinationPath.split(Platform.pathSeparator).last,
+      timestamp: DateTime(2026, 8, 16),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      type: BackupType.manual,
+      diveCount: 0,
+      siteCount: 0,
+    );
   }
 }
 

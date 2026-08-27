@@ -95,4 +95,18 @@ void main() {
     );
     expect(find.text("Couldn't connect"), findsOneWidget);
   });
+
+  testWidgets('renders stillFetching as a retryable loading message', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const UnavailableMediaPlaceholder(
+          data: UnavailableData(kind: UnavailableKind.stillFetching),
+        ),
+      ),
+    );
+    expect(find.text('Still loading. Tap to retry.'), findsOneWidget);
+    expect(find.byIcon(Icons.hourglass_empty), findsOneWidget);
+  });
 }

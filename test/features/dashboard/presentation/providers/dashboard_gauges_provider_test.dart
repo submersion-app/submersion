@@ -22,6 +22,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -106,6 +107,7 @@ ProviderContainer makeContainer({
   bool syncEnabled = false,
   int syncPending = 0,
   int findings = 0,
+  FlightWindowStatus? flightWindow,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -126,6 +128,7 @@ ProviderContainer makeContainer({
       openQualityFindingsCountProvider.overrideWith(
         (ref) => Stream.value(findings),
       ),
+      activeTripFlightWindowProvider.overrideWith((ref) async => flightWindow),
     ],
   );
   addTearDown(container.dispose);

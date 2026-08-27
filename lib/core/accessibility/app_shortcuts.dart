@@ -38,6 +38,13 @@ class AppShortcuts {
     if (_registered) return;
     _registered = true;
 
+    // The `label` and `category` strings below are deliberately English
+    // literals, NOT `context.l10n` lookups. Registration happens once from
+    // a static method with no BuildContext, and ShortcutCatalog uses the
+    // category string as a grouping key, a sort key and the argument to
+    // unregisterCategory. They are stable identifiers; the help sheet
+    // resolves them to the UI language at render time through
+    // shortcutEntryLabel / shortcutCategoryLabel in shortcut_display.dart.
     ShortcutCatalog.instance.registerAll([
       // Navigation
       ShortcutEntry(
@@ -130,9 +137,17 @@ class AppShortcuts {
     ensureRegistered();
 
     return {
-      // Navigation
+      // Navigation.
+      //
+      // The numbered section shortcuts below use `go` deliberately: switching
+      // top-level sections SHOULD reset the stack. The child routes here use
+      // `push`, because these bindings are mounted around the entire shell and
+      // `go` into a `/dives` child would rebuild the stack as [dive list, X],
+      // stranding a user who pressed the key from Media or Statistics.
       platformShortcut(LogicalKeyboardKey.keyN): () {
-        context.go('/dives/new');
+        // PUSH (not go): the digit shortcuts below switch tabs, but this
+        // opens a sub-page and must stay poppable (#647).
+        context.push('/dives/new');
       },
       platformShortcut(LogicalKeyboardKey.digit1): () {
         context.go('/dives');
@@ -157,7 +172,7 @@ class AppShortcuts {
 
       // Search
       platformShortcut(LogicalKeyboardKey.keyF): () {
-        context.go('/dives/search');
+        context.push('/dives/search');
       },
 
       // Settings

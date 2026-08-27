@@ -12,7 +12,7 @@ Uint8List _buildZip(Map<String, List<int>> entries) {
   for (final entry in entries.entries) {
     archive.addFile(ArchiveFile(entry.key, entry.value.length, entry.value));
   }
-  return Uint8List.fromList(ZipEncoder().encode(archive)!);
+  return Uint8List.fromList(ZipEncoder().encode(archive));
 }
 
 List<int> _zxu() =>
@@ -233,5 +233,32 @@ void main() {
       expect(expansion.filePaths, hasLength(1));
       expect(expansion.photoPathsByBaseName['dive'], hasLength(1));
     });
+
+    // expandZipBytes is public and does not require callers to have run
+    // isZipBytes first, so the signature probe must be length-guarded rather
+    // than indexing bytes[2]/bytes[3] blind.
+    test(
+      'does not throw RangeError on input shorter than a signature',
+      () async {
+        for (final short in <List<int>>[
+          <int>[],
+          <int>[0x50],
+          <int>[0x50, 0x4B],
+          <int>[0x50, 0x4B, 0x03],
+        ]) {
+          try {
+            await service.expandZipBytes(
+              Uint8List.fromList(short),
+              'short.zip',
+            );
+          } on RangeError catch (e) {
+            fail('indexed past the end for ${short.length} bytes: $e');
+          } on FormatException {
+            // Fine: an unreadable archive is a documented outcome. Only a
+            // RangeError from probing the signature is a defect.
+          }
+        }
+      },
+    );
   });
 }

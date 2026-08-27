@@ -120,7 +120,9 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
                   TextButton.icon(
                     onPressed: () => _showSelectPresetSheet(headers),
                     icon: const Icon(Icons.playlist_add_check, size: 18),
-                    label: const Text('Presets'),
+                    label: Text(
+                      context.l10n.universalImport_preset_presetsButton,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   TextButton.icon(
@@ -128,7 +130,7 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
                         ? () => _showSavePresetDialog(headers)
                         : null,
                     icon: const Icon(Icons.save_alt, size: 18),
-                    label: const Text('Save'),
+                    label: Text(context.l10n.common_action_save),
                   ),
                 ],
               ),
@@ -208,9 +210,13 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
     ref.invalidate(userCsvPresetsProvider);
 
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Preset "${preset.name}" saved')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.l10n.universalImport_preset_savedSnackbar(preset.name),
+          ),
+        ),
+      );
     }
   }
 

@@ -124,7 +124,7 @@ void main() {
         "INSERT INTO equipment (id, name, type, size, created_at, updated_at) "
         "VALUES ('eq1', 'Suit', 'wetsuit', 'L', 1000, 2000)",
       );
-      raw.dispose();
+      raw.close();
 
       // First open runs the v124 migration and copies size -> attribute row.
       final db1 = AppDatabase(NativeDatabase(File(path)));

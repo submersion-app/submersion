@@ -201,6 +201,13 @@ class ProfileSample {
   /// Tank index for pressure (0-based)
   final int? tankIndex;
 
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer reports one
+  /// pressure per air-integrated transmitter, so a single sample can carry
+  /// several; [pressure]/[tankIndex] hold only the last of them (issue #1223).
+  /// Null when the source reports at most one pressure per sample.
+  final List<double?>? tankPressures;
+
   /// Heart rate in bpm (if available)
   final int? heartRate;
 
@@ -249,12 +256,23 @@ class ProfileSample {
   final double? o2Sensor5;
   final double? o2Sensor6;
 
+  /// Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  /// reports none. Present even when the matching [o2Sensor1]..[o2Sensor6] is
+  /// null because the logged calibration could not be trusted (issue #810).
+  final int? o2SensorMv1;
+  final int? o2SensorMv2;
+  final int? o2SensorMv3;
+  final int? o2SensorMv4;
+  final int? o2SensorMv5;
+  final int? o2SensorMv6;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
     this.temperature,
     this.pressure,
     this.tankIndex,
+    this.tankPressures,
     this.heartRate,
     this.heading,
     this.setpoint,
@@ -274,6 +292,12 @@ class ProfileSample {
     this.o2Sensor4,
     this.o2Sensor5,
     this.o2Sensor6,
+    this.o2SensorMv1,
+    this.o2SensorMv2,
+    this.o2SensorMv3,
+    this.o2SensorMv4,
+    this.o2SensorMv5,
+    this.o2SensorMv6,
   });
 }
 

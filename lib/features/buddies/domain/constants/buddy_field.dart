@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
-/// Wrapper carrying a [Buddy] with its computed dive count.
-typedef BuddyWithCount = ({Buddy buddy, int diveCount});
+/// Entity handed to [BuddyFieldAdapter]. An alias of the repository's class so
+/// the table view and the list cards share one type with no conversion.
+typedef BuddyWithCount = BuddyWithDiveCount;
 
 /// Enumeration of every displayable field for the buddy table view.
 enum BuddyField implements EntityField {
@@ -16,7 +18,8 @@ enum BuddyField implements EntityField {
   certificationLevel,
   certificationAgency,
   diveCount,
-  notes;
+  notes,
+  lastDive;
 
   @override
   String get name => toString().split('.').last;
@@ -30,6 +33,7 @@ enum BuddyField implements EntityField {
     BuddyField.certificationAgency => 'Certification Agency',
     BuddyField.diveCount => 'Dive Count',
     BuddyField.notes => 'Notes',
+    BuddyField.lastDive => 'Last Dive',
   };
 
   @override
@@ -41,6 +45,33 @@ enum BuddyField implements EntityField {
     BuddyField.certificationAgency => 'Agency',
     BuddyField.diveCount => 'Dives',
     BuddyField.notes => 'Notes',
+    BuddyField.lastDive => 'Last dive',
+  };
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    BuddyField.buddyName => l10n.enum_buddyField_buddyName,
+    BuddyField.email => l10n.enum_buddyField_email,
+    BuddyField.phone => l10n.enum_buddyField_phone,
+    BuddyField.certificationLevel => l10n.enum_buddyField_certificationLevel,
+    BuddyField.certificationAgency => l10n.enum_buddyField_certificationAgency,
+    BuddyField.diveCount => l10n.enum_buddyField_diveCount,
+    BuddyField.notes => l10n.enum_buddyField_notes,
+    BuddyField.lastDive => l10n.enum_buddyField_lastDive,
+  };
+
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    BuddyField.buddyName => l10n.enum_buddyField_buddyName_short,
+    BuddyField.email => l10n.enum_buddyField_email_short,
+    BuddyField.phone => l10n.enum_buddyField_phone_short,
+    BuddyField.certificationLevel =>
+      l10n.enum_buddyField_certificationLevel_short,
+    BuddyField.certificationAgency =>
+      l10n.enum_buddyField_certificationAgency_short,
+    BuddyField.diveCount => l10n.enum_buddyField_diveCount_short,
+    BuddyField.notes => l10n.enum_buddyField_notes_short,
+    BuddyField.lastDive => l10n.enum_buddyField_lastDive_short,
   };
 
   @override
@@ -52,6 +83,7 @@ enum BuddyField implements EntityField {
     BuddyField.certificationAgency => Icons.business,
     BuddyField.diveCount => Icons.scuba_diving,
     BuddyField.notes => Icons.notes,
+    BuddyField.lastDive => Icons.history,
   };
 
   @override
@@ -63,6 +95,7 @@ enum BuddyField implements EntityField {
     BuddyField.certificationAgency => 110,
     BuddyField.diveCount => 80,
     BuddyField.notes => 150,
+    BuddyField.lastDive => 110,
   };
 
   @override
@@ -74,6 +107,7 @@ enum BuddyField implements EntityField {
     BuddyField.certificationAgency => 70,
     BuddyField.diveCount => 50,
     BuddyField.notes => 60,
+    BuddyField.lastDive => 70,
   };
 
   @override
@@ -91,6 +125,7 @@ enum BuddyField implements EntityField {
     BuddyField.certificationLevel => 'certification',
     BuddyField.certificationAgency => 'certification',
     BuddyField.notes => 'other',
+    BuddyField.lastDive => 'statistics',
   };
 
   @override
@@ -132,17 +167,24 @@ class BuddyFieldAdapter extends EntityFieldAdapter<BuddyWithCount, BuddyField> {
       BuddyField.certificationAgency => entity.buddy.certificationAgency,
       BuddyField.diveCount => entity.diveCount,
       BuddyField.notes => entity.buddy.notes,
+      BuddyField.lastDive => entity.lastDiveAt,
     };
   }
 
   @override
   String formatValue(BuddyField field, dynamic value, UnitFormatter units) {
-    if (value == null) return '--';
+    if (value == null) return kFieldValuePlaceholder;
     return switch (field) {
-      BuddyField.certificationLevel => (value as CertificationLevel).name,
-      BuddyField.certificationAgency => (value as CertificationAgency).name,
+      BuddyField.certificationLevel =>
+        (value as CertificationLevel).displayName,
+      BuddyField.certificationAgency =>
+        (value as CertificationAgency).displayName,
       BuddyField.diveCount => (value as int).toString(),
-      _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),
+      BuddyField.lastDive => units.formatDate(value as DateTime),
+      _ =>
+        value is String
+            ? (value.isEmpty ? kFieldValuePlaceholder : value)
+            : value.toString(),
     };
   }
 

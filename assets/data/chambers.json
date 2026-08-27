@@ -1,20 +1,3419 @@
 {
-  "datasetVersion": "2026-07",
-  "note": "Starter directory of long-established hyperbaric facilities that historically accept diving casualties. Chamber availability changes: ALWAYS call the diver emergency hotline first for referral. Each entry carries the date its details were last verified against public listings.",
+  "datasetVersion": "2026-08",
+  "generatedAt": "2026-08-27T02:57:46.144796+00:00",
+  "note": "Hyperbaric facility directory. Availability changes without notice: ALWAYS call the diver emergency hotline first for referral. Each entry carries the date and source its details were verified against.",
+  "sources": [
+    {
+      "id": "simsi",
+      "name": "SIMSI (Societa Italiana di Medicina Subacquea e Iperbarica)",
+      "url": "https://simsi.it/centri-iperbarici-italiani/",
+      "retrieved": "2026-08-26"
+    },
+    {
+      "id": "bha",
+      "name": "British Hyperbaric Association",
+      "url": "https://ukhyperbaric.com/members/",
+      "retrieved": "2026-08-26"
+    },
+    {
+      "id": "ffessm",
+      "name": "FFESSM liste des caissons",
+      "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf",
+      "retrieved": "2026-08-26"
+    },
+    {
+      "id": "curated",
+      "name": "Hand-curated, each row verified against the facility",
+      "url": "https://github.com/submersion-app/submersion",
+      "retrieved": "2026-08-26"
+    }
+  ],
   "chambers": [
-    {"id": "us-duke", "name": "Duke Center for Hyperbaric Medicine", "country": "US", "city": "Durham, NC", "phone": "+1-919-684-8111", "latitude": 36.0076, "longitude": -78.9382, "lastVerified": "2026-07-01"},
-    {"id": "us-catalina", "name": "USC Catalina Hyperbaric Chamber", "country": "US", "city": "Avalon, CA", "phone": "+1-310-510-1053", "latitude": 33.4456, "longitude": -118.4849, "lastVerified": "2026-07-01"},
-    {"id": "au-townsville", "name": "Townsville University Hospital Hyperbaric Unit", "country": "AU", "city": "Townsville, QLD", "phone": "+61-7-4433-1111", "latitude": -19.3204, "longitude": 146.7626, "lastVerified": "2026-07-01"},
-    {"id": "au-fionastanley", "name": "Fiona Stanley Hospital Hyperbaric Medicine Unit", "country": "AU", "city": "Perth, WA", "phone": "+61-8-6152-2222", "latitude": -32.0716, "longitude": 115.8347, "lastVerified": "2026-07-01"},
-    {"id": "nz-slark", "name": "Slark Hyperbaric Unit, North Shore Hospital", "country": "NZ", "city": "Auckland", "phone": "+64-9-486-8920", "latitude": -36.7796, "longitude": 174.7559, "lastVerified": "2026-07-01"},
-    {"id": "gb-ddrc", "name": "DDRC Healthcare (Diving Diseases Research Centre)", "country": "GB", "city": "Plymouth", "phone": "+44-1752-209999", "latitude": 50.4169, "longitude": -4.1097, "lastVerified": "2026-07-01"},
-    {"id": "mt-gozo", "name": "Gozo General Hospital Hyperbaric Unit", "country": "MT", "city": "Victoria, Gozo", "phone": "+356-2156-1600", "latitude": 36.0443, "longitude": 14.2419, "lastVerified": "2026-07-01"},
-    {"id": "eg-sharm", "name": "Sharm el-Sheikh Hyperbaric Medical Center", "country": "EG", "city": "Sharm el-Sheikh", "phone": "+20-69-366-0922", "latitude": 27.8617, "longitude": 34.2988, "lastVerified": "2026-07-01"},
-    {"id": "th-samui", "name": "SSS Recompression Chamber Network Koh Samui", "country": "TH", "city": "Koh Samui", "phone": "+66-77-427-427", "latitude": 9.5357, "longitude": 100.0629, "lastVerified": "2026-07-01"},
-    {"id": "ph-batangas", "name": "St. Patrick's Hospital Hyperbaric Unit", "country": "PH", "city": "Batangas City", "phone": "+63-43-723-8388", "latitude": 13.7565, "longitude": 121.0583, "lastVerified": "2026-07-01"},
-    {"id": "id-bali", "name": "Sanglah General Hospital Hyperbaric Chamber", "country": "ID", "city": "Denpasar, Bali", "phone": "+62-361-227-911", "latitude": -8.6705, "longitude": 115.2126, "lastVerified": "2026-07-01"},
-    {"id": "mv-bandos", "name": "Bandos Hyperbaric & Medical Clinic", "country": "MV", "city": "Bandos Island", "phone": "+960-664-0088", "latitude": 4.2762, "longitude": 73.4903, "lastVerified": "2026-07-01"},
-    {"id": "mx-cozumel", "name": "Cozumel Hyperbarics (Costamed)", "country": "MX", "city": "Cozumel", "phone": "+52-987-872-9400", "latitude": 20.5083, "longitude": -86.9458, "lastVerified": "2026-07-01"},
-    {"id": "za-capetown", "name": "Tygerberg Hospital Hyperbaric Unit", "country": "ZA", "city": "Cape Town", "phone": "+27-21-938-4911", "latitude": -33.9096, "longitude": 18.6089, "lastVerified": "2026-07-01"}
+    {
+      "id": "ae-abudhabi",
+      "name": "Zayed Military Hospital Hyperbaric Unit",
+      "country": "AE",
+      "city": "Abu Dhabi",
+      "phone": "+971-2-444-8100",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=62"
+      },
+      "latitude": 24.4538352,
+      "longitude": 54.3774014
+    },
+    {
+      "id": "ae-dubai",
+      "name": "Aqua Marine Diving Services Hyperbaric Chamber",
+      "country": "AE",
+      "city": "Dubai",
+      "phone": "+971-4-323-3100",
+      "emergencyPhone": "+971-50-885-8172",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=62"
+      },
+      "latitude": 25.0742823,
+      "longitude": 55.1885624
+    },
+    {
+      "id": "ar-buenos-aires-hiperbayres",
+      "name": "Hiperbayres, Centro de Medicina Subacuatica e Hiperbarica",
+      "country": "AR",
+      "city": "Buenos Aires",
+      "phone": "+54-11-4572-6203",
+      "emergencyPhone": "+54-11-15-5014-8196",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.hiperbayres.com.ar/"
+      },
+      "latitude": -34.6095579,
+      "longitude": -58.3887904
+    },
+    {
+      "id": "ar-buenos-aires-hospital-naval",
+      "name": "Hospital Naval Buenos Aires, Camara Hiperbarica",
+      "country": "AR",
+      "city": "Buenos Aires",
+      "phone": "+54-11-4864-7899",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.hiperbayres.com.ar/centros.html"
+      },
+      "latitude": -34.6095579,
+      "longitude": -58.3887904
+    },
+    {
+      "id": "ar-mar-del-plata-cmh",
+      "name": "Centro de Medicina Hiperbarica Mar del Plata",
+      "country": "AR",
+      "city": "Mar del Plata",
+      "phone": "+54-223-473-7870",
+      "emergencyPhone": "+54-223-155-240960",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.hiperbayres.com.ar/centros.html"
+      },
+      "latitude": -37.9976168,
+      "longitude": -57.5482079
+    },
+    {
+      "id": "ar-mar-del-plata-escuela-buceo",
+      "name": "Escuela de Submarinos y Buceo, Camara Hiperbarica",
+      "country": "AR",
+      "city": "Mar del Plata",
+      "phone": "+54-223-451-9907",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.hiperbayres.com.ar/centros.html"
+      },
+      "latitude": -37.9976168,
+      "longitude": -57.5482079
+    },
+    {
+      "id": "ar-puerto-belgrano",
+      "name": "Hospital Naval Puerto Belgrano, Camara Hiperbarica",
+      "country": "AR",
+      "city": "Puerto Belgrano, Punta Alta",
+      "phone": "+54-2932-489698",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://gacetamarinera.com.ar/nota/1395?title=La-C%C3%A1mara-Hiperb%C3%A1rica-del-Hospital-Naval-Puerto-Belgrano-salva-vidas"
+      },
+      "latitude": -38.9025471,
+      "longitude": -62.0525047
+    },
+    {
+      "id": "ar-ushuaia",
+      "name": "Hospital Naval Ushuaia, Camara Hiperbarica",
+      "country": "AR",
+      "city": "Ushuaia",
+      "phone": "+54-2901-42-2038",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.hiperbayres.com.ar/centros.html"
+      },
+      "latitude": -54.807306,
+      "longitude": -68.3084133
+    },
+    {
+      "id": "at-graz",
+      "name": "Medizinische Universitat Graz Druckkammer",
+      "country": "AT",
+      "city": "Graz",
+      "phone": "+43-316-385-2056",
+      "emergencyPhone": "+43-316-385-12803",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.gtuem.org/oesterreich/c-25.html"
+      },
+      "latitude": 47.0708678,
+      "longitude": 15.4382786
+    },
+    {
+      "id": "au-alfred",
+      "name": "The Alfred Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Melbourne, VIC",
+      "phone": "+61-3-9076-2269",
+      "emergencyPhone": "+61-3-9076-2000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.alfredhealth.org.au/the-alfred/services/hyperbaric-medicine"
+      },
+      "latitude": -37.8142454,
+      "longitude": 144.9631732
+    },
+    {
+      "id": "au-fionastanley",
+      "name": "Fiona Stanley Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Perth, WA",
+      "phone": "+61-8-6152-2222",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://fsfhg.health.wa.gov.au/Our-services/Hyperbaric-Medicine-Unit"
+      },
+      "latitude": -32.0716,
+      "longitude": 115.8347
+    },
+    {
+      "id": "au-pow",
+      "name": "Prince of Wales Hospital Diving and Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Sydney, NSW",
+      "phone": "+61-2-9382-3880",
+      "emergencyPhone": "+61-2-9382-2222",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.seslhd.health.nsw.gov.au/sites/default/files/groups/Prince_of_Wales_Hospital/Hyperbaric/Hyperbaric%20and%20Underwater%20Medicine%20Unit%20Patient%20Info.pdf"
+      },
+      "latitude": -33.8698439,
+      "longitude": 151.2082848
+    },
+    {
+      "id": "au-rah",
+      "name": "Royal Adelaide Hospital Hyperbaric Medicine Unit",
+      "country": "AU",
+      "city": "Adelaide, SA",
+      "phone": "+61-8-7074-0180",
+      "emergencyPhone": "+61-1800-088-200",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.rah.sa.gov.au/services-clinics/hyperbaric-medicine-unit"
+      },
+      "latitude": -34.9281805,
+      "longitude": 138.5999312
+    },
+    {
+      "id": "au-rbwh",
+      "name": "Royal Brisbane and Women's Hospital Hyperbaric Medicine Service",
+      "country": "AU",
+      "city": "Brisbane, QLD",
+      "phone": "+61-7-3646-0241",
+      "emergencyPhone": "+61-7-3646-8111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://metronorth.health.qld.gov.au/rbwh/healthcare-services/hyperbaric-medicine"
+      },
+      "latitude": -27.4689623,
+      "longitude": 153.0235009
+    },
+    {
+      "id": "au-rhh",
+      "name": "Royal Hobart Hospital Department of Diving and Hyperbaric Medicine",
+      "country": "AU",
+      "city": "Hobart, TAS",
+      "phone": "+61-3-6166-8193",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.health.tas.gov.au/hospitals/outpatients/clinic-directory/diving-and-hyperbaric-medicine/diving"
+      },
+      "latitude": -42.8825088,
+      "longitude": 147.3281233
+    },
+    {
+      "id": "au-townsville",
+      "name": "Townsville University Hospital Hyperbaric Unit",
+      "country": "AU",
+      "city": "Townsville, QLD",
+      "phone": "+61-7-4433-2080",
+      "emergencyPhone": "+61-7-4433-1111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.townsville.health.qld.gov.au/services/services-a-z/hyperbaric-medicine/"
+      },
+      "latitude": -19.3204,
+      "longitude": 146.7626
+    },
+    {
+      "id": "be-brussels",
+      "name": "Hopital Militaire Reine Astrid Oxygenotherapie Hyperbare",
+      "country": "BE",
+      "city": "Brussels",
+      "phone": "+32-2-443-2183",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.hopitalmilitaire.be/consultatiediensten_fr.php"
+      },
+      "latitude": 50.8467372,
+      "longitude": 4.352493
+    },
+    {
+      "id": "bq-bonaire",
+      "name": "Recompression Chamber Bonaire (Hospital San Francisco)",
+      "country": "BQ",
+      "city": "Kralendijk",
+      "phone": "+599-715-8900",
+      "emergencyPhone": "+599-717-8187",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://o2bonaire.com/about/"
+      },
+      "latitude": 12.15,
+      "longitude": -68.276
+    },
+    {
+      "id": "br-fernando-de-noronha",
+      "name": "Hospital Sao Lucas, Camara Hiperbarica",
+      "country": "BR",
+      "city": "Fernando de Noronha, PE",
+      "phone": "+55-81-3619-0923",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://portal.saude.pe.gov.br/hospitais/hospital-sao-lucas/"
+      },
+      "latitude": -3.8537498,
+      "longitude": -32.4198018
+    },
+    {
+      "id": "bs-nassau",
+      "name": "Princess Margaret Hospital (Hyperbaric Chamber)",
+      "country": "BS",
+      "city": "Nassau",
+      "phone": "+1-242-322-2861",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://bahamas.yabsta.com/listing/view/95494/princess-margaret-hospital-the"
+      },
+      "latitude": 25.0782266,
+      "longitude": -77.3383438
+    },
+    {
+      "id": "bz-san-pedro",
+      "name": "Belize Hyperbaric Chamber, San Pedro (SSS Network)",
+      "country": "BZ",
+      "city": "San Pedro, Ambergris Caye",
+      "phone": "+501-226-2851",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.sanpedrosun.com/health/2017/05/04/58057/"
+      },
+      "latitude": 18.0988732,
+      "longitude": -87.8882333
+    },
+    {
+      "id": "ca-halifax-qeii",
+      "name": "QEII Health Sciences Centre Hyperbaric Medicine Program",
+      "country": "CA",
+      "city": "Halifax, NS",
+      "phone": "+1-902-473-2222",
+      "emergencyPhone": "+1-902-473-7998",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://cuhma.ca/qe-ii-health-sciences-centre.html"
+      },
+      "latitude": 44.648618,
+      "longitude": -63.5859487
+    },
+    {
+      "id": "ca-hamilton",
+      "name": "Hamilton Health Sciences Hyperbaric Medicine Program (Hamilton General Hospital)",
+      "country": "CA",
+      "city": "Hamilton, ON",
+      "phone": "+1-905-521-2100",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "http://www.hamiltonhealthsciences.ca/areas-of-care/critical-care/hyperbaric-medicine-program"
+      },
+      "latitude": 43.2560802,
+      "longitude": -79.8728583
+    },
+    {
+      "id": "ca-hotel-dieu-levis",
+      "name": "Centre de Medecine de Plongee du Quebec (Hotel-Dieu de Levis)",
+      "country": "CA",
+      "city": "Levis, QC",
+      "phone": "+1-418-835-7121",
+      "emergencyPhone": "+1-888-835-7121",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.cisssca.com/soins-et-services/hyperbare-et-medecine-de-plongee"
+      },
+      "latitude": 46.8033114,
+      "longitude": -71.1778792
+    },
+    {
+      "id": "ca-sacre-coeur-montreal",
+      "name": "Hopital du Sacre-Coeur de Montreal, Service de Medecine Hyperbare",
+      "country": "CA",
+      "city": "Montreal, QC",
+      "phone": "+1-514-338-2777",
+      "emergencyPhone": "+1-514-338-2050",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.ciusssnordmtl.ca/soins-et-services/services-medicaux-specialises/hyperbare-medecine"
+      },
+      "latitude": 45.5031824,
+      "longitude": -73.5698065
+    },
+    {
+      "id": "ca-tobermory",
+      "name": "Tobermory Hyperbaric Facility",
+      "country": "CA",
+      "city": "Tobermory, ON",
+      "phone": "+1-519-596-2306",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.tobermoryhyperbaric.ca/about"
+      },
+      "latitude": 45.2427128,
+      "longitude": -81.6528743
+    },
+    {
+      "id": "ca-uhn-toronto",
+      "name": "University Health Network Hyperbaric Medicine Unit (Toronto General Hospital)",
+      "country": "CA",
+      "city": "Toronto, ON",
+      "phone": "+1-416-340-3598",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.uhn.ca/Surgery/Treatments_Procedures/Hyperbaric_Medicine_Unit"
+      },
+      "latitude": 43.6534817,
+      "longitude": -79.3839347
+    },
+    {
+      "id": "ca-vgh",
+      "name": "Vancouver General Hospital Hyperbaric Unit",
+      "country": "CA",
+      "city": "Vancouver, BC",
+      "phone": "+1-604-875-5000",
+      "emergencyPhone": "+1-604-875-4007",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://cuhma.ca/vgh-unit.html"
+      },
+      "latitude": 49.2608724,
+      "longitude": -123.113952
+    },
+    {
+      "id": "ch-geneva",
+      "name": "Hopitaux Universitaires de Geneve HBO-Zentrum",
+      "country": "CH",
+      "city": "Geneva",
+      "phone": "+41-22-372-2244",
+      "capability": "hyperbaric_unit",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.gtuem.org/schweiz/c-26.html"
+      },
+      "latitude": 46.2017559,
+      "longitude": 6.1466014
+    },
+    {
+      "id": "cl-santiago-ame",
+      "name": "AME Hyperbaric",
+      "country": "CL",
+      "city": "Santiago (Providencia)",
+      "phone": "+56-9-6612-4500",
+      "capability": "elective",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://amehyperbaric.cl/"
+      },
+      "latitude": -33.4828276,
+      "longitude": -70.7440105
+    },
+    {
+      "id": "cl-vina-del-mar-naval",
+      "name": "Hospital Naval Almirante Nef, Servicio de Medicina Hiperbarica",
+      "country": "CL",
+      "city": "Vina del Mar",
+      "phone": "+56-32-257-3000",
+      "emergencyPhone": "+56-32-257-3379",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.hospitalnaval.cl/camara-hiperbarica-reconstruyendo-vidas/"
+      },
+      "latitude": -33.0244535,
+      "longitude": -71.5517636
+    },
+    {
+      "id": "co-bogota-baromedica",
+      "name": "Baromedica Camara Hiperbarica",
+      "country": "CO",
+      "city": "Bogota",
+      "phone": "+57-313-801-7840",
+      "capability": "elective",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.baromedica.com/"
+      },
+      "latitude": 4.6533817,
+      "longitude": -74.0836331
+    },
+    {
+      "id": "co-cartagena-honac",
+      "name": "Hospital Naval de Cartagena (HONAC), Centro Hiperbarico del Caribe",
+      "country": "CO",
+      "city": "Cartagena",
+      "phone": "+57-605-677-8021",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://info-hospitales.epsenlinea.com.co/hospital-naval-de-cartagena-honac/"
+      },
+      "latitude": 10.4265566,
+      "longitude": -75.5441671
+    },
+    {
+      "id": "co-san-andres",
+      "name": "Hospital Departamental Amor de Patria, Camara Hiperbarica",
+      "country": "CO",
+      "city": "San Andres",
+      "phone": "+57-8-512-0753",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://tic.sanandres.gov.co/index.php/prensa/enterese/noticias/151-rotador-de-noticias/2617-gobierno-departamental-inicio-instalacion-de-camara-hiperbarica-en-hospital-amor-de-patria-de-san-andres"
+      },
+      "latitude": 12.5830104,
+      "longitude": -81.6975682
+    },
+    {
+      "id": "de-berlin",
+      "name": "Vivantes Klinikum im Friedrichshain Zentrum fur hyperbare Sauerstofftherapie und Tauchmedizin",
+      "country": "DE",
+      "city": "Berlin",
+      "phone": "+49-30-13023-1700",
+      "emergencyPhone": "+49-30-13023-1502",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.gtuem.org/liste-notfallzentren/c-24_65.html"
+      },
+      "latitude": 52.5173885,
+      "longitude": 13.3951309
+    },
+    {
+      "id": "de-kiel",
+      "name": "Schifffahrtmedizinisches Institut der Marine Hyperbaric and Diving Medicine",
+      "country": "DE",
+      "city": "Kronshagen (Kiel)",
+      "phone": "+49-431-5409-88",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.bundeswehr.de/de/organisation/marine/organisation/schifffahrtmedizinisches-institut"
+      },
+      "latitude": 54.341698,
+      "longitude": 10.0752454
+    },
+    {
+      "id": "dk-copenhagen",
+      "name": "Rigshospitalet Trykkammerfunktionen (Hyperbaric Medicine)",
+      "country": "DK",
+      "city": "Copenhagen",
+      "phone": "+45-35-45-40-92",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.sundhed.dk/sundhedsfaglig/information-til-praksis/hovedstaden/almen-praksis/patientbehandling/patientforloeb/visitation-hovedside/visitationsmeddelelser-ny/trykkammerfunktion-hyperbar-medicin/"
+      },
+      "latitude": 55.6867243,
+      "longitude": 12.5700724
+    },
+    {
+      "id": "do-puerto-plata",
+      "name": "Hospital Ricardo Limardo Hyperbaric Chamber",
+      "country": "DO",
+      "city": "Puerto Plata",
+      "phone": "+1-809-586-2210",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"
+      },
+      "latitude": 19.7976564,
+      "longitude": -70.6932607
+    },
+    {
+      "id": "ec-galapagos-puerto-ayora",
+      "name": "SSS Recompression Chamber Network Galapagos (Protesub)",
+      "country": "EC",
+      "city": "Puerto Ayora, Santa Cruz",
+      "phone": "+593-5-252-6911",
+      "emergencyPhone": "+593-984-488-231",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.sssnetwork.com/pages/galapagoshome.html"
+      },
+      "latitude": -0.7440514,
+      "longitude": -90.3149677
+    },
+    {
+      "id": "ec-guayaquil-alcivar",
+      "name": "Hiperbarica Alcivar",
+      "country": "EC",
+      "city": "Guayaquil",
+      "phone": "+593-4-371-1980",
+      "capability": "elective",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://hiperbaricaalcivar.com"
+      },
+      "latitude": -2.1900572,
+      "longitude": -79.8868669
+    },
+    {
+      "id": "ec-quito-pasteur",
+      "name": "Clinica Pasteur, Camara Hiperbarica",
+      "country": "EC",
+      "city": "Quito",
+      "phone": "+593-2-299-2400",
+      "capability": "elective",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://clinicapasteur.org.ec/camara-hiperbarica/"
+      },
+      "latitude": -0.2201641,
+      "longitude": -78.5123274
+    },
+    {
+      "id": "eg-dahab",
+      "name": "Dahab Hyperbaric Medical Centre",
+      "country": "EG",
+      "city": "Dahab",
+      "phone": "+20-69-364-0536",
+      "emergencyPhone": "+20-10-143-3325",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.redsea-diving.com/diving-safety/"
+      },
+      "latitude": 28.4963633,
+      "longitude": 34.5145652
+    },
+    {
+      "id": "eg-elgouna",
+      "name": "DECO International, El Gouna Hospital",
+      "country": "EG",
+      "city": "El Gouna",
+      "phone": "+20-65-3850-0118",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.redsea-diving.com/diving-safety/"
+      },
+      "latitude": 27.3989266,
+      "longitude": 33.6741556
+    },
+    {
+      "id": "eg-hurghada",
+      "name": "Hypermed Diving Medicine Center",
+      "country": "EG",
+      "city": "Hurghada",
+      "phone": "+20-65-346-2576",
+      "emergencyPhone": "+20-10-0218-7550",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://hypermed-redsea.net/contact"
+      },
+      "latitude": 27.222556,
+      "longitude": 33.8307062
+    },
+    {
+      "id": "eg-hurghada-naval",
+      "name": "Naval Hyperbaric Medical Center",
+      "country": "EG",
+      "city": "Hurghada",
+      "phone": "+20-65-344-9150",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.redsea-diving.com/diving-safety/"
+      },
+      "latitude": 27.222556,
+      "longitude": 33.8307062
+    },
+    {
+      "id": "eg-marsaalam",
+      "name": "Baromedical Marsa Shagra",
+      "country": "EG",
+      "city": "Marsa Alam",
+      "phone": "+20-12-2243-3116",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://baromedical-redsea.com/contact"
+      },
+      "latitude": 25.069992,
+      "longitude": 34.893817
+    },
+    {
+      "id": "eg-portghalib",
+      "name": "DECO International, Port Ghalib Hospital",
+      "country": "EG",
+      "city": "Marsa Alam",
+      "phone": "+20-12-2219-0383",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.deco-international.com/"
+      },
+      "latitude": 25.069992,
+      "longitude": 34.893817
+    },
+    {
+      "id": "eg-safaga",
+      "name": "DECO International, Safaga General Hospital",
+      "country": "EG",
+      "city": "Safaga",
+      "phone": "+20-12-2219-0383",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.deco-international.com/"
+      },
+      "latitude": 26.7633325,
+      "longitude": 33.9383817
+    },
+    {
+      "id": "eg-sharm",
+      "name": "Sharm el-Sheikh Hyperbaric Medical Center",
+      "country": "EG",
+      "city": "Sharm el-Sheikh",
+      "phone": "+20-69-366-0922",
+      "emergencyPhone": "+20-12-2212-4292",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://hmc-sharm.com/"
+      },
+      "latitude": 27.8617,
+      "longitude": 34.2988
+    },
+    {
+      "id": "es-canarias",
+      "name": "Hospital Universitario de Canarias Camara Hiperbarica",
+      "country": "ES",
+      "city": "San Cristobal de La Laguna, Tenerife",
+      "phone": "+34-922-678-000",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://es.wikipedia.org/wiki/Hospital_Universitario_de_Canarias"
+      },
+      "latitude": 28.4857715,
+      "longitude": -16.3159422
+    },
+    {
+      "id": "es-palamos",
+      "name": "Hospital de Palamos Unitat de Medicina Hiperbarica",
+      "country": "ES",
+      "city": "Palamos, Girona",
+      "phone": "+34-972-600-160",
+      "capability": "hyperbaric_unit",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.ssibe.cat/serveis/medicina-hiperbarica"
+      },
+      "latitude": 41.8495354,
+      "longitude": 3.1278785
+    },
+    {
+      "id": "fr-c-h-r-u-jean-minjoz",
+      "name": "C.H.R.U Jean Minjoz",
+      "country": "FR",
+      "city": "Besançon",
+      "phone": "+33381668263",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 47.2380222,
+      "longitude": 6.0243622
+    },
+    {
+      "id": "fr-c-h-u-de-la-cavale-blanche",
+      "name": "C.H.U. de la Cavale Blanche",
+      "country": "FR",
+      "city": "Brest",
+      "phone": "+33298347098",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.3905283,
+      "longitude": -4.4860088
+    },
+    {
+      "id": "fr-centre-chirurgical-porte-de-pantin",
+      "name": "Centre chirurgical Porte de Pantin",
+      "country": "FR",
+      "city": "Paris",
+      "phone": "+33142022226",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.8588897,
+      "longitude": 2.320041
+    },
+    {
+      "id": "fr-centre-de-medecine-hyperbare",
+      "name": "Centre de médecine hyperbare",
+      "country": "FR",
+      "city": "Perpignan",
+      "phone": "+33468562614",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 42.6985304,
+      "longitude": 2.8953121
+    },
+    {
+      "id": "fr-centre-hospitalier-de-la-misericorde",
+      "name": "Centre hospitalier de la Miséricorde",
+      "country": "FR",
+      "city": "Ajaccio",
+      "phone": "+33495299193",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 41.9263991,
+      "longitude": 8.7376029
+    },
+    {
+      "id": "fr-centre-hospitalier-regional-d-angers",
+      "name": "Centre Hospitalier Régional d'Angers",
+      "country": "FR",
+      "city": "Angers",
+      "phone": "+33241353871",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 47.4739884,
+      "longitude": -0.5515588
+    },
+    {
+      "id": "fr-centre-hyperbare-hopital-font-pre",
+      "name": "Centre Hyperbare Hôpital Font-Pré",
+      "country": "FR",
+      "city": "Toulon",
+      "phone": "+33494618097",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 43.1257311,
+      "longitude": 5.9304919
+    },
+    {
+      "id": "fr-centre-regional-de-medecine-hyperbare",
+      "name": "Centre Régional de Médecine Hyperbare",
+      "country": "FR",
+      "city": "Lille",
+      "phone": "+33320445491",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 50.6365654,
+      "longitude": 3.0635282
+    },
+    {
+      "id": "fr-clinique-d-angiologie",
+      "name": "Clinique d'Angiologie",
+      "country": "FR",
+      "city": "Aix en Provence",
+      "phone": "+33442382073",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 43.5298424,
+      "longitude": 5.4474738
+    },
+    {
+      "id": "fr-direction-du-port",
+      "name": "Direction du Port",
+      "country": "FR",
+      "city": "Cherbourg",
+      "phone": "+33233926005",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 49.6425343,
+      "longitude": -1.6249565
+    },
+    {
+      "id": "fr-guadeloupe",
+      "name": "Guadeloupe",
+      "country": "FR",
+      "city": "Centre Hospitalier Pointe à Pitre (les Abymes)",
+      "phone": "+33590829880",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 16.2371398,
+      "longitude": -61.5254467
+    },
+    {
+      "id": "fr-hia-val-de-grace",
+      "name": "HIA VAL DE GRACE",
+      "country": "FR",
+      "city": "74 BD Port Royal",
+      "phone": "+33143339958",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.8380892,
+      "longitude": 2.3442424
+    },
+    {
+      "id": "fr-hopital-central-service-de-reanimation",
+      "name": "Hôpital Central Service de Réanimation",
+      "country": "FR",
+      "city": "29 av de Lattre de Tassigny",
+      "phone": "+33383328579",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 50.7272543,
+      "longitude": 1.6195927
+    },
+    {
+      "id": "fr-hopital-de-hautepierre",
+      "name": "Hôpital de Hautepierre",
+      "country": "FR",
+      "city": "Strasbourg",
+      "phone": "+33388127917",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.5915938,
+      "longitude": 7.7069086
+    },
+    {
+      "id": "fr-hopital-j-monod-avenue-mendes-france",
+      "name": "Hôpital J Monod, avenue Mendès-France",
+      "country": "FR",
+      "city": "Le Havre",
+      "phone": "+33235552530",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 49.4938975,
+      "longitude": 0.1079732
+    },
+    {
+      "id": "fr-hopital-lapeyronie",
+      "name": "Hôpital Lapeyronie",
+      "country": "FR",
+      "city": "Montpellier",
+      "phone": "+33467338295",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 43.6316947,
+      "longitude": 3.8526454
+    },
+    {
+      "id": "fr-hopital-maison-blanche",
+      "name": "Hôpital Maison Blanche",
+      "country": "FR",
+      "city": "Reims",
+      "phone": "+33326060708",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 49.2298987,
+      "longitude": 4.0190884
+    },
+    {
+      "id": "fr-hopital-pasteur",
+      "name": "Hôpital Pasteur",
+      "country": "FR",
+      "city": "Nice",
+      "phone": "+33493819081",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 43.7233482,
+      "longitude": 7.2852557
+    },
+    {
+      "id": "fr-hopital-regional-des-armees",
+      "name": "Hôpital Régional des Armées",
+      "country": "FR",
+      "city": "Le Gouest",
+      "phone": "+33387754915",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.043255,
+      "longitude": 3.9098076
+    },
+    {
+      "id": "fr-institut-de-recherche-chirurgical",
+      "name": "Institut de Recherche Chirurgical",
+      "country": "FR",
+      "city": "Nancy",
+      "phone": "+33383552466",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.6937223,
+      "longitude": 6.1834097
+    },
+    {
+      "id": "fr-martinique",
+      "name": "Martinique",
+      "country": "FR",
+      "city": "Centre hospitalier Fort de France",
+      "phone": "+33596715822",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 14.6873041,
+      "longitude": -61.0872119
+    },
+    {
+      "id": "fr-residence-du-parc",
+      "name": "Résidence du Parc",
+      "country": "FR",
+      "city": "rue Gaston Berger",
+      "phone": "+33491838787",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 43.2705625,
+      "longitude": 5.415807
+    },
+    {
+      "id": "fr-s-a-m-u-94",
+      "name": "S A M U 94",
+      "country": "FR",
+      "city": "hôpital Henri Mondor",
+      "phone": "+33149812111",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.7965078,
+      "longitude": 2.4523576
+    },
+    {
+      "id": "fr-sapeurs-pompiers-chefferie-sante",
+      "name": "Sapeurs Pompiers Chefferie santé",
+      "country": "FR",
+      "city": "55 bd Port Royal",
+      "phone": "+33145721818",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 48.8378311,
+      "longitude": 2.3436796
+    },
+    {
+      "id": "fr-service-de-reanimation",
+      "name": "Service de réanimation",
+      "country": "FR",
+      "city": "Bordeaux",
+      "phone": "+33556967070",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 44.841225,
+      "longitude": -0.5800364
+    },
+    {
+      "id": "fr-service-de-reanimation-pavillon-n",
+      "name": "Service de Réanimation Pavillon N",
+      "country": "FR",
+      "city": "Lyon",
+      "phone": "+33478538111",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 45.7578137,
+      "longitude": 4.8320114
+    },
+    {
+      "id": "fr-unite-de-soins-hyperbare-du-c-h-u",
+      "name": "Unité de soins Hyperbare du C H U",
+      "country": "FR",
+      "city": "Grenoble",
+      "phone": "+33476428121",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 45.1875602,
+      "longitude": 5.7357819
+    },
+    {
+      "id": "fr-unite-mobile-d-oxygenotherapie-hyperbare",
+      "name": "Unité Mobile d'Oxygénothérapie hyperbare",
+      "country": "FR",
+      "city": "Metz",
+      "phone": "+33387743820",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ffessm74.com/wp-content/uploads/2014/03/Liste_Caissons2.pdf"
+      },
+      "latitude": 49.1196964,
+      "longitude": 6.1763552
+    },
+    {
+      "id": "gb-ddrc",
+      "name": "DDRC Healthcare",
+      "country": "GB",
+      "city": "Plymouth",
+      "phone": "+441752209999",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+447831151523",
+      "latitude": 50.4168212,
+      "longitude": -4.1100881
+    },
+    {
+      "id": "gb-hyperbaric-medicine-unit",
+      "name": "Hyperbaric Medicine Unit",
+      "country": "GB",
+      "city": "Chichester",
+      "phone": "+441243788122",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+441243330096",
+      "latitude": 50.8364862,
+      "longitude": -0.7791721
+    },
+    {
+      "id": "gb-hyperbaric-treatment-training",
+      "name": "Hyperbaric Treatment & Training",
+      "country": "GB",
+      "city": "Wirral",
+      "phone": "+441516488000",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "latitude": 53.3409714,
+      "longitude": -3.0500916
+    },
+    {
+      "id": "gb-lhm-healthcare-east-of-england-hyperbaric-unit",
+      "name": "LHM Healthcare - East of England Hyperbaric Unit",
+      "country": "GB",
+      "city": "Great Yarmouth",
+      "phone": "+441493452452",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+441493603151",
+      "latitude": 52.6071742,
+      "longitude": 1.7314845
+    },
+    {
+      "id": "gb-lhm-healthcare-whipps-cross-hyperbaric-unit",
+      "name": "LHM Healthcare - Whipps Cross Hyperbaric Unit",
+      "country": "GB",
+      "city": "London",
+      "phone": "+442085391222",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+447999292999",
+      "latitude": 51.5074456,
+      "longitude": -0.1277653
+    },
+    {
+      "id": "gb-midlands-diving-chamber",
+      "name": "Midlands Diving Chamber",
+      "country": "GB",
+      "city": "Rugby",
+      "phone": "+441788579555",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+447931472602",
+      "latitude": 52.365024,
+      "longitude": -1.2572861
+    },
+    {
+      "id": "gb-north-of-england-medical-hyperbaric-unit",
+      "name": "North of England Medical Hyperbaric Unit",
+      "country": "GB",
+      "city": "Hull",
+      "phone": "+441482672462",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+441482659471",
+      "latitude": 53.7623863,
+      "longitude": -0.3301214
+    },
+    {
+      "id": "gb-orkney-hyperbaric-unit",
+      "name": "Orkney Hyperbaric Unit",
+      "country": "GB",
+      "city": "Orkney",
+      "phone": "+441856850285",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+443454086008",
+      "latitude": 58.9418231,
+      "longitude": -3.1296944
+    },
+    {
+      "id": "gb-west-scotland-centre-for-diving-and-hyperbaric-medicine",
+      "name": "West Scotland Centre for Diving and Hyperbaric Medicine",
+      "country": "GB",
+      "city": "Oban",
+      "phone": "+441631559211",
+      "capability": "unknown",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://ukhyperbaric.com/members/"
+      },
+      "emergencyPhone": "+443454086008",
+      "latitude": 56.4120166,
+      "longitude": -5.4723731
+    },
+    {
+      "id": "gd-st-pauls",
+      "name": "St. Augustine's Medical Services Hyperbaric Chamber",
+      "country": "GD",
+      "city": "St. Paul's",
+      "phone": "+1-473-440-6173",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://samsgrenada.com/services-facilities/"
+      },
+      "latitude": 12.0500058,
+      "longitude": -61.7250332
+    },
+    {
+      "id": "gr-athens",
+      "name": "Athens Naval Hospital Diving and Hyperbaric Medicine Department",
+      "country": "GR",
+      "city": "Athens",
+      "phone": "+30-210-726-1000",
+      "emergencyPhone": "+30-210-726-1204",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://nna.hellenicnavy.gr/organogramma/diefthynsi-iatrikis-ypiresias/katadytiki-ypervariki-iatriki/"
+      },
+      "latitude": 37.9755648,
+      "longitude": 23.7348324
+    },
+    {
+      "id": "hn-roatan",
+      "name": "Cornerstone Medical Services Hyperbaric Chamber (Anthony's Key Resort)",
+      "country": "HN",
+      "city": "Roatan",
+      "phone": "+504-9450-3253",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://anthonyskey.com/hyperbaric-chamber-medical-clinic/"
+      },
+      "latitude": 16.3490211,
+      "longitude": -86.4977513
+    },
+    {
+      "id": "hn-utila",
+      "name": "Utila Hyperbaric Chamber and Trauma Center",
+      "country": "HN",
+      "city": "Utila",
+      "phone": "+1-855-846-3483",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.utilalodge.com/utila-hyperbaric-chamber"
+      },
+      "latitude": 16.1005116,
+      "longitude": -86.8949856
+    },
+    {
+      "id": "hr-pula",
+      "name": "Poliklinika za baromedicinu OXY",
+      "country": "HR",
+      "city": "Pula",
+      "phone": "+385-52-215-663",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://oxy.hr/baromedicina/"
+      },
+      "latitude": 44.8702281,
+      "longitude": 13.8455311
+    },
+    {
+      "id": "hr-rijeka",
+      "name": "Institute for Underwater and Hyperbaric Medicine, KBC Rijeka",
+      "country": "HR",
+      "city": "Rijeka",
+      "phone": "+385-51-407-111",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://kbc-rijeka.hr/centar-za-podvodnu-i-hiperbaricnu-medicinu/"
+      },
+      "latitude": 45.3267976,
+      "longitude": 14.442208
+    },
+    {
+      "id": "id-bali",
+      "name": "Sanglah General Hospital (Prof. Dr. I.G.N.G. Ngoerah Hospital)",
+      "country": "ID",
+      "city": "Denpasar",
+      "phone": "+62-361-227-911",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://bali.com/places/ngoerah-rumah-sakit-sanglah-general-hospital/"
+      },
+      "latitude": -8.6705,
+      "longitude": 115.2126
+    },
+    {
+      "id": "id-makassar",
+      "name": "RSUP Dr. Wahidin Sudirohusodo Hyperbaric Unit",
+      "country": "ID",
+      "city": "Makassar",
+      "phone": "+62-411-583-333",
+      "emergencyPhone": "+62-811-4100-7770",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://rsupwahidin.com/profil"
+      },
+      "latitude": -5.1342962,
+      "longitude": 119.4124282
+    },
+    {
+      "id": "ie-galway",
+      "name": "National Hyperbaric Medicine Unit, University Hospital Galway",
+      "country": "IE",
+      "city": "Galway",
+      "phone": "+353-91-544074",
+      "emergencyPhone": "+353-91-524222",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.saolta.ie/wards/national-hyperbaric-medicine-unit-university-hospital-galway"
+      },
+      "latitude": 53.2744122,
+      "longitude": -9.0490601
+    },
+    {
+      "id": "il-eilat",
+      "name": "Yoseftal Hospital Hyperbaric Unit",
+      "country": "IL",
+      "city": "Eilat",
+      "phone": "+972-8-635-8023",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=34"
+      },
+      "latitude": 29.5569348,
+      "longitude": 34.9497949
+    },
+    {
+      "id": "il-zerifin",
+      "name": "Assaf Harofeh (Asaf Harofe) Institute of Hyperbaric Medicine",
+      "country": "IL",
+      "city": "Be'er Ya'akov",
+      "phone": "+972-8-920-5194",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=34"
+      },
+      "latitude": 31.9443532,
+      "longitude": 34.8398648
+    },
+    {
+      "id": "is-reykjavik",
+      "name": "Landspitali Hyperbaric and Diving Medicine Department",
+      "country": "IS",
+      "city": "Reykjavik",
+      "phone": "+354-543-1007",
+      "emergencyPhone": "+354-543-1000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://island.is/s/landspitali/hathrysti-og-kofunarlaekningadeild"
+      },
+      "latitude": 64.145981,
+      "longitude": -21.9422367
+    },
+    {
+      "id": "it-a-o-r-n-a-cardarelli",
+      "name": "A.O.R.N. \"A. Cardarelli\"",
+      "country": "IT",
+      "city": "Napoli",
+      "phone": "+390817474102",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.8358846,
+      "longitude": 14.2487679
+    },
+    {
+      "id": "it-atip-associazione-tecnici-iperbarici-padova",
+      "name": "ATiP - Associazione Tecnici Iperbarici Padova",
+      "country": "IT",
+      "city": "Padova",
+      "phone": "+390498070843",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.391408,
+      "longitude": 11.8058487
+    },
+    {
+      "id": "it-az-osp-rilievo-naz-a-moscati",
+      "name": "Az. Osp. Rilievo Naz. \"A. Moscati\"",
+      "country": "IT",
+      "city": "Avellino",
+      "phone": "+390825203934",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.9965446,
+      "longitude": 15.140569
+    },
+    {
+      "id": "it-az-osp-rilievo-nazionale-santobono",
+      "name": "Az. Osp. Rilievo Nazionale \"Santobono\"",
+      "country": "IT",
+      "city": "Napoli",
+      "phone": "+390812205790",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.8358846,
+      "longitude": 14.2487679
+    },
+    {
+      "id": "it-az-osp-s-antonio-abate-servizio-anestesia-rianimazione-te",
+      "name": "Az. Osp. S. Antonio Abate Servizio Anestesia Rianimazione Terapia Iperbarica",
+      "country": "IT",
+      "city": "Trapani",
+      "phone": "+390923809475",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 37.9003731,
+      "longitude": 12.7116255
+    },
+    {
+      "id": "it-az-osp-umberto-1-servizio-anestesia-rianimazione",
+      "name": "Az. Osp. Umberto 1° Servizio Anestesia Rianimazione",
+      "country": "IT",
+      "city": "Siracusa",
+      "phone": "+390931724398",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 37.0315752,
+      "longitude": 15.2124277
+    },
+    {
+      "id": "it-az-osp-univ-s-giovanni-e-ruggi-d-aragona",
+      "name": "Az. Osp. Univ. \"S. Giovanni e Ruggi d'Aragona\"",
+      "country": "IT",
+      "city": "Salerno",
+      "phone": "+39089672756",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.4194416,
+      "longitude": 15.3106085
+    },
+    {
+      "id": "it-az-policlinico-federico-ii",
+      "name": "Az. Policlinico \"Federico II\"",
+      "country": "IT",
+      "city": "Napoli",
+      "phone": "+390817464284",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.8358846,
+      "longitude": 14.2487679
+    },
+    {
+      "id": "it-azienda-ausl-di-parma",
+      "name": "Azienda AUSL di Parma",
+      "country": "IT",
+      "city": "Fidenza (PR)",
+      "phone": "+390524515238",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 44.866522,
+      "longitude": 10.0611939
+    },
+    {
+      "id": "it-azienda-ospedaliera-pisa-santa-chiara-servizio-terapia-ip",
+      "name": "Azienda Ospedaliera Pisa Santa Chiara Servizio Terapia Iperbarica",
+      "country": "IT",
+      "city": "Pisa",
+      "phone": "+39050992738",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 43.4714722,
+      "longitude": 10.6797912
+    },
+    {
+      "id": "it-azienda-ospedaliera-universitaria-policlinico-paolo-giacc",
+      "name": "Azienda Ospedaliera Universitaria Policlinico Paolo Giaccone",
+      "country": "IT",
+      "city": "Palermo",
+      "phone": "+390916552722",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 38.104453,
+      "longitude": 13.3610802
+    },
+    {
+      "id": "it-casa-di-cura-habilita-spa",
+      "name": "Casa di cura Habilita spa",
+      "country": "IT",
+      "city": "Zingonia (BG)",
+      "phone": "+390354815515",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.5989949,
+      "longitude": 9.601036
+    },
+    {
+      "id": "it-casa-di-cura-privata-domus-medica-s-p-a",
+      "name": "Casa di cura Privata Domus Medica S.p.a.",
+      "country": "IT",
+      "city": "Repubblica di San Marino",
+      "phone": "+390549999630",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.1560812,
+      "longitude": 10.1076774
+    },
+    {
+      "id": "it-ce-m-i-s-centro-di-medicina-iperbarica-e-subacquea",
+      "name": "Ce.M.I.S. Centro di Medicina Iperbarica e Subacquea",
+      "country": "IT",
+      "city": "Massa",
+      "phone": "+390585834141",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 44.0359323,
+      "longitude": 10.1395519
+    },
+    {
+      "id": "it-ce-m-s-i",
+      "name": "Ce.M.S.I.",
+      "country": "IT",
+      "city": "Salerno",
+      "phone": "+39089791323",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.4194416,
+      "longitude": 15.3106085
+    },
+    {
+      "id": "it-centro-di-medicina-iperbarica-asst-grande-ospedale-metrop",
+      "name": "Centro di Medicina Iperbarica ASST - Grande Ospedale Metropolitano Niguarda",
+      "country": "IT",
+      "city": "Milano",
+      "phone": "+390264442269",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.4641943,
+      "longitude": 9.1896346
+    },
+    {
+      "id": "it-centro-ipar",
+      "name": "Centro IPAR",
+      "country": "IT",
+      "city": "Soccavo (NA)",
+      "phone": "+390817282692",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.8409476,
+      "longitude": 14.1959078
+    },
+    {
+      "id": "it-centro-iperbarico-bologna",
+      "name": "Centro Iperbarico Bologna",
+      "country": "IT",
+      "city": "Quarto Inferiore (BO)",
+      "phone": "+390516061240",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 44.5313774,
+      "longitude": 11.4218061
+    },
+    {
+      "id": "it-centro-iperbarico-bolzano",
+      "name": "Centro Iperbarico Bolzano",
+      "country": "IT",
+      "city": "Bolzano",
+      "phone": "+390471932525",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 46.4756526,
+      "longitude": 11.325927
+    },
+    {
+      "id": "it-centro-iperbarico-dell-aoe-cannizzaro-di-catania",
+      "name": "Centro Iperbarico dell'AOE Cannizzaro di Catania",
+      "country": "IT",
+      "city": "Catania",
+      "phone": "+390957264611",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 37.5023612,
+      "longitude": 15.0873718
+    },
+    {
+      "id": "it-centro-iperbarico-i-cedri",
+      "name": "Centro iperbarico \"I cedri\"",
+      "country": "IT",
+      "city": "Fara Novarese (No)",
+      "phone": "+390321818111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.5551594,
+      "longitude": 8.4589412
+    },
+    {
+      "id": "it-centro-iperbarico-icot",
+      "name": "Centro Iperbarico ICOT",
+      "country": "IT",
+      "city": "Latina",
+      "phone": "+39077365130887",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 41.4595261,
+      "longitude": 13.0125912
+    },
+    {
+      "id": "it-centro-iperbarico-mau-srl",
+      "name": "Centro Iperbarico MAU Srl",
+      "country": "IT",
+      "city": "Porto Sant'Elpidio (Fermo)",
+      "phone": "+390734904715",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 43.2586872,
+      "longitude": 13.7584226
+    },
+    {
+      "id": "it-centro-iperbarico-molisano-presso-la-casa-della-salute-de",
+      "name": "Centro Iperbarico Molisano presso la Casa della Salute del Distretto Sanitario di Larino",
+      "country": "IT",
+      "city": "Larino",
+      "phone": "+390874827443",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 41.8005697,
+      "longitude": 14.9107419
+    },
+    {
+      "id": "it-centro-iperbarico-ravenna",
+      "name": "Centro Iperbarico Ravenna",
+      "country": "IT",
+      "city": "Ravenna",
+      "phone": "+390544500152",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 44.4108258,
+      "longitude": 12.164502
+    },
+    {
+      "id": "it-centro-iperbarico-sassarese",
+      "name": "Centro Iperbarico Sassarese",
+      "country": "IT",
+      "city": "Sassari (SS)",
+      "phone": "+39079310514",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.7234746,
+      "longitude": 8.5612674
+    },
+    {
+      "id": "it-clinica-villa-dei-fiori",
+      "name": "CLINICA \"Villa dei Fiori\"",
+      "country": "IT",
+      "city": "Acerra (NA)",
+      "phone": "+390813190310",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.9460532,
+      "longitude": 14.3750083
+    },
+    {
+      "id": "it-dipartimento-di-emergenza-urgenza-e-accettazione-sc-uco-d",
+      "name": "Dipartimento di emergenza urgenza e accettazione ; SC(UCO) di Anestesia Rianimazione e Terapia antalgica",
+      "country": "IT",
+      "city": "Trieste",
+      "phone": "+390403994178",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.6496485,
+      "longitude": 13.7772781
+    },
+    {
+      "id": "it-i-l-m-i-istituto-lombardo-medicina-iperbarica",
+      "name": "I.L.M.I. Istituto Lombardo Medicina Iperbarica",
+      "country": "IT",
+      "city": "Milano",
+      "phone": "+390230332647",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.4641943,
+      "longitude": 9.1896346
+    },
+    {
+      "id": "it-iper-s-r-l-societa-per-la-gestione-dei-centri-di-medicina",
+      "name": "IPER S.R.L. Societa Per La Gestione Dei Centri Di Medicina Iperbarica",
+      "country": "IT",
+      "city": "Pozzuoli (NA)",
+      "phone": "+390815269339",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.822643,
+      "longitude": 14.1219109
+    },
+    {
+      "id": "it-iperbarica-adriatica-srl",
+      "name": "Iperbarica Adriatica Srl",
+      "country": "IT",
+      "city": "Fano",
+      "phone": "+390721825578",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 43.8424173,
+      "longitude": 13.0146632
+    },
+    {
+      "id": "it-istituto-iperbarico-s-p-a",
+      "name": "Istituto Iperbarico S.p.A.",
+      "country": "IT",
+      "city": "Villafranca di Verona(VR)",
+      "phone": "+390456300300",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.3614277,
+      "longitude": 10.8312572
+    },
+    {
+      "id": "it-o-t-i-services",
+      "name": "O.T.I. Services",
+      "country": "IT",
+      "city": "Marghera (VE)",
+      "phone": "+390415381182",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.4753768,
+      "longitude": 12.2378682
+    },
+    {
+      "id": "it-osp-civico-di-palermo-servizio-di-ossigenoterapia-iperbar",
+      "name": "Osp. Civico di Palermo Servizio di Ossigenoterapia Iperbarica",
+      "country": "IT",
+      "city": "Palermo",
+      "phone": "+390916665104",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 38.1112268,
+      "longitude": 13.3524434
+    },
+    {
+      "id": "it-osp-civile-servizio-anestesia-rianimazione-medicina-iperb",
+      "name": "Osp. Civile Servizio Anestesia Rianimazione Medicina Iperbarica",
+      "country": "IT",
+      "city": "Lipari (ME)",
+      "phone": "+390909885246",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 38.4692717,
+      "longitude": 14.9564504
+    },
+    {
+      "id": "it-osp-nagar-a-s-l-9-trapani-servizio-anestesia-rianimazione",
+      "name": "Osp. Nagar A.S.L.9 Trapani Servizio Anestesia Rianimazione Terapia Iperbarica",
+      "country": "IT",
+      "city": "Pantelleria (TP)",
+      "phone": "+390923911844",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 36.8314576,
+      "longitude": 11.9450395
+    },
+    {
+      "id": "it-ospedale-elbano-centro-iperbarico-portoferraio",
+      "name": "Ospedale Elbano. Centro Iperbarico Portoferraio",
+      "country": "IT",
+      "city": "Portoferraio (LI)",
+      "phone": "+390565938511",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 42.7978119,
+      "longitude": 10.2992572
+    },
+    {
+      "id": "it-ospedale-marino",
+      "name": "Ospedale Marino",
+      "country": "IT",
+      "city": "Cagliari",
+      "phone": "+390706094424",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 39.21419,
+      "longitude": 9.1731071
+    },
+    {
+      "id": "it-ospedale-misericordia-servizio-di-ossigenoterapia-iperbar",
+      "name": "Ospedale Misericordia Servizio di Ossigenoterapia Iperbarica",
+      "country": "IT",
+      "city": "Grosseto",
+      "phone": "+390564485258",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 42.7751102,
+      "longitude": 11.2878044
+    },
+    {
+      "id": "it-ospedale-paolo-merlo-asl-olbia",
+      "name": "Ospedale Paolo Merlo, ASL Olbia",
+      "country": "IT",
+      "city": "La Maddalena (OT)",
+      "phone": "+390789791200",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 41.2128379,
+      "longitude": 9.4054906
+    },
+    {
+      "id": "it-oti-medicale",
+      "name": "OTI Medicale",
+      "country": "IT",
+      "city": "Torri di Quartesolo (VI)",
+      "phone": "+390444380240",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.5254607,
+      "longitude": 11.6303291
+    },
+    {
+      "id": "it-otip-ossigenoterapia-iperbarica-piemontese",
+      "name": "Otip Ossigenoterapia Iperbarica Piemontese",
+      "country": "IT",
+      "city": "Torino",
+      "phone": "+390113978900",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.0677551,
+      "longitude": 7.6824892
+    },
+    {
+      "id": "it-policlinico-universitario-istituto-anestesia-rianimazione",
+      "name": "Policlinico Universitario Istituto Anestesia Rianimazione e Terapia Iperbarica U.O. Medicina Iperbarica",
+      "country": "IT",
+      "city": "Gazzi di Messina (ME)",
+      "phone": "+390902212805",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 38.1656389,
+      "longitude": 15.5382728
+    },
+    {
+      "id": "it-servizio-di-medicina-iperbarica-anestesia-e-rianimazione-",
+      "name": "Servizio di Medicina Iperbarica - Anestesia e Rianimazione del Dipartimento di Emergenza",
+      "country": "IT",
+      "city": "Firenze",
+      "phone": "+390557949100",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 43.7697955,
+      "longitude": 11.2556404
+    },
+    {
+      "id": "it-servizio-di-medicina-iperbarica-centro-ospedaliero-milita",
+      "name": "Servizio di Medicina Iperbarica - Centro Ospedaliero Militare Taranto",
+      "country": "IT",
+      "city": "Taranto",
+      "phone": "+390997750210",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.5488156,
+      "longitude": 17.0805801
+    },
+    {
+      "id": "it-servizio-oti-renato-moroni-istituto-clinico-citta-di-bres",
+      "name": "Servizio OTI \"Renato Moroni\" - Istituto Clinico Città Di Brescia",
+      "country": "IT",
+      "city": "Brescia",
+      "phone": "+3903037101",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 45.7795805,
+      "longitude": 10.425873
+    },
+    {
+      "id": "it-servizio-terapia-a-s-l",
+      "name": "Servizio Terapia A.S.L.",
+      "country": "IT",
+      "city": "Favignana (TP)",
+      "phone": "+39092392283",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 37.9314018,
+      "longitude": 12.3274291
+    },
+    {
+      "id": "it-servizio-terapia-iperbarica-a-s-l-6-c-o-poliambulatorio-i",
+      "name": "Servizio Terapia Iperbarica A.S.L.6 c/o Poliambulatorio Isola Lampedusa",
+      "country": "IT",
+      "city": "Lampedusa (AG)",
+      "phone": "+390917037917",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 35.5111342,
+      "longitude": 12.5962914
+    },
+    {
+      "id": "it-u-o-s-d-medicina-iperbarica-ospedale-san-paolo",
+      "name": "U.O.S.D. Medicina Iperbarica - Ospedale \"San Paolo\"",
+      "country": "IT",
+      "city": "Bari",
+      "phone": "+390805843480",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 41.1257843,
+      "longitude": 16.8620293
+    },
+    {
+      "id": "it-unita-semplice-ossigenoterapia-iperbarica-del-policlinico",
+      "name": "Unità semplice Ossigenoterapia Iperbarica del Policlinico San Martino di Genova",
+      "country": "IT",
+      "city": "Genova",
+      "phone": "+390105558759",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 44.40726,
+      "longitude": 8.9338624
+    },
+    {
+      "id": "it-uoc-anestesia-e-rianimazione-medicina-iperbarica-ospedale",
+      "name": "UOC Anestesia e Rianimazione, Medicina Iperbarica - Ospedale \"Sacro Cuore di Gesù\"",
+      "country": "IT",
+      "city": "Lecce",
+      "phone": "+390833270738",
+      "capability": "unknown",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 40.1522173,
+      "longitude": 18.2260628
+    },
+    {
+      "id": "it-uoc-anestesia-e-rianimazione-policlinico-umberto-i-la-sap",
+      "name": "UOC Anestesia e Rianimazione - Policlinico Umberto I° \"La Sapienza\"",
+      "country": "IT",
+      "city": "Roma",
+      "phone": "+390649970424",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://simsi.it/centri-iperbarici-italiani/"
+      },
+      "latitude": 41.8933203,
+      "longitude": 12.4829321
+    },
+    {
+      "id": "jm-discovery-bay",
+      "name": "UWI Discovery Bay Marine Lab Hyperbaric Chamber",
+      "country": "JM",
+      "city": "Discovery Bay, St. Ann",
+      "phone": "+1-876-973-2241",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"
+      },
+      "latitude": 18.4619125,
+      "longitude": -77.3968127
+    },
+    {
+      "id": "jo-aqaba",
+      "name": "Aqaba Diving Chamber, Princess Haya Hospital",
+      "country": "JO",
+      "city": "Aqaba",
+      "phone": "+962-3-201-4114",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=72"
+      },
+      "latitude": 29.5266483,
+      "longitude": 35.0075433
+    },
+    {
+      "id": "ky-george-town",
+      "name": "Cayman Islands Hyperbaric Services (Health Services Authority)",
+      "country": "KY",
+      "city": "George Town",
+      "phone": "+1-345-949-2989",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.hsa.ky/medical-services/diving-hyperbaric-medicine"
+      },
+      "latitude": 19.2953549,
+      "longitude": -81.3807776
+    },
+    {
+      "id": "mt-gozo",
+      "name": "Gozo General Hospital Hyperbaric Unit",
+      "country": "MT",
+      "city": "Victoria, Gozo",
+      "phone": "+356-2344-6455",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://gozogeneralhospital.gov.mt/en/resources/phone-numbers/"
+      },
+      "latitude": 36.0443,
+      "longitude": 14.2419
+    },
+    {
+      "id": "mt-materdei",
+      "name": "Mater Dei Hospital Hyperbaric Unit",
+      "country": "MT",
+      "city": "Msida",
+      "phone": "+356-2545-5269",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://materdeihospital.gov.mt/en/departments-and-units/hyperbaric-unit/"
+      },
+      "latitude": 35.8956943,
+      "longitude": 14.4891829
+    },
+    {
+      "id": "mv-bandos",
+      "name": "Bandos Hyperbaric and Medical Clinic, Maldives",
+      "country": "MV",
+      "city": "Bandos Island, North Male Atoll",
+      "phone": "+960-664-0088",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://bandosmaldives.com/"
+      },
+      "latitude": 4.2762,
+      "longitude": 73.4903
+    },
+    {
+      "id": "mv-kuredu",
+      "name": "Kuredu Medical Clinic and Hyperbaric Centre",
+      "country": "MV",
+      "city": "Kuredu, Lhaviyani Atoll",
+      "phone": "+960-790-7510",
+      "emergencyPhone": "+960-790-1754",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://kureduclinic.com/"
+      },
+      "latitude": 5.554,
+      "longitude": 73.47
+    },
+    {
+      "id": "mv-male-adk",
+      "name": "ADK Hospital Hyperbaric Treatment Unit",
+      "country": "MV",
+      "city": "Male",
+      "phone": "+960-331-3553",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.adkhospital.mv/contact"
+      },
+      "latitude": 4.1779879,
+      "longitude": 73.5107387
+    },
+    {
+      "id": "mx-cabo",
+      "name": "BMM Hyperbaric Chamber Cabo San Lucas (SSS Network)",
+      "country": "MX",
+      "city": "Cabo San Lucas",
+      "phone": "+52-624-143-3666",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.sssnetwork.com/mexico/cabo.htm"
+      },
+      "latitude": 22.8938884,
+      "longitude": -109.92006
+    },
+    {
+      "id": "mx-cozumel",
+      "name": "Costamed Hospital Cozumel (Hyperbaric Chamber)",
+      "country": "MX",
+      "city": "Cozumel",
+      "phone": "+52-987-872-9400",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.costamed.com.mx/en/servicios/hyperbaric-chamber"
+      },
+      "latitude": 20.5083,
+      "longitude": -86.9458
+    },
+    {
+      "id": "mx-cozumel-intl",
+      "name": "SSS Hyperbaric Chamber (International Hospital Cozumel)",
+      "country": "MX",
+      "city": "Cozumel",
+      "phone": "+52-987-872-1430",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://thisiscozumel.com/tourist-info/99-important-telephone-numbers/1662-sss-hyperbaric-chamber"
+      },
+      "latitude": 20.4320599,
+      "longitude": -86.9206906
+    },
+    {
+      "id": "mx-la-paz",
+      "name": "AMCARE Camara Hiperbarica La Paz",
+      "country": "MX",
+      "city": "La Paz",
+      "phone": "+52-612-122-5743",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://medicos.enlapaz.com.mx/camara-hiperbarica/"
+      },
+      "latitude": 24.1619948,
+      "longitude": -110.3158532
+    },
+    {
+      "id": "mx-playa-carmen",
+      "name": "SSS Hyperbaric Chamber Network Playa del Carmen (Buceo Medico Mexicano)",
+      "country": "MX",
+      "city": "Playa del Carmen",
+      "phone": "+52-984-873-1365",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.sssnetwork.com/pages/playahome.html"
+      },
+      "latitude": 20.6462848,
+      "longitude": -87.0807866
+    },
+    {
+      "id": "my-kl",
+      "name": "Healing Chambers of Asia Kuala Lumpur Hyperbaric Center",
+      "country": "MY",
+      "city": "Kuala Lumpur",
+      "phone": "+60-3-4023-3333",
+      "emergencyPhone": "+60-13-363-0013",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://healingchambers.com.my/"
+      },
+      "latitude": 3.1516964,
+      "longitude": 101.6942371
+    },
+    {
+      "id": "na-walvisbay",
+      "name": "Welwitschia Hospital Hyperbaric Unit (Erongo Primary Health Services)",
+      "country": "NA",
+      "city": "Walvis Bay",
+      "phone": "+264-64-218-914",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=81"
+      },
+      "latitude": -22.9557607,
+      "longitude": 14.5071125
+    },
+    {
+      "id": "nl-amsterdam",
+      "name": "Amsterdam UMC Hyperbare Geneeskunde",
+      "country": "NL",
+      "city": "Amsterdam",
+      "phone": "+31-20-566-4500",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.amsterdamumc.nl/nl/hyperbare-geneeskunde/home"
+      },
+      "latitude": 52.3730796,
+      "longitude": 4.8924534
+    },
+    {
+      "id": "no-bergen",
+      "name": "Haukeland University Hospital Section for Hyperbaric Medicine",
+      "country": "NO",
+      "city": "Bergen",
+      "phone": "+47-55-97-38-75",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.helse-bergen.no/avdelinger/yrkesmedisinsk-avdeling/hyperbarmedisin-seksjon-for"
+      },
+      "latitude": 60.3943055,
+      "longitude": 5.3259192
+    },
+    {
+      "id": "nz-chch",
+      "name": "Christchurch Hospital Hyperbaric Medicine Unit",
+      "country": "NZ",
+      "city": "Christchurch",
+      "phone": "+64-3-364-0045",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.healthnz.govt.nz/hospitals-services/hospitals/canterbury/hyperbaric-medicine-unit-canterbury"
+      },
+      "latitude": -43.530955,
+      "longitude": 172.6364343
+    },
+    {
+      "id": "nz-slark",
+      "name": "Slark Hyperbaric Unit, North Shore Hospital",
+      "country": "NZ",
+      "city": "Auckland",
+      "phone": "+64-9-487-2212",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.healthpoint.co.nz/public/respiratory/slark-hyperbaric-unit-waitemata/"
+      },
+      "latitude": -36.7796,
+      "longitude": 174.7559
+    },
+    {
+      "id": "pf-chpf",
+      "name": "Centre Hospitalier de Polynesie Francaise Caisson Hyperbare",
+      "country": "PF",
+      "city": "Pirae, Tahiti",
+      "phone": "+689-40-48-62-62",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.chpf.pf/2018/08/17/urgences-samu/"
+      },
+      "latitude": -17.5334,
+      "longitude": -149.5533
+    },
+    {
+      "id": "ph-batangas",
+      "name": "St. Patrick's Hospital Hyperbaric Unit, Batangas City",
+      "country": "PH",
+      "city": "Batangas City",
+      "phone": "+63-43-723-7089",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.businesslist.ph/company/132362/st-patricks-hospital-medical-center"
+      },
+      "latitude": 13.7565,
+      "longitude": 121.0583
+    },
+    {
+      "id": "ph-cebu",
+      "name": "Cebu Doctors' University Hospital Center for Hyperbaric Medicine",
+      "country": "PH",
+      "city": "Cebu City",
+      "phone": "+63-32-255-5555",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.philstar.com/the-freeman/cebu-lifestyle/2019/05/20/1919256/most-advanced-hyperbaric-chamber-now-cebu"
+      },
+      "latitude": 10.2934946,
+      "longitude": 123.9018183
+    },
+    {
+      "id": "ph-manila",
+      "name": "St. Luke's Medical Center Hyperbaric Medicine Unit",
+      "country": "PH",
+      "city": "Taguig",
+      "phone": "+63-2-8789-7700",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.stlukes.com.ph/"
+      },
+      "latitude": 14.5270538,
+      "longitude": 121.0744942
+    },
+    {
+      "id": "pl-gdynia",
+      "name": "Klinika Medycyny Hiperbarycznej i Ratownictwa Morskiego, UCMMiT Gdynia",
+      "country": "PL",
+      "city": "Gdynia",
+      "phone": "+48-58-349-1704",
+      "emergencyPhone": "+48-58-699-8655",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://ucmmit.gdynia.pl/jednostki-szpitala/klinika-medycyny-hiperbarycznej-i-ratownictwa-morskiego/"
+      },
+      "latitude": 54.5233304,
+      "longitude": 18.6040279
+    },
+    {
+      "id": "pr-isabela",
+      "name": "Canii Institute Hyperbaric Chamber",
+      "country": "PR",
+      "city": "Isabela",
+      "phone": "+1-787-872-8365",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"
+      },
+      "latitude": 18.5,
+      "longitude": -67.0244
+    },
+    {
+      "id": "pr-san-juan",
+      "name": "Puerto Rico Medical Center Hyperbaric Chamber",
+      "country": "PR",
+      "city": "San Juan",
+      "phone": "+1-787-777-3535",
+      "emergencyPhone": "+1-787-390-3243",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"
+      },
+      "latitude": 18.398,
+      "longitude": -66.064
+    },
+    {
+      "id": "pw-belau",
+      "name": "Belau National Hospital Hyperbaric Chamber",
+      "country": "PW",
+      "city": "Koror, Palau",
+      "phone": "+680-488-2552",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.palaugov.pw/executive-branch/ministries/health/bureau-of-hospital-clinical-services/"
+      },
+      "latitude": 7.2259863,
+      "longitude": 134.131234
+    },
+    {
+      "id": "sa-jubail",
+      "name": "Diving and Hyperbaric Medicine Department, Armed Forces Hospital",
+      "country": "SA",
+      "city": "Jubail",
+      "phone": "+966-3-362-1234",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=53"
+      },
+      "latitude": 27.0006968,
+      "longitude": 49.6532161
+    },
+    {
+      "id": "se-gothenburg",
+      "name": "Sahlgrenska University Hospital Tryckkammare Ostra (Hyperbaric Chamber)",
+      "country": "SE",
+      "city": "Gothenburg",
+      "phone": "+46-31-343-4032",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.sahlgrenska.se/omraden/omrade-5/anestesi-operation-iva/enheter/tryckkammare-ostra/"
+      },
+      "latitude": 57.7072326,
+      "longitude": 11.9670171
+    },
+    {
+      "id": "sg-singapore",
+      "name": "Hyperbaric and Diving Medicine Centre, Singapore General Hospital",
+      "country": "SG",
+      "city": "Singapore",
+      "phone": "+65-6321-3427",
+      "emergencyPhone": "+65-6222-3322",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.sgh.com.sg/our-specialties/hyperbaric-and-diving-medicine-centre"
+      },
+      "latitude": 1.357107,
+      "longitude": 103.8194992
+    },
+    {
+      "id": "tc-provo",
+      "name": "Associated Medical Practices Hyperbaric Chamber",
+      "country": "TC",
+      "city": "Providenciales",
+      "phone": "+1-649-946-4222",
+      "emergencyPhone": "+1-649-432-2111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.visittci.com/providenciales/associated-medical-practices"
+      },
+      "latitude": 21.8020614,
+      "longitude": -72.3004456
+    },
+    {
+      "id": "th-bangkok",
+      "name": "Bumrungrad Hospital Hyperbaric Oxygen Therapy Center",
+      "country": "TH",
+      "city": "Bangkok",
+      "phone": "+66-2-011-4793",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.bumrungrad.com/en/centers/hbot-hyperbaric-oxygen-therapy-bangkok-thailand"
+      },
+      "latitude": 13.7524938,
+      "longitude": 100.4935089
+    },
+    {
+      "id": "th-kohtao",
+      "name": "SSS Recompression Chamber Network Koh Tao",
+      "country": "TH",
+      "city": "Koh Tao",
+      "phone": "+66-81-081-9777",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.ssschambernetwork.com/"
+      },
+      "latitude": 10.0921822,
+      "longitude": 99.8395362
+    },
+    {
+      "id": "th-pattaya",
+      "name": "Bangkok Hospital Pattaya Hyperbaric Oxygen Therapy Center",
+      "country": "TH",
+      "city": "Pattaya",
+      "phone": "+66-38-259-986",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.bangkokhospital.com/en/pattaya/center-clinic/brain/hyperbaric-oxygen-therapy-bph/overview"
+      },
+      "latitude": 12.9366924,
+      "longitude": 100.8865002
+    },
+    {
+      "id": "th-phuket-bh",
+      "name": "Bangkok Hospital Phuket Diving Medicine Center",
+      "country": "TH",
+      "city": "Phuket",
+      "phone": "+66-76-254-425",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.bangkokhospital.com/en/phuket/center-clinic/other/diving-medicine-center-bpk/facilities"
+      },
+      "latitude": 7.9366015,
+      "longitude": 98.3529292
+    },
+    {
+      "id": "th-phuket-hst",
+      "name": "Hyperbaric Services of Thailand (SSS Chamber Network Phuket)",
+      "country": "TH",
+      "city": "Phuket",
+      "phone": "+66-81-081-9000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.ssschambernetwork.com/phuket-thailand/"
+      },
+      "latitude": 7.9366015,
+      "longitude": 98.3529292
+    },
+    {
+      "id": "tr-antalya",
+      "name": "Antalya Training and Research Hospital Underwater and Hyperbaric Medicine",
+      "country": "TR",
+      "city": "Antalya",
+      "phone": "+90-242-249-4400",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://antalyaeah.saglik.gov.tr/TR-946557/branslarimiz.html"
+      },
+      "latitude": 36.8865728,
+      "longitude": 30.7030242
+    },
+    {
+      "id": "tr-istanbul",
+      "name": "Haydarpasa Sultan Abdulhamit Training and Research Hospital Underwater and Hyperbaric Medicine",
+      "country": "TR",
+      "city": "Istanbul",
+      "phone": "+90-216-542-2020",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.tssf.gov.tr/basinc-odalari/"
+      },
+      "latitude": 41.006381,
+      "longitude": 28.9758715
+    },
+    {
+      "id": "tr-izmir",
+      "name": "Izmir Bozyaka Training and Research Hospital Underwater and Hyperbaric Medicine Clinic",
+      "country": "TR",
+      "city": "Izmir",
+      "phone": "+90-232-250-5050",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://bozyakaeah.saglik.gov.tr/TR-1091100/sualti-hekimligi-ve-hiperbarik-tip-klinigi.html"
+      },
+      "latitude": 38.4192537,
+      "longitude": 27.128469
+    },
+    {
+      "id": "tt-tobago",
+      "name": "Roxborough Hyperbaric Chamber Facility (Tobago Regional Health Authority)",
+      "country": "TT",
+      "city": "Roxborough, Tobago",
+      "phone": "+1-868-493-4973",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://health.gov.tt/regional-health-authorities/tobago-regional-health-authority"
+      },
+      "latitude": 11.2495139,
+      "longitude": -60.5762208
+    },
+    {
+      "id": "tz-zanzibar",
+      "name": "Zanzibar Hyperbaric Chamber, Fairmont Zanzibar",
+      "country": "TZ",
+      "city": "Matemwe, Zanzibar",
+      "phone": "+255-777-788-500",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=103"
+      },
+      "latitude": -5.8421823,
+      "longitude": 39.35816
+    },
+    {
+      "id": "us-catalina",
+      "name": "USC Catalina Hyperbaric Chamber",
+      "country": "US",
+      "city": "Avalon, CA",
+      "phone": "+1-310-510-4020",
+      "emergencyPhone": "+1-310-510-1053",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://dornsife.usc.edu/hyperbaric/phone/"
+      },
+      "latitude": 33.4456,
+      "longitude": -118.4849
+    },
+    {
+      "id": "us-duke",
+      "name": "Duke Center for Hyperbaric Medicine and Environmental Physiology",
+      "country": "US",
+      "city": "Durham, NC",
+      "phone": "+1-919-684-6726",
+      "emergencyPhone": "+1-919-684-8111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://anesthesiology.duke.edu/hyperbaric-center/emergency"
+      },
+      "latitude": 36.0076,
+      "longitude": -78.9382
+    },
+    {
+      "id": "us-hennepin",
+      "name": "Hennepin Healthcare Center for Hyperbaric Medicine",
+      "country": "US",
+      "city": "Minneapolis, MN",
+      "phone": "+1-612-873-7420",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://hennepinhealthcare.org/services/hyperbaric-medicine"
+      },
+      "latitude": 44.9772995,
+      "longitude": -93.2654692
+    },
+    {
+      "id": "us-htc-honolulu",
+      "name": "Hyperbaric Treatment Center (Kuakini Medical Center / University Health Partners of Hawaii)",
+      "country": "US",
+      "city": "Honolulu, HI",
+      "phone": "+1-808-587-3425",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.hawaii.edu/news/2025/03/23/hyperbaric-treatment-center-40-years/"
+      },
+      "latitude": 21.304547,
+      "longitude": -157.855676
+    },
+    {
+      "id": "us-loma-linda",
+      "name": "Loma Linda University Medical Center Hyperbaric Medicine Service",
+      "country": "US",
+      "city": "Loma Linda, CA",
+      "phone": "+1-909-558-1000",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://news.llu.edu/patient-care/hyperbaric-medicine-service-receives-accreditation"
+      },
+      "latitude": 34.0537971,
+      "longitude": -117.2610925
+    },
+    {
+      "id": "us-ucsd-hillcrest",
+      "name": "UC San Diego Health Hyperbaric Medicine Center (Hillcrest)",
+      "country": "US",
+      "city": "San Diego, CA",
+      "phone": "+1-858-657-7000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://health.ucsd.edu/care/undersea/"
+      },
+      "latitude": 32.7174202,
+      "longitude": -117.162772
+    },
+    {
+      "id": "us-uf-shands",
+      "name": "UF Health Wound Care and Hyperbaric Center",
+      "country": "US",
+      "city": "Gainesville, FL",
+      "phone": "+1-352-265-4450",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://ufhealth.org/conditions-and-treatments/hyperbaric-oxygen-therapy"
+      },
+      "latitude": 29.6519684,
+      "longitude": -82.3249846
+    },
+    {
+      "id": "us-utmb-galveston",
+      "name": "UTMB Health Undersea and Diving Medicine",
+      "country": "US",
+      "city": "Galveston, TX",
+      "phone": "+1-832-505-0372",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.utmbhealth.com/services/wound-care-hyperbarics/specialties/undersea-medicine"
+      },
+      "latitude": 29.3872254,
+      "longitude": -94.992736
+    },
+    {
+      "id": "us-virginia-mason",
+      "name": "Virginia Mason Center for Hyperbaric Medicine",
+      "country": "US",
+      "city": "Seattle, WA",
+      "phone": "+1-206-583-6543",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.vmfh.org/our-services/hyperbaric-medicine/vmmc-hyperbaric-medicine"
+      },
+      "latitude": 47.6038321,
+      "longitude": -122.330062
+    },
+    {
+      "id": "uy-montevideo-dnsffaa",
+      "name": "Servicio de Medicina Hiperbarica, Hospital Central de las Fuerzas Armadas",
+      "country": "UY",
+      "city": "Montevideo",
+      "phone": "+598-2487-6666",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.dnsffaa.gub.uy/venta-de-servicios/medicina-hiperbarica"
+      },
+      "latitude": -34.9058916,
+      "longitude": -56.1913095
+    },
+    {
+      "id": "ve-caracas-avila",
+      "name": "Oxigenacion Hiperbarica Avila",
+      "country": "VE",
+      "city": "Caracas",
+      "phone": "+58-212-276-2737",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.oxigenacionhiperbaricaavila.com/camara-hiperbarica.html"
+      },
+      "latitude": 10.5060934,
+      "longitude": -66.9146008
+    },
+    {
+      "id": "vi-st-thomas",
+      "name": "Schneider Regional Medical Center Hyperbaric Chamber (Roy Lester Schneider Hospital)",
+      "country": "VI",
+      "city": "St. Thomas",
+      "phone": "+1-340-776-8311",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://www.visitusvi.com/travel-information/health-information/"
+      },
+      "latitude": 18.3419,
+      "longitude": -64.9236
+    },
+    {
+      "id": "za-cape-national",
+      "name": "National Hyperbarics",
+      "country": "ZA",
+      "city": "Cape Town",
+      "phone": "+27-21-671-8655",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"
+      },
+      "latitude": -33.9288301,
+      "longitude": 18.4172197
+    },
+    {
+      "id": "za-capetown",
+      "name": "Tygerberg Hospital Hyperbaric Unit",
+      "country": "ZA",
+      "city": "Cape Town",
+      "phone": "+27-21-938-4911",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "facility",
+        "url": "https://www.westerncape.gov.za/health-wellness/facility/tygerberg-hospital"
+      },
+      "latitude": -33.9096,
+      "longitude": 18.6089
+    },
+    {
+      "id": "za-durban",
+      "name": "Hyperbaric Medicine Centre",
+      "country": "ZA",
+      "city": "Durban",
+      "phone": "+27-31-268-5255",
+      "emergencyPhone": "+27-31-268-5000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"
+      },
+      "latitude": -29.8618145,
+      "longitude": 31.009909
+    },
+    {
+      "id": "za-johannesburg",
+      "name": "Hyperbaric Treatment Centre",
+      "country": "ZA",
+      "city": "Johannesburg",
+      "phone": "+27-11-480-5660",
+      "emergencyPhone": "+27-83-284-4415",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {
+        "date": "2026-08-26",
+        "via": "registry",
+        "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"
+      },
+      "latitude": -26.205,
+      "longitude": 28.049722
+    }
   ]
 }

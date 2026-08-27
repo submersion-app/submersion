@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -10,7 +12,82 @@ import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
+import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// Pumps a fresh-trip page behind a router, so the `context.pop(savedId)` that
+/// follows a successful save has somewhere to go. Creating a trip always
+/// triggers the post-save scan (`datesChanged` is `!isEditing`), which keeps
+/// these tests clear of date-picker choreography.
+///
+/// The surface is enlarged because the assignment sheet is a
+/// `DraggableScrollableSheet` at 60% height - at the default 800x600 the
+/// candidate rows would need scrolling before they could be tapped.
+Future<void> _pumpNewTripPage(
+  WidgetTester tester, {
+  required TripRepository repository,
+  required TripListNotifier notifier,
+  required String? activeDiverId,
+}) async {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  final router = GoRouter(
+    initialLocation: '/trips/new',
+    routes: [
+      GoRoute(
+        path: '/trips',
+        builder: (context, state) => const Scaffold(body: Text('LIST_PAGE')),
+      ),
+      GoRoute(
+        path: '/trips/new',
+        builder: (context, state) => const TripEditPage(),
+      ),
+    ],
+  );
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        tripRepositoryProvider.overrideWithValue(repository),
+        tripListNotifierProvider.overrideWith((ref) => notifier),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => activeDiverId,
+        ),
+      ],
+      child: MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Advances a fixed budget of frames instead of settling.
+///
+/// `pumpAndSettle` is unusable while a save is in flight: `_saveTrip` sets
+/// `_isSaving` before awaiting and only clears it on the error path, so the
+/// Save button's `CircularProgressIndicator` schedules frames for as long as
+/// the assignment sheet is open. A bounded pump advances fake time far enough
+/// to cover the awaited futures plus the sheet's entry and exit animations.
+Future<void> _pumpSaveFrames(WidgetTester tester) async {
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+Future<void> _saveNewTrip(WidgetTester tester, String name) async {
+  await tester.enterText(
+    find.widgetWithText(TextFormField, 'Trip Name *'),
+    name,
+  );
+  await tester.tap(find.text('Save'));
+  await _pumpSaveFrames(tester);
+}
 
 void main() {
   group('TripEditPage - New Trip', () {
@@ -644,6 +721,110 @@ void main() {
       Navigator.of(tester.element(find.byType(DatePickerDialog))).pop();
       await tester.pumpAndSettle();
     });
+
+    testWidgets(
+      'end date picker opens positioned at the just-picked start date',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+              tripListNotifierProvider.overrideWith((ref) {
+                return _MockTripListNotifier([]);
+              }),
+            ],
+            child: const MaterialApp(
+              // Pin the locale: this test types a US-format date.
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripEditPage(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Pick a start date far in the past -- well before the default
+        // end date (today + 7 days), so the auto-sync in _selectDate that
+        // pushes _endDate forward when start moves past it never fires.
+        // This is exactly the reported scenario: picking a start date
+        // leaves the stale, far-away default end date behind.
+        await tester.tap(find.text('Start Date'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.edit_outlined));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.byType(TextField),
+          ),
+          '01/15/2023',
+        );
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('End Date'));
+        await tester.pumpAndSettle();
+
+        final dialog = tester.widget<DatePickerDialog>(
+          find.byType(DatePickerDialog),
+        );
+        expect(dialog.initialDate, DateTime(2023, 1, 15));
+      },
+    );
+
+    testWidgets(
+      'end date picker keeps opening at an explicitly picked end date',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+              tripListNotifierProvider.overrideWith((ref) {
+                return _MockTripListNotifier([]);
+              }),
+            ],
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripEditPage(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Explicitly pick an end date. _startDate defaults to today for a
+        // new trip and bounds the end picker's firstDate, so the target
+        // must stay safely in the future regardless of when this runs.
+        final target = DateTime(DateTime.now().year + 2, 3, 10);
+        await tester.tap(find.text('End Date'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.edit_outlined));
+        await tester.pumpAndSettle();
+        final month = target.month.toString().padLeft(2, '0');
+        final day = target.day.toString().padLeft(2, '0');
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.byType(TextField),
+          ),
+          '$month/$day/${target.year}',
+        );
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+
+        // Reopening the end-date picker must keep showing the diver's own
+        // choice, not fall back to _startDate now that it's been touched.
+        await tester.tap(find.text('End Date'));
+        await tester.pumpAndSettle();
+
+        final dialog = tester.widget<DatePickerDialog>(
+          find.byType(DatePickerDialog),
+        );
+        expect(dialog.initialDate, target);
+      },
+    );
   });
 
   group('TripEditPage - save flow', () {
@@ -737,6 +918,175 @@ void main() {
       await tester.pumpAndSettle();
       expect(notifier.updateCalls, 1);
       expect(find.text('Trip updated successfully'), findsOneWidget);
+    });
+
+    testWidgets('save with unchanged dates runs no scan and no diver lookup', (
+      tester,
+    ) async {
+      final repo = _RecordingScanRepo();
+      var diverLookups = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(repo),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async {
+              diverLookups++;
+              return 'MAB';
+            }),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Edit the name only, leaving both dates alone.
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Updated Name',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.scanCalls, 0);
+      // The trip already has an owner, so the `??` at the top of _saveTrip
+      // short-circuits and never resolves the provider. That leaves the scan
+      // as the only possible reader, and it must not run for unchanged dates.
+      expect(diverLookups, 0);
+    });
+
+    testWidgets(
+      'post-save scan searches the active diver, not the trip owner',
+      (tester) async {
+        // Trip is owned by BAB but shared with, and being edited by, MAB.
+        final repo = _RecordingScanRepo();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripRepositoryProvider.overrideWithValue(repo),
+              tripListNotifierProvider.overrideWith(
+                (ref) => _MockTripListNotifier([]),
+              ),
+              validatedCurrentDiverIdProvider.overrideWith(
+                (ref) async => 'MAB',
+              ),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripEditPage(tripId: 'test-id'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Move the start date so the post-save scan is triggered.
+        await tester.tap(find.text('Start Date'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.text('18'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        expect(repo.scanCalls, 1);
+        // Ownership stays with BAB; the dives searched belong to the viewer.
+        expect(repo.scannedDiverId, 'MAB');
+      },
+    );
+
+    testWidgets('picked dives are assigned to the trip the save returned', (
+      tester,
+    ) async {
+      final repo = _CandidateScanRepo();
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: repo,
+        notifier: notifier,
+        activeDiverId: 'diver-id',
+      );
+      await _saveNewTrip(tester, 'Red Sea 2024');
+
+      // The two unassigned dives arrive pre-checked. Add the Egypt Trip dive
+      // as well, and leave the Palau Trip dive untouched.
+      expect(find.text('Add 2 Dives'), findsOneWidget);
+      await tester.tap(find.text('Site 43'));
+      await tester.pump();
+      await tester.tap(find.text('Add 3 Dives'));
+      await _pumpSaveFrames(tester);
+
+      expect(notifier.assignCalls, 1);
+      expect(
+        notifier.assignedDiveIds,
+        unorderedEquals(['dive-1', 'dive-2', 'dive-3']),
+      );
+      // savedId is the id addTrip handed back, not widget.tripId (null here).
+      expect(notifier.assignedTripId, 'new-id-1');
+      // Only trips actually losing a dive get invalidated: the unassigned
+      // dives contribute nothing, and Palau was never selected.
+      expect(notifier.assignedOldTripIds, {'egypt-trip'});
+      expect(find.text('Added 3 dives to trip'), findsOneWidget);
+    });
+
+    testWidgets('dismissing the dive dialog assigns nothing', (tester) async {
+      final repo = _CandidateScanRepo();
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: repo,
+        notifier: notifier,
+        activeDiverId: 'diver-id',
+      );
+      await _saveNewTrip(tester, 'Red Sea 2024');
+
+      expect(find.byType(DiveAssignmentDialog), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DiveAssignmentDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
+      await _pumpSaveFrames(tester);
+
+      expect(notifier.assignCalls, 0);
+      expect(find.textContaining('dives to trip'), findsNothing);
+      // The trip itself is saved either way - only the dives were declined.
+      expect(notifier.addCalls, 1);
+      expect(find.text('Trip added successfully'), findsOneWidget);
+    });
+
+    testWidgets('no active diver saves the trip without scanning', (
+      tester,
+    ) async {
+      final repo = _CandidateScanRepo();
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: repo,
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      await _saveNewTrip(tester, 'Red Sea 2024');
+
+      // With no diver resolved there is nobody to scan for, so the query never
+      // runs and the dialog never opens - but the trip still saves.
+      expect(repo.scanCalls, 0);
+      expect(find.byType(DiveAssignmentDialog), findsNothing);
+      expect(notifier.addCalls, 1);
+      expect(find.text('Trip added successfully'), findsOneWidget);
     });
 
     testWidgets('save errors show error snackbar', (tester) async {
@@ -1208,6 +1558,77 @@ void main() {
     });
   });
 
+  group('TripEditPage - return flight', () {
+    Future<void> pumpNewTrip(WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            // Pinned: these tests assert English strings.
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shows Not set and sets a flight via date + time pickers', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Return Flight'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Return Flight'), findsOneWidget);
+      expect(find.text('Not set'), findsOneWidget);
+
+      await tester.tap(find.text('Return Flight'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Not set'), findsNothing);
+      expect(find.byIcon(Icons.clear), findsOneWidget);
+    });
+
+    testWidgets('clear icon reverts the flight to Not set', (tester) async {
+      await pumpNewTrip(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Return Flight'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Return Flight'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.text('Not set'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.clear));
+      await tester.pumpAndSettle();
+      expect(find.text('Not set'), findsOneWidget);
+    });
+  });
+
   group('TripEditPage - duration display', () {
     testWidgets('updates duration text when start date moves past end date', (
       tester,
@@ -1232,6 +1653,48 @@ void main() {
       expect(find.text('8 days'), findsOneWidget);
     });
   });
+}
+
+/// Candidates for the post-save scan: two loose dives plus two already sitting
+/// on other trips. The assignment tests select `dive-3` and leave `dive-4`
+/// alone, so `egypt-trip` is the only trip that should get invalidated.
+List<DiveCandidate> _scanCandidates() => [
+  DiveCandidate(dive: _candidateDive('dive-1', 41)),
+  DiveCandidate(dive: _candidateDive('dive-2', 42)),
+  DiveCandidate(
+    dive: _candidateDive('dive-3', 43),
+    currentTripId: 'egypt-trip',
+    currentTripName: 'Egypt Trip',
+  ),
+  DiveCandidate(
+    dive: _candidateDive('dive-4', 44),
+    currentTripId: 'palau-trip',
+    currentTripName: 'Palau Trip',
+  ),
+];
+
+Dive _candidateDive(String id, int diveNumber) => Dive(
+  id: id,
+  dateTime: DateTime(2024, 1, 16),
+  diveNumber: diveNumber,
+  site: DiveSite(id: 'site-$id', name: 'Site $diveNumber'),
+);
+
+/// Repository for the new-trip flow that hands the page a real candidate list
+/// so the assignment dialog actually opens.
+class _CandidateScanRepo extends _MockTripRepository {
+  int scanCalls = 0;
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async {
+    scanCalls++;
+    return _scanCandidates();
+  }
 }
 
 /// Mock repository that returns null for trips
@@ -1303,6 +1766,37 @@ class _MockTripRepository implements TripRepository {
 
   @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
+}
+
+/// Existing trip owned by another diver, recording which diver the post-save
+/// scan actually queries. Mirrors the shared-trip case from issue #891.
+class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
+  String? scannedDiverId;
+  int scanCalls = 0;
+
+  @override
+  Future<Trip?> getTripById(String id) async => Trip(
+    id: 'test-id',
+    diverId: 'BAB',
+    name: 'Existing Trip',
+    startDate: DateTime(2024, 1, 15),
+    endDate: DateTime(2024, 1, 22),
+    location: 'Test Location',
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+  );
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async {
+    scanCalls++;
+    scannedDiverId = diverId;
+    return [];
+  }
 }
 
 /// Mock repository that returns a test trip
@@ -1476,6 +1970,10 @@ class _MockTripListNotifier
 
   int addCalls = 0;
   int updateCalls = 0;
+  int assignCalls = 0;
+  List<String>? assignedDiveIds;
+  String? assignedTripId;
+  Set<String>? assignedOldTripIds;
 
   @override
   Future<void> refresh() async {}
@@ -1505,7 +2003,12 @@ class _MockTripListNotifier
     List<String> diveIds,
     String tripId, {
     Set<String>? oldTripIds,
-  }) async {}
+  }) async {
+    assignCalls++;
+    assignedDiveIds = diveIds;
+    assignedTripId = tripId;
+    assignedOldTripIds = oldTripIds;
+  }
 }
 
 /// Notifier whose addTrip throws - used to test error snackbar.

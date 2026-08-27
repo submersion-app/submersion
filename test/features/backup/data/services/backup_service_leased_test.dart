@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/backup_bookmark_service.dart';
@@ -282,6 +283,50 @@ void main() {
         expect(isSafRef(lease.path), isFalse);
         // The user's SAF choice must remain for normal (SAF) backups.
         expect(preferences.getSettings().backupLocation, safUri);
+        expect(port.resolveCalls, 0);
+        await lease.release(); // no-op; must not throw
+      },
+    );
+
+    // The #505 guard above keys on the `content://` scheme, which misses the
+    // case where the fabricated value already looks like an absolute path.
+    // file_picker's Android getFullPathFromTreeUri splits a SAF tree's
+    // document id on ':' and, when there is no "volume:path" shape, returns
+    // "${getExternalStorageDirectory()}/$docId". A Google Drive pick has the
+    // document id "acc=2;doc=encoded=<blob>", so the stored location becomes
+    // "/storage/emulated/0/acc=2;doc=encoded=...": not a content:// ref, and
+    // not a directory that scoped storage will let the app mkdir (errno 13).
+    //
+    // This resolution runs BEFORE the pre-migration safety copy, so throwing
+    // here escapes PreMigrationBackupService's fallback entirely and strands
+    // the user on the terminal "Database upgrade failed" screen, which offers
+    // no way back into settings to correct the location.
+    //
+    // Nesting the target under a regular file stands in for EACCES portably:
+    // create(recursive: true) throws ENOTDIR in the host VM.
+    test(
+      'non-Apple + uncreatable custom location -> default, setting cleared',
+      () async {
+        final tmp = await Directory.systemTemp.createTemp('lease_unwritable_');
+        addTearDown(() => tmp.delete(recursive: true));
+        final blocker = File(p.join(tmp.path, 'not-a-directory'));
+        await blocker.writeAsString('x');
+        await preferences.setBackupLocation(
+          p.join(blocker.path, 'acc=2;doc=encoded=JKazOe75G5_hCtZBVEzAmb0'),
+        );
+        BackupBookmarkService.debugSupportedOverride = false; // Android
+        final port = _FakeBookmarkPort();
+
+        final lease = await BackupService.resolveBackupsDirectoryLeased(
+          preferences,
+          bookmarks: port,
+        );
+
+        expect(lease.path, contains('Submersion'));
+        expect(lease.path, contains('Backups'));
+        // Self-healed like the Apple dead-bookmark and revoked-SAF-grant
+        // branches, so the dead location is not retried on the next launch.
+        expect(preferences.getSettings().backupLocation, isNull);
         expect(port.resolveCalls, 0);
         await lease.release(); // no-op; must not throw
       },

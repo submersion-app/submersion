@@ -229,6 +229,64 @@ void main() {
 
       expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(2));
     });
+
+    test('marks below-cutoff dives as autoSkip', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 6, 12, 14, 30, 5));
+      adapter.setDownloadedDives([
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 12, 14, 30, 5),
+        ), // == cutoff -> skip
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 1),
+        ), // older -> skip
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 20),
+        ), // newer -> keep
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, equals({0, 1}));
+    });
+
+    test('has no autoSkip when cutoff is null', () async {
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 20)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
+
+    test('has no autoSkip when no dive is at or before the cutoff', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 1, 1));
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 20)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
+
+    test('resetState() clears a previously set cutoff', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 6, 12));
+      adapter.resetState();
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -412,6 +470,31 @@ void main() {
       expect(
         result.groups[ImportEntityType.dives]!.matchResults!.length,
         equals(1),
+      );
+    });
+
+    test('preserves autoSkipIndices computed by buildBundle', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 3, 15, 9, 0));
+      final dive = makeDownloadedDive(
+        startTime: DateTime.utc(2026, 3, 15, 8, 0),
+      );
+      adapter.setDownloadedDives([dive]);
+      final bundle = await adapter.buildBundle();
+      expect(bundle.groups[ImportEntityType.dives]!.autoSkipIndices, {0});
+
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer((_) async => DuplicateResult.noMatch());
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(
+        result.groups[ImportEntityType.dives]!.autoSkipIndices,
+        equals({0}),
       );
     });
   });

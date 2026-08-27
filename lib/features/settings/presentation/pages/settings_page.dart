@@ -2,18 +2,27 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/utils/app_version.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
@@ -34,6 +43,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/auto_update/domain/beta_program_links.dart';
 import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
@@ -42,6 +52,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
@@ -58,22 +69,29 @@ const _cnsSourceSubsurfaceUrl =
     'https://github.com/subsurface/subsurface/commit/a0912b38bd';
 
 /// Opens the GitHub issues page in an external browser. Falls back to a
-/// snackbar if the URL cannot be launched or an error occurs.
+/// snackbar with a copy-link action if the launch fails.
 Future<void> launchReportIssue(BuildContext context) async {
   final uri = Uri.parse(reportIssueUrl);
   var didLaunch = false;
 
-  if (await canLaunchUrl(uri)) {
-    try {
-      didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      didLaunch = false;
-    }
+  // No canLaunchUrl guard: it false-negatives for https on Android 11+
+  // unless the scheme is declared in the manifest <queries> block.
+  try {
+    didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } catch (_) {
+    didLaunch = false;
   }
 
   if (!didLaunch && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.settings_about_reportIssue_snackbar)),
+      SnackBar(
+        content: Text(context.l10n.settings_about_reportIssue_snackbar),
+        action: SnackBarAction(
+          label: context.l10n.settings_about_reportIssue_copy,
+          onPressed: () =>
+              Clipboard.setData(const ClipboardData(text: reportIssueUrl)),
+        ),
+      ),
     );
   }
 }
@@ -115,7 +133,7 @@ class SettingsPage extends ConsumerWidget {
 
     if (selectedSection != null) {
       // Show section detail page
-      return _SettingsSectionDetailPage(sectionId: selectedSection, ref: ref);
+      return SettingsSectionDetailPage(sectionId: selectedSection);
     }
 
     // Mobile: Show section list
@@ -133,6 +151,8 @@ class SettingsPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
+      case 'security':
+        return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -185,7 +205,6 @@ class SettingsMobileContent extends ConsumerWidget {
           icon: Icons.bug_report_outlined,
           title: 'Debug',
           subtitle: 'Logs & diagnostics',
-          color: Colors.grey,
         ),
       );
     }
@@ -209,15 +228,33 @@ class SettingsMobileContent extends ConsumerWidget {
   }
 }
 
-/// Mobile detail page for settings sections accessed via query params.
-class _SettingsSectionDetailPage extends ConsumerWidget {
-  final String sectionId;
-  final WidgetRef ref;
+/// Settings sections that render a page of their own, mapped to that page's
+/// route.
+///
+/// [SettingsSectionDetailPage] supplies a Scaffold and an AppBar, so sections
+/// whose content is itself a Scaffold with an AppBar (Diver Profile, Safety,
+/// Debug) would show two stacked app bars inside it. Appearance is listed too
+/// because it has a dedicated page, keeping that route canonical.
+///
+/// Used both by the settings list tile and by the '/settings/section/:id'
+/// route's redirect, so a deep link to that path cannot bypass it.
+const settingsSectionDedicatedRoutes = <String, String>{
+  'profile': '/settings/diver-profile',
+  'appearance': '/settings/appearance',
+  'safety': '/settings/safety',
+  'debug': '/settings/debug-logs',
+};
 
-  const _SettingsSectionDetailPage({
-    required this.sectionId,
-    required this.ref,
-  });
+/// Mobile detail page for a single settings section.
+///
+/// Reached by pushing the '/settings/section/:sectionId' child route, which
+/// go_router wraps in a platform-adaptive page so the section slides in like
+/// every other sub-page. Also rendered directly by [SettingsPage] for legacy
+/// `/settings?selected=<id>` deep links.
+class SettingsSectionDetailPage extends ConsumerWidget {
+  final String sectionId;
+
+  const SettingsSectionDetailPage({super.key, required this.sectionId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -257,7 +294,7 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
-      'debug' => 'Debug',
+      'debug' => context.l10n.settings_section_debug_title,
       _ => context.l10n.settings_appBar_title,
     };
   }
@@ -268,6 +305,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
+      case 'security':
+        return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -302,7 +341,7 @@ class _MobileSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = section.color ?? colorScheme.primary;
+    final color = settingsSectionColor(context, section.id);
 
     return ListTile(
       leading: Container(
@@ -345,6 +384,8 @@ class _MobileSettingsTile extends StatelessWidget {
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
       'safety' => context.l10n.settings_section_safety_title,
+      'security' => context.l10n.settings_section_security_title,
+      'debug' => context.l10n.settings_section_debug_title,
       _ => section.title,
     };
   }
@@ -361,28 +402,26 @@ class _MobileSettingsTile extends StatelessWidget {
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,
+      'security' => context.l10n.settings_section_security_subtitle,
+      'debug' => context.l10n.settings_section_debug_subtitle,
       _ => section.subtitle,
     };
   }
 
   void _navigateToSection(BuildContext context, String sectionId) {
-    // Navigate to the appropriate page based on section
-    switch (sectionId) {
-      case 'profile':
-        context.push('/settings/diver-profile');
-        break;
-      case 'appearance':
-        context.push('/settings/appearance');
-        break;
-      default:
-        // For sections that don't have dedicated pages, show them in a
-        // detail page using query params. PUSH (not go): go() replaces the
-        // location in place, leaving nothing on the stack for the system
-        // back gesture to pop, so Android closed the whole app (#647).
-        final state = GoRouterState.of(context);
-        final currentPath = state.uri.path;
-        context.push('$currentPath?selected=$sectionId');
-    }
+    // Sections without a page of their own get the shared section route.
+    // PUSH (not go): go() replaces the location in place, leaving nothing on
+    // the stack for the system back gesture to pop, so Android closed the
+    // whole app (#647).
+    //
+    // This pushes a child route rather than '/settings?selected=<id>'. The
+    // latter re-matched the '/settings' tab root, whose pageBuilder returns a
+    // NoTransitionPage so bottom-nav tab switches do not animate -- which
+    // also robbed every pushed section of its slide-in.
+    context.push(
+      settingsSectionDedicatedRoutes[sectionId] ??
+          '/settings/section/$sectionId',
+    );
   }
 }
 
@@ -474,6 +513,70 @@ class _UnitsSectionContent extends ConsumerWidget {
                       : '${settings.pressureUnit.symbol}/min',
                   onTap: () =>
                       _showSacUnitPicker(context, ref, settings.sacUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_gasModel,
+                  value: settings.gasModel == GasModel.ideal
+                      ? context.l10n.settings_units_gasModel_ideal
+                      : context.l10n.settings_units_gasModel_real,
+                  onTap: () =>
+                      _showGasModelPicker(context, ref, settings.gasModel),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_defaultCurrency,
+                  value: settings.defaultCurrency,
+                  onTap: () => _showCurrencyPicker(
+                    context,
+                    ref,
+                    settings.defaultCurrency,
+                  ),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_visibilityScale_title,
+                  value: visibilityPresetLabel(
+                    context.l10n,
+                    settings.visibilityScalePreset,
+                  ),
+                  onTap: () =>
+                      showVisibilityScalePicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_coordinateFormat_title,
+                  value: coordinateFormatLabel(
+                    context.l10n,
+                    settings.coordinateFormat,
+                  ),
+                  onTap: () =>
+                      showCoordinateFormatPicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_placeNameLanguage_title),
+                  subtitle: Text(
+                    context.l10n.settings_placeNameLanguage_subtitle,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        placeNameLanguageLabel(settings.placeNameLanguage),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () =>
+                      showPlaceNameLanguagePicker(context, ref, settings),
                 ),
               ],
             ),
@@ -820,6 +923,122 @@ class _UnitsSectionContent extends ConsumerWidget {
     );
   }
 
+  /// Pick the equation of state behind every pressure-to-volume conversion.
+  ///
+  /// The dialog spells out the consequence, because the difference between the
+  /// two answers is what divers read as a bug when their hand calculation
+  /// disagrees with the app (issue #828).
+  void _showGasModelPicker(
+    BuildContext context,
+    WidgetRef ref,
+    GasModel currentModel,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_units_dialog_gasModel),
+        // Scrollable: unlike the sibling unit pickers this one carries an
+        // explanatory paragraph above two subtitled options, which overflows
+        // a short dialog on small screens or at large text scales.
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  context.l10n.settings_units_gasModel_explanation,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              ListTile(
+                title: Text(context.l10n.settings_units_gasModel_real),
+                subtitle: Text(
+                  context.l10n.settings_units_gasModel_real_subtitle,
+                ),
+                trailing: currentModel == GasModel.real
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setGasModel(GasModel.real);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              ListTile(
+                title: Text(context.l10n.settings_units_gasModel_ideal),
+                subtitle: Text(
+                  context.l10n.settings_units_gasModel_ideal_subtitle,
+                ),
+                trailing: currentModel == GasModel.ideal
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setGasModel(GasModel.ideal);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCurrencyPicker(
+    BuildContext context,
+    WidgetRef ref,
+    String currentCode,
+  ) {
+    final current = currentCode.trim().toUpperCase();
+    final codes = currencyCodesWith(current);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_units_dialog_defaultCurrency),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final code in codes)
+                ListTile(
+                  title: Text('$code  ${currencySymbol(code)}'),
+                  trailing: code == current
+                      ? Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setDefaultCurrency(code);
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showTimeFormatPicker(
     BuildContext context,
     WidgetRef ref,
@@ -947,14 +1166,15 @@ class _DecompressionSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Data Source Preferences'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_dataSources,
+          ),
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              'When set to Dive Computer, the app uses data reported by the '
-              'dive computer when available. Falls back to calculated values '
-              'when computer data is not present.',
+              context.l10n.settings_decompression_header_dataSources_subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -966,7 +1186,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
               children: [
                 _buildSourceDropdownTile(
                   context,
-                  title: 'NDL Source',
+                  title: context.l10n.settings_decompression_ndlSource,
                   value: settings.defaultNdlSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -978,7 +1198,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 // choice remains meaningful for the deco stop schedule below.
                 _buildSourceDropdownTile(
                   context,
-                  title: 'Deco Stop Source',
+                  title: context.l10n.settings_decompression_decoStopSource,
                   value: settings.defaultDecoStopSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -987,7 +1207,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
-                  title: 'TTS Source',
+                  title: context.l10n.settings_decompression_ttsSource,
                   value: settings.defaultTtsSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -996,7 +1216,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
-                  title: 'CNS Source',
+                  title: context.l10n.settings_decompression_cnsSource,
                   value: settings.defaultCnsSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -1044,14 +1264,15 @@ class _DecompressionSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Ascent planning'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_ascent,
+          ),
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              'Which carried cylinders the simulated ascent (TTS, ceiling and '
-              'stops) may switch to at each depth. Only gases recorded on the '
-              'dive are considered.',
+              context.l10n.settings_decompression_header_ascent_subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1061,19 +1282,23 @@ class _DecompressionSectionContent extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.swap_vert),
-              title: const Text('Plan ascent with'),
+              title: Text(context.l10n.settings_decompression_ascentGasLabel),
               dense: true,
               trailing: DropdownButton<AscentGasSet>(
                 value: settings.ascentGasSet,
                 underline: const SizedBox.shrink(),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: AscentGasSet.allCarried,
-                    child: Text('All carried cylinders'),
+                    child: Text(
+                      context.l10n.settings_decompression_ascentGas_allCarried,
+                    ),
                   ),
                   DropdownMenuItem(
                     value: AscentGasSet.decoStageOnly,
-                    child: Text('Deco/stage + back gas'),
+                    child: Text(
+                      context.l10n.settings_decompression_ascentGas_decoStage,
+                    ),
                   ),
                 ],
                 onChanged: (value) {
@@ -1101,14 +1326,14 @@ class _DecompressionSectionContent extends ConsumerWidget {
       trailing: DropdownButton<MetricDataSource>(
         value: value,
         underline: const SizedBox.shrink(),
-        items: const [
+        items: [
           DropdownMenuItem(
             value: MetricDataSource.calculated,
-            child: Text('Calculated'),
+            child: Text(context.l10n.settings_decompression_sourceCalculated),
           ),
           DropdownMenuItem(
             value: MetricDataSource.computer,
-            child: Text('Dive Computer'),
+            child: Text(context.l10n.settings_decompression_sourceComputer),
           ),
         ],
         onChanged: (newValue) {
@@ -1476,7 +1701,7 @@ class _AppearanceSectionContentState
     if (_showColumnConfig) {
       final backLabel = _columnConfigSection != null
           ? _getSectionDisplayName(context, _columnConfigSection!)
-          : 'Appearance';
+          : context.l10n.settings_section_appearance_title;
       return Column(
         children: [
           Align(
@@ -1513,7 +1738,7 @@ class _AppearanceSectionContentState
               key: const Key('sectionBackButton'),
               onPressed: () => setState(() => _activeSectionKey = null),
               icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Appearance'),
+              label: Text(context.l10n.settings_section_appearance_title),
             ),
           ),
           Expanded(
@@ -1541,7 +1766,10 @@ class _AppearanceSectionContentState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // -- General --
-          _buildSectionHeader(context, 'General'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_general,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -1575,7 +1803,10 @@ class _AppearanceSectionContentState
                   leading: const Icon(Icons.language),
                   title: Text(context.l10n.settings_appearance_header_language),
                   subtitle: Text(
-                    LanguageSettingsPage.getDisplayName(settings.locale),
+                    LanguageSettingsPage.getDisplayName(
+                      context.l10n,
+                      settings.locale,
+                    ),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => setState(() => _showLanguageList = true),
@@ -1607,8 +1838,75 @@ class _AppearanceSectionContentState
             ),
           ),
           const SizedBox(height: 24),
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.format_paint_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentNavIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentNavIcons_subtitle,
+                  ),
+                  value: settings.accentNavIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentNavIcons(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.title_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(
+                    context.l10n.settings_appearance_accentSectionHeaders,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_accentSectionHeaders_subtitle,
+                  ),
+                  value: settings.accentSectionHeaders,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentSectionHeaders(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.list_alt_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentListIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentListIcons_subtitle,
+                  ),
+                  value: settings.accentListIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentListIcons(value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           // -- Sections --
-          _buildSectionHeader(context, 'Sections'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_sections,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -1792,32 +2090,7 @@ class _NotificationsSectionContent extends ConsumerWidget {
                   permissionAsync.when(
                     data: (granted) {
                       if (!granted) {
-                        return ListTile(
-                          leading: const Icon(
-                            Icons.warning,
-                            color: Colors.orange,
-                          ),
-                          title: Text(
-                            context.l10n.settings_notifications_disabled_title,
-                          ),
-                          subtitle: Text(
-                            context
-                                .l10n
-                                .settings_notifications_disabled_subtitle,
-                          ),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              await NotificationService.instance
-                                  .requestPermission();
-                              ref.invalidate(notificationPermissionProvider);
-                            },
-                            child: Text(
-                              context
-                                  .l10n
-                                  .settings_notifications_disabled_enableButton,
-                            ),
-                          ),
-                        );
+                        return const NotificationPermissionCard();
                       }
                       return const SizedBox.shrink();
                     },
@@ -1990,6 +2263,16 @@ class _ManageSectionContent extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tank-presets'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.build_circle_outlined),
+                  title: Text(context.l10n.settings_manage_serviceTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_serviceTypes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/equipment/service-types'),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -2380,15 +2663,18 @@ class _DataSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Data Tools'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_dataTools,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.access_time),
-                  title: const Text('Fix Dive Times'),
-                  subtitle: const Text('Adjust times for imported dives'),
+                  title: Text(context.l10n.settings_fixDiveTimes_title),
+                  subtitle: Text(context.l10n.settings_fixDiveTimes_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/fix-dive-times'),
                 ),
@@ -2442,7 +2728,7 @@ class _DataSourcesSectionContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final permissionsAsync = ref.watch(healthImportHasPermissionsProvider);
+    final permissionsAsync = ref.watch(healthImportPermissionStatusProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2505,12 +2791,13 @@ class _DataSourcesSectionContent extends ConsumerWidget {
                   const SizedBox(height: 12),
                   // Permission status
                   permissionsAsync.when(
-                    data: (hasPerms) =>
-                        _buildPermissionStatus(context, hasPerms: hasPerms),
-                    loading: () =>
-                        _buildPermissionStatus(context, isLoading: true),
-                    error: (_, _) =>
-                        _buildPermissionStatus(context, hasPerms: false),
+                    data: (status) =>
+                        _buildPermissionStatus(context, status: status),
+                    loading: () => _buildPermissionStatus(context),
+                    error: (_, _) => _buildPermissionStatus(
+                      context,
+                      status: HealthPermissionStatus.undetermined,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -2539,6 +2826,22 @@ class _DataSourcesSectionContent extends ConsumerWidget {
                     context
                         .l10n
                         .settings_dataSources_appleHealth_dataTypeWorkouts,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.vertical_align_bottom),
+                  title: Text(
+                    context.l10n.settings_dataSources_appleHealth_dataTypeDepth,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.thermostat),
+                  title: Text(
+                    context
+                        .l10n
+                        .settings_dataSources_appleHealth_dataTypeWaterTemp,
                   ),
                 ),
                 const Divider(height: 1),
@@ -2619,15 +2922,19 @@ class _DataSourcesSectionContent extends ConsumerWidget {
     );
   }
 
+  /// Permission row for the Apple Health card.
+  ///
+  /// A null [status] means the check is still running. Apple never discloses
+  /// read access, so [HealthPermissionStatus.undetermined] is the normal
+  /// steady state on iOS and must not be painted as a refusal.
   Widget _buildPermissionStatus(
     BuildContext context, {
-    bool hasPerms = false,
-    bool isLoading = false,
+    HealthPermissionStatus? status,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (isLoading) {
+    if (status == null) {
       return Row(
         children: [
           SizedBox(
@@ -2649,23 +2956,40 @@ class _DataSourcesSectionContent extends ConsumerWidget {
       );
     }
 
+    final (icon, color, label) = switch (status) {
+      HealthPermissionStatus.granted => (
+        Icons.check_circle,
+        Colors.green,
+        context.l10n.settings_dataSources_appleHealth_permissionGranted,
+      ),
+      HealthPermissionStatus.denied => (
+        Icons.cancel,
+        colorScheme.error,
+        context.l10n.settings_dataSources_appleHealth_permissionNotGranted,
+      ),
+      HealthPermissionStatus.unsupported => (
+        Icons.info_outline,
+        colorScheme.onSurfaceVariant,
+        context.l10n.settings_dataSources_appleHealth_permissionUnsupported,
+      ),
+      HealthPermissionStatus.undetermined => (
+        Icons.health_and_safety,
+        colorScheme.onSurfaceVariant,
+        context.l10n.settings_dataSources_appleHealth_permissionManagedInHealth,
+      ),
+    };
+
     return Row(
       children: [
-        Icon(
-          hasPerms ? Icons.check_circle : Icons.cancel,
-          size: 16,
-          color: hasPerms ? Colors.green : colorScheme.error,
-        ),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
-        Text(
-          hasPerms
-              ? context.l10n.settings_dataSources_appleHealth_permissionGranted
-              : context
-                    .l10n
-                    .settings_dataSources_appleHealth_permissionNotGranted,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: hasPerms ? Colors.green : colorScheme.error,
-            fontWeight: FontWeight.w500,
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
@@ -2697,9 +3021,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
     final versionString = packageInfoAsync.when(
       data: (info) {
-        final version = info.version.endsWith('.${info.buildNumber}')
-            ? info.version
-            : '${info.version}.${info.buildNumber}';
+        final version = formatAppVersion(info);
         final base = context.l10n.settings_about_version(version);
         return isBetaChannel
             ? context.l10n.settings_updates_channelBadgeBeta(base)
@@ -2738,9 +3060,9 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ),
                 // Beta enrollment signpost for store builds: the app cannot
                 // switch channels itself there, so link to the store's beta
-                // program. Hidden until the enrollment links exist.
-                if (!UpdateChannelConfig.isAutoUpdateEnabled &&
-                    _betaEnrollUrl.isNotEmpty) ...[
+                // program. Null on every build that has its own updater, and
+                // on platforms whose program is not live.
+                if (betaEnrollUrl case final enrollUrl?) ...[
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.science_outlined),
@@ -2749,7 +3071,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                       context.l10n.settings_updates_joinBetaSubtitle,
                     ),
                     onTap: () => launchUrl(
-                      Uri.parse(_betaEnrollUrl),
+                      Uri.parse(enrollUrl),
                       mode: LaunchMode.externalApplication,
                     ),
                   ),
@@ -2901,13 +3223,6 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ],
       ),
     );
-  }
-
-  /// The store beta-program URL for this platform ('' hides the signpost).
-  String get _betaEnrollUrl {
-    if (Platform.isIOS || Platform.isMacOS) return kTestFlightBetaUrl;
-    if (Platform.isAndroid) return kPlayBetaOptInUrl;
-    return '';
   }
 
   Future<void> _showChannelPicker(BuildContext context) async {

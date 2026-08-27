@@ -6,6 +6,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -15,6 +18,38 @@ class MediaRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(MediaRepository);
+
+  /// Trailing-debounce window applied to [watchMediaChanges].
+  ///
+  /// A sync applies remote changes as many per-changeset transactions, and a
+  /// bulk photo import inserts one row per file; un-coalesced, every commit
+  /// would re-invalidate every listening provider. Debouncing collapses a
+  /// write burst into a single tick that fires once writes go quiet.
+  static const changeTickDebounce = Duration(milliseconds: 300);
+
+  /// Emits whenever the `media` table changes so cross-feature providers can
+  /// refresh after a delete, an import, or a sync -- including writes that go
+  /// straight to the database and so bypass the notifier paths that invalidate
+  /// per-dive media providers.
+  ///
+  /// Covers `media_enrichment` as well as `media`.
+  ///
+  /// This tick was scoped to `media` alone on the reasoning that consumers
+  /// render the media rows themselves and not the joined enrichment values.
+  /// That is not true of the fullscreen viewer, and the reads behind the tick
+  /// left-outer-join the enrichment table regardless, so a row written there
+  /// changes what they return just as much as a write to `media` does.
+  ///
+  /// The narrower scope made the enrichment backfill invisible: it computed
+  /// and saved the depth and elapsed values, no provider re-read them, and
+  /// the depth chips, mini profile and dive computer stayed absent until the
+  /// viewer was closed and reopened. Newly linked media hit that every time,
+  /// since linking is precisely when the enrichment does not exist yet.
+  Stream<void> watchMediaChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.mediaEnrichment]),
+      )
+      .debounce(changeTickDebounce);
 
   /// Get all media for a dive, ordered by takenAt
   /// Includes enrichment data (depth, temperature) if available
@@ -35,7 +70,7 @@ class MediaRepository {
       return rows.map((row) {
         final mediaRow = row.readTable(_db.media);
         final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
@@ -45,6 +80,46 @@ class MediaRepository {
       );
       rethrow;
     }
+  }
+
+  /// Get all media directly attached to a site, ordered by takenAt.
+  /// Enrichment rides along for rows that are also dive-linked.
+  Future<List<domain.MediaItem>> getMediaForSite(String siteId) async {
+    try {
+      final query =
+          _db.select(_db.media).join([
+              leftOuterJoin(
+                _db.mediaEnrichment,
+                _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+              ),
+            ])
+            ..where(_db.media.siteId.equals(siteId))
+            ..orderBy([OrderingTerm.asc(_db.media.takenAt)]);
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Count of media directly attached to a site (badges/headers).
+  Future<int> getMediaCountForSite(String siteId) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.siteId.equals(siteId));
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
   }
 
   /// Get single media item by ID
@@ -63,7 +138,7 @@ class MediaRepository {
 
       final mediaRow = row.readTable(_db.media);
       final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-      return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      return mediaItemFromRow(mediaRow, enrichmentRow);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get media by id: $id',
@@ -74,13 +149,18 @@ class MediaRepository {
     }
   }
 
-  /// Newest photos across all dives, ordered by takenAt descending.
-  /// Videos and signatures are excluded, as are photos not attached to a
-  /// dive (the dashboard ribbon links each tile to its dive, so an
-  /// unattached photo would render as a dead tile). Backs the dashboard
-  /// photo ribbon.
-  Future<List<domain.MediaItem>> getRecentPhotos({int limit = 12}) async {
+  /// Newest photos and videos across all dives, ordered by takenAt
+  /// descending. Signatures and documents are excluded: they are attachments
+  /// rather than things a diver browses by recency. Media not attached to a
+  /// dive is excluded too, because the dashboard ribbon links each tile to
+  /// its dive and an unattached item would render as a dead tile. Backs the
+  /// dashboard media ribbon.
+  Future<List<domain.MediaItem>> getRecentMedia({int limit = 12}) async {
     try {
+      final browsableTypes = [
+        mediaTypeToDbString(domain.MediaType.photo),
+        mediaTypeToDbString(domain.MediaType.video),
+      ];
       final query =
           _db.select(_db.media).join([
               leftOuterJoin(
@@ -89,9 +169,7 @@ class MediaRepository {
               ),
             ])
             ..where(
-              _db.media.fileType.equals(
-                    _mediaTypeToString(domain.MediaType.photo),
-                  ) &
+              _db.media.fileType.isIn(browsableTypes) &
                   _db.media.diveId.isNotNull(),
             )
             ..orderBy([OrderingTerm.desc(_db.media.takenAt)])
@@ -101,11 +179,11 @@ class MediaRepository {
       return rows.map((row) {
         final mediaRow = row.readTable(_db.media);
         final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get recent photos',
+        'Failed to get recent media',
         error: e,
         stackTrace: stackTrace,
       );
@@ -127,6 +205,8 @@ class MediaRepository {
       case MediaSourceType.networkUrl:
       case MediaSourceType.manifestEntry:
       case MediaSourceType.signature:
+      // Cloud-backed rows resolve through the store on every device.
+      case MediaSourceType.mediaStore:
         return null;
     }
   }
@@ -147,7 +227,7 @@ class MediaRepository {
               diveId: Value(item.diveId),
               siteId: Value(item.siteId),
               filePath: Value(item.filePath ?? ''),
-              fileType: Value(_mediaTypeToString(item.mediaType)),
+              fileType: Value(mediaTypeToDbString(item.mediaType)),
               platformAssetId: Value(item.platformAssetId),
               originalFilename: Value(item.originalFilename),
               latitude: Value(item.latitude),
@@ -190,6 +270,8 @@ class MediaRepository {
               remoteCompressedUploadedAt: Value(
                 item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
               ),
+              retainInLibrary: Value(item.retainInLibrary),
+              manualElapsedSeconds: Value(item.manualElapsedSeconds),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -219,6 +301,41 @@ class MediaRepository {
     }
   }
 
+  /// Pins [id] to [elapsedSeconds] from its dive's start, or clears the pin
+  /// with null so the position derives from the capture time again
+  /// (issue #1090).
+  ///
+  /// Writes only the pin and updatedAt, so a stale caller snapshot cannot
+  /// clobber any other column. The enrichment row is NOT rewritten here:
+  /// [DiveMediaEnricher] is the one writer of enrichment and reads the pin
+  /// on its next pass, which callers trigger right after this returns.
+  Future<void> setManualElapsedSeconds(String id, int? elapsedSeconds) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+        MediaCompanion(
+          manualElapsedSeconds: Value(elapsedSeconds),
+          updatedAt: Value(now),
+        ),
+      );
+      _log.info('Set manual elapsed for media $id: $elapsedSeconds');
+
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set manual elapsed for media: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Update existing media
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
@@ -230,7 +347,7 @@ class MediaRepository {
           diveId: Value(item.diveId),
           siteId: Value(item.siteId),
           filePath: Value(item.filePath ?? ''),
-          fileType: Value(_mediaTypeToString(item.mediaType)),
+          fileType: Value(mediaTypeToDbString(item.mediaType)),
           platformAssetId: Value(item.platformAssetId),
           originalFilename: Value(item.originalFilename),
           latitude: Value(item.latitude),
@@ -271,6 +388,8 @@ class MediaRepository {
           remoteCompressedUploadedAt: Value(
             item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
           ),
+          retainInLibrary: Value(item.retainInLibrary),
+          manualElapsedSeconds: Value(item.manualElapsedSeconds),
           updatedAt: Value(now),
         ),
       );
@@ -296,8 +415,11 @@ class MediaRepository {
   Future<void> deleteMedia(String id) async {
     try {
       _log.info('Deleting media: $id');
-      await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'media', recordId: id);
+      await _db.transaction(() async {
+        await _dropEnrichmentRows([id]);
+        await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(entityType: 'media', recordId: id);
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted media: $id');
     } catch (e, stackTrace) {
@@ -317,6 +439,10 @@ class MediaRepository {
     try {
       _log.info('Deleting ${ids.length} media items');
       await _db.transaction(() async {
+        // Before the parents: the enrichment rows would otherwise vanish on
+        // the FK cascade, which removes them without logging anything. See
+        // [_dropEnrichmentRows] for why the tombstone matters.
+        await _dropEnrichmentRows(ids);
         for (final id in ids) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
@@ -412,24 +538,49 @@ class MediaRepository {
   /// vs. available items here).
   Future<List<domain.MediaItem>> getAllBySourceType(
     MediaSourceType sourceType,
+  ) => getAllBySourceTypes({sourceType});
+
+  /// Every row of the given source types, or every row when [sourceTypes] is
+  /// null.
+  ///
+  /// Null rather than defaulting to "all types" so a caller cannot sweep the
+  /// whole library by forgetting an argument: asking for everything has to be
+  /// written down.
+  Future<List<domain.MediaItem>> getAllBySourceTypes(
+    Set<MediaSourceType>? sourceTypes,
   ) async {
+    // Null means every row; an EMPTY set means none, and asking the database
+    // to prove that is pointless. Not a correctness guard (SQLite accepts the
+    // `IN ()` an empty list compiles to and matches nothing), but it matches
+    // partitionMediaForDiveDeletion's convention and keeps the null-versus-
+    // empty distinction obvious at the top of the method, where getting it
+    // backwards would sweep the whole library instead of none of it.
+    if (sourceTypes != null && sourceTypes.isEmpty) {
+      return const <domain.MediaItem>[];
+    }
     try {
       final query = _db.select(_db.media).join([
         leftOuterJoin(
           _db.mediaEnrichment,
           _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
         ),
-      ])..where(_db.media.sourceType.equals(sourceType.name));
+      ]);
+      if (sourceTypes != null) {
+        query.where(
+          _db.media.sourceType.isIn(sourceTypes.map((t) => t.name).toList()),
+        );
+      }
 
       final rows = await query.get();
       return rows.map((row) {
         final mediaRow = row.readTable(_db.media);
         final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get media by source type: ${sourceType.name}',
+        'Failed to get media by source types: '
+        '${sourceTypes?.map((t) => t.name).join(',') ?? 'all'}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -458,7 +609,7 @@ class MediaRepository {
       return rows.map((row) {
         final mediaRow = row.readTable(_db.media);
         final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
@@ -501,6 +652,71 @@ class MediaRepository {
     }
   }
 
+  /// Writes the orphan flag and the verification stamp together, and nothing
+  /// else.
+  ///
+  /// Deliberately NOT [updateMedia], which writes every column from the
+  /// caller's snapshot. The passive reconciliation path is driven by grid
+  /// tiles, and a tile's snapshot comes from a FutureProvider that an
+  /// upload's stamp write does not invalidate, so it goes stale the moment an
+  /// upload completes. A full-row write from there would silently roll back
+  /// `remoteUploadedAt` and anything else that changed since the tile built.
+  ///
+  /// Differs from [markOrphaned] only by also stamping `lastVerifiedAt`,
+  /// which the callers of this one have actually earned: they checked.
+  ///
+  /// Idempotent: the UPDATE is guarded on the flag actually differing, and
+  /// the sync record is only marked pending when a row was written.
+  ///
+  /// Deliberately enforced HERE rather than left to the caller.
+  /// `reconciledOrphanFlag` compares against the caller's snapshot, and a grid
+  /// tile's snapshot can lag the row it describes, so a stale caller can ask
+  /// for a state the row already holds. Since every write here is sync-visible
+  /// through [markRecordPending], letting that through would queue redundant
+  /// sync work for an item nothing changed about. The consumers that feed
+  /// tiles do refresh on media-table ticks today, but that makes this a race
+  /// window rather than a guarantee, and the guarantee belongs at the layer
+  /// that owns the row.
+  Future<void> markVerified(
+    String id, {
+    required bool isOrphaned,
+    required DateTime verifiedAt,
+  }) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      final rowsWritten =
+          await (_db.update(_db.media)..where(
+                // Matching on the OPPOSITE flag is what makes this a no-op
+                // when the row already agrees.
+                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+              ))
+              .write(
+                MediaCompanion(
+                  isOrphaned: Value(isOrphaned),
+                  lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (rowsWritten == 0) return;
+      _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
+
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mark media verified: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all orphaned media
   /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getOrphanedMedia() async {
@@ -516,7 +732,7 @@ class MediaRepository {
       return rows.map((row) {
         final mediaRow = row.readTable(_db.media);
         final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
-        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+        return mediaItemFromRow(mediaRow, enrichmentRow);
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
@@ -576,7 +792,7 @@ class MediaRepository {
         ..where((t) => t.mediaId.equals(mediaId));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToEnrichment(row) : null;
+      return row != null ? mediaEnrichmentFromRow(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get enrichment for media: $mediaId',
@@ -591,58 +807,7 @@ class MediaRepository {
   Future<void> saveEnrichment(domain.MediaEnrichment enrichment) async {
     try {
       _log.info('Saving enrichment for media: ${enrichment.mediaId}');
-      final now = DateTime.now();
-      final id = enrichment.id.isEmpty ? _uuid.v4() : enrichment.id;
-
-      // Check if enrichment already exists for this media
-      final existing = await (_db.select(
-        _db.mediaEnrichment,
-      )..where((t) => t.mediaId.equals(enrichment.mediaId))).getSingleOrNull();
-
-      if (existing != null) {
-        // Update existing enrichment
-        await (_db.update(
-          _db.mediaEnrichment,
-        )..where((t) => t.mediaId.equals(enrichment.mediaId))).write(
-          MediaEnrichmentCompanion(
-            depthMeters: Value(enrichment.depthMeters),
-            temperatureCelsius: Value(enrichment.temperatureCelsius),
-            elapsedSeconds: Value(enrichment.elapsedSeconds),
-            matchConfidence: Value(enrichment.matchConfidence.name),
-            timestampOffsetSeconds: Value(enrichment.timestampOffsetSeconds),
-          ),
-        );
-        await _syncRepository.markRecordPending(
-          entityType: 'mediaEnrichment',
-          recordId: existing.id,
-          localUpdatedAt: now.millisecondsSinceEpoch,
-        );
-      } else {
-        // Insert new enrichment
-        await _db
-            .into(_db.mediaEnrichment)
-            .insert(
-              MediaEnrichmentCompanion(
-                id: Value(id),
-                mediaId: Value(enrichment.mediaId),
-                diveId: Value(enrichment.diveId),
-                depthMeters: Value(enrichment.depthMeters),
-                temperatureCelsius: Value(enrichment.temperatureCelsius),
-                elapsedSeconds: Value(enrichment.elapsedSeconds),
-                matchConfidence: Value(enrichment.matchConfidence.name),
-                timestampOffsetSeconds: Value(
-                  enrichment.timestampOffsetSeconds,
-                ),
-                createdAt: Value(now.millisecondsSinceEpoch),
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'mediaEnrichment',
-          recordId: id,
-          localUpdatedAt: now.millisecondsSinceEpoch,
-        );
-      }
-
+      await _writeEnrichmentRow(enrichment);
       SyncEventBus.notifyLocalChange();
       _log.info('Saved enrichment for media: ${enrichment.mediaId}');
     } catch (e, stackTrace) {
@@ -652,6 +817,102 @@ class MediaRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Saves a batch of enrichments in one transaction.
+  ///
+  /// One transaction means one commit, all-or-nothing persistence, and ONE
+  /// mediaEnrichment table tick, where per-row [saveEnrichment] calls each
+  /// tick separately. `watchMediaChanges` trailing-debounces at 300ms, so a
+  /// fast per-row burst already coalesced -- but a burst SLOWER than the
+  /// window (the dive-media backfill runs from the open media viewer and
+  /// can write a row per photo of a dive) re-ran every subscribed provider
+  /// (the library re-query included) once per quiet gap. An empty batch
+  /// returns without touching the database, so the common "everything
+  /// already enriched" pass costs no tick at all.
+  Future<void> saveEnrichments(List<domain.MediaEnrichment> enrichments) async {
+    if (enrichments.isEmpty) return;
+    try {
+      _log.info('Saving ${enrichments.length} enrichments');
+      // markRecordPending opens its own transaction; Drift nests it as a
+      // savepoint because both repositories share the one database instance.
+      await _db.transaction(() async {
+        for (final enrichment in enrichments) {
+          await _writeEnrichmentRow(enrichment);
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save enrichment batch of ${enrichments.length}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Upserts one enrichment row and marks it pending for sync.
+  ///
+  /// Shared by [saveEnrichment] (single write, then notify) and
+  /// [saveEnrichments] (many writes in one transaction, then one notify);
+  /// deliberately does NOT call [SyncEventBus.notifyLocalChange] so the
+  /// batch path can notify once.
+  Future<void> _writeEnrichmentRow(domain.MediaEnrichment enrichment) async {
+    final now = DateTime.now();
+    final id = enrichment.id.isEmpty ? _uuid.v4() : enrichment.id;
+
+    // Check if enrichment already exists for this media
+    final existing = await (_db.select(
+      _db.mediaEnrichment,
+    )..where((t) => t.mediaId.equals(enrichment.mediaId))).getSingleOrNull();
+
+    if (existing != null) {
+      // Update existing enrichment
+      await (_db.update(
+        _db.mediaEnrichment,
+      )..where((t) => t.mediaId.equals(enrichment.mediaId))).write(
+        MediaEnrichmentCompanion(
+          // The dive is part of the value, not just a back-pointer: an
+          // enrichment is the join product of this media and ONE dive's
+          // profile. Leaving it behind would let a row repaired against a
+          // different dive keep claiming the old one.
+          diveId: Value(enrichment.diveId),
+          depthMeters: Value(enrichment.depthMeters),
+          temperatureCelsius: Value(enrichment.temperatureCelsius),
+          elapsedSeconds: Value(enrichment.elapsedSeconds),
+          matchConfidence: Value(enrichment.matchConfidence.name),
+          timestampOffsetSeconds: Value(enrichment.timestampOffsetSeconds),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'mediaEnrichment',
+        recordId: existing.id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+    } else {
+      // Insert new enrichment
+      await _db
+          .into(_db.mediaEnrichment)
+          .insert(
+            MediaEnrichmentCompanion(
+              id: Value(id),
+              mediaId: Value(enrichment.mediaId),
+              diveId: Value(enrichment.diveId),
+              depthMeters: Value(enrichment.depthMeters),
+              temperatureCelsius: Value(enrichment.temperatureCelsius),
+              elapsedSeconds: Value(enrichment.elapsedSeconds),
+              matchConfidence: Value(enrichment.matchConfidence.name),
+              timestampOffsetSeconds: Value(enrichment.timestampOffsetSeconds),
+              createdAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'mediaEnrichment',
+        recordId: id,
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
     }
   }
 
@@ -726,6 +987,52 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get linked local paths for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Site counterpart of [getLinkedAssetIdsForDive]: gallery-import dedupe
+  /// for direct site attachments.
+  Future<Set<String>> getLinkedAssetIdsForSite(String siteId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT platform_asset_id FROM media '
+            'WHERE site_id = ? AND platform_asset_id IS NOT NULL',
+            variables: [Variable.withString(siteId)],
+          )
+          .get();
+      return result
+          .map((row) => row.data['platform_asset_id'] as String)
+          .toSet();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get linked asset IDs for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Site counterpart of [getLinkedLocalPathsForDive]: file-import dedupe
+  /// for direct site attachments.
+  Future<Set<String>> getLinkedLocalPathsForSite(String siteId) async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT local_path FROM media '
+            'WHERE site_id = ? AND local_path IS NOT NULL',
+            variables: [Variable.withString(siteId)],
+          )
+          .get();
+      return result.map((row) => row.data['local_path'] as String).toSet();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get linked local paths for site: $siteId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -975,26 +1282,15 @@ class MediaRepository {
 
   /// A media row is linked to the logbook when it references a dive or a
   /// site (orphan-prevention spec section 3). Single definition shared by
-  /// backfill scoping, the dive-deletion cascade, and the orphan backlog
-  /// sweep so the three predicates cannot drift apart.
+  /// the deletion cascades, the unlink partitions, and the orphan backlog
+  /// sweep so the predicates cannot drift apart.
   static Expression<bool> isLinkedToDiveOrSite($MediaTable m) =>
       m.diveId.isNotNull() | m.siteId.isNotNull();
 
-  /// Source types whose rows are legitimate as library-level media with no
-  /// dive/site linkage (orphan-prevention spec section 3, gate audit
-  /// 2026-07-23): URL-tab and manifest-subscription imports. Auto-match is
-  /// additive for them, so unlinkedness is a normal permanent state - the
-  /// dive-deletion cascade unlinks instead of deleting, and the backlog
-  /// sweep never touches them.
-  static const List<String> libraryLevelSourceTypes = [
-    'networkUrl',
-    'manifestEntry',
-  ];
-
   /// Splits a dying dive's media (orphan-prevention spec 4.2): `doomed`
-  /// rows die with the dive (dive-only, non-library; full items because
-  /// the blob-delete intent needs contentHash/filename/type), `unlinkIds`
-  /// survive as site-linked or library-level rows with diveId nulled.
+  /// rows die with the dive (dive-only; full items because the blob-delete
+  /// intent needs contentHash/filename/type), `unlinkIds` survive as
+  /// site-linked rows with diveId nulled.
   Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
   partitionMediaForDiveDeletion(List<String> diveIds) async {
     // Not a correctness guard - SQLite accepts the `IN ()` an empty list
@@ -1011,13 +1307,11 @@ class MediaRepository {
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
-      final keep =
-          row.siteId != null ||
-          libraryLevelSourceTypes.contains(row.sourceType);
+      final keep = row.siteId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
-        doomed.add(_mapRowToMediaItem(row));
+        doomed.add(mediaItemFromRow(row));
       }
     }
     return (doomed: doomed, unlinkIds: unlinkIds);
@@ -1044,10 +1338,322 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Backlog-sweep candidates (orphan-prevention spec 4.3): unlinked,
-  /// non-library, and created before [olderThan] (the 24h age guard
-  /// protects any future add-then-link creator the gate audit could not
-  /// foresee).
+  /// Splits a dying site's media: `doomed` rows die with the site
+  /// (site-only; full items because the blob-delete intent needs
+  /// contentHash/filename/type), `unlinkIds` survive as dive-linked rows
+  /// with siteId nulled. Site counterpart of [partitionMediaForDiveDeletion].
+  Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
+  partitionMediaForSiteDeletion(List<String> siteIds) async {
+    // Empty-guard mirrors [partitionMediaForDiveDeletion]: bulk callers
+    // legitimately hand over empty collections.
+    if (siteIds.isEmpty) {
+      return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.siteId.isIn(siteIds))).get();
+    final doomed = <domain.MediaItem>[];
+    final unlinkIds = <String>[];
+    for (final row in rows) {
+      final keep = row.diveId != null;
+      if (keep) {
+        unlinkIds.add(row.id);
+      } else {
+        doomed.add(mediaItemFromRow(row));
+      }
+    }
+    return (doomed: doomed, unlinkIds: unlinkIds);
+  }
+
+  /// Explicitly unlinks surviving media from deleted sites, with the HLC
+  /// stamp the silent FK SET NULL never produced - so the unlink propagates
+  /// to other devices instead of diverging. Site counterpart of
+  /// [unlinkMediaFromDeletedDives].
+  ///
+  /// Deliberately NOT routed through [_unlinkColumns]: that path also sets
+  /// retain_in_library, which is a one-way latch that permanently excludes a
+  /// row from the orphan sweep. Site-deletion leftovers must stay sweepable,
+  /// the same distinction [unlinkMediaFromDeletedDives] draws.
+  Future<void> unlinkMediaFromDeletedSites(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        MediaCompanion(siteId: const Value(null), updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Stage B of the repair apply (Media section Phase 3): commits every
+  /// prepared write in one transaction with per-row HLC marking. Stage A
+  /// (hashing, bookmarks) happened per row before this; Stage C (queue
+  /// enqueues, cloud-backed conversion) follows after.
+  Future<void> applyRepairWrites(List<RepairWrite> writes) async {
+    if (writes.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      for (final write in writes) {
+        // sourceType is the resolver dispatch key, so a repair must always
+        // restate it: relinking a dead gallery row to a file on disk while
+        // leaving sourceType alone would keep routing the row through
+        // PlatformGalleryResolver, turning a visibly-missing item into a
+        // silently-missing one the moment the orphan flag lifts.
+        final toGallery =
+            write.newSourceType == MediaSourceType.platformGallery;
+        await (_db.update(
+          _db.media,
+        )..where((t) => t.id.equals(write.mediaId))).write(
+          MediaCompanion(
+            localPath: toGallery
+                ? const Value(null)
+                : Value(write.newLocalPath),
+            bookmarkRef: write.newBookmarkRef == null && !toGallery
+                ? const Value.absent()
+                : Value(write.newBookmarkRef),
+            // Null for a file repair: the old asset id addresses an asset
+            // that no longer exists on this device.
+            platformAssetId: Value(write.newPlatformAssetId),
+            sourceType: Value(write.newSourceType.name),
+            isOrphaned: const Value(false),
+            lastVerifiedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: write.mediaId,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Converts rows to cloud-backed [MediaSourceType.mediaStore] (Media
+  /// section Phase 3): the store becomes the source of truth, the local
+  /// pointers clear, and the orphan flag lifts. Refused per row without the
+  /// contentHash + remoteUploadedAt stamp pair -- converting an unconfirmed
+  /// row would render nothing anywhere. Sync-safe like [_unlinkColumns].
+  Future<void> convertToCloudBacked(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.id.isIn(mediaIds))).get();
+    final qualified = [
+      for (final row in rows)
+        if (row.contentHash != null && row.remoteUploadedAt != null) row.id,
+    ];
+    if (qualified.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.isIn(qualified))).write(
+        MediaCompanion(
+          sourceType: Value(MediaSourceType.mediaStore.name),
+          localPath: const Value(null),
+          bookmarkRef: const Value(null),
+          platformAssetId: const Value(null),
+          isOrphaned: const Value(false),
+          lastVerifiedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final id in qualified) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Deletes the enrichment rows of [mediaIds], each with a tombstone.
+  ///
+  /// An enrichment is the join product of a media item and ONE dive's
+  /// profile, so it is stale the moment that dive link changes: both the
+  /// move path and the unlink path have to drop it rather than leave the
+  /// photo reporting a depth and elapsed time from a dive it has left.
+  /// mediaEnrichment is an HLC-synced entity, so the drop needs a logged
+  /// deletion rather than a silent disappearance.
+  ///
+  /// Deletion needs this as much as the link-changing paths do, even though
+  /// the FK cascade would remove the child rows on its own: the cascade logs
+  /// nothing, so the one operation that destroys the most data would be the
+  /// one telling peers the least. A peer's live child of a media row we have
+  /// deleted is already skipped on merge (mediaEnrichment's parentRefs are
+  /// `nullable: false`), so this is not the only thing standing between us
+  /// and a resurrected row; it removes the dependence on that interplay, and
+  /// on foreign keys being enabled at all.
+  ///
+  /// Caller supplies the transaction; this does no committing of its own.
+  Future<void> _dropEnrichmentRows(List<String> mediaIds) async {
+    final stale = await (_db.select(
+      _db.mediaEnrichment,
+    )..where((t) => t.mediaId.isIn(mediaIds))).get();
+    for (final row in stale) {
+      await (_db.delete(
+        _db.mediaEnrichment,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'mediaEnrichment',
+        recordId: row.id,
+      );
+    }
+  }
+
+  /// Splits [mediaIds] by whether anything other than the dive still needs
+  /// the row, for the dive-unlink path.
+  ///
+  /// `siteLinked` rows survive a dive unlink with the link merely cleared,
+  /// the same carve-out the dive-deletion cascade makes: a dive-scoped
+  /// action must never destroy a site's only photo as a side effect.
+  Future<({List<String> deletable, List<String> siteLinked})>
+  partitionForDiveUnlink(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) {
+      return (deletable: const <String>[], siteLinked: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.id.isIn(mediaIds))).get();
+    final deletable = <String>[];
+    final siteLinked = <String>[];
+    for (final row in rows) {
+      if (row.siteId != null) {
+        siteLinked.add(row.id);
+      } else {
+        deletable.add(row.id);
+      }
+    }
+    return (deletable: deletable, siteLinked: siteLinked);
+  }
+
+  /// Mirror of [partitionForDiveUnlink] for the site-unlink path: rows a
+  /// dive still references survive with only the site link cleared, the
+  /// rest leave the library.
+  Future<({List<String> deletable, List<String> diveLinked})>
+  partitionForSiteUnlink(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) {
+      return (deletable: const <String>[], diveLinked: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.id.isIn(mediaIds))).get();
+    final deletable = <String>[];
+    final diveLinked = <String>[];
+    for (final row in rows) {
+      if (row.diveId != null) {
+        diveLinked.add(row.id);
+      } else {
+        deletable.add(row.id);
+      }
+    }
+    return (deletable: deletable, diveLinked: diveLinked);
+  }
+
+  /// Of [mediaIds], those carrying metadata a user typed or set that no
+  /// source file holds: a caption, or the favorite flag.
+  ///
+  /// Used to decide whether an unlink needs to warn before it removes the
+  /// rows. Deliberately no join against `media_species`: that table is
+  /// declared but nothing in the app reads or writes it, so joining it
+  /// would cost a scan to always return nothing.
+  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return {};
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.id.isIn(mediaIds) &
+                  (t.isFavorite.equals(true) |
+                      (t.caption.isNotNull() & t.caption.equals('').not())),
+            ))
+            .get();
+    return {for (final row in rows) row.id};
+  }
+
+  /// Moves media to [newDiveId] (also the link path for unlinked rows).
+  /// Enrichment rows are join products of media x the OLD dive's profile:
+  /// stale after the move, so they are deleted with tombstones (enrichment
+  /// is an HLC-synced entity) and recomputed lazily by DiveMediaEnricher
+  /// the next time the new dive's media renders.
+  Future<void> reassignMediaToDive(
+    List<String> mediaIds,
+    String newDiveId,
+  ) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await _dropEnrichmentRows(mediaIds);
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        MediaCompanion(diveId: Value(newDiveId), updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Clears the dive link and keeps the row. Reached from
+  /// [MediaUnlinkService] for media a dive site still needs; media with no
+  /// other attachment is deleted outright instead.
+  ///
+  /// Drops the enrichment as part of the same transaction: it was computed
+  /// against the dive being left, so keeping it would leave the photo
+  /// reporting that dive's depth and elapsed time from the site gallery.
+  Future<void> unlinkFromDive(List<String> mediaIds) => _unlinkColumns(
+    mediaIds,
+    const MediaCompanion(diveId: Value(null)),
+    dropEnrichment: true,
+  );
+
+  /// Same mechanic for the site link, for media a dive still needs.
+  Future<void> unlinkFromSite(List<String> mediaIds) =>
+      _unlinkColumns(mediaIds, const MediaCompanion(siteId: Value(null)));
+
+  /// Attaches the site link, same sync-safe shape.
+  Future<void> linkMediaToSite(List<String> mediaIds, String siteId) =>
+      _unlinkColumns(mediaIds, MediaCompanion(siteId: Value(siteId)));
+
+  Future<void> _unlinkColumns(
+    List<String> mediaIds,
+    MediaCompanion changes, {
+    bool dropEnrichment = false,
+  }) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      if (dropEnrichment) await _dropEnrichmentRows(mediaIds);
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        changes.copyWith(updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Unlinked rows older than [olderThan]. Every source type qualifies: a
+  /// row with no dive and no site has no business in the library, and the
+  /// age guard only exists so an insert racing this query is never caught
+  /// mid-flight.
   Future<List<String>> getSweepableOrphanIds({
     required DateTime olderThan,
   }) async {
@@ -1056,7 +1662,6 @@ class MediaRepository {
       ..addColumns([id])
       ..where(
         isLinkedToDiveOrSite(_db.media).not() &
-            _db.media.sourceType.isNotIn(libraryLevelSourceTypes) &
             _db.media.createdAt.isSmallerThanValue(
               olderThan.millisecondsSinceEpoch,
             ),
@@ -1301,123 +1906,5 @@ class MediaRepository {
       ..addColumns([count])
       ..where(_db.media.contentHash.equals(contentHash));
     return (await query.getSingle()).read(count) ?? 0;
-  }
-
-  domain.MediaItem _mapRowToMediaItem(
-    MediaData row, [
-    MediaEnrichmentData? enrichmentRow,
-  ]) {
-    return domain.MediaItem(
-      id: row.id,
-      diveId: row.diveId,
-      siteId: row.siteId,
-      platformAssetId: row.platformAssetId,
-      filePath: row.filePath,
-      originalFilename: row.originalFilename,
-      mediaType: _parseMediaType(row.fileType),
-      latitude: row.latitude,
-      longitude: row.longitude,
-      // taken_at is stored as wall-clock-UTC millis (see the write path and the
-      // dive side, which reads entry_time with isUtc: true). Hydrate it as UTC
-      // so downstream normalisation (TripMediaScanner.toWallClockUtc, invoked by
-      // EnrichmentService.calculateEnrichment) is a no-op instead of shifting the
-      // photo time by the host's UTC offset.
-      takenAt: row.takenAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.takenAt!, isUtc: true)
-          : _defaultTakenAt(row.id),
-      width: row.width,
-      height: row.height,
-      durationSeconds: row.durationSeconds,
-      caption: row.caption,
-      isFavorite: row.isFavorite,
-      thumbnailPath: null, // Not stored in database
-      thumbnailGeneratedAt: row.thumbnailGeneratedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.thumbnailGeneratedAt!)
-          : null,
-      lastVerifiedAt: row.lastVerifiedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.lastVerifiedAt!)
-          : null,
-      isOrphaned: row.isOrphaned,
-      signerId: row.signerId,
-      signerName: row.signerName,
-      imageData: row.imageData,
-      sourceType:
-          MediaSourceType.fromString(row.sourceType) ??
-          MediaSourceType.platformGallery,
-      localPath: row.localPath,
-      bookmarkRef: row.bookmarkRef,
-      url: row.url,
-      subscriptionId: row.subscriptionId,
-      entryKey: row.entryKey,
-      connectorAccountId: row.connectorAccountId,
-      remoteAssetId: row.remoteAssetId,
-      originDeviceId: row.originDeviceId,
-      contentHash: row.contentHash,
-      contentSizeBytes: row.contentSizeBytes,
-      remoteUploadedAt: row.remoteUploadedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.remoteUploadedAt!)
-          : null,
-      remoteThumbUploadedAt: row.remoteThumbUploadedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.remoteThumbUploadedAt!)
-          : null,
-      compressedLevel: row.compressedLevel,
-      compressedSizeBytes: row.compressedSizeBytes,
-      remoteCompressedUploadedAt: row.remoteCompressedUploadedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.remoteCompressedUploadedAt!)
-          : null,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-      enrichment: enrichmentRow != null
-          ? _mapRowToEnrichment(enrichmentRow)
-          : null,
-    );
-  }
-
-  domain.MediaEnrichment _mapRowToEnrichment(MediaEnrichmentData row) {
-    return domain.MediaEnrichment(
-      id: row.id,
-      mediaId: row.mediaId,
-      diveId: row.diveId,
-      depthMeters: row.depthMeters,
-      temperatureCelsius: row.temperatureCelsius,
-      elapsedSeconds: row.elapsedSeconds,
-      matchConfidence:
-          domain.MatchConfidence.fromString(row.matchConfidence) ??
-          domain.MatchConfidence.noProfile,
-      timestampOffsetSeconds: row.timestampOffsetSeconds,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
-    );
-  }
-
-  /// Parses database file_type string to MediaType enum.
-  /// Handles both snake_case (database format) and camelCase (legacy) for compatibility.
-  domain.MediaType _parseMediaType(String value) {
-    switch (value) {
-      case 'video':
-        return domain.MediaType.video;
-      case 'instructor_signature':
-      case 'instructorSignature':
-        return domain.MediaType.instructorSignature;
-      default:
-        return domain.MediaType.photo;
-    }
-  }
-
-  String _mediaTypeToString(domain.MediaType type) {
-    switch (type) {
-      case domain.MediaType.video:
-        return 'video';
-      case domain.MediaType.instructorSignature:
-        return 'instructor_signature';
-      case domain.MediaType.photo:
-        return 'photo';
-    }
-  }
-
-  /// Returns a default DateTime when takenAt is null in database.
-  /// Logs a warning since this indicates data integrity issues.
-  DateTime _defaultTakenAt(String mediaId) {
-    _log.warning('Media $mediaId has null takenAt, defaulting to now');
-    return DateTime.now();
   }
 }

@@ -838,8 +838,14 @@ class BuhlmannAlgorithm {
     // excursions don't pre-drain the recommendation. This mirrors
     // profile_analysis_service's safety-stop detection (which anchors on the
     // last occurrence of max depth).
-    const safetyStopZoneMin = 3.0; // meters
-    const safetyStopZoneMax = 6.0; // meters
+    // Divers hold this stop by eye, in surge, on a computer that reads a
+    // little differently from the one in the log. Crediting only 3-6 m meant
+    // a deliberate four-minute hold at 8-10 ft earned nothing and the review
+    // reported an omitted stop. Off-gassing shallower than 3 m is better, not
+    // worse, so the floor is a noise guard against crediting the final ascent
+    // rather than a judgement about stop depth.
+    const safetyStopZoneMin = 2.0; // meters (6.6 ft)
+    const safetyStopZoneMax = 6.5; // meters (21 ft)
     final maxDepth = depths.reduce(math.max);
     final maxDepthIndex = depths.lastIndexOf(maxDepth);
     int safetyStopTimeAccumulated = 0;

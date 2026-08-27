@@ -62,7 +62,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => fixture),
             filteredDiveStatisticsProvider.overrideWith((ref) async => fixture),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -126,7 +128,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -179,7 +181,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -252,7 +254,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -304,7 +306,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -342,7 +346,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -401,7 +407,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -467,7 +475,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -521,7 +531,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -579,7 +591,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => diveTypes),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -615,7 +629,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),

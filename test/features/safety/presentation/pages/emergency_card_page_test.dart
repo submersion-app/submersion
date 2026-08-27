@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/safety/data/repositories/emergency_chamber_repository.dart';
+import 'package:submersion/features/safety/domain/entities/chamber_listing.dart';
 import 'package:submersion/features/safety/domain/entities/emergency_info.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
@@ -67,6 +68,8 @@ void main() {
     WidgetTester tester, {
     bool includeDiver = true,
     List<EmergencyChamber>? chambers,
+    List<ChamberListing>? listings,
+    int? totalChamberCount,
     EmergencyChamberRepository? chamberRepo,
   }) async {
     await tester.pumpWidget(
@@ -81,7 +84,15 @@ void main() {
               hotline: hotline,
               emsNumber: '000',
               diver: includeDiver ? diver : null,
-              chambers: chambers ?? [chamber],
+              nearbyChambers:
+                  listings ??
+                  [
+                    for (final c in chambers ?? [chamber])
+                      ChamberListing(chamber: c),
+                  ],
+              totalChamberCount:
+                  totalChamberCount ??
+                  (listings ?? chambers ?? [chamber]).length,
             ),
           ),
         ],
@@ -204,5 +215,95 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.deletedId, 'user-1');
+  });
+
+  testWidgets('shows the distance to each chamber', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pump(
+      tester,
+      listings: [ChamberListing(chamber: chamber, distanceMeters: 42000)],
+    );
+
+    // Metric is the default unit setting, so 42 km rather than 26 mi.
+    expect(find.textContaining('42 km'), findsOneWidget);
+  });
+
+  testWidgets(
+    'labels an elective clinic so it cannot be mistaken for a chamber',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final elective = EmergencyChamber(
+        id: 'us-wound-care',
+        name: 'Downtown Wound Care Center',
+        country: 'US',
+        phone: '+1-555-0100',
+        capability: ChamberCapability.elective,
+        lastVerified: DateTime.utc(2026, 7, 1),
+        isBuiltIn: true,
+      );
+      await pump(tester, chambers: [elective]);
+
+      expect(find.text('Elective therapy only'), findsOneWidget);
+    },
+  );
+
+  testWidgets('surfaces the capability of a dive-capable chamber', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final dive = chamber.copyWith(
+      capability: ChamberCapability.divingEmergency,
+      availability: ChamberAvailability.h24,
+    );
+    await pump(tester, chambers: [dive]);
+
+    expect(find.text('Treats diving injuries'), findsOneWidget);
+    expect(find.text('24h'), findsOneWidget);
+  });
+
+  testWidgets('offers the full directory when chambers are omitted', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pump(tester, chambers: [chamber], totalChamberCount: 214);
+
+    expect(find.textContaining('View all 214 chambers'), findsOneWidget);
+  });
+
+  testWidgets('points at the hotline when nothing is in range', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pump(tester, listings: const [], totalChamberCount: 214);
+
+    expect(
+      find.textContaining('No chamber listed within range'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('marks a row that was never confirmed with the facility', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pump(
+      tester,
+      chambers: [chamber.copyWith(verifiedVia: ChamberVerification.registry)],
+    );
+
+    expect(
+      find.textContaining('Not confirmed with the facility'),
+      findsOneWidget,
+    );
   });
 }

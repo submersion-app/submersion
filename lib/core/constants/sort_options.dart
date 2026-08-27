@@ -106,3 +106,15 @@ enum CourseSortField {
   final IconData icon;
   const CourseSortField(this.displayName, this.icon);
 }
+
+/// Sort fields for library media. `dateTaken` is the historical default and
+/// resolves to COALESCE(taken_at, created_at) in the repository.
+enum MediaSortField {
+  dateTaken('Date Taken', Icons.calendar_today),
+  fileName('File Name', Icons.sort_by_alpha),
+  fileSize('File Size', Icons.data_usage);
+
+  final String displayName;
+  final IconData icon;
+  const MediaSortField(this.displayName, this.icon);
+}

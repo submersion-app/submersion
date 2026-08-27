@@ -135,6 +135,8 @@
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Submersion uses the camera to take photos of dive sites and marine life.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Submersion uses Face ID to unlock your dive log.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app uses your contacts to import dive buddies.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

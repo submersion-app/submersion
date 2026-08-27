@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
 /// A single column header cell for the generic entity table view.
@@ -65,7 +66,7 @@ class EntityTableHeaderCell extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        field.displayName,
+                        field.localizedDisplayName(context.l10n),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: theme.textTheme.labelSmall?.copyWith(

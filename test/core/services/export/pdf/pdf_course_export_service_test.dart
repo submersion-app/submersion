@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -11,6 +14,13 @@ import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The course training log must report total *runtime*, not bottom time (#644).
+/// The historical ISO rendering these tests were written against; the diver's
+/// own date and time preferences are covered in pdf_date_preference_test.dart.
+final isoDates = PdfDateFormatter(
+  dateFormat: DateFormatPreference.yyyymmdd,
+  timeFormat: TimeFormat.twentyFourHour,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -75,7 +85,11 @@ void main() {
 
   /// Runs the export and returns the visible text of the generated PDF.
   Future<String> exportText(List<Dive> dives) async {
-    final path = await service.exportCourseTrainingLogToPdf(course, dives);
+    final path = await service.exportCourseTrainingLogToPdf(
+      course,
+      dives,
+      dates: isoDates,
+    );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
     return pdfVisibleText(bytes);
@@ -133,6 +147,39 @@ void main() {
 
     expect(text, contains('Duration 47 min'));
     expect(text, contains('47 Total Minutes'));
+  });
+
+  test('course dates follow the diver\'s preferences (#964)', () async {
+    final path = await service.exportCourseTrainingLogToPdf(
+      course,
+      [
+        Dive(
+          id: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 5, 28, 14, 30),
+          runtime: const Duration(minutes: 47),
+        ),
+      ],
+      dates: PdfDateFormatter(
+        dateFormat: DateFormatPreference.ddmmyyyy,
+        timeFormat: TimeFormat.twelveHour,
+      ),
+    );
+
+    final text = pdfVisibleText(await File(path).readAsBytes());
+    // Course start date on the cover, dive date and time on the entry.
+    expect(text, contains('27/05/2026'));
+    expect(text, contains('28/05/2026'));
+    expect(text, contains('2:30'));
+    expect(text, contains('PM'));
+    expect(text, isNot(contains('2026-05-27')));
+    expect(text, isNot(contains('14:30')));
+
+    expect(
+      path,
+      contains(DateFormat('yyyy-MM-dd').format(DateTime.now())),
+      reason: 'the file name stays ISO so training logs sort by date (#964)',
+    );
   });
 
   test('a dive with no duration at all renders no Duration chip', () async {

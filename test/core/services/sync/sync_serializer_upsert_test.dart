@@ -99,7 +99,6 @@ void main() {
         (type: 'equipmentSets', table: db.equipmentSets.actualTableName),
         (type: 'media', table: db.media.actualTableName),
         (type: 'buddies', table: db.buddies.actualTableName),
-        (type: 'buddyRoles', table: db.buddyRoles.actualTableName),
         (type: 'diveBuddies', table: db.diveBuddies.actualTableName),
         (type: 'certifications', table: db.certifications.actualTableName),
         (type: 'courses', table: db.courses.actualTableName),

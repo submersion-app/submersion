@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
@@ -34,6 +35,7 @@ final customTankPresetsProvider = FutureProvider<List<TankPresetEntity>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getCustomPresets(diverId: validatedDiverId);
 });
 
@@ -43,6 +45,7 @@ final tankPresetProvider = FutureProvider.family<TankPresetEntity?, String>((
   id,
 ) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getPresetById(id);
 });
 
@@ -55,7 +58,11 @@ class TankPresetListNotifier
 
   TankPresetListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      TankPresetListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -67,7 +74,11 @@ class TankPresetListNotifier
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(tankPresetsProvider);
         _ref.invalidate(customTankPresetsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          TankPresetListNotifier,
+          'initialize and load',
+        );
       }
     });
 

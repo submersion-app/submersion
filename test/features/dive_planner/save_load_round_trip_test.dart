@@ -13,6 +13,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier() : super(const AppSettings());
 
+  void updateGradientFactorsForTest(int low, int high) {
+    state = state.copyWith(gfLow: low, gfHigh: high);
+  }
+
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
@@ -23,13 +27,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   late ProviderContainer container;
+  late _TestSettingsNotifier settingsNotifier;
 
   setUp(() async {
     await setUpTestDatabase();
+    settingsNotifier = _TestSettingsNotifier();
     container = ProviderContainer(
-      overrides: [
-        settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-      ],
+      overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
     );
     addTearDown(container.dispose);
   });
@@ -86,4 +90,28 @@ void main() {
     final notifier = container.read(divePlanNotifierProvider.notifier);
     expect(await notifier.loadPlanById('nope'), isFalse);
   });
+
+  test(
+    'a saved plan keeps its own gradient factors when settings change',
+    () async {
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateGradientFactors(30, 70);
+      await notifier.save(
+        summary: const PlanSummaryData(
+          maxDepth: 30.0,
+          runtimeSeconds: 30 * 60,
+          ttsSeconds: 4 * 60,
+        ),
+      );
+      // Saving clears isDirty, so being persisted is the only thing standing
+      // between this plan's deliberate gradient factors and the diver's.
+      expect(container.read(divePlanNotifierProvider).isDirty, isFalse);
+
+      settingsNotifier.updateGradientFactorsForTest(20, 60);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.gfLow, 30);
+      expect(state.gfHigh, 70);
+    },
+  );
 }

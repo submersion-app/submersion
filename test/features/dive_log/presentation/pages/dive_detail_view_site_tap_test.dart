@@ -42,6 +42,11 @@ void main() {
     WidgetTester tester, {
     required bool embedded,
     required Size size,
+    // Drive a REAL pointer onto the badge instead of invoking the card's
+    // callback. The badge is a decorated Container stacked over the card's
+    // InkWell, and RenderDecoratedBox absorbs pointers across its whole
+    // shape, so only a real tap can prove the badge is not a dead zone.
+    bool tapBadge = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -100,7 +105,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    locationInkWell(tester).onTap!();
+    if (tapBadge) {
+      await tester.tap(find.text('View Site'));
+    } else {
+      locationInkWell(tester).onTap!();
+    }
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     tester.takeException();
@@ -140,4 +149,18 @@ void main() {
       expect(location, '/sites/site-1');
     },
   );
+
+  testWidgets('tapping the badge itself still navigates, rather than landing '
+      'in a dead zone over the card', (tester) async {
+    final location = await pumpAndTapViewSite(
+      tester,
+      embedded: true,
+      size: const Size(400, 800),
+      tapBadge: true,
+    );
+
+    // The badge labels the card's tap target; it must not shadow it.
+    expect(find.text('SITE_STUB_PAGE'), findsOneWidget);
+    expect(location, '/sites/site-1');
+  });
 }

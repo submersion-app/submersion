@@ -158,7 +158,28 @@ class ServiceClocksCard extends ConsumerWidget {
                           color: _dotColor(context, status.severity),
                         ),
                         title: Text(status.kind.name),
-                        subtitle: Text(_triggerText(context, status)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_triggerText(context, status)),
+                            // An hours clock accrues from logged dive
+                            // duration, which approximates but is not
+                            // identical to rebreather loop time. Say so
+                            // rather than leaving a diver to infer it from a
+                            // scrubber budget.
+                            if (status.hoursRemaining != null)
+                              Text(
+                                l10n.equipment_serviceClocks_hoursSource,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                          ],
+                        ),
                         trailing: PopupMenuButton<String>(
                           onSelected: (action) =>
                               _onAction(context, ref, action, status),

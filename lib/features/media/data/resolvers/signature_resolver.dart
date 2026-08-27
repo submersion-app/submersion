@@ -22,14 +22,18 @@ class SignatureResolver implements MediaSourceResolver {
 
   @override
   Future<MediaSourceData> resolve(MediaItem item) async {
+    // Both branches read [ServedFrom.embedded]: a signature is the app's own
+    // artifact either way, and whether it happens to live inline or beside
+    // the database is an implementation detail rather than a source the user
+    // linked from.
     if (item.imageData != null && item.imageData!.isNotEmpty) {
-      return BytesData(bytes: item.imageData!);
+      return BytesData(bytes: item.imageData!, servedFrom: ServedFrom.embedded);
     }
     final path = item.filePath;
     if (path != null && path.isNotEmpty) {
       final file = File(path);
       if (await file.exists()) {
-        return FileData(file: file);
+        return FileData(file: file, servedFrom: ServedFrom.embedded);
       }
     }
     return const UnavailableData(kind: UnavailableKind.notFound);

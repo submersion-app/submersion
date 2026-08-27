@@ -3,6 +3,9 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+// The dependency-only module, not dive_providers.dart: that file imports
+// trip_providers.dart, which imports this feature's repository impl.
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -20,6 +23,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
@@ -34,6 +38,7 @@ final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   return repository.getActiveEquipment(diverId: validatedDiverId);
 });
 
@@ -45,6 +50,7 @@ final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
@@ -163,33 +169,49 @@ final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
   id,
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   return repository.getEquipmentById(id);
 });
 
-/// Dive count for equipment provider
+/// Dive count for equipment provider.
+///
+/// Backs the "Used on N dives" figure. A junction read over `dive_equipment`,
+/// whose rows vanish by cascade when a dive is deleted, so it over-counted
+/// after a merge until it took the dives tick as well (issue #974).
 final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getDiveCountForEquipment(equipmentId);
 });
 
-/// Trip count for equipment provider
+/// Trip count for equipment provider.
+///
+/// Reaches trips through the equipment's dives, so it takes the trips tick as
+/// well: deleting a trip changes the count without writing `equipment`.
 final equipmentTripCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
   return repository.getTripCountForEquipment(equipmentId);
 });
 
-/// Trip IDs for equipment provider
+/// Trip IDs for equipment provider.
+///
+/// Same junction read as [equipmentTripCountProvider].
 final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   ref,
   equipmentId,
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
   return repository.getTripIdsForEquipment(equipmentId);
 });
 
@@ -215,6 +237,7 @@ final equipmentSearchProvider =
         return ref.watch(allEquipmentProvider).value ?? [];
       }
       final repository = ref.watch(equipmentRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchEquipmentChanges());
       return repository.searchEquipment(query, diverId: validatedDiverId);
     });
 
@@ -227,7 +250,11 @@ class EquipmentListNotifier
 
   EquipmentListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      EquipmentListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -235,7 +262,11 @@ class EquipmentListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allEquipmentProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          EquipmentListNotifier,
+          'initialize and load',
+        );
       }
     });
   }
@@ -341,6 +372,7 @@ final serviceRecordsForEquipmentProvider =
       equipmentId,
     ) async {
       final repository = ref.watch(serviceRecordRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
       return repository.getRecordsForEquipment(equipmentId);
     });
 
@@ -348,6 +380,7 @@ final serviceRecordsForEquipmentProvider =
 final serviceRecordByIdProvider = FutureProvider.family<ServiceRecord?, String>(
   (ref, id) async {
     final repository = ref.watch(serviceRecordRepositoryProvider);
+    ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
     return repository.getRecordById(id);
   },
 );
@@ -356,17 +389,21 @@ final serviceRecordByIdProvider = FutureProvider.family<ServiceRecord?, String>(
 final mostRecentServiceRecordProvider =
     FutureProvider.family<ServiceRecord?, String>((ref, equipmentId) async {
       final repository = ref.watch(serviceRecordRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
       return repository.getMostRecentRecord(equipmentId);
     });
 
-/// Total service cost for equipment
-final serviceRecordTotalCostProvider = FutureProvider.family<double, String>((
-  ref,
-  equipmentId,
-) async {
-  final repository = ref.watch(serviceRecordRepositoryProvider);
-  return repository.getTotalServiceCost(equipmentId);
-});
+/// Total service cost for equipment, keyed by the currency of each record.
+/// Kept per currency so mixed-currency histories are never added together.
+final serviceRecordTotalCostProvider =
+    FutureProvider.family<Map<String, double>, String>((
+      ref,
+      equipmentId,
+    ) async {
+      final repository = ref.watch(serviceRecordRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
+      return repository.getTotalServiceCostByCurrency(equipmentId);
+    });
 
 /// Service record count for equipment
 final serviceRecordCountProvider = FutureProvider.family<int, String>((
@@ -374,6 +411,7 @@ final serviceRecordCountProvider = FutureProvider.family<int, String>((
   equipmentId,
 ) async {
   final repository = ref.watch(serviceRecordRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
   return repository.getRecordCount(equipmentId);
 });
 
@@ -540,9 +578,9 @@ final serviceKindsProvider = FutureProvider<List<ServiceKind>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  return ref
-      .watch(serviceKindRepositoryProvider)
-      .getAllKinds(diverId: validatedDiverId);
+  final repository = ref.watch(serviceKindRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchServiceKindsChanges());
+  return repository.getAllKinds(diverId: validatedDiverId);
 });
 
 /// The dueSoon window: the widest configured reminder-days value for the
@@ -552,9 +590,9 @@ final serviceDueSoonWindowDaysProvider = FutureProvider<int>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  return ref
-      .watch(serviceScheduleRepositoryProvider)
-      .getDueSoonWindowDays(diverId: validatedDiverId);
+  final repository = ref.watch(serviceScheduleRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchSchedulesChanges());
+  return repository.getDueSoonWindowDays(diverId: validatedDiverId);
 });
 
 /// Evaluates every enabled clock on [item] at this moment.
@@ -724,7 +762,7 @@ final serviceSchedulesForEquipmentProvider =
       ref,
       equipmentId,
     ) async {
-      return ref
-          .watch(serviceScheduleRepositoryProvider)
-          .getSchedulesForEquipment(equipmentId);
+      final repository = ref.watch(serviceScheduleRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSchedulesChanges());
+      return repository.getSchedulesForEquipment(equipmentId);
     });

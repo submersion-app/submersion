@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/readout_card_placement.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -14,11 +15,14 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/draggable_readout_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_instrument_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -66,6 +70,34 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     setState(() => _readoutRows = rows);
   }
 
+  /// Memoized default corner for the readout card, recomputed only when the
+  /// profile identity changes (the page rebuilds per playback tick).
+  Offset? _autoCorner;
+  List<DiveProfilePoint>? _autoCornerProfile;
+
+  /// Default readout-card corner: the chart corner the profile occupies
+  /// least (a saved dragged position always overrides this). Strided
+  /// sampling keeps this O(200) regardless of profile size.
+  Offset _defaultCardCorner(List<DiveProfilePoint> profile) {
+    if (!identical(profile, _autoCornerProfile)) {
+      _autoCornerProfile = profile;
+      final maxT = profile.isEmpty
+          ? 0.0
+          : profile
+                .map((p) => p.timestamp)
+                .reduce((a, b) => a > b ? a : b)
+                .toDouble();
+      final maxD = profile.fold(0.0, (m, p) => m > p.depth ? m : p.depth);
+      final stride = profile.length <= 200 ? 1 : profile.length ~/ 200;
+      _autoCorner = leastOccupiedReadoutCorner([
+        if (maxT > 0 && maxD > 0)
+          for (var i = 0; i < profile.length; i += stride)
+            Offset(profile[i].timestamp / maxT, profile[i].depth / maxD),
+      ]);
+    }
+    return _autoCorner!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +115,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    // Fullscreen means fullscreen: hide the status and navigation bars so
+    // the chart owns the display (#811). Mirrors photo_viewer_page. The
+    // call is a no-op on desktop platforms.
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
     _lifecycleListener = AppLifecycleListener(
       onInactive: () => _playbackNotifier.pause(),
     );
@@ -93,6 +132,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     _removePlaybackListener();
     _lifecycleListener.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: SystemUiOverlay.values,
+    );
     // Riverpod forbids mutating provider state synchronously from a widget
     // lifecycle callback (dispose included), so the cleanup itself is
     // deferred to a microtask, which runs just after the current unmount
@@ -119,6 +162,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Phone layouts give the chart the entire screen: no transport strip
+    // below it (#811). shortestSide rather than width so a phone held in
+    // landscape -- where vertical room is scarcest -- still counts as one.
+    final isPhone = MediaQuery.sizeOf(context).shortestSide < 600;
     // Render from AsyncValue.value so background reloads never flash the UI.
     final diveAsync = ref.watch(diveProvider(widget.diveId));
     final dive = diveAsync.value;
@@ -146,6 +193,44 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
         .watch(estimatedTankPressuresProvider(widget.diveId))
         .value;
     final reviewTimestamp = ref.watch(profileReviewProvider(widget.diveId));
+    final selectedFinding = ref.watch(
+      selectedSafetyFindingProvider(widget.diveId),
+    );
+    // Narrow selects (not a full settings watch): this page deliberately
+    // avoids rebuilding on unrelated settings writes.
+    final safetyReviewEnabled = ref.watch(
+      settingsProvider.select((s) => s.safetyReviewEnabled),
+    );
+    final safetyDisabledRules = ref.watch(
+      settingsProvider.select((s) => s.safetyReviewDisabledRules),
+    );
+    final safetyReview = ref.watch(safetyReviewProvider(widget.diveId)).value;
+    final laneFindings = safetyReviewEnabled
+        ? chartSafetyFindings(safetyReview, safetyDisabledRules)
+        : const <SafetyFinding>[];
+    // Gate the highlight on lane membership: with safety review (or the
+    // finding's rule) disabled the lane disappears, so an ungated highlight
+    // would be stuck on the chart with no UI to clear it.
+    final visibleSelectedFinding =
+        selectedFinding != null &&
+            laneFindings.any((f) => f.id == selectedFinding.id)
+        ? selectedFinding
+        : null;
+    // A finding dismissed elsewhere (callout, detail page, sync) must not
+    // stay highlighted: drop a selection with no matching active row.
+    ref.listen(safetyReviewProvider(widget.diveId), (previous, next) {
+      final review = next.value;
+      if (review == null) return;
+      final selected = ref.read(selectedSafetyFindingProvider(widget.diveId));
+      if (selected == null) return;
+      final stillActive = review.findings.any(
+        (f) => f.id == selected.id && !f.isDismissed,
+      );
+      if (!stillActive) {
+        ref.read(selectedSafetyFindingProvider(widget.diveId).notifier).state =
+            null;
+      }
+    });
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
     final showPressureThresholdMarkers = ref.watch(
       showPressureThresholdMarkersProvider,
@@ -212,13 +297,6 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
 
     final notifier = ref.read(playbackProvider(widget.diveId).notifier);
 
-    final photoMarkers = dive.profile.isEmpty
-        ? const <PhotoChartMarker>[]
-        : photoMarkersFromMedia(
-            photoMedia,
-            maxProfileSeconds: dive.profile.last.timestamp,
-          );
-
     // Active source and overlays (mirrors the detail page's wiring).
     final labels = SourceNameLabels(
       unknownComputer: context.l10n.diveLog_sources_unknownComputer,
@@ -239,9 +317,21 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // A metadata-only active source has an entry with no points; the chart
     // then renders its empty-profile placeholder instead of silently
     // falling back to the primary's profile (mixed attribution).
+    //
+    // Everything overlaid on the chart is derived from THIS series, never
+    // from dive.profile: the merged series spans every source, so markers
+    // computed against it can report a depth the drawn curve never reaches
+    // and photo pins scaled to it drift off the visible span (#1167).
     final chartProfile = (dataSources.length >= 2 && activeProfile != null)
         ? activeProfile.points
         : dive.profile;
+
+    final photoMarkers = chartProfile.isEmpty
+        ? const <PhotoChartMarker>[]
+        : photoMarkersFromMedia(
+            photoMedia,
+            maxProfileSeconds: chartProfile.last.timestamp,
+          );
     final sourceColorById = <String, Color>{
       for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
     };
@@ -290,7 +380,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                   child: Stack(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        padding: isPhone
+                            ? const EdgeInsets.all(4)
+                            : const EdgeInsets.fromLTRB(12, 8, 12, 0),
                         child: DiveProfileChart(
                           profile: chartProfile,
                           overlays: overlays.isEmpty ? null : overlays,
@@ -334,6 +426,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           sacCurve: analysis?.smoothedSacCurve,
                           ppO2Curve: analysis?.ppO2Curve,
                           o2SensorCurves: analysis?.o2SensorCurves,
+                          o2CellMvCurves: analysis?.o2CellMvCurves,
                           ppO2FromSensorAverage:
                               analysis?.ppO2FromSensorAverage ?? false,
                           ppN2Curve: analysis?.ppN2Curve,
@@ -353,7 +446,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           sacNormalizationFactor:
                               calculateSacNormalizationFactor(dive, analysis),
                           markers: _calculateMarkers(
-                            dive: dive,
+                            profile: chartProfile,
+                            tanks: dive.tanks,
                             analysis: analysis,
                             tankPressures: tankPressures,
                             showMaxDepth: showMaxDepthMarker,
@@ -388,6 +482,31 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               ? null
                               : chartProfile.last.timestamp,
                           highlightedTimestamp: reviewTimestamp,
+                          highlightRange: profileHighlightRangeFor(
+                            visibleSelectedFinding,
+                            Theme.of(context).colorScheme,
+                          ),
+                          safetyFindings: laneFindings.isEmpty
+                              ? null
+                              : laneFindings,
+                          selectedSafetyFindingId: visibleSelectedFinding?.id,
+                          onSafetyFindingTap: (finding) {
+                            final selectionNotifier = ref.read(
+                              selectedSafetyFindingProvider(
+                                widget.diveId,
+                              ).notifier,
+                            );
+                            selectionNotifier.state =
+                                selectionNotifier.state?.id == finding.id
+                                ? null
+                                : finding;
+                          },
+                          onSafetyFindingDismiss: (finding) =>
+                              setSafetyFindingDismissed(
+                                ref,
+                                finding: finding,
+                                dismissed: true,
+                              ),
                           onPointSelected: (index) {
                             if (index == null || index >= chartProfile.length) {
                               return;
@@ -420,6 +539,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           '${settings.fullscreenReadoutCardY}',
                         ),
                         rows: _readoutRows,
+                        placementInsets: isPhone
+                            ? const EdgeInsets.fromLTRB(12, 56, 12, 12)
+                            : const EdgeInsets.all(12),
                         initialFraction:
                             settings.fullscreenReadoutCardX != null &&
                                 settings.fullscreenReadoutCardY != null
@@ -427,7 +549,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 settings.fullscreenReadoutCardX!,
                                 settings.fullscreenReadoutCardY!,
                               )
-                            : null,
+                            : _defaultCardCorner(chartProfile),
                         onDragEnd: (fraction) => ref
                             .read(settingsProvider.notifier)
                             .setFullscreenReadoutCardPosition(
@@ -497,14 +619,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                       },
                     ),
                   ),
-                ProfileInstrumentBar(
-                  diveId: widget.diveId,
-                  // The same profile the chart renders and the analysis is
-                  // computed from; tile values are index-aligned to it.
-                  profile: chartProfile,
-                  analysis: analysis,
-                  tankPressures: tankPressures,
-                ),
+                if (!isPhone)
+                  ProfileTransportBar(
+                    diveId: widget.diveId,
+                    // The same profile the chart renders: the scrub minimap
+                    // and seek range must match what is on screen.
+                    profile: chartProfile,
+                  ),
               ],
             ),
           ),
@@ -513,30 +634,38 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     );
   }
 
+  /// Markers to overlay on the profile chart.
+  ///
+  /// [profile] must be the series the chart is actually drawing (the active
+  /// source's points), not `dive.profile`. The analysis these markers are
+  /// positioned from is the active source's, so indexing it into the merged
+  /// series would place the max-depth flag at another computer's reading
+  /// (#1167).
   List<ProfileMarker> _calculateMarkers({
-    required Dive dive,
+    required List<DiveProfilePoint> profile,
+    required List<DiveTank> tanks,
     required ProfileAnalysis? analysis,
     required Map<String, List<TankPressurePoint>>? tankPressures,
     required bool showMaxDepth,
     required bool showPressureThresholds,
   }) {
     final markers = <ProfileMarker>[];
-    if (dive.profile.isEmpty) return markers;
+    if (profile.isEmpty) return markers;
 
     if (showMaxDepth && analysis != null) {
       final maxDepthMarker = ProfileMarkersService.getMaxDepthMarker(
-        profile: dive.profile,
+        profile: profile,
         maxDepthTimestamp: analysis.maxDepthTimestamp,
         maxDepth: analysis.maxDepth,
       );
       if (maxDepthMarker != null) markers.add(maxDepthMarker);
     }
 
-    if (showPressureThresholds && dive.tanks.isNotEmpty) {
+    if (showPressureThresholds && tanks.isNotEmpty) {
       markers.addAll(
         ProfileMarkersService.getPressureThresholdMarkers(
-          profile: dive.profile,
-          tanks: dive.tanks,
+          profile: profile,
+          tanks: tanks,
           tankPressures: tankPressures,
         ),
       );

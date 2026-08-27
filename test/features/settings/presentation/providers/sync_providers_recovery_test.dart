@@ -41,6 +41,7 @@ void main() {
   Future<ProviderContainer> makeContainer({bool cloudConfigured = true}) async {
     final container = ProviderContainer(
       overrides: [
+        localeProvider.overrideWithValue('en'),
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(
           cloudConfigured ? cloud : null,

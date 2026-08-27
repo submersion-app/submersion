@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
@@ -6,9 +8,21 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
+import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
+
+import '../../../../helpers/test_database.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   PlanSegment seg(SegmentType type, double start, double end, int dur) =>
       PlanSegment(
         id: '$type$start',
@@ -99,6 +113,79 @@ void main() {
     final outputs = TwinAnalyzer.analyze(runBuoyancyTwin(input));
     expect(outputs.verdict.anchor.kind, TwinAnchorKind.detectedStop);
     expect(outputs.verdict.anchor.depthM, closeTo(5.0, 0.5));
+  });
+
+  test('planned lead is a total: gear ballast is not added on top', () async {
+    // plannedWeightKg is only ever written as a snapshot of
+    // prediction.totalKg, and since #1103 that prediction is trained on
+    // observations whose carriedKg already includes ballast built into the
+    // rig. Adding EquipmentLead here would double-count it, so the planned
+    // figure must pass through untouched even when the rig carries 5 kg of
+    // weights-type gear.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    // settingsProvider reaches the database through DiverRepository, and the
+    // plan notifier is built from settings; the other cases in this file are
+    // pure, so the database is set up only for this one.
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+
+    const plate = EquipmentItem(
+      id: 'plate',
+      name: 'Weighted backplate',
+      type: EquipmentType.weights,
+      attributes: [
+        EquipmentAttribute(
+          id: 'a1',
+          equipmentId: 'plate',
+          key: EquipmentAttrKeys.dryWeightKg,
+          valueNum: 5.0,
+        ),
+      ],
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        allEquipmentProvider.overrideWith((ref) async => [plate]),
+        latestDiverWeightProvider.overrideWith((ref) async => null),
+        weightCalibrationProvider.overrideWith(
+          (ref) async => WeightPredictionEngine.fit(
+            observations: const [],
+            gearById: (_) => null,
+            bodyWeightKg: 75,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    // Warm the async overrides the provider reads via valueOrNull.
+    await container.read(allEquipmentProvider.future);
+    await container.read(weightCalibrationProvider.future);
+    await container.read(latestDiverWeightProvider.future);
+
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addTank(
+      const DiveTank(
+        id: 't1',
+        volume: 11,
+        workingPressure: 207,
+        startPressure: 200,
+        material: TankMaterial.aluminum,
+        presetName: 'al80',
+        gasMix: GasMix(o2: 21),
+      ),
+    );
+    for (final s in plan) {
+      notifier.addSegment(s);
+    }
+    notifier.setEquipmentIds(const ['plate']);
+    notifier.setPlannedWeight(6.0, null);
+
+    final outcome = container.read(planBuoyancyTwinProvider);
+    expect(outcome, isNotNull);
+    expect(outcome!.result.input.leadKg, closeTo(6.0, 1e-9));
   });
 }
 

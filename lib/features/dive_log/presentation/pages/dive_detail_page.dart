@@ -7,16 +7,18 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -35,14 +37,20 @@ import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
+import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
-import 'package:submersion/features/pre_dive/presentation/widgets/dive_pre_dive_section.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
+import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
@@ -50,6 +58,9 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/safety/presentation/widgets/linked_incidents_row.dart';
@@ -73,6 +84,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_stats
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -86,6 +98,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -98,6 +111,8 @@ import 'package:submersion/features/signatures/presentation/widgets/buddy_signat
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
+import 'package:submersion/features/reef/presentation/widgets/water_conditions_card.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -137,6 +152,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Key for capturing the profile chart as an image for PNG export
   final GlobalKey _profileChartExportKey = GlobalKey();
+  final GlobalKey _safetyReviewSectionKey = GlobalKey();
+
+  /// Scrolls the page so the safety review section is visible (callout
+  /// "Details" action). The selection stays active.
+  void _scrollToSafetySection() {
+    final ctx = _safetyReviewSectionKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOutCubic,
+      alignment: 0.05,
+    );
+  }
 
   /// Key for capturing the entire dive details page as an image for PNG export
   final GlobalKey _pageExportKey = GlobalKey();
@@ -215,10 +244,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // On desktop, redirect standalone detail pages to master-detail view.
     // Skip in table mode -- table view has no master-detail split to redirect into.
-    // Skip when this page was PUSHED (trip/buddy/site drill-through): the
-    // redirect uses go(), which would wipe the stack and lose the browse
-    // context and back button (#764). Only redirect root-level details
-    // (deep links, tab navigation).
+    // Skip when this page was PUSHED (trip/buddy/site drill-through, "Open
+    // Full Page"): the redirect uses go(), which would wipe the stack and
+    // lose the browse context and back button (#764). Only redirect
+    // root-level details (deep links, tab navigation).
     if (!widget.embedded &&
         !_hasRedirected &&
         !(GoRouter.maybeOf(context)?.canPop() ?? false) &&
@@ -233,6 +262,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         });
       }
     }
+
+    // A finding dismissed elsewhere (section button, another device via sync,
+    // batch re-analysis) must not stay highlighted: drop a selection whose
+    // finding no longer exists as an active row.
+    ref.listen(safetyReviewProvider(diveId), (previous, next) {
+      final review = next.value;
+      if (review == null) return;
+      final selected = ref.read(selectedSafetyFindingProvider(diveId));
+      if (selected == null) return;
+      final stillActive = review.findings.any(
+        (f) => f.id == selected.id && !f.isDismissed,
+      );
+      if (!stillActive) {
+        ref.read(selectedSafetyFindingProvider(diveId).notifier).state = null;
+      }
+    });
 
     final diveAsync = ref.watch(diveProvider(diveId));
 
@@ -309,7 +354,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         // The widgets collapse to nothing when empty, so plain SizedBox
         // spacers would double up; each widget owns its own spacing.
         return [
-          if (dive.profile.isNotEmpty) SafetyReviewSection(diveId: dive.id),
+          if (dive.profile.isNotEmpty)
+            SafetyReviewSection(key: _safetyReviewSectionKey, diveId: dive.id),
           LinkedIncidentsRow(diveId: dive.id),
         ];
       },
@@ -369,29 +415,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         // _buildTideSection includes its own internal spacing
         return [_buildTideSection(context, ref, dive)];
       },
+      DiveDetailSectionId.reefHealth: () {
+        return [_buildReefHealthSection(context, ref, dive)];
+      },
       DiveDetailSectionId.surfaceGps: () {
-        if (dive.entryLocation == null && dive.exitLocation == null) return [];
+        if (!_hasSurfaceGps(dive)) return [];
         return [
           const SizedBox(height: 24),
-          Consumer(
-            builder: (context, ref, _) {
-              final viewedSourceId = ref.watch(
-                activeDiveSourceProvider(dive.id),
-              );
-              final dataSources = computerReadingsAsync.valueOrNull ?? [];
-              final attribution = FieldAttributionService.computeAttribution(
-                dataSources,
-                viewedSourceId: viewedSourceId,
-                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
-              );
-              final showBadges =
-                  settings.showDataSourceBadges && attribution.isNotEmpty;
-              return SurfaceGpsSection(
-                dive: dive,
-                sourceName: showBadges ? attribution['gps'] : null,
-              );
-            },
-          ),
+          _surfaceGpsCard(dive, computerReadingsAsync, settings),
         ];
       },
       DiveDetailSectionId.weights: () {
@@ -412,12 +443,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (dive.tanks.isEmpty) return [];
         return [
           const SizedBox(height: 24),
-          CylindersCard(
-            dive: dive,
-            units: units,
-            settings: settings,
-            sacUnit: ref.watch(sacUnitProvider),
-          ),
+          _cylindersCard(dive, units, settings),
         ];
       },
       DiveDetailSectionId.buddies: () {
@@ -463,11 +489,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           _buildCustomFieldsSection(context, dive),
         ];
       },
-      // Always renders: it is also the affordance for linking/running a
-      // pre-dive checklist, and stays one row tall without a session.
-      DiveDetailSectionId.preDiveChecklist: () {
-        return [const SizedBox(height: 24), DivePreDiveSection(dive: dive)];
-      },
       DiveDetailSectionId.dataSources: () {
         return [
           const SizedBox(height: 24),
@@ -511,6 +532,48 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
     };
+  }
+
+  /// Whether the dive has a surface GPS fix to map.
+  bool _hasSurfaceGps(Dive dive) =>
+      dive.entryLocation != null || dive.exitLocation != null;
+
+  /// The Surface GPS card, including its data-source attribution [Consumer].
+  /// Extracted so both the normal section flow and the side-by-side pairing
+  /// (with Tide) render identical content.
+  Widget _surfaceGpsCard(
+    Dive dive,
+    AsyncValue<List<DiveDataSource>> computerReadingsAsync,
+    AppSettings settings,
+  ) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
+        final dataSources = computerReadingsAsync.valueOrNull ?? [];
+        final attribution = FieldAttributionService.computeAttribution(
+          dataSources,
+          viewedSourceId: viewedSourceId,
+          nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
+        );
+        final showBadges =
+            settings.showDataSourceBadges && attribution.isNotEmpty;
+        return SurfaceGpsSection(
+          dive: dive,
+          sourceName: showBadges ? attribution['gps'] : null,
+        );
+      },
+    );
+  }
+
+  /// The Cylinders card. Extracted so both the normal section flow and the
+  /// side-by-side pairing (with Weights) render identical content.
+  Widget _cylindersCard(Dive dive, UnitFormatter units, AppSettings settings) {
+    return CylindersCard(
+      dive: dive,
+      units: units,
+      settings: settings,
+      sacUnit: ref.watch(sacUnitProvider),
+    );
   }
 
   /// The Details card, including its data-source attribution [Consumer].
@@ -566,13 +629,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  /// Builds the ordered configurable-section widgets, pairing two specific
-  /// adjacent card pairs side by side when the pane is wide enough:
-  /// Details + Conditions, and Buddies + Signatures.
+  /// Builds the ordered configurable-section widgets, rendering the fixed card
+  /// pairs in [kDiveDetailSectionPairs] side by side when the pane is wide
+  /// enough: Details + Conditions, Surface GPS + Tide, Cylinders + Weights,
+  /// and Buddies + Signatures.
   ///
-  /// Pairing is fixed-pairs and adjacency-gated: the two must be immediately
-  /// adjacent in the configured (visible) order and the second must have
-  /// content, otherwise each section renders full-width exactly as before.
+  /// A pair forms whenever both halves are visible and both have content to
+  /// show, wherever they sit in the configured order. The row renders at the
+  /// slot of whichever half comes first and anything between them drops below,
+  /// which is what lets a diver whose saved order predates a pair (Water
+  /// Conditions between Tide and Surface GPS, Buoyancy between Weights and
+  /// Cylinders) still get the paired layout. Left/right come from the pair
+  /// definition rather than the configured order, so the arrangement is the
+  /// same either way. When either half has nothing to show, both render
+  /// full-width in their own slots exactly as before.
+  ///
   /// [ResponsiveSectionPair] then decides row-vs-stacked from its own measured
   /// width, so narrow panes stay stacked and unchanged.
   List<Widget> _buildOrderedSections({
@@ -590,54 +661,40 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (section.visible && !(dive.isGauge && section.id.hiddenInGaugeMode))
           section.id,
     ];
-
-    // Conditions self-suppresses when empty (cheap, no provider). The
-    // Signatures presence gate needs buddiesForDiveProvider, so it is read
-    // lazily inside the Buddies+Signatures branch below -- only when that pair
-    // is actually adjacent -- to avoid coupling the whole page to buddy
-    // changes when the pair can never form.
-    final hasConditions = _hasEnvironmentData(dive);
+    final visibleIds = visible.toSet();
 
     final children = <Widget>[];
-    for (var i = 0; i < visible.length; i++) {
-      final id = visible[i];
-      final next = i + 1 < visible.length ? visible[i + 1] : null;
+    final consumed = <DiveDetailSectionId>{};
 
-      if (id == DiveDetailSectionId.details &&
-          next == DiveDetailSectionId.environment &&
-          hasConditions) {
-        // Details has no leading spacer today; the pair keeps that.
-        children.add(
-          ResponsiveSectionPair(
-            first: _detailsCard(
-              context,
-              dive,
-              units,
-              computerReadingsAsync,
-              settings,
-            ),
-            second: _buildEnvironmentSection(context, dive, units),
-          ),
+    for (final id in visible) {
+      // The trailing half of a pair already rendered at the leading half's
+      // slot.
+      if (consumed.contains(id)) continue;
+
+      final pair = diveDetailSectionPairFor(id);
+      if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
+        final cards = _buildPairCards(
+          pair,
+          context: context,
+          ref: ref,
+          dive: dive,
+          units: units,
+          computerReadingsAsync: computerReadingsAsync,
+          settings: settings,
         );
-        i++;
-        continue;
-      }
-
-      if (id == DiveDetailSectionId.buddies &&
-          next == DiveDetailSectionId.signatures) {
-        // Signatures self-erases unless the dive has buddies or a course.
-        final buddies =
-            ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
-            const <BuddyWithRole>[];
-        if (buddies.isNotEmpty || dive.courseId != null) {
-          children.add(const SizedBox(height: 24)); // Buddies' leading gap.
+        if (cards != null) {
+          // The row takes the leading gap of the slot it lands in, which is
+          // this half's -- not necessarily the pair's left half, since the
+          // diver may have ordered the right half first. Details is the one
+          // section that emits no gap of its own (it butts against the
+          // profile chart).
+          if (id != DiveDetailSectionId.details) {
+            children.add(const SizedBox(height: 24));
+          }
           children.add(
-            ResponsiveSectionPair(
-              first: _buildBuddiesSection(context, ref, dive),
-              second: _signaturesColumn(context, ref, dive),
-            ),
+            ResponsiveSectionPair(first: cards.$1, second: cards.$2),
           );
-          i++;
+          consumed.addAll([pair.left, pair.right]);
           continue;
         }
       }
@@ -647,12 +704,122 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return children;
   }
 
+  /// The two bare cards for [pair] in left-then-right order, or null when
+  /// either half has nothing to show -- in which case both sections fall back
+  /// to rendering full-width in their own slots.
+  ///
+  /// The presence gates mirror what each section builder would decide for
+  /// itself: Conditions, Tide and Signatures all self-erase when empty, so
+  /// without these checks a pair could put a blank column beside a half-width
+  /// card.
+  (Widget, Widget)? _buildPairCards(
+    DiveDetailSectionPair pair, {
+    required BuildContext context,
+    required WidgetRef ref,
+    required Dive dive,
+    required UnitFormatter units,
+    required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
+    required AppSettings settings,
+  }) {
+    switch (pair.left) {
+      case DiveDetailSectionId.details:
+        if (!_hasEnvironmentData(dive)) return null;
+        return (
+          _detailsCard(context, dive, units, computerReadingsAsync, settings),
+          _buildEnvironmentSection(context, dive, units),
+        );
+
+      case DiveDetailSectionId.surfaceGps:
+        if (!_hasSurfaceGps(dive)) return null;
+        final tide = _tideCard(context, ref, dive);
+        if (tide == null) return null;
+        return (_surfaceGpsCard(dive, computerReadingsAsync, settings), tide);
+
+      case DiveDetailSectionId.tanks:
+        if (dive.tanks.isEmpty || !_hasWeights(dive)) return null;
+        return (
+          _cylindersCard(dive, units, settings),
+          _buildWeightSection(context, dive, units),
+        );
+
+      case DiveDetailSectionId.buddies:
+        // Signatures self-erases unless the dive has buddies or a course. The
+        // read is deferred to here so the page only couples to buddy changes
+        // when the pair can actually form.
+        final buddies =
+            ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
+            const <BuddyWithRole>[];
+        if (buddies.isEmpty && dive.courseId == null) return null;
+        return (
+          _buildBuddiesSection(context, ref, dive),
+          _signaturesColumn(context, ref, dive),
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  /// Overflow entry for the pre-dive checklist link (#1066). PR #913 removed
+  /// the dive-detail pre-dive card, and with it the only way to attach a run
+  /// completed the evening before -- outside the auto-linker's three-hour
+  /// window -- to the dive it was run for. The label doubles as the indicator:
+  /// "Unlink" only appears when something is attached.
+  PopupMenuItem<String> _preDiveLinkMenuItem(
+    BuildContext context,
+    PreDiveSession? linked,
+  ) {
+    return PopupMenuItem(
+      value: linked == null ? 'linkPreDive' : 'unlinkPreDive',
+      child: ListTile(
+        leading: Icon(
+          linked == null ? Icons.fact_check_outlined : Icons.link_off,
+        ),
+        title: Text(
+          linked == null
+              ? context.l10n.preDive_link_linkChecklist
+              : context.l10n.preDive_link_unlinkChecklist,
+        ),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Future<void> _linkPreDiveChecklist(BuildContext context, Dive dive) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmation = context.l10n.preDive_link_linked;
+    final sessionId = await showLinkSessionPicker(
+      context,
+      diverId: dive.diverId,
+    );
+    if (sessionId == null) return;
+    await ref
+        .read(preDiveSessionRepositoryProvider)
+        .linkToDive(sessionId, dive.id);
+    // Nothing on this page renders the link, so the snackbar is the only
+    // evidence the write happened.
+    messenger.showSnackBar(SnackBar(content: Text(confirmation)));
+  }
+
+  Future<void> _unlinkPreDiveChecklist(
+    BuildContext context,
+    PreDiveSession linked,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmation = context.l10n.preDive_link_unlinked;
+    await ref.read(preDiveSessionRepositoryProvider).unlinkFromDive(linked.id);
+    messenger.showSnackBar(SnackBar(content: Text(confirmation)));
+  }
+
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
     final hasRawData =
         ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
+    final linkedPreDive = ref
+        .watch(preDiveSessionForDiveProvider(dive.id))
+        .value;
 
     final builders = _sectionBuilders(
       context: context,
@@ -766,6 +933,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'logNearMiss':
                   context.push('/incidents/new?diveId=$diveId');
                   break;
+                case 'linkPreDive':
+                  _linkPreDiveChecklist(context, dive);
+                  break;
+                case 'unlinkPreDive':
+                  _unlinkPreDiveChecklist(context, linkedPreDive!);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -788,6 +961,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              _preDiveLinkMenuItem(context, linkedPreDive),
               if (hasRawData)
                 PopupMenuItem(
                   value: 'reparse',
@@ -826,6 +1000,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     bool hasRawData = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final linkedPreDive = ref
+        .watch(preDiveSessionForDiveProvider(dive.id))
+        .value;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -841,12 +1018,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           CircleAvatar(
             radius: 16,
             backgroundColor: colorScheme.primaryContainer,
-            child: Text(
-              '#${dive.diveNumber ?? '-'}',
-              style: TextStyle(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '#${dive.diveNumber ?? '-'}',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
               ),
             ),
           ),
@@ -929,12 +1113,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'logNearMiss':
                   context.push('/incidents/new?diveId=$diveId');
                   break;
+                case 'linkPreDive':
+                  _linkPreDiveChecklist(context, dive);
+                  break;
+                case 'unlinkPreDive':
+                  _unlinkPreDiveChecklist(context, linkedPreDive!);
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
                 case 'open':
-                  // Open in full page mode
-                  context.go('/dives/$diveId');
+                  // Open in full-page mode. push (not go) so there's a back
+                  // button and the pushed page skips the master-detail
+                  // redirect above instead of bouncing straight back into
+                  // the pane it was opened from.
+                  context.push('/dives/$diveId');
                   break;
               }
             },
@@ -963,6 +1156,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              _preDiveLinkMenuItem(context, linkedPreDive),
               if (hasRawData)
                 PopupMenuItem(
                   value: 'reparse',
@@ -1017,11 +1211,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  '#${dive.diveNumber ?? '-'}',
-                  style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '#${dive.diveNumber ?? '-'}',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        // Pin the pre-scale size (CircleAvatar's implicit
+                        // titleMedium default) so FittedBox scales from a
+                        // theme-independent baseline.
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1091,9 +1296,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ],
                 ),
               ),
-              if (dive.rating != null)
-                Row(
-                  children: [
+              Row(
+                children: [
+                  if (dive.rating != null) ...[
                     ExcludeSemantics(
                       child: Icon(
                         Icons.star,
@@ -1104,10 +1309,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     const SizedBox(width: 4),
                     Text(
                       '${dive.rating}',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      // Same ink-centering fix as DiveModeBadge: without it
+                      // this number's default line leading isn't split
+                      // evenly around its own glyph, so it doesn't sit on
+                      // the same visual line as the star icon next to it.
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.inkCentered,
+                      textHeightBehavior: inkCenteredTextHeightBehavior,
                     ),
+                    const SizedBox(width: 8),
                   ],
-                ),
+                  DiveModeBadge(mode: dive.diveMode),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -1229,6 +1444,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Positioned(
                   right: 8,
                   top: 8,
+                  // Decorative label only: no gesture recognizer of its own.
+                  // It is a DESCENDANT of the card's InkWell, so the hit path
+                  // still reaches that ancestor and the whole card stays one
+                  // tap target. Giving this badge its own onTap would carve a
+                  // competing recognizer out of the card (see the badge tap
+                  // test).
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -1380,45 +1601,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get range selection state
     final rangeState = ref.watch(rangeSelectionProvider(dive.id));
 
-    // Initialize providers with dive duration if needed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (dive.profile.isNotEmpty) {
-        final maxTimestamp = dive.profile.last.timestamp;
-        final currentPlaybackMax = ref
-            .read(playbackProvider(dive.id))
-            .maxTimestamp;
-        if (currentPlaybackMax == 0) {
-          ref.read(playbackProvider(dive.id).notifier).initialize(maxTimestamp);
-        }
-        final currentRangeMax = ref
-            .read(rangeSelectionProvider(dive.id))
-            .maxTimestamp;
-        if (currentRangeMax == 0) {
-          ref
-              .read(rangeSelectionProvider(dive.id).notifier)
-              .initialize(maxTimestamp);
-        }
-      }
-    });
-
-    // Calculate profile markers (with tank pressure data for accurate thresholds)
-    final markers = _calculateProfileMarkers(
-      dive: dive,
-      analysis: analysis,
-      showMaxDepth: showMaxDepthMarker,
-      showPressureThresholds: showPressureThresholdMarkers,
-      tankPressures: tankPressures,
-    );
-
-    final photoMedia =
-        ref.watch(mediaForDiveProvider(dive.id)).valueOrNull ?? const [];
-    final photoMarkers = dive.profile.isEmpty
-        ? const <PhotoChartMarker>[]
-        : photoMarkersFromMedia(
-            photoMedia,
-            maxProfileSeconds: dive.profile.last.timestamp,
-          );
-
     // Profiles grouped by owning data source, plus the active-source and
     // overlay view state driving the whole page.
     final sourceProfiles =
@@ -1455,9 +1637,71 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // A metadata-only active source has an entry with no points; the chart
     // then renders its empty-profile placeholder instead of silently
     // falling back to the primary's profile (mixed attribution).
+    //
+    // Everything overlaid on the chart is derived from THIS series, never
+    // from dive.profile: the merged series spans every source, so markers
+    // computed against it can report a depth the drawn curve never reaches
+    // and a range extent that runs past its end (#1167).
     final chartProfile = (isMultiSource && activeProfile != null)
         ? activeProfile.points
         : dive.profile;
+
+    // Keep the playback and range extents on the drawn series.
+    //
+    // Deliberately not a one-shot "initialize if still zero": the data
+    // sources load asynchronously, so the first build falls back to
+    // dive.profile and a zero-guard would freeze the merged series' extent
+    // in place forever. The active source can also change at any time. Both
+    // cases leave the range slider running past the end of the visible curve
+    // (#1167). Re-initializing resets playback position and range selection,
+    // which is the wanted behavior when the series underneath them changed.
+    //
+    // The comparison runs here in build, against state this method already
+    // watches, so a frame callback is only scheduled on the rare build that
+    // has work to do. Scheduling unconditionally would queue a no-op closure
+    // 40 times a second while a profile plays: the playback timer ticks every
+    // 25ms and this page watches its state.
+    if (chartProfile.isNotEmpty) {
+      final maxTimestamp = chartProfile.last.timestamp;
+      if (playbackState.maxTimestamp != maxTimestamp ||
+          rangeState.maxTimestamp != maxTimestamp) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // Re-read rather than trusting the build-time snapshot: the rest of
+          // the frame may have moved either extent already.
+          if (ref.read(playbackProvider(dive.id)).maxTimestamp !=
+              maxTimestamp) {
+            ref
+                .read(playbackProvider(dive.id).notifier)
+                .initialize(maxTimestamp);
+          }
+          if (ref.read(rangeSelectionProvider(dive.id)).maxTimestamp !=
+              maxTimestamp) {
+            ref
+                .read(rangeSelectionProvider(dive.id).notifier)
+                .initialize(maxTimestamp);
+          }
+        });
+      }
+    }
+
+    // Calculate profile markers (with tank pressure data for accurate thresholds)
+    final markers = _calculateProfileMarkers(
+      profile: chartProfile,
+      tanks: dive.tanks,
+      analysis: analysis,
+      showMaxDepth: showMaxDepthMarker,
+      showPressureThresholds: showPressureThresholdMarkers,
+      tankPressures: tankPressures,
+    );
+
+    final photoMedia =
+        ref.watch(mediaForDiveProvider(dive.id)).valueOrNull ?? const [];
+    final photoMarkers = chartProfile.isEmpty
+        ? const <PhotoChartMarker>[]
+        : photoMarkersFromMedia(
+            photoMedia,
+            maxProfileSeconds: chartProfile.last.timestamp,
+          );
 
     // Overlay ids are session state and can briefly outlive their source
     // rows (e.g. right after a split); skip any stale entries instead of
@@ -1615,6 +1859,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final trackingIndex = ref.watch(
                   profileTrackingIndexProvider(diveId),
                 );
+                final selectedFinding = ref.watch(
+                  selectedSafetyFindingProvider(diveId),
+                );
+                final safetyReview = ref
+                    .watch(safetyReviewProvider(diveId))
+                    .value;
+                final appSettings = ref.watch(settingsProvider);
+                final laneFindings = appSettings.safetyReviewEnabled
+                    ? chartSafetyFindings(
+                        safetyReview,
+                        appSettings.safetyReviewDisabledRules,
+                      )
+                    : const <SafetyFinding>[];
+                // Gate the highlight on lane membership: with safety review
+                // (or the finding's rule) disabled neither the lane nor the
+                // section renders, so an ungated highlight would be stuck on
+                // the chart with no UI to clear it.
+                final visibleSelectedFinding =
+                    selectedFinding != null &&
+                        laneFindings.any((f) => f.id == selectedFinding.id)
+                    ? selectedFinding
+                    : null;
                 return Stack(
                   children: [
                     MouseRegion(
@@ -1641,6 +1907,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         sacCurve: analysis?.smoothedSacCurve,
                         ppO2Curve: analysis?.ppO2Curve,
                         o2SensorCurves: analysis?.o2SensorCurves,
+                        o2CellMvCurves: analysis?.o2CellMvCurves,
                         ppO2FromSensorAverage:
                             analysis?.ppO2FromSensorAverage ?? false,
                         ppN2Curve: analysis?.ppN2Curve,
@@ -1698,6 +1965,29 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                 trackingIndex < chartProfile.length
                             ? chartProfile[trackingIndex].timestamp
                             : null,
+                        highlightRange: profileHighlightRangeFor(
+                          visibleSelectedFinding,
+                          Theme.of(context).colorScheme,
+                        ),
+                        safetyFindings: laneFindings.isEmpty
+                            ? null
+                            : laneFindings,
+                        selectedSafetyFindingId: visibleSelectedFinding?.id,
+                        onSafetyFindingTap: (finding) {
+                          final notifier = ref.read(
+                            selectedSafetyFindingProvider(diveId).notifier,
+                          );
+                          notifier.state = notifier.state?.id == finding.id
+                              ? null
+                              : finding;
+                        },
+                        onSafetyFindingDismiss: (finding) =>
+                            setSafetyFindingDismissed(
+                              ref,
+                              finding: finding,
+                              dismissed: true,
+                            ),
+                        onSafetyFindingDetails: (_) => _scrollToSafetySection(),
                         onPointSelected: (index) {
                           ref
                                   .read(
@@ -1905,11 +2195,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         onHeatMapHover: (index) {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },
+        onOpen3dView: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                Dive3dPage(diveId: dive.id, initialMode: SceneKind.tissue),
+          ),
+        ),
       );
     }
 
     final decoCard = CompactDecoStatusCard(
       status: status,
+      gfSource: analysis.gfSource,
       subtitle: timeSubtitle,
     );
 
@@ -2047,40 +2344,33 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ? analysis.sacSegments!
         : segments;
 
-    // Get tank volume for L/min conversion (use first tank with volume)
-    final tankVolume = dive.tanks
-        .where((t) => t.volume != null && t.volume! > 0)
-        .map((t) => t.volume!)
-        .firstOrNull;
+    // The volume that converts a segment to L/min. An attributed segment
+    // uses its own cylinder (sidemount tanks differ in size, so one shared
+    // volume misconverts half the segments, #110); an unattributed one uses
+    // the same reference cylinder the pressure lane reads. Never another
+    // bottle that merely happens to have a size: a stage's volume says
+    // nothing about the back gas the segment describes. Null means the
+    // segment stays in pressure units.
+    double? volumeForSegment(String? segmentTankId) {
+      final tank = segmentTankId == null
+          ? dive.sacReferenceTank
+          : dive.tanks.where((t) => t.id == segmentTankId).firstOrNull;
+      final volume = tank?.volume;
+      return volume != null && volume > 0 ? volume : null;
+    }
 
     // Use the top-level normalization function
     final normalizationFactor = calculateSacNormalizationFactor(dive, analysis);
 
     // Format SAC value based on unit setting, applying normalization.
-    // [segmentTankId] selects that segment's own cylinder volume for the
-    // L/min conversion -- sidemount tanks can differ in size, so one shared
-    // volume misconverts half the segments (#110). Falls back to the first
-    // tank with a volume when the segment carries no attribution.
     String formatSacValue(double sacBarPerMin, {String? segmentTankId}) {
       // Apply normalization to align with overall dive SAC
       final normalizedSac = sacBarPerMin * normalizationFactor;
+      final volume = volumeForSegment(segmentTankId);
 
-      final segmentVolume = segmentTankId == null
-          ? null
-          : dive.tanks
-                .where(
-                  (t) =>
-                      t.id == segmentTankId &&
-                      t.volume != null &&
-                      t.volume! > 0,
-                )
-                .map((t) => t.volume!)
-                .firstOrNull;
-      final effectiveVolume = segmentVolume ?? tankVolume;
-
-      if (sacUnit == SacUnit.litersPerMin && effectiveVolume != null) {
+      if (sacUnit == SacUnit.litersPerMin && volume != null) {
         // Convert bar/min to L/min: sacLPerMin = sacBarPerMin * tankVolume
-        final sacLPerMin = normalizedSac * effectiveVolume;
+        final sacLPerMin = normalizedSac * volume;
         return '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
       } else {
         // Convert to user's pressure unit (bar or psi)
@@ -2253,6 +2543,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                   );
                 }),
+                // Some segment fell back to the pressure lane above: say why.
+                if (sacUnit == SacUnit.litersPerMin &&
+                    renderSegments.any(
+                      (s) => volumeForSegment(s.tankId) == null,
+                    )) ...[
+                  const SizedBox(height: 8),
+                  SacVolumeHint(
+                    volumeSymbol: units.volumeSymbol,
+                    onTap: () => context.push('/dives/${dive.id}/edit'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -2752,7 +3053,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     try {
       final exportService = ref.read(exportServiceProvider);
-      final result = await exportService.generateDivePdfBytes([dive]);
+      final settings = ref.read(settingsProvider);
+      final result = await exportService.generateDivePdfBytes(
+        [dive],
+        dates: PdfDateFormatter(
+          dateFormat: settings.dateFormat,
+          timeFormat: settings.timeFormat,
+        ),
+      );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
       if (mounted) {
@@ -2795,7 +3103,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   void _showFullscreenProfile(BuildContext context, WidgetRef ref, Dive dive) {
-    Navigator.of(context).push(
+    // Root navigator, not the ShellRoute's: pushing on the shell navigator
+    // renders the page inside MainScaffold, leaving the bottom navigation
+    // bar painted under a supposedly fullscreen chart (#811).
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => FullscreenProfilePage(diveId: dive.id),
       ),
@@ -2844,6 +3155,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
+            if (dive.courseId != null) _buildCourseRow(context, ref, dive),
             if (dive.visibility != null)
               _buildDetailRow(
                 context,
@@ -2959,8 +3271,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   );
 
   /// Calculate profile markers for max depth and pressure thresholds
+  /// Markers to overlay on the profile chart.
+  ///
+  /// [profile] must be the series the chart is actually drawing (the active
+  /// source's points), not `dive.profile`. The analysis these markers are
+  /// positioned from is the active source's, so indexing it into the merged
+  /// series would place the max-depth flag at another computer's reading
+  /// (#1167).
   List<ProfileMarker> _calculateProfileMarkers({
-    required Dive dive,
+    required List<DiveProfilePoint> profile,
+    required List<DiveTank> tanks,
     required ProfileAnalysis? analysis,
     required bool showMaxDepth,
     required bool showPressureThresholds,
@@ -2968,12 +3288,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }) {
     final markers = <ProfileMarker>[];
 
-    if (dive.profile.isEmpty) return markers;
+    if (profile.isEmpty) return markers;
 
     // Add max depth marker
     if (showMaxDepth && analysis != null) {
       final maxDepthMarker = ProfileMarkersService.getMaxDepthMarker(
-        profile: dive.profile,
+        profile: profile,
         maxDepthTimestamp: analysis.maxDepthTimestamp,
         maxDepth: analysis.maxDepth,
       );
@@ -2983,11 +3303,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // Add pressure threshold markers (using per-tank data when available)
-    if (showPressureThresholds && dive.tanks.isNotEmpty) {
+    if (showPressureThresholds && tanks.isNotEmpty) {
       markers.addAll(
         ProfileMarkersService.getPressureThresholdMarkers(
-          profile: dive.profile,
-          tanks: dive.tanks,
+          profile: profile,
+          tanks: tanks,
           tankPressures: tankPressures,
         ),
       );
@@ -3299,7 +3619,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${(pressure * 1000).toStringAsFixed(0)} mbar',
+                        units.formatSurfacePressure(pressure),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.secondary,
@@ -3366,6 +3686,50 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  /// Satellite water conditions on the date of this dive.
+  ///
+  /// Historical NOAA readings are immutable, so this is fetched once and
+  /// cached permanently. Hidden when the dive has no site coordinates, and
+  /// for freshwater sites, whose water NOAA's ocean grid cannot see — a
+  /// permanent coverage explanation on every quarry dive would be noise.
+  Widget _buildReefHealthSection(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    final site = dive.site;
+    if (site?.hasCoordinates != true) return const SizedBox.shrink();
+    if (site!.waterType == WaterType.fresh) return const SizedBox.shrink();
+
+    final location = site.location!;
+    final healthAsync = ref.watch(
+      reefHealthForDiveProvider(
+        ReefHealthRequest(location: location, date: dive.effectiveEntryTime),
+      ),
+    );
+    final habitatAsync = ref.watch(reefHabitatProvider(location));
+
+    return healthAsync.when(
+      data: (part) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 24),
+          Card(
+            child: WaterConditionsCard(
+              health: part,
+              // Null while still resolving: the card then keeps the stress
+              // lines, the conservative default.
+              habitat: habitatAsync.valueOrNull,
+              waterType: site.waterType,
+            ),
+          ),
+        ],
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
   /// Build the tide conditions section for a dive.
   ///
   /// Shows tide data from:
@@ -3376,42 +3740,55 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// takes up zero space.  The 24-px top spacer is included only when the
   /// section actually renders content.
   Widget _buildTideSection(BuildContext context, WidgetRef ref, Dive dive) {
-    Widget withSpacing(Widget card) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [const SizedBox(height: 24), card],
-      );
-    }
+    final card = _tideCard(context, ref, dive);
+    if (card == null) return const SizedBox.shrink();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [const SizedBox(height: 24), card],
+    );
+  }
 
-    // First try to get stored tide record
-    final tideRecordAsync = ref.watch(tideRecordForDiveProvider(dive.id));
+  /// The tide card without its leading section gap, or null when the dive has
+  /// no tide data to show.
+  ///
+  /// Extracted from [_buildTideSection] so the side-by-side pairing (with
+  /// Surface GPS) can use the same null result both as the presence gate and
+  /// as the bare card to place in the row.
+  Widget? _tideCard(BuildContext context, WidgetRef ref, Dive dive) {
+    // Freshwater sites have no tides; hide the section entirely, even
+    // when an old stored record exists.
+    if (dive.site?.waterType == WaterType.fresh) return null;
 
-    return tideRecordAsync.when(
+    // First try to get stored tide record (lazily self-healed against a
+    // fresh computation when the site has coordinates)
+    final tideRecordAsync = ref.watch(
+      healedTideRecordProvider((
+        diveId: dive.id,
+        location: dive.site?.location,
+        entryTime: dive.effectiveEntryTime,
+      )),
+    );
+
+    return tideRecordAsync.when<Widget?>(
       data: (tideRecord) {
         if (tideRecord != null) {
-          return withSpacing(
-            _buildTideCard(
-              context,
-              tideRecord,
-              entryTime: dive.effectiveEntryTime,
-            ),
+          return _buildTideCard(
+            context,
+            tideRecord,
+            entryTime: dive.effectiveEntryTime,
           );
         }
 
         // No stored record - try to calculate from tide model if we have coordinates
-        if (dive.site?.hasCoordinates != true) {
-          return const SizedBox.shrink();
-        }
+        if (dive.site?.hasCoordinates != true) return null;
 
         final location = dive.site!.location!;
         final entryTime = dive.effectiveEntryTime;
         final calculatorAsync = ref.watch(tideCalculatorProvider(location));
 
-        return calculatorAsync.when(
+        return calculatorAsync.when<Widget?>(
           data: (calculator) {
-            if (calculator == null) {
-              return const SizedBox.shrink(); // No tide data for this location
-            }
+            if (calculator == null) return null; // No tide data here.
 
             final status = calculator.getStatus(entryTime);
             final record = TideRecord.fromStatus(
@@ -3420,21 +3797,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               status: status,
             );
 
-            return withSpacing(
-              _buildTideCard(
-                context,
-                record,
-                isCalculated: true,
-                entryTime: entryTime,
-              ),
+            return _buildTideCard(
+              context,
+              record,
+              isCalculated: true,
+              entryTime: entryTime,
             );
           },
-          loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
+          loading: () => null,
+          error: (_, _) => null,
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      loading: () => null,
+      error: (_, _) => null,
     );
   }
 
@@ -3485,7 +3860,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
     final dateStr = dateRef != null
-        ? DateFormat('EEE, MMM d').format(dateRef)
+        ? DateFormat(
+            UnitFormatter.weekdayMonthDayPattern(settings.dateFormat),
+          ).format(dateRef)
         : '';
     // Cycle bounds are stored wall-clock instants, not device-local times:
     // format them verbatim without any timezone conversion.
@@ -3499,7 +3876,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 cycleStart.month != cycleEnd.month ||
                 cycleStart.day != cycleEnd.day;
             if (spansNewDay) {
-              final endDateStr = DateFormat('MMM d').format(cycleEnd);
+              final endDateStr = DateFormat(
+                UnitFormatter.monthDayPattern(settings.dateFormat),
+              ).format(cycleEnd);
               return '$startStr - $endStr ($endDateStr)';
             }
             return '$startStr - $endStr';
@@ -3524,9 +3903,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ),
             )
           : null,
+      // The cycle range is secondary to the card itself: in a half-width
+      // column it trims rather than wrapping the header onto three lines.
       trailing: isExpanded && dateTimeLabel.isNotEmpty
           ? Text(
               dateTimeLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -3753,27 +4137,51 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Determine which SAC value to show based on setting
     if (sacUnit == SacUnit.litersPerMin) {
-      // Volume-based SAC (L/min) - requires tank volume
-      if (dive.sac == null) return const SizedBox.shrink();
-      final value =
-          '${units.convertVolume(dive.sac!).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-      return _buildDetailRow(
-        context,
-        context.l10n.diveLog_detail_label_sacRate,
-        value,
+      // Volume-based SAC (L/min) - requires tank volume and a gas model
+      final sac = dive.sacFor(ref.watch(gasModelProvider));
+      if (sac != null) {
+        final value =
+            '${units.convertVolume(sac).toStringAsFixed(1)} ${units.volumeSymbol}/min';
+        return _buildDetailRow(
+          context,
+          context.l10n.diveLog_detail_label_sacRate,
+          value,
+        );
+      }
+      // No cylinder volume (the norm for dive-computer downloads): show the
+      // pressure lane and say why, rather than hiding the row and leaving
+      // the L/min preference looking broken (issue #386). A pressure SAC
+      // with no volumetric one means no cylinder with a pressure drop has a
+      // volume, whatever a stage bottle carries, so the hint is accurate.
+      // With no pressure data either there is nothing to fall back to.
+      if (dive.sacPressure == null) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDetailRow(
+            context,
+            context.l10n.diveLog_detail_label_sacRate,
+            _formatPressureSac(dive.sacPressure!, units),
+          ),
+          SacVolumeHint(
+            volumeSymbol: units.volumeSymbol,
+            onTap: () => context.push('/dives/${dive.id}/edit'),
+          ),
+        ],
       );
     } else {
       // Pressure-based SAC (bar/min or psi/min) - doesn't require tank volume
       if (dive.sacPressure == null) return const SizedBox.shrink();
-      final value =
-          '${units.convertPressure(dive.sacPressure!).toStringAsFixed(1)} ${units.pressureSymbol}/min';
       return _buildDetailRow(
         context,
         context.l10n.diveLog_detail_label_sacRate,
-        value,
+        _formatPressureSac(dive.sacPressure!, units),
       );
     }
   }
+
+  String _formatPressureSac(double sacPressure, UnitFormatter units) =>
+      '${units.convertPressure(sacPressure).toStringAsFixed(1)} ${units.pressureSymbol}/min';
 
   Widget _buildDetailRow(
     BuildContext context,
@@ -3844,7 +4252,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildLinkedComputerRow(BuildContext context, DiveComputer computer) {
     return Semantics(
       button: true,
-      label: 'View dive computer ${computer.displayName}',
+      label: context.l10n.diveLog_detail_semantics_viewDiveComputer(
+        computer.displayName,
+      ),
       child: InkWell(
         onTap: () => context.push('/dive-computers/${computer.id}'),
         child: Padding(
@@ -3874,7 +4284,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           if (computer.serialNumber != null &&
                               computer.serialNumber!.isNotEmpty)
                             Text(
-                              'S/N ${computer.serialNumber}',
+                              context.l10n.diveLog_detail_serialNumber(
+                                computer.serialNumber!,
+                              ),
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(
@@ -3908,7 +4320,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final trip = dive.trip!;
     return Semantics(
       button: true,
-      label: 'View trip ${trip.name}',
+      label: context.l10n.diveLog_detail_semantics_viewTrip(trip.name),
       child: InkWell(
         onTap: () => context.push('/trips/${trip.id}'),
         child: Padding(
@@ -3970,7 +4382,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildDiveCenterRow(BuildContext context, Dive dive) {
     return Semantics(
       button: true,
-      label: 'View dive center ${dive.diveCenter!.name}',
+      label: context.l10n.diveLog_detail_semantics_viewDiveCenter(
+        dive.diveCenter!.name,
+      ),
       child: InkWell(
         onTap: () => context.push('/dive-centers/${dive.diveCenter!.id}'),
         child: Padding(
@@ -3999,6 +4413,63 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Training-course row for the Details card (#1219).
+  ///
+  /// The linked course used to surface only as a chip in the Signatures card
+  /// header, which is an optional section far down the page, so read-only
+  /// viewers had no way to see the link short of opening the edit form.
+  /// Callers gate on `dive.courseId != null`, so the provider is only reached
+  /// for dives that actually carry a link; the row stays empty until the
+  /// lookup resolves rather than reserving blank space.
+  Widget _buildCourseRow(BuildContext context, WidgetRef ref, Dive dive) {
+    final course = ref.watch(courseForDiveProvider(dive.id)).valueOrNull;
+    if (course == null) return const SizedBox.shrink();
+
+    return Semantics(
+      button: true,
+      label: context.l10n.diveLog_detail_semantics_viewCourse(course.name),
+      child: InkWell(
+        onTap: () => context.push('/courses/${course.id}'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.diveLog_edit_section_trainingCourse,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        course.name,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    ExcludeSemantics(
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -4141,7 +4612,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     context,
                   ).colorScheme.tertiaryContainer,
                   child: Icon(
-                    _getEquipmentIcon(item.type),
+                    equipmentTypeIcon(item.type),
                     color: Theme.of(context).colorScheme.onTertiaryContainer,
                     size: 20,
                   ),
@@ -4178,36 +4649,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
     );
-  }
-
-  IconData _getEquipmentIcon(EquipmentType type) {
-    switch (type) {
-      case EquipmentType.regulator:
-        return Icons.air;
-      case EquipmentType.bcd:
-        return Icons.accessibility_new;
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return Icons.checkroom;
-      case EquipmentType.fins:
-        return Icons.directions_walk;
-      case EquipmentType.mask:
-        return Icons.visibility;
-      case EquipmentType.computer:
-        return Icons.watch;
-      case EquipmentType.tank:
-        return MdiIcons.divingScubaTank;
-      case EquipmentType.weights:
-        return Icons.fitness_center;
-      case EquipmentType.light:
-        return Icons.flashlight_on;
-      case EquipmentType.camera:
-        return Icons.camera_alt;
-      case EquipmentType.transmitter:
-        return Icons.sensors;
-      default:
-        return Icons.backpack;
-    }
   }
 
   Widget _buildSightingsSection(BuildContext context, WidgetRef ref) {
@@ -4268,7 +4709,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _buildSightingTile(BuildContext context, Sighting sighting) {
     return Semantics(
       button: true,
-      label: 'View species ${sighting.speciesName}',
+      label: context.l10n.diveLog_detail_semantics_viewSpecies(
+        localizedSpeciesName(
+          context.l10n,
+          sighting.speciesId,
+          sighting.speciesName,
+        ),
+      ),
       child: InkWell(
         onTap: () => context.push('/species/${sighting.speciesId}'),
         borderRadius: BorderRadius.circular(8),
@@ -4293,7 +4740,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      sighting.speciesName,
+                      localizedSpeciesName(
+                        context.l10n,
+                        sighting.speciesId,
+                        sighting.speciesName,
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
@@ -4371,6 +4822,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           dive: dive,
         );
       },
+      onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
+        context: context,
+        ref: ref,
+        diveId: dive.id,
+      ),
+      onOpenDocument: (item) => DocumentOpenHelper.open(context, ref, item),
     );
   }
 
@@ -4591,47 +5048,63 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // spaceBetween with two loose Flexible children, never a Spacer:
+            // a Spacer is tight and claims its half of the free space whether
+            // or not the chip needs it, which both strands a gap after the
+            // chip and leaves the chip itself unbounded. An unbounded chip
+            // overflowed this header by 15px on a phone-width pane as soon as
+            // the course name ran past a word or two.
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  context.l10n.diveLog_detail_section_trainingSignature,
-                  style: Theme.of(context).textTheme.titleMedium,
+                Flexible(
+                  child: Text(
+                    context.l10n.diveLog_detail_section_trainingSignature,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
                 if (courseAsync.hasValue && courseAsync.value != null) ...[
-                  Semantics(
-                    button: true,
-                    label: 'View course ${courseAsync.value!.name}',
-                    child: InkWell(
-                      onTap: () =>
-                          context.push('/courses/${courseAsync.value!.id}'),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.school,
-                              size: 14,
-                              color: colorScheme.onPrimaryContainer,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              courseAsync.value!.name,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
-                            ),
-                          ],
+                  Flexible(
+                    child: Semantics(
+                      button: true,
+                      label: context.l10n.diveLog_detail_semantics_viewCourse(
+                        courseAsync.value!.name,
+                      ),
+                      child: InkWell(
+                        onTap: () =>
+                            context.push('/courses/${courseAsync.value!.id}'),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.school,
+                                size: 14,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  courseAsync.value!.name,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -4664,7 +5137,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Error loading signature: $error',
+                  context.l10n.diveLog_detail_errorLoadingSignature('$error'),
                   style: TextStyle(color: colorScheme.error),
                 ),
               ),
@@ -4856,10 +5329,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
 
-    final errors = await service.reparseDive(
+    final result = await service.reparseDive(
       dive.id,
       parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
     );
+    final errors = result.errors;
 
     // Invalidate providers so the UI reflects the re-parsed data.
     ref.invalidate(diveProvider(dive.id));
@@ -4869,8 +5343,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     if (context.mounted) {
       if (errors.isEmpty) {
+        // A combined dive's profile is user-authored, so re-parse refreshes
+        // only the source provenance and says so -- otherwise the action
+        // looks like an unexplained no-op (#1164).
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.diveLog_detail_reparseSuccess)),
+          SnackBar(
+            content: Text(
+              result.profilesPreserved > 0
+                  ? l10n.diveLog_detail_reparseProfilePreserved
+                  : l10n.diveLog_detail_reparseSuccess,
+            ),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -4903,8 +5386,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 if (widget.embedded && widget.onDeleted != null) {
                   // In embedded mode, call the callback to clear selection
                   widget.onDeleted!();
+                } else if (context.canPop()) {
+                  // The dive is gone, so this page has to go too -- but pop
+                  // back to whoever pushed it rather than `go`ing to the list,
+                  // which would discard the section the user came from.
+                  context.pop();
                 } else {
-                  // In standalone mode, navigate back to list
+                  // Nothing underneath (deep link / fresh start): fall back to
+                  // the list.
                   context.go('/dives');
                 }
               }
@@ -4954,8 +5443,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _handleSingleDiveExport(
                   context,
                   ref,
-                  () =>
+                  title: context.l10n.diveLog_export_csv,
+                  shareFn: () =>
                       ref.read(exportServiceProvider).exportDivesToCsv([dive]),
+                  saveFn: () => ref
+                      .read(exportServiceProvider)
+                      .saveDivesCsvToFile([dive]),
                 );
               },
             ),
@@ -4964,13 +5457,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               title: Text(context.l10n.diveLog_export_uddf),
               subtitle: Text(context.l10n.diveLog_export_uddfDescription),
               onTap: () {
+                final sites = [if (dive.site != null) dive.site!];
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
                   context,
                   ref,
-                  () => ref.read(exportServiceProvider).exportDivesToUddf([
-                    dive,
-                  ], sites: dive.site != null ? [dive.site!] : []),
+                  title: context.l10n.diveLog_export_uddf,
+                  shareFn: () => ref
+                      .read(exportServiceProvider)
+                      .exportDivesToUddf([dive], sites: sites),
+                  saveFn: () => ref
+                      .read(exportServiceProvider)
+                      .saveDivesToUddfFile([dive], sites: sites),
                 );
               },
             ),
@@ -5002,39 +5500,65 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  /// Ask where the export should go, then run the matching delivery.
+  ///
+  /// The save path deliberately runs without the progress dialog: the system
+  /// save panel must not open while a modal route is up (see [_exportDivePdf],
+  /// which pops its dialog before calling the picker for the same reason).
+  /// Generating a single dive's CSV/UDDF is in-memory work, so there is nothing
+  /// to report progress on.
+  ///
+  /// Every pop of the progress dialog must pass `rootNavigator: true`.
+  /// [showDialog] defaults to `useRootNavigator: true`, but a bare
+  /// `Navigator.of(context)` resolves to the ShellRoute's navigator instead.
+  /// In master-detail layouts this page is embedded in the shell's only route,
+  /// so a bare pop removes that route and leaves a black screen under a modal
+  /// that can no longer be dismissed.
   Future<void> _handleSingleDiveExport(
     BuildContext context,
-    WidgetRef ref,
-    Future<String> Function() exportFn,
-  ) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 24),
-            Text(context.l10n.diveLog_export_exporting),
-          ],
+    WidgetRef ref, {
+    required String title,
+    required Future<String> Function() shareFn,
+    required Future<String?> Function() saveFn,
+  }) async {
+    final destination = await showExportDestinationSheet(context, title: title);
+    if (destination == null || !context.mounted) return;
+
+    final showProgress = destination == ExportDestination.share;
+    if (showProgress) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 24),
+              Text(context.l10n.diveLog_export_exporting),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     try {
-      await exportFn();
-      if (context.mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.diveLog_export_success),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      final path = switch (destination) {
+        ExportDestination.share => await shareFn(),
+        ExportDestination.saveToFile => await saveFn(),
+      };
+      if (!context.mounted) return;
+      if (showProgress) Navigator.of(context, rootNavigator: true).pop();
+      // A null path means the save panel was dismissed - not a failure.
+      if (path == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.diveLog_export_success),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
-        Navigator.of(context).pop();
+        if (showProgress) Navigator.of(context, rootNavigator: true).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.diveLog_export_failed(e.toString())),

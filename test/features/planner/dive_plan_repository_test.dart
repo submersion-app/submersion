@@ -31,6 +31,7 @@ domain.DivePlan _fullPlan() {
     startPressure: 207.0,
     gasMix: decoGas,
     role: TankRole.deco,
+    isTravelGas: true,
   );
   return domain.DivePlan(
     id: 'plan-1',
@@ -118,6 +119,8 @@ void main() {
       expect(loaded.tanks.first.gasMix.he, 45);
       expect(loaded.tanks.first.material, TankMaterial.steel);
       expect(loaded.tanks.last.role, TankRole.deco);
+      expect(loaded.tanks.last.isTravelGas, isTrue);
+      expect(loaded.tanks.first.isTravelGas, isFalse);
       expect(loaded.segments, hasLength(2));
       expect(loaded.segments.first.type, SegmentType.descent);
       expect(loaded.segments.last.durationSeconds, 25 * 60);

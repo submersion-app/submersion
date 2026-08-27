@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -23,8 +24,12 @@ class EnvironmentInputs extends ConsumerWidget {
       children: [
         Expanded(
           child: TextFormField(
+            // Whole units only, but rendered by the locale formatter so the
+            // seeded text matches what onChanged parses back.
             initialValue: altitude != null
-                ? units.convertAltitude(altitude).toStringAsFixed(0)
+                ? formatDecimalForInput(
+                    units.convertAltitude(altitude).roundToDouble(),
+                  )
                 : '',
             decoration: InputDecoration(
               labelText:
@@ -35,7 +40,7 @@ class EnvironmentInputs extends ConsumerWidget {
             ),
             keyboardType: TextInputType.number,
             onChanged: (text) {
-              final parsed = double.tryParse(text);
+              final parsed = parseUserDecimal(text);
               ref.read(calcAltitudeProvider.notifier).state = parsed == null
                   ? null
                   : units.altitudeToMeters(parsed);

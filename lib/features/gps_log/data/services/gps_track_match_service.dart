@@ -39,12 +39,15 @@ class GpsTrackMatchService {
       final track = GpsTrackMatcher.trackCovering(tracks, dive.startMs);
       if (track == null) continue;
       final entry = GpsTrackMatcher.positionAt(
-        track.points,
+        track.effectivePoints,
         dive.startMs ~/ 1000,
       );
       if (entry == null) continue;
       final exit = dive.endMs != null
-          ? GpsTrackMatcher.positionAt(track.points, dive.endMs! ~/ 1000)
+          ? GpsTrackMatcher.positionAt(
+              track.effectivePoints,
+              dive.endMs! ~/ 1000,
+            )
           : null;
       await _diveRepository.setDiveGps(
         dive.id,

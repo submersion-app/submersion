@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Renders a weight prediction: big total, suggested placement, confidence
@@ -45,11 +46,11 @@ class WeightPredictionCard extends StatelessWidget {
     return term.label;
   }
 
-  String _placementLabel(String weightTypeName) {
+  String _placementLabel(BuildContext context, String weightTypeName) {
     final type = WeightType.values
         .where((t) => t.name == weightTypeName)
         .firstOrNull;
-    return type?.displayName ?? weightTypeName;
+    return type?.localizedName(context.l10n) ?? weightTypeName;
   }
 
   @override
@@ -113,12 +114,18 @@ class WeightPredictionCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      _placementLabel(entry.key),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
+                    // Expanded: placement names are localized enum labels
+                    // ("Integrierte Gewichte") and overflow this row without a
+                    // flexible child. The weight value keeps its intrinsic size.
+                    Expanded(
+                      child: Text(
+                        _placementLabel(context, entry.key),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       units.formatWeight(entry.value),
                       style: theme.textTheme.bodyMedium?.copyWith(

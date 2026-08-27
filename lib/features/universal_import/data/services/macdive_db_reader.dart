@@ -41,7 +41,7 @@ class MacDiveDbReader {
         final tables = rows.map<String>((r) => r['name'] as String).toSet();
         return _requiredTables.every(tables.contains);
       } finally {
-        db.dispose();
+        db.close();
       }
     } catch (_) {
       return false;
@@ -78,6 +78,9 @@ class MacDiveDbReader {
         final certifications = _readCertifications(db);
         final serviceRecords = _readServiceRecords(db);
         final events = _readEvents(db);
+        final diveTypes = _readDiveTypes(db);
+        final diveLogs = _readDiveLogs(db);
+        final divers = _readDivers(db);
         final tankAndGases = _readTankAndGases(db);
         final dives = _readDives(db);
 
@@ -105,6 +108,14 @@ class MacDiveDbReader {
           dividingColumn: 'Z_3RELATIONSHIPDIVETOCRITTER',
           relatedColumn: 'Z_5RELATIONSHIPCRITTERTODIVE',
         );
+        // Core Data names junction columns after the entity number on each
+        // side: Z_5 is ZDIVE, Z_10 is ZDIVETYPE.
+        final diveToDiveTypePks = _readJunction(
+          db,
+          table: 'Z_5RELATIONSHIPDIVETYPES',
+          dividingColumn: 'Z_5RELATIONSHIPTYPETODIVES',
+          relatedColumn: 'Z_10RELATIONSHIPDIVETYPES',
+        );
 
         return MacDiveRawLogbook(
           dives: dives,
@@ -124,9 +135,13 @@ class MacDiveDbReader {
           diveToGearPks: diveToGearPks,
           diveToCritterPks: diveToCritterPks,
           unitsPreference: unitsPreference,
+          diveTypesByPk: {for (final t in diveTypes) t.pk: t},
+          diveToDiveTypePks: diveToDiveTypePks,
+          diveLogsByPk: {for (final l in diveLogs) l.pk: l},
+          diversByPk: {for (final d in divers) d.pk: d},
         );
       } finally {
-        db.dispose();
+        db.close();
       }
     } finally {
       _deleteTempFile(tmpFile);
@@ -210,6 +225,8 @@ class MacDiveDbReader {
         notes: _str(r['ZNOTES']),
         url: _str(r['ZURL']),
         warranty: _str(r['ZWARRANTY']),
+        currency: _str(r['ZCURRENCY']),
+        disabled: (r['ZDISABLED'] as int? ?? 0) != 0,
       ),
     );
   }
@@ -297,6 +314,8 @@ class MacDiveDbReader {
         expiry: _nsDateFromSeconds(_double(r['ZEXPIRY'])),
         instructorName: _str(r['ZINSTRUCTORNAME']),
         instructorNumber: _str(r['ZINSTRUCTORNUMBER']),
+        instructorShop: _str(r['ZINSTRUCTORSHOP']),
+        diverNumber: _str(r['ZDIVERNUMBER']),
         cardFrontPath: _str(r['ZCARDFRONT']),
         cardBackPath: _str(r['ZCARDBACK']),
       ),
@@ -310,10 +329,53 @@ class MacDiveDbReader {
       (r) => MacDiveRawServiceRecord(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
-        gearFk: r['ZRELATIONSHIPGEARITEM'] as int,
+        // A null FK would throw, and _selectOrEmpty's catch would discard the
+        // whole table rather than one row. -1 never matches a real Z_PK, so
+        // the mapper simply skips it.
+        gearFk: r['ZRELATIONSHIPGEARITEM'] as int? ?? -1,
         serviceDate: _nsDateFromSeconds(_double(r['ZSERVICEDATE'])),
         servicedBy: _str(r['ZSERVICEDBY']),
         notes: _str(r['ZNOTES']),
+      ),
+    );
+  }
+
+  static List<MacDiveRawDiveType> _readDiveTypes(Database db) {
+    return _selectOrEmpty<MacDiveRawDiveType>(
+      db,
+      'SELECT * FROM ZDIVETYPE',
+      (r) => MacDiveRawDiveType(
+        pk: r['Z_PK'] as int,
+        uuid: _str(r['ZUUID']) ?? '',
+        name: _str(r['ZNAME']),
+      ),
+    );
+  }
+
+  static List<MacDiveRawDiveLog> _readDiveLogs(Database db) {
+    return _selectOrEmpty<MacDiveRawDiveLog>(
+      db,
+      'SELECT * FROM ZDIVELOG',
+      (r) => MacDiveRawDiveLog(
+        pk: r['Z_PK'] as int,
+        uuid: _str(r['ZUUID']) ?? '',
+        name: _str(r['ZNAME']),
+        isGroup: (r['ZISGROUP'] as int? ?? 0) != 0,
+        isSmart: (r['ZPREDICATE'] as List<int>?)?.isNotEmpty ?? false,
+      ),
+    );
+  }
+
+  static List<MacDiveRawDiver> _readDivers(Database db) {
+    return _selectOrEmpty<MacDiveRawDiver>(
+      db,
+      'SELECT * FROM ZDIVER',
+      (r) => MacDiveRawDiver(
+        pk: r['Z_PK'] as int,
+        uuid: _str(r['ZUUID']) ?? '',
+        firstName: _str(r['ZFIRSTNAME']),
+        lastName: _str(r['ZLASTNAME']),
+        email: _str(r['ZEMAILADDRESS']),
       ),
     );
   }
@@ -375,6 +437,7 @@ class MacDiveDbReader {
         weight: _str(r['ZWEIGHT']),
         diveSiteFk: r['ZRELATIONSHIPDIVESITE'] as int?,
         certificationFk: r['ZRELATIONSHIPCERTIFICATION'] as int?,
+        diverFk: r['ZRELATIONSHIPDIVER'] as int?,
         samplesBlob: _bytes(r['ZSAMPLES']),
         rawDataBlob: _bytes(r['ZRAWDATA']),
       );

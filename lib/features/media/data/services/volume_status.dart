@@ -78,4 +78,85 @@ class VolumeStatus {
     if (root == null) return true;
     return _directoryExists(root);
   }
+
+  /// An [isVolumeOnline] that memoizes per mount root, for callers
+  /// classifying MANY paths in one pass (the Missing count, the wizard's
+  /// harvest). Without it a library with hundreds of rows on one
+  /// unreachable share pays that share's stat timeout once per row.
+  ///
+  /// The memo holds the in-flight future, so concurrent probes of the same
+  /// root also collapse into one call. Deliberately per-pass rather than
+  /// per-[VolumeStatus]: a long-lived cache would keep reporting a volume
+  /// offline after the user plugged it back in. Create a fresh probe for
+  /// each pass.
+  Future<bool> Function(String path) newPassProbe({String? platformOverride}) {
+    final byRoot = <String, Future<bool>>{};
+    return (path) {
+      final root = volumeRootOf(path, platformOverride: platformOverride);
+      if (root == null) return Future.value(true);
+      return byRoot.putIfAbsent(root, () => _directoryExists(root));
+    };
+  }
+
+  /// An [isVolumeOnline] for callers with no pass to scope a memo to, where
+  /// [newPassProbe] cannot be used and a plain [isVolumeOnline] costs one
+  /// stat per call.
+  ///
+  /// `LocalFileResolver` is the case this exists for (#1182): it is a
+  /// singleton resolving one grid tile at a time, and a 140 px grid puts
+  /// 30-60 tiles on screen on desktop. Per-call it paid an unreachable
+  /// share's stat timeout once per tile, each one parking a `dart:io` pool
+  /// thread that drift's SQLite also needs -- which is how a thumbnail
+  /// problem became an app-wide freeze.
+  ///
+  /// [ttl] is measured from when a probe COMPLETES, and an in-flight probe
+  /// never expires. Both matter: a mount that hangs for longer than [ttl]
+  /// would otherwise expire mid-probe and let the next caller start a second
+  /// hang, which is the stall this exists to prevent. A bounded [ttl] is
+  /// also what makes a long-lived memo safe at all -- see [newPassProbe],
+  /// whose per-pass scoping exists because a cache that never expired would
+  /// keep reporting a volume offline after the user plugged it back in. Here
+  /// that window is one [ttl], not the life of the process.
+  ///
+  /// [clock] is injectable so tests can age the memo without waiting.
+  Future<bool> Function(String path) newExpiringProbe({
+    required Duration ttl,
+    DateTime Function()? clock,
+    String? platformOverride,
+  }) {
+    final now = clock ?? DateTime.now;
+    final byRoot = <String, _ExpiringProbe>{};
+    return (path) {
+      final root = volumeRootOf(path, platformOverride: platformOverride);
+      if (root == null) return Future.value(true);
+      final cached = byRoot[root];
+      if (cached != null && !cached.isStale(now(), ttl)) return cached.future;
+      final entry = _ExpiringProbe(_directoryExists(root));
+      byRoot[root] = entry;
+      // Stamped on completion, either way. A probe that THREW is still an
+      // answer that cost a filesystem round-trip, and re-running it for
+      // every tile is the same stall as never memoizing at all.
+      entry.future.then(
+        (_) => entry.completedAt = now(),
+        onError: (Object _) => entry.completedAt = now(),
+      );
+      return entry.future;
+    };
+  }
+}
+
+/// One memoized mount-root probe and when it finished.
+class _ExpiringProbe {
+  _ExpiringProbe(this.future);
+
+  final Future<bool> future;
+  DateTime? completedAt;
+
+  bool isStale(DateTime now, Duration ttl) {
+    final at = completedAt;
+    // Still running: never stale. Expiring an in-flight probe would let the
+    // next caller start a second one against the same unreachable mount.
+    if (at == null) return false;
+    return now.difference(at) >= ttl;
+  }
 }

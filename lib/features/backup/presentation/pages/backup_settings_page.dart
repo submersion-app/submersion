@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/backup/presentation/widgets/restore_confirma
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:path/path.dart' as p;
 
 class BackupSettingsPage extends ConsumerWidget {
   const BackupSettingsPage({super.key});
@@ -45,13 +48,18 @@ class BackupSettingsPage extends ConsumerWidget {
               operationState.status != BackupOperationStatus.idle)
             _buildStatusMessage(context, operationState),
           // Export card
-          _buildActionCard(
-            context: context,
-            icon: Icons.backup,
-            title: context.l10n.backup_export_title,
-            subtitle: context.l10n.backup_export_subtitle,
-            enabled: !isInProgress,
-            onTap: () => _handleExport(context, ref),
+          // Builder so the iPad share popover anchors to the export card:
+          // findRenderObject from a Builder's context descends to the card,
+          // whereas the page's context would yield the whole page.
+          Builder(
+            builder: (cardContext) => _buildActionCard(
+              context: context,
+              icon: Icons.backup,
+              title: context.l10n.backup_export_title,
+              subtitle: context.l10n.backup_export_subtitle,
+              enabled: !isInProgress,
+              onTap: () => _handleExport(cardContext, ref),
+            ),
           ),
           // Import card
           _buildActionCard(
@@ -170,18 +178,39 @@ class BackupSettingsPage extends ConsumerWidget {
 
   void _handleExport(BuildContext context, WidgetRef ref) {
     final encrypted = ref.read(backupSettingsProvider).backupEncryptionEnabled;
+    // Captured now: the export sheet is dismissed before onShare runs, so the
+    // anchor has to come from the card that opened it.
+    final anchor = shareAnchorFrom(context);
     ExportBottomSheet.show(
       context,
       onSaveToFile: () async {
-        final result = await FilePicker.saveFile(
-          dialogTitle: context.l10n.backup_export_title,
-          fileName: _generateDefaultFilename(encrypted),
-          allowedExtensions: encrypted ? ['sbe'] : ['db', 'sqlite'],
-          type: FileType.custom,
-        );
-        if (result != null && context.mounted) {
-          ref.read(backupOperationProvider.notifier).exportToPath(result);
+        // Deliberately a folder pick rather than a Save As sheet.
+        // file_picker 12's saveFile requires the entire artifact up front as
+        // `bytes`, and a dive library can be far too large to hold in memory,
+        // so every branch below streams instead. Mirrors the backup-location
+        // picker further down this file, including its Android reasoning.
+        final fileName = _generateDefaultFilename(encrypted);
+        final notifier = ref.read(backupOperationProvider.notifier);
+
+        if (Platform.isAndroid) {
+          // Scoped storage: a file_picker path is unwritable, so take a SAF
+          // tree and stream into it.
+          // coverage:ignore-start
+          final folder = await SubmersionSaf.pickFolder();
+          if (folder == null) return;
+          await notifier.exportToSafTree(
+            treeUri: folder.uri,
+            fileName: fileName,
+          );
+          return;
+          // coverage:ignore-end
         }
+
+        final dir = await FilePicker.getDirectoryPath(
+          dialogTitle: context.l10n.backup_export_title,
+        );
+        if (dir == null) return;
+        await notifier.exportToPath(p.join(dir, fileName));
       },
       onShare: () async {
         final file = await ref
@@ -189,7 +218,7 @@ class BackupSettingsPage extends ConsumerWidget {
             .exportForSharing();
         if (file != null && context.mounted) {
           await SharePlus.instance.share(
-            ShareParams(files: [XFile(file.path)]),
+            ShareParams(files: [XFile(file.path)], sharePositionOrigin: anchor),
           );
         }
       },
@@ -208,9 +237,9 @@ class BackupSettingsPage extends ConsumerWidget {
   // ===========================================================================
 
   Future<void> _handleImport(BuildContext context, WidgetRef ref) async {
-    final FilePickerResult? result;
+    final PlatformFile? picked;
     try {
-      result = await FilePicker.pickFiles(type: FileType.any);
+      picked = await FilePicker.pickFile(type: FileType.any);
     } on Exception catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,9 +249,9 @@ class BackupSettingsPage extends ConsumerWidget {
       return;
     }
 
-    if (result == null || result.files.isEmpty) return;
+    if (picked == null) return;
 
-    final filePath = result.files.single.path;
+    final filePath = picked.path;
     if (filePath == null) return;
 
     if (!context.mounted) return;
@@ -232,7 +261,7 @@ class BackupSettingsPage extends ConsumerWidget {
     final sizeBytes = await file.length();
     final record = BackupRecord(
       id: 'temp',
-      filename: result.files.single.name,
+      filename: picked.name,
       timestamp: await file.lastModified(),
       sizeBytes: sizeBytes,
       location: BackupLocation.local,

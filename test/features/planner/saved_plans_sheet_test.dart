@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -180,31 +180,30 @@ void main() {
     expect(find.text('compare-page'), findsOneWidget);
   });
 
-  testWidgets('delete is reachable from compare mode', (tester) async {
+  testWidgets('delete is not offered per-row inside compare mode', (
+    tester,
+  ) async {
     await repository.savePlan(_plan('a', 'Reef dive'));
     await repository.savePlan(_plan('b', 'Wreck dive'));
 
     await tester.pumpWidget(harness());
     await tester.pumpAndSettle();
 
-    // Enter compare mode -> each checkbox row carries its own trash button.
-    await tester.tap(find.text('Compare'));
-    await tester.pumpAndSettle();
+    // Normal mode: each row carries its own trash button.
     expect(find.byIcon(Icons.delete_outline), findsNWidgets(2));
 
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
+    await tester.tap(find.text('Compare'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Delete plan?'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    // Compare mode: the rows are checkboxes gathering plans for a comparison,
+    // so a one-tap destructive action has no business sitting beside them.
+    expect(find.byType(CheckboxListTile), findsNWidgets(2));
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
+
+    // Cancelling restores the per-row delete.
+    await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-
-    expect(await repository.getAllPlanSummaries(), hasLength(1));
-
-    // Dropping to a single plan must actually leave compare mode (not merely
-    // hide the checkboxes): the surviving row renders as a normal tile.
-    expect(find.byType(CheckboxListTile), findsNothing);
-    expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsNWidgets(2));
   });
 
   testWidgets('compare mode is not silently re-entered after the count '
@@ -215,23 +214,57 @@ void main() {
     await tester.pumpWidget(harness());
     await tester.pumpAndSettle();
 
-    // Enter compare mode, then delete down to one plan so the mode resets.
+    // Enter compare mode, then drop to one plan behind the sheet's back. The
+    // count can fall while the sheet is open without the sheet doing it --
+    // deleting from the canvas, or a sync -- so the listener must still reset
+    // the mode rather than relying on the sheet's own controls.
     await tester.tap(find.text('Compare'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    expect(find.byType(CheckboxListTile), findsNWidgets(2));
+
+    await repository.deletePlan('b');
+    ProviderScope.containerOf(
+      tester.element(find.byType(SavedPlansSheet)),
+    ).invalidate(divePlanSummariesProvider);
     await tester.pumpAndSettle();
     expect(find.byType(CheckboxListTile), findsNothing);
 
     // Adding a plan back climbs the count to >=2 again. The sheet must stay in
     // normal mode; a stale `_selecting` flag would resurrect the checkboxes.
     await repository.savePlan(_plan('c', 'Drift dive'));
+    ProviderScope.containerOf(
+      tester.element(find.byType(SavedPlansSheet)),
+    ).invalidate(divePlanSummariesProvider);
     await tester.pumpAndSettle();
 
     expect(find.byType(CheckboxListTile), findsNothing);
     expect(find.text('Compare'), findsOneWidget);
   });
+
+  /// Taps Import and waits for the handler to actually finish.
+  ///
+  /// The import does real file and database I/O, which only progresses inside
+  /// runAsync. Its duration is wall-clock and scales with machine load, so a
+  /// single fixed delay is a race rather than a wait: poll until [done] holds,
+  /// with a ceiling so a genuine hang still fails.
+  Future<void> tapImportAndSettle(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Import'));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 100; i++) {
+      final done =
+          find.textContaining('plan:').evaluate().isNotEmpty ||
+          find.byType(SnackBar).evaluate().isNotEmpty;
+      if (done) return;
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+    }
+  }
 
   testWidgets('import reads a .subplan file and opens the imported plan', (
     tester,
@@ -243,17 +276,11 @@ void main() {
     final original = FilePickerPlatform.instance;
     addTearDown(() => FilePickerPlatform.instance = original);
     FilePickerPlatform.instance = MockFilePickerPlatform()
-      ..pickFilesResult = FilePickerResult([
-        PlatformFile(path: file.path, name: 'plan.subplan', size: 0),
-      ]);
+      ..pickFilesResult = [FakePlatformFile(file.path, name: 'plan.subplan')];
 
     await openSheet(tester);
     // The import does real file + DB I/O; runAsync lets it complete.
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Import'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pumpAndSettle();
+    await tapImportAndSettle(tester);
 
     // Imported with a fresh id, so the route lands on the new plan page.
     expect(find.textContaining('plan:'), findsOneWidget);
@@ -270,16 +297,10 @@ void main() {
     final original = FilePickerPlatform.instance;
     addTearDown(() => FilePickerPlatform.instance = original);
     FilePickerPlatform.instance = MockFilePickerPlatform()
-      ..pickFilesResult = FilePickerResult([
-        PlatformFile(path: file.path, name: 'bad.subplan', size: 0),
-      ]);
+      ..pickFilesResult = [FakePlatformFile(file.path, name: 'bad.subplan')];
 
     await openSheet(tester);
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Import'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pumpAndSettle();
+    await tapImportAndSettle(tester);
 
     // The FormatException is caught and surfaced, not thrown out of the sheet.
     expect(find.byType(SnackBar), findsOneWidget);

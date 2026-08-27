@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -100,6 +102,107 @@ class DropboxStorageProvider
 
   @override
   Future<Uint8List> downloadFile(String fileId) => _client.download(fileId);
+
+  /// Chunk size for streamed transfers; matches DropboxMediaObjectStore.
+  static const int _transferChunkBytes = 8 * 1024 * 1024;
+
+  /// Streams the local file through Dropbox's upload-session API in 8 MiB
+  /// chunks (mirroring DropboxMediaObjectStore.putFile, minus resume state:
+  /// backups are one-shot artifacts and a failed upload simply reruns).
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    final source = File(sourcePath);
+    final length = await source.length();
+    if (length <= _transferChunkBytes) {
+      return uploadFile(
+        await source.readAsBytes(),
+        filename,
+        folderId: folderId,
+      );
+    }
+
+    final raf = await source.open();
+    try {
+      var chunk = await raf.read(_transferChunkBytes);
+      final sessionId = await _client.uploadSessionStart(chunk);
+      var offset = chunk.length;
+      while (true) {
+        final remaining = length - offset;
+        final isLast = remaining <= _transferChunkBytes;
+        await raf.setPosition(offset);
+        chunk = await raf.read(min(_transferChunkBytes, remaining));
+        if (isLast) {
+          final meta = await _client.uploadSessionFinish(
+            sessionId: sessionId,
+            offset: offset,
+            path: _join(folderId, filename),
+            lastChunk: chunk,
+          );
+          return UploadResult(
+            fileId: meta.pathLower,
+            uploadTime: meta.serverModified,
+          );
+        }
+        await _client.uploadSessionAppend(
+          sessionId: sessionId,
+          offset: offset,
+          chunk: chunk,
+        );
+        offset += chunk.length;
+      }
+    } finally {
+      await raf.close();
+    }
+  }
+
+  /// Ranged download straight to disk (mirroring
+  /// DropboxMediaObjectStore.getFile), one 8 MiB slice resident at a time.
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    final dest = File(destinationPath);
+    try {
+      final meta = await _client.getMetadata(fileId);
+      if (meta == null) {
+        throw CloudStorageException('File not found in Dropbox: $fileId');
+      }
+      final total = meta.size;
+      if (total == null || total <= _transferChunkBytes) {
+        final bytes = await _client.download(fileId);
+        await dest.writeAsBytes(bytes, flush: true);
+        return;
+      }
+      final raf = await dest.open(mode: FileMode.write);
+      try {
+        var received = 0;
+        while (received < total) {
+          final end = min(received + _transferChunkBytes, total) - 1;
+          final range = await _client.downloadRange(
+            fileId,
+            start: received,
+            endInclusive: end,
+          );
+          await raf.writeFrom(range.bytes);
+          received += range.bytes.length;
+        }
+        await raf.flush();
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      if (await dest.exists()) {
+        try {
+          await dest.delete();
+        } catch (_) {
+          // Best-effort cleanup of a partial download.
+        }
+      }
+      rethrow;
+    }
+  }
 
   @override
   Future<CloudFileInfo?> getFileInfo(String fileId) async {

@@ -258,7 +258,7 @@ class DivePlanRepository {
                 ..limit(1))
               .get();
       if (rows.isEmpty) return null;
-      return getPlan(rows.first.id);
+      return await getPlan(rows.first.id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load plan linked to dive $diveId',
@@ -475,6 +475,7 @@ class DivePlanRepository {
       material: Value(tank.material?.name),
       presetName: Value(tank.presetName),
       decoSwitchDepth: Value(tank.decoSwitchDepth),
+      isTravelGas: Value(tank.isTravelGas),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
@@ -582,6 +583,7 @@ class DivePlanRepository {
               order: t.sortOrder,
               presetName: t.presetName,
               decoSwitchDepth: t.decoSwitchDepth,
+              isTravelGas: t.isTravelGas,
             ),
           )
           .toList(),

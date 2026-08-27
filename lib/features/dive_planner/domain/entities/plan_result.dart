@@ -466,6 +466,12 @@ class DivePlanState extends Equatable {
   /// Default reserve pressure in bar.
   static const double kDefaultReservePressureBar = 50;
 
+  /// Gradient factors used only when the diver's deco settings are not
+  /// reachable. Live plans are seeded from those settings; see
+  /// [DivePlanNotifier].
+  static const int kFallbackGfLow = 30;
+  static const int kFallbackGfHigh = 70;
+
   /// Unique ID for this plan.
   final String id;
 
@@ -560,8 +566,8 @@ class DivePlanState extends Equatable {
     required this.name,
     required this.segments,
     required this.tanks,
-    this.gfLow = 30,
-    this.gfHigh = 70,
+    this.gfLow = kFallbackGfLow,
+    this.gfHigh = kFallbackGfHigh,
     this.sacRate = 15.0,
     this.ascentRate = 9.0,
     this.descentRate = 18.0,

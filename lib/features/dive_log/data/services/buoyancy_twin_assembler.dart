@@ -7,6 +7,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
+import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
 
 /// The full result of running the twin for one dive: the raw series, the
 /// derived outputs, and the wing lift capacity (when the rig records one).
@@ -165,6 +167,10 @@ class BuoyancyTwinAssembler {
         material: t.material,
       );
     }
+    // Lead is deliberately absent from the displaced mass, whether it was
+    // typed as weight rows or built into the rig as weights gear: the water
+    // term scales displacement by mass, and lead at ~11x the density of water
+    // displaces roughly a tenth of what its mass would imply.
     final totalMass = bodyMass + gearDryMass + tankDryMass;
 
     staticTerms.add(
@@ -187,17 +193,23 @@ class BuoyancyTwinAssembler {
 
   /// Sum of droppable lead: belt and integrated rows are ditchable;
   /// backplate, trim, ankle, and mixed placements are treated as fixed.
+  ///
+  /// Gear-carried ballast contributes the share whose `weight_style` marks it
+  /// ditchable; an unstyled weights item counts as fixed, which understates
+  /// what the diver can drop rather than overstating it.
   static double droppableLeadKg(Dive dive) {
+    final gear = EquipmentLead.droppableKg(dive.equipment);
     if (dive.weights.isNotEmpty) {
       var sum = 0.0;
       for (final w in dive.weights) {
-        if (_isDroppable(w.weightType)) sum += w.amountKg;
+        if (EquipmentLead.isDroppable(w.weightType)) sum += w.amountKg;
       }
-      return sum;
+      return sum + gear;
     }
     final legacy = dive.weightAmount ?? 0.0;
     final type = dive.weightType;
-    return (type == null || _isDroppable(type)) ? legacy : 0.0;
+    return ((type == null || EquipmentLead.isDroppable(type)) ? legacy : 0.0) +
+        gear;
   }
 
   /// Sum of droppable lead from a planned per-[WeightType] breakdown (keys are
@@ -209,7 +221,7 @@ class BuoyancyTwinAssembler {
       final type = WeightType.values
           .where((t) => t.name == entry.key)
           .firstOrNull;
-      if (type != null && _isDroppable(type)) sum += entry.value;
+      if (EquipmentLead.isDroppable(type)) sum += entry.value;
     }
     return sum;
   }
@@ -253,11 +265,19 @@ class BuoyancyTwinAssembler {
     );
   }
 
+  /// Every kilogram of lead the diver carried: the typed weight rows (or the
+  /// legacy scalar when there are none) plus ballast built into the rig as
+  /// [EquipmentType.weights] gear.
+  ///
+  /// The two sources are additive, not a fallback ladder: a belt and a
+  /// weighted backplate are different lead. Gear only contributes when it
+  /// declares a mass, so rigs that list weights without numbers are
+  /// unaffected. See [EquipmentLead].
   static double _carriedLead(Dive dive) {
-    if (dive.weights.isNotEmpty) {
-      return dive.weights.fold(0.0, (sum, w) => sum + w.amountKg);
-    }
-    return dive.weightAmount ?? 0.0;
+    final typed = dive.weights.isNotEmpty
+        ? dive.weights.fold(0.0, (sum, w) => sum + w.amountKg)
+        : (dive.weightAmount ?? 0.0);
+    return typed + EquipmentLead.totalKg(dive.equipment);
   }
 
   static EquipmentItem? _exposureSuit(List<EquipmentItem> items) {
@@ -270,23 +290,6 @@ class BuoyancyTwinAssembler {
     return null;
   }
 
-  static bool _isDroppable(WeightType t) =>
-      t == WeightType.belt || t == WeightType.integrated;
-
-  /// Equivalent to the weight planner's gearFeatureFor, inlined so this data
-  /// service does not depend on a presentation-layer provider.
-  static GearFeature? _featureFor(EquipmentItem item) {
-    if (item.type == EquipmentType.weights || item.type == EquipmentType.tank) {
-      return null;
-    }
-    return GearFeature.fromEquipment(
-      id: item.id,
-      type: item.type,
-      name: item.name,
-      size: item.size,
-      thickness: item.thickness,
-      buoyancyKg: item.buoyancyKg,
-      weightKg: item.weightKg,
-    );
-  }
+  static GearFeature? _featureFor(EquipmentItem item) =>
+      gearFeatureFromEquipment(item);
 }

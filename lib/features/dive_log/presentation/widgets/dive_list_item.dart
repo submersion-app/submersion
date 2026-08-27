@@ -40,11 +40,15 @@ class DiveListItem extends ConsumerWidget {
   final EdgeInsetsGeometry? margin;
 
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
 
   /// Selection / highlight state (defaults suit read-only lists like Recent).
+  ///
+  /// [isChecked] and [isHighlighted] are independent channels and may both be
+  /// true at once: a dive can be in the bulk selection while also being the
+  /// one open in the detail pane. Checked renders as a fill tint plus the
+  /// leading checkbox; highlighted renders as a leading edge stripe.
   final bool isSelectionMode;
-  final bool isSelected;
+  final bool isChecked;
   final bool isHighlighted;
 
   /// Resolves a dive-type slug to its localized label (issue #643).
@@ -68,9 +72,8 @@ class DiveListItem extends ConsumerWidget {
     this.gradientEndColor,
     this.margin,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
-    this.isSelected = false,
+    this.isChecked = false,
     this.isHighlighted = false,
   });
 
@@ -89,12 +92,6 @@ class DiveListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewMode = ref.watch(diveListViewModeProvider);
 
-    // Outside selection mode a highlighted/master-selected row reads as
-    // selected, mirroring the Dives tab.
-    final resolvedSelected = isSelectionMode
-        ? isSelected
-        : (isSelected || isHighlighted);
-
     final duration = summary.runtime ?? summary.bottomTime;
 
     switch (viewMode) {
@@ -108,7 +105,8 @@ class DiveListItem extends ConsumerWidget {
           maxDepth: summary.maxDepth,
           duration: duration,
           isSelectionMode: isSelectionMode,
-          isSelected: resolvedSelected,
+          isChecked: isChecked,
+          isHighlighted: isHighlighted,
           colorValue: colorValue,
           minValueInList: minValueInList,
           maxValueInList: maxValueInList,
@@ -121,7 +119,6 @@ class DiveListItem extends ConsumerWidget {
           stat2Field: _slotField(slots, 'stat2', DiveField.bottomTime),
           diveTypeLabelResolver: diveTypeLabelResolver,
           onTap: onTap,
-          onLongPress: onLongPress,
         );
       case ListViewMode.detailed:
       case ListViewMode.dense:
@@ -139,7 +136,8 @@ class DiveListItem extends ConsumerWidget {
           isFavorite: summary.isFavorite,
           tags: summary.tags,
           isSelectionMode: isSelectionMode,
-          isSelected: resolvedSelected,
+          isChecked: isChecked,
+          isHighlighted: isHighlighted,
           colorValue: colorValue,
           minValueInList: minValueInList,
           maxValueInList: maxValueInList,
@@ -149,7 +147,6 @@ class DiveListItem extends ConsumerWidget {
           siteLongitude: summary.siteLongitude,
           margin: margin,
           onTap: onTap,
-          onLongPress: onLongPress,
           summary: summary,
           fullDive: fullDive,
           diveTypeLabelResolver: diveTypeLabelResolver,

@@ -226,8 +226,10 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
                     ? null
                     : () => _connect(CloudProviderType.icloud),
               )
-            // Apple platform where iCloud can't be used (signed out or a
-            // build without the entitlement): explain rather than hide.
+            // Apple platform running a build without the iCloud entitlement
+            // (Developer ID signing cannot carry it): explain rather than
+            // hide. Shares the Cloud Sync settings string so both surfaces
+            // give the same reason and cannot drift apart.
             else if (isApple &&
                 iCloudAvailability == ICloudAvailability.unsupported)
               Card(
@@ -239,7 +241,9 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
                   enabled: false,
                   leading: const Icon(Icons.cloud_off),
                   title: const Text('iCloud'),
-                  subtitle: Text(l10n.setup_sync_icloudUnavailable),
+                  subtitle: Text(
+                    l10n.settings_cloudSync_provider_icloud_unsupportedSubtitle,
+                  ),
                 ),
               ),
             if (dropboxConfigured)

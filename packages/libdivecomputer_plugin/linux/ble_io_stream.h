@@ -17,6 +17,23 @@ typedef struct {
     gchar* notify_path;    // GATT characteristic object path for notify
     guint properties_sub;  // PropertiesChanged signal subscription
 
+    // Terminal I/O credit flow control. Both paths are NULL unless the device
+    // exposes a complete Telit or u-blox layout. On u-blox the same
+    // characteristic serves both roles.
+    gchar* credits_write_path;   // Credits RX (client -> module)
+    gchar* credits_notify_path;  // Credits TX (module -> client)
+    // Credit balance, refcounted so the asynchronous grant completion can
+    // settle it even if this stream is freed first.
+    struct BleCreditBalance* credits;
+    // Whether a failed opening grant is fatal (Telit) or falls back to running
+    // without flow control (u-blox, where it is optional).
+    gboolean credits_required;
+    // Set once the fallback has been taken, so no further credit work is
+    // attempted. Distinct from the balance's `open` flag, which is also FALSE
+    // before the opening grant and so cannot say whether one is still wanted.
+    // Only touched on the download thread, during connect.
+    gboolean credits_abandoned;
+
     GMutex read_mutex;
     GCond read_cond;
     // Queue of GByteArray*, one entry per GATT notification.

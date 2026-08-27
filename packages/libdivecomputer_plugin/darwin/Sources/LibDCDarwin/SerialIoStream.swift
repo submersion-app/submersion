@@ -14,9 +14,20 @@ class SerialIoStream {
         close()
     }
 
-    func open(path: String, baudRate: speed_t = 9600) -> Bool {
-        fileDescriptor = Darwin.open(path, O_RDWR | O_NOCTTY | O_NONBLOCK)
-        guard fileDescriptor >= 0 else { return false }
+    /// Opens and configures the port. Returns `nil` on success, or the reason
+    /// the open was refused.
+    ///
+    /// The failure is returned rather than collapsed to a Bool so callers can
+    /// log why. A sandboxed macOS build missing
+    /// `com.apple.security.device.serial` is denied here with EPERM even though
+    /// the port enumerated fine moments earlier (issue #291).
+    func open(path: String, baudRate: speed_t = 9600) -> SerialOpenFailure? {
+        switch openSerialPort(path: path) {
+        case .failure(let failure):
+            return failure
+        case .success(let fd):
+            fileDescriptor = fd
+        }
 
         // Configure serial port.
         var options = termios()
@@ -33,7 +44,7 @@ class SerialIoStream {
         let flags = fcntl(fileDescriptor, F_GETFL)
         _ = fcntl(fileDescriptor, F_SETFL, flags & ~O_NONBLOCK)
 
-        return true
+        return nil
     }
 
     func close() {
@@ -159,7 +170,7 @@ class SerialIoStream {
     /// Darwin, speed_t constants equal their numeric baud values, so an
     /// arbitrary baud rate can be set directly without a Bxxxx lookup table.
     /// parity: 0=none, 1=odd, 2=even. stopbits: 2=two, else one.
-    /// flowcontrol: 0=none, 1=software (XON/XOFF), 2=hardware (RTS/CTS).
+    /// flowcontrol: see LIBDC_FLOWCONTROL_* in libdc_wrapper.h.
     private func performConfigure(
         baudRate: UInt32, dataBits: UInt32, parity: UInt32,
         stopBits: UInt32, flowControl: UInt32
@@ -201,14 +212,17 @@ class SerialIoStream {
             options.c_cflag &= ~UInt(CSTOPB)
         }
 
-        // Flow control.
-        if flowControl == 2 {
+        // Flow control. See LIBDC_FLOWCONTROL_* in libdc_wrapper.h: hardware is
+        // 1 and software is 2, not the other way round (issue #1155).
+        switch flowControl {
+        case UInt32(LIBDC_FLOWCONTROL_HARDWARE):
             options.c_cflag |= UInt(CRTSCTS)
             options.c_iflag &= ~UInt(IXON | IXOFF)
-        } else if flowControl == 1 {
+        case UInt32(LIBDC_FLOWCONTROL_SOFTWARE):
             options.c_cflag &= ~UInt(CRTSCTS)
             options.c_iflag |= UInt(IXON | IXOFF)
-        } else {
+        default:
+            // LIBDC_FLOWCONTROL_NONE, and anything libdivecomputer might add.
             options.c_cflag &= ~UInt(CRTSCTS)
             options.c_iflag &= ~UInt(IXON | IXOFF)
         }

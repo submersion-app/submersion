@@ -1,7 +1,11 @@
 # MacDive `ZDIVE.ZSAMPLES` / `ZDIVE.ZRAWDATA` Binary Format — Investigation Findings
 
-**Status:** NO-GO for both columns. `ZSAMPLES` is AES-encrypted with a per-dive key (documented below). `ZRAWDATA` was pivoted to on 2026-04-23 under the assumption it was raw Shearwater protocol data libdivecomputer could parse; **that assumption was invalidated on 2026-04-24** when real-data testing produced systematic parser errors. MacDive SQLite profile import is not currently supported — users should export as MacDive XML for profile data.
-**Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation)
+**Status:** `ZRAWDATA` is **SOLVED** — see "Update 2026-08-09" at the end of this document. It is the raw Shearwater download stream stored *still compressed*; decompressing it with libdivecomputer's own two passes yields Petrel Native Format, and 266/267 dives in the reference corpus decode against ground truth. MacDive SQLite profile import works for Shearwater dives as of that date.
+
+`ZSAMPLES` remains NO-GO (AES-encrypted with a per-dive key, documented below) but is now moot: every Shearwater dive that has `ZSAMPLES` also has `ZRAWDATA`. Non-Shearwater dives have neither and still need MacDive's XML export.
+
+The 2026-04-24 "ZRAWDATA pivot invalidated" section below is **historically inaccurate** and is retained only to show how the wrong conclusion was reached.
+**Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation), 2026-08-09 (ZRAWDATA solved)
 **Author:** Eric Griffin
 **Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
 **Plan:** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
@@ -380,3 +384,93 @@ If someone wants to retry this:
 4. **`shearwater_common`-family entry points in libdivecomputer.** The current code uses the `shearwater_petrel` product branch; it's possible a different product branch (e.g. `shearwater_predator` for an older Predator-format payload) would accept these bytes. The parser error quotes the predator parser, but libdivecomputer routes Teric/Petrel through the same `.c` file with a different `parser->petrel` flag. Forcing `petrel=0` (legacy Predator mode) bypasses the PNF record-check and always synthesizes a single 128-byte header record — worth a one-line probe.
 
 The `scripts/reverse_engineering/zsamples/` tooling is reusable for any of the above.
+
+## Update 2026-08-09: ZRAWDATA solved
+
+The 2026-04-24 conclusion was wrong. `ZRAWDATA` **is** the raw Shearwater download — it is simply stored **still compressed**, exactly as the device emits it when `shearwater_common_download()` runs with `compression = 1`. The earlier probe fed the compressed bytes straight to `parseRawDiveData`, so the parser read `0x88` where a record-type byte belongs, entered PNF mode, and failed the required-records check. Every observation in the invalidation section is consistent with compressed data; none of them required a proprietary wrapper.
+
+### The recipe
+
+Two passes, both already vendored in this repo at
+`packages/libdivecomputer_plugin/third_party/libdivecomputer/src/shearwater_common.c`:
+
+1. **9-bit RLE** (`shearwater_common_decompress_lre`, line 103). Read the blob as a continuous MSB-first stream of 9-bit big-endian values. Bit `0x100` set → emit `value & 0xFF` as a literal byte. `value == 0` → end of stream (everything after is padding). Otherwise → emit `value` zero bytes. The blob's bit count must be a multiple of 9.
+2. **32-byte XOR delta** (`shearwater_common_decompress_xor`, line 149). In place: `for i in 32..n-1: data[i] ^= data[i-32]`.
+
+The result is standard Petrel Native Format — 32-byte records with a record-type byte at offset 0 (`0x10..0x19` opening, `0x20..0x29` closing, `0x70..0x75` extended, `0x01` sample, `0xFF` final). Feed it to `parseRawDiveData` with **no offset stripping and no header to skip**.
+
+Both C functions are `static`, so the plugin cannot expose them. They are ported to Dart in
+`lib/features/universal_import/data/services/shearwater_raw_decompressor.dart`.
+
+### Field layout (record-relative), confirmed against ground truth
+
+| Field | Offset | Encoding |
+|---|---|---|
+| record type | `[0]` | `0x01` = sample |
+| depth | `[1:3]` | `uint16_be`, 0.1 ft **or** 0.1 m |
+| O2 / He | `[8]` / `[9]` | percent |
+| temperature | `[14]` | `int8`, °F **or** °C |
+| tank pressure (T2) | `[20:22]` | `uint16_be & 0x0FFF`, units of 2 psi |
+| tank pressure (T1) | `[28:30]` | `uint16_be & 0x0FFF`, units of 2 psi |
+
+The **units flag is byte 8 of opening record `0x10`** (`1` = imperial, `0` = metric). libdivecomputer reads it itself, but note it is genuinely mixed in real data: 227 of 267 dives in the reference DB are imperial and **40 are metric**, so any hand-rolled decoder must honour it. The original spike's "mismatches" were entirely this.
+
+### Evidence
+
+Against `scripts/sample_data/MacDive.sqlite` (540 dives) paired with `Apr 4 no iPad Mini sync.xml` (MacDive's own decoded export), comparing the full depth series per dive:
+
+| Result | Dives |
+|---|---:|
+| Depth series matches XML sample-for-sample | **266 / 267** |
+| Decoded series longer than XML (raw log keeps surface samples MacDive trims) | 229 |
+| Decoded series is a prefix of XML (truncated blob) | 10 |
+| Exact same length and values | 27 |
+| Mismatch | 1 (pk 348, a 29-sample truncated blob diverging at the last sample) |
+| Failed PNF structure check (opening/closing records 0–5) | **0 / 267** |
+
+Coverage is 267/540 dives in that DB (49%), i.e. 100% of Shearwater dives and 76% of dives with any sample data. The remainder are Oceanic and manual-entry dives that have no `ZRAWDATA` at all.
+
+### What this supersedes
+
+- "Recommended pivot: `ZRAWDATA` via `libdivecomputer`" — the pivot was right; the implementation skipped decompression.
+- "Update 2026-04-24: ZRAWDATA pivot invalidated" — wrong conclusion, right symptoms.
+- The four "what a working implementation would need to investigate first" probes are all moot; none was the answer.
+
+`ZSAMPLES` findings (AES, per-dive key) still stand and are still NO-GO, but no longer matter.
+
+### Confirmed against libdivecomputer's own parser (2026-08-09)
+
+The decode above was first validated by decoding PNF independently in Python. It was then confirmed end to end by building an out-of-tree harness around the repo's own C wrapper (`packages/libdivecomputer_plugin/macos/Classes/libdc_download.c:728`, `libdc_parse_raw_dive`) and running libdivecomputer itself over both forms of the same blob.
+
+**Control — the compressed blob reproduces the historical failure exactly:**
+
+```
+ERROR: Opening or closing record 1 not found.
+[in shearwater_predator_parser.c:658 (shearwater_predator_parser_cache)]
+duration: 0 s   max depth: 0.00 m   samples: 0
+```
+
+**The decompressed blob parses cleanly**, and its samples match MacDive's own export to the limit of the export's precision. Six dives, three imperial and three metric, full sample series compared with the XML's ft/°F/psi converted to m/°C/bar:
+
+| pk | units | max depth libdc vs XML | max abs sample error (depth / temp / pressure) | samples |
+|---|---|---|---:|---:|
+| 258 | imperial | 9.85 vs 9.85 m | 0.0000 m / 0.0000 °C / 0.0000 bar | 238 |
+| 259 | imperial | 16.82 vs 16.82 m | 0.0000 / 0.0000 / 0.0000 | 312 |
+| 260 | imperial | 16.31 vs 16.31 m | 0.0000 / 0.0000 / 0.0000 | 276 |
+| 6 | metric | 21.70 vs 21.70 m | 0.0015 / 0.0000 / 0.0000 | 389 |
+| 11 | metric | 20.80 vs 20.80 m | 0.0015 / 0.0000 / 0.0000 | 350 |
+| 38 | metric | 15.60 vs 15.60 m | 0.0015 / 0.0000 / 0.0000 | 255 |
+
+The 1.5 mm residual is rounding in the XML's two-decimal feet, not a decode difference. libdivecomputer's own `parser->units` handling covers both the imperial and metric cases, so no unit conversion belongs on our side of the call.
+
+Model number does not matter within the Petrel family: "Petrel 2" (3) and "Tern" (12) produce byte-identical output to "Teric" (8) on the same blob, so an imprecise `ZCOMPUTER` → product mapping still parses.
+
+### Three benign differences to expect, none of them errors
+
+1. **Sample times are offset by one interval.** libdivecomputer labels the first sample `t = interval`; MacDive labels it `t = 0`. The values are identical.
+2. **libdivecomputer emits 2-5 more trailing samples** — surface samples MacDive trims from its export. The raw log keeps the real record.
+3. **`duration` differs by 13-69 s.** `DC_FIELD_DIVETIME` is the computer's own recorded dive time (a uint24 in the closing record, `shearwater_predator_parser.c:783`); MacDive's `<duration>` is just `nsamples × sampleInterval`. libdivecomputer's is the more authoritative figure, but the importer keeps MacDive's so the imported logbook matches what the diver already sees.
+
+### Caller-facing trap
+
+`libdc_parse_raw_dive` returned **rc = 0 with an empty error buffer** on the failed compressed parse, having produced a zeroed dive — `extract_dive_fields` swallows per-field failures. Any caller must validate sample count or max depth rather than trusting the return code, or a regression in the decompression step lands silently as a wave of empty dives. `MacDiveDiveMapper._attachProfile` treats an empty sample list as failure for exactly this reason.

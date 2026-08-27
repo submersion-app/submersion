@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -37,11 +38,25 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // The repository search only matches the English columns the database
+    // stores. Without the localized fold-in below, a diver searching in their
+    // own language sees "No species found" and is offered a duplicate custom
+    // species by the empty state.
+    final catalog = ref.watch(allSpeciesProvider);
     final speciesAsync = _searchQuery.isEmpty && _selectedCategory == null
-        ? ref.watch(allSpeciesProvider)
+        ? catalog
         : _selectedCategory != null
         ? ref.watch(speciesByCategoryProvider(_selectedCategory!))
-        : ref.watch(speciesSearchProvider(_searchQuery));
+        : ref
+              .watch(speciesSearchProvider(_searchQuery))
+              .whenData(
+                (results) => withLocalizedSpeciesMatches(
+                  results: results,
+                  catalog: catalog.value ?? const [],
+                  query: _searchQuery,
+                  l10n: context.l10n,
+                ),
+              );
 
     return Column(
       children: [
@@ -105,8 +120,10 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
                 context.l10n.marineLife_speciesPicker_allFilter,
               ),
               ...SpeciesCategory.values.map(
-                (category) =>
-                    _buildCategoryChip(category, category.displayName),
+                (category) => _buildCategoryChip(
+                  category,
+                  category.localizedName(context.l10n),
+                ),
               ),
             ],
           ),
@@ -165,7 +182,7 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
                         size: 20,
                       ),
                     ),
-                    title: Text(species.commonName),
+                    title: Text(species.localizedCommonName(context.l10n)),
                     subtitle: species.scientificName != null
                         ? Text(
                             species.scientificName!,
@@ -173,7 +190,7 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
                           )
                         : null,
                     trailing: Text(
-                      species.category.displayName,
+                      species.category.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     onTap: () => _showSightingDetails(species),
@@ -223,7 +240,7 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(species.commonName),
+          title: Text(species.localizedCommonName(context.l10n)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

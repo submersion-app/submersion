@@ -21,11 +21,15 @@ class MediaStoreWorker {
     MediaDeleteProcessor? deleteProcessor,
     Future<bool> Function()? preflight,
     Future<WorkerGate> Function(MediaTransferQueueEntry entry)? gate,
+    Duration entryBudget = defaultEntryBudget,
+    Duration preflightBudget = defaultPreflightBudget,
   }) : _queue = queue,
        _pipeline = pipeline,
        _deleteProcessor = deleteProcessor,
        _preflight = preflight,
-       _gate = gate;
+       _gate = gate,
+       _entryBudget = entryBudget,
+       _preflightBudget = preflightBudget;
 
   final MediaTransferQueueRepository _queue;
   final MediaUploadPipeline _pipeline;
@@ -44,6 +48,26 @@ class MediaStoreWorker {
 
   /// Deferral window for policy/connectivity-blocked entries.
   static const Duration deferWindow = Duration(minutes: 10);
+
+  /// How long the drain waits on one entry before moving to the next.
+  ///
+  /// Generous on purpose. This is not a policy on how fast a transfer ought
+  /// to be - an original-quality video over a slow uplink legitimately takes
+  /// a long time, and the adapters that do carry request timeouts (only S3,
+  /// at S3ApiClient.defaultUploadTimeout) already police that layer. Its one
+  /// job is to keep a transfer that will never come back from freezing the
+  /// whole queue, which is what happened in issue #1270.
+  static const Duration defaultEntryBudget = Duration(minutes: 30);
+
+  /// How long the drain waits on the preflight before giving up on it.
+  ///
+  /// Much shorter than [defaultEntryBudget] because the work is much
+  /// smaller: one GET of smv1/store.json. It runs before EVERY entry, so a
+  /// stall here wedges the drain without a single row being touched.
+  static const Duration defaultPreflightBudget = Duration(seconds: 30);
+
+  final Duration _entryBudget;
+  final Duration _preflightBudget;
 
   final _log = LoggerService.forClass(MediaStoreWorker);
   bool _running = false;
@@ -66,16 +90,21 @@ class MediaStoreWorker {
   Future<void> drain() async {
     if (_disposed || _running) return;
     _running = true;
+    // Set only on the one exit that means "nothing was due, and I looked":
+    // every other way out of the loop - a failed preflight, a gate that
+    // stopped the drain, an exception out of the pipeline - leaves work
+    // behind on purpose, and must not arm the immediate wakeup below.
+    var drainedToEmpty = false;
     try {
       while (true) {
         // Re-checked per entry, not once per drain: a store wipe or user
         // disconnect mid-drain must suspend the rest of the queue.
-        if (_preflight != null && !await _preflight()) {
-          _log.warning('Media store preflight failed; drain suspended');
-          return;
-        }
+        if (!await _preflightPasses()) return;
         final entry = await _queue.nextPending(DateTime.now());
-        if (entry == null) break;
+        if (entry == null) {
+          drainedToEmpty = true;
+          break;
+        }
         if (_gate != null) {
           final decision = await _gate(entry);
           if (decision == WorkerGate.stopDraining) {
@@ -95,15 +124,89 @@ class MediaStoreWorker {
             await _queue.defer(entry.id, DateTime.now().add(deferWindow));
             continue;
           }
-          await deleteProcessor.process(entry);
+          await _withinBudget(entry, () => deleteProcessor.process(entry));
           continue;
         }
-        await _pipeline.process(entry);
+        await _withinBudget(entry, () async {
+          await _pipeline.process(entry);
+        });
       }
     } finally {
       _running = false;
-      await _armWakeup();
+      await _armWakeup(drainedToEmpty: drainedToEmpty);
     }
+  }
+
+  /// Runs one entry's processing under [_entryBudget], moving on rather than
+  /// waiting forever (issue #1270).
+  ///
+  /// The budget stops the drain WAITING; it does not stop the transfer. Dart
+  /// cannot cancel a Future, so [work] keeps running and still owns its queue
+  /// row - which is what makes moving on safe. The row it left in
+  /// 'transferring' is invisible to [MediaTransferQueueRepository.nextPending]
+  /// until that call finally settles it, and every staging path is minted per
+  /// call ([MediaCacheStore.stagingFile]), so the entries that follow cannot
+  /// collide with the one still in flight.
+  ///
+  /// The deferral is load-bearing in exactly one case: a hang BEFORE
+  /// markTransferring (a stalled queue write, or a processor that never
+  /// reaches it) leaves the row 'pending' and re-selectable, and without a
+  /// future nextAttemptAt the loop would pick it straight back up and spin.
+  /// On the ordinary 'transferring' row the write is inert. [defer] is the
+  /// right verb either way: a budget expiry is a postponement, not a failed
+  /// attempt - the transfer may yet succeed, so it must not burn one of the
+  /// five attempts markFailed counts.
+  Future<void> _withinBudget(
+    MediaTransferQueueEntry entry,
+    Future<void> Function() work,
+  ) async {
+    try {
+      await work().timeout(_entryBudget);
+    } on TimeoutException {
+      _log.warning(
+        'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '
+        '${_entryBudget.inMinutes}m budget; deferring it and draining on',
+      );
+      await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+    }
+  }
+
+  /// Whether the drain may proceed. Null preflight admits everything.
+  ///
+  /// A preflight that throws suspends the drain exactly like one that returns
+  /// false. It reads the store marker out of the bucket, so an offline moment
+  /// or a transient S3 failure makes it throw rather than answer - and since
+  /// every drain() call site is fire-and-forget (app start, connectivity
+  /// change, the retry wakeup, enqueueAndKick), an escaping throw had no
+  /// handler and surfaced as an uncaught zone error instead of a suspended
+  /// drain (#942). Suspending is also the safe reading: the check exists to
+  /// stop transfers against a store this device may no longer be attached to,
+  /// so "could not verify" must never be treated as "verified".
+  ///
+  /// A preflight that never answers is the same case, and reaches the same
+  /// handler: [_preflightBudget] turns the stall into a TimeoutException.
+  /// Only the S3 adapter carries request timeouts of its own, so on the
+  /// others this is the sole thing standing between a stalled marker read
+  /// and a drain that hangs before touching a single row (issue #1270).
+  ///
+  /// The throw is logged with its error and stack trace, not interpolated into
+  /// the message: catching it is what stops the crash, so the log is now the
+  /// only record of a preflight that keeps failing, and a bare string would
+  /// make that state less diagnosable than the uncaught zone error it replaced.
+  Future<bool> _preflightPasses() async {
+    final preflight = _preflight;
+    if (preflight == null) return true;
+    try {
+      if (await preflight().timeout(_preflightBudget)) return true;
+      _log.warning('Media store preflight failed; drain suspended');
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Media store preflight could not run; drain suspended',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
   }
 
   /// Arms a single timer for the soonest deferred row, so a retry that comes
@@ -118,7 +221,10 @@ class MediaStoreWorker {
   ///
   /// Runs in drain's finally and must never throw: an exception here would
   /// replace whatever the drain itself was reporting.
-  Future<void> _armWakeup() async {
+  ///
+  /// [drainedToEmpty] says the drain looked and found nothing due. That is
+  /// what makes the already-due branch below safe; see it for why.
+  Future<void> _armWakeup({required bool drainedToEmpty}) async {
     _wakeup?.cancel();
     _wakeup = null;
     _wakeupDelay = null;
@@ -131,6 +237,24 @@ class MediaStoreWorker {
       // One clock reading for both the query and the delay, so the timer
       // cannot be handed a negative duration by the query's own latency.
       final now = DateTime.now();
+      // The drain asked "what is due?" against its own clock reading, and
+      // earliestPendingWakeup asks "what is not due yet?" against this one.
+      // Those are complements only if no time passed in between, so a row
+      // whose backoff expired since - or one enqueued since, which the
+      // single-flight guard turned into a no-op kick - answers to neither
+      // query and would wait for an unrelated trigger (#1210). Hand it
+      // straight back to a fresh drain.
+      //
+      // Only when the drain reached an empty queue. A drain that declined to
+      // run (offline, failed preflight) left its due row behind deliberately,
+      // and re-kicking that would spin against a drain that keeps declining.
+      // A drain that emptied the queue cannot: every loop exit consumes its
+      // entry, so the next drain either takes this row or is itself a decline.
+      if (drainedToEmpty && await _queue.nextPending(now) != null) {
+        _wakeupDelay = Duration.zero;
+        _wakeup = Timer(Duration.zero, () => unawaited(drain()));
+        return;
+      }
       final due = await _queue.earliestPendingWakeup(now);
       if (due == null) return;
       final delay = due.difference(now);

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -98,6 +100,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // statisticsRepositoryProvider watches the gas model (issue #828),
+          // which otherwise pulls in settingsProvider and its
+          // SharedPreferences dependency.
+          gasModelProvider.overrideWith((ref) => GasModel.real),
         ],
       );
       addTearDown(container.dispose);
@@ -160,6 +166,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // statisticsRepositoryProvider watches the gas model (issue #828),
+          // which otherwise pulls in settingsProvider and its
+          // SharedPreferences dependency.
+          gasModelProvider.overrideWith((ref) => GasModel.real),
         ],
       );
       addTearDown(container.dispose);

@@ -90,6 +90,7 @@ class _BackupChangePasswordDialogState
                   errorText: _currentError,
                 ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _next,
                 obscureText: true,
@@ -98,6 +99,7 @@ class _BackupChangePasswordDialogState
                   errorText: _nextError,
                 ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _confirm,
                 obscureText: true,

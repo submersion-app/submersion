@@ -31,7 +31,8 @@ class _TestCardConfigNotifier extends CardViewConfigNotifier {
 void main() {
   // One back-gas tank chosen for clean SAC values:
   // minutes = 50, avgPressureAtm = 10/10 + 1 = 2.0
-  // With Z-factor: gasVol(200)-gasVol(100) ≈ 913L → sac ≈ 9.1 L/min
+  // With Z-factor at the 1 bar reference (issue #828):
+  // gasVol(200)-gasVol(100) ≈ 926L → sac ≈ 9.3 L/min
   // sacPressure = 100bar / 50 / 2.0         = 1.0 bar/min
   Dive sacDive() => Dive(
     id: 'lt-sac',
@@ -96,7 +97,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('9.1 L/min'), findsOneWidget);
+      expect(find.text('9.3 L/min'), findsOneWidget);
     });
   });
 }

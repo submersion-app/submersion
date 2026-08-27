@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
-import 'package:submersion/features/buddies/presentation/widgets/buddy_roles_editor.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
@@ -63,17 +62,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
   List<Certification> _certifications = [];
   // True only when the user added/edited/removed a cert on this screen. The
-  // commit is gated on this so saving unrelated edits (name/notes/roles) never
+  // commit is gated on this so saving unrelated edits (name/notes) never
   // calls replaceBuddyCertifications with a stale snapshot -- which would
   // delete certs added concurrently (e.g. by sync) since _loadBuddy, and would
   // clobber the merge-time cert union (issue #553 review).
   bool _certificationsDirty = false;
-  List<BuddyRoleCredential> _roles = [];
-
-  /// True once [_loadMergeRoles] has seeded [_roles] with the post-merge
-  /// credential set. Until then a merge save must not touch roles: an empty
-  /// unseeded list would wipe the credentials the merge itself migrated.
-  bool _mergeRolesSeeded = false;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
@@ -100,7 +93,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         phoneController: _phoneController,
         notesController: _notesController,
       );
-      _loadMergeRoles();
     } else if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
@@ -130,9 +122,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           .read(buddyRepositoryProvider)
           .getBuddyById(widget.buddyId!);
       if (buddy != null && mounted) {
-        final roles = await ref
-            .read(buddyRepositoryProvider)
-            .getRolesForBuddy(widget.buddyId!);
         final certs = await ref
             .read(certificationRepositoryProvider)
             .getCertificationsByBuddy(widget.buddyId!);
@@ -144,7 +133,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         _notesController.text = buddy.notes;
         setState(() {
           _certifications = certs;
-          _roles = roles;
           _isLoading = false;
           _hasChanges = false;
           _certificationsDirty = false;
@@ -153,37 +141,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.buddies_message_errorLoading(e.toString()),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  /// Seeds [_roles] with the credential set expected after the merge:
-  /// survivor's credentials first, then each duplicate's credentials whose
-  /// role is not already taken (survivor wins collisions, mirroring
-  /// BuddyMergeRepository's migration semantics). This keeps the merge save
-  /// from replacing migrated credentials with only the user's edits, and
-  /// shows the user which roles carry over.
-  Future<void> _loadMergeRoles() async {
-    try {
-      final repository = ref.read(buddyRepositoryProvider);
-      final rolesByCandidate = <List<BuddyRoleCredential>>[];
-      for (final candidate in widget.mergeBuddies!) {
-        rolesByCandidate.add(await repository.getRolesForBuddy(candidate.id));
-      }
-      if (!mounted) return;
-      setState(() {
-        _roles = mergeRoleCredentials(rolesByCandidate);
-        _mergeRolesSeeded = true;
-      });
-    } catch (e) {
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -473,8 +430,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.card_membership),
-                  title: Text(cert.level?.displayName ?? cert.name),
-                  subtitle: Text(cert.agency.displayName),
+                  title: Text(certificationTitle(cert)),
+                  subtitle: Text(certificationAgencyAndLevel(cert)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -504,23 +461,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               ),
               const SizedBox(height: 24),
             ],
-            Text(
-              context.l10n.buddies_section_professionalRoles,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            BuddyRolesEditor(
-              roles: _roles,
-              onChanged: (roles) {
-                setState(() {
-                  _roles = roles;
-                  _hasChanges = true;
-                });
-              },
-            ),
-            const SizedBox(height: 24),
 
             // Notes section header
             Text(
@@ -762,6 +702,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             ? _mergeCtrl?.mergedPhotoPath
             : _originalBuddy?.photoPath,
         notes: _notesController.text.trim(),
+        // Preserve favorite status (issue #638): this form has no favorite
+        // control, so a full-constructor rebuild would otherwise silently
+        // reset it to false on every save.
+        isFavorite: _originalBuddy?.isFavorite ?? false,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
       );
@@ -781,17 +725,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             .mergeBuddies(buddy, buddyIds);
         final savedId = buddyIds.first;
 
-        // Persist roles once seeding has completed (so an explicit clear-all
-        // is honored), or whenever the user added roles before the seed
-        // landed. A pre-seed save with an empty list is skipped: the merge
-        // has already migrated credentials and wiping them here would lose
-        // data.
-        if (_mergeRolesSeeded || _roles.isNotEmpty) {
-          await ref
-              .read(buddyRepositoryProvider)
-              .setRolesForBuddy(savedId, _roles);
-        }
-
         if (mounted) {
           context.pop(
             BuddyMergeResult(survivorId: savedId, snapshot: mergeSnapshot),
@@ -810,9 +743,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             .addBuddy(buddy);
       }
 
-      await ref
-          .read(buddyRepositoryProvider)
-          .setRolesForBuddy(savedBuddy.id, _roles);
       // issue #553: commit the staged certifications onto the saved buddy --
       // only when the user actually changed them here, so an unrelated save
       // doesn't clobber certs added concurrently (sync) or the merge-time union.

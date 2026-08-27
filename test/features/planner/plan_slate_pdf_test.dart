@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -110,5 +111,24 @@ void main() {
     final bytes = await _build(_plan(mode: domain.PlanMode.ccr));
     expect(bytes, isNotEmpty);
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+  });
+
+  // The header used to hand-assemble an ISO date, ignoring the diver's
+  // DateFormatPreference like the rest of the PDF exports did (#964). Asserted
+  // on the header string rather than on the saved PDF because the slate embeds
+  // a subset font, whose glyph-indexed text pdfVisibleText cannot read back.
+  test('the header dates the plan the way the diver reads it', () {
+    const engine = PlanEngine();
+    final plan = _plan();
+    final line = planSlateHeaderLine(
+      plan,
+      engine.compute(plan),
+      const UnitFormatter(
+        AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+      ),
+    );
+
+    expect(line, startsWith('05/07/2026'));
+    expect(line, isNot(contains('2026-07-05')));
   });
 }

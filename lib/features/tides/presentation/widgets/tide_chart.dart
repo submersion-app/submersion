@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Interactive tide chart showing water height over time.
@@ -59,6 +60,10 @@ class TideChart extends StatefulWidget {
   /// Depth unit preference for height display. Defaults to meters.
   final DepthUnit depthUnit;
 
+  /// Date format preference, which decides whether dates read month-first
+  /// ("Jan 15") or day-first ("15 Jan"). Defaults to month-first.
+  final DateFormatPreference dateFormat;
+
   const TideChart({
     super.key,
     required this.predictions,
@@ -71,6 +76,7 @@ class TideChart extends StatefulWidget {
     this.onPointSelected,
     this.timeFormat = TimeFormat.twentyFourHour,
     this.depthUnit = DepthUnit.meters,
+    this.dateFormat = DateFormatPreference.mmddyyyy,
   });
 
   @override
@@ -455,7 +461,9 @@ class _TideChartState extends State<TideChart> {
                                   widget.timeFormat.pattern,
                                 ).format(prediction.time);
                                 final dateStr = DateFormat(
-                                  'EEE, MMM d',
+                                  UnitFormatter.weekdayMonthDayPattern(
+                                    widget.dateFormat,
+                                  ),
                                 ).format(prediction.time);
                                 final displayHeight = DepthUnit.meters.convert(
                                   prediction.heightMeters,

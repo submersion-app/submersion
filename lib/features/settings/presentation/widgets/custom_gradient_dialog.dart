@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A dialog that allows the user to pick two colors (start and end) for a
 /// custom gradient using HSV sliders. Returns `(int, int)?` representing
@@ -42,11 +43,12 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final startColor = _startHsv.toColor();
     final endColor = _endHsv.toColor();
 
     return AlertDialog(
-      title: const Text('Custom Gradient'),
+      title: Text(l10n.settings_appearance_customGradient_title),
       content: SizedBox(
         width: 300,
         child: SingleChildScrollView(
@@ -58,7 +60,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
                 children: [
                   Expanded(
                     child: _ColorWell(
-                      label: 'Start',
+                      label: l10n.settings_appearance_customGradient_start,
                       color: startColor,
                       isSelected: _editingStart,
                       onTap: () => setState(() => _editingStart = true),
@@ -67,7 +69,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _ColorWell(
-                      label: 'End',
+                      label: l10n.settings_appearance_customGradient_end,
                       color: endColor,
                       isSelected: !_editingStart,
                       onTap: () => setState(() => _editingStart = false),
@@ -78,7 +80,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
               const SizedBox(height: 16),
               // HSV sliders
               _HsvSlider(
-                label: 'Hue',
+                label: l10n.settings_appearance_customGradient_hue,
                 value: _activeHsv.hue,
                 min: 0,
                 max: 360,
@@ -89,7 +91,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
               ),
               const SizedBox(height: 8),
               _HsvSlider(
-                label: 'Saturation',
+                label: l10n.settings_appearance_customGradient_saturation,
                 value: _activeHsv.saturation,
                 min: 0,
                 max: 1,
@@ -105,7 +107,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
               ),
               const SizedBox(height: 8),
               _HsvSlider(
-                label: 'Brightness',
+                label: l10n.settings_appearance_customGradient_brightness,
                 value: _activeHsv.value,
                 min: 0,
                 max: 1,
@@ -130,7 +132,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Preview',
+                l10n.settings_appearance_customGradient_preview,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -142,7 +144,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -150,7 +152,7 @@ class _CustomGradientDialogState extends State<CustomGradientDialog> {
               context,
             ).pop((startColor.toARGB32(), endColor.toARGB32()));
           },
-          child: const Text('Apply'),
+          child: Text(l10n.common_action_apply),
         ),
       ],
     );

@@ -53,7 +53,7 @@ void main() {
     final testTripWithStats = TripWithStats(
       trip: testTrip,
       diveCount: 15,
-      totalBottomTime: 5400,
+      totalRuntime: 5400,
       maxDepth: 32.5,
       avgDepth: 18.3,
     );
@@ -183,6 +183,9 @@ void main() {
                 (ref) => _MockTripListNotifier([]),
               ),
               settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
             ],
             child: MaterialApp(
               locale: const Locale('en'),
@@ -231,7 +234,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Add dives first to link photos'), findsWidgets);
 
-      // scan-dives with no diverId short-circuits without error.
+      // scan-dives with no active diver short-circuits without error.
       await openMenu();
       await tester.tap(
         find.widgetWithText(PopupMenuItem<String>, 'Find matching dives'),
@@ -307,7 +310,7 @@ void main() {
       expect(find.text('Delete'), findsOneWidget);
     });
 
-    testWidgets('liveaboard dives tab shows bottomTime', (tester) async {
+    testWidgets('liveaboard dives tab shows runtime', (tester) async {
       _setMobileTestSurfaceSize(tester);
       final liveaboardTrip = Trip(
         id: 'liveaboard-trip',
@@ -323,7 +326,7 @@ void main() {
       final liveaboardStats = TripWithStats(
         trip: liveaboardTrip,
         diveCount: 1,
-        totalBottomTime: 2700,
+        totalRuntime: 2700,
         maxDepth: 25.0,
       );
       final dives = [
@@ -332,6 +335,7 @@ void main() {
           diveNumber: 1,
           dateTime: DateTime(2024, 1, 16, 9, 0),
           bottomTime: const Duration(minutes: 45),
+          runtime: const Duration(minutes: 52),
           maxDepth: 25.0,
           tanks: const [],
           profile: const [],
@@ -379,8 +383,11 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Should show 45min in the dives list
-      expect(find.text('45min'), findsWidgets);
+      // The per-dive rows use the same runtime-with-bottom-time-fallback rule
+      // as the trip total, so the rows on this page add up to the total shown
+      // on the Overview tab (issue #889).
+      expect(find.text('52min'), findsWidgets);
+      expect(find.text('45min'), findsNothing);
     });
   });
 
@@ -402,7 +409,7 @@ void main() {
         final sharedTripWithStats = TripWithStats(
           trip: sharedTrip,
           diveCount: 3,
-          totalBottomTime: 3600,
+          totalRuntime: 3600,
         );
         final twoDivers = [
           Diver(
@@ -607,7 +614,7 @@ void main() {
     final embeddedStats = TripWithStats(
       trip: embeddedTrip,
       diveCount: 3,
-      totalBottomTime: 1800,
+      totalRuntime: 1800,
       maxDepth: 18.0,
     );
 

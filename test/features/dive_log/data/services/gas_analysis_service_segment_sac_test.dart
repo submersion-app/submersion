@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
@@ -9,7 +10,7 @@ void main() {
   late GasAnalysisService service;
 
   setUp(() {
-    service = GasAnalysisService();
+    service = const GasAnalysisService();
   });
 
   // Helper to generate a flat profile at a given depth
@@ -507,8 +508,18 @@ void main() {
 
       // Verify volumetric SAC matches gasVolume() calculation
       final expectedGasUsed =
-          gasVolume(tankSizeLiters: 12.0, pressureBar: 200, o2Percent: 21) -
-          gasVolume(tankSizeLiters: 12.0, pressureBar: 60, o2Percent: 21);
+          gasVolume(
+            tankSizeLiters: 12.0,
+            pressureBar: 200,
+            o2Percent: 21,
+            model: GasModel.real,
+          ) -
+          gasVolume(
+            tankSizeLiters: 12.0,
+            pressureBar: 60,
+            o2Percent: 21,
+            model: GasModel.real,
+          );
       final expectedSacLpm = expectedGasUsed / 50 / 3.0;
       expect(results.first.sacVolume, closeTo(expectedSacLpm, 0.1));
     });

@@ -135,7 +135,7 @@ ORDER BY dd.DiveDate
       try {
         return _listTables(db);
       } finally {
-        db.dispose();
+        db.close();
       }
     } catch (_) {
       return const <String>{};
@@ -159,7 +159,7 @@ ORDER BY dd.DiveDate
         final tables = _listTables(db);
         return _requiredTables.every((t) => tables.contains(t));
       } finally {
-        db.dispose();
+        db.close();
       }
     } catch (_) {
       return false;
@@ -182,7 +182,7 @@ ORDER BY dd.DiveDate
         final rows = db.select(_query);
         return rows.map(_rowToRawDive).toList();
       } finally {
-        db.dispose();
+        db.close();
       }
     } finally {
       _deleteTempFile(tempFile);

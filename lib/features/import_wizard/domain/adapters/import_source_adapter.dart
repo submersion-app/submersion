@@ -52,7 +52,18 @@ abstract class ImportSourceAdapter {
   ///
   /// Dive computer sources support [DuplicateAction.consolidate];
   /// file-based sources typically support only skip and importAsNew.
+  ///
+  /// This is the union across every entity type. Use [duplicateActionsFor] to
+  /// ask what is actually available on a given tab.
   Set<DuplicateAction> get supportedDuplicateActions;
+
+  /// Which duplicate actions are available for entities of [type].
+  ///
+  /// Defaults to [supportedDuplicateActions] for every type. Adapters that
+  /// implement an action for only some entity types must override this so the
+  /// review UI does not offer a choice the import path would silently drop.
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
 
   /// Normalize acquired data into the common [ImportBundle] model.
   Future<ImportBundle> buildBundle();

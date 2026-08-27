@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 
@@ -36,11 +37,13 @@ class CertificationPicker extends ConsumerWidget {
         ),
       ),
       title: Text(
-        selectedCertification?.name ??
+        (selectedCertification == null
+                ? null
+                : certificationTitle(selectedCertification!)) ??
             context.l10n.certifications_picker_noSelection,
       ),
       subtitle: selectedCertification != null
-          ? Text(selectedCertification!.agency.displayName)
+          ? Text(certificationAgencyAndLevel(selectedCertification!))
           : Text(context.l10n.certifications_picker_hint),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -185,12 +188,31 @@ class CertificationPickerSheet extends ConsumerWidget {
                   final isSelected = selectedCertification?.id == cert.id;
                   final dateFormat = DateFormat.yMMMd();
 
+                  // Only non-null when a custom name owns the title, so the
+                  // level is spoken exactly once either way.
+                  final level = certificationSubtitle(cert);
+                  final levelLabel = level != null ? ', $level' : '';
+                  // Keep the agency: this label replaces the tile's own
+                  // semantics, including the subtitle that shows the agency
+                  // visually. The title is derived so it is not said twice.
+                  final certName =
+                      '${cert.agency.displayName} '
+                      '${certificationTitle(cert)}$levelLabel';
                   final certLabel = cert.issueDate != null
-                      ? '${cert.agency.displayName} ${cert.name}, issued ${dateFormat.format(cert.issueDate!)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
-                      : '${cert.agency.displayName} ${cert.name}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
+                      ? '$certName, issued ${dateFormat.format(cert.issueDate!)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
+                      : '$certName${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
 
                   return Semantics(
                     label: certLabel,
+                    // Without excludeSemantics the label MERGES with the
+                    // tile's own text rather than standing in for it, so a
+                    // screen reader hears the name, agency and level twice.
+                    // Excluding the subtree drops the tile's tap action along
+                    // with its text, so restate it here or the row stops being
+                    // activatable.
+                    excludeSemantics: true,
+                    button: true,
+                    onTap: () => onCertificationSelected(cert),
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: isSelected
@@ -203,11 +225,11 @@ class CertificationPickerSheet extends ConsumerWidget {
                               : Colors.green,
                         ),
                       ),
-                      title: Text(cert.name),
+                      title: Text(certificationTitle(cert)),
                       subtitle: Text(
                         cert.issueDate != null
-                            ? '${cert.agency.displayName} - ${dateFormat.format(cert.issueDate!)}'
-                            : cert.agency.displayName,
+                            ? '${certificationAgencyAndLevel(cert)} - ${dateFormat.format(cert.issueDate!)}'
+                            : certificationAgencyAndLevel(cert),
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)

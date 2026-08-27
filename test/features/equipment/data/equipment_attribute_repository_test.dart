@@ -127,4 +127,49 @@ void main() {
     final all = await repository.getAllEquipment();
     expect(all.single.thickness, '3');
   });
+
+  test('a rebreather persists and reloads its curated attributes', () async {
+    final created = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'JJ-CCR',
+        type: EquipmentType.rebreather,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'unit_type',
+            valueText: 'eccr',
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'scrubber_duration_h',
+            valueNum: 3.0,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'o2_cell_count',
+            valueNum: 3,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: 'diluent_cylinder_l',
+            valueNum: 3.0,
+          ),
+        ],
+      ),
+    );
+
+    final loaded = await repository.getEquipmentById(created.id);
+    expect(loaded, isNotNull);
+    expect(loaded!.type, EquipmentType.rebreather);
+    expect(loaded.attrText('unit_type'), 'eccr');
+    expect(loaded.attrNum('scrubber_duration_h'), 3.0);
+    expect(loaded.attrNum('o2_cell_count'), 3);
+    expect(loaded.attrNum('diluent_cylinder_l'), 3.0);
+
+    // Curated ids are deterministic so independent devices converge.
+    final unitType = loaded.attributes.firstWhere((a) => a.key == 'unit_type');
+    expect(unitType.id, 'attr_${created.id}_unit_type');
+    expect(unitType.isCustom, isFalse);
+  });
 }

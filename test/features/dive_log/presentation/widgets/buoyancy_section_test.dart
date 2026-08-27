@@ -99,6 +99,9 @@ Future<void> _pump(WidgetTester tester, BuoyancyTwinOutcome? outcome) async {
         buoyancyTwinProvider('d1').overrideWith((ref) async => outcome),
       ],
       child: const MaterialApp(
+        // Pinned so the asserted strings and decimal separators do not depend
+        // on the host locale (repo convention).
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -135,6 +138,21 @@ void main() {
   ) async {
     await _pump(tester, _outcome(minDitchableKg: 6.0, droppableLeadKg: 2.0));
     expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
+  });
+
+  testWidgets('hints that no lead was recorded when lead is zero', (
+    tester,
+  ) async {
+    // Lead lives either in the dive's Weights section or as a dry weight on
+    // weights-type gear; zero means neither, and the net reads far too
+    // buoyant (issue #1103).
+    await _pump(tester, _outcome(leadKg: 0.0, droppableLeadKg: 0.0));
+    expect(find.textContaining('No lead recorded'), findsOneWidget);
+  });
+
+  testWidgets('no lead hint is absent once lead is known', (tester) async {
+    await _pump(tester, _outcome());
+    expect(find.textContaining('No lead recorded'), findsNothing);
   });
 
   testWidgets('renders nothing when the outcome is null', (tester) async {

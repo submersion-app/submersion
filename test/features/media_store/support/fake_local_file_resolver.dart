@@ -19,6 +19,14 @@ class FakeLocalFileResolver implements MediaSourceResolver {
   /// gallery resolver's pre-compressed poster bytes for videos).
   MediaSourceData? thumbnailData;
 
+  /// Ids passed to [resolve], the full-resolution original path. Tiles that
+  /// only ever draw a few hundred pixels must not appear here: on the real
+  /// gallery resolver this is `AssetEntity.originBytes`.
+  final List<String> resolvedFullSize = [];
+
+  /// Thumbnail targets requested, in call order.
+  final List<Size> resolvedThumbnailTargets = [];
+
   @override
   MediaSourceType get sourceType => MediaSourceType.localFile;
 
@@ -26,13 +34,19 @@ class FakeLocalFileResolver implements MediaSourceResolver {
   bool canResolveOnThisDevice(MediaItem item) => true;
 
   @override
-  Future<MediaSourceData> resolve(MediaItem item) async => data;
+  Future<MediaSourceData> resolve(MediaItem item) async {
+    resolvedFullSize.add(item.id);
+    return data;
+  }
 
   @override
   Future<MediaSourceData> resolveThumbnail(
     MediaItem item, {
     required Size target,
-  }) async => thumbnailData ?? data;
+  }) async {
+    resolvedThumbnailTargets.add(target);
+    return thumbnailData ?? data;
+  }
 
   @override
   Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async => null;

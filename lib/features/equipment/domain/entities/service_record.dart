@@ -6,7 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 class ServiceRecord extends Equatable {
   final String id;
   final String equipmentId;
-  final ServiceType serviceType;
+  final ServiceCategory serviceCategory;
 
   /// Which service kind (clock) this record fulfills; null = untagged.
   final String? serviceKindId;
@@ -22,7 +22,7 @@ class ServiceRecord extends Equatable {
   const ServiceRecord({
     required this.id,
     required this.equipmentId,
-    required this.serviceType,
+    required this.serviceCategory,
     this.serviceKindId,
     required this.serviceDate,
     this.provider,
@@ -57,7 +57,7 @@ class ServiceRecord extends Equatable {
   ServiceRecord copyWith({
     String? id,
     String? equipmentId,
-    ServiceType? serviceType,
+    ServiceCategory? serviceCategory,
     String? serviceKindId,
     DateTime? serviceDate,
     String? provider,
@@ -71,7 +71,7 @@ class ServiceRecord extends Equatable {
     return ServiceRecord(
       id: id ?? this.id,
       equipmentId: equipmentId ?? this.equipmentId,
-      serviceType: serviceType ?? this.serviceType,
+      serviceCategory: serviceCategory ?? this.serviceCategory,
       serviceKindId: serviceKindId ?? this.serviceKindId,
       serviceDate: serviceDate ?? this.serviceDate,
       provider: provider ?? this.provider,
@@ -90,7 +90,7 @@ class ServiceRecord extends Equatable {
     return ServiceRecord(
       id: '',
       equipmentId: equipmentId,
-      serviceType: ServiceType.annual,
+      serviceCategory: ServiceCategory.annual,
       serviceDate: now,
       createdAt: now,
       updatedAt: now,
@@ -101,7 +101,7 @@ class ServiceRecord extends Equatable {
   List<Object?> get props => [
     id,
     equipmentId,
-    serviceType,
+    serviceCategory,
     serviceKindId,
     serviceDate,
     provider,

@@ -16,7 +16,7 @@ class DiveMediaEnricher {
   DiveMediaEnricher({
     required this.loadDive,
     required this.loadMediaForDive,
-    required this.saveEnrichment,
+    required this.saveEnrichments,
     this.enrichmentService = const EnrichmentService(),
   });
 
@@ -24,42 +24,76 @@ class DiveMediaEnricher {
   /// which populates `profile`; list queries do not).
   final Future<Dive?> Function(String diveId) loadDive;
   final Future<List<MediaItem>> Function(String diveId) loadMediaForDive;
-  final Future<void> Function(MediaEnrichment enrichment) saveEnrichment;
+
+  /// Persists a whole dive's new/changed rows in one call
+  /// (`MediaRepository.saveEnrichments`: one transaction, one table tick).
+  /// Per-row saves here committed once per photo, and the backfill runs
+  /// from the OPEN media viewer: whenever the burst outlasted the 300ms
+  /// tick debounce, the library query and the other media providers re-ran
+  /// while the user was mid-swipe.
+  final Future<void> Function(List<MediaEnrichment> enrichments)
+  saveEnrichments;
   final EnrichmentService enrichmentService;
 
-  /// Enriches every media item linked to [diveId] that has no enrichment yet.
-  /// Idempotent — already-enriched items are skipped — so it is safe to call
-  /// after a fresh link and repeatedly as a backfill. Returns the number of
-  /// items newly enriched (0 means nothing changed; callers can skip a
-  /// refresh).
+  /// Enriches every media item linked to [diveId] whose stored enrichment is
+  /// missing, or disagrees with what the dive's profile says it should be.
+  ///
+  /// Recomputing every item and writing only on a difference is what makes
+  /// this a repair as well as a backfill. Skipping anything that merely HAD a
+  /// row meant two classes of wrong data could never heal: rows surviving a
+  /// re-link still pointing at the previous dive, and rows written before the
+  /// taken_at wall-clock-UTC fix, whose elapsed time is skewed by the host's
+  /// offset and whose depth is clamped to the first profile point. The only
+  /// remedy used to be unlinking and re-adding the photo.
+  ///
+  /// Rows that already match are left untouched. That matters beyond saving a
+  /// query: mediaEnrichment is an HLC-synced entity, so rewriting an unchanged
+  /// row would bump its clock and ship a no-op to every other device.
+  ///
+  /// Returns the number of rows written (0 means nothing changed, so callers
+  /// can skip a refresh).
   Future<int> enrichMissingForDive(String diveId) async {
     final dive = await loadDive(diveId);
     if (dive == null || dive.profile.isEmpty) return 0;
 
     final media = await loadMediaForDive(diveId);
-    var enriched = 0;
+    final toSave = <MediaEnrichment>[];
     for (final item in media) {
-      if (item.enrichment != null) continue;
       // Signatures are attached to a dive but not moments within it, and the
       // chart excludes them regardless — don't fabricate a depth/time for one.
       if (item.mediaType == MediaType.instructorSignature) continue;
 
-      final result = enrichmentService.calculateEnrichment(
-        profile: dive.profile,
-        diveStartTime: dive.effectiveEntryTime,
-        photoTime: item.takenAt,
-      );
+      // A pinned item (issue #1090) is positioned from the diver's offset,
+      // never from its capture time, so a backfill converges on the pin
+      // instead of reverting it.
+      final manual = item.manualElapsedSeconds;
+      final result = manual != null
+          ? enrichmentService.calculateEnrichmentAtElapsed(
+              profile: dive.profile,
+              elapsedSeconds: manual,
+            )
+          : enrichmentService.calculateEnrichment(
+              profile: dive.profile,
+              diveStartTime: dive.effectiveEntryTime,
+              photoTime: item.takenAt,
+            );
 
       // Mirror the gallery path: don't persist a row we couldn't actually
-      // place (no depth and no usable profile match).
+      // place (no depth and no usable profile match). An existing row is left
+      // alone rather than overwritten with the unplaceable result.
       if (result.depthMeters == null &&
           result.matchConfidence == MatchConfidence.noProfile) {
         continue;
       }
 
-      await saveEnrichment(
+      final existing = item.enrichment;
+      if (existing != null && _matches(existing, result, diveId)) continue;
+
+      toSave.add(
         MediaEnrichment(
-          id: '',
+          // Keep the row's identity so the repository updates in place
+          // instead of minting a second row for the same media.
+          id: existing?.id ?? '',
           mediaId: item.id,
           diveId: diveId,
           depthMeters: result.depthMeters,
@@ -70,8 +104,32 @@ class DiveMediaEnricher {
           createdAt: DateTime.now(),
         ),
       );
-      enriched++;
     }
-    return enriched;
+    // One batched save for the whole dive; skipped entirely when nothing
+    // changed, so the idempotent re-run costs no write and no tick.
+    if (toSave.isNotEmpty) {
+      await saveEnrichments(toSave);
+    }
+    return toSave.length;
   }
+
+  /// Whether [existing] already records exactly what [result] computes for
+  /// [diveId].
+  ///
+  /// Compares the computed values and the dive they belong to, not the row's
+  /// own identity or bookkeeping: `id` and `createdAt` are persisted but say
+  /// nothing about whether the enrichment is correct, and the repository's
+  /// update path does not rewrite them either. A partial match still counts
+  /// as a mismatch, since a stored row disagreeing on any value is wrong.
+  bool _matches(
+    MediaEnrichment existing,
+    EnrichmentResult result,
+    String diveId,
+  ) =>
+      existing.diveId == diveId &&
+      existing.depthMeters == result.depthMeters &&
+      existing.temperatureCelsius == result.temperatureCelsius &&
+      existing.elapsedSeconds == result.elapsedSeconds &&
+      existing.matchConfidence == result.matchConfidence &&
+      existing.timestampOffsetSeconds == result.timestampOffsetSeconds;
 }

@@ -15,13 +15,19 @@ class _NoopAdapter implements BackupDatabaseAdapter {
   Future<void> backup(String destinationPath) async {}
 
   @override
-  Future<void> restore(String backupPath) async {}
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async {}
 
   @override
   Future<String> get databasePath async => '/data/live.db';
 
   @override
   AppDatabase get database => throw UnimplementedError();
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 class _RecordingSafPort implements BackupSafPort {

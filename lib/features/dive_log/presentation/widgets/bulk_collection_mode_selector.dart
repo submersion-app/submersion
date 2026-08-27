@@ -38,5 +38,6 @@ class BulkCollectionModeSelector extends StatelessWidget {
     BulkCollectionMode.add => context.l10n.diveLog_bulkEdit_modeAdd,
     BulkCollectionMode.remove => context.l10n.diveLog_bulkEdit_modeRemove,
     BulkCollectionMode.replace => context.l10n.diveLog_bulkEdit_modeReplace,
+    BulkCollectionMode.update => context.l10n.diveLog_bulkEdit_modeUpdate,
   };
 }

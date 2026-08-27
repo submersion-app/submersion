@@ -34,7 +34,18 @@ Widget _overlay({
   double visibleMinSeconds = 0,
   double visibleMaxSeconds = 1000,
   void Function(MediaItem item)? onOpenPhoto,
+  VoidCallback? onAncestorDoubleTap,
 }) {
+  final overlay = PhotoMarkerOverlay(
+    markers: markers,
+    visibleMinSeconds: visibleMinSeconds,
+    visibleMaxSeconds: visibleMaxSeconds,
+    visibleMinDepth: 0,
+    visibleMaxDepth: 50,
+    insets: (left: 30, top: 0, right: 30, bottom: 36),
+    units: const UnitFormatter(AppSettings()),
+    onOpenPhoto: onOpenPhoto,
+  );
   return ProviderScope(
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -43,16 +54,17 @@ Widget _overlay({
         body: SizedBox(
           width: 400,
           height: 300,
-          child: PhotoMarkerOverlay(
-            markers: markers,
-            visibleMinSeconds: visibleMinSeconds,
-            visibleMaxSeconds: visibleMaxSeconds,
-            visibleMinDepth: 0,
-            visibleMaxDepth: 50,
-            insets: (left: 30, top: 0, right: 30, bottom: 36),
-            units: const UnitFormatter(AppSettings()),
-            onOpenPhoto: onOpenPhoto,
-          ),
+          // The real chart nests the overlay inside a GestureDetector that
+          // handles double-tap-to-zoom. Its DoubleTapGestureRecognizer holds
+          // the pointer's gesture arena for kDoubleTapTimeout, so any plain
+          // tap recognizer below it stalls. Mirror that here or the marker
+          // taps are tested in an arena they never actually run in.
+          child: onAncestorDoubleTap == null
+              ? overlay
+              : GestureDetector(
+                  onDoubleTap: onAncestorDoubleTap,
+                  child: overlay,
+                ),
         ),
       ),
     ),
@@ -207,6 +219,96 @@ void main() {
     );
     expect(find.byIcon(Icons.camera_alt), findsOneWidget);
     expect(find.byIcon(Icons.videocam), findsNothing);
+  });
+
+  testWidgets('tapping the open chip again closes the preview card', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_overlay(markers: [_marker()]));
+    await tester.tap(find.byIcon(Icons.camera_alt));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+
+    // Re-tapping the marker that opened the card is the most obvious way to
+    // put it away, so it must toggle rather than re-select.
+    await tester.tap(find.byIcon(Icons.camera_alt));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+  });
+
+  group('under the chart double-tap recognizer', () {
+    // DoubleTapGestureRecognizer arms an uncancellable kDoubleTapMinTime
+    // countdown per tracked pointer, so every test here must run the clock
+    // past it or flutter_test reports a pending timer.
+    Future<void> drainGestureTimers(WidgetTester tester) =>
+        tester.pump(const Duration(milliseconds: 400));
+
+    testWidgets('a chip tap opens the card on the same frame', (tester) async {
+      await tester.pumpWidget(
+        _overlay(markers: [_marker()], onAncestorDoubleTap: () {}),
+      );
+
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+      await drainGestureTimers(tester);
+    });
+
+    testWidgets('a tap-away closes the card on the same frame', (tester) async {
+      await tester.pumpWidget(
+        _overlay(markers: [_marker()], onAncestorDoubleTap: () {}),
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+
+      await tester.tapAt(const Offset(390, 10));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+      await drainGestureTimers(tester);
+    });
+
+    testWidgets('an impatient second tap dismisses instead of zooming', (
+      tester,
+    ) async {
+      var doubleTaps = 0;
+      await tester.pumpWidget(
+        _overlay(markers: [_marker()], onAncestorDoubleTap: () => doubleTaps++),
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+
+      // Two tap-aways inside kDoubleTapTimeout: the first must already have
+      // won its arena, so the pair cannot add up to a chart double-tap zoom.
+      await tester.tapAt(const Offset(390, 10));
+      await tester.pump(const Duration(milliseconds: 40));
+      await tester.tapAt(const Offset(390, 10));
+      await tester.pump();
+
+      expect(doubleTaps, 0);
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+      await drainGestureTimers(tester);
+    });
+
+    testWidgets('a card thumbnail tap reports the photo on the same frame', (
+      tester,
+    ) async {
+      MediaItem? opened;
+      await tester.pumpWidget(
+        _overlay(
+          markers: [_marker()],
+          onOpenPhoto: (item) => opened = item,
+          onAncestorDoubleTap: () {},
+        ),
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('photoMarkerCardThumb-m1')));
+      await tester.pump();
+      expect(opened?.id, 'm1');
+      await drainGestureTimers(tester);
+    });
   });
 
   testWidgets('markers outside the visible window render nothing', (

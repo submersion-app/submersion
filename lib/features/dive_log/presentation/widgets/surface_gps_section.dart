@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -13,6 +14,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/domain/track_colorization.dart';
+import 'package:submersion/features/gps_log/domain/track_geometry.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -105,19 +110,54 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
       // Build the (heavy) map content only when expanded so the page never
       // holds a second offscreen FlutterMap.
       contentBuilder: (context) => isExpanded
-          ? _content(context, entry, exit, site, driftText)
+          ? _content(context, units, entry, exit, site, driftText)
           : const SizedBox.shrink(),
+    );
+  }
+
+  /// Points of the covering track, windowed to the dive unless the user has
+  /// asked for the whole recording.
+  ///
+  /// Resolved here rather than in [build] so a collapsed section performs no
+  /// blob decode - watching the track provider one level up would defeat the
+  /// laziness the contentBuilder gate exists for.
+  List<TrackRun> _trackRuns(GpsTrack track) {
+    if (ref.watch(surfaceGpsFullTrackProvider)) {
+      return bucketizeTrack(track.effectivePoints, TrackColorMode.uniform);
+    }
+    // Wall-clock-as-UTC seconds, matching the point timestamps.
+    const marginSeconds = 15 * 60;
+    final dive = widget.dive;
+    final entrySec = dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000;
+    // effectiveRuntime, not bottomTime: runtime is surface-to-surface, which
+    // is the window the boat was out. bottomTime excludes descent and ascent,
+    // so on a deco dive it can fall short by twenty minutes or more, and it is
+    // null on plenty of imported dives - which collapsed the window to the
+    // entry instant plus the margin.
+    final exitSec = entrySec + (dive.effectiveRuntime?.inSeconds ?? 0);
+    return bucketizeTrack(
+      windowTrack(
+        track.effectivePoints,
+        fromEpochSeconds: entrySec - marginSeconds,
+        toEpochSeconds: exitSec + marginSeconds,
+      ),
+      TrackColorMode.uniform,
     );
   }
 
   Widget _content(
     BuildContext context,
+    UnitFormatter units,
     GeoPoint? entry,
     GeoPoint? exit,
     GeoPoint? site,
     String? driftText,
   ) {
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
+    final track = ref.watch(trackForDiveProvider(widget.dive.id)).value;
+    final runs = track == null ? null : _trackRuns(track);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
@@ -137,6 +177,8 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
                       site: site,
                       interactive: true,
                       controller: _controller,
+                      trackRuns: runs,
+                      fitToTrack: runs != null && runs.isNotEmpty,
                     ),
                   ),
                   Positioned(
@@ -164,6 +206,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: kGpsEntryColor,
               label: context.l10n.diveLog_detail_surfaceGps_entry,
               point: entry,
+              units: units,
               coordKey: const ValueKey('gps-coord-entry'),
               copyKey: const ValueKey('gps-copy-entry'),
               sourceName: widget.sourceName,
@@ -175,6 +218,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: kGpsExitColor,
               label: context.l10n.diveLog_detail_surfaceGps_exit,
               point: exit,
+              units: units,
               coordKey: const ValueKey('gps-coord-exit'),
               copyKey: const ValueKey('gps-copy-exit'),
               sourceName: widget.sourceName,
@@ -186,6 +230,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
               dotColor: colorScheme.primary,
               label: context.l10n.diveLog_detail_surfaceGps_site,
               point: site,
+              units: units,
               coordKey: const ValueKey('gps-coord-site'),
               copyKey: const ValueKey('gps-copy-site'),
               onFocus: () => _focusOn(site),
@@ -208,6 +253,49 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
                 ],
               ),
             ),
+          if (track != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.route_outlined,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  // "Surface track", never "your route": during the dive the
+                  // recording phone is on the boat, so this is the surface
+                  // support path, not the diver's.
+                  Expanded(
+                    child: InkWell(
+                      key: const ValueKey('gps-track-link'),
+                      onTap: () => context.push('/gps-log/${track.id}'),
+                      child: Text(
+                        '${l10n.diveLog_detail_surfaceGps_track}: '
+                        // This provider hydrates points, so the trimmed count
+                        // is always knowable here; the fallback is only for
+                        // the impossible unhydrated case.
+                        '${l10n.diveLog_detail_surfaceGps_trackFixes(track.effectivePointCount ?? track.pointCount)}',
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    key: const ValueKey('gps-track-full-chip'),
+                    label: Text(l10n.diveLog_detail_surfaceGps_showFullTrack),
+                    selected: ref.watch(surfaceGpsFullTrackProvider),
+                    onSelected: (value) =>
+                        ref.read(surfaceGpsFullTrackProvider.notifier).state =
+                            value,
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -221,6 +309,7 @@ class _GpsCoordinateRow extends StatelessWidget {
     required this.dotColor,
     required this.label,
     required this.point,
+    required this.units,
     required this.coordKey,
     required this.copyKey,
     required this.onFocus,
@@ -231,6 +320,7 @@ class _GpsCoordinateRow extends StatelessWidget {
   final Color dotColor;
   final String label;
   final GeoPoint point;
+  final UnitFormatter units;
   final Key coordKey;
   final Key copyKey;
   final VoidCallback onFocus;
@@ -241,8 +331,7 @@ class _GpsCoordinateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final coordText =
-        '${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}';
+    final coordText = units.formatCoordinates(point.latitude, point.longitude);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

@@ -7,8 +7,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Compact readout for a hovered seascape terrain vertex: latitude and
-/// longitude (5 decimals), plus the seafloor depth in the diver's units.
+/// Compact readout for a hovered seascape terrain vertex: coordinates in the
+/// diver's notation, plus the seafloor depth in the diver's units.
 /// Land and nodata cells show an em-dash for depth. Mirrors the tissue
 /// view's hover tooltip.
 class SeascapeHoverTooltip extends ConsumerWidget {
@@ -47,8 +47,7 @@ class SeascapeHoverTooltip extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${info.latitude.toStringAsFixed(5)}, '
-              '${info.longitude.toStringAsFixed(5)}',
+              units.formatCoordinates(info.latitude, info.longitude),
               style: text,
             ),
             const SizedBox(height: 2),

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/secure_storage/fallback_secure_storage.dart';
 
@@ -76,4 +77,62 @@ void main() {
       expect(map['useDataProtectionKeyChain'], 'false');
     },
   );
+
+  group('legacyKeychainRequired', () {
+    // Google sign-in on macOS cannot be pointed at the legacy keychain, so
+    // callers outside this wrapper need the verdict itself, not just routing.
+    test('is false when the data-protection keychain accepts writes', () async {
+      final storage = FallbackSecureStorage(InMemoryKeychain());
+
+      expect(await storage.legacyKeychainRequired(), isFalse);
+    });
+
+    test('is true when the data-protection keychain is unentitled', () async {
+      final storage = FallbackSecureStorage(NoEntitlementKeychain());
+
+      expect(await storage.legacyKeychainRequired(), isTrue);
+    });
+
+    test('shares the memoised probe with read/write routing', () async {
+      final keychain = _CountingKeychain();
+      final storage = FallbackSecureStorage(keychain);
+
+      await storage.legacyKeychainRequired();
+      await storage.write(key: 'k', value: 'v');
+      await storage.read(key: 'k');
+
+      expect(keychain.dataProtectionWrites, 1, reason: 'probed once');
+    });
+  });
+}
+
+/// Counts data-protection writes so the memoisation is observable.
+class _CountingKeychain extends NoEntitlementKeychain {
+  int dataProtectionWrites = 0;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    final usesDataProtection =
+        mOptions is! MacOsOptions || mOptions.usesDataProtectionKeychain;
+    if (usesDataProtection) dataProtectionWrites++;
+    return super.write(
+      key: key,
+      value: value,
+      iOptions: iOptions,
+      aOptions: aOptions,
+      lOptions: lOptions,
+      webOptions: webOptions,
+      mOptions: mOptions,
+      wOptions: wOptions,
+    );
+  }
 }

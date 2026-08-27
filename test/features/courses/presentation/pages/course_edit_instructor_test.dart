@@ -4,8 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -21,19 +22,19 @@ Buddy _makeBuddy(String id, String name) {
   return Buddy(id: id, name: name, createdAt: now, updatedAt: now);
 }
 
-BuddyRoleCredential _makeCredential({
+Certification _makeInstructorCert({
   required String buddyId,
-  BuddyRole role = BuddyRole.instructor,
-  String? credentialNumber,
-  CertificationAgency? agency,
+  String? cardNumber,
+  CertificationAgency agency = CertificationAgency.padi,
 }) {
   final now = DateTime(2024, 1, 1);
-  return BuddyRoleCredential(
-    id: '$buddyId-${role.name}',
+  return Certification(
+    id: '$buddyId-instructor',
     buddyId: buddyId,
-    role: role,
-    credentialNumber: credentialNumber,
+    name: 'Instructor',
     agency: agency,
+    level: CertificationLevel.instructor,
+    cardNumber: cardNumber,
     createdAt: now,
     updatedAt: now,
   );
@@ -54,11 +55,12 @@ void main() {
   late CourseRepository repository;
 
   final credentialedBuddy = _makeBuddy('buddy-1', 'Alice Instructor');
-  final credential = _makeCredential(
+  final instructorCert = _makeInstructorCert(
     buddyId: 'buddy-1',
-    credentialNumber: '999-PADI',
+    cardNumber: '999-PADI',
     agency: CertificationAgency.padi,
   );
+  const instructorLabel = 'PADI Instructor #999-PADI';
   final nonCredentialedBuddy = _makeBuddy('buddy-2', 'Bob NoCert');
 
   setUp(() async {
@@ -66,7 +68,7 @@ void main() {
     repository = CourseRepository();
     // courses.instructor_id has a foreign key to buddies(id), so real rows
     // must exist even though the picker's own list is driven by the
-    // overridden allBuddiesProvider/allBuddyRolesProvider below.
+    // overridden allBuddiesProvider/allBuddyCertificationsProvider below.
     await BuddyRepository().createBuddy(credentialedBuddy);
     await BuddyRepository().createBuddy(nonCredentialedBuddy);
     // courses.diver_id has a foreign key to divers(id); seed a default diver
@@ -84,9 +86,9 @@ void main() {
     allBuddiesProvider.overrideWith(
       (ref) async => [credentialedBuddy, nonCredentialedBuddy],
     ),
-    allBuddyRolesProvider.overrideWith(
+    allBuddyCertificationsProvider.overrideWith(
       (ref) async => {
-        'buddy-1': [credential],
+        'buddy-1': [instructorCert],
       },
     ),
   ];
@@ -137,7 +139,7 @@ void main() {
 
       await pickInstructorFromDropdown(
         tester,
-        'Alice Instructor (${credential.displayLabel})',
+        'Alice Instructor ($instructorLabel)',
       );
 
       expect(
@@ -160,7 +162,7 @@ void main() {
 
       await pickInstructorFromDropdown(
         tester,
-        'Alice Instructor (${credential.displayLabel})',
+        'Alice Instructor ($instructorLabel)',
       );
       expect(find.widgetWithText(TextFormField, '999-PADI'), findsOneWidget);
 
@@ -220,7 +222,7 @@ void main() {
 
     await pickInstructorFromDropdown(
       tester,
-      'Alice Instructor (${credential.displayLabel})',
+      'Alice Instructor ($instructorLabel)',
     );
 
     final saveButton = find.widgetWithText(TextButton, 'Save');

@@ -318,4 +318,64 @@ void main() {
       }
     },
   );
+
+  group('duplicate-name suppression', () {
+    Future<void> pumpCert(WidgetTester tester, Certification cert) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            certificationByIdProvider(
+              cert.id,
+            ).overrideWith((ref) async => cert),
+            courseForCertificationProvider(
+              cert.id,
+            ).overrideWith((ref) async => null),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CertificationDetailPage(
+              certificationId: cert.id,
+              embedded: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Certification make(String id, String name) => Certification(
+      id: id,
+      name: name,
+      agency: CertificationAgency.padi,
+      level: CertificationLevel.openWater,
+      notes: '',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+
+    testWidgets('a derived name renders one identifying row, not two', (
+      tester,
+    ) async {
+      await pumpCert(tester, make('d1', 'PADI : Open Water'));
+
+      // The Certification row is present, the redundant Type row is not, and
+      // the legacy stored string is never shown verbatim.
+      expect(find.text('Certification'), findsOneWidget);
+      expect(find.text('Type'), findsNothing);
+      expect(find.text('PADI : Open Water'), findsNothing);
+    });
+
+    testWidgets('a custom name renders both rows', (tester) async {
+      await pumpCert(tester, make('d2', 'Bali OW w/ Made'));
+
+      // The custom name is the page's title as well as its Type row, so it
+      // appears more than once; what matters is that the Certification row
+      // still carries the level separately.
+      expect(find.text('Bali OW w/ Made'), findsWidgets);
+      expect(find.text('Open Water'), findsOneWidget);
+    });
+  });
 }

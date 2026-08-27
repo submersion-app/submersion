@@ -143,7 +143,7 @@ Uint8List createShearwaterTestDb({
       }
     }
   } finally {
-    db.dispose();
+    db.close();
   }
 
   final bytes = File(tempPath).readAsBytesSync();

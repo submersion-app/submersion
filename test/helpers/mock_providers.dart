@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart' hide Visibility;
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
@@ -15,17 +19,28 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
 typedef Override = riverpod.Override;
 
 /// Mock SettingsNotifier that doesn't access the database
 class MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  MockSettingsNotifier() : super(const AppSettings());
+  MockSettingsNotifier([AppSettings? initial])
+    : super(initial ?? const AppSettings());
+
+  /// Already "loaded": the mock's state is supplied up front, so nothing
+  /// awaits a database read.
+  @override
+  Future<void> get initialLoad async {}
 
   @override
   Future<void> setDepthUnit(DepthUnit unit) async =>
@@ -45,9 +60,35 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSacUnit(SacUnit unit) async =>
       state = state.copyWith(sacUnit: unit);
+
+  @override
+  Future<void> setGasModel(GasModel model) async =>
+      state = state.copyWith(gasModel: model);
+
+  @override
+  Future<void> setDefaultCurrency(String currencyCode) async =>
+      state = state.copyWith(defaultCurrency: currencyCode);
+  @override
+  Future<void> setVisibilityScale({
+    required VisibilityScalePreset preset,
+    double? excellentM,
+    double? goodM,
+    double? moderateM,
+  }) async => state = state.copyWith(
+    visibilityScalePreset: preset,
+    visibilityScaleExcellentM: excellentM,
+    visibilityScaleGoodM: goodM,
+    visibilityScaleModerateM: moderateM,
+  );
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
+  @override
+  Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
+      state = state.copyWith(seascapeAppearance: appearance);
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setTimeFormat(TimeFormat format) async =>
       state = state.copyWith(timeFormat: format);
@@ -61,8 +102,20 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setThemePresetId(String presetId) async =>
       state = state.copyWith(themePresetId: presetId);
   @override
+  Future<void> setAccentNavIcons(bool value) async =>
+      state = state.copyWith(accentNavIcons: value);
+  @override
+  Future<void> setAccentSectionHeaders(bool value) async =>
+      state = state.copyWith(accentSectionHeaders: value);
+  @override
+  Future<void> setAccentListIcons(bool value) async =>
+      state = state.copyWith(accentListIcons: value);
+  @override
   Future<void> setLocale(String locale) async =>
       state = state.copyWith(locale: locale);
+  @override
+  Future<void> setPlaceNameLanguage(String code) async =>
+      state = state.copyWith(placeNameLanguage: code);
   @override
   Future<void> setDefaultDiveType(String diveType) async =>
       state = state.copyWith(defaultDiveType: diveType);
@@ -143,6 +196,27 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     }
     state = state.copyWith(hiddenHomeChips: hidden);
   }
+
+  @override
+  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
+    final hidden = {...state.hiddenHomeCards};
+    if (enabled) {
+      hidden.remove(cardId);
+    } else {
+      hidden.add(cardId);
+    }
+    state = state.copyWith(hiddenHomeCards: hidden);
+  }
+
+  @override
+  Future<void> setHomeCardOrder(List<String> order) async =>
+      state = state.copyWith(homeCardOrder: order);
+
+  @override
+  Future<void> resetHomeCards() async => state = state.copyWith(
+    homeCardOrder: const <String>[],
+    hiddenHomeCards: const <String>{},
+  );
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
@@ -310,6 +384,12 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultShowPhotoMarkers(bool value) async =>
       state = state.copyWith(defaultShowPhotoMarkers: value);
   @override
+  Future<void> setDefaultShowO2CellMv(bool value) async =>
+      state = state.copyWith(defaultShowO2CellMv: value);
+  @override
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
+      state = state.copyWith(defaultShowEstimatedTankPressure: value);
+  @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>
       state = state.copyWith(defaultShowGasTimeline: value);
   @override
@@ -383,20 +463,15 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setFullscreenTilePreferences({
-    required List<String> order,
-    required List<String> hidden,
-  }) async => state = state.copyWith(
-    fullscreenTileOrder: order,
-    fullscreenHiddenTiles: hidden,
-  );
-
-  @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
       state = state.copyWith(
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
       );
+
+  @override
+  Future<void> setProfileMetricsFollowViewport(bool value) async =>
+      state = state.copyWith(profileMetricsFollowViewport: value);
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>
@@ -457,8 +532,14 @@ Dive createTestDiveWithBottomTime({
 }
 
 /// Common provider overrides for widget tests
+/// [linkedPreDiveSession] seeds the pre-dive checklist run the dive-detail
+/// overflow menu sees. Parameterized rather than stacked as a second override
+/// because Riverpod refuses to override the same family twice in one
+/// container.
 Future<List<Override>> getBaseOverrides({
   MockSettingsNotifier? settingsNotifier,
+  http.Client? weatherHttpClient,
+  PreDiveSession? linkedPreDiveSession,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -477,6 +558,17 @@ Future<List<Override>> getBaseOverrides({
     // timer at teardown.
     diveOpenFindingsCountProvider.overrideWith(
       (ref, diveId) => Stream.value(0),
+    ),
+    // The dive-detail overflow menu asks whether a pre-dive checklist run is
+    // attached (#1066); without this the family reaches the real repository
+    // and a database that widget tests do not have.
+    preDiveSessionForDiveProvider.overrideWith(
+      (ref, diveId) async => linkedPreDiveSession,
+    ),
+    // Weather/elevation lookups must never hit the network in widget tests;
+    // the default stub fails fast so altitude auto-fill resolves to null.
+    weatherHttpClientProvider.overrideWithValue(
+      weatherHttpClient ?? MockClient((_) async => http.Response('', 500)),
     ),
   ];
 }

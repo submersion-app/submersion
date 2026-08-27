@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -182,6 +185,208 @@ void main() {
 
       final saved = await repository.getEquipmentById(created.id);
       expect(saved!.buoyancyKg, isNull);
+    });
+
+    testWidgets(
+      'a no-op save preserves attributes under a grouping-dot locale',
+      (tester) async {
+        // Under de, '.' is the GROUPING separator, so a field seeded with
+        // double.toString() ("2.5") and read back locale-aware would store 25.
+        // Opening an item and saving it untouched must change nothing (#1091).
+        final previousLocale = Intl.defaultLocale;
+        addTearDown(() => Intl.defaultLocale = previousLocale);
+        Intl.defaultLocale = 'de';
+
+        final created = await repository.createEquipment(
+          EquipmentItem(
+            id: '',
+            name: 'Wetsuit',
+            type: EquipmentType.wetsuit,
+            attributes: [
+              EquipmentAttribute.curated(
+                equipmentId: '',
+                key: 'buoyancy_kg',
+                valueNum: 2.5,
+              ),
+            ],
+          ),
+        );
+        await pumpEditor(tester, created.id);
+
+        await tester.scrollUntilVisible(
+          find.text('Save'),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        final saved = await repository.getEquipmentById(created.id);
+        expect(saved!.buoyancyKg, closeTo(2.5, 0.001));
+      },
+    );
+
+    testWidgets('shows the stored currency and its symbol on the price field', (
+      tester,
+    ) async {
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Regulator',
+          type: EquipmentType.regulator,
+          purchasePrice: 150,
+          purchaseCurrency: 'EUR',
+        ),
+      );
+      await pumpEditor(tester, created.id);
+
+      // Bring the purchase section into view.
+      final currencyField = find.byType(DropdownMenu<String>);
+      await tester.scrollUntilVisible(
+        currencyField,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // Currency field shows the stored code; the price prefix shows its symbol.
+      expect(find.text('EUR'), findsWidgets);
+      expect(find.textContaining('€'), findsWidgets);
+    });
+
+    testWidgets('a stored code outside the presets is offered by the menu', (
+      tester,
+    ) async {
+      // Currency is free text, so a stored ISK must not vanish from the
+      // preset-only dropdown -- it leads the list instead.
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Drysuit',
+          type: EquipmentType.drysuit,
+          purchasePrice: 900,
+          purchaseCurrency: 'ISK',
+        ),
+      );
+      await pumpEditor(tester, created.id);
+
+      final menu = find.byType(DropdownMenu<String>);
+      await tester.scrollUntilVisible(
+        menu,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final entries = tester
+          .widget<DropdownMenu<String>>(menu)
+          .dropdownMenuEntries
+          .map((e) => e.value)
+          .toList();
+      expect(entries.first, 'ISK');
+      expect(entries.sublist(1), kCommonCurrencyCodes);
+    });
+
+    testWidgets('a new item opens in the diver default currency', (
+      tester,
+    ) async {
+      final settings = MockSettingsNotifier();
+      final overrides = await getBaseOverrides(settingsNotifier: settings);
+      await settings.setDefaultCurrency('SEK');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            equipmentRepositoryProvider.overrideWithValue(repository),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: EquipmentEditPage(embedded: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final menu = find.byType(DropdownMenu<String>);
+      await tester.scrollUntilVisible(
+        menu,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<DropdownMenu<String>>(menu).controller?.text, 'SEK');
+      // The price prefix tracks the selected currency, not a fixed dollar.
+      expect(find.textContaining(currencySymbol('SEK')), findsWidgets);
+    });
+
+    testWidgets('clearing the currency saves the diver default, not USD', (
+      tester,
+    ) async {
+      // The column is NOT NULL, so a cleared field has to resolve to
+      // something; it resolves to the diver's default rather than a
+      // hardcoded USD.
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Fins',
+          type: EquipmentType.fins,
+          purchasePrice: 80,
+          purchaseCurrency: 'GBP',
+        ),
+      );
+
+      final settings = MockSettingsNotifier();
+      final overrides = await getBaseOverrides(settingsNotifier: settings);
+      await settings.setDefaultCurrency('NOK');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            equipmentRepositoryProvider.overrideWithValue(repository),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: EquipmentEditPage(equipmentId: created.id, embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final menu = find.byType(DropdownMenu<String>);
+      await tester.scrollUntilVisible(
+        menu,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final field = find.descendant(of: menu, matching: find.byType(TextField));
+      await tester.enterText(field, '');
+      // Typing opens the dropdown overlay, which would sit over the Save
+      // button; close it before saving.
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      final saveButton = find.text('Save');
+      await tester.scrollUntilVisible(
+        saveButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(saveButton);
+      await tester.pumpAndSettle();
+
+      final saved = await repository.getEquipmentById(created.id);
+      expect(saved!.purchaseCurrency, 'NOK');
     });
   });
 }

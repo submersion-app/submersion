@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -18,7 +18,9 @@ final setupGuideStatusProvider =
       // Aligned with the step's route (/settings/media-sources): ANY
       // attached media - gallery, files, URLs, or Lightroom - counts as
       // "photo sources set up", not just a Lightroom connection.
-      final hasMedia = await ref.watch(mediaRepositoryProvider).hasAnyMedia();
+      final mediaRepository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(mediaRepository.watchMediaChanges());
+      final hasMedia = await mediaRepository.hasAnyMedia();
       final attached = await ref
           .watch(mediaStoreAttachStateProvider)
           .attachedStoreId();

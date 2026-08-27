@@ -197,6 +197,160 @@ void main() {
       expect(find.textContaining('247 dives logged'), findsOneWidget);
     });
 
+    testWidgets('headline totals include prior dives and time (#808)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 247,
+                totalTimeSeconds: 669600, // 186h
+                maxDepth: 52.0,
+                avgMaxDepth: 27.5,
+                totalSites: 83,
+              ),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => Diver(
+                id: '1',
+                name: 'Eric Griffin',
+                priorDiveCount: 125,
+                priorDiveTimeSeconds: 360000, // 100h
+                createdAt: DateTime(2026, 1, 1),
+                updatedAt: DateTime(2026, 1, 1),
+              ),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // Neutral copy, not "dives logged": 125 of these were never logged
+      // in-app.
+      expect(find.textContaining('372 dives'), findsOneWidget);
+      expect(find.textContaining('logged'), findsNothing);
+      expect(find.textContaining('286 hours'), findsOneWidget);
+    });
+
+    testWidgets('quiet desktop stats include prior dives (#808)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1300, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 247,
+                totalTimeSeconds: 669600,
+                maxDepth: 52.0,
+                avgMaxDepth: 27.5,
+                totalSites: 83,
+              ),
+            ),
+            dashboardQuickStatsProvider.overrideWith(
+              (ref) async => const DashboardQuickStats(countriesVisited: 14),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => Diver(
+                id: '1',
+                name: 'Eric Griffin',
+                priorDiveCount: 125,
+                priorDiveTimeSeconds: 360000,
+                createdAt: DateTime(2026, 1, 1),
+                updatedAt: DateTime(2026, 1, 1),
+              ),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.text('372'), findsOneWidget);
+      expect(find.text('286'), findsOneWidget);
+      // Sites stay logged-only: the prior offset carries no site information.
+      expect(find.text('83'), findsOneWidget);
+    });
+
+    testWidgets('shows prior-only career stats with nothing logged (#808)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 0,
+                totalTimeSeconds: 0,
+                maxDepth: 0,
+                avgMaxDepth: 0,
+                totalSites: 0,
+              ),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => Diver(
+                id: '1',
+                name: 'Eric Griffin',
+                priorDiveCount: 480,
+                createdAt: DateTime(2026, 1, 1),
+                updatedAt: DateTime(2026, 1, 1),
+              ),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.textContaining('480 dives'), findsOneWidget);
+      expect(find.textContaining('logged'), findsNothing);
+    });
+
     testWidgets('displays time-of-day greeting', (tester) async {
       final overrides = await getBaseOverrides();
 

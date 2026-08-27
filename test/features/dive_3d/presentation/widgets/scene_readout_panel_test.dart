@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/dive_readout_rows.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_panel.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -33,7 +34,10 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: overrides,
-        child: SceneReadoutPanel(data: readoutSceneData(), position: position),
+        child: SceneReadoutPanel(
+          lookups: DiveReadoutLookups(readoutSceneData()),
+          position: position,
+        ),
       ),
     );
     await tester.pumpAndSettle();

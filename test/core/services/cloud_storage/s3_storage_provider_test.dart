@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -87,6 +88,85 @@ class _FakeS3ApiClient extends Fake implements S3ApiClient {
     _assertOpen();
     calls.add('list:$prefix');
     return listing;
+  }
+
+  // Multipart + range support for the streamed transfer tests.
+  final Map<String, BytesBuilder> _sessions = {};
+  final List<String> abortedUploads = [];
+
+  /// When set, uploadPart throws for this part number (failure injection).
+  int? failAtPart;
+
+  /// When set, getObjectRange throws for the range starting here.
+  int? failRangeAtStart;
+
+  @override
+  Future<String> createMultipartUpload(
+    String key, {
+    required String contentType,
+  }) async {
+    _assertOpen();
+    calls.add('createMultipart:$key');
+    final uploadId = 'up-$key';
+    _sessions[uploadId] = BytesBuilder(copy: false);
+    return uploadId;
+  }
+
+  @override
+  Future<String> uploadPart(
+    String key, {
+    required String uploadId,
+    required int partNumber,
+    required Uint8List bytes,
+  }) async {
+    _assertOpen();
+    calls.add('part:$partNumber(${bytes.length})');
+    if (failAtPart == partNumber) {
+      throw CloudStorageException('injected part $partNumber failure');
+    }
+    _sessions[uploadId]!.add(bytes);
+    return 'etag-$partNumber';
+  }
+
+  @override
+  Future<void> completeMultipartUpload(
+    String key, {
+    required String uploadId,
+    required List<S3PartInfo> parts,
+  }) async {
+    _assertOpen();
+    calls.add('completeMultipart:$key(${parts.length})');
+    objects[key] = _sessions.remove(uploadId)!.takeBytes();
+  }
+
+  @override
+  Future<void> abortMultipartUpload(
+    String key, {
+    required String uploadId,
+  }) async {
+    calls.add('abortMultipart:$key');
+    abortedUploads.add(uploadId);
+    _sessions.remove(uploadId);
+  }
+
+  @override
+  Future<({Uint8List bytes, int totalLength})> getObjectRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  }) async {
+    _assertOpen();
+    calls.add('range:$start-$endInclusive');
+    if (failRangeAtStart == start) {
+      throw const CloudStorageException('injected range failure');
+    }
+    final data = objects[key];
+    if (data == null) throw CloudStorageException('File not found in S3: $key');
+    final end = endInclusive < data.length - 1 ? endInclusive : data.length - 1;
+    return (
+      bytes: Uint8List.sublistView(data, start, end + 1),
+      totalLength: data.length,
+    );
   }
 
   @override
@@ -259,6 +339,138 @@ void main() {
       expect(store.stored, isNull);
       expect(builtClients.single.closed, isTrue);
       expect(builtClients.single.calls.first, startsWith('list:'));
+    });
+  });
+
+  group('path-based transfers', () {
+    // 8 MiB, matching the provider's transfer chunk size.
+    const chunk = 8 * 1024 * 1024;
+    late Directory tempDir;
+
+    setUp(() {
+      store.stored = config();
+      tempDir = Directory.systemTemp.createTempSync('s3_provider_test');
+    });
+
+    tearDown(() => tempDir.deleteSync(recursive: true));
+
+    File writeSource(int length) {
+      final file = File('${tempDir.path}/src.bin');
+      // Position-dependent bytes so reassembly errors are detectable.
+      file.writeAsBytesSync(
+        Uint8List.fromList(List<int>.generate(length, (i) => i % 251)),
+      );
+      return file;
+    }
+
+    test('small uploads take the single putObject path', () async {
+      final src = writeSource(1024);
+      final result = await provider.uploadFileFromPath(src.path, 'small.db');
+      expect(result.fileId, 'submersion-sync/small.db');
+      final client = builtClients.single;
+      expect(client.calls, contains('put:submersion-sync/small.db'));
+      expect(client.objects['submersion-sync/small.db']!.length, 1024);
+    });
+
+    test('large uploads go multipart and reassemble byte-identical', () async {
+      final src = writeSource(chunk + 1024);
+      final result = await provider.uploadFileFromPath(src.path, 'big.db');
+      expect(result.fileId, 'submersion-sync/big.db');
+      final client = builtClients.single;
+      expect(client.calls, contains('createMultipart:submersion-sync/big.db'));
+      expect(client.calls, contains('part:1($chunk)'));
+      expect(client.calls, contains('part:2(1024)'));
+      expect(
+        client.objects['submersion-sync/big.db'],
+        src.readAsBytesSync(),
+        reason: 'multipart reassembly must be byte-identical',
+      );
+      expect(client.abortedUploads, isEmpty);
+    });
+
+    test('a failed part aborts the multipart session', () async {
+      final src = writeSource(chunk + 1024);
+      // The factory builds one client per session; prime the failure on the
+      // client the upload will build by making the factory set it.
+      provider = S3StorageProvider(
+        store: store,
+        apiClientFactory: (config, {onRegionCorrected}) {
+          final client = _FakeS3ApiClient(config)..failAtPart = 2;
+          builtClients.add(client);
+          return client;
+        },
+      );
+
+      await expectLater(
+        provider.uploadFileFromPath(src.path, 'big.db'),
+        throwsA(isA<CloudStorageException>()),
+      );
+      final client = builtClients.single;
+      expect(client.abortedUploads, [
+        'up-submersion-sync/big.db',
+      ], reason: 'uploaded parts must not strand and bill');
+    });
+
+    test('small downloads take the single getObject path', () async {
+      await provider.uploadFile(Uint8List.fromList([1, 2, 3]), 'f.db');
+      final dest = File('${tempDir.path}/out.bin');
+
+      await provider.downloadToFile('submersion-sync/f.db', dest.path);
+
+      expect(dest.readAsBytesSync(), [1, 2, 3]);
+    });
+
+    test('large downloads stream by ranges, byte-identical', () async {
+      final data = Uint8List.fromList(
+        List<int>.generate(chunk + 4096, (i) => i % 249),
+      );
+      builtClients.clear();
+      await provider.uploadFile(data, 'big.db');
+      final client = builtClients.single;
+      final dest = File('${tempDir.path}/out.bin');
+
+      await provider.downloadToFile('submersion-sync/big.db', dest.path);
+
+      expect(dest.readAsBytesSync(), data);
+      expect(client.calls, contains('range:0-${chunk - 1}'));
+      // The final range is clamped to the object's total size.
+      expect(client.calls, contains('range:$chunk-${chunk + 4096 - 1}'));
+    });
+
+    test('a missing object throws and leaves no destination file', () async {
+      final dest = File('${tempDir.path}/out.bin');
+      await expectLater(
+        provider.downloadToFile('submersion-sync/nope.db', dest.path),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(dest.existsSync(), isFalse);
+    });
+
+    test('a mid-range failure deletes the partial download', () async {
+      final data = Uint8List.fromList(
+        List<int>.generate(chunk + 4096, (i) => i % 249),
+      );
+      provider = S3StorageProvider(
+        store: store,
+        apiClientFactory: (config, {onRegionCorrected}) {
+          final client = _FakeS3ApiClient(config)..failRangeAtStart = chunk;
+          builtClients.add(client);
+          return client;
+        },
+      );
+      builtClients.clear();
+      await provider.uploadFile(data, 'big.db');
+      final dest = File('${tempDir.path}/out.bin');
+
+      await expectLater(
+        provider.downloadToFile('submersion-sync/big.db', dest.path),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(
+        dest.existsSync(),
+        isFalse,
+        reason: 'a truncated download must never be left for the caller',
+      );
     });
   });
 

@@ -15,6 +15,8 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -41,6 +43,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -52,6 +55,8 @@ import 'package:submersion/features/universal_import/data/models/picked_import_f
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart'
     show performConsolidations;
+import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
+import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
@@ -97,10 +102,34 @@ final _universalAdapterMappingAutoAdvanceProvider = Provider<bool>((ref) {
   return false;
 });
 
+/// True when the parsed payload references no photos at all.
+///
+/// Used as the Photos step's auto-advance condition, so the step is invisible
+/// for every import that has nothing to resolve.
+final universalAdapterNoPhotosProvider = Provider<bool>((ref) {
+  final payload = ref.watch(
+    universalImportNotifierProvider.select((s) => s.payload),
+  );
+  return (payload?.entitiesOf(ui.ImportEntityType.media) ?? const []).isEmpty;
+});
+
+/// True when the Photos step has nothing left to ask.
+///
+/// Deliberately looser than [universalAdapterNoPhotosProvider]: a user who
+/// picked a folder or chose to skip may advance, but the step is never
+/// auto-advanced past a decision they have not made.
+final universalAdapterPhotosReadyProvider = Provider<bool>((ref) {
+  if (ref.watch(universalAdapterNoPhotosProvider)) return true;
+  final state = ref.watch(universalImportNotifierProvider);
+  return state.photosSkipped || state.photoResolution != null;
+});
+
 /// Import source adapter for universal file imports (CSV, Subsurface XML,
 /// UDDF, auto-detected formats). Wraps [UniversalImportNotifier] into the
 /// unified import wizard framework.
 class UniversalAdapter implements ImportSourceAdapter {
+  static const _log = LoggerService('UniversalAdapter');
+
   UniversalAdapter({required WidgetRef ref, String displayName = 'File Import'})
     : _ref = ref,
       _displayName = displayName;
@@ -153,7 +182,24 @@ class UniversalAdapter implements ImportSourceAdapter {
     // File imports offer MANUAL consolidation only (no auto-consolidate: a
     // file has no single "current computer" to prove a cross-computer match).
     DuplicateAction.consolidate,
+    // Union across entity types. Overwrite-in-place is implemented for sites
+    // only -- see [duplicateActionsFor], which is what the review UI and the
+    // wizard notifier actually gate on.
+    DuplicateAction.replaceSource,
   };
+
+  /// Overwrite-in-place ([DuplicateAction.replaceSource]) is only implemented
+  /// for sites: [UddfImportSelections.siteOverrides] is the sole override
+  /// channel the importer understands. Offering it on the buddies/equipment/
+  /// trips tabs would let the user mark a duplicate "decided" and then have it
+  /// silently dropped, so those tabs get the base set without it.
+  @override
+  Set<DuplicateAction> duplicateActionsFor(wizard.ImportEntityType type) {
+    if (type == wizard.ImportEntityType.sites) return supportedDuplicateActions;
+    return supportedDuplicateActions.difference(const {
+      DuplicateAction.replaceSource,
+    });
+  }
 
   @override
   List<WizardStepDef> get acquisitionSteps => [
@@ -186,6 +232,17 @@ class UniversalAdapter implements ImportSourceAdapter {
         final notifier = _ref.read(universalImportNotifierProvider.notifier);
         await notifier.confirmFieldMapping();
       },
+    ),
+    WizardStepDef(
+      label: 'Photos',
+      icon: Icons.photo_library_outlined,
+      builder: (context) => const PhotoFolderStep(),
+      canAdvance: universalAdapterPhotosReadyProvider,
+      // Stricter than canAdvance on purpose: the step auto-skips only when
+      // the logbook references no photos at all, never past a decision the
+      // user has not made.
+      canAutoAdvance: universalAdapterNoPhotosProvider,
+      autoAdvance: true,
     ),
   ];
 
@@ -268,6 +325,12 @@ class UniversalAdapter implements ImportSourceAdapter {
       payload.entitiesOf(ui.ImportEntityType.courses),
       _courseToEntityItem,
     );
+    _addGroupIfNotEmpty(
+      groups,
+      wizard.ImportEntityType.media,
+      payload.entitiesOf(ui.ImportEntityType.media),
+      _mediaToEntityItem,
+    );
 
     return ImportBundle(
       source: ImportSourceInfo(type: sourceType, displayName: displayName),
@@ -320,6 +383,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       existingDiveTypes: existingDiveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
+      units: UnitFormatter(_ref.read(settingsProvider)),
     );
 
     final updatedGroups = Map<wizard.ImportEntityType, EntityGroup>.from(
@@ -462,6 +526,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     final uddfSelections = UddfImportSelections(
       dives: resolve(wizard.ImportEntityType.dives),
       sites: resolve(wizard.ImportEntityType.sites),
+      siteOverrides: _resolveSiteOverrides(duplicateActions, bundle),
       buddies: resolve(wizard.ImportEntityType.buddies),
       equipment: resolve(wizard.ImportEntityType.equipment),
       trips: resolve(wizard.ImportEntityType.trips),
@@ -487,6 +552,8 @@ class UniversalAdapter implements ImportSourceAdapter {
       diveRepository: _ref.read(diveRepositoryProvider),
       tankPressureRepository: _ref.read(tankPressureRepositoryProvider),
       courseRepository: _ref.read(courseRepositoryProvider),
+      serviceRecordRepository: _ref.read(serviceRecordRepositoryProvider),
+      diveComputerRepository: _ref.read(diveComputerRepositoryProvider),
     );
 
     final settings = _ref.read(settingsProvider);
@@ -500,6 +567,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       defaultTankPreset: defaultTankPreset,
       defaultStartPressure: settings.defaultStartPressure,
       applyDefaultTankToImports: settings.applyDefaultTankToImports,
+      placeNameLanguage: settings.placeNameLanguage,
     );
 
     final result = await importer.import(
@@ -568,6 +636,34 @@ class UniversalAdapter implements ImportSourceAdapter {
       },
     );
 
+    // Attach photos the logbook referenced by absolute path, resolved against
+    // the folder picked in the Photos step. This and the ZIP path above cover
+    // different sources and cannot double-count: a ZIP sidecar and a
+    // <picture> reference never describe the same file.
+    final resolution = notifierState.photoResolution;
+    final resolvedPhotos = resolution == null
+        ? 0
+        : await attachResolvedPhotos(
+            media: payload.entitiesOf(ui.ImportEntityType.media),
+            resolvedPathByIndex: resolution.resolvedPathByIndex,
+            diveIdByIndex: result.diveIdByIndex,
+            removedDiveIds: removedDiveIds,
+            dives: payload.entitiesOf(ui.ImportEntityType.dives),
+            selectedIndices: selections[wizard.ImportEntityType.media],
+            attach: (file, diveId, takenAt, latitude, longitude) async {
+              await _ref
+                  .read(mediaImportServiceProvider)
+                  .importLocalFileForDive(
+                    sourceFile: file,
+                    diveId: diveId,
+                    takenAt: takenAt,
+                    latitude: latitude,
+                    longitude: longitude,
+                    subdirectory: 'imported_photos',
+                  );
+            },
+          );
+
     // `importer.import` counted folded/removed dives as imported; subtract only
     // the dives that were ACTUALLY removed (folded, or compensating-deleted).
     // A dive whose fold AND cleanup both failed is still standalone in the DB,
@@ -630,14 +726,18 @@ class UniversalAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
 
+    final notices = groupImportNotices(payload.warnings, netDives);
+
     return UnifiedImportResult(
+      notices: notices,
       importedCounts: counts,
       consolidatedCount: consolidated,
       skippedCount: skipped + cleanedUpFailures,
       importedDiveIds: netImportedDiveIds,
       fileOutcomes: fileOutcomes,
-      attachedPhotoCount: attachedPhotos,
-      unmatchedPhotoCount: notifierState.unmatchedPhotoCount,
+      attachedPhotoCount: attachedPhotos + resolvedPhotos,
+      unmatchedPhotoCount:
+          notifierState.unmatchedPhotoCount + (resolution?.notFoundCount ?? 0),
     );
   }
 
@@ -708,7 +808,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     if (location != null && location.isNotEmpty) {
       subtitle = location;
     } else if (lat != null && lon != null) {
-      subtitle = '${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}';
+      subtitle = UnitFormatter(
+        _ref.read(settingsProvider),
+      ).formatCoordinates(lat, lon);
     } else {
       subtitle = '';
     }
@@ -829,6 +931,13 @@ class UniversalAdapter implements ImportSourceAdapter {
     return EntityItem(title: name, subtitle: '');
   }
 
+  EntityItem _mediaToEntityItem(Map<String, dynamic> data) {
+    final filename = (data['filename'] as String?) ?? '';
+    // The foreign path may use either separator, so basename it accordingly.
+    final base = filename.isEmpty ? 'Unnamed' : foreignBasename(filename);
+    return EntityItem(title: base, subtitle: filename);
+  }
+
   EntityItem _courseToEntityItem(Map<String, dynamic> data) {
     final name = (data['name'] as String?) ?? 'Unnamed';
     final agency = data['agency'] as String?;
@@ -905,6 +1014,83 @@ class UniversalAdapter implements ImportSourceAdapter {
     return attachedCount;
   }
 
+  /// Attaches resolved photos to the dives that survived import.
+  ///
+  /// Each payload media entry names its dive by `_diveIndex`, so unlike
+  /// [attachImportedPhotos] this needs no one-dive-per-file rule: a
+  /// multi-dive logbook attaches each photo to exactly the dive that
+  /// referenced it.
+  ///
+  /// [selectedIndices] is the review step's selection for the media group;
+  /// null means every resolved photo is attached.
+  ///
+  /// A copy failure is counted and skipped rather than thrown: the dive
+  /// import has already succeeded and must not be undone by a photo. Unlike
+  /// [attachImportedPhotos] the failure is not silent, because the caller
+  /// reports the shortfall against the resolved count.
+  ///
+  /// Returns the number of photos actually attached.
+  static Future<int> attachResolvedPhotos({
+    required List<Map<String, dynamic>> media,
+    required Map<int, String> resolvedPathByIndex,
+    required Map<int, String> diveIdByIndex,
+    required Set<String> removedDiveIds,
+    required List<Map<String, dynamic>> dives,
+    Set<int>? selectedIndices,
+    required Future<void> Function(
+      File file,
+      String diveId,
+      DateTime? takenAt,
+      double? latitude,
+      double? longitude,
+    )
+    attach,
+  }) async {
+    var attachedCount = 0;
+
+    for (final entry in resolvedPathByIndex.entries) {
+      final mediaIndex = entry.key;
+      if (mediaIndex < 0 || mediaIndex >= media.length) continue;
+      // Photos appear in review like any other entity, so a deselected one
+      // must actually be left out rather than quietly imported anyway.
+      if (selectedIndices != null && !selectedIndices.contains(mediaIndex)) {
+        continue;
+      }
+      final picture = media[mediaIndex];
+
+      final diveIndex = picture['_diveIndex'];
+      if (diveIndex is! int) continue;
+      final diveId = diveIdByIndex[diveIndex];
+      if (diveId == null || removedDiveIds.contains(diveId)) continue;
+
+      DateTime? takenAt;
+      if (diveIndex >= 0 && diveIndex < dives.length) {
+        final start = dives[diveIndex]['dateTime'] as DateTime?;
+        final offsetSeconds = picture['offsetSeconds'];
+        takenAt = start == null
+            ? null
+            : (offsetSeconds is int
+                  ? start.add(Duration(seconds: offsetSeconds))
+                  : start);
+      }
+
+      try {
+        await attach(
+          File(entry.value),
+          diveId,
+          takenAt,
+          asDoubleOrNull(picture['latitude']),
+          asDoubleOrNull(picture['longitude']),
+        );
+        attachedCount++;
+      } catch (e) {
+        _log.warning('Failed to attach imported photo ${entry.value}: $e');
+      }
+    }
+
+    return attachedCount;
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers — duplicate application
   // ---------------------------------------------------------------------------
@@ -931,6 +1117,27 @@ class UniversalAdapter implements ImportSourceAdapter {
   // Helpers — import
   // ---------------------------------------------------------------------------
 
+  /// Build a map of import-list index → existing site ID for sites the user
+  /// chose to overwrite ([DuplicateAction.replaceSource]).
+  Map<int, String> _resolveSiteOverrides(
+    Map<wizard.ImportEntityType, Map<int, DuplicateAction>> duplicateActions,
+    ImportBundle bundle,
+  ) {
+    final actions = duplicateActions[wizard.ImportEntityType.sites] ?? const {};
+    final entityMatches =
+        bundle.groups[wizard.ImportEntityType.sites]?.entityMatches ?? const {};
+    final overrides = <int, String>{};
+    for (final entry in actions.entries) {
+      if (entry.value == DuplicateAction.replaceSource) {
+        final existingId = entityMatches[entry.key]?.existingId;
+        if (existingId != null) {
+          overrides[entry.key] = existingId;
+        }
+      }
+    }
+    return overrides;
+  }
+
   /// Resolve the final selection set for [type] by merging the base
   /// selections with duplicate actions. Duplicate items whose action is
   /// [DuplicateAction.importAsNew] are added; items in the base set whose
@@ -952,6 +1159,16 @@ class UniversalAdapter implements ImportSourceAdapter {
       // duplicate that is ALSO in the base selection set gets imported as a
       // new row anyway -- the twin the action exists to avoid (#756).
       if (action == DuplicateAction.consolidate &&
+          type != wizard.ImportEntityType.dives) {
+        continue;
+      }
+      // Same trap for replaceSource: it means "overwrite the matched record
+      // in place", which travels via UddfImportSelections.siteOverrides, not
+      // the create path. ImportWizardNotifier.setDuplicateAction adds every
+      // non-skip index to the base selection set, so without this guard the
+      // site would be overwritten AND re-created as a twin from the same
+      // payload.
+      if (action == DuplicateAction.replaceSource &&
           type != wizard.ImportEntityType.dives) {
         continue;
       }
@@ -1027,6 +1244,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       customDiveTypes: payload.entitiesOf(ui.ImportEntityType.diveTypes),
       equipmentSets: payload.entitiesOf(ui.ImportEntityType.equipmentSets),
       courses: payload.entitiesOf(ui.ImportEntityType.courses),
+      serviceRecords: payload.entitiesOf(ui.ImportEntityType.serviceRecords),
     );
   }
 }

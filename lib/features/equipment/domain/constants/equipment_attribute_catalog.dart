@@ -13,6 +13,13 @@ enum AttributeKind { text, number, thickness, choice, flag, date }
 
 /// Unit dimension for number attributes; drives UnitFormatter conversion.
 /// thicknessMm always displays in mm (industry convention in every market).
+///
+/// Every dimension stores its canonical metric value, which for all of them
+/// except the two per-time ones is also what a metric diver reads:
+/// - [speedMps] stores m/s (matching wind speed and GPS track speed) and
+///   displays as m/min or ft/min, the way a DPV's rated speed is quoted.
+/// - [durationH] stores hours and displays as minutes, the way a scooter's
+///   rated run time is quoted.
 enum AttributeDimension {
   none,
   thicknessMm,
@@ -21,6 +28,8 @@ enum AttributeDimension {
   massKg,
   lengthM,
   depthM,
+  speedMps,
+  durationH,
 }
 
 /// Stable attribute keys referenced from more than one file.
@@ -34,6 +43,7 @@ abstract final class EquipmentAttrKeys {
   static const bcdStyle = 'bcd_style';
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
+  static const weightStyle = 'weight_style';
 }
 
 class EquipmentAttributeDef {
@@ -134,6 +144,54 @@ abstract final class EquipmentAttributeCatalog {
       ),
       EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
     ],
+    EquipmentType.rebreather: [
+      EquipmentAttributeDef(
+        key: 'unit_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'eccr',
+          'mccr',
+          'hccr',
+          'scr_cmf',
+          'scr_pascr',
+          'scr_escr',
+        ],
+      ),
+      EquipmentAttributeDef(
+        key: 'mount_configuration',
+        kind: AttributeKind.choice,
+        choiceKeys: ['back', 'chest', 'sidemount'],
+      ),
+      EquipmentAttributeDef(
+        key: 'scrubber_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['axial', 'radial'],
+      ),
+      // Rated scrubber duration in hours. Dimensionless: hours are hours in
+      // every market, so there is nothing for UnitFormatter to convert.
+      EquipmentAttributeDef(
+        key: 'scrubber_duration_h',
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(key: 'o2_cell_count', kind: AttributeKind.number),
+      EquipmentAttributeDef(
+        key: 'diluent_cylinder_l',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.volumeL,
+      ),
+      EquipmentAttributeDef(
+        key: 'o2_cylinder_l',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.volumeL,
+      ),
+      // Shared verbatim with the camera entry: same concept, same dimension,
+      // one label key.
+      EquipmentAttributeDef(
+        key: 'depth_rating_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.depthM,
+      ),
+    ],
     EquipmentType.regulator: [
       EquipmentAttributeDef(
         key: 'connection',
@@ -190,7 +248,7 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.weights: [
       EquipmentAttributeDef(
-        key: 'weight_style',
+        key: EquipmentAttrKeys.weightStyle,
         kind: AttributeKind.choice,
         choiceKeys: ['belt', 'integrated', 'trim', 'ankle'],
       ),
@@ -204,6 +262,51 @@ abstract final class EquipmentAttributeCatalog {
       ),
     ],
     EquipmentType.camera: [
+      EquipmentAttributeDef(
+        key: 'depth_rating_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.depthM,
+      ),
+    ],
+    EquipmentType.dpv: [
+      EquipmentAttributeDef(
+        key: 'dpv_style',
+        kind: AttributeKind.choice,
+        choiceKeys: ['tow_behind', 'ride_on', 'handheld'],
+      ),
+      // Rated run time. Stored in hours (hence the key), but shown in minutes
+      // because that is how every scooter's burn time is specced -- "90 min",
+      // not "1.5 h" (issue #1096). The rebreather's scrubber duration keeps
+      // hours: those are quoted as "3 h", not "180 min".
+      EquipmentAttributeDef(
+        key: 'burn_time_h',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.durationH,
+      ),
+      EquipmentAttributeDef(
+        key: 'battery_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['lithium_ion', 'nimh', 'lead_acid'],
+      ),
+      // Watt-hours: the figure printed on the pack and the one airlines ask
+      // about, universal in every market.
+      EquipmentAttributeDef(
+        key: 'battery_capacity_wh',
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: 'motor_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['brushless', 'brushed'],
+      ),
+      // Stored in m/s, read as m/min or ft/min: a DPV's speed is quoted per
+      // minute on every manufacturer's sheet, never in km/h or knots.
+      EquipmentAttributeDef(
+        key: 'speed_mps',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.speedMps,
+      ),
+      // Shared verbatim with the camera and rebreather entries.
       EquipmentAttributeDef(
         key: 'depth_rating_m',
         kind: AttributeKind.number,

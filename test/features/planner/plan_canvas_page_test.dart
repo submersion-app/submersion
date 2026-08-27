@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/planner/presentation/chart/plan_profile_char
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
+import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -60,7 +63,7 @@ void main() {
         .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
   }
 
-  testWidgets('phone layout shows chart, chips, tab deck, no sheet', (
+  testWidgets('phone layout shows chart, readouts, tab deck, no chip rows', (
     tester,
   ) async {
     await setSize(tester, const Size(420, 900));
@@ -69,7 +72,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PlanProfileChart), findsOneWidget);
-    expect(find.byType(PlanStatusChips), findsOneWidget);
+    expect(find.byType(PlanChartReadouts), findsOneWidget);
+    expect(find.byType(PlanStatusChips), findsNothing);
+    expect(find.text('Base'), findsOneWidget);
+    expect(find.byType(ContingencyChips), findsOneWidget);
     expect(find.byType(SegmentList), findsOneWidget);
     expect(find.byType(DraggableScrollableSheet), findsNothing);
   });
@@ -275,8 +281,112 @@ void main() {
     await tester.pumpWidget(harness());
     seed(tester);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('30/70'));
+    // Header chip shows the diver's GF settings (AppSettings default 50/85).
+    await tester.tap(find.text('50/85'));
     await tester.pumpAndSettle();
     expect(find.byType(PlanDecoSection), findsOneWidget);
+  });
+
+  testWidgets('phone chart height is 30% of body, clamped to a 160 floor', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    seed(tester);
+    await tester.pumpAndSettle();
+    // Body = 900 - 56 appbar = 844; 30% = 253.2; chart padding eats 16.
+    expect(
+      tester.getSize(find.byType(PlanProfileChart)).height,
+      closeTo(253.2 - 16, 0.5),
+    );
+  });
+
+  testWidgets('short viewport pins the chart to the 160 px floor', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(420, 560));
+    await tester.pumpWidget(harness());
+    seed(tester);
+    await tester.pumpAndSettle();
+    // Body = 560 - 56 = 504; 30% = 151.2 -> clamped to 160; minus padding.
+    expect(
+      tester.getSize(find.byType(PlanProfileChart)).height,
+      closeTo(160.0 - 16, 0.5),
+    );
+  });
+
+  testWidgets('phone issues pill switches to the Results tab', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    // Deep air plan trips a critical gas-density issue (see the wide issues
+    // chip test) so the pill renders.
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.textContaining('issue'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlanResultsPane), findsOneWidget);
+  });
+
+  testWidgets('no overflow at SE-class size with a deco-heavy plan', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(320, 568));
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('fullscreen chart action pushes over the canvas', (tester) async {
+    await setSize(tester, const Size(400, 800));
+
+    final router = GoRouter(
+      initialLocation: '/planning/dive-planner',
+      routes: [
+        GoRoute(
+          path: '/planning/dive-planner',
+          builder: (_, _) => const PlanCanvasPage(),
+          routes: [
+            GoRoute(
+              path: 'chart',
+              builder: (_, _) => const Text('fullscreen chart'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    seed(tester);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.open_in_full));
+    await tester.pumpAndSettle();
+
+    // PUSH, not go: the canvas stays on the stack with its state, so back
+    // returns to it instead of closing the app (#647).
+    expect(find.text('fullscreen chart'), findsOneWidget);
+    expect(router.routerDelegate.canPop(), isTrue);
   });
 }

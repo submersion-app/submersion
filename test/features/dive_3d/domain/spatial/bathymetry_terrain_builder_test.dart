@@ -1,8 +1,28 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+/// A frame that maps u/v 0..1 exactly onto the grid's VERTEX extent (cell
+/// centers), so corner vertices land on 0 and 1.
+TerrainImageryFrame _frameFor(BathymetryGrid g) {
+  final west = g.originLon;
+  final east = g.originLon + g.cellSizeLonDeg * (g.cols - 1);
+  final north = g.originLat + g.cellSizeLatDeg * (g.rows - 1);
+  final south = g.originLat;
+  return TerrainImageryFrame(
+    u0MercX: mercatorX(west),
+    u1MercX: mercatorX(east),
+    v0MercY: mercatorY(north),
+    v1MercY: mercatorY(south),
+    whiteU: 0.5,
+    whiteV: 0.99,
+  );
+}
 
 void main() {
   // 2x3 grid centered near the origin: wet, land, and nodata cells.
@@ -97,5 +117,137 @@ void main() {
     for (var i = 0; i < 4; i++) {
       expect(t.water.positions[i * 3 + 1], 0);
     }
+  });
+
+  group('depth ramp options', () {
+    test('depthColor banded quantizes into 10 segment centers', () {
+      // t = 0.0 and t = 0.09 both land in segment 0 (center 0.05);
+      // t = 0.95 lands in segment 9 (center 0.95).
+      expect(
+        BathymetryTerrainBuilder.depthColor(0.0, banded: true),
+        BathymetryTerrainBuilder.depthColor(0.09, banded: true),
+      );
+      expect(
+        BathymetryTerrainBuilder.depthColor(0.0, banded: true),
+        isNot(BathymetryTerrainBuilder.depthColor(0.11, banded: true)),
+      );
+      expect(
+        BathymetryTerrainBuilder.depthColor(1.0, banded: true),
+        BathymetryTerrainBuilder.depthColor(0.95, banded: true),
+      );
+      // Continuous stays continuous.
+      expect(
+        BathymetryTerrainBuilder.depthColor(0.0),
+        isNot(BathymetryTerrainBuilder.depthColor(0.09)),
+      );
+    });
+
+    test('rampMaxDepthMeters clamps deeper terrain to the deepest color', () {
+      // One shallow (10 m) and one deep (80 m) vertex; ramp max 20 m: the
+      // 80 m vertex must carry exactly the deep color, and the 10 m vertex
+      // the t = 0.5 color.
+      final rampGrid = BathymetryGrid(
+        originLat: 0,
+        originLon: 0,
+        cellSizeLatDeg: 100.0 / 110540.0,
+        cellSizeLonDeg: 100.0 / 111320.0,
+        rows: 2,
+        cols: 2,
+        depthsMeters: const [10, 80, 10, 80],
+        sourceId: 'test',
+        resolutionMeters: 100,
+        fetchedAt: DateTime.utc(2026, 8, 15),
+      );
+      final rampProj = SpatialProjection(
+        minEast: 0,
+        maxEast: 100,
+        minNorth: 0,
+        maxNorth: 100,
+        maxDepth: 80,
+      );
+      final terrain = BathymetryTerrainBuilder.build(
+        grid: rampGrid,
+        center: const GeoPoint(0, 0),
+        projection: rampProj,
+        rampMaxDepthMeters: 20,
+      );
+      const deep = BathymetryTerrainBuilder.deepColor;
+      // Vertex 1 (row 0, col 1) is the 80 m cell.
+      expect(terrain.terrain.colors[3], closeTo(deep.r, 1e-4));
+      expect(terrain.terrain.colors[4], closeTo(deep.g, 1e-4));
+      final half = BathymetryTerrainBuilder.depthColor(0.5);
+      expect(terrain.terrain.colors[0], closeTo(half.r, 1e-4));
+    });
+
+    test('a frame yields normalized UVs with corners on 0 and 1', () {
+      final t = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+        imageryFrame: _frameFor(grid),
+      );
+      final uv = t.terrain.textureCoordinates;
+      expect(uv, isNotNull);
+      expect(uv!.length, grid.rows * grid.cols * 2);
+      // Vertex 0 = row 0 (south), col 0 (west): u = 0, v = 1.
+      expect(uv[0], closeTo(0.0, 1e-9));
+      expect(uv[1], closeTo(1.0, 1e-9));
+      // Last vertex = north-east corner: u = 1, v = 0.
+      expect(uv[uv.length - 2], closeTo(1.0, 1e-9));
+      expect(uv[uv.length - 1], closeTo(0.0, 1e-9));
+    });
+
+    test('no frame means no UVs (existing behavior untouched)', () {
+      final t = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+      );
+      expect(t.terrain.textureCoordinates, isNull);
+    });
+
+    test('imagery mode paints every terrain vertex white', () {
+      final t = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+        imageryFrame: _frameFor(grid),
+        surfaceMode: SeascapeSurfaceMode.imagery,
+      );
+      for (var i = 0; i < t.terrain.colors.length; i++) {
+        expect(t.terrain.colors[i], 1.0);
+      }
+    });
+
+    test('blend mode keeps the ramp colors', () {
+      final t = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+        imageryFrame: _frameFor(grid),
+        surfaceMode: SeascapeSurfaceMode.blend,
+      );
+      final plain = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+      );
+      expect(t.terrain.colors, plain.terrain.colors);
+    });
+
+    test('default build output is unchanged (regression guard)', () {
+      final a = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+      );
+      final b = BathymetryTerrainBuilder.build(
+        grid: grid,
+        center: center,
+        projection: proj(),
+        rampBanded: false,
+      );
+      expect(a.terrain.colors, b.terrain.colors);
+    });
   });
 }

@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 
 /// Ambient pressure in bar at [depthMeters] of seawater.
@@ -25,6 +27,11 @@ class RockBottomInputs {
   final double safetyStopMinutes;
   final TankSpec tank;
 
+  /// Equation of state used to price the reserve volume as a cylinder
+  /// pressure (issue #828). The reserve's liters are model independent; only
+  /// the bar it occupies changes.
+  final GasModel gasModel;
+
   const RockBottomInputs({
     required this.depthMeters,
     required this.ascentRateMetersPerMin,
@@ -35,6 +42,7 @@ class RockBottomInputs {
     required this.tank,
     this.safetyStopDepthMeters = 5.0,
     this.safetyStopMinutes = 3.0,
+    this.gasModel = GasModel.real,
   });
 
   /// Both divers breathing from one cylinder during an air share.
@@ -118,10 +126,15 @@ RockBottomResult computeRockBottom(RockBottomInputs inputs) {
     safetyStopGasLiters: stopGas,
     finalAscentGasLiters: finalGas,
     totalLiters: total,
-    // Water capacity, never free gas -- see TankSpec.
-    reserveBar: inputs.tank.waterVolumeLiters > 0
-        ? total / inputs.tank.waterVolumeLiters
-        : 0.0,
+    // Water capacity, never free gas -- see TankSpec. Air is assumed: the
+    // calculator has no gas mix input, and the reserve is back gas by
+    // definition.
+    reserveBar: pressureHoldingVolume(
+      tankSizeLiters: inputs.tank.waterVolumeLiters,
+      litersRequired: total,
+      o2Percent: 21,
+      model: inputs.gasModel,
+    ),
     ascentMinutes: ascentMinutes,
     totalMinutes:
         inputs.solveMinutes +

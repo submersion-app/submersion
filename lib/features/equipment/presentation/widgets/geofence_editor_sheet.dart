@@ -82,7 +82,8 @@ class _GeofenceEditorSheetState extends ConsumerState<_GeofenceEditorSheet> {
         _latitude = result.latitude;
         _longitude = result.longitude;
         if (_labelController.text.isEmpty) {
-          _labelController.text = result.locality ?? result.region ?? '';
+          _labelController.text =
+              result.place.locality ?? result.place.region ?? '';
         }
       });
     }
@@ -151,8 +152,7 @@ class _GeofenceEditorSheetState extends ConsumerState<_GeofenceEditorSheet> {
           const SizedBox(height: 8),
           Text(
             hasCenter
-                ? '${_latitude!.toStringAsFixed(5)}, '
-                      '${_longitude!.toStringAsFixed(5)}'
+                ? formatter.formatCoordinates(_latitude, _longitude)
                 : context.l10n.equipment_geofenceEditor_noCenter,
             style: Theme.of(context).textTheme.bodySmall,
           ),

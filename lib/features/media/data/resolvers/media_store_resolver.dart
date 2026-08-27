@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
@@ -15,11 +16,19 @@ class MediaStoreResolver {
   MediaStoreResolver({
     required MediaObjectStore store,
     required MediaCacheStore cache,
+    MediaFetchGate? gate,
   }) : _store = store,
-       _cache = cache;
+       _cache = cache,
+       _gate = gate ?? MediaFetchGate();
 
   final MediaObjectStore _store;
   final MediaCacheStore _cache;
+
+  /// Caps and coalesces the fetches below. One per resolver, and the resolver
+  /// is built once per store runtime, so every display surface sharing that
+  /// runtime shares the budget -- which is the point: the grid, an open
+  /// viewer and the dive-detail strip are all pulling from the same endpoint.
+  final MediaFetchGate _gate;
   final _log = LoggerService.forClass(MediaStoreResolver);
 
   /// Returns FileData when the bytes are cached or fetched (originals are
@@ -59,16 +68,30 @@ class MediaStoreResolver {
     return null;
   }
 
-  Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) async {
+  Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) =>
+      _gate.run('$hash#thumb', () => _fetchThumbInner(item, hash));
+
+  Future<MediaSourceData?> _fetchThumbInner(MediaItem item, String hash) async {
     // The pipeline always uploads thumbs as JPEG, whatever the source's own
-    // format. For a video that JPEG is a poster frame, so the result is
-    // decodable as an image even though the row is a video -- something only
-    // this side knows, and the flag is how MediaItemView is told.
-    final isPoster = item.mediaType == MediaType.video;
+    // format. For a video that JPEG is a poster frame and for a document it
+    // is a page-1 render, so the result is decodable as an image even though
+    // the row is not -- something only this side knows, and the flag is how
+    // MediaItemView is told. A photo's thumb is the photo itself, resized,
+    // so it is not a stand-in and stays unflagged.
+    final isPoster =
+        item.mediaType == MediaType.video ||
+        item.mediaType == MediaType.document;
     File? staging;
     try {
       final cached = await _cache.get(hash, MediaCacheKind.thumb);
-      if (cached != null) return FileData(file: cached, isPoster: isPoster);
+      if (cached != null) {
+        return FileData(
+          file: cached,
+          isPoster: isPoster,
+          servedFrom: ServedFrom.storeCache,
+          servedTier: ServedTier.thumbnail,
+        );
+      }
       staging = await _cache.stagingFile();
       await _store.getFile(StoreKeys.thumbKey(hash), staging);
       // No hash verification: thumb bytes are derived; the key carries the
@@ -79,7 +102,12 @@ class MediaStoreResolver {
         staging,
         extension: 'jpg',
       );
-      return FileData(file: file, isPoster: isPoster);
+      return FileData(
+        file: file,
+        isPoster: isPoster,
+        servedFrom: ServedFrom.storeNetwork,
+        servedTier: ServedTier.thumbnail,
+      );
     } on Exception catch (e) {
       _log.warning('Thumb fetch failed for ${item.id}: $e');
       return null;
@@ -91,7 +119,19 @@ class MediaStoreResolver {
   /// Fetches the compressed rendition (spec section 11). Derived bytes, so no
   /// hash verification; validated against remoteCompressedUploadedAt so a
   /// re-uploaded (overwritten) rendition invalidates a stale cache entry.
-  Future<MediaSourceData?> _fetchCompressed(MediaItem item, String hash) async {
+  Future<MediaSourceData?> _fetchCompressed(MediaItem item, String hash) =>
+      // The rendition's freshness is checked against the row's own stamp, so
+      // two rows sharing a hash but not a stamp must not share a fetch.
+      _gate.run(
+        '$hash#rendition'
+        '#${item.remoteCompressedUploadedAt?.millisecondsSinceEpoch ?? 0}',
+        () => _fetchCompressedInner(item, hash),
+      );
+
+  Future<MediaSourceData?> _fetchCompressedInner(
+    MediaItem item,
+    String hash,
+  ) async {
     final ext = item.mediaType == MediaType.video ? 'mp4' : 'jpg';
     File? staging;
     try {
@@ -100,7 +140,13 @@ class MediaStoreResolver {
         MediaCacheKind.rendition,
         freshAfter: item.remoteCompressedUploadedAt,
       );
-      if (cached != null) return FileData(file: cached);
+      if (cached != null) {
+        return FileData(
+          file: cached,
+          servedFrom: ServedFrom.storeCache,
+          servedTier: ServedTier.rendition,
+        );
+      }
       staging = await _cache.stagingFile();
       await _store.getFile(StoreKeys.renditionKey(hash, ext: ext), staging);
       final file = await _cache.put(
@@ -110,7 +156,11 @@ class MediaStoreResolver {
         sourceVersion: item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
         extension: ext,
       );
-      return FileData(file: file);
+      return FileData(
+        file: file,
+        servedFrom: ServedFrom.storeNetwork,
+        servedTier: ServedTier.rendition,
+      );
     } on Exception catch (e) {
       _log.warning('Rendition fetch failed for ${item.id}: $e');
       return null;
@@ -119,11 +169,23 @@ class MediaStoreResolver {
     }
   }
 
-  Future<MediaSourceData?> _fetchOriginal(MediaItem item, String hash) async {
+  Future<MediaSourceData?> _fetchOriginal(MediaItem item, String hash) =>
+      _gate.run('$hash#original', () => _fetchOriginalInner(item, hash));
+
+  Future<MediaSourceData?> _fetchOriginalInner(
+    MediaItem item,
+    String hash,
+  ) async {
     File? staging;
     try {
       final cached = await _cache.get(hash, MediaCacheKind.original);
-      if (cached != null) return FileData(file: cached);
+      if (cached != null) {
+        return FileData(
+          file: cached,
+          servedFrom: ServedFrom.storeCache,
+          servedTier: ServedTier.original,
+        );
+      }
 
       staging = await _cache.stagingFile();
       final extension = StoreKeys.extensionFor(item.originalFilename);
@@ -142,7 +204,11 @@ class MediaStoreResolver {
         staging,
         extension: _cacheExtensionFor(item, extension),
       );
-      return FileData(file: file);
+      return FileData(
+        file: file,
+        servedFrom: ServedFrom.storeNetwork,
+        servedTier: ServedTier.original,
+      );
     } on Exception catch (e) {
       _log.warning('Store fallback failed for ${item.id}: $e');
       return null;

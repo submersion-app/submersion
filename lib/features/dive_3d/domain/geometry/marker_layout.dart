@@ -2,7 +2,14 @@ import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.d
 import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
-enum SceneMarkerKind { gasSwitch, bookmark, photo, site, nearbySite }
+enum SceneMarkerKind {
+  gasSwitch,
+  bookmark,
+  photo,
+  site,
+  nearbySite,
+  siteFeature,
+}
 
 /// A tappable scene annotation. x/y/z are scene coordinates; depth-time
 /// scenes leave z at 0 (renderers billboard), spatial scenes position
@@ -33,10 +40,16 @@ class MarkerLayout {
   static List<SceneMarker> layout({
     required Dive3dSceneData data,
     required SceneBounds bounds,
+    List<double>? pathTimes,
+    List<double>? pathZs,
   }) {
     if (!data.hasProfile) return const [];
     final lookup = ProfileLookup(data.times);
     final nullableDepths = data.depths.cast<double?>();
+    final zLookup = pathTimes == null || pathZs == null
+        ? null
+        : ProfileLookup(pathTimes);
+    final nullableZs = pathZs?.cast<double?>();
 
     SceneMarker at({
       required SceneMarkerKind kind,
@@ -45,12 +58,14 @@ class MarkerLayout {
       required int t,
     }) {
       final depth = lookup.interpolate(nullableDepths, t.toDouble()) ?? 0;
+      final z = zLookup?.interpolate(nullableZs!, t.toDouble()) ?? 0;
       return SceneMarker(
         kind: kind,
         refId: refId,
         label: label,
         x: bounds.xOf(t),
         y: bounds.yOf(depth) + _floatOffset,
+        z: z,
         timestampSeconds: t,
       );
     }

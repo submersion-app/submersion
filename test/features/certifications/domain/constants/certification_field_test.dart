@@ -339,14 +339,14 @@ void main() {
       );
     });
 
-    test('formats level using enum name', () {
+    test('formats level using its display name, not the enum identifier', () {
       expect(
         adapter.formatValue(
           CertificationField.level,
           CertificationLevel.advancedOpenWater,
           units,
         ),
-        equals('advancedOpenWater'),
+        equals('Advanced Open Water'),
       );
     });
 
@@ -525,7 +525,7 @@ void main() {
     test('displayName returns human-readable labels', () {
       expect(CertificationField.certName.displayName, equals('Name'));
       expect(CertificationField.agency.displayName, equals('Agency'));
-      expect(CertificationField.level.displayName, equals('Level'));
+      expect(CertificationField.level.displayName, equals('Certification'));
       expect(CertificationField.cardNumber.displayName, equals('Card Number'));
       expect(CertificationField.issueDate.displayName, equals('Issue Date'));
       expect(CertificationField.expiryDate.displayName, equals('Expiry Date'));
@@ -547,7 +547,7 @@ void main() {
     test('shortLabel returns abbreviated labels', () {
       expect(CertificationField.certName.shortLabel, equals('Name'));
       expect(CertificationField.agency.shortLabel, equals('Agency'));
-      expect(CertificationField.level.shortLabel, equals('Level'));
+      expect(CertificationField.level.shortLabel, equals('Certification'));
       expect(CertificationField.cardNumber.shortLabel, equals('Card #'));
       expect(CertificationField.issueDate.shortLabel, equals('Issued'));
       expect(CertificationField.expiryDate.shortLabel, equals('Expires'));

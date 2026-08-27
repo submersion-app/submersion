@@ -15,6 +15,7 @@ void main() {
         expect(request.url.queryParameters['longitude'], '-80.6');
         expect(request.url.queryParameters['start_date'], '2024-06-15');
         expect(request.url.queryParameters['end_date'], '2024-06-15');
+        expect(request.url.queryParameters['timezone'], isNull);
 
         return http.Response(
           jsonEncode({
@@ -46,6 +47,39 @@ void main() {
       expect(result!.airTemp, 27.0);
       expect(result.cloudCover, CloudCover.partlyCloudy);
       expect(result.precipitation, Precipitation.none);
+    });
+
+    test('fetchWeather can request the coordinate local timezone', () async {
+      final mockClient = MockClient((request) async {
+        expect(request.url.queryParameters['timezone'], 'auto');
+        return http.Response(
+          jsonEncode({
+            'hourly': {
+              'time': ['2024-06-15T12:00'],
+              'temperature_2m': [28.0],
+              'relative_humidity_2m': [70.0],
+              'precipitation': [0.0],
+              'cloud_cover': [20.0],
+              'wind_speed_10m': [14.0],
+              'wind_direction_10m': [50.0],
+              'surface_pressure': [1014.0],
+              'weathercode': [0],
+            },
+          }),
+          200,
+        );
+      });
+
+      final service = WeatherService(client: mockClient);
+      final result = await service.fetchWeather(
+        latitude: 28.5,
+        longitude: -80.6,
+        date: DateTime(2024, 6, 15),
+        entryTime: DateTime(2024, 6, 15, 12),
+        useLocationTimezone: true,
+      );
+
+      expect(result?.airTemp, 28.0);
     });
 
     test('fetchWeather returns null on HTTP error', () async {

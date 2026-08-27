@@ -142,6 +142,21 @@ void main() {
     expect(notifier.updated, isNull);
   });
 
+  testWidgets('tapping "diving since" opens the year picker (#765)', (
+    tester,
+  ) async {
+    await pump(tester, makeDiver());
+
+    await tester.tap(find.text('Diving since'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsNothing);
+  });
+
   testWidgets('clearing a previously-set dive count persists null', (
     tester,
   ) async {

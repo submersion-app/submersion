@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -10,6 +12,13 @@ import '../../../../helpers/pdf_text.dart';
 
 /// The trip report's per-dive Duration line must print total runtime rather
 /// than bottom time, matching the rest of the PDF exports (#644).
+/// The historical ISO rendering these tests were written against; the diver's
+/// own date and time preferences are covered in pdf_date_preference_test.dart.
+final isoDates = PdfDateFormatter(
+  dateFormat: DateFormatPreference.yyyymmdd,
+  timeFormat: TimeFormat.twentyFourHour,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -48,8 +57,12 @@ void main() {
     updatedAt: DateTime(2026, 5, 9),
   );
 
-  Future<String> exportText(List<Dive> dives) async {
-    final path = await service.exportTripToPdf(trip, dives);
+  Future<String> exportText(List<Dive> dives, {PdfDateFormatter? dates}) async {
+    final path = await service.exportTripToPdf(
+      trip,
+      dives,
+      dates: dates ?? isoDates,
+    );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
     return pdfVisibleText(bytes);
@@ -100,5 +113,31 @@ void main() {
 
     expect(text, isNot(contains('Duration:')));
     expect(text, contains('Max Depth: 18.0 m'));
+  });
+
+  test('trip and dive dates follow the diver\'s preferences (#964)', () async {
+    final text = await exportText(
+      [
+        Dive(
+          id: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 5, 2, 14, 30),
+          runtime: const Duration(minutes: 62),
+          maxDepth: 25.0,
+        ),
+      ],
+      dates: PdfDateFormatter(
+        dateFormat: DateFormatPreference.ddmmyyyy,
+        timeFormat: TimeFormat.twelveHour,
+      ),
+    );
+
+    // Trip span on the title page, dive date and time on the dive page.
+    expect(text, contains('01/05/2026'));
+    expect(text, contains('02/05/2026'));
+    expect(text, contains('2:30'));
+    expect(text, contains('PM'));
+    expect(text, isNot(contains('2026-05-01')));
+    expect(text, isNot(contains('14:30')));
   });
 }

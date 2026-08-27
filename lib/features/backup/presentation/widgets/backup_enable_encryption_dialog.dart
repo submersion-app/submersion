@@ -125,6 +125,7 @@ class _BackupEnableEncryptionDialogState
                     errorText: _passwordError,
                   ),
                 ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _confirm,
                   obscureText: true,

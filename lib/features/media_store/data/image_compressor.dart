@@ -1,14 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' show Size;
-
-import 'package:image/image.dart' as img;
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media_store/data/image_resize_job.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_compressor.dart';
 import 'package:submersion/features/media_store/data/quality_presets.dart';
@@ -60,36 +58,57 @@ class ImageCompressor implements MediaCompressor {
                 preset.maxDimension.toDouble(),
               ),
             );
-        if (data is BytesData) return _writeJpeg(data.bytes);
+        if (data is BytesData) return await _writeJpeg(data.bytes);
         return null;
       }
-      final bytes = await source.readAsBytes();
-      return _encode(bytes, item.originalFilename, preset);
+      return await _encode(source, item.originalFilename, preset);
     } on Exception catch (e) {
       _log.warning('Image compression failed for ${item.id}: $e');
       return null;
     }
   }
 
+  /// Re-encode [source] down to the preset's ceiling, on a background isolate.
+  ///
+  /// The decode / resize / encode pass is pure-Dart package:image work, so
+  /// inline it ran on the caller's isolate -- the media store worker's, which
+  /// is the UI isolate. A single large frame is seconds of frozen app, and the
+  /// worker loops over its whole queue (#1175). Passing the PATH rather than
+  /// the bytes also keeps the original off this isolate's heap entirely.
+  ///
+  /// Both null returns are "upload the untouched original": one because
+  /// package:image cannot read the source (HEIC on desktop), one because it is
+  /// already within the ceiling and a re-encode would only lose quality.
   Future<CompressionResult?> _encode(
-    Uint8List bytes,
+    File source,
     String? name,
     PhotoQualityPreset preset,
   ) async {
-    final decoded = name != null && name.contains('.')
-        ? img.decodeNamedImage(name, bytes)
-        : img.decodeImage(bytes);
-    if (decoded == null) return null; // undecodable (e.g. HEIC on desktop)
-    final longest = decoded.width > decoded.height
-        ? decoded.width
-        : decoded.height;
-    if (longest <= preset.maxDimension) return null; // ceiling: upload original
-    final resized = img.copyResize(
-      decoded,
-      width: decoded.width >= decoded.height ? preset.maxDimension : null,
-      height: decoded.height > decoded.width ? preset.maxDimension : null,
+    final staged = await _cache.stagingFile();
+    final result = await resizeToJpegFile(
+      ImageResizeRequest.fromFile(
+        sourcePath: source.path,
+        destinationPath: staged.path,
+        declaredName: name,
+        maxDimension: preset.maxDimension,
+        jpegQuality: preset.jpegQuality,
+        skipWhenUnderCeiling: true,
+      ),
     );
-    return _writeJpeg(img.encodeJpg(resized, quality: preset.jpegQuality));
+    if (result.outcome != ImageResizeOutcome.written) {
+      // The job turns a decoder throw into an outcome, so this log is the only
+      // record left of a source package:image cannot read.
+      final error = result.error;
+      if (error != null) {
+        _log.warning('Compression source not decodable: $error');
+      }
+      return null;
+    }
+    return CompressionResult(
+      file: staged,
+      ext: 'jpg',
+      sizeBytes: result.sizeBytes,
+    );
   }
 
   Future<CompressionResult> _writeJpeg(List<int> jpeg) async {

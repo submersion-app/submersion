@@ -10,6 +10,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
 ///
@@ -71,16 +72,17 @@ class SubsurfaceXmlParser implements ImportParser {
       );
     }
 
-    // Parse sites and build lookup map
-    final siteMap = <String, Map<String, dynamic>>{};
+    // Parse sites, folding the duplicates a Subsurface logbook accumulates.
+    // The aliases the fold produces redirect each dive's divesiteid to the
+    // surviving site.
+    var siteAliases = const <String, String>{};
     final divesitesElement = root.findElements('divesites').firstOrNull;
     if (divesitesElement != null) {
-      final sites = _parseSites(divesitesElement);
-      for (final site in sites) {
-        final id = site['uddfId'] as String?;
-        if (id != null) siteMap[id] = site;
+      final folded = foldSubsurfaceSites(_parseSites(divesitesElement));
+      siteAliases = folded.aliases;
+      if (folded.sites.isNotEmpty) {
+        entities[ImportEntityType.sites] = folded.sites;
       }
-      if (sites.isNotEmpty) entities[ImportEntityType.sites] = sites;
     }
 
     // Parse dives (with trip support)
@@ -90,6 +92,7 @@ class SubsurfaceXmlParser implements ImportParser {
       final trips = <Map<String, dynamic>>[];
       final allTags = <String, Map<String, dynamic>>{};
       final allBuddies = <String, Map<String, dynamic>>{};
+      final allMedia = <Map<String, dynamic>>[];
 
       // Process trip-wrapped dives
       for (final tripElement in divesElement.findElements('trip')) {
@@ -100,11 +103,14 @@ class SubsurfaceXmlParser implements ImportParser {
         final tripDives = <Map<String, dynamic>>[];
         for (final diveElement in tripElement.findElements('dive')) {
           try {
-            final diveData = _parseDive(diveElement, siteMap: siteMap);
+            final diveData = _parseDive(diveElement, siteAliases: siteAliases);
             if (diveData != null) {
               diveData['tripRef'] = tripId;
               _collectTags(diveElement, diveData, allTags);
               _collectBuddies(diveElement, diveData, allBuddies);
+              // dives.length is this dive's index, because the pictures are
+              // collected before the dive is appended.
+              _collectPictures(diveElement, dives.length, allMedia, warnings);
               dives.add(diveData);
               tripDives.add(diveData);
             }
@@ -134,10 +140,11 @@ class SubsurfaceXmlParser implements ImportParser {
       // Process standalone dives (not inside a trip)
       for (final diveElement in divesElement.findElements('dive')) {
         try {
-          final diveData = _parseDive(diveElement, siteMap: siteMap);
+          final diveData = _parseDive(diveElement, siteAliases: siteAliases);
           if (diveData != null) {
             _collectTags(diveElement, diveData, allTags);
             _collectBuddies(diveElement, diveData, allBuddies);
+            _collectPictures(diveElement, dives.length, allMedia, warnings);
             dives.add(diveData);
           }
         } catch (e) {
@@ -153,6 +160,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
       if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
       if (trips.isNotEmpty) entities[ImportEntityType.trips] = trips;
+      if (allMedia.isNotEmpty) entities[ImportEntityType.media] = allMedia;
       if (allTags.isNotEmpty) {
         entities[ImportEntityType.tags] = allTags.values.toList();
       }
@@ -170,7 +178,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
   Map<String, dynamic>? _parseDive(
     XmlElement dive, {
-    Map<String, Map<String, dynamic>> siteMap = const {},
+    Map<String, String> siteAliases = const {},
   }) {
     final dateStr = dive.getAttribute('date');
     final timeStr = dive.getAttribute('time');
@@ -242,7 +250,9 @@ class SubsurfaceXmlParser implements ImportParser {
       if (airTemp != null) result['airTemp'] = airTemp;
     }
 
-    // Visibility enum
+    // Visibility enum. Deliberately NOT mapped to visibilityMeters: unlike
+    // UDDF, Subsurface's visibility attribute is a subjective 1-5 star rating,
+    // not a distance, so converting it would invent a measurement nobody took.
     final visibilityVal = _parseInt(dive.getAttribute('visibility'));
     final visibility = _mapVisibility(visibilityVal);
     if (visibility != null) result['visibility'] = visibility;
@@ -285,10 +295,11 @@ class SubsurfaceXmlParser implements ImportParser {
     }
     if (notesParts.isNotEmpty) result['notes'] = notesParts.join('\n');
 
-    // Site linking via divesiteid attribute
+    // Site linking via divesiteid attribute, redirected to the surviving site
+    // when the referenced entry folded into a duplicate.
     final siteId = dive.getAttribute('divesiteid')?.trim();
     if (siteId != null && siteId.isNotEmpty) {
-      result['site'] = {'uddfId': siteId};
+      result['site'] = {'uddfId': siteAliases[siteId] ?? siteId};
     }
 
     // Profile samples — parsed before cylinders for pressure fallback
@@ -326,23 +337,26 @@ class SubsurfaceXmlParser implements ImportParser {
     return result;
   }
 
+  /// Reads every `<site>` verbatim, including the ones Subsurface left
+  /// unnamed. Deciding which of these are the same place is the folder's job:
+  /// dropping an unnamed site here would strand its dives with no coordinates
+  /// at all, which is how imported dives used to lose their location.
   List<Map<String, dynamic>> _parseSites(XmlElement divesites) {
     final sites = <Map<String, dynamic>>[];
     for (final site in divesites.findElements('site')) {
-      final name = site.getAttribute('name');
-      if (name == null || name.isEmpty) continue;
-      final siteData = <String, dynamic>{'name': name};
+      final siteData = <String, dynamic>{};
+      final name = site.getAttribute('name')?.trim();
+      if (name != null && name.isNotEmpty) siteData['name'] = name;
       final uuid = site.getAttribute('uuid')?.trim();
-      if (uuid != null) siteData['uddfId'] = uuid;
-      final gps = site.getAttribute('gps');
-      if (gps != null) {
-        final parts = gps.trim().split(RegExp(r'\s+'));
-        if (parts.length == 2) {
-          final lat = double.tryParse(parts[0].trim());
-          final lon = double.tryParse(parts[1].trim());
-          if (lat != null) siteData['latitude'] = lat;
-          if (lon != null) siteData['longitude'] = lon;
-        }
+      if (uuid != null && uuid.isNotEmpty) siteData['uddfId'] = uuid;
+      final coordinates = _parseGps(site.getAttribute('gps'));
+      if (coordinates != null) {
+        siteData['latitude'] = coordinates.$1;
+        siteData['longitude'] = coordinates.$2;
+      }
+      final description = site.getAttribute('description');
+      if (description != null && description.trim().isNotEmpty) {
+        siteData['description'] = description.trim();
       }
       for (final geo in site.findElements('geo')) {
         final cat = geo.getAttribute('cat');
@@ -358,6 +372,28 @@ class SubsurfaceXmlParser implements ImportParser {
       sites.add(siteData);
     }
     return sites;
+  }
+
+  /// Parses a Subsurface `gps` attribute: two decimal degrees separated by
+  /// whitespace or a comma, the same pair of separators Subsurface's own
+  /// `parse_location()` accepts.
+  ///
+  /// A pair that is short, unparseable, or off the globe yields null rather
+  /// than a half-set or nonsensical coordinate.
+  ///
+  /// The `isFinite` check is not redundant with the range check: `double`
+  /// parses 'NaN', and every comparison against NaN is false, so a range
+  /// check on its own would wave it straight through.
+  (double, double)? _parseGps(String? raw) {
+    if (raw == null) return null;
+    final parts = raw.trim().split(RegExp(r'[\s,]+'));
+    if (parts.length != 2) return null;
+    final lat = double.tryParse(parts[0]);
+    final lon = double.tryParse(parts[1]);
+    if (lat == null || lon == null) return null;
+    if (!lat.isFinite || !lon.isFinite) return null;
+    if (lat.abs() > 90 || lon.abs() > 180) return null;
+    return (lat, lon);
   }
 
   Map<String, dynamic> _parseTrip(XmlElement trip) {
@@ -435,6 +471,64 @@ class SubsurfaceXmlParser implements ImportParser {
     for (final tagName in tagNames) {
       allTags.putIfAbsent(tagName, () => {'name': tagName, 'uddfId': tagName});
     }
+  }
+
+  /// Collects `<picture>` elements from [diveElement] into [allMedia].
+  ///
+  /// Subsurface stores an absolute path from the exporting machine, so
+  /// `filename` is kept verbatim (Windows separators included) and resolved
+  /// later against a user-picked folder. `offset` is signed and relative to
+  /// dive start; a picture taken before the dive began carries a negative
+  /// offset. An unparseable offset costs the picture its timestamp, not its
+  /// import, so it is kept with a null offset.
+  void _collectPictures(
+    XmlElement diveElement,
+    int diveIndex,
+    List<Map<String, dynamic>> allMedia,
+    List<ImportWarning> warnings,
+  ) {
+    for (final picture in diveElement.findElements('picture')) {
+      final filename = picture.getAttribute('filename')?.trim();
+      if (filename == null || filename.isEmpty) {
+        warnings.add(
+          const ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            message: 'Skipped a photo with no filename',
+            entityType: ImportEntityType.media,
+          ),
+        );
+        continue;
+      }
+
+      // Same parser the <site> elements use: it accepts a comma
+      // separator and rejects NaN and out-of-range pairs.
+      final gps = _parseGps(picture.getAttribute('gps'));
+      allMedia.add({
+        'filename': filename,
+        'offsetSeconds': _parseSignedDurationSeconds(
+          picture.getAttribute('offset'),
+        ),
+        'latitude': gps?.$1,
+        'longitude': gps?.$2,
+        '_diveIndex': diveIndex,
+      });
+    }
+  }
+
+  /// Parses a signed Subsurface duration: '+3:20 min', '-1:05 min', '3:20 min'.
+  ///
+  /// Returns null when the value is absent or malformed. The sign applies to
+  /// the whole duration, so '-1:05 min' is -65 seconds, not -60 plus 5.
+  static int? _parseSignedDurationSeconds(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final trimmed = value.trim();
+    final negative = trimmed.startsWith('-');
+    final magnitude = (negative || trimmed.startsWith('+'))
+        ? trimmed.substring(1)
+        : trimmed;
+    final seconds = _parseDurationSeconds(magnitude);
+    if (seconds == null) return null;
+    return negative ? -seconds : seconds;
   }
 
   /// Parses `<sample>` elements from a `<divecomputer>` into profile points.

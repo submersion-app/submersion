@@ -104,6 +104,27 @@ void main() {
     expect(depth20.y, closeTo(p.yOf(20), 1e-9));
   });
 
+  test('ticks poke outward, away from the terrain', () {
+    final axes = metric();
+    final p = proj();
+    final x0 = p.xOf(0), x1 = p.xOf(8000);
+    final z0 = p.zOf(0), z1 = p.zOf(8000);
+    for (final s in axes.frame.segments) {
+      switch (s.role) {
+        // Distance ticks along the X axis step away from the grid in Z...
+        case AxisRole.tickX:
+          expect((s.z2 - z0).abs(), greaterThan(0));
+          expect(s.z2 - z0, (z0 - z1).sign > 0 ? greaterThan(0) : lessThan(0));
+        // ...and the Z and depth ticks step away from it in X.
+        case AxisRole.tickZ:
+        case AxisRole.tickY:
+          expect(s.x2 - x0, (x0 - x1).sign > 0 ? greaterThan(0) : lessThan(0));
+        default:
+          break;
+      }
+    }
+  });
+
   test('titles are placed at the axis ends', () {
     final axes = metric();
     final titles = axes.labels.labels

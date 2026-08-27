@@ -43,6 +43,12 @@ class _RecordingMediaRepository extends MediaRepository {
   final dismissed = <String>[];
   List<domain.PendingPhotoSuggestion> suggestions = [];
 
+  /// No database in this widget test, so nothing ever ticks. Without the
+  /// override the inherited implementation reaches for
+  /// DatabaseService.instance.database and throws.
+  @override
+  Stream<void> watchMediaChanges() => const Stream.empty();
+
   @override
   Future<List<domain.PendingPhotoSuggestion>> getPendingSuggestionsForDive(
     String diveId,

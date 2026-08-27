@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/backup_sync_step.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_app.dart';
@@ -251,7 +252,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('iCloud'), findsOneWidget);
-    expect(find.text('iCloud is not available on this device'), findsOneWidget);
+    // Issue #1088: "iCloud is not available on this device" read as a fault
+    // with the user's Mac or iCloud account. The real cause is the build
+    // (Developer ID signing cannot carry the iCloud entitlement), which is
+    // what the Cloud Sync settings page already says. Asserting against the
+    // settings string rather than a literal keeps the two surfaces from
+    // drifting apart again.
+    expect(
+      find.text(
+        AppLocalizationsEn()
+            .settings_cloudSync_provider_icloud_unsupportedSubtitle,
+      ),
+      findsOneWidget,
+    );
     // The disabled tile is not tappable.
     final tile = tester.widget<ListTile>(
       find.ancestor(of: find.text('iCloud'), matching: find.byType(ListTile)),

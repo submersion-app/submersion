@@ -46,6 +46,18 @@ void main() {
     expect(StoreKeys.contentTypeFor('bin'), 'application/octet-stream');
   });
 
+  test('contentTypeFor maps document types', () {
+    expect(StoreKeys.contentTypeFor('pdf'), 'application/pdf');
+    expect(StoreKeys.contentTypeFor('txt'), 'text/plain');
+    expect(StoreKeys.contentTypeFor('gpx'), 'application/gpx+xml');
+    expect(StoreKeys.contentTypeFor('doc'), 'application/msword');
+    expect(
+      StoreKeys.contentTypeFor('docx'),
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
+    expect(StoreKeys.contentTypeFor('exe'), 'application/octet-stream');
+  });
+
   test('sha256OfFile streams and matches a known vector', () async {
     // Vector computed with:
     //   python3 -c "import hashlib; print(hashlib.sha256(b'submersion').hexdigest())"

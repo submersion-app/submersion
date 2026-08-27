@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
@@ -61,11 +62,12 @@ Dive _makeDive({
 }
 
 /// A dive with one back-gas tank chosen to yield clean SAC values:
-/// volume-based 9.1 L/min ([Dive.sac]) and pressure-based 1.0 bar/min
+/// volume-based 9.3 L/min ([Dive.sacFor]) and pressure-based 1.0 bar/min
 /// ([Dive.sacPressure]).
 ///
 /// minutes = 50, avgPressureAtm = 10/10 + 1 = 2.0
-/// sac        = gasVol(200)-gasVol(100) / 50 / 2.0 ≈ 9.1 L/min (Z-factor corrected)
+/// sac        = gasVol(200)-gasVol(100) / 50 / 2.0 ≈ 9.3 L/min (Z-factor,
+/// 1 bar reference, issue #828)
 /// sacPressure = 100bar / 50 / 2.0        = 1.0 bar/min
 Dive _makeSacDive() {
   return Dive(
@@ -96,7 +98,6 @@ final _sacConfig = TableViewConfig(
 Widget _buildTable({
   required List<Dive> dives,
   void Function(String)? onDiveTap,
-  void Function(String)? onDiveLongPress,
   void Function(String)? onDiveDoubleTap,
   Set<String>? selectedIds,
   bool isSelectionMode = false,
@@ -113,7 +114,6 @@ Widget _buildTable({
     child: DiveTableView(
       dives: dives,
       onDiveTap: onDiveTap ?? (_) {},
-      onDiveLongPress: onDiveLongPress,
       onDiveDoubleTap: onDiveDoubleTap,
       selectedIds: selectedIds ?? const {},
       isSelectionMode: isSelectionMode,
@@ -194,21 +194,36 @@ void main() {
       expect(doubleTappedId, 'a');
     });
 
-    testWidgets('fires onDiveLongPress on long press', (tester) async {
-      String? longPressedId;
+    testWidgets('rows register no long-press recognizer', (tester) async {
       await tester.pumpWidget(
         _buildTable(
           dives: [_makeDive(id: 'lp-1', diveNumber: 7)],
           onDiveTap: (_) {},
-          onDiveLongPress: (id) => longPressedId = id,
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.text('#7'));
-      await tester.pumpAndSettle();
-
-      expect(longPressedId, 'lp-1');
+      // Long-press no longer enters selection mode anywhere, so no row may
+      // carry a handler for it.
+      //
+      // The assertion is on the recognizer, not on individual callbacks:
+      // GestureDetector registers one LongPressGestureRecognizer keyed by its
+      // own Type if ANY of seven long-press callbacks is non-null, so checking
+      // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
+      // and the rest without having to enumerate them.
+      final detectors = tester.widgetList<RawGestureDetector>(
+        find.descendant(
+          of: find.byType(DiveTableView),
+          matching: find.byType(RawGestureDetector),
+        ),
+      );
+      expect(detectors, isNotEmpty);
+      for (final detector in detectors) {
+        expect(
+          detector.gestures.containsKey(LongPressGestureRecognizer),
+          isFalse,
+        );
+      }
     });
 
     testWidgets('selection mode shows checkboxes', (tester) async {
@@ -567,18 +582,14 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // GestureDetector exists for tap/double-tap/long-press
+    // GestureDetector exists for tap/double-tap
     // -----------------------------------------------------------------------
 
     testWidgets('rows have GestureDetector for interaction', (tester) async {
       final dives = [_makeDive(id: 'gd1', diveNumber: 1, maxDepth: 10.0)];
 
       await tester.pumpWidget(
-        _buildTable(
-          dives: dives,
-          onDiveLongPress: (_) {},
-          onDiveDoubleTap: (_) {},
-        ),
+        _buildTable(dives: dives, onDiveDoubleTap: (_) {}),
       );
       await tester.pumpAndSettle();
 
@@ -797,9 +808,7 @@ void main() {
     testWidgets('table renders without optional callbacks', (tester) async {
       final dives = [_makeDive(id: 'nc1', diveNumber: 1, maxDepth: 10.0)];
 
-      await tester.pumpWidget(
-        _buildTable(dives: dives, onDiveLongPress: null, onDiveDoubleTap: null),
-      );
+      await tester.pumpWidget(_buildTable(dives: dives, onDiveDoubleTap: null));
       await tester.pumpAndSettle();
 
       expect(find.text('#1'), findsOneWidget);
@@ -855,7 +864,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('9.1 L/min'), findsOneWidget);
+      expect(find.text('9.3 L/min'), findsOneWidget);
     });
 
     testWidgets('sacRate volume mode converts to cuft/min in imperial', (

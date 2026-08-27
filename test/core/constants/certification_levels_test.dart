@@ -101,4 +101,34 @@ void main() {
       expect(levels, isNot(contains(CertificationLevel.cmas1StarDiver)));
     });
   });
+
+  group('CertificationLevelCatalog.specialtiesFor', () {
+    test('excludes specialties already on the agency ladder', () {
+      // The tech ladder (TDI/IANTD/PSAI) contains nitrox, cavern and cave.
+      final specialties = CertificationLevelCatalog.specialtiesFor(
+        CertificationAgency.tdi,
+      );
+      expect(specialties, isNot(contains(CertificationLevel.nitrox)));
+      expect(specialties, isNot(contains(CertificationLevel.cave)));
+      expect(specialties, contains(CertificationLevel.wreck));
+    });
+
+    test('returns the full specialty set for a ladder with no overlap', () {
+      expect(
+        CertificationLevelCatalog.specialtiesFor(CertificationAgency.padi),
+        CertificationLevelCatalog.specialties,
+      );
+    });
+
+    for (final agency in [...CertificationAgency.values, null]) {
+      test('ladder + specialties + other reproduces levelsFor '
+          '(${agency?.name ?? 'null'})', () {
+        expect([
+          ...CertificationLevelCatalog.ladderFor(agency),
+          ...CertificationLevelCatalog.specialtiesFor(agency),
+          CertificationLevel.other,
+        ], CertificationLevelCatalog.levelsFor(agency));
+      });
+    }
+  });
 }

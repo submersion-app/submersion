@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 
@@ -12,13 +13,26 @@ void main() {
       expect(al80.waterVolumeLiters, lessThan(20));
     });
 
-    test('free gas is water volume times working pressure', () {
+    test('ideal gas is water volume times working pressure', () {
       final al80 = TankSpec.fromPreset(TankPresets.al80);
       // 11.1 L * 206.843 bar = 2296 L of free gas at the surface.
-      expect(al80.freeGasLiters, closeTo(2296, 5));
-      // Which is ~81 cuft, close to the AL80's rated 77.4 (the difference is
-      // real gas compressibility, which the ideal-gas figure ignores).
-      expect(al80.freeGasLiters * 0.0353147, closeTo(81, 1));
+      expect(al80.freeGasLitersFor(GasModel.ideal), closeTo(2296, 5));
+      // Which is ~81 cuft, overshooting the AL80's rated 77.4 by ~5% because
+      // the ideal law ignores compressibility.
+      expect(al80.freeGasLitersFor(GasModel.ideal) * 0.0353147, closeTo(81, 1));
+    });
+
+    test('real gas lands on the manufacturer rated capacity', () {
+      // The strongest evidence that the two models are not equally right for
+      // this quantity: honoring compressibility reproduces the AL80's rated
+      // 77.4 cuft to within 1%, where the ideal figure is ~5% high.
+      final al80 = TankSpec.fromPreset(TankPresets.al80);
+      final cuft = al80.freeGasLitersFor(GasModel.real) * 0.0353147;
+      expect(cuft, closeTo(77.4, 1.0));
+      expect(
+        al80.freeGasLitersFor(GasModel.real),
+        lessThan(al80.freeGasLitersFor(GasModel.ideal)),
+      );
     });
 
     test('carries the manufacturer rated capacity when the preset has one', () {

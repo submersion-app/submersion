@@ -9,7 +9,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 final gasSwitchesProvider =
     FutureProvider.family<List<GasSwitchWithTank>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+      // Analysis-input tick: gas_switches and dive_tanks are both in it, and
+      // the viewer/analysis chain watches this provider, so the broad detail
+      // tick (which includes media) re-ran analyses on photo-viewing writes.
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
       return repository.getGasSwitchesForDive(diveId);
     });
 

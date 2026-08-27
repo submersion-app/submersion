@@ -88,21 +88,33 @@ class DisplayZoomScope extends StatelessWidget {
         // ImageConfiguration consults this to select asset resolution.
         devicePixelRatio: mq.devicePixelRatio * scale,
       ),
-      child: Transform.scale(
-        scale: scale,
+      // OverflowBox, not SizedBox: MaterialApp.builder passes TIGHT
+      // constraints equal to the physical window, which would force a SizedBox
+      // back to the physical size. The child would then be scaled below the
+      // window (unpainted band at zoom < 1) or past it (clipped overflow at
+      // zoom > 1). OverflowBox lets the subtree take the enlarged logical size
+      // regardless of the incoming constraints.
+      //
+      // The OverflowBox must sit OUTSIDE the Transform, not inside it. Both
+      // orders paint identically, but only this one hit-tests. OverflowBox is
+      // sizedByParent, so it always measures the physical window no matter how
+      // large its child grows, and RenderBox.hitTest drops any position its own
+      // size does not contain before it ever reaches a child. With the
+      // OverflowBox inside, Transform handed it pointer positions already
+      // divided by the scale - up to logical size - and every one past the
+      // window rect was discarded, leaving the bottom and right edges of the
+      // screen dead below 100% zoom. Outside, the box the Transform descends
+      // into is the one actually laid out at the logical size, so the whole
+      // painted area stays live.
+      child: OverflowBox(
         alignment: Alignment.topLeft,
-        // OverflowBox, not SizedBox: MaterialApp.builder passes TIGHT
-        // constraints equal to the physical window, which would force a
-        // SizedBox back to the physical size. The child would then be scaled
-        // below the window (unpainted band at zoom < 1) or past it (clipped
-        // overflow at zoom > 1). OverflowBox lets the child take the enlarged
-        // logical size regardless of the incoming constraints.
-        child: OverflowBox(
+        minWidth: logical.width,
+        maxWidth: logical.width,
+        minHeight: logical.height,
+        maxHeight: logical.height,
+        child: Transform.scale(
+          scale: scale,
           alignment: Alignment.topLeft,
-          minWidth: logical.width,
-          maxWidth: logical.width,
-          minHeight: logical.height,
-          maxHeight: logical.height,
           child: child,
         ),
       ),

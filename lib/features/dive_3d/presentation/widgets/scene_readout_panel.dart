@@ -3,62 +3,77 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
-import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
+import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/dive_readout_rows.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Live metric readout at the scrub instant. Listens to the frame-rate
 /// ValueListenable directly (NOT via Riverpod) so playback never rebuilds
-/// the page tree above it. Interpolates the FULL-resolution series;
-/// geometry decimation never affects readouts.
+/// the page tree above it. Shares its rows with the hover tooltip.
+///
+/// [lookups] is injected rather than built here: its builder runs on every
+/// playback tick, and rebuilding the tank-pressure lookups there would
+/// allocate a copy of each tank series per frame.
 class SceneReadoutPanel extends ConsumerWidget {
-  final Dive3dSceneData data;
+  final DiveReadoutLookups lookups;
   final ValueListenable<double> position;
+  final SceneMetric? emphasize;
 
   const SceneReadoutPanel({
     super.key,
-    required this.data,
+    required this.lookups,
     required this.position,
+    this.emphasize,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final lookup = ProfileLookup(data.times);
-    // Cache the nullable-depth view once: the builder below runs at frame rate
-    // during playback, so allocating a CastList per tick is avoidable.
-    final nullableDepths = data.depths.cast<double?>();
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme.bodySmall;
     return ValueListenableBuilder<double>(
       valueListenable: position,
       builder: (context, value, _) {
-        final t = value * data.durationSeconds;
-        double? at(List<double?> series) => lookup.interpolate(series, t);
-        final depth = at(nullableDepths);
-        final temp = at(data.temperatures);
-        final ascent = at(data.ascentRates);
-        final ppO2 = at(data.ppO2s);
-        final cns = at(data.cnss);
-        final entries = <String>[
-          if (depth != null) units.formatDepth(depth),
-          if (temp != null) units.formatTemperature(temp),
-          if (ascent != null)
-            '${units.convertDepth(ascent).toStringAsFixed(1)} ${units.depthSymbol}/min',
-          if (ppO2 != null) 'ppO2 ${ppO2.toStringAsFixed(2)}',
-          if (cns != null) 'CNS ${cns.toStringAsFixed(0)}%',
-        ];
-        final totalSeconds = t.round();
-        final minutes = totalSeconds ~/ 60;
-        final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
+        final rows = diveReadoutRows(
+          lookups: lookups,
+          timestampSeconds: value * lookups.data.durationSeconds,
+          units: units,
+          l10n: l10n,
+          emphasize: emphasize,
+        );
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+            color: scheme.surface.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Text(
-              '$minutes:$seconds  ${entries.join('   ')}',
-              style: Theme.of(context).textTheme.bodyMedium,
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 4,
+              children: [
+                for (final row in rows)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${row.label} ',
+                        style: text?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                      Text(
+                        row.value,
+                        style: text?.copyWith(
+                          fontWeight: row.emphasized
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: row.emphasized ? scheme.primary : null,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
           ),
         );

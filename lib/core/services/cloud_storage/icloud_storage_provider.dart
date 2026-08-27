@@ -35,6 +35,20 @@ enum ICloudHostPlatform {
 /// serve this app.
 typedef ICloudContainerPathLookup = Future<String?> Function();
 
+/// Moves a staged file into the container with file coordination; false when
+/// the move could not be performed.
+typedef ICloudContainerFileMove =
+    Future<bool> Function(String sourcePath, String destinationPath);
+
+/// Writes bytes into the container with file coordination; throws when the
+/// write could not be performed.
+typedef ICloudContainerFileWrite =
+    Future<void> Function(String path, Uint8List data);
+
+/// Materializes an iCloud container file locally before it is read; false
+/// when the file could not be downloaded.
+typedef ICloudFileDownload = Future<bool> Function(String path);
+
 /// iCloud implementation of CloudStorageProvider
 ///
 /// Uses the app's iCloud container directory for storage.
@@ -57,17 +71,34 @@ class ICloudStorageProvider
   /// reaching the channel on other hosts — so on a Linux CI runner a mocked
   /// channel is never consulted, and a test would reach its assertion via a
   /// short circuit rather than via the branch it means to exercise.
+  /// [containerFileMove], [containerFileWrite] and [ensureDownloaded] default
+  /// to the native channel calls and are injectable for the same reason as
+  /// [containerPathLookup]: each carries its own Apple-platform guard and
+  /// short-circuits (or, for the write, throws) without reaching the channel on
+  /// other hosts, so a mocked channel would go unconsulted on the Linux CI
+  /// runner.
   ICloudStorageProvider({
     ICloudHostPlatform? platform,
     ICloudContainerPathLookup? containerPathLookup,
+    ICloudContainerFileMove? containerFileMove,
+    ICloudContainerFileWrite? containerFileWrite,
+    ICloudFileDownload? ensureDownloaded,
   }) : _platform = platform ?? ICloudHostPlatform.current(),
        _lookupContainerPath =
-           containerPathLookup ?? ICloudNativeService.getContainerPath;
+           containerPathLookup ?? ICloudNativeService.getContainerPath,
+       _moveIntoContainer = containerFileMove ?? ICloudNativeService.moveFile,
+       _writeIntoContainer =
+           containerFileWrite ?? ICloudNativeService.writeFile,
+       _ensureDownloaded =
+           ensureDownloaded ?? ICloudNativeService.downloadIfNeeded;
 
   static final _log = LoggerService.forClass(ICloudStorageProvider);
 
   final ICloudHostPlatform _platform;
   final ICloudContainerPathLookup _lookupContainerPath;
+  final ICloudContainerFileMove _moveIntoContainer;
+  final ICloudContainerFileWrite _writeIntoContainer;
+  final ICloudFileDownload _ensureDownloaded;
 
   Directory? _icloudContainer;
   Directory? _syncFolder;
@@ -172,6 +203,23 @@ class ICloudStorageProvider
     }
   }
 
+  /// The container path an upload should land in.
+  ///
+  /// On iCloud a folder id IS a container path (that is what [createFolder]
+  /// returns), so honouring [folderId] is a plain substitution. Dropping it
+  /// instead filed database backups among the sync files, where the backup
+  /// UI (which lists by that same folder id) could never see them again
+  /// (issue #653).
+  Future<String> _resolveUploadFolder(String? folderId) async {
+    if (folderId != null) return folderId;
+    return getOrCreateSyncFolder().timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        throw const CloudStorageException('Timeout getting sync folder (15s)');
+      },
+    );
+  }
+
   @override
   Future<UploadResult> uploadFile(
     Uint8List data,
@@ -181,24 +229,17 @@ class ICloudStorageProvider
     try {
       _log.info('uploadFile: START for $filename (${data.length} bytes)');
 
-      // Step 1: Get sync folder with timeout
-      _log.info('uploadFile: Step 1 - getting sync folder...');
-      final syncFolder = await getOrCreateSyncFolder().timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw const CloudStorageException(
-            'Timeout getting sync folder (15s)',
-          );
-        },
-      );
-      _log.info('uploadFile: Step 1 DONE - sync folder: $syncFolder');
+      // Step 1: Resolve the destination folder with timeout
+      _log.info('uploadFile: Step 1 - resolving destination folder...');
+      final targetFolder = await _resolveUploadFolder(folderId);
+      _log.info('uploadFile: Step 1 DONE - destination: $targetFolder');
 
-      final filePath = path.join(syncFolder, filename);
+      final filePath = path.join(targetFolder, filename);
 
       // Step 2: Write directly to iCloud using native file coordination
       // Native code handles direct file write with timeout
       _log.info('uploadFile: Step 2 - writing to iCloud via native: $filePath');
-      await ICloudNativeService.writeFile(filePath, data).timeout(
+      await _writeIntoContainer(filePath, data).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw const CloudStorageException('Timeout writing to iCloud (30s)');
@@ -233,6 +274,83 @@ class ICloudStorageProvider
 
       return data;
     } catch (e, stackTrace) {
+      _log.error(
+        'Failed to download file from iCloud: $fileId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw CloudStorageException('Download failed: $e', e, stackTrace);
+    }
+  }
+
+  /// The fileId IS a container path, so a streaming upload is a same-volume
+  /// copy plus a coordinated move — the payload never crosses the method
+  /// channel (uploadFile ships the whole file as one Uint8List through the
+  /// platform codec, a second full copy in RAM).
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    try {
+      final targetFolder = await _resolveUploadFolder(folderId);
+      final filePath = path.join(targetFolder, filename);
+
+      // Copy next to the destination so the coordinated move is same-volume,
+      // mirroring ICloudMediaObjectStore.putFile. The copy itself sits inside
+      // the cleanup guard: a failed copy (disk full, permissions) can leave a
+      // partial staging file behind just like a failed move.
+      final staging = '$filePath.uploading';
+      try {
+        await File(sourcePath).copy(staging);
+        final moved = await _moveIntoContainer(staging, filePath);
+        if (!moved) {
+          throw CloudStorageException('iCloud move failed for $filename');
+        }
+      } catch (_) {
+        final stray = File(staging);
+        if (await stray.exists()) {
+          try {
+            await stray.delete();
+          } catch (_) {
+            // Best-effort staging cleanup.
+          }
+        }
+        rethrow;
+      }
+      return UploadResult(fileId: filePath, uploadTime: DateTime.now());
+    } catch (e, stackTrace) {
+      _log.error(
+        'uploadFileFromPath: FAILED - $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw CloudStorageException('Upload failed: $e', e, stackTrace);
+    }
+  }
+
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    try {
+      final file = File(fileId);
+      if (!await file.exists()) {
+        throw CloudStorageException('File not found: $fileId');
+      }
+      final downloaded = await _ensureDownloaded(fileId);
+      if (!downloaded) {
+        throw CloudStorageException('iCloud file not downloaded: $fileId');
+      }
+      await file.copy(destinationPath);
+    } catch (e, stackTrace) {
+      final partial = File(destinationPath);
+      if (await partial.exists()) {
+        try {
+          await partial.delete();
+        } catch (_) {
+          // Best-effort cleanup of a partial copy.
+        }
+      }
       _log.error(
         'Failed to download file from iCloud: $fileId',
         error: e,

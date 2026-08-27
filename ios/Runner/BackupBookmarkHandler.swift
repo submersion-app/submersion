@@ -120,13 +120,7 @@ class BackupBookmarkHandler: NSObject, UIDocumentPickerDelegate {
         }
         pendingPickerResult = result
 
-        let picker: UIDocumentPickerViewController
-        if #available(iOS 14.0, *) {
-            picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder])
-        } else {
-            picker = UIDocumentPickerViewController(
-                documentTypes: ["public.folder"], in: .open)
-        }
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder])
         picker.delegate = self
         picker.allowsMultipleSelection = false
         picker.modalPresentationStyle = .formSheet

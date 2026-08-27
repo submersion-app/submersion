@@ -17,6 +17,11 @@ class CsvPresetRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _log = LoggerService.forClass(CsvPresetRepository);
 
+  /// Emits whenever the `csv_presets` table changes so the preset list
+  /// refreshes after a sync or any other write that bypasses the notifiers.
+  Stream<void> watchPresetsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.csvPresets));
+
   /// Returns all user-saved presets, ordered by name.
   Future<List<domain.CsvPreset>> getAllPresets() async {
     try {

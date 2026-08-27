@@ -7,10 +7,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Provider for the GasAnalysisService singleton
+/// Provider for the GasAnalysisService singleton.
+///
+/// Watches the gas model so flipping the preference rebuilds the service and
+/// invalidates every SAC provider downstream of it (issue #828).
 final gasAnalysisServiceProvider = Provider<GasAnalysisService>((ref) {
-  return GasAnalysisService();
+  return GasAnalysisService(gasModel: ref.watch(gasModelProvider));
 });
 
 /// Provider for gas-switch based SAC segments

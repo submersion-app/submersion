@@ -89,7 +89,10 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
                   if ((record.diveCount ?? 0) > 0 ||
                       (record.siteCount ?? 0) > 0)
                     Text(
-                      '${record.diveCount ?? 0} dives, ${record.siteCount ?? 0} sites',
+                      context.l10n.backup_restore_dialog_counts(
+                        record.diveCount ?? 0,
+                        record.siteCount ?? 0,
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                   Text(record.formattedSize, style: theme.textTheme.bodySmall),
@@ -235,26 +238,28 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
 
   Widget _buildPreMigration(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final dateFormat = DateFormat.yMMMd().add_jm();
     final record = widget.record;
     final fromSchemaVersion = record.fromSchemaVersion;
     final toSchemaVersion = record.toSchemaVersion;
-    final appVersion = record.appVersion ?? 'unknown version';
+    final appVersion =
+        record.appVersion ?? l10n.backup_restore_preMigration_unknownVersion;
     final timestamp = dateFormat.format(record.timestamp);
 
     if (fromSchemaVersion == null || toSchemaVersion == null) {
       return AlertDialog(
-        title: const Text('Restore pre-migration backup'),
+        title: Text(l10n.backup_restore_preMigration_title),
         content: Text(
-          'This backup was made on $timestamp by app $appVersion, but its '
-          'database migration metadata is incomplete.\n\n'
-          'The app cannot verify whether restoring this backup is safe, '
-          'so restore is disabled.',
+          l10n.backup_restore_preMigration_incompleteMetadata(
+            timestamp,
+            appVersion,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.backup_restore_dialog_cancel),
           ),
         ],
       );
@@ -266,16 +271,18 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
     if (widget.currentSchemaVersion < fromV) {
       // Hard block: backup is from a newer app than currently installed.
       return AlertDialog(
-        title: const Text('Restore pre-migration backup'),
+        title: Text(l10n.backup_restore_preMigration_title),
         content: Text(
-          'This backup is newer than your app. Install a newer app '
-          'version to restore it.\n\n'
-          'Backup made on $timestamp by app $appVersion (database v$fromV).',
+          l10n.backup_restore_preMigration_newerApp(
+            timestamp,
+            appVersion,
+            fromV,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.backup_restore_dialog_cancel),
           ),
         ],
       );
@@ -285,21 +292,23 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
       // Green path: database schema matches the backup's pre-migration
       // state; restore is safe.
       return AlertDialog(
-        title: const Text('Restore pre-migration backup'),
+        title: Text(l10n.backup_restore_preMigration_title),
         content: Text(
-          'This backup was made on $timestamp by app $appVersion, just '
-          'before upgrading the database from v$fromV to v$toV.\n\n'
-          "Your app's database schema matches this backup, so "
-          'restore is safe.',
+          l10n.backup_restore_preMigration_safe(
+            timestamp,
+            appVersion,
+            fromV,
+            toV,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.backup_restore_dialog_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(RestoreMode.merge),
-            child: const Text('Restore'),
+            child: Text(l10n.backup_restore_dialog_restore),
           ),
         ],
       );
@@ -307,29 +316,27 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
 
     // currentSchemaVersion > fromV — warning path.
     return AlertDialog(
-      title: const Text('Restore pre-migration backup'),
+      title: Text(l10n.backup_restore_preMigration_title),
       content: Text(
-        'This backup was made on $timestamp by app $appVersion, just '
-        'before upgrading the database from v$fromV to v$toV.\n\n'
-        'You are running a newer app (database v${widget.currentSchemaVersion}).\n\n'
-        'Restoring now will re-run the v$fromV → v$toV database upgrade '
-        'on your restored data — the same upgrade that was about to run '
-        'originally. If that upgrade caused the problem, you will hit '
-        'the same issue again.\n\n'
-        'To restore safely: install app $appVersion or earlier, then restore '
-        'this backup from that older app.',
+        l10n.backup_restore_preMigration_warning(
+          timestamp,
+          appVersion,
+          fromV,
+          toV,
+          widget.currentSchemaVersion,
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.backup_restore_dialog_cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(RestoreMode.merge),
           style: FilledButton.styleFrom(
             backgroundColor: theme.colorScheme.error,
           ),
-          child: const Text('Restore anyway'),
+          child: Text(l10n.backup_restore_preMigration_restoreAnyway),
         ),
       ],
     );

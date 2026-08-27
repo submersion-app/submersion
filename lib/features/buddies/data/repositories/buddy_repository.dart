@@ -9,9 +9,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -23,8 +22,10 @@ export 'package:submersion/features/buddies/data/repositories/buddy_merge_reposi
         BuddyMergeResult,
         BuddyMergeSnapshot,
         DiveBuddySnapshot,
-        BuddyRoleSnapshot,
         CertificationInstructorSnapshot;
+// Re-exported so existing importers of BuddyWithDiveCount keep compiling
+// after the class moved to the domain layer.
+export 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -44,6 +45,27 @@ class BuddyRepository {
     return {for (final r in rows) r.read(j.buddyId)!: r.read(countExpr)!};
   }
 
+  /// {buddyId: the role id every one of [diveIds] agrees on for that buddy}.
+  /// Buddies whose links disagree are omitted, so a caller filling in missing
+  /// links can reuse a unanimous role without flattening a deliberate mix.
+  /// HAVING MIN(role) = MAX(role) keeps the mixed rows in SQLite rather than
+  /// shipping every junction row to Dart on the bulk-edit load path.
+  Future<Map<String, String>> unanimousBuddyRolesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveBuddies;
+    final minRole = j.role.min();
+    final maxRole = j.role.max();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.buddyId, minRole])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.buddyId], having: minRole.equalsExp(maxRole)))
+            .get();
+    return {for (final r in rows) r.read(j.buddyId)!: r.read(minRole)!};
+  }
+
   final SyncRepository _syncRepository = SyncRepository();
   final CertificationRepository _certRepo = CertificationRepository();
   final _uuid = const Uuid();
@@ -53,29 +75,6 @@ class BuddyRepository {
   /// refresh after a sync or any other write.
   Stream<void> watchBuddiesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.buddies));
-
-  /// Emits whenever the `buddy_roles` table changes.
-  /// Delegates to [BuddyRoleRepository].
-  Stream<void> watchBuddyRolesChanges() =>
-      BuddyRoleRepository().watchBuddyRolesChanges();
-
-  /// Professional credentials for one buddy.
-  /// Delegates to [BuddyRoleRepository].
-  Future<List<BuddyRoleCredential>> getRolesForBuddy(String buddyId) =>
-      BuddyRoleRepository().getRolesForBuddy(buddyId);
-
-  /// All credentials keyed by buddy id, for pickers annotating many buddies.
-  /// Delegates to [BuddyRoleRepository].
-  Future<Map<String, List<BuddyRoleCredential>>> getAllRoles() =>
-      BuddyRoleRepository().getAllRoles();
-
-  /// Replace the credential set for [buddyId]. Dedupes by role (last entry
-  /// wins) and preserves the existing row id for roles that stay.
-  /// Delegates to [BuddyRoleRepository].
-  Future<void> setRolesForBuddy(
-    String buddyId,
-    List<BuddyRoleCredential> roles,
-  ) => BuddyRoleRepository().setRolesForBuddy(buddyId, roles);
 
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
@@ -88,7 +87,7 @@ class BuddyRepository {
       }
 
       final rows = await query.get();
-      return _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
+      return await _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
     } catch (e, stackTrace) {
       _log.error('Failed to get all buddies', error: e, stackTrace: stackTrace);
       rethrow;
@@ -151,6 +150,7 @@ class BuddyRepository {
         ),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
+        isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -180,6 +180,7 @@ class BuddyRepository {
               phone: Value(buddy.phone),
               photoPath: Value(buddy.photoPath),
               notes: Value(buddy.notes),
+              isFavorite: Value(buddy.isFavorite),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -241,6 +242,7 @@ class BuddyRepository {
           ),
           photoPath: row.data['photo_path'] as String?,
           notes: (row.data['notes'] as String?) ?? '',
+          isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             row.data['created_at'] as int,
           ),
@@ -261,7 +263,7 @@ class BuddyRepository {
         updatedAt: DateTime.now(),
       );
 
-      return createBuddy(newBuddy);
+      return await createBuddy(newBuddy);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find or create buddy: $name',
@@ -288,6 +290,7 @@ class BuddyRepository {
           phone: Value(buddy.phone),
           photoPath: Value(buddy.photoPath),
           notes: Value(buddy.notes),
+          isFavorite: Value(buddy.isFavorite),
           updatedAt: Value(now),
         ),
       );
@@ -380,6 +383,7 @@ class BuddyRepository {
         ),
         photoPath: row.data['photo_path'] as String?,
         notes: (row.data['notes'] as String?) ?? '',
+        isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           row.data['created_at'] as int,
         ),
@@ -441,6 +445,7 @@ class BuddyRepository {
         phone: b.phone,
         photoPath: b.photoPath,
         notes: b.notes,
+        isFavorite: b.isFavorite,
         createdAt: DateTime.fromMillisecondsSinceEpoch(b.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(b.updatedAt),
       );
@@ -596,12 +601,15 @@ class BuddyRepository {
     );
   }
 
-  /// Add each buddy (with role) to every dive. Upserts role if already linked.
+  /// Add each buddy (with role) to every dive. Upserts role if already linked,
+  /// unless [overwriteRole] is false — a membership-only add must leave the
+  /// role each existing link already carries untouched (#893).
   /// No notify/transaction — BulkDiveEditService owns those.
   Future<void> bulkAddBuddies(
     List<String> diveIds,
-    List<domain.BuddyWithRole> buddies,
-  ) async {
+    List<domain.BuddyWithRole> buddies, {
+    bool overwriteRole = true,
+  }) async {
     if (diveIds.isEmpty || buddies.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
@@ -613,6 +621,7 @@ class BuddyRepository {
                 ))
                 .getSingleOrNull();
         if (existing != null) {
+          if (!overwriteRole) continue;
           await (_db.update(_db.diveBuddies)..where(
                 (t) => t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
               ))
@@ -642,6 +651,44 @@ class BuddyRepository {
           );
         }
       }
+      await _bumpDive(diveId, now);
+    }
+  }
+
+  /// Rewrite the role on the links each dive ALREADY has for [buddies],
+  /// inserting nothing. The role-only counterpart to [bulkAddBuddies]: a dive
+  /// the buddy is missing from stays missing, so changing someone's role
+  /// across a mixed selection cannot quietly add them to the rest (#1220).
+  ///
+  /// No notify/transaction; the caller wraps this like every other bulk op.
+  Future<void> bulkUpdateBuddyRoles(
+    List<String> diveIds,
+    List<domain.BuddyWithRole> buddies,
+  ) async {
+    if (diveIds.isEmpty || buddies.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final touched = <String>{};
+    for (final bwr in buddies) {
+      final existing =
+          await (_db.select(_db.diveBuddies)..where(
+                (t) => t.diveId.isIn(diveIds) & t.buddyId.equals(bwr.buddy.id),
+              ))
+              .get();
+      if (existing.isEmpty) continue;
+      await (_db.update(_db.diveBuddies)..where(
+            (t) => t.diveId.isIn(diveIds) & t.buddyId.equals(bwr.buddy.id),
+          ))
+          .write(DiveBuddiesCompanion(role: Value(bwr.role.id)));
+      for (final row in existing) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveBuddies',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+        touched.add(row.diveId);
+      }
+    }
+    for (final diveId in touched) {
       await _bumpDive(diveId, now);
     }
   }
@@ -713,25 +760,65 @@ class BuddyRepository {
     }
   }
 
-  /// Get all buddies with their dive counts in a single efficient query
+  /// Get all buddies with their dive counts in a single efficient query.
+  ///
+  /// [query] optionally filters by name/email/phone (case-insensitive), for
+  /// the "Add buddy" picker's search box, which needs dive counts too so it
+  /// can sort search results the same way as the unfiltered list.
   Future<List<BuddyWithDiveCount>> getAllBuddiesWithDiveCount({
     String? diverId,
+    String? query,
   }) async {
     try {
-      final diverFilter = diverId != null ? 'WHERE b.diver_id = ?' : '';
-      final variables = [if (diverId != null) Variable.withString(diverId)];
+      final conditions = <String>[
+        if (diverId != null) 'b.diver_id = ?',
+        if (query != null && query.isNotEmpty)
+          '(LOWER(b.name) LIKE ? OR LOWER(b.email) LIKE ? OR b.phone LIKE ?)',
+      ];
+      final where = conditions.isEmpty
+          ? ''
+          : 'WHERE ${conditions.join(' AND ')}';
+      final searchTerm = query != null && query.isNotEmpty
+          ? '%${query.toLowerCase()}%'
+          : null;
+      final variables = [
+        if (diverId != null) Variable.withString(diverId),
+        if (searchTerm != null) ...[
+          Variable.withString(searchTerm),
+          Variable.withString(searchTerm),
+          Variable.withString(searchTerm),
+        ],
+      ];
 
       final results = await _db.customSelect('''
-        SELECT b.*, COALESCE(dc.dive_count, 0) as dive_count
+        SELECT b.*, COALESCE(dc.dive_count, 0) AS dive_count, dc.last_dive
         FROM buddies b
         LEFT JOIN (
-          SELECT buddy_id, COUNT(*) as dive_count
-          FROM dive_buddies
-          GROUP BY buddy_id
+          SELECT db.buddy_id,
+                 COUNT(*) AS dive_count,
+                 MAX(d.dive_date_time) AS last_dive
+          FROM dive_buddies db
+          LEFT JOIN dives d ON d.id = db.dive_id
+          GROUP BY db.buddy_id
         ) dc ON b.id = dc.buddy_id
-        $diverFilter
+        $where
         ORDER BY b.name ASC
       ''', variables: variables).get();
+
+      // Second whole-table query: how often each buddy held each role. The
+      // per-buddy winner is picked in Dart by usualRoleFor.
+      final roleRows = await _db.customSelect('''
+        SELECT buddy_id, role, COUNT(*) AS role_count
+        FROM dive_buddies
+        GROUP BY buddy_id, role
+      ''').get();
+      final roleCountsByBuddy = <String, Map<String, int>>{};
+      for (final r in roleRows) {
+        roleCountsByBuddy.putIfAbsent(
+          r.data['buddy_id'] as String,
+          () => {},
+        )[r.data['role'] as String] = r.data['role_count'] as int;
+      }
 
       final list = results.map((row) {
         final buddy = domain.Buddy(
@@ -748,6 +835,7 @@ class BuddyRepository {
           ),
           photoPath: row.data['photo_path'] as String?,
           notes: (row.data['notes'] as String?) ?? '',
+          isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             row.data['created_at'] as int,
           ),
@@ -755,20 +843,99 @@ class BuddyRepository {
             row.data['updated_at'] as int,
           ),
         );
+        final lastDive = row.data['last_dive'] as int?;
         return BuddyWithDiveCount(
           buddy: buddy,
           diveCount: row.data['dive_count'] as int,
+          lastDiveAt: lastDive == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(lastDive),
+          usualRoleId: usualRoleFor(roleCountsByBuddy[buddy.id] ?? const {}),
         );
       }).toList();
       final filled = await _withPrimaryCerts(list.map((w) => w.buddy).toList());
       final byId = {for (final b in filled) b.id: b};
       return [
         for (final w in list)
-          BuddyWithDiveCount(buddy: byId[w.buddy.id]!, diveCount: w.diveCount),
+          BuddyWithDiveCount(
+            buddy: byId[w.buddy.id]!,
+            diveCount: w.diveCount,
+            lastDiveAt: w.lastDiveAt,
+            usualRoleId: w.usualRoleId,
+          ),
       ];
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get buddies with dive counts',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Toggle favorite status for a buddy
+  Future<void> toggleFavorite(String buddyId) async {
+    try {
+      _log.info('Toggling favorite for buddy: $buddyId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final buddy = await (_db.select(
+        _db.buddies,
+      )..where((t) => t.id.equals(buddyId))).getSingleOrNull();
+      if (buddy == null) return;
+      await (_db.update(_db.buddies)..where((t) => t.id.equals(buddyId))).write(
+        BuddiesCompanion(
+          isFavorite: Value(!buddy.isFavorite),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'buddies',
+        recordId: buddyId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      _log.info('Toggled favorite for buddy: $buddyId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to toggle favorite for buddy: $buddyId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Set favorite status for a buddy
+  Future<void> setFavorite(String buddyId, bool isFavorite) async {
+    try {
+      _log.info('Setting favorite=$isFavorite for buddy: $buddyId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final updated =
+          await (_db.update(
+            _db.buddies,
+          )..where((t) => t.id.equals(buddyId))).write(
+            BuddiesCompanion(
+              isFavorite: Value(isFavorite),
+              updatedAt: Value(now),
+            ),
+          );
+      // A stale or deleted buddyId updates nothing; marking it pending would
+      // leave a sync record pointing at a row that does not exist.
+      if (updated == 0) {
+        _log.info('No buddy matched id, skipping favorite update: $buddyId');
+        return;
+      }
+      await _syncRepository.markRecordPending(
+        entityType: 'buddies',
+        recordId: buddyId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      _log.info('Set favorite=$isFavorite for buddy: $buddyId');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set favorite for buddy: $buddyId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -792,15 +959,29 @@ class BuddyRepository {
     return result.data['count'] as int? ?? 0;
   }
 
-  /// Get dives shared with a buddy
+  /// Get dives shared with a buddy, newest dive first.
+  ///
+  /// Ordered by the dive's own timestamp rather than by when the
+  /// `dive_buddies` link row was written, so callers that truncate the result
+  /// (the detail page previews the first five) get the newest dives and not an
+  /// arbitrary slice of the import order. The sort key mirrors
+  /// `DiveRepository.getAllDives` so the preview agrees with the dive list,
+  /// with a final tiebreak on id so dives that tie on both keys keep a stable
+  /// order instead of an arbitrary one: the caller truncates this list, so an
+  /// unstable tail would change *which* dives the preview shows, not merely
+  /// their order.
+  /// The join also drops links whose dive row no longer exists.
   Future<List<String>> getDiveIdsForBuddy(String buddyId) async {
     final results = await _db
         .customSelect(
           '''
-      SELECT dive_id
-      FROM dive_buddies
-      WHERE buddy_id = ?
-      ORDER BY created_at DESC
+      SELECT db.dive_id
+      FROM dive_buddies db
+      INNER JOIN dives d ON d.id = db.dive_id
+      WHERE db.buddy_id = ?
+      ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC,
+               d.dive_number DESC,
+               d.id
     ''',
           variables: [Variable.withString(buddyId)],
         )
@@ -929,6 +1110,7 @@ class BuddyRepository {
       certificationAgency: null,
       photoPath: row.photoPath,
       notes: row.notes,
+      isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -964,12 +1146,4 @@ class BuddyStats {
     this.lastDive,
     this.favoriteSite,
   });
-}
-
-/// Buddy with dive count for efficient list sorting
-class BuddyWithDiveCount {
-  final domain.Buddy buddy;
-  final int diveCount;
-
-  const BuddyWithDiveCount({required this.buddy, required this.diveCount});
 }

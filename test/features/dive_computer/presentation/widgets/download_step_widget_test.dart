@@ -748,6 +748,42 @@ void main() {
       expect(find.textContaining('USB serial ports'), findsOneWidget);
     });
 
+    // Issue #865: an out-of-date pairing record cannot be cleared from inside
+    // the app on Apple platforms, so the error has to name the one thing that
+    // does fix it instead of showing the generic connect failure. The native
+    // message is deliberately ignored in favour of the localized advice.
+    testWidgets('shows stale_pairing localized error', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'stale_pairing',
+            errorMessage: 'Failed to connect to device',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Bluetooth settings'), findsOneWidget);
+      expect(find.text('Failed to connect to device'), findsNothing);
+    });
+
+    testWidgets('shows discovery_stalled localized error', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'discovery_stalled',
+            errorMessage: 'Failed to connect to device',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('stopped responding'), findsOneWidget);
+      expect(find.text('Failed to connect to device'), findsNothing);
+    });
+
     testWidgets('calls onError when error phase is entered', (tester) async {
       String? errorMessage;
 

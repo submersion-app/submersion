@@ -1,6 +1,18 @@
-# Minimum iOS version for the app
-# iOS 14.0 required for CNAuthorizationStatusLimited (contacts permission)
-platform :ios, '14.0'
+# Minimum iOS version for the app.
+#
+# Must match IPHONEOS_DEPLOYMENT_TARGET in Runner.xcodeproj: that is the value
+# stamped into the shipped binary and the one App Store validation reads.
+#
+# Local plugin podspecs only need to stay compatible, not identical. A podspec
+# may declare a LOWER floor -- submersion_ocr and submersion_transcoder sit at
+# 13.0 deliberately, and flutter_additional_ios_build_settings raises every pod
+# target to the app floor at build time. None may declare a HIGHER floor than
+# the app, or pod install fails outright.
+#
+# 15.0: App Store Connect rejects uploads with a MinimumOSVersion below 15.0
+#   starting Spring 2027 (ITMS-90068).
+# Never below 14.0: CNAuthorizationStatusLimited (contacts permission) needs it.
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

@@ -117,6 +117,14 @@ enum ProfileRightAxisMetric {
     color: Color(0xFF6D4C41), // Brown 600
     unitSuffix: null, // Unit is the name itself; avoids "OTU (OTU)" on axis
     category: ProfileMetricCategory.decompression,
+  ),
+  o2CellMv(
+    displayName: 'O2 Cells',
+    shortName: 'Cells',
+    // Cyan 800 - the ppO2 family, darker; individual cells shade from here.
+    color: Color(0xFF00838F),
+    unitSuffix: 'mV',
+    category: ProfileMetricCategory.gasAnalysis,
   );
 
   final String displayName;

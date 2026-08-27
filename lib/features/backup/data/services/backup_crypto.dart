@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -26,6 +27,13 @@ abstract final class BackupCrypto {
 
   static final AesGcm _aesGcm = AesGcm.with256bits();
 
+  /// Encrypt [inPath] into an SBE1 envelope at [outPath].
+  ///
+  /// The frame loop (synchronous file IO + AES-GCM over the whole file) runs
+  /// on a worker isolate: on a multi-hundred-MB database it is seconds to
+  /// minutes of pure-Dart work that would otherwise freeze the UI. Only the
+  /// key bytes cross the isolate boundary — [SecretKey] itself is not
+  /// reliably sendable.
   static Future<void> encryptFile({
     required String inPath,
     required String outPath,
@@ -33,7 +41,46 @@ abstract final class BackupCrypto {
     required String libraryKeyId,
     required Uint8List keyslotBytes,
   }) async {
-    final dataKey = await Keyslots.deriveDataKey(mlk);
+    final mlkBytes = Uint8List.fromList(await mlk.extractBytes());
+    return _encryptOnWorker(
+      inPath,
+      outPath,
+      mlkBytes,
+      libraryKeyId,
+      keyslotBytes,
+    );
+  }
+
+  /// Minimal-scope hop to the worker isolate. Kept as its own method so the
+  /// [Isolate.run] closure's enclosing scope holds only sendable values —
+  /// Dart closures capture the whole scope, not just what they reference.
+  static Future<void> _encryptOnWorker(
+    String inPath,
+    String outPath,
+    Uint8List mlkBytes,
+    String libraryKeyId,
+    Uint8List keyslotBytes,
+  ) {
+    return Isolate.run(
+      () => _encryptFileImpl(
+        inPath: inPath,
+        outPath: outPath,
+        mlkBytes: mlkBytes,
+        libraryKeyId: libraryKeyId,
+        keyslotBytes: keyslotBytes,
+      ),
+      debugName: 'sbe-encrypt',
+    );
+  }
+
+  static Future<void> _encryptFileImpl({
+    required String inPath,
+    required String outPath,
+    required Uint8List mlkBytes,
+    required String libraryKeyId,
+    required Uint8List keyslotBytes,
+  }) async {
+    final dataKey = await Keyslots.deriveDataKey(SecretKey(mlkBytes));
     final keyIdBytes = UuidValue.withValidation(libraryKeyId).toBytes();
     final input = File(inPath).openSync();
     final out = File(outPath).openSync(mode: FileMode.write);
@@ -73,7 +120,23 @@ abstract final class BackupCrypto {
 
   /// Decrypt using the artifact's embedded keyslots and a passphrase or
   /// recovery code. Throws [WrongPassphraseException] when no slot opens.
+  ///
+  /// Runs on a worker isolate: the Argon2id KDF (64 MiB, several passes) and
+  /// the full-file AES-GCM frame loop are both heavy pure-Dart work. The
+  /// thrown exceptions are simple const classes, so they propagate across the
+  /// isolate boundary unchanged.
   static Future<void> decryptFile({
+    required String inPath,
+    required String outPath,
+    required String secret,
+  }) {
+    return Isolate.run(
+      () => _decryptFileImpl(inPath: inPath, outPath: outPath, secret: secret),
+      debugName: 'sbe-decrypt',
+    );
+  }
+
+  static Future<void> _decryptFileImpl({
     required String inPath,
     required String outPath,
     required String secret,
@@ -93,10 +156,45 @@ abstract final class BackupCrypto {
 
   /// Decrypt silently with an already-unlocked key. Throws
   /// [SyncEncryptionRequired] when the artifact's key differs.
+  ///
+  /// Runs on a worker isolate for the same reason as [decryptFile].
   static Future<void> decryptFileWithKey({
     required String inPath,
     required String outPath,
     required SecretKey mlk,
+    required String expectedLibraryKeyId,
+  }) async {
+    final mlkBytes = Uint8List.fromList(await mlk.extractBytes());
+    return _decryptWithKeyOnWorker(
+      inPath,
+      outPath,
+      mlkBytes,
+      expectedLibraryKeyId,
+    );
+  }
+
+  /// See [_encryptOnWorker] for why this hop is a separate minimal scope.
+  static Future<void> _decryptWithKeyOnWorker(
+    String inPath,
+    String outPath,
+    Uint8List mlkBytes,
+    String expectedLibraryKeyId,
+  ) {
+    return Isolate.run(
+      () => _decryptFileWithKeyImpl(
+        inPath: inPath,
+        outPath: outPath,
+        mlkBytes: mlkBytes,
+        expectedLibraryKeyId: expectedLibraryKeyId,
+      ),
+      debugName: 'sbe-decrypt',
+    );
+  }
+
+  static Future<void> _decryptFileWithKeyImpl({
+    required String inPath,
+    required String outPath,
+    required Uint8List mlkBytes,
     required String expectedLibraryKeyId,
   }) async {
     final input = File(inPath).openSync();
@@ -109,7 +207,7 @@ abstract final class BackupCrypto {
           message: 'Backup is encrypted under a different library key',
         );
       }
-      final dataKey = await Keyslots.deriveDataKey(mlk);
+      final dataKey = await Keyslots.deriveDataKey(SecretKey(mlkBytes));
       await _decryptFrames(input, outPath, dataKey, header.keyIdBytes);
     } finally {
       input.closeSync();

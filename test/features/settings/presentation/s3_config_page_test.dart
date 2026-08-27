@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
@@ -118,6 +119,13 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   Future<void> performSync({bool auto = false}) async {}
 
   @override
+  Future<ReplacePreflight> replacePreflight() async =>
+      const ReplacePreflight(localDiveCount: 0, peerFileCount: 0);
+
+  @override
+  Future<void> replaceCloudLibraryFromThisDevice() async {}
+
+  @override
   Future<void> disableForDatabaseReset() async {}
 
   @override
@@ -139,13 +147,20 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   Future<void> repairSync() async {}
 
   @override
-  Future<void> removeThisDeviceCloudFiles() async {}
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async => const SyncCleanupOutcome();
 
   @override
-  Future<void> wipeAllCloudSyncData() async {}
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async => const SyncCleanupOutcome();
 
   @override
-  Future<void> rebuildBackendFromThisDevice() async {}
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+    void Function()? onPublishStarted,
+  }) async {}
 
   @override
   Future<void> signOut() async {

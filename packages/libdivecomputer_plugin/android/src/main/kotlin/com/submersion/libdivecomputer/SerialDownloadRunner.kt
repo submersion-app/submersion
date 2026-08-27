@@ -3,11 +3,9 @@ package com.submersion.libdivecomputer
 import android.content.Context
 import android.hardware.usb.UsbManager
 import com.hoho.android.usbserial.driver.UsbSerialDriver
-import com.hoho.android.usbserial.driver.UsbSerialProber
 
 private const val RUNNER_LIBDC_TRANSPORT_SERIAL = 1 shl 0
 private const val RUNNER_LIBDC_STATUS_CANCELLED = -10
-private const val RUNNER_UINT32_SENTINEL: Long = 4294967295L  // UINT32_MAX = unavailable
 
 /**
  * Runs the serial dive-computer download inside the :dc process. A native
@@ -61,7 +59,10 @@ class SerialDownloadRunner(private val context: Context) {
     private fun runProbe(request: SerialDownloadRequest, session: Long, cb: IDiveDownloadCallback) {
         val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
         val drivers: List<UsbSerialDriver> = usbManager?.let {
-            UsbSerialProber.getDefaultProber().findAllDrivers(it)
+            // Not getDefaultProber(): its table lists only stock bridge-chip
+            // identifiers, so a dive cable with a reprogrammed product ID is
+            // invisible (issue #732).
+            DiveCableIds.prober().findAllDrivers(it)
         } ?: emptyList()
 
         if (drivers.isEmpty()) {
@@ -163,30 +164,7 @@ class SerialDownloadRunner(private val context: Context) {
         val sampleCount = LibdcWrapper.nativeGetDiveSampleCount(divePtr)
         val samples = (0 until sampleCount).mapNotNull { i ->
             val s = LibdcWrapper.nativeGetDiveSample(divePtr, i) ?: return@mapNotNull null
-            ProfileSample(
-                timeSeconds = (s[0] / 1000.0).toLong(),
-                depthMeters = s[1],
-                temperatureCelsius = if (s[2].isNaN()) null else s[2],
-                pressureBar = if (s[3].isNaN()) null else s[3],
-                tankIndex = if (s[4].toLong() == RUNNER_UINT32_SENTINEL) null else s[4].toLong(),
-                heartRate = if (s[5].toLong() == RUNNER_UINT32_SENTINEL) null else s[5].toLong(),
-                heading = if (s.size < 22 || s[21].toLong() == RUNNER_UINT32_SENTINEL) null else s[21],
-                setpoint = if (s[6].isNaN()) null else s[6],
-                ppo2 = if (s[7].isNaN()) null else s[7],
-                cns = if (s[8].isNaN()) null else s[8],
-                rbt = if (s[9].toLong() == RUNNER_UINT32_SENTINEL) null else s[9].toLong(),
-                decoType = if (s[10].toLong() == RUNNER_UINT32_SENTINEL) null else s[10].toLong(),
-                decoTime = if (s[11].toLong() == RUNNER_UINT32_SENTINEL) null else s[11].toLong(),
-                decoDepth = if (s[12].isNaN()) null else s[12],
-                tts = if (s[13].toLong() == RUNNER_UINT32_SENTINEL || s[13].toLong() == 0L) null else s[13].toLong(),
-                o2Sensor1 = if (s[14].isNaN()) null else s[14],
-                o2Sensor2 = if (s[15].isNaN()) null else s[15],
-                o2Sensor3 = if (s[16].isNaN()) null else s[16],
-                o2Sensor4 = if (s[17].isNaN()) null else s[17],
-                o2Sensor5 = if (s[18].isNaN()) null else s[18],
-                o2Sensor6 = if (s[19].isNaN()) null else s[19],
-                gasMixIndex = if (s[20].toLong() == RUNNER_UINT32_SENTINEL) null else s[20].toLong(),
-            )
+            decodeProfileSample(s)
         }
 
         // Convert gas mixes.

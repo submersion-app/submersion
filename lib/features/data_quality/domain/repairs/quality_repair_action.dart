@@ -46,6 +46,16 @@ class DespikeRepair extends QualityRepairAction {
   final String diveId;
 }
 
+class SmoothRatesRepair extends QualityRepairAction {
+  const SmoothRatesRepair(this.diveId);
+  final String diveId;
+}
+
+class ClampNegativeDepthsRepair extends QualityRepairAction {
+  const ClampNegativeDepthsRepair(this.diveId);
+  final String diveId;
+}
+
 class FillGapsRepair extends QualityRepairAction {
   const FillGapsRepair(this.diveId);
   final String diveId;
@@ -58,6 +68,18 @@ class SmoothTemperatureRepair extends QualityRepairAction {
 
 class ConvertTemperatureRepair extends QualityRepairAction {
   const ConvertTemperatureRepair({
+    required this.diveId,
+    required this.kelvinScale,
+  });
+  final String diveId;
+  final bool kelvinScale;
+}
+
+/// Reinterpret the dive's recorded water temperature on another scale. The
+/// sibling of [ConvertTemperatureRepair], which converts the sample channel;
+/// this one rewrites the single `dives.water_temp` value.
+class ConvertWaterTempRepair extends QualityRepairAction {
+  const ConvertWaterTempRepair({
     required this.diveId,
     required this.kelvinScale,
   });
@@ -184,34 +206,71 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       ];
 
     case 'sample_gap':
-      return [FillGapsRepair(diveId), GoToDiveRepair(diveId)];
+      // Every hole may be longer than fillGaps will interpolate across; then
+      // the button could only ever no-op. Findings written before the detector
+      // reported this stay repairable until the rescan fills the fact in.
+      final fillable = (p['fillableGapCount'] as num?)?.toInt();
+      if (fillable == null || fillable > 0) {
+        return [FillGapsRepair(diveId), GoToDiveRepair(diveId)];
+      }
+      return [GoToDiveRepair(diveId)];
 
     case 'depth_spike':
       if (p.containsKey('storedMaxDepth')) {
         return [RecomputeMetricsRepair(diveId)];
       }
+      if (p.containsKey('minDepth')) {
+        return [ClampNegativeDepthsRepair(diveId), GoToDiveRepair(diveId)];
+      }
       return [DespikeRepair(diveId), GoToDiveRepair(diveId)];
 
     case 'impossible_rate':
-      return [DespikeRepair(diveId), GoToDiveRepair(diveId)];
+      // A run only has a mechanical fix when its interior can be redrawn; a
+      // sustained fast descent is a judgment call for the diver.
+      if (p['interpolatable'] == true) {
+        return [SmoothRatesRepair(diveId), GoToDiveRepair(diveId)];
+      }
+      return [GoToDiveRepair(diveId)];
 
     case 'temp_anomaly':
+      // The scalar and range findings carry the same conversion flags, so
+      // dispatch on the shape first: `waterTempC` is the dive's recorded
+      // temperature, `minTempC`/`maxTempC` the sample channel.
+      if (p.containsKey('waterTempC')) {
+        if (p['fahrenheitAsKelvinSuspected'] == true) {
+          return [
+            ConvertWaterTempRepair(diveId: diveId, kelvinScale: true),
+            GoToDiveRepair(diveId),
+          ];
+        }
+        if (p['fahrenheitSuspected'] == true) {
+          return [
+            ConvertWaterTempRepair(diveId: diveId, kelvinScale: false),
+            GoToDiveRepair(diveId),
+          ];
+        }
+        return [GoToDiveRepair(diveId)];
+      }
+      if (p.containsKey('deltaC')) {
+        // A one-sided step survives smoothing, so it navigates instead.
+        if (p['spikeShaped'] == true) {
+          return [SmoothTemperatureRepair(diveId), GoToDiveRepair(diveId)];
+        }
+        return [GoToDiveRepair(diveId)];
+      }
       if (p['fahrenheitAsKelvinSuspected'] == true) {
         return [
           ConvertTemperatureRepair(diveId: diveId, kelvinScale: true),
           GoToDiveRepair(diveId),
         ];
       }
-      if (p.containsKey('deltaC')) {
-        return [SmoothTemperatureRepair(diveId), GoToDiveRepair(diveId)];
+      if (p['fahrenheitSuspected'] == true) {
+        return [
+          ConvertTemperatureRepair(diveId: diveId, kelvinScale: false),
+          GoToDiveRepair(diveId),
+        ];
       }
-      if (p.containsKey('waterTempC')) {
-        return [GoToDiveRepair(diveId)];
-      }
-      return [
-        ConvertTemperatureRepair(diveId: diveId, kelvinScale: false),
-        GoToDiveRepair(diveId),
-      ];
+      return [GoToDiveRepair(diveId)];
 
     case 'pressure_anomaly':
       final tankId = p['tankId'] as String?;

@@ -9,6 +9,7 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/restore_step.dart';
 
+import '../../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../../helpers/test_app.dart';
 
 class _FakeBackupOp extends StateNotifier<BackupOperationState>
@@ -62,7 +63,13 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(build(_FakeBackupOp(const BackupOperationState())));
-    // FilePicker returns no selection under test; the step must handle it.
+    // file_picker 12's default platform throws UnimplementedError for every
+    // method (the real ones come from the per-platform packages, which do
+    // not register in unit tests), so a cancelled pick has to be stubbed
+    // rather than assumed. An empty pickFilesResult means "cancelled".
+    final original = FilePickerPlatform.instance;
+    FilePickerPlatform.instance = MockFilePickerPlatform();
+    addTearDown(() => FilePickerPlatform.instance = original);
     await tester.tap(find.text('Choose backup file'));
     await tester.pumpAndSettle();
     expect(find.text('Restore backup'), findsOneWidget);

@@ -7,7 +7,7 @@ void main() {
   late GasAnalysisService service;
 
   setUp(() {
-    service = GasAnalysisService();
+    service = const GasAnalysisService();
   });
 
   Dive makeDive({

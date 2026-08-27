@@ -208,6 +208,161 @@ do {
            "higher-score: later notify candidate replaces the earlier one")
 }
 
+// 9. Heinrichs Weikamp OSTC4 (issue #923). The real GATT table enumerated from
+// the reporter's device: the Telit/Stollmann Terminal I/O service alongside the
+// Stollmann vendor service. The transport must land on the TIO service, write
+// commands to UART Data RX, listen on UART Data TX, and surface the credit
+// characteristics so the caller can run the handshake that opens the UART
+// bridge. Without the handshake the first command write fails and
+// libdivecomputer reports "Failed to send the command".
+do {
+    let tioService = "0000FEFB-0000-1000-8000-00805F9B34FB"
+    let dataRx = "00000001-0000-1000-8000-008025000000"
+    let dataTx = "00000002-0000-1000-8000-008025000000"
+    let creditsRx = "00000003-0000-1000-8000-008025000000"
+    let creditsTx = "00000004-0000-1000-8000-008025000000"
+    let vendorService = "53544D54-4552-494F-5345-525631303030"
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: tioService),
+            characteristics: [
+                char(dataRx, [.writeWithoutResponse]),
+                char(dataTx, [.notify]),
+                char(creditsRx, [.write]),
+                char(creditsTx, [.indicate]),
+            ]
+        ),
+        // The vendor service ties on raw score (writeNoResponse+notify = 8) and
+        // would win on discovery order if the TIO service were not preferred.
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: vendorService),
+            characteristics: [
+                char("53544D01-4552-494F-5345-525631303030", [.writeWithoutResponse]),
+                char("53544D02-4552-494F-5345-525631303030", [.notify]),
+            ]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    let result = resolve(services, selection)
+    expect(result?.serviceIndex == 0, "ostc4: Terminal I/O service selected over the vendor service")
+    expect(result?.write == CBUUID(string: dataRx), "ostc4: commands go to UART Data RX")
+    expect(result?.notify == CBUUID(string: dataTx), "ostc4: replies arrive on UART Data TX")
+    expect(selection?.terminalIoCredits?.writeIndex == 2, "ostc4: UART Credits RX located")
+    expect(selection?.terminalIoCredits?.notifyIndex == 3, "ostc4: UART Credits TX located")
+    expect(selection?.terminalIoCredits?.required == true,
+           "ostc4: Telit credits are mandatory (bridge stays closed without them)")
+}
+
+// 10. Discovery order must not decide it: the same two services in the reverse
+// order still select the Terminal I/O service.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "53544D54-4552-494F-5345-525631303030"),
+            characteristics: [
+                char("53544D01-4552-494F-5345-525631303030", [.writeWithoutResponse]),
+                char("53544D02-4552-494F-5345-525631303030", [.notify]),
+            ]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FEFB-0000-1000-8000-00805F9B34FB"),
+            characteristics: [
+                char("00000001-0000-1000-8000-008025000000", [.writeWithoutResponse]),
+                char("00000002-0000-1000-8000-008025000000", [.notify]),
+                char("00000003-0000-1000-8000-008025000000", [.write]),
+                char("00000004-0000-1000-8000-008025000000", [.indicate]),
+            ]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    expect(selection?.serviceIndex == 1,
+           "ostc4-reordered: Terminal I/O service wins regardless of discovery order")
+    expect(selection?.terminalIoCredits != nil,
+           "ostc4-reordered: credit characteristics still located")
+}
+
+// 11. Devices with no credit characteristics must be left exactly as they
+// were: no handshake, so every currently-working device stays on today's
+// plain write/notify path.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000ffe0-0000-1000-8000-00805f9b34fb"),
+            characteristics: [char("0000ffe1-0000-1000-8000-00805f9b34fb",
+                                   [.writeWithoutResponse, .notify])]
+        )
+    ]
+    expect(BleCharacteristicSelector.select(services: services)?.terminalIoCredits == nil,
+           "non-TIO: no credit handshake requested")
+}
+
+// 12. A partial Telit layout -- data characteristics with no credit pair, and
+// not u-blox either -- is an unknown shape and must not trigger a handshake.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FEFB-0000-1000-8000-00805F9B34FB"),
+            characteristics: [
+                char("00000001-0000-1000-8000-008025000000", [.writeWithoutResponse]),
+                char("00000002-0000-1000-8000-008025000000", [.notify]),
+            ]
+        )
+    ]
+    expect(BleCharacteristicSelector.select(services: services)?.terminalIoCredits == nil,
+           "partial-TIO: incomplete characteristic set does not trigger the handshake")
+}
+
+// 13. u-blox serial service: one characteristic carries data in both
+// directions and one carries credits in both directions, so the write and
+// notify roles collapse onto the same index on each side. Credits are
+// OPTIONAL here -- a device on this service (the OSTC nano, #280/#394)
+// downloads today with no handshake at all, so a rejected grant must be able
+// to fall back rather than fail the connection.
+do {
+    let ubloxData = "2456E1B9-26E2-8F83-E744-F34F01E9D703"
+    let ubloxCredits = "2456E1B9-26E2-8F83-E744-F34F01E9D704"
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "2456E1B9-26E2-8F83-E744-F34F01E9D701"),
+            characteristics: [
+                char(ubloxData, [.writeWithoutResponse, .notify]),
+                char(ubloxCredits, [.write, .indicate]),
+            ]
+        )
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    let result = resolve(services, selection)
+    expect(result?.write == CBUUID(string: ubloxData), "ublox: commands go to the FIFO characteristic")
+    expect(result?.notify == CBUUID(string: ubloxData), "ublox: replies arrive on the same FIFO characteristic")
+    expect(selection?.terminalIoCredits?.writeIndex == 1, "ublox: credits characteristic located for writes")
+    expect(selection?.terminalIoCredits?.notifyIndex == 1, "ublox: same characteristic used for credit indications")
+    expect(selection?.terminalIoCredits?.required == false,
+           "ublox: credits are optional, so a failed grant can fall back")
+}
+
+// 14. The u-blox credits characteristic must never be mistaken for the data
+// characteristic. Here credits advertise write-without-response + notify --
+// the top raw score on both sides -- so only the preferred-UUID pin on the
+// FIFO keeps commands off the credits endpoint.
+do {
+    let ubloxData = "2456E1B9-26E2-8F83-E744-F34F01E9D703"
+    let ubloxCredits = "2456E1B9-26E2-8F83-E744-F34F01E9D704"
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "2456E1B9-26E2-8F83-E744-F34F01E9D701"),
+            characteristics: [
+                char(ubloxCredits, [.writeWithoutResponse, .notify]),
+                char(ubloxData, [.write, .indicate]),
+            ]
+        )
+    ]
+    let result = resolve(services, BleCharacteristicSelector.select(services: services))
+    expect(result?.write == CBUUID(string: ubloxData),
+           "ublox-pin: FIFO wins the write role despite the lower raw score")
+    expect(result?.notify == CBUUID(string: ubloxData),
+           "ublox-pin: FIFO wins the notify role despite the lower raw score")
+}
+
 if failures == 0 {
     print("All BleCharacteristicSelector tests passed.")
     exit(0)

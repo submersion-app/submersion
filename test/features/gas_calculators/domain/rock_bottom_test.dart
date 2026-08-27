@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
@@ -31,6 +32,7 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _al80,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.totalLiters, closeTo(635.0, 1.0));
@@ -48,6 +50,7 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _al80,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.solveGasLiters, closeTo(229.3, 1.0));
@@ -68,10 +71,40 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.totalLiters, closeTo(757.5, 2.0));
       expect(r.reserveBar, closeTo(63.1, 0.3));
+    });
+
+    test('the gas model moves the reserve pressure, not the reserve gas', () {
+      RockBottomInputs at(GasModel model) => RockBottomInputs(
+        depthMeters: 30,
+        ascentRateMetersPerMin: 9,
+        diverSacLitersPerMin: 20,
+        buddySacLitersPerMin: 25,
+        solveMinutes: 1,
+        includeSafetyStop: true,
+        tank: _steel12,
+        gasModel: model,
+      );
+      final ideal = computeRockBottom(at(GasModel.ideal));
+      final real = computeRockBottom(at(GasModel.real));
+
+      // How many liters the ascent needs is physiology and depth; the model
+      // only decides what that volume costs in cylinder pressure.
+      expect(real.totalLiters, closeTo(ideal.totalLiters, 1e-9));
+
+      // Air's Z is BELOW 1 at a ~63 bar reserve, so the cylinder holds a
+      // little more than the ideal law predicts and the reserve pressure
+      // comes out slightly lower. That is the opposite direction from the
+      // same correction's effect on a full cylinder (issue #828).
+      expect(real.reserveBar, lessThan(ideal.reserveBar));
+      expect(
+        real.reserveBar,
+        closeTo(ideal.reserveBar, ideal.reserveBar * 0.01),
+      );
     });
 
     test('solve time contributes gas proportional to depth pressure', () {
@@ -133,6 +166,7 @@ void main() {
           solveMinutes: 0,
           includeSafetyStop: true,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       // 5 m at 3 m/min = 1.667 min at 1.25 bar on 45 L/min = 93.75 L.
@@ -149,6 +183,7 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _al80,
+          gasModel: GasModel.ideal,
         ),
       );
       // Dividing by free gas (2296 L) would give ~0.28 bar, the reported bug.
@@ -165,6 +200,7 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       expect(r.totalLiters.isFinite, isTrue);
@@ -181,6 +217,7 @@ void main() {
           solveMinutes: 1,
           includeSafetyStop: true,
           tank: _steel12,
+          gasModel: GasModel.ideal,
         ),
       );
       // 1 solve + 25/9 ascent + 3 stop + 5/9 final = 7.333 min.

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
@@ -13,11 +15,13 @@ import 'package:submersion/features/auto_update/presentation/providers/update_pr
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
     show DeleteDiverResult;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -27,10 +31,12 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -41,6 +47,26 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
+
+  /// Already "loaded": the mock's state is supplied up front.
+  @override
+  Future<void> get initialLoad async {}
+
+  @override
+  Future<void> setAccentNavIcons(bool value) async =>
+      state = state.copyWith(accentNavIcons: value);
+
+  @override
+  Future<void> setAccentSectionHeaders(bool value) async =>
+      state = state.copyWith(accentSectionHeaders: value);
+
+  @override
+  Future<void> setAccentListIcons(bool value) async =>
+      state = state.copyWith(accentListIcons: value);
+
+  @override
+  Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
+      state = state.copyWith(seascapeAppearance: appearance);
 
   @override
   Future<void> setChamberHidden(String chamberId, bool hidden) async {
@@ -62,6 +88,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>
       state = state.copyWith(defaultShowGasTimeline: value);
+  @override
+  Future<void> setDefaultShowO2CellMv(bool value) async =>
+      state = state.copyWith(defaultShowO2CellMv: value);
+  @override
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
+      state = state.copyWith(defaultShowEstimatedTankPressure: value);
   @override
   Future<void> setDefaultShowAscentRateLine(bool value) async =>
       state = state.copyWith(defaultShowAscentRateLine: value);
@@ -86,9 +118,32 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSacUnit(SacUnit unit) async =>
       state = state.copyWith(sacUnit: unit);
+
+  @override
+  Future<void> setGasModel(GasModel model) async =>
+      state = state.copyWith(gasModel: model);
+
+  @override
+  Future<void> setDefaultCurrency(String currencyCode) async =>
+      state = state.copyWith(defaultCurrency: currencyCode);
+  @override
+  Future<void> setVisibilityScale({
+    required VisibilityScalePreset preset,
+    double? excellentM,
+    double? goodM,
+    double? moderateM,
+  }) async => state = state.copyWith(
+    visibilityScalePreset: preset,
+    visibilityScaleExcellentM: excellentM,
+    visibilityScaleGoodM: goodM,
+    visibilityScaleModerateM: moderateM,
+  );
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
+  @override
+  Future<void> setCoordinateFormat(CoordinateFormat format) async =>
+      state = state.copyWith(coordinateFormat: format);
   @override
   Future<void> setTimeFormat(TimeFormat format) async =>
       state = state.copyWith(timeFormat: format);
@@ -104,6 +159,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setLocale(String locale) async =>
       state = state.copyWith(locale: locale);
+  @override
+  Future<void> setPlaceNameLanguage(String code) async =>
+      state = state.copyWith(placeNameLanguage: code);
   @override
   Future<void> setDefaultDiveType(String diveType) async =>
       state = state.copyWith(defaultDiveType: diveType);
@@ -168,6 +226,27 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     }
     state = state.copyWith(hiddenHomeChips: hidden);
   }
+
+  @override
+  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
+    final hidden = {...state.hiddenHomeCards};
+    if (enabled) {
+      hidden.remove(cardId);
+    } else {
+      hidden.add(cardId);
+    }
+    state = state.copyWith(hiddenHomeCards: hidden);
+  }
+
+  @override
+  Future<void> setHomeCardOrder(List<String> order) async =>
+      state = state.copyWith(homeCardOrder: order);
+
+  @override
+  Future<void> resetHomeCards() async => state = state.copyWith(
+    homeCardOrder: const <String>[],
+    hiddenHomeCards: const <String>{},
+  );
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
@@ -388,14 +467,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
-  @override
-  Future<void> setFullscreenTilePreferences({
-    required List<String> order,
-    required List<String> hidden,
-  }) async => state = state.copyWith(
-    fullscreenTileOrder: order,
-    fullscreenHiddenTiles: hidden,
-  );
 
   @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
@@ -403,6 +474,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
       );
+
+  @override
+  Future<void> setProfileMetricsFollowViewport(bool value) async =>
+      state = state.copyWith(profileMetricsFollowViewport: value);
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>
@@ -496,13 +571,16 @@ void main() {
   /// Builds a test widget with mobile screen size to avoid MasterDetailScaffold
   /// which requires GoRouter. The SettingsPage uses MasterDetailScaffold on
   /// desktop (>=800px) which calls GoRouterState.of(context).
-  Widget buildTestWidget(Widget child, {Locale? locale}) {
+  Widget buildTestWidget(Widget child, {Locale? locale, ThemeData? theme}) {
     return MediaQuery(
       data: const MediaQueryData(size: Size(400, 800)),
       child: ProviderScope(
         overrides: getOverrides(),
         child: MaterialApp(
-          locale: locale,
+          // Default to English: tests find widgets by label, and flutter_test
+          // forwards the host platform locales when locale is null.
+          locale: locale ?? const Locale('en'),
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: child,
@@ -510,6 +588,44 @@ void main() {
       ),
     );
   }
+
+  group('SettingsPage section accent colors', () {
+    ThemeData accentTheme() => ThemeData(
+      brightness: Brightness.light,
+      extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
+    );
+
+    testWidgets('section icons resolve from the accent palette', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), theme: accentTheme()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Appearance'), 50.0);
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.palette));
+      expect(icon.color, FeatureAccentColors.light.of('settings-appearance'));
+    });
+
+    testWidgets('section icons fall back to primary without the extension', (
+      tester,
+    ) async {
+      final theme = ThemeData(brightness: Brightness.light);
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), theme: theme),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Appearance'), 50.0);
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.palette));
+      expect(icon.color, theme.colorScheme.primary);
+    });
+  });
 
   group('SettingsPage', () {
     testWidgets('should display Settings title in app bar', (tester) async {
@@ -661,6 +777,7 @@ void main() {
           child: ProviderScope(
             overrides: overrides,
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: SettingsPage(),
@@ -730,6 +847,7 @@ void main() {
           child: ProviderScope(
             overrides: overrides,
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: SettingsPage(),
@@ -1039,6 +1157,50 @@ void main() {
       );
     }
 
+    // The desktop master-detail pane renders _AppearanceSectionContent, a
+    // separate widget from AppearancePage. The color-accent toggles have to
+    // exist in both or they vanish on wide screens.
+    testWidgets('hub shows the three color accent toggles', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Color accents'), findsOneWidget);
+      expect(find.text('Colored navigation icons'), findsOneWidget);
+      expect(find.text('Colored section headers'), findsOneWidget);
+      expect(find.text('Colored list icons'), findsOneWidget);
+
+      final switches = tester
+          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      expect(switches, hasLength(3));
+      expect(switches.every((s) => s.value == false), isTrue);
+    });
+
+    testWidgets('hub accent toggle flips only its own surface', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Colored list icons'));
+      await tester.pumpAndSettle();
+
+      SwitchListTile tileFor(String title) => tester.widget<SwitchListTile>(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(SwitchListTile),
+        ),
+      );
+
+      expect(tileFor('Colored list icons').value, isTrue);
+      expect(tileFor('Colored navigation icons').value, isFalse);
+      expect(tileFor('Colored section headers').value, isFalse);
+    });
+
     testWidgets('tapping Home shows the home chip settings', (tester) async {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
@@ -1058,6 +1220,11 @@ void main() {
     testWidgets('tapping a section entry shows section appearance sub-page', (
       tester,
     ) async {
+      // Tall surface so the Sections card is on-screen and tappable: the hub
+      // scrolls, and the color-accent card sits above it.
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
@@ -1080,6 +1247,9 @@ void main() {
     testWidgets('navigating back from section appearance returns to hub', (
       tester,
     ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
@@ -1184,6 +1354,10 @@ void main() {
             path: '/checklist-templates',
             builder: (context, state) => const Text('Checklist Templates Stub'),
           ),
+          GoRoute(
+            path: '/equipment/service-types',
+            builder: (context, state) => const Text('Service Types Stub'),
+          ),
         ],
       );
 
@@ -1214,6 +1388,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Checklist Templates Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    // The service type catalog used to be reachable only from the add-a-clock
+    // flow on an equipment item, which is why nobody could find it.
+    testWidgets('renders the service types tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Service types'), findsOneWidget);
+      expect(
+        find.text('Maintenance your gear needs, and how often'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Service types'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Service Types Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -1289,12 +1484,34 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
+      // Mirror the real route config: '/settings' is a bottom-nav tab root
+      // that must not animate when tabs are switched, and sections live on
+      // an animated child route beneath it.
       final router = GoRouter(
         initialLocation: initialLocation,
         routes: [
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const SettingsPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'section/:sectionId',
+                builder: (context, state) => SettingsSectionDetailPage(
+                  sectionId: state.pathParameters['sectionId']!,
+                ),
+              ),
+              // Sections whose content is already a full page have their own
+              // routes; stubbed here so the tile's target is observable
+              // without pulling in their provider graphs.
+              GoRoute(
+                path: 'safety',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('safety page')),
+              ),
+            ],
           ),
         ],
       );
@@ -1314,7 +1531,65 @@ void main() {
       return router;
     }
 
-    testWidgets('opening a query-param section pushes a poppable route so the '
+    testWidgets('sections whose content is already a full page go to their '
+        'own route, not the shared section wrapper', (tester) async {
+      // SettingsSectionDetailPage supplies a Scaffold and an AppBar, so a
+      // section whose content is itself a Scaffold-with-AppBar (Safety,
+      // Debug) would render two stacked app bars. Both have dedicated
+      // routes; the tile must use them, the way Profile and Appearance do.
+      final router = await pumpSettingsList(tester);
+
+      await tester.scrollUntilVisible(find.text('Safety'), 100);
+      await tester.tap(find.text('Safety'));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.state.uri.toString(),
+        '/settings/safety',
+        reason:
+            'routing Safety through /settings/section/safety nests '
+            'SafetySettingsPage inside the wrapper Scaffold',
+      );
+    });
+
+    testWidgets('opening a section animates it into place instead of '
+        'snapping', (tester) async {
+      // Appearance slid in because it pushes a child GoRoute; About, Data and
+      // the rest re-matched the '/settings' tab root, whose NoTransitionPage
+      // suppressed the animation. Every section must now animate the same
+      // way.
+      final router = await pumpSettingsList(tester);
+
+      await tester.scrollUntilVisible(find.text('Data'), 100);
+      await tester.tap(find.text('Data'));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.state.uri.toString(),
+        '/settings/section/data',
+        reason:
+            'the section must be its own child route; re-matching /settings '
+            'reuses that tab root page, which never animates',
+      );
+
+      // Assert on the route rather than a frame-by-frame position: the tap
+      // ripple keeps animations running either way, so only the pushed
+      // route's own transition duration distinguishes a slide from a snap.
+      final route = ModalRoute.of(
+        tester.element(find.byType(SettingsSectionDetailPage)),
+      );
+      expect(route, isNotNull);
+      expect(
+        route!.transitionDuration,
+        greaterThan(Duration.zero),
+        reason:
+            'a NoTransitionPage route has a zero-length transition, which is '
+            'exactly the snap this fixes',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('opening a section pushes a poppable route so the '
         'system back gesture returns to Settings instead of closing the app', (
       tester,
     ) async {
@@ -1378,6 +1653,124 @@ void main() {
 
       expect(find.text('Units'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('UnitsSectionContent default currency', () {
+    Widget buildUnitsWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=units',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          // Pin the locale so the English string-based finders below are
+          // deterministic regardless of the host environment locale.
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    Future<void> openPicker(WidgetTester tester) async {
+      await tester.scrollUntilVisible(find.text('Default Currency'), 200);
+      await tester.ensureVisible(find.text('Default Currency'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Default Currency'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the tile shows the persisted currency code', (tester) async {
+      await tester.pumpWidget(
+        buildUnitsWidget(
+          getOverrides(const AppSettings(defaultCurrency: 'EUR')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Default Currency'), 200);
+      await tester.pumpAndSettle();
+
+      expect(find.text('EUR'), findsOneWidget);
+    });
+
+    testWidgets('the picker lists the preset codes with their symbols', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildUnitsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('EUR  €'), findsOneWidget);
+      expect(find.text('GBP  £'), findsOneWidget);
+      // The current selection is ticked (scoped to the dialog - the page
+      // behind it has check icons of its own).
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('picking a currency persists it and closes the dialog', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildUnitsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+
+      await tester.tap(find.text('EUR  €'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('EUR'), findsOneWidget);
+    });
+
+    testWidgets('cancelling leaves the currency unchanged', (tester) async {
+      await tester.pumpWidget(buildUnitsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('USD'), findsOneWidget);
+    });
+
+    testWidgets('a stored code outside the presets stays selectable', (
+      tester,
+    ) async {
+      // Currency is free text elsewhere in the app, so the picker must offer
+      // the persisted value even when it is not one of the presets.
+      await tester.pumpWidget(
+        buildUnitsWidget(
+          getOverrides(const AppSettings(defaultCurrency: 'ISK')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+
+      // Listed with its symbol in the dialog, and ticked as the current value.
+      expect(find.text('ISK  ${currencySymbol('ISK')}'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

@@ -21,11 +21,20 @@ class PerdixFace extends StatelessWidget {
     required this.data,
     required this.settings,
     this.width = 300,
+    this.showDragHandle = false,
   });
 
   final PerdixFaceData data;
   final AppSettings settings;
   final double width;
+
+  /// Draws a grabber bar above the readout. Set by [DraggablePerdixOverlay];
+  /// nothing about the face is draggable on its own, so the affordance must
+  /// not appear where the face is rendered statically.
+  final bool showDragHandle;
+
+  /// Identifies the grabber bar for tests.
+  static const dragHandleKey = Key('perdix-face-drag-handle');
 
   static const perdixGreen = Color(0xFF35D43C);
   static const perdixYellow = Color(0xFFFFD83A);
@@ -52,6 +61,18 @@ class PerdixFace extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (showDragHandle) ...[
+            Container(
+              key: dragHandleKey,
+              width: 28,
+              height: 3,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           for (var i = 0; i < rows.length; i++) ...[
             if (i > 0) const SizedBox(height: 8),
             Row(

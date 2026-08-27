@@ -6,6 +6,11 @@ import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mnd_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+/// The blender's own state lives in its own file; re-exported so every
+/// existing consumer and [resetGasCalculators] keep resolving.
+import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+export 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // MOD Calculator State
 // ═══════════════════════════════════════════════════════════════════════════
@@ -83,6 +88,7 @@ final consumptionResultProvider = Provider<ConsumptionResult>((ref) {
       minutes: ref.watch(consumptionTimeProvider),
       sacLitersPerMin: ref.watch(consumptionSacProvider),
       tank: ref.watch(consumptionTankProvider),
+      gasModel: ref.watch(gasModelProvider),
     ),
   );
 });
@@ -127,6 +133,7 @@ final rockBottomResultProvider = Provider<RockBottomResult>((ref) {
       solveMinutes: ref.watch(rockBottomSolveMinutesProvider),
       includeSafetyStop: ref.watch(rockBottomSafetyStopProvider),
       tank: ref.watch(rockBottomTankProvider),
+      gasModel: ref.watch(gasModelProvider),
     ),
   );
 });
@@ -156,4 +163,6 @@ void resetGasCalculators(WidgetRef ref) {
   ref.read(rockBottomSafetyStopProvider.notifier).state = true;
   // MND/END
   resetMndCalculator(ref);
+  // Gas Blender
+  resetGasBlender(ref);
 }

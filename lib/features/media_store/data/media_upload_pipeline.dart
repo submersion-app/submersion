@@ -286,7 +286,18 @@ class MediaUploadPipeline {
       return (isOverride || existing == null)
           ? UploadOutcome.uploaded
           : UploadOutcome.deduplicated;
-    } on Exception catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
+      // Untyped on purpose (issue #1270). process() marks the row
+      // 'transferring' before it does anything, and nextPending never selects
+      // that state, so anything that escapes this catch leaves the row
+      // invisible to the drainer - unretryable and unclearable from the
+      // Transfers UI - until the next launch's reclaim pass hands it straight
+      // back to whatever raised it. Errors are not hypothetical on this path:
+      // an uninitialized singleton raises StateError (the same reasoning
+      // MediaDeletionCoordinator._delete documents), and staging a large
+      // original can raise OutOfMemoryError. Neither is an Exception, and
+      // markFailed's backoff is a far better answer to both than a row that
+      // wedges the queue head.
       _log.error(
         'Upload failed for media ${entry.mediaId}',
         error: e,

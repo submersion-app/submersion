@@ -8,9 +8,12 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
 
   s.source_files     = 'Classes/**/*.{swift,c,h}'
-  s.public_header_files = 'Classes/libdc_wrapper.h'
+  # Matches the macOS podspec so the shared Swift sources compile identically.
+  # No IOKit framework here: iOS has no USB host support, so ftdi_usb_darwin.c
+  # compiles to stubs (issue #732).
+  s.public_header_files = 'Classes/{libdc_wrapper,ftdi_usb_darwin}.h'
   s.dependency 'Flutter'
-  s.platform         = :ios, '14.0'
+  s.platform         = :ios, '15.0'
   s.swift_version    = '5.9'
 
   # Preserve libdivecomputer source and config for build script

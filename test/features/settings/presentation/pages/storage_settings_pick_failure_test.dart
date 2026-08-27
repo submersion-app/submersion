@@ -113,6 +113,7 @@ void main() {
             supportsICloud: false,
             supportsGoogleDrive: false,
             isDesktop: true,
+            customFolderIsDeviceVolumeOnly: false,
           ),
         ),
         currentDatabasePathProvider.overrideWith((ref) async => '/tmp/db'),

@@ -27,15 +27,46 @@ ProfileAnalysis analyzeFixture({
 /// Each segment is (targetDepth, durationSeconds); sampling every 10 s.
 ({List<double> depths, List<int> timestamps}) buildProfile(
   List<(double, int)> segments,
+) => _buildProfile(segments, 10);
+
+/// Like [buildProfile] but samples every 2 s, matching the rate most dive
+/// computers record at. The smoothing window the ascent-rate calculator
+/// derives from the sampling interval is much shorter at 2 s than at 10 s,
+/// so brief excursions only survive smoothing on a finely sampled profile.
+({List<double> depths, List<int> timestamps}) buildFineProfile(
+  List<(double, int)> segments,
+) => _buildProfile(segments, 2);
+
+/// Emits one sample every [intervalSeconds], interpolating linearly to each
+/// segment's target depth.
+///
+/// Segment durations must be positive multiples of [intervalSeconds]. A
+/// ragged duration would be truncated, silently shifting every later sample
+/// and changing the rates these fixtures exist to pin down; a duration below
+/// one interval is worse still, moving the diver to the target depth without
+/// emitting any sample of the move. Both are asserted rather than tolerated,
+/// because a fixture that quietly describes a different dive than it reads as
+/// is the failure mode these safety-rule tests can least afford.
+({List<double> depths, List<int> timestamps}) _buildProfile(
+  List<(double, int)> segments,
+  int intervalSeconds,
 ) {
+  for (final (target, duration) in segments) {
+    assert(
+      duration >= intervalSeconds && duration % intervalSeconds == 0,
+      'segment (${target}m, ${duration}s) is not a positive multiple of the '
+      '${intervalSeconds}s sampling interval',
+    );
+  }
+
   final depths = <double>[0];
   final timestamps = <int>[0];
   var t = 0;
   var d = 0.0;
   for (final (target, duration) in segments) {
-    final steps = duration ~/ 10;
+    final steps = duration ~/ intervalSeconds;
     for (var i = 1; i <= steps; i++) {
-      t += 10;
+      t += intervalSeconds;
       depths.add(d + (target - d) * i / steps);
       timestamps.add(t);
     }
@@ -82,17 +113,20 @@ ProfileAnalysis analyzeFixture({
       (0, 140), // ~7.7 m/min direct ascent
     ]);
 
-/// 20 m bottom with three 6 m up-and-back excursions (20 -> 14 -> 20),
-/// then a normal slow ascent with safety stop.
+/// 20 m bottom with four 8 m up-and-back excursions (20 -> 12 -> 20),
+/// then a normal slow ascent with safety stop. Four teeth of this amplitude
+/// clear the rule's bar; three 6 m teeth deliberately do not.
 ({List<double> depths, List<int> timestamps}) sawtoothProfile() =>
     buildProfile([
       (20, 120),
       (20, 300),
-      (14, 90), (20, 90), // tooth 1
+      (12, 120), (20, 120), // tooth 1
       (20, 120),
-      (14, 90), (20, 90), // tooth 2
+      (12, 120), (20, 120), // tooth 2
       (20, 120),
-      (14, 90), (20, 90), // tooth 3
+      (12, 120), (20, 120), // tooth 3
+      (20, 120),
+      (12, 120), (20, 120), // tooth 4
       (20, 120),
       (5, 190), // slow ascent
       (5, 180), // safety stop

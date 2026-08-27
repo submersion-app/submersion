@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,6 +8,24 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/sync/sync_preferences.dart'
+    show syncLastProviderPrefsKey;
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The cloud provider the foreground app last selected, as recorded in
+/// [prefs]. Free-standing (not a [SyncInitializer] method) so the headless
+/// background isolate -- which has no `SyncRepository` to build an
+/// initializer with -- reads the selection through the same parser.
+CloudProviderType? lastCloudProviderFromPrefs(SharedPreferences prefs) {
+  final providerString = prefs.getString(syncLastProviderPrefsKey);
+  if (providerString == null) return null;
+
+  for (final type in CloudProviderType.values) {
+    if (type.name == providerString) return type;
+  }
+  return null;
+}
 
 /// Handles sync initialization and checks on app launch
 class SyncInitializer {
@@ -14,7 +33,9 @@ class SyncInitializer {
 
   final _uuid = const Uuid();
 
-  static const _lastProviderKey = 'sync_last_provider';
+  // Single definition lives in sync_preferences.dart so the pre-provider
+  // escape-hatch path clears the same key.
+  static const _lastProviderKey = syncLastProviderPrefsKey;
 
   /// Mirrors the in-DB sync device id outside the database (which a restore
   /// would otherwise rewind silently). A mismatch on launch is one signal that
@@ -43,25 +64,25 @@ class SyncInitializer {
   final SyncRepository _syncRepository;
   final SharedPreferences _prefs;
 
+  /// Resolves localizations for the [SyncCheckResult] messages. Injected by
+  /// `syncInitializerProvider`; defaults to English so an un-wired caller (a
+  /// unit test, the headless isolate) stays deterministic.
+  final AppLocalizations Function() _localizations;
+
+  static AppLocalizations _englishLocalizations() => l10nForLocaleTag('en');
+
+  AppLocalizations get _l10n => _localizations();
+
   SyncInitializer({
     required SyncRepository syncRepository,
     required SharedPreferences prefs,
+    AppLocalizations Function()? localizations,
   }) : _syncRepository = syncRepository,
-       _prefs = prefs;
+       _prefs = prefs,
+       _localizations = localizations ?? _englishLocalizations;
 
   /// Get the last used cloud provider type
-  CloudProviderType? getLastProvider() {
-    final providerString = _prefs.getString(_lastProviderKey);
-    if (providerString == null) return null;
-
-    try {
-      return CloudProviderType.values.firstWhere(
-        (p) => p.name == providerString,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+  CloudProviderType? getLastProvider() => lastCloudProviderFromPrefs(_prefs);
 
   /// Save the selected cloud provider
   Future<void> saveProvider(CloudProviderType? provider) async {
@@ -236,9 +257,9 @@ class SyncInitializer {
     CloudStorageProvider? provider,
   ) async {
     if (provider == null) {
-      return const SyncCheckResult(
+      return SyncCheckResult(
         status: SyncCheckStatus.notConfigured,
-        message: 'No cloud provider configured',
+        message: _l10n.settings_cloudSync_result_noProvider,
       );
     }
 
@@ -247,7 +268,9 @@ class SyncInitializer {
       if (!await provider.isAvailable()) {
         return SyncCheckResult(
           status: SyncCheckStatus.unavailable,
-          message: '${provider.providerName} is not available on this device',
+          message: _l10n.settings_cloudSync_launchCheck_unavailable(
+            provider.providerName,
+          ),
         );
       }
 
@@ -255,7 +278,9 @@ class SyncInitializer {
       if (!await provider.isAuthenticated()) {
         return SyncCheckResult(
           status: SyncCheckStatus.notAuthenticated,
-          message: 'Not signed in to ${provider.providerName}',
+          message: _l10n.settings_cloudSync_launchCheck_notSignedIn(
+            provider.providerName,
+          ),
         );
       }
 
@@ -282,15 +307,16 @@ class SyncInitializer {
         if (pendingCount > 0) {
           return SyncCheckResult(
             status: SyncCheckStatus.localChanges,
-            message:
-                '$pendingCount local change${pendingCount == 1 ? '' : 's'} to upload',
+            message: _l10n.settings_cloudSync_launchCheck_localChanges(
+              pendingCount,
+            ),
             localLastSync: localLastSync,
             pendingChanges: pendingCount,
           );
         }
-        return const SyncCheckResult(
+        return SyncCheckResult(
           status: SyncCheckStatus.noRemoteData,
-          message: 'No sync data found in cloud',
+          message: _l10n.settings_cloudSync_launchCheck_noRemoteData,
         );
       }
 
@@ -300,7 +326,7 @@ class SyncInitializer {
       if (localLastSync == null) {
         return SyncCheckResult(
           status: SyncCheckStatus.updatesAvailable,
-          message: 'Cloud data available',
+          message: _l10n.settings_cloudSync_launchCheck_cloudDataAvailable,
           remoteModified: remoteModified,
         );
       }
@@ -308,7 +334,7 @@ class SyncInitializer {
       if (remoteModified.isAfter(localLastSync)) {
         return SyncCheckResult(
           status: SyncCheckStatus.updatesAvailable,
-          message: 'Updates available from cloud',
+          message: _l10n.settings_cloudSync_launchCheck_updatesAvailable,
           localLastSync: localLastSync,
           remoteModified: remoteModified,
         );
@@ -319,8 +345,9 @@ class SyncInitializer {
       if (pendingCount > 0) {
         return SyncCheckResult(
           status: SyncCheckStatus.localChanges,
-          message:
-              '$pendingCount local change${pendingCount == 1 ? '' : 's'} to upload',
+          message: _l10n.settings_cloudSync_launchCheck_localChanges(
+            pendingCount,
+          ),
           localLastSync: localLastSync,
           pendingChanges: pendingCount,
         );
@@ -328,14 +355,14 @@ class SyncInitializer {
 
       return SyncCheckResult(
         status: SyncCheckStatus.upToDate,
-        message: 'Everything is up to date',
+        message: _l10n.settings_cloudSync_launchCheck_upToDate,
         localLastSync: localLastSync,
       );
     } catch (e, stackTrace) {
       _log.error('Sync check failed', error: e, stackTrace: stackTrace);
       return SyncCheckResult(
         status: SyncCheckStatus.error,
-        message: 'Sync check failed: $e',
+        message: _l10n.settings_cloudSync_launchCheck_failed('$e'),
       );
     }
   }
@@ -348,14 +375,48 @@ class SyncInitializer {
   Future<List<CloudFileInfo>> peerSyncFiles(
     CloudStorageProvider provider,
   ) async {
+    final files = await peerLogFiles(provider);
+    return files.where((f) => ChangesetLogLayout.isManifest(f.name)).toList();
+  }
+
+  /// Every changeset-log artifact belonging to a peer device -- manifests,
+  /// changesets and base parts alike -- our own excluded. [peerSyncFiles]
+  /// narrows this to manifests; callers that must tell "this account is empty"
+  /// apart from "a publish was interrupted here" need the wider view, because
+  /// the manifest is written LAST and a base publish is not resumable.
+  Future<List<CloudFileInfo>> peerLogFiles(
+    CloudStorageProvider provider,
+  ) async {
     final deviceId = await _syncRepository.getDeviceId();
     final files = await provider.listFiles(
       namePattern: ChangesetLogLayout.prefix,
     );
     return files
-        .where((f) => ChangesetLogLayout.isManifest(f.name))
+        .where((f) => ChangesetLogLayout.isOurs(f.name))
         .where((f) => ChangesetLogLayout.deviceIdOf(f.name) != deviceId)
         .toList();
+  }
+
+  /// What a peer listing says about this account, in one round trip.
+  Future<PeerLibraryState> peerLibraryState(
+    CloudStorageProvider provider,
+  ) async => classifyPeerFiles(await peerLogFiles(provider));
+
+  /// Classifies a peer listing. Static and visible for testing for the same
+  /// reason as SyncNotifier.skippedPeerLabels: it is pure, and the rule
+  /// deserves tests that do not need a provider or a database.
+  @visibleForTesting
+  static PeerLibraryState classifyPeerFiles(List<CloudFileInfo> files) {
+    if (files.isEmpty) return PeerLibraryState.none;
+    // A retirement marker is a tombstone, not a library: a retired peer's
+    // leftovers must not read as a library waiting to be pulled.
+    final live = files.where(
+      (f) => !ChangesetLogLayout.isRetiredMarker(f.name),
+    );
+    if (live.isEmpty) return PeerLibraryState.none;
+    return live.any((f) => ChangesetLogLayout.isManifest(f.name))
+        ? PeerLibraryState.pullable
+        : PeerLibraryState.incomplete;
   }
 
   /// The most recent modifiedTime across [files], which must be non-empty.
@@ -366,6 +427,21 @@ class SyncInitializer {
     }
     return newest;
   }
+}
+
+/// What a peer changeset-log listing says about a cloud account.
+enum PeerLibraryState {
+  /// No peer has written anything here. A genuinely fresh account.
+  none,
+
+  /// Peer artifacts exist but none of them is a manifest. The manifest commits
+  /// a publish and is written last, so this is a publish that never finished
+  /// -- interrupted, or still in flight on the other device. There is nothing
+  /// to pull yet, but the account is NOT empty and saying so would be wrong.
+  incomplete,
+
+  /// At least one peer manifest: a library that can be pulled.
+  pullable,
 }
 
 /// Outcome of [SyncInitializer.reconcileDeviceIdentity].

@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final diveRoleRepositoryProvider = Provider<DiveRoleRepository>((ref) {
@@ -37,7 +38,11 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
 
   DiveRoleListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveRoleListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -45,7 +50,11 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allDiveRolesProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveRoleListNotifier,
+          'initialize and load',
+        );
       }
     });
 
@@ -64,14 +73,18 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
   }
 
   Future<void> _loadDiveRoles() async {
+    // Every assignment is mounted-guarded, matching _silentReloadDiveRoles:
+    // this runs after the await in _initializeAndLoad, so the notifier can
+    // already be disposed by the time the first one lands.
+    if (!mounted) return;
     state = const AsyncValue.loading();
     try {
       final roles = await _repository.getAllDiveRoles(
         diverId: _validatedDiverId,
       );
-      state = AsyncValue.data(roles);
+      if (mounted) state = AsyncValue.data(roles);
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
@@ -91,6 +104,18 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
     }
   }
 
+  /// Refreshes [allDiveRolesProvider] after a write, if this notifier is still
+  /// alive.
+  ///
+  /// The provider is `autoDispose`, and a mutation usually runs from a dialog
+  /// whose route can drop this notifier's last listener while the write is
+  /// still in flight -- touching `_ref` afterwards throws. Skipping the
+  /// invalidate then costs nothing: `allDiveRolesProvider` self-invalidates
+  /// from `watchDiveRolesChanges()`, so the committed row still reaches the UI.
+  void _refreshAllDiveRoles() {
+    if (mounted) _ref.invalidate(allDiveRolesProvider);
+  }
+
   /// Add a custom dive role by name. Throws if no valid diver profile exists.
   Future<DiveRole> addDiveRoleByName(String name) async {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
@@ -102,7 +127,7 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
       diverId: validatedId,
     );
     await _loadDiveRoles();
-    _ref.invalidate(allDiveRolesProvider);
+    _refreshAllDiveRoles();
     return created;
   }
 
@@ -110,14 +135,14 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
   Future<void> renameDiveRole(String id, String name) async {
     await _repository.renameDiveRole(id, name);
     await _loadDiveRoles();
-    _ref.invalidate(allDiveRolesProvider);
+    _refreshAllDiveRoles();
   }
 
   /// Delete a custom dive role (built-in roles cannot be deleted)
   Future<void> deleteDiveRole(String id) async {
     await _repository.deleteDiveRole(id);
     await _loadDiveRoles();
-    _ref.invalidate(allDiveRolesProvider);
+    _refreshAllDiveRoles();
   }
 
   /// Check if a dive role is referenced by any dive

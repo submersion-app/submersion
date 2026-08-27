@@ -167,15 +167,23 @@ class DiveConsolidationService {
         final secSources = snapshot.dataSourceRows
             .where((r) => r.diveId == secondary.id)
             .toList();
+        // Owning-source ids for the copied profile rows (issue #1149).
+        // Maps the secondary's source id to the freshly minted row on the
+        // target; `null` keys the synthesized case, where the secondary had
+        // no source row for its profiles to point at.
+        final sourceIdMap = <String?, String>{};
+
         if (secSources.isEmpty) {
           // Synthesize from the dives row -- same companion mergeDives
           // builds today (dive_repository_impl.dart:4616-4652), attributed
           // to the secondary's own computer.
+          final synthesizedId = _uuid.v4();
+          sourceIdMap[null] = synthesizedId;
           await _db
               .into(_db.diveDataSources)
               .insert(
                 DiveDataSourcesCompanion(
-                  id: Value(_uuid.v4()),
+                  id: Value(synthesizedId),
                   diveId: Value(targetDiveId),
                   computerId: Value(secRow.computerId),
                   isPrimary: const Value(false),
@@ -208,22 +216,42 @@ class DiveConsolidationService {
                   gradientFactorHigh: Value(secRow.gradientFactorHigh),
                   importedAt: Value(nowDt),
                   createdAt: Value(nowDt),
+                  timeOffsetSeconds: Value(offset),
                 ),
               );
         } else {
           for (final row in secSources) {
+            final copiedId = _uuid.v4();
+            sourceIdMap[row.id] = copiedId;
             await _db
                 .into(_db.diveDataSources)
                 .insert(
                   row
                       .toCompanion(false)
                       .copyWith(
-                        id: Value(_uuid.v4()),
+                        id: Value(copiedId),
                         diveId: Value(targetDiveId),
                         isPrimary: const Value(false),
+                        // Record the shift the profile rows below are
+                        // re-based by, so a re-parse can reapply it (#1177);
+                        // the raw bytes carry no trace of it. Composes when
+                        // the secondary was itself consolidated once
+                        // already: its own offset is relative to its
+                        // timeline, which this pass moves again.
+                        timeOffsetSeconds: Value(
+                          (row.timeOffsetSeconds ?? 0) + offset,
+                        ),
                       ),
                 );
           }
+          // A profile row whose sourceId names none of the copied rows (an
+          // old row that never got attributed) still needs an owner on the
+          // target, so fall back to the secondary's primary source.
+          final fallback = secSources.firstWhere(
+            (r) => r.isPrimary,
+            orElse: () => secSources.first,
+          );
+          sourceIdMap[null] = sourceIdMap[fallback.id]!;
         }
 
         // Tanks: merged ones map, kept ones copy with attribution.
@@ -271,6 +299,14 @@ class DiveConsolidationService {
                     diveId: Value(targetDiveId),
                     timestamp: Value(row.timestamp + offset),
                     computerId: Value(row.computerId ?? secRow.computerId),
+                    // Re-point at the target's copy of the owning source
+                    // (issue #1149). Without this the copied samples would
+                    // reference a source row on the now-deleted secondary,
+                    // and two file-imported sources -- both null computerId
+                    // -- would be indistinguishable on the merged dive.
+                    sourceId: Value(
+                      sourceIdMap[row.sourceId] ?? sourceIdMap[null],
+                    ),
                     isPrimary: const Value(false),
                   ),
             );

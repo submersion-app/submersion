@@ -9,6 +9,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Map for the Match-Sites review: shows the focused dive's GPS point plus its
@@ -64,9 +65,7 @@ class _MatchSitesMapState extends ConsumerState<MatchSitesMap> {
               initialCenter: pts.first,
               initialZoom: 13,
               initialCameraFit: fit,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all,
-              ),
+              interactionOptions: rotatableMapInteraction,
             ),
             children: [
               TileLayer(

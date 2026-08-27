@@ -57,6 +57,8 @@ Future<void> _pump(WidgetTester tester, Dive dive) async {
         ).overrideWith((ref) async => <DiveDataSource>[]),
       ],
       child: MaterialApp(
+        // Pinned: assertions match English strings (pill labels).
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: DiveDetailPage(diveId: dive.id, embedded: true),
@@ -128,7 +130,10 @@ void main() {
     expect(find.byType(PolylineLayer), findsNothing);
     expect(find.byKey(const ValueKey('gps-entry-marker')), findsNothing);
     expect(find.byKey(const ValueKey('gps-exit-marker')), findsNothing);
-    // The site affordance (badge + semantics) is present.
-    expect(find.text('View Site'), findsWidgets);
+    // The header carries one badge pointing at the site, not a row of
+    // per-view deep links.
+    expect(find.text('View Site'), findsOneWidget);
+    expect(find.text('Map'), findsNothing);
+    expect(find.text('3D'), findsNothing);
   });
 }

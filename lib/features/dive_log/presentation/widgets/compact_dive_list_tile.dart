@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// Two-line compact card tile for the dive list.
 ///
@@ -21,9 +24,13 @@ class CompactDiveListTile extends ConsumerWidget {
   final double? maxDepth;
   final Duration? duration;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
-  final bool isSelected;
+
+  /// In the current bulk selection. Renders as a fill tint plus the leading
+  /// checkbox. Independent of [isHighlighted]: a row can be both.
+  final bool isChecked;
+
+  /// Currently open in the detail pane. Renders as a leading edge stripe.
   final bool isHighlighted;
   final VoidCallback? onDoubleTap;
 
@@ -60,9 +67,8 @@ class CompactDiveListTile extends ConsumerWidget {
     this.maxDepth,
     this.duration,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
-    this.isSelected = false,
+    this.isChecked = false,
     this.isHighlighted = false,
     this.onDoubleTap,
     this.colorValue,
@@ -148,6 +154,7 @@ class CompactDiveListTile extends ConsumerWidget {
 
   /// Builds the icon+value or label:value widget for a stat slot.
   Widget _buildStatSlot(
+    BuildContext context,
     DiveField field,
     String formatted,
     TextStyle style,
@@ -172,7 +179,7 @@ class CompactDiveListTile extends ConsumerWidget {
       );
     }
     return Text(
-      '${field.shortLabel}: $formatted',
+      '${field.localizedShortLabel(context.l10n)}: $formatted',
       style: style,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
@@ -191,10 +198,13 @@ class CompactDiveListTile extends ConsumerWidget {
     final attributeColor = showCardColors
         ? _getAttributeBackgroundColor()
         : null;
-    final cardColor = isSelected
+    // The active row carries a fill tint: checked in the bulk selection, or --
+    // outside selection mode -- open in the detail pane. Inside selection mode
+    // the fill belongs to the checked channel alone, so a highlighted but
+    // unchecked row stays plain instead of reading as selected.
+    final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
+    final cardColor = showsSelectionFill
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     final effectiveBackground =
@@ -235,16 +245,11 @@ class CompactDiveListTile extends ConsumerWidget {
               ? duration != null
               : maxDepth != null);
 
+    // The highlight is the fill above, not an edge stripe -- the key marks the
+    // row for tests without decorating it.
     return Container(
+      key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      decoration: isHighlighted
-          ? BoxDecoration(
-              border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
@@ -254,7 +259,6 @@ class CompactDiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(10),
@@ -266,37 +270,26 @@ class CompactDiveListTile extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 36,
-                        child: Stack(
+                        child: Align(
                           alignment: Alignment.centerLeft,
-                          children: [
-                            Visibility(
-                              visible: isSelectionMode,
-                              maintainSize: true,
-                              maintainAnimation: true,
-                              maintainState: true,
-                              child: Checkbox(
-                                value: isSelected,
-                                onChanged: (_) => onTap?.call(),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                            if (!isSelectionMode)
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  '#$diveNumber',
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                    color: accentColor,
-                                  ),
+                          child: SelectionLeading(
+                            isSelectionMode: isSelectionMode,
+                            isChecked: isChecked,
+                            onChanged: (_) => onTap?.call(),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                '#$diveNumber',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: accentColor,
                                 ),
                               ),
-                          ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -326,11 +319,19 @@ class CompactDiveListTile extends ConsumerWidget {
                         ),
                       ],
                       const SizedBox(width: 8),
-                      Text(
-                        dateText,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: secondaryTextColor,
+                      Flexible(
+                        child: Text(
+                          dateText,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: secondaryTextColor),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      DiveModeBadge(
+                        mode: summary?.diveMode ?? DiveMode.oc,
+                        dense: true,
                       ),
                       ExcludeSemantics(
                         child: Icon(
@@ -348,6 +349,7 @@ class CompactDiveListTile extends ConsumerWidget {
                       children: [
                         ExcludeSemantics(
                           child: _buildStatSlot(
+                            context,
                             stat1Field,
                             stat1Text,
                             stat1HasValue ? statStyle! : statStyleDim!,
@@ -357,6 +359,7 @@ class CompactDiveListTile extends ConsumerWidget {
                         const SizedBox(width: 14),
                         ExcludeSemantics(
                           child: _buildStatSlot(
+                            context,
                             stat2Field,
                             stat2Text,
                             stat2HasValue ? statStyle! : statStyleDim!,

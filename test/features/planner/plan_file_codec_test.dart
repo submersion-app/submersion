@@ -44,6 +44,7 @@ domain.DivePlan _plan() {
         startPressure: 200.0,
         gasMix: trimix,
         role: TankRole.diluent,
+        isTravelGas: true,
       ),
       DiveTank(
         id: 'tank-2',
@@ -108,7 +109,9 @@ void main() {
     expect(restored.tanks, hasLength(2));
     expect(restored.tanks.first.gasMix, original.tanks.first.gasMix);
     expect(restored.tanks.first.role, TankRole.diluent);
+    expect(restored.tanks.first.isTravelGas, isTrue);
     expect(restored.tanks[1].role, TankRole.bailout);
+    expect(restored.tanks[1].isTravelGas, isFalse);
 
     expect(restored.segments, hasLength(2));
     expect(restored.segments[1].type, SegmentType.bottom);

@@ -91,6 +91,28 @@ void main() {
       expect(worstGaugePerType([]), isEmpty);
     });
 
+    test('carries the winning item id so the chip can deep-link', () {
+      // Id and name deliberately differ: the chip labels with the name but
+      // must route with the id.
+      final result = worstGaugePerType([
+        _clocks(
+          const EquipmentItem(
+            id: 'reg-b-id',
+            name: 'Reg B',
+            type: EquipmentType.regulator,
+          ),
+          [
+            _status(
+              ServiceClockSeverity.overdue,
+              dueDate: DateTime(2026, 6, 1),
+            ),
+          ],
+        ),
+      ]);
+      expect(result.single.itemId, 'reg-b-id');
+      expect(result.single.itemName, 'Reg B');
+    });
+
     test('a dated clock beats an undated one when tied on severity', () {
       // The first-seen item is undated; the dated candidate must replace it,
       // exercising the null-dueDate tie-break branch.

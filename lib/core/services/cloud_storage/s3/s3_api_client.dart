@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -56,17 +59,96 @@ class S3ApiClient {
     http.Client? httpClient,
     DateTime Function()? now,
     Duration retryDelay = const Duration(milliseconds: 500),
+    int maxAttempts = defaultMaxAttempts,
+    Duration maxRetryDelay = defaultMaxRetryDelay,
+    Duration responseTimeout = defaultResponseTimeout,
+    Duration uploadTimeout = defaultUploadTimeout,
+    Duration idleTimeout = defaultIdleTimeout,
+    Random? random,
     this.onRegionCorrected,
-  }) : _config = config,
+  }) : assert(maxAttempts >= 1, 'a request must be attempted at least once'),
+       assert(
+         !retryDelay.isNegative && !maxRetryDelay.isNegative,
+         'a negative backoff reaches Random.nextInt with a non-positive max '
+         'and throws RangeError',
+       ),
+       _config = config,
        _region = config.region,
-       _http = httpClient ?? http.Client(),
+       _http = httpClient ?? _defaultClient(),
        _now = now ?? DateTime.now,
-       _retryDelay = retryDelay;
+       _retryDelay = retryDelay,
+       _maxAttempts = maxAttempts,
+       _maxRetryDelay = maxRetryDelay,
+       _responseTimeout = responseTimeout,
+       _uploadTimeout = uploadTimeout,
+       _idleTimeout = idleTimeout,
+       _random = random ?? Random();
+
+  /// The client used when the caller injects none.
+  ///
+  /// A bare `http.Client()` leaves `HttpClient.connectionTimeout` null, so a
+  /// TCP connect to an unreachable endpoint waits on the OS default -- minutes
+  /// on some Windows configurations. The deadlines in [_send] bound a socket
+  /// that connects and then stalls; this bounds one that never connects.
+  static http.Client _defaultClient() =>
+      IOClient(HttpClient()..connectionTimeout = defaultConnectTimeout);
+
+  /// Attempts per request, including the first.
+  ///
+  /// A base publish is 15+ sequential multi-megabyte PUTs (8 MiB parts), and
+  /// the manifest that commits them is written last, so a single failed part
+  /// aborts the whole sync and the next one re-uploads the base from part 0.
+  /// Two attempts 500ms apart are the same network moment on a mobile radio,
+  /// which made whole-publish success p^N and left large first syncs failing
+  /// nine times in ten (#942).
+  ///
+  /// Six attempts with the delays below span 7.75-15.5s of waiting, which is
+  /// the timescale a handover or a brief loss of signal resolves on. It does
+  /// not delay a genuinely offline device by that much per request: the sync
+  /// aborts at the FIRST request to exhaust its budget, so being offline costs
+  /// one budget, not one per part.
+  static const int defaultMaxAttempts = 6;
+
+  /// Ceiling for one backoff wait, so the exponential cannot run away on a
+  /// request that is retried to exhaustion.
+  static const Duration defaultMaxRetryDelay = Duration(seconds: 16);
+
+  /// How long to wait for the TCP connection itself.
+  static const Duration defaultConnectTimeout = Duration(seconds: 15);
+
+  /// How long to wait for a response's status and headers on a request with
+  /// no body. Covers TLS setup and the server's own think time.
+  static const Duration defaultResponseTimeout = Duration(seconds: 30);
+
+  /// The same deadline for a request that CARRIES a body.
+  ///
+  /// Separate and far more generous, because `Client.send` does not complete
+  /// until the body has been written: for a PUT the "wait for a response"
+  /// window contains the whole upload. A multipart part is 8 MiB, which at
+  /// 110 kbps takes ten minutes, and killing a part that was making progress
+  /// is exactly the failure mode that left large first syncs failing nine
+  /// times in ten (#942). Ten minutes still bounds a socket that has genuinely
+  /// wedged, which is all this needs to do.
+  static const Duration defaultUploadTimeout = Duration(minutes: 10);
+
+  /// How long a response body may go without delivering a single byte.
+  ///
+  /// Deliberately an IDLE gap rather than a total budget: a legitimate 8 MiB
+  /// download over a weak mobile link takes minutes and must not be killed,
+  /// while a connection that has stopped delivering is dead regardless of how
+  /// little it had left to send.
+  static const Duration defaultIdleTimeout = Duration(seconds: 30);
 
   final S3Config _config;
   final http.Client _http;
   final DateTime Function() _now;
   final Duration _retryDelay;
+  final int _maxAttempts;
+  final Duration _maxRetryDelay;
+  final Duration _responseTimeout;
+  final Duration _uploadTimeout;
+  final Duration _idleTimeout;
+  final Random _random;
 
   /// Called after a server region hint led to a successful replay, so the
   /// owner can persist the corrected region.
@@ -429,6 +511,18 @@ class S3ApiClient {
     return (scheme: scheme, host: host, port: port, path: path);
   }
 
+  /// Sends [method] with up to [_maxAttempts] attempts, backing off between
+  /// them. Retries transport failures and retryable statuses (5xx, 429);
+  /// every other status is returned to the caller, which decides what it
+  /// means. A request that exhausts the budget on transport failures throws
+  /// [CloudStorageException]; one that exhausts it on a retryable status
+  /// returns that last response, so the caller still reports the real HTTP
+  /// code rather than a generic reachability message.
+  ///
+  /// Every operation routed through here is safe to repeat: the object writes
+  /// are idempotent by key, and the two multipart POSTs were already retried
+  /// before this budget existed (a duplicated session is reaped by the
+  /// stale-session sweep, orphan-prevention spec 6.1).
   Future<http.Response> _sendWithRetry(
     String method,
     String key, {
@@ -436,65 +530,91 @@ class S3ApiClient {
     Uint8List? body,
     Map<String, String> extraHeaders = const {},
   }) async {
-    try {
-      var response = await _send(
-        method,
-        key,
-        queryParams: queryParams,
-        body: body,
-        extraHeaders: extraHeaders,
-      );
-      if (response.statusCode >= 300) {
-        final corrected = await _replayWithRegionHint(
-          response,
+    Object? transportError;
+    for (var attempt = 1; ; attempt++) {
+      final lastAttempt = attempt >= _maxAttempts;
+      try {
+        var response = await _send(
           method,
           key,
-          queryParams,
-          body,
-          extraHeaders,
+          queryParams: queryParams,
+          body: body,
+          extraHeaders: extraHeaders,
         );
-        // The replay flows through the normal 5xx retry below, which now
-        // signs with the corrected region.
-        if (corrected != null) response = corrected;
+        if (response.statusCode >= 300) {
+          final corrected = await _replayWithRegionHint(
+            response,
+            method,
+            key,
+            queryParams,
+            body,
+            extraHeaders,
+          );
+          // The replay flows through the retry decision below, whose next
+          // attempt signs with the corrected region.
+          if (corrected != null) response = corrected;
+        }
+        if (lastAttempt || !_isRetryableStatus(response.statusCode)) {
+          return response;
+        }
+      } on FormatException catch (e) {
+        // A malformed endpoint is a configuration fault: retrying it can only
+        // fail the same way.
+        throw CloudStorageException(
+          'Invalid S3 endpoint configuration: ${_config.endpoint}',
+          e,
+        );
+      } on http.ClientException catch (e) {
+        transportError = e;
+      } on IOException catch (e) {
+        // Socket or TLS failure.
+        transportError = e;
+      } on TimeoutException catch (e) {
+        transportError = e;
       }
-      if (response.statusCode < 500) return response;
-    } on FormatException catch (e) {
-      throw CloudStorageException(
-        'Invalid S3 endpoint configuration: ${_config.endpoint}',
-        e,
-      );
-    } on http.ClientException {
-      // Transport failure; retry once below.
-    } on IOException {
-      // Socket or TLS failure; retry once below.
-    } on TimeoutException {
-      // Timed out; retry once below.
+      if (lastAttempt) {
+        throw CloudStorageException(
+          'Could not reach S3 endpoint ${_config.displayHost}',
+          transportError,
+        );
+      }
+      await Future<void>.delayed(_backoffFor(attempt));
     }
-    return _retry(method, key, queryParams, body, extraHeaders);
   }
 
-  Future<http.Response> _retry(
-    String method,
-    String key,
-    Map<String, String> queryParams,
-    Uint8List? body,
-    Map<String, String> extraHeaders,
-  ) async {
-    await Future<void>.delayed(_retryDelay);
-    try {
-      return await _send(
-        method,
-        key,
-        queryParams: queryParams,
-        body: body,
-        extraHeaders: extraHeaders,
-      );
-    } on Exception catch (e) {
-      throw CloudStorageException(
-        'Could not reach S3 endpoint ${_config.displayHost}',
-        e,
-      );
-    }
+  /// 5xx is a server-side fault worth repeating; 429 is the throttle signal
+  /// used by R2/B2/MinIO where AWS sends 503 SlowDown. Everything else -
+  /// including 403, 404 and the region-hint 301/400 handled above - is a
+  /// verdict about the request itself, and repeating it just burns time.
+  static bool _isRetryableStatus(int statusCode) =>
+      statusCode >= 500 || statusCode == 429;
+
+  /// Wait before the attempt after [attempt] (1-based): equal jitter, i.e. a
+  /// uniform pick from `[ceiling / 2, ceiling]`.
+  ///
+  /// The jitter decorrelates devices that hit the same throttled bucket prefix
+  /// at once, which lockstep backoff keeps colliding. The half-ceiling floor
+  /// is what full jitter would give up: the point of backing off here is to
+  /// outlast a dropout, and a run of near-zero waits would spend the whole
+  /// budget inside it.
+  Duration _backoffFor(int attempt) {
+    final ceiling = backoffCeilingFor(_retryDelay, attempt, _maxRetryDelay);
+    if (ceiling == Duration.zero) return Duration.zero;
+    final half = ceiling.inMicroseconds ~/ 2;
+    return Duration(microseconds: half + _random.nextInt(half + 1));
+  }
+
+  /// Un-jittered `base * 2^(attempt-1)`, capped at [cap]. Exposed so the
+  /// growth curve is testable without the jitter.
+  @visibleForTesting
+  static Duration backoffCeilingFor(Duration base, int attempt, Duration cap) {
+    if (base == Duration.zero) return Duration.zero;
+    // Shift the exponent, not the duration: a large attempt would otherwise
+    // overflow the microsecond product before the cap could clamp it.
+    final exponent = attempt - 1;
+    if (exponent >= 32) return cap;
+    final scaled = base * (1 << exponent);
+    return scaled > cap ? cap : scaled;
   }
 
   /// If [response] carries a region hint that differs from the effective
@@ -596,7 +716,29 @@ class S3ApiClient {
     // SigV4 signature, so S3 accepts these alongside it.
     request.headers.addAll(extraHeaders);
     if (body != null) request.bodyBytes = body;
-    return http.Response.fromStream(await _http.send(request));
+
+    // Two deadlines rather than one. Without them a stalled socket parks the
+    // request forever, and since nothing caps concurrency on the media store's
+    // read path, a gallery opens one such request per visible tile (#1175).
+    // _sendWithRetry already classifies TimeoutException as a retryable
+    // transport fault, so both surface as an ordinary retry and then, at
+    // budget exhaustion, as a CloudStorageException.
+    final hasBody = body != null && body.isNotEmpty;
+    final streamed = await _http
+        .send(request)
+        .timeout(hasBody ? _uploadTimeout : _responseTimeout);
+    final bytes = await http.ByteStream(
+      streamed.stream.timeout(_idleTimeout),
+    ).toBytes();
+    return http.Response.bytes(
+      bytes,
+      streamed.statusCode,
+      request: streamed.request,
+      headers: streamed.headers,
+      isRedirect: streamed.isRedirect,
+      persistentConnection: streamed.persistentConnection,
+      reasonPhrase: streamed.reasonPhrase,
+    );
   }
 
   Never _throwFor(String operation, String key, http.Response response) {

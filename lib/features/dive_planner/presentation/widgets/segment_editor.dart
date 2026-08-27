@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -47,18 +48,22 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     final segment = widget.segment;
 
     _type = segment?.type ?? SegmentType.bottom;
-    // Initialize with raw meter values - will convert in first build
+    // Initialize with raw meter values - will convert in first build.
+    // Every seed goes through formatDecimalForInput so the diver's locale
+    // decides the separator and the parse half can read it back (#1091).
     _startDepthController = TextEditingController(
-      text: segment != null ? segment.startDepth.toStringAsFixed(0) : '0',
+      text: formatDecimalForInput(segment?.startDepth.roundToDouble() ?? 0),
     );
     _endDepthController = TextEditingController(
-      text: segment != null ? segment.endDepth.toStringAsFixed(0) : '18',
+      text: formatDecimalForInput(segment?.endDepth.roundToDouble() ?? 18),
     );
     _durationController = TextEditingController(
-      text: segment != null ? (segment.durationSeconds ~/ 60).toString() : '20',
+      text: formatDecimalForInput(
+        segment != null ? (segment.durationSeconds ~/ 60).toDouble() : 20,
+      ),
     );
     _rateController = TextEditingController(
-      text: segment?.rate?.abs().toStringAsFixed(0) ?? '10',
+      text: formatDecimalForInput(segment?.rate?.abs().roundToDouble() ?? 10),
     );
     _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
   }
@@ -238,28 +243,34 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
 
   /// Convert controller values from meters to user's preferred units.
   void _convertControllersToUserUnits(UnitFormatter units) {
-    final startDepthMeters = double.tryParse(_startDepthController.text) ?? 0;
-    final endDepthMeters = double.tryParse(_endDepthController.text) ?? 0;
-    final rateMeters = double.tryParse(_rateController.text) ?? 10;
+    final startDepthMeters = parseUserDecimal(_startDepthController.text) ?? 0;
+    final endDepthMeters = parseUserDecimal(_endDepthController.text) ?? 0;
+    final rateMeters = parseUserDecimal(_rateController.text) ?? 10;
 
-    _startDepthController.text = units
-        .convertDepth(startDepthMeters)
-        .toStringAsFixed(0);
-    _endDepthController.text = units
-        .convertDepth(endDepthMeters)
-        .toStringAsFixed(0);
-    _rateController.text = units.convertDepth(rateMeters).toStringAsFixed(0);
+    _startDepthController.text = formatDecimalForInput(
+      units.convertDepth(startDepthMeters).roundToDouble(),
+    );
+    _endDepthController.text = formatDecimalForInput(
+      units.convertDepth(endDepthMeters).roundToDouble(),
+    );
+    _rateController.text = formatDecimalForInput(
+      units.convertDepth(rateMeters).roundToDouble(),
+    );
   }
 
   void _updateDefaultsForType(SegmentType type) {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
 
+    // Seed depth in the display unit, rounded and locale-formatted.
+    String depth(double meters) =>
+        formatDecimalForInput(units.convertDepth(meters).roundToDouble());
+
     switch (type) {
       case SegmentType.descent:
-        _startDepthController.text = '0';
+        _startDepthController.text = formatDecimalForInput(0);
         // 18 m/min default descent rate
-        _rateController.text = units.convertDepth(18).toStringAsFixed(0);
+        _rateController.text = depth(18);
         break;
       case SegmentType.bottom:
         // Keep end depth as target
@@ -267,20 +278,20 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
         break;
       case SegmentType.ascent:
         // 9 m/min default ascent rate
-        _rateController.text = units.convertDepth(9).toStringAsFixed(0);
+        _rateController.text = depth(9);
         break;
       case SegmentType.decoStop:
-        _durationController.text = '3';
+        _durationController.text = formatDecimalForInput(3);
         break;
       case SegmentType.safetyStop:
         // 5m default safety stop depth
-        final safetyDepth = units.convertDepth(5).toStringAsFixed(0);
+        final safetyDepth = depth(5);
         _startDepthController.text = safetyDepth;
         _endDepthController.text = safetyDepth;
-        _durationController.text = '3';
+        _durationController.text = formatDecimalForInput(3);
         break;
       case SegmentType.gasSwitch:
-        _durationController.text = '1';
+        _durationController.text = formatDecimalForInput(1);
         break;
     }
   }
@@ -312,10 +323,10 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
 
     // Parse values in user's units and convert to meters for storage
     final startDepthUserUnits =
-        double.tryParse(_startDepthController.text) ?? 0;
-    final endDepthUserUnits = double.tryParse(_endDepthController.text) ?? 0;
-    final durationMinutes = int.tryParse(_durationController.text) ?? 0;
-    final rateUserUnits = double.tryParse(_rateController.text) ?? 10;
+        parseUserDecimal(_startDepthController.text) ?? 0;
+    final endDepthUserUnits = parseUserDecimal(_endDepthController.text) ?? 0;
+    final durationMinutes = parseUserInt(_durationController.text) ?? 0;
+    final rateUserUnits = parseUserDecimal(_rateController.text) ?? 10;
 
     // Convert depths and rate from user units to meters
     final startDepthMeters = units.depthToMeters(startDepthUserUnits);

@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/deco_model.dart';
@@ -51,6 +52,13 @@ class PlanEngineConfig {
   /// Algorithm used to convert ppO2 exposure into CNS %/min.
   final CnsCalculationMethod cnsMethod;
 
+  /// Equation of state used to convert cylinder pressure to gas volume.
+  ///
+  /// Shared by [PlanEngine] and [BailoutSolver] so a plan's gas budget and its
+  /// bailout check never disagree about how much gas a cylinder holds. Sourced
+  /// from `gasModelProvider` (issue #828).
+  final GasModel gasModel;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -66,6 +74,7 @@ class PlanEngineConfig {
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
+    this.gasModel = GasModel.real,
   });
 }
 
@@ -427,6 +436,7 @@ class PlanEngine {
                   litersConsumed: used,
                   o2Percent: tank.gasMix.o2,
                   hePercent: tank.gasMix.he,
+                  model: config.gasModel,
                 )
               : null;
           return PlanTankUsage(
@@ -525,6 +535,7 @@ class PlanEngine {
                   litersConsumed: used,
                   o2Percent: tank.gasMix.o2,
                   hePercent: tank.gasMix.he,
+                  model: config.gasModel,
                 )
               : null;
           return PlanTankUsage(

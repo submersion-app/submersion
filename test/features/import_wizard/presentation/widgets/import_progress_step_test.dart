@@ -40,6 +40,10 @@ class _FakeAdapter implements ImportSourceAdapter {
   };
 
   @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
+
+  @override
   Future<ImportBundle> buildBundle() => throw UnimplementedError();
 
   @override

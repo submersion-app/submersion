@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -20,19 +19,19 @@ Buddy _makeBuddy(String id, String name) {
   return Buddy(id: id, name: name, createdAt: now, updatedAt: now);
 }
 
-BuddyRoleCredential _makeCredential({
+Certification _makeInstructorCert({
   required String buddyId,
-  BuddyRole role = BuddyRole.instructor,
-  String? credentialNumber,
-  CertificationAgency? agency,
+  String? cardNumber,
+  CertificationAgency agency = CertificationAgency.padi,
 }) {
   final now = DateTime(2024, 1, 1);
-  return BuddyRoleCredential(
-    id: '$buddyId-${role.name}',
+  return Certification(
+    id: '$buddyId-instructor',
     buddyId: buddyId,
-    role: role,
-    credentialNumber: credentialNumber,
+    name: 'Instructor',
     agency: agency,
+    level: CertificationLevel.instructor,
+    cardNumber: cardNumber,
     createdAt: now,
     updatedAt: now,
   );
@@ -42,18 +41,19 @@ void main() {
   late CertificationRepository repository;
 
   final credentialedBuddy = _makeBuddy('buddy-1', 'Alice Instructor');
-  final credential = _makeCredential(
+  final instructorCert = _makeInstructorCert(
     buddyId: 'buddy-1',
-    credentialNumber: '999-PADI',
+    cardNumber: '999-PADI',
     agency: CertificationAgency.padi,
   );
+  const instructorLabel = 'PADI Instructor #999-PADI';
 
   setUp(() async {
     await setUpTestDatabase();
     repository = CertificationRepository();
     // certifications.instructor_id has a foreign key to buddies(id), so a
     // real row must exist even though the picker's own list is driven by
-    // the overridden allBuddiesProvider/allBuddyRolesProvider below.
+    // the overridden allBuddiesProvider/allBuddyCertificationsProvider below.
     await BuddyRepository().createBuddy(credentialedBuddy);
   });
 
@@ -65,9 +65,9 @@ void main() {
     ...base,
     certificationRepositoryProvider.overrideWithValue(repository),
     allBuddiesProvider.overrideWith((ref) async => [credentialedBuddy]),
-    allBuddyRolesProvider.overrideWith(
+    allBuddyCertificationsProvider.overrideWith(
       (ref) async => {
-        'buddy-1': [credential],
+        'buddy-1': [instructorCert],
       },
     ),
   ];
@@ -118,7 +118,7 @@ void main() {
 
       await pickInstructorFromDropdown(
         tester,
-        'Alice Instructor (${credential.displayLabel})',
+        'Alice Instructor ($instructorLabel)',
       );
 
       expect(
@@ -139,9 +139,9 @@ void main() {
         allBuddiesProvider.overrideWith(
           (ref) async => [credentialedBuddy, plainBuddy],
         ),
-        allBuddyRolesProvider.overrideWith(
+        allBuddyCertificationsProvider.overrideWith(
           (ref) async => {
-            'buddy-1': [credential],
+            'buddy-1': [instructorCert],
           },
         ),
       ];
@@ -152,7 +152,7 @@ void main() {
       // Pick the credentialed buddy first: number fills.
       await pickInstructorFromDropdown(
         tester,
-        'Alice Instructor (${credential.displayLabel})',
+        'Alice Instructor ($instructorLabel)',
       );
       expect(find.widgetWithText(TextFormField, '999-PADI'), findsOneWidget);
 
@@ -175,7 +175,7 @@ void main() {
 
       await pickInstructorFromDropdown(
         tester,
-        'Alice Instructor (${credential.displayLabel})',
+        'Alice Instructor ($instructorLabel)',
       );
 
       await tester.enterText(
@@ -186,10 +186,7 @@ void main() {
 
       // The dropdown still shows the selected instructor -- editing the name
       // text field does not clear _instructorId.
-      expect(
-        find.text('Alice Instructor (${credential.displayLabel})'),
-        findsOneWidget,
-      );
+      expect(find.text('Alice Instructor ($instructorLabel)'), findsOneWidget);
     },
   );
 
@@ -201,7 +198,7 @@ void main() {
 
     await pickInstructorFromDropdown(
       tester,
-      'Alice Instructor (${credential.displayLabel})',
+      'Alice Instructor ($instructorLabel)',
     );
     await pickInstructorFromDropdown(tester, 'None (manual entry)');
 
@@ -228,10 +225,10 @@ void main() {
 
     await pickInstructorFromDropdown(
       tester,
-      'Alice Instructor (${credential.displayLabel})',
+      'Alice Instructor ($instructorLabel)',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Certification Name *'),
+      find.widgetWithText(TextFormField, 'Name on card'),
       'Open Water Diver',
     );
     await tester.pumpAndSettle();
@@ -272,10 +269,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Alice Instructor (${credential.displayLabel})'),
-        findsOneWidget,
-      );
+      expect(find.text('Alice Instructor ($instructorLabel)'), findsOneWidget);
     },
   );
 }

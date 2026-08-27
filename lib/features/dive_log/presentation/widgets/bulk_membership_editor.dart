@@ -75,6 +75,7 @@ class BulkMembershipEditor extends StatefulWidget {
     required this.onChanged,
     this.addLabel,
     this.secondaryAction,
+    this.trailingBuilder,
   });
 
   final String title;
@@ -85,6 +86,12 @@ class BulkMembershipEditor extends StatefulWidget {
   final ValueChanged<MembershipDelta> onChanged;
   final String? addLabel;
   final Widget? secondaryAction;
+
+  /// Optional per-row control rendered at the trailing edge, for collections
+  /// whose links carry an attribute beyond membership. Buddies use it for the
+  /// role on each dive_buddies link (#1220); the attribute-free collections
+  /// (tags, dive types, equipment) leave it null.
+  final Widget Function(BulkMembershipItem item)? trailingBuilder;
 
   @override
   State<BulkMembershipEditor> createState() => _BulkMembershipEditorState();
@@ -263,6 +270,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                   final s? => Text(s),
                   _ => null,
                 },
+                trailing: widget.trailingBuilder?.call(item),
                 onTap: () => _cycle(item.id),
               ),
         ],

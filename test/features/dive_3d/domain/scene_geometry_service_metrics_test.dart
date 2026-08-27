@@ -7,11 +7,9 @@ import 'package:submersion/features/dive_3d/domain/scene_geometry_service.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
-// The ribbon is the last structural layer; the grid is the first.
+// The ribbon (path) is the last structural layer.
 MeshData ribbonMesh(Scene3d s) =>
     s.layers.lastWhere((l) => l.overlay == null).mesh;
-MeshData gridMesh(Scene3d s) =>
-    s.layers.firstWhere((l) => l.overlay == null).mesh;
 MeshData? meshFor(Scene3d s, SceneOverlay o) =>
     s.layers.where((l) => l.overlay == o).firstOrNull?.mesh;
 
@@ -103,22 +101,5 @@ void main() {
     final scene = service.build(richSceneData(), SceneMetric.tankPressure);
     // All-null pressures map to the neutral gray (0.62-ish channels).
     expect(ribbonMesh(scene).colors[0], closeTo(0.62, 0.01));
-  });
-
-  test('grid step parameter controls line count', () {
-    final coarse = service.build(
-      richSceneData(),
-      SceneMetric.depth,
-      gridStepMeters: 20,
-    );
-    final fine = service.build(
-      richSceneData(),
-      SceneMetric.depth,
-      gridStepMeters: 5,
-    );
-    expect(
-      gridMesh(fine).triangleCount,
-      greaterThan(gridMesh(coarse).triangleCount),
-    );
   });
 }

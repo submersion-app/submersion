@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -81,6 +82,58 @@ void main() {
 
       expect(find.text('Manual Entry'), findsOneWidget);
       expect(find.byIcon(Icons.edit), findsOneWidget);
+    });
+
+    // The creation date and the entry/exit times were hardcoded to a
+    // month-first, 12-hour format regardless of the diver's settings (#964).
+    testWidgets('manual entry creation date follows the date preference', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: const [],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: const UnitFormatter(
+                AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Created 20/03/2026'), findsOneWidget);
+    });
+
+    testWidgets('source card date and time follow the diver preferences', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [_makeSource()],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: const UnitFormatter(
+                AppSettings(
+                  dateFormat: DateFormatPreference.ddmmyyyy,
+                  timeFormat: TimeFormat.twentyFourHour,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Entry 10:00 renders 24-hour rather than the old hardcoded "10:00 AM".
+      expect(find.textContaining('10:00'), findsWidgets);
+      expect(find.textContaining('AM'), findsNothing);
+      expect(find.textContaining('20/03/2026'), findsWidgets);
     });
 
     testWidgets('shows single source card with model name and filename', (
@@ -398,9 +451,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify labels are present
-      expect(find.text('Max depth'), findsOneWidget);
+      expect(find.text('Max Depth'), findsOneWidget);
       expect(find.text('Duration'), findsOneWidget);
-      expect(find.text('Water temp'), findsOneWidget);
+      expect(find.text('Water Temp'), findsOneWidget);
       expect(find.text('CNS%'), findsOneWidget);
     });
 
@@ -1031,14 +1084,27 @@ void main() {
         final secondaryHeaderStyle = (dataTable.columns[2].label as Text).style;
         expect(secondaryHeaderStyle?.fontWeight, isNot(FontWeight.bold));
 
-        // Row labels use the new l10n keys. "Duration" also appears on each
-        // per-source card's own metrics row, so scope that lookup to the grid.
-        expect(find.text('Max Depth'), findsOneWidget);
+        // Row labels use the new l10n keys. "Max Depth" and "Duration" also
+        // appear on each per-source card's own metrics row, so scope both
+        // lookups to the grid.
+        expect(
+          find.descendant(
+            of: dataTableFinder,
+            matching: find.text('Max Depth'),
+          ),
+          findsOneWidget,
+        );
         expect(
           find.descendant(of: dataTableFinder, matching: find.text('Duration')),
           findsOneWidget,
         );
-        expect(find.text('Water Temp'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: dataTableFinder,
+            matching: find.text('Water Temp'),
+          ),
+          findsOneWidget,
+        );
         expect(find.text('CNS'), findsOneWidget);
         expect(find.text('OTU'), findsOneWidget);
         expect(find.text('Deco Algorithm'), findsOneWidget);
@@ -1057,7 +1123,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.descendant(of: dataTableFinder, matching: find.text('24.0°C')),
+          find.descendant(of: dataTableFinder, matching: find.text('24°C')),
           findsOneWidget,
         );
         expect(

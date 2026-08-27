@@ -26,6 +26,14 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowPhotoMarkers: value);
 
   @override
+  Future<void> setDefaultShowO2CellMv(bool value) async =>
+      state = state.copyWith(defaultShowO2CellMv: value);
+
+  @override
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
+      state = state.copyWith(defaultShowEstimatedTankPressure: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -36,6 +44,10 @@ void main() {
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        // Every finder below matches an English label, so pin the locale
+        // rather than depend on the host machine's, which flutter_test
+        // forwards.
+        locale: Locale('en'),
         home: DefaultVisibleMetricsPage(),
       ),
     );
@@ -132,5 +144,65 @@ void main() {
     await tester.tap(tile);
     await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+  });
+
+  testWidgets('toggles O2 cells default', (tester) async {
+    await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    final tile = find.widgetWithText(SwitchListTile, 'O2 cells');
+    await tester.dragUntilVisible(
+      tile,
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+  });
+
+  testWidgets('estimated tank pressure starts on', (tester) async {
+    // Issue #731: the estimate shipped always-on, so the preference preserves
+    // that as its default.
+    await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Estimated Tank Pressure'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<SwitchListTile>(
+      find.ancestor(
+        of: find.text('Estimated Tank Pressure'),
+        matching: find.byType(SwitchListTile),
+      ),
+    );
+    expect(tile.value, isTrue);
+  });
+
+  testWidgets('tapping Estimated Tank Pressure turns the estimate off', (
+    tester,
+  ) async {
+    final notifier = _StubSettingsNotifier();
+    await tester.pumpWidget(buildPage(notifier));
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Estimated Tank Pressure'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Estimated Tank Pressure'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.defaultShowEstimatedTankPressure, isFalse);
   });
 }

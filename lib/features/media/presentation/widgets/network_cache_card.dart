@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings -> Network Sources -> Cache management card.
 ///
@@ -24,31 +25,26 @@ class NetworkCacheCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child:
-                // TODO(media): l10n
-                Text(
-                  'Cache management',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              context.l10n.media_cache_cardTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.sd_storage_outlined),
-            // TODO(media): l10n
-            title: const Text('Disk cache'),
+            title: Text(context.l10n.media_cache_diskCache),
             subtitle: asyncSize.when(
-              // TODO(media): l10n
-              loading: () => const Text('Calculating cache size…'),
-              error: (e, _) => Text('Error: $e'),
+              loading: () => Text(context.l10n.media_cache_calculating),
+              error: (e, _) => Text(context.l10n.media_cache_error('$e')),
               data: (bytes) => Text(_formatBytes(bytes)),
             ),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.delete_outline),
-            // TODO(media): l10n
-            title: const Text('Clear cache'),
+            title: Text(context.l10n.media_cache_clearAction),
             onTap: () => _confirmAndClear(context, ref),
           ),
         ],
@@ -59,23 +55,17 @@ class NetworkCacheCard extends ConsumerWidget {
   Future<void> _confirmAndClear(BuildContext context, WidgetRef ref) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        // TODO(media): l10n
-        title: const Text('Clear network image cache?'),
-        content: const Text(
-          'Removes downloaded thumbnails and full-size network images. '
-          'Linked media rows are kept; images will re-download on next view.',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.media_cache_clearTitle),
+        content: Text(dialogContext.l10n.media_cache_clearBody),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            // TODO(media): l10n
-            child: const Text('Clear'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(dialogContext.l10n.media_cache_clearConfirm),
           ),
         ],
       ),
@@ -89,14 +79,12 @@ class NetworkCacheCard extends ConsumerWidget {
       if (!context.mounted) return;
       ref.invalidate(cacheSizeProvider);
       messenger.showSnackBar(
-        // TODO(media): l10n
-        const SnackBar(content: Text('Cache cleared')),
+        SnackBar(content: Text(context.l10n.media_cache_cleared)),
       );
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Clear failed: $e')),
+        SnackBar(content: Text(context.l10n.media_cache_clearError('$e'))),
       );
     }
   }

@@ -52,7 +52,7 @@ void main() {
   ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
     id: 'r-$kindId-${date.millisecondsSinceEpoch}',
     equipmentId: 'e1',
-    serviceType: ServiceType.other,
+    serviceCategory: ServiceCategory.other,
     serviceKindId: kindId,
     serviceDate: date,
     createdAt: date,

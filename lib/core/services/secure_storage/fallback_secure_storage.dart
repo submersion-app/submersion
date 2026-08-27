@@ -45,6 +45,17 @@ class FallbackSecureStorage {
   /// concurrent first callers, so the probe runs at most once.
   Future<bool>? _useLegacy;
 
+  /// Whether this build must use the legacy file-based keychain, i.e. whether
+  /// the data-protection keychain rejects writes with -34018.
+  ///
+  /// Public because the verdict also decides things outside this wrapper:
+  /// google_sign_in hard-codes the data-protection keychain on macOS and
+  /// exposes no way to change it, so a build that fails this probe cannot use
+  /// the native Google sign-in flow at all (see KeychainGatedAuthenticator).
+  /// Shares the same memoised probe, so asking costs at most one throwaway
+  /// write per instance.
+  Future<bool> legacyKeychainRequired() => _legacyKeychainRequired();
+
   Future<bool> _legacyKeychainRequired() => _useLegacy ??= _probe();
 
   Future<bool> _probe() async {

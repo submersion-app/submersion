@@ -53,6 +53,61 @@ permissions:
 env:
   FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
 
+  # Fastlane's gym/gym-for-mac starts by running `xcodebuild -showBuildSettings`
+  # to learn the bundle id, configuration and product name. On this workspace
+  # that means evaluating every Pods target and xcconfig plus the
+  # libdivecomputer_plugin native target, which is slow. Fastlane defaults the
+  # call to a 3 second base timeout with 3 retries, so it gives up after
+  # 3/6/12/24 seconds and aborts the lane before the archive ever starts. A cold
+  # runner loses that race: run 32680736603 failed exactly this way with the
+  # Flutter build already finished. These only raise a ceiling, so a healthy run
+  # returns as fast as it returns and pays nothing for them.
+  FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: '120'
+  FASTLANE_XCODEBUILD_SETTINGS_RETRIES: '5'
+
+# Cache and ref design (issue #1132, CodeQL actions/cache-poisoning).
+#
+# Every job here runs repo-controlled code before it produces artifacts that
+# ship: build_runner generators, package build hooks (the package:sqlite3 hook
+# downloads and installs SQLCipher), and the scripts/check_*.py guards. Whatever
+# a job restores from a cache is therefore part of the release supply chain, so
+# these two properties are chosen rather than inherited.
+#
+# The ref. The workflow_dispatch path declares no ref input, so checkout falls
+# back to the ref the run was started on, which dispatch already restricts to
+# real refs in this repository. The ref input exists only on workflow_call, and
+# both callers pass one they validated: release.yml passes none, leaving
+# checkout to resolve the tag that triggered it, and beta.yml passes the SHA of
+# a main commit whose CI run concluded successfully. No reachability guard is
+# added here because it would only restate what the callers guarantee.
+#
+# The caches. Two rules, both load-bearing:
+#
+#   1. Cache ~/.pub-cache, never .dart_tool. pubspec.lock records a sha256 for
+#      every hosted package and pub validates cached content against it, so a
+#      tampered pub cache entry is caught. .dart_tool holds build_runner output
+#      and the package config with no integrity check of any kind, and
+#      `dart run build_runner build` consumes it directly. The cost is a cold
+#      codegen pass on release and beta builds; the package downloads, which
+#      dominate the saving, are still cached.
+#   2. Namespace the keys to this workflow. GitHub scopes caches by ref and a
+#      tag run can read the default branch's scope, so a shared key would let a
+#      release build restore an entry written by any job that ran on main.
+#      The build-all prefixes keep that set down to other build-all runs; do not
+#      let them converge with the plain pub-<os> keys ci.yaml uses.
+#
+# Neither rule is carried over to ci.yaml, and that is deliberate. Nothing that
+# workflow produces is distributed, its .dart_tool cache is a real saving across
+# the analyze and test matrix, and narrowing it would buy nothing but slower
+# builds of artifacts that get thrown away.
+#
+# One more thing for whoever revisits this. CodeQL flagged exactly one of the
+# several structurally identical steps in this file. The Android guards use
+# `run: |` with line continuations and the Windows one invokes `python` rather
+# than `python3`, and neither matched the query's pattern for "executes a local
+# script". The discriminator is syntactic, not semantic: the absence of an alert
+# on a step is not evidence that the step is safe.
+
 jobs:
   # ============================================================================
   # macOS Build (signed DMG + Mac App Store)
@@ -99,17 +154,15 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.pub-cache
-            ${{ github.workspace }}/.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-build-all-${{ runner.os }}-
 
       # Flutter 3.44 enables Swift Package Manager by default. This project is
       # not migrated to SPM (the Xcode projects carry no package references) and
@@ -142,7 +195,7 @@ jobs:
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
-        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       # -- Developer ID DMG (for GitHub Release) --
 
@@ -387,17 +440,15 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
-          path: |
-            ~\.pub-cache
-            ${{ github.workspace }}\.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          path: ~\.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-build-all-${{ runner.os }}-
 
       - name: Install dependencies
         run: |
@@ -414,7 +465,14 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Windows release
-        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+
+      - name: Check bundled native assets
+        # Runs before the installer is compiled: the .iss packages whatever is
+        # in the Release directory, so a native asset missing here ships to
+        # every user and takes the app down at startup (issue #1129). Windows
+        # runners expose the interpreter as `python`, not `python3`.
+        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Build Windows installer
         env:
@@ -510,7 +568,8 @@ jobs:
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libstdc++-12-dev \
-            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev
+            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
+            libssl-dev
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -523,17 +582,15 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.pub-cache
-            ${{ github.workspace }}/.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-build-all-${{ runner.os }}-
 
       - name: Install dependencies
         run: |
@@ -550,7 +607,13 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Linux release
-        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+
+      - name: Check bundled native assets
+        # Runs before the tarball is rolled, for the same reason as the Windows
+        # job: a missing native asset is invisible until a user launches the
+        # app (issue #1129).
+        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Create tarball
         env:
@@ -602,17 +665,15 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.pub-cache
-            ${{ github.workspace }}/.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-build-all-${{ runner.os }}-
 
       - name: Install dependencies
         run: |
@@ -627,6 +688,26 @@ jobs:
         run: |
           perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
           grep '^version:' pubspec.yaml
+
+      # flutter_secure_storage 11 hardcodes compileSdk 37 in its own module,
+      # so the app compiles against 37 too (android/app/build.gradle.kts).
+      # Installed explicitly rather than left to Gradle's auto-download: the
+      # runner image only preinstalls a few platforms, and a missing one fails
+      # late with an opaque "failed to find target with hash string" error.
+      - name: Install Android SDK platform 37
+        run: |
+          # sdkmanager is not on PATH on the runner image; it lives under
+          # $ANDROID_HOME/cmdline-tools/<version>/bin. Located rather than
+          # hardcoded so a runner-image reshuffle fails loudly here instead
+          # of surfacing later as a confusing Gradle error.
+          sdkmanager="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools" \
+            -name sdkmanager -type f 2>/dev/null | head -1)"
+          if [ -z "$sdkmanager" ]; then
+            echo "::error::sdkmanager not found under ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+          echo "Using $sdkmanager"
+          "$sdkmanager" --install "platforms;android-37.0" < /dev/null
 
       - name: Setup Android signing
         env:
@@ -758,17 +839,15 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.pub-cache
-            ${{ github.workspace }}/.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-build-all-${{ runner.os }}-
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1

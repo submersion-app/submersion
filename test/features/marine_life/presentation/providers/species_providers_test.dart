@@ -1,13 +1,30 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
-
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+
+Future<void> _insertTestDive({required String id}) async {
+  final db = DatabaseService.instance.database;
+  final now = DateTime.now().millisecondsSinceEpoch;
+  await db
+      .into(db.dives)
+      .insert(
+        DivesCompanion(
+          id: Value(id),
+          diveDateTime: Value(now),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+}
 
 void main() {
   late SharedPreferences prefs;
@@ -66,6 +83,47 @@ void main() {
         reason:
             'allSpeciesProvider should auto-refresh after a direct table '
             'write without any manual invalidation',
+      );
+    });
+  });
+
+  group('speciesSightingCountsProvider', () {
+    test('auto-refreshes after a sighting is written directly to the DB '
+        '(sync scenario)', () async {
+      final species = await speciesRepo.createSpecies(
+        commonName: 'Counted Grouper',
+        category: SpeciesCategory.fish,
+      );
+      await _insertTestDive(id: 'counted-dive');
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(speciesSightingCountsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      expect(
+        await container.read(speciesSightingCountsProvider.future),
+        isEmpty,
+      );
+
+      await speciesRepo.addSighting(
+        diveId: 'counted-dive',
+        speciesId: species.id,
+      );
+
+      var counts = <String, int>{};
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        counts = await container.read(speciesSightingCountsProvider.future);
+        if (counts[species.id] == 1) break;
+      }
+
+      expect(
+        counts,
+        {species.id: 1},
+        reason:
+            'speciesSightingCountsProvider should refresh after a sightings '
+            'table write without manual invalidation',
       );
     });
   });

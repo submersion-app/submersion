@@ -9,6 +9,7 @@ import 'package:submersion/features/universal_import/data/csv/presets/csv_preset
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/select_preset_sheet.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -43,6 +44,9 @@ Widget _buildSheet({
       userCsvPresetsProvider.overrideWith((ref) => Future.value(userPresets)),
     ],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
       home: Scaffold(
         body: Builder(
           builder: (context) => Center(
@@ -295,6 +299,9 @@ void main() {
             userCsvPresetsProvider.overrideWith((ref) => completer.future),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             home: Scaffold(
               body: Builder(
                 builder: (context) => Center(
@@ -335,6 +342,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             home: Scaffold(
               body: Builder(
                 builder: (context) => Center(

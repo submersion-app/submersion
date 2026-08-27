@@ -2,7 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
 
 const _milestoneLadder = [10, 25, 50, 100, 250, 500, 1000];
 
@@ -72,15 +72,22 @@ class DashboardMilestones {
 }
 
 /// Next dive-count milestone and upcoming certification anniversaries.
+///
+/// Counts from the diver's combined career total (logged + prior dives), so a
+/// diver carrying a pre-app logbook is not sent back to the "10 dives"
+/// milestone they passed decades ago (issue #808).
 final milestonesProvider = FutureProvider<DashboardMilestones>((ref) async {
-  final stats = await ref.watch(diveStatisticsProvider.future);
+  // Watched before the await so the dependency is registered synchronously
+  // rather than across an async gap.
   final certsAsync = ref.watch(certificationListNotifierProvider);
+  final career = await ref.watch(careerTotalsProvider.future);
   final certs = certsAsync.valueOrNull ?? const <Certification>[];
 
-  final next = nextDiveMilestone(stats.totalDives);
+  final total = career.combinedDives;
+  final next = nextDiveMilestone(total);
   return DashboardMilestones(
     nextMilestone: next,
-    divesRemaining: next == null ? null : next - stats.totalDives,
+    divesRemaining: next == null ? null : next - total,
     anniversaries: upcomingAnniversaries(certs, DateTime.now()),
   );
 });

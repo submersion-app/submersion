@@ -96,6 +96,35 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   return recent;
 });
 
+/// Depth profile of the newest dive, for the recent-dives preview chart.
+///
+/// [recentDivesProvider] hydrates its dives through `getDiveById`, which reads
+/// the `dives` row only and leaves `Dive.profile` empty -- the list path
+/// deliberately avoids dragging thousands of sample rows into a summary view.
+/// The batch cache it does populate holds ~20-point sparkline summaries, which
+/// is enough for a tile-sized mini chart but too coarse for a preview several
+/// hundred pixels wide. So this fetches the real samples, for the newest dive
+/// only, and only when a caller actually watches it.
+///
+/// Null when there are no dives, or when the newest dive has no profile
+/// (manually logged dives usually do not).
+final latestDiveProfileProvider = FutureProvider<List<DiveProfilePoint>?>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  // The dive-detail tick, not the dives tick: this reads dive_profiles, and
+  // samples change without the dives row changing (a reparse or a sync pull
+  // rewrites the profile in place). watchDivesChanges would leave the chart
+  // showing the pre-reparse shape.
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+
+  final recent = await ref.watch(recentDivesProvider.future);
+  if (recent.isEmpty) return null;
+
+  final profile = await repository.getDiveProfile(recent.first.id);
+  return profile.isEmpty ? null : profile;
+});
+
 /// Dashboard alerts provider - combines equipment and insurance alerts
 final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
   final clocksDue = await ref.watch(dueClocksProvider.future);
@@ -188,8 +217,8 @@ class YearInReview {
 
 /// This year vs last year. Null when both years are empty.
 final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
-  ref.watch(statisticsVersionProvider);
   final repository = ref.watch(statisticsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
   final year = DateTime.now().year;
   final current = await repository.getYearStats(year, diverId: diverId);
@@ -242,14 +271,13 @@ class DashboardQuickStats {
 /// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
 /// the shared repository directly instead of watching those providers, and
 /// re-implements their diver scoping (but not their filter scoping).
-/// [statisticsVersionProvider] is watched explicitly to preserve the
-/// dive-mutation reactivity that used to arrive transitively through those
-/// three providers.
+/// The statistics change tick preserves the dive-mutation reactivity that used
+/// to arrive transitively through those three providers.
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
-  ref.watch(statisticsVersionProvider);
   final repository = ref.watch(statisticsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
 
   // Get top buddy

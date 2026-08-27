@@ -30,7 +30,10 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   }
 
   @override
-  Future<void> restore(String backupPath) async {}
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async {}
 
   @override
   Future<String> get databasePath async => '/fake/db/path';
@@ -38,9 +41,26 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
   AppDatabase get database =>
       throw UnimplementedError('Fake database does not support queries');
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
+/// Per-file temp root, so the backup service's fixed `Submersion/Backups`
+/// subtree does not collide with the other suites that mock path_provider the
+/// same way. `flutter test` runs files in parallel isolates against one real
+/// $TMPDIR, so sharing it let one suite truncate or encrypt another's artifact
+/// mid-assert.
+final _isolatedTempDir = Directory.systemTemp.createTempSync(
+  'backup_enc_test_',
+);
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
@@ -49,10 +69,10 @@ void main() {
           const MethodChannel('plugins.flutter.io/path_provider'),
           (MethodCall methodCall) async {
             if (methodCall.method == 'getTemporaryDirectory') {
-              return Directory.systemTemp.path;
+              return _isolatedTempDir.path;
             }
             if (methodCall.method == 'getApplicationDocumentsDirectory') {
-              return Directory.systemTemp.path;
+              return _isolatedTempDir.path;
             }
             return null;
           },

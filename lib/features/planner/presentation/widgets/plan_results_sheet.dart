@@ -96,7 +96,7 @@ class PlanResultsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final outcome = ref.watch(planOutcomeProvider);
+    final outcome = ref.watch(activePlanOutcomeProvider);
     final state = ref.watch(divePlanNotifierProvider);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -151,10 +151,12 @@ class PlanResultsSheet extends ConsumerWidget {
     );
   }
 
-  /// Collapsible deviation and lost-gas mini tables; null when the plan has no
-  /// segments to vary. Collapsed by default so the expensive per-variant engine
-  /// runs happen only when the diver opens the section (the providers return
-  /// empty while [contingenciesExpandedProvider] is false).
+  /// Every deviation and lost-gas mini table, each independently collapsible;
+  /// null when the plan has no segments to vary. The section itself starts
+  /// collapsed so the expensive per-variant engine runs happen only once the
+  /// diver opens it (the providers return empty while
+  /// [contingenciesExpandedProvider] is false); each row then starts expanded
+  /// and can be collapsed individually to cut clutter once there are several.
   List<Widget>? _contingencySections(
     BuildContext context,
     WidgetRef ref,
@@ -165,7 +167,38 @@ class PlanResultsSheet extends ConsumerWidget {
     final expanded = ref.watch(contingenciesExpandedProvider);
     final deviations = ref.watch(planDeviationsProvider);
     final lostGas = ref.watch(planLostGasProvider);
+    final selectedDeviation = ref.watch(selectedDeviationProvider);
+    final selectedLostGasTankId = ref.watch(selectedLostGasTankIdProvider);
+    final collapsedKeys = ref.watch(collapsedContingencyKeysProvider);
     final theme = Theme.of(context);
+
+    void toggleCollapsed(String key) {
+      final next = Set<String>.from(collapsedKeys);
+      if (!next.add(key)) next.remove(key);
+      ref.read(collapsedContingencyKeysProvider.notifier).state = next;
+    }
+
+    void toggleDeviation(String key) {
+      final isSelected = selectedDeviation == key;
+      ref.read(selectedDeviationProvider.notifier).state = isSelected
+          ? null
+          : key;
+      // Only one contingency ghost/preview can be active at a time.
+      if (!isSelected) {
+        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
+      }
+    }
+
+    void toggleLostGas(String tankId) {
+      final isSelected = selectedLostGasTankId == tankId;
+      ref.read(selectedLostGasTankIdProvider.notifier).state = isSelected
+          ? null
+          : tankId;
+      // Only one contingency ghost/preview can be active at a time.
+      if (!isSelected) {
+        ref.read(selectedDeviationProvider.notifier).state = null;
+      }
+    }
 
     String deviationLabel(String key) {
       final depth =
@@ -178,15 +211,46 @@ class PlanResultsSheet extends ConsumerWidget {
       };
     }
 
-    Widget subHeader(String text) => Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 4),
-      child: Text(
-        text,
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    Widget row({
+      required String key,
+      required String label,
+      required bool selected,
+      required VoidCallback onSelect,
+      required PlanOutcome outcome,
+    }) {
+      final collapsed = collapsedKeys.contains(key);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            // The chevron carries its own vertical slack (see below), so the
+            // row only needs padding under it.
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // An IconButton rather than a bare InkWell so the 20px glyph
+                // gets an accessible box around it: tapTargetSize is left at
+                // the theme default (padded, kMinInteractiveDimension = 48)
+                // and compact density trims it to 40x40, the same treatment
+                // the rest of the app's small icon controls use.
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 20,
+                  color: theme.colorScheme.outline,
+                  onPressed: () => toggleCollapsed(key),
+                  icon: Icon(
+                    collapsed ? Icons.chevron_right : Icons.expand_more,
+                  ),
+                ),
+                PlanChip(label: label, emphasized: selected, onTap: onSelect),
+              ],
+            ),
+          ),
+          if (!collapsed) _RuntimeTable(outcome: outcome, units: units),
+        ],
+      );
+    }
 
     return [
       const SizedBox(height: 20),
@@ -206,18 +270,24 @@ class PlanResultsSheet extends ConsumerWidget {
         ),
       ),
       if (expanded) ...[
-        for (final deviation in deviations) ...[
-          subHeader(deviationLabel(deviation.key)),
-          _RuntimeTable(outcome: deviation.outcome, units: units),
-        ],
-        for (final lost in lostGas) ...[
-          subHeader(
-            context.l10n.plannerCanvas_contingency_lostGas(
+        for (final deviation in deviations)
+          row(
+            key: deviation.key,
+            label: deviationLabel(deviation.key),
+            selected: selectedDeviation == deviation.key,
+            onSelect: () => toggleDeviation(deviation.key),
+            outcome: deviation.outcome,
+          ),
+        for (final lost in lostGas)
+          row(
+            key: lost.tank.id,
+            label: context.l10n.plannerCanvas_contingency_lostGas(
               lost.tank.gasMix.name,
             ),
+            selected: selectedLostGasTankId == lost.tank.id,
+            onSelect: () => toggleLostGas(lost.tank.id),
+            outcome: lost.outcome,
           ),
-          _RuntimeTable(outcome: lost.outcome, units: units),
-        ],
       ],
     ];
   }

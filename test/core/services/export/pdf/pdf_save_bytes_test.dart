@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
@@ -14,28 +15,43 @@ import '../../../../helpers/test_database.dart';
 /// name reaching the picker, not just the value handed back.
 class _RecordingPicker extends MockFilePickerPlatform {
   String? requestedFileName;
-  List<String>? requestedExtensions;
+  String? requestedMimeType;
   Uint8List? offeredBytes;
 
   @override
-  Future<String?> saveFile({
+  Future<Uri?> saveFile({
+    required String fileName,
+    required Uint8List bytes,
+    required String mimeType,
     String? dialogTitle,
-    String? fileName,
     String? initialDirectory,
-    FileType type = FileType.any,
-    List<String>? allowedExtensions,
-    Uint8List? bytes,
-    bool lockParentWindow = false,
+    Function(FilePickerStatus)? onFileSaving,
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
   }) async {
     requestedFileName = fileName;
-    requestedExtensions = allowedExtensions;
+    requestedMimeType = mimeType;
     offeredBytes = bytes;
-    return saveFileResult;
+    return super.saveFile(
+      fileName: fileName,
+      bytes: bytes,
+      mimeType: mimeType,
+      dialogTitle: dialogTitle,
+      initialDirectory: initialDirectory,
+    );
   }
 }
 
 /// [PdfExportService.savePdfBytesToFile] is the seam the template-aware save
 /// flow uses so the selected detail level survives to disk (#644).
+/// The historical ISO rendering these tests were written against; the diver's
+/// own date and time preferences are covered in pdf_date_preference_test.dart.
+final isoDates = PdfDateFormatter(
+  dateFormat: DateFormatPreference.yyyymmdd,
+  timeFormat: TimeFormat.twentyFourHour,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -63,7 +79,7 @@ void main() {
 
   test('writes the supplied bytes to the chosen path', () async {
     final target = '${workDir.path}/dive_logbook_padiStyle_2026-01-15.pdf';
-    picker.saveFileResult = target;
+    picker.saveFileResult = Uri.file(target);
 
     final path = await service.savePdfBytesToFile(
       pdfBytes,
@@ -75,7 +91,7 @@ void main() {
   });
 
   test('offers the caller file name and a .pdf filter to the picker', () async {
-    picker.saveFileResult = '${workDir.path}/out.pdf';
+    picker.saveFileResult = Uri.file('${workDir.path}/out.pdf');
 
     await service.savePdfBytesToFile(
       pdfBytes,
@@ -87,7 +103,9 @@ void main() {
       'dive_logbook_nauiStyle_2026-01-15.pdf',
       reason: 'the template name must survive into the suggested file name',
     );
-    expect(picker.requestedExtensions, ['pdf']);
+    // file_picker 12's saveFile has no allowedExtensions; the file type now
+    // reaches the dialog as a mime type instead.
+    expect(picker.requestedMimeType, 'application/pdf');
     expect(picker.offeredBytes, pdfBytes);
   });
 
@@ -100,7 +118,7 @@ void main() {
 
   test('saveDivesToPdfFile routes the generated logbook through it', () async {
     final target = '${workDir.path}/logbook.pdf';
-    picker.saveFileResult = target;
+    picker.saveFileResult = Uri.file(target);
 
     final path = await service.saveDivesToPdfFile([
       Dive(
@@ -110,7 +128,7 @@ void main() {
         runtime: const Duration(minutes: 62),
         maxDepth: 25.0,
       ),
-    ]);
+    ], dates: isoDates);
 
     expect(path, target);
     expect(picker.requestedFileName, startsWith('dive_logbook_'));
@@ -123,7 +141,7 @@ void main() {
     'ExportService.savePdfBytesToFile delegates to the PDF service',
     () async {
       final target = '${workDir.path}/facade.pdf';
-      picker.saveFileResult = target;
+      picker.saveFileResult = Uri.file(target);
 
       final path = await ExportService().savePdfBytesToFile(
         pdfBytes,

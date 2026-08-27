@@ -212,6 +212,10 @@ class MiniDiveProfileOverlay extends StatelessWidget {
                   ],
                 ),
               ),
+              // The marker dot below is a Positioned widget that jumps
+              // instantly when the photo changes; without this the marker
+              // line would trail it by the default 150ms implicit animation.
+              duration: Duration.zero,
             ),
 
             // Photo marker dot (positioned on top of the chart)

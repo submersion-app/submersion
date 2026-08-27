@@ -265,14 +265,16 @@ class TripStatStrip extends ConsumerWidget {
 
     final entries = <(String, String)>[
       (l10n.trips_detail_stat_totalDives, '${stats.diveCount}'),
-      (l10n.trips_detail_stat_totalBottomTime, stats.formattedBottomTime),
+      (l10n.trips_detail_stat_totalRuntime, stats.formattedRuntime),
       if (stats.maxDepth != null)
         (l10n.trips_detail_stat_maxDepth, units.formatDepth(stats.maxDepth)),
       if (siteCount > 0) (l10n.trips_detail_stat_sitesVisited, '$siteCount'),
     ];
 
     return Container(
-      color: theme.colorScheme.surface,
+      // One tonal step above the page surface: welds the strip to the map
+      // above it so the two read as a single trip-summary region.
+      color: theme.colorScheme.surfaceContainerLow,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [

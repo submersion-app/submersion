@@ -17,6 +17,7 @@ import 'package:submersion/features/media_store/presentation/widgets/media_trans
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Configuration page for the media store's S3 backend (design spec
 /// section 14). Sibling of the sync backend's S3ConfigPage: same field
@@ -61,7 +62,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     _regionController.addListener(_onRegionChanged);
     _loadExisting();
     _checkSyncConfig();
-    _loadPolicies();
+    logFailure(_loadPolicies(), _MediaStoragePageState, 'load policies');
   }
 
   Future<void> _loadPolicies() async {
@@ -463,10 +464,15 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                     value: CloudProviderType.dropbox,
                     label: Text('Dropbox'),
                   ),
-                  const ButtonSegment(
-                    value: CloudProviderType.googledrive,
-                    label: Text('Google Drive'),
-                  ),
+                  // Hidden where Google sign-in cannot run (a Windows/Linux
+                  // build with no Desktop-app OAuth client compiled in);
+                  // otherwise the connect flow offers an account it can
+                  // never obtain. Same gate as the Cloud Sync tile.
+                  if (ref.watch(googleDriveAvailableProvider).value ?? false)
+                    const ButtonSegment(
+                      value: CloudProviderType.googledrive,
+                      label: Text('Google Drive'),
+                    ),
                   if (ref.watch(isApplePlatformProvider))
                     const ButtonSegment(
                       value: CloudProviderType.icloud,

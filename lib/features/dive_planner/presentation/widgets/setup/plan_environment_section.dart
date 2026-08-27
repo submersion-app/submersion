@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -60,14 +61,19 @@ class _AltitudeInput extends StatefulWidget {
 class _AltitudeInputState extends State<_AltitudeInput> {
   late TextEditingController _controller;
 
+  /// The seed and the parse must share one convention, so the whole-metre
+  /// altitude is rendered in the diver's locale rather than with
+  /// toStringAsFixed (#1091).
+  String _seed(double? meters) => meters == null
+      ? ''
+      : formatDecimalForInput(
+          widget.units.convertAltitude(meters).roundToDouble(),
+        );
+
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-      text: widget.altitude != null
-          ? widget.units.convertAltitude(widget.altitude!).toStringAsFixed(0)
-          : '',
-    );
+    _controller = TextEditingController(text: _seed(widget.altitude));
   }
 
   @override
@@ -75,9 +81,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
     super.didUpdateWidget(oldWidget);
     // Only update if altitude changed externally (not from typing)
     if (oldWidget.altitude != widget.altitude) {
-      final newText = widget.altitude != null
-          ? widget.units.convertAltitude(widget.altitude!).toStringAsFixed(0)
-          : '';
+      final newText = _seed(widget.altitude);
       if (_controller.text != newText) {
         _controller.text = newText;
       }
@@ -115,7 +119,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
           if (value.isEmpty) {
             widget.onChanged(null);
           } else {
-            final parsed = double.tryParse(value);
+            final parsed = parseUserDecimal(value);
             if (parsed != null) {
               final meters = widget.units.altitudeToMeters(parsed);
               widget.onChanged(meters);
@@ -128,7 +132,9 @@ class _AltitudeInputState extends State<_AltitudeInput> {
     final groupChip = showGroup
         ? Flexible(
             child: Semantics(
-              label: 'Altitude group: ${altitudeGroup.displayName}',
+              label: context.l10n.divePlanner_semantics_altitudeGroup(
+                altitudeGroup.displayName,
+              ),
               child: _buildGroupChip(theme, altitudeGroup),
             ),
           )

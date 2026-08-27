@@ -14,10 +14,10 @@ import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
 /// Sync replication for `media_enrichment` (the depth/time association for a
-/// linked photo). Like `media_stores`/`buddy_roles`, this table carries its
-/// own `hlc` column, so its export uses the simple hlc-filter pattern. Unlike
-/// them it is a child of both `media` and `dives`, so each fixture seeds those
-/// parent rows first (FKs are enforced in the test database).
+/// linked photo). Like `media_stores`/`certifications`, this table carries
+/// its own `hlc` column, so its export uses the simple hlc-filter pattern.
+/// Unlike them it is a child of both `media` and `dives`, so each fixture
+/// seeds those parent rows first (FKs are enforced in the test database).
 void main() {
   group('media_enrichment sync', () {
     setUp(() async {

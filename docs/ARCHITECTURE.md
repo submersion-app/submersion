@@ -862,9 +862,9 @@ flutter test test/core/deco/    # Deco algorithm tests only
 
 | Platform | Status | Requirements |
 |----------|--------|--------------|
-| iOS | ✅ Ready | iOS 13+ |
+| iOS | ✅ Ready | iOS 15+ |
 | Android | ✅ Ready | Android 7+ (API 24) |
-| macOS | ✅ Ready | macOS 11+ |
+| macOS | ✅ Ready | macOS 12+ |
 | Windows | ✅ Ready | Windows 10+ |
 | Linux | ✅ Ready | Modern desktop Linux |
 | Web | 📋 Planned | v2.0 (requires cloud sync) |

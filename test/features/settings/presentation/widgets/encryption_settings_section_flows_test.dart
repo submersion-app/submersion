@@ -144,11 +144,17 @@ class _NoopBackupAdapter implements BackupDatabaseAdapter {
   @override
   Future<void> backup(String destinationPath) async {}
   @override
-  Future<void> restore(String backupPath) async {}
+  Future<void> restore(
+    String backupPath, {
+    void Function(int, int)? onMigrationProgress,
+  }) async {}
   @override
   Future<String> get databasePath async => '/noop';
   @override
   AppDatabase get database => throw UnimplementedError();
+
+  @override
+  String? get databaseKeyHex => null;
 }
 
 class _RecordingBackupService extends BackupService {

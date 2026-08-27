@@ -157,13 +157,9 @@ void main() {
       expect(copy.region, equals('Cozumel'));
     });
 
-    test('replaces photoIds and conditions', () {
-      final copy = base.copyWith(
-        photoIds: ['p1', 'p2'],
-        conditions: const SiteConditions(waterType: 'salt'),
-      );
+    test('replaces photoIds', () {
+      final copy = base.copyWith(photoIds: ['p1', 'p2']);
       expect(copy.photoIds, equals(['p1', 'p2']));
-      expect(copy.conditions?.waterType, equals('salt'));
     });
   });
 
@@ -177,36 +173,6 @@ void main() {
     test('toString formats with 6 decimal places', () {
       const p = GeoPoint(10.0, -20.5);
       expect(p.toString(), equals('10.000000, -20.500000'));
-    });
-  });
-
-  group('SiteConditions', () {
-    test('equality by all fields', () {
-      const a = SiteConditions(
-        waterType: 'salt',
-        typicalVisibility: '20m',
-        typicalCurrent: 'mild',
-        bestSeason: 'summer',
-        minTemp: 22.0,
-        maxTemp: 28.0,
-        entryType: 'shore',
-      );
-      const b = SiteConditions(
-        waterType: 'salt',
-        typicalVisibility: '20m',
-        typicalCurrent: 'mild',
-        bestSeason: 'summer',
-        minTemp: 22.0,
-        maxTemp: 28.0,
-        entryType: 'shore',
-      );
-      expect(a, equals(b));
-    });
-
-    test('distinguishes objects by field differences', () {
-      const a = SiteConditions(waterType: 'salt');
-      const b = SiteConditions(waterType: 'fresh');
-      expect(a == b, isFalse);
     });
   });
 

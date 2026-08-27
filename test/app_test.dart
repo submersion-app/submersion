@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -29,6 +30,13 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
 
   @override
   Future<void> performSync({bool auto = false}) async {}
+
+  @override
+  Future<ReplacePreflight> replacePreflight() async =>
+      const ReplacePreflight(localDiveCount: 0, peerFileCount: 0);
+
+  @override
+  Future<void> replaceCloudLibraryFromThisDevice() async {}
 
   @override
   Future<void> disableForDatabaseReset() async {}
@@ -71,13 +79,20 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
   Future<void> repairSync() async {}
 
   @override
-  Future<void> removeThisDeviceCloudFiles() async {}
+  Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
+    SyncCleanupProgress? onProgress,
+  }) async => const SyncCleanupOutcome();
 
   @override
-  Future<void> wipeAllCloudSyncData() async {}
+  Future<SyncCleanupOutcome> wipeAllCloudSyncData({
+    SyncCleanupProgress? onProgress,
+  }) async => const SyncCleanupOutcome();
 
   @override
-  Future<void> rebuildBackendFromThisDevice() async {}
+  Future<void> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+    void Function()? onPublishStarted,
+  }) async {}
 
   @override
   Future<void> signOut() async {}

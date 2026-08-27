@@ -51,6 +51,47 @@ class NoFlyStatus {
   bool isActiveAt(DateTime now) => until.isAfter(now);
 }
 
+/// State of the forward-looking dive window before a booked flight.
+enum FlightWindowState {
+  /// Diving may continue; the diver must surface by
+  /// [FlightWindowStatus.deadline].
+  open,
+
+  /// The deadline has passed: no more diving before this flight.
+  closed,
+
+  /// The diver's existing no-fly restriction already extends past the
+  /// flight departure. Takes precedence over open/closed.
+  conflict,
+}
+
+/// Forward-looking dive window for a trip's return flight: the latest safe
+/// surfacing time is the departure minus the guideline interval for the
+/// (preset, category) pair. Same fixed-interval doctrine as [NoFlyStatus].
+class FlightWindowStatus {
+  final FlightWindowState state;
+
+  /// Flight departure, wall-clock-as-UTC (the dive-time frame).
+  final DateTime flightAt;
+
+  /// Latest safe surfacing time before [flightAt].
+  final DateTime deadline;
+
+  final NoFlyCategory category;
+  final Duration interval;
+
+  const FlightWindowStatus({
+    required this.state,
+    required this.flightAt,
+    required this.deadline,
+    required this.category,
+    required this.interval,
+  });
+
+  Duration remaining(DateTime now) =>
+      deadline.isAfter(now) ? deadline.difference(now) : Duration.zero;
+}
+
 /// Classifies the trailing dive window per DAN/UHMS flying-after-diving
 /// guidance and computes the countdown anchor. The fixed guideline intervals
 /// are authoritative here by design -- no agency endorses computed
@@ -85,7 +126,17 @@ class NoFlyService {
         .map((d) => d.endTime)
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    final interval = switch ((preset, category)) {
+    final interval = intervalFor(preset, category);
+
+    final until = lastEnd.add(interval);
+    if (!until.isAfter(now)) return null;
+    return NoFlyStatus(until: until, category: category, interval: interval);
+  }
+
+  /// Guideline pre-flight surface interval for a (preset, category) pair.
+  /// Single source of truth shared by [evaluate] and [flightWindow].
+  static Duration intervalFor(NoFlyPreset preset, NoFlyCategory category) {
+    return switch ((preset, category)) {
       (NoFlyPreset.standard, NoFlyCategory.single) => const Duration(hours: 12),
       (NoFlyPreset.standard, NoFlyCategory.repetitive) => const Duration(
         hours: 18,
@@ -97,9 +148,54 @@ class NoFlyService {
       ),
       (NoFlyPreset.strict, NoFlyCategory.deco) => const Duration(hours: 48),
     };
+  }
 
-    final until = lastEnd.add(interval);
-    if (!until.isAfter(now)) return null;
-    return NoFlyStatus(until: until, category: category, interval: interval);
+  /// The current moment in the app's wall-clock-as-UTC dive-time frame.
+  /// Dive entry/exit times are stored as `DateTime.utc(local components)`,
+  /// so comparisons against them must use the same construction -- NOT
+  /// `DateTime.now().toUtc()`, which is the true instant and differs by the
+  /// device's UTC offset.
+  static DateTime wallClockNowUtc() {
+    final now = DateTime.now();
+    return DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+  }
+
+  /// Computes the dive window before [flightAt], or null when the flight
+  /// has already departed. [prospectiveCategory] is the caller's
+  /// forward-looking classification (at least repetitive on a trip);
+  /// [currentNoFlyUntil] is the backward-looking restriction end used to
+  /// detect a conflict.
+  FlightWindowStatus? flightWindow({
+    required DateTime flightAt,
+    required NoFlyPreset preset,
+    required NoFlyCategory prospectiveCategory,
+    DateTime? currentNoFlyUntil,
+    required DateTime now,
+  }) {
+    if (!flightAt.isAfter(now)) return null;
+    final interval = intervalFor(preset, prospectiveCategory);
+    final deadline = flightAt.subtract(interval);
+    final FlightWindowState state;
+    if (currentNoFlyUntil != null && currentNoFlyUntil.isAfter(flightAt)) {
+      state = FlightWindowState.conflict;
+    } else if (now.isBefore(deadline)) {
+      state = FlightWindowState.open;
+    } else {
+      state = FlightWindowState.closed;
+    }
+    return FlightWindowStatus(
+      state: state,
+      flightAt: flightAt,
+      deadline: deadline,
+      category: prospectiveCategory,
+      interval: interval,
+    );
   }
 }

@@ -369,21 +369,78 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \
+            scripts/check_bundled_native_assets_test.py
+          python3 -m coverage run --append --include="$guards" \
             scripts/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_dc_process_isolation_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/fix_macho_symbol_order_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/release/sanitize_apple_store_notes_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
 
+      - name: Run chamber directory pipeline tests
+        # The harvester generates a safety-critical dataset: its validation
+        # gates are what stop a broken parser shipping blank phone numbers or
+        # duplicate ids. Kept out of the guards coverage set above so it does
+        # not perturb that report; pypdf is installed here because the FFESSM
+        # registry is a PDF (the test skips itself without it).
+        run: |
+          python3 -m pip install pypdf
+          python3 scripts/chamber_harvester_test.py
+          python3 scripts/chamber_sources_test.py
+
       - name: Run appcast beta feed test
         run: ./scripts/generate_appcast_beta_test.sh
+
+      - name: Run release notes HTML test
+        run: ./scripts/generate_release_notes_html_test.sh
+
+      - name: Run beta release notes test
+        run: ./scripts/release/beta_release_notes_test.sh
+
+      - name: Run changelog generator test
+        run: ./scripts/release/generate_changelog_test.sh
+
+      - name: Run release contributors test
+        # Stubs the GitHub API, so no token or network is needed here. Guards
+        # the two properties the credits depend on: PR numbers resolve from
+        # git alone, and no API failure can abort a release.
+        run: ./scripts/release/contributors_test.sh
+
+      - name: Run fastlane beta changelog test
+        run: ruby scripts/release/fastlane_beta_changelog_test.rb
+
+      - name: Run fastlane submit guard test
+        # Guards the App Review submission guard against the defect behind
+        # promotion run 31903095751: submitting while a DIFFERENT version was
+        # still in review, which renamed the in-review version instead of
+        # creating a new one and left it carrying the wrong build.
+        run: ruby scripts/release/fastlane_submit_guard_test.rb
+
+      - name: Run App Review notes test
+        # Guards the committed App Review notes deliver uploads with every
+        # submission: present on both platforms, identical, within Apple's
+        # length limit, and free of other-platform names (2.3.10). iOS 1.7.4
+        # and 1.7.5 were rejected under 5.1.1(v) because nothing told the
+        # reviewer the app has no accounts.
+        run: ./scripts/release/app_review_notes_test.sh
+
+      - name: Run pre-push hook test
+        # Guards two hook bugs that both rejected pushes for reasons unrelated
+        # to the change being pushed: running the checks against the main
+        # checkout rather than the worktree, and a set -e abort that produced
+        # no error message. Stubs dart/flutter, so no toolchain is needed here.
+        run: ./scripts/pre_push_hook_test.sh
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
@@ -653,12 +710,34 @@ jobs:
             macos/Runner.xcodeproj/project.pbxproj
 
           # Build with Flutter
-          flutter build macos --release "${{ env.DART_DEFINES }}"
+          flutter build macos --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}"
 
           # Re-sign with ad-hoc signature and no-sandbox entitlements
           codesign --force --deep --sign - \
             --entitlements macos/Runner/ReleaseNoSandbox.entitlements \
             build/macos/Build/Products/Release/submersion.app
+
+      # gen_snapshot emits App.framework's exported symbols in address order, which
+      # macOS 11's dyld cannot resolve by binary search -- the app then segfaults on
+      # launch before its window appears (issue #996). A build phase sorts them; this
+      # asserts the phase actually ran, since the failure is invisible on macOS 12+.
+      - name: Verify App.framework symbol order
+        run: |
+          python3 scripts/fix_macho_symbol_order.py --check \
+            build/macos/Build/Products/Release/submersion.app/Contents/Frameworks/App.framework/Versions/A/App
+
+      # Zip with ditto before upload: upload-artifact would otherwise root the
+      # archive inside the .app bundle (losing the submersion.app wrapper) and
+      # strip the symlinks, permission bits, and codesign seal the bundle
+      # needs to be runnable.
+      - name: Zip macOS app bundle
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
+        run: |
+          ditto -c -k --keepParent \
+            build/macos/Build/Products/Release/submersion.app \
+            build/macos/Build/Products/Release/submersion-macos.zip
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v7
@@ -667,7 +746,7 @@ jobs:
           (github.ref == 'refs/heads/main' && github.event_name == 'push')
         with:
           name: macos-build
-          path: build/macos/Build/Products/Release/submersion.app
+          path: build/macos/Build/Products/Release/submersion-macos.zip
           retention-days: 7
 
   build-android:
@@ -721,6 +800,26 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      # flutter_secure_storage 11 hardcodes compileSdk 37 in its own module,
+      # so the app compiles against 37 too (android/app/build.gradle.kts).
+      # Installed explicitly rather than left to Gradle's auto-download: the
+      # runner image only preinstalls a few platforms, and a missing one fails
+      # late with an opaque "failed to find target with hash string" error.
+      - name: Install Android SDK platform 37
+        run: |
+          # sdkmanager is not on PATH on the runner image; it lives under
+          # $ANDROID_HOME/cmdline-tools/<version>/bin. Located rather than
+          # hardcoded so a runner-image reshuffle fails loudly here instead
+          # of surfacing later as a confusing Gradle error.
+          sdkmanager="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools" \
+            -name sdkmanager -type f 2>/dev/null | head -1)"
+          if [ -z "$sdkmanager" ]; then
+            echo "::error::sdkmanager not found under ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+          echo "Using $sdkmanager"
+          "$sdkmanager" --install "platforms;android-37.0" < /dev/null
+
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager
 
@@ -737,6 +836,16 @@ jobs:
 
       - name: Build Android APK
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
+
+      # The plugin's Kotlin JVM tests (BondPolicy, BondDiagnostics,
+      # BleScanDiagnostics, SerialReadBuffer) cover decision logic that no
+      # Dart test can reach. They run here rather than in their own job
+      # because android/gradlew is gitignored: the Gradle wrapper only
+      # exists once a Flutter Android build has injected it, which the APK
+      # step above has just done.
+      - name: Run libdivecomputer_plugin Kotlin unit tests
+        working-directory: android
+        run: ./gradlew :libdivecomputer_plugin:testDebugUnitTest
 
       # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
       # silently shipped and crashed the app on Android 15+ 16 KB-page devices.
@@ -804,6 +913,10 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      # libssl-dev is required by sqlcipher_flutter_libs: the Linux build
+      # compiles SQLCipher from source and links it against OpenSSL. The
+      # hosted runner image happens to ship the headers today, so declaring
+      # it keeps a future image change from silently breaking the build.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -816,7 +929,8 @@ jobs:
             liblzma-dev \
             libstdc++-12-dev \
             libsecret-1-dev \
-            libwebkit2gtk-4.1-dev
+            libwebkit2gtk-4.1-dev \
+            libssl-dev
 
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager
@@ -833,7 +947,13 @@ jobs:
         run: tar -xzf generated-code.tar.gz
 
       - name: Build Linux
-        run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build linux --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}" -v
+
+      - name: Check bundled native assets
+        # Same guard as the Windows job. Linux uses the stock Flutter install
+        # rule and has always bundled its libraries, so this doubles as the
+        # positive control that the check is not vacuously passing.
+        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v7
@@ -909,7 +1029,15 @@ jobs:
         run: tar -xzf generated-code.tar.gz
 
       - name: Build Windows
-        run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build windows --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}" -v
+
+      - name: Check bundled native assets
+        # A Windows build that never bundles sqlcipher.dll still compiles,
+        # packages and ships; it only fails when a user launches it (issue
+        # #1129). CI builds but never launches, so this is the step that has to
+        # notice. Windows runners expose the interpreter as `python`, not the
+        # `python3` the Linux guard steps use.
+        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v7

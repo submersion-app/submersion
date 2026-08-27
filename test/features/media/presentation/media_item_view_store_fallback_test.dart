@@ -516,6 +516,88 @@ void main() {
     expect(find.byIcon(Icons.movie_outlined), findsNothing);
   });
 
+  // A document's store fallback can hand back the PDF ITSELF: the thumb
+  // object exists only once the uploading device has stamped
+  // remoteThumbUploadedAt, and until then tryResolveRemote degrades a
+  // thumbnail request to the original. Marking every store result renderable
+  // because the REQUEST was a thumbnail therefore fed a PDF to Image.file and
+  // drew the broken-image tile instead of the document placeholder.
+  testWidgets('a document served as its original, not a thumb, keeps the '
+      'document placeholder', (tester) async {
+    await tester.runAsync(() async {
+      // Genuinely undecodable bytes: _fetchOriginal hash-verifies what it
+      // downloads, so the fixture has to be a real object in the store.
+      final bytes = utf8.encode('%PDF-1.7 not an image');
+      final seed = File('${root.path}/reef-map.pdf');
+      await seed.writeAsBytes(bytes, flush: true);
+      final digest = await sha256OfFile(seed);
+      store.objects[StoreKeys.objectKey(digest.hash, extension: 'pdf')] = bytes;
+
+      final runtime = MediaStoreRuntime(
+        storeId: 'store-1',
+        store: store,
+        cache: cache,
+        resolver: MediaStoreResolver(store: store, cache: cache),
+      );
+
+      // Original uploaded, thumb never stamped -- the window in which the
+      // store can only offer the document itself.
+      final noThumbRow = MediaItem(
+        id: 'm-doc',
+        siteId: 'site-1',
+        mediaType: MediaType.document,
+        sourceType: MediaSourceType.platformGallery,
+        platformAssetId: 'asset-from-other-device',
+        originalFilename: 'reef-map.pdf',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: digest.hash,
+        remoteUploadedAt: DateTime(2026, 7, 1),
+      );
+      expect(noThumbRow.remoteThumbUploadedAt, isNull);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.platformGallery:
+                    const _UnavailableGalleryResolver(),
+              }),
+            ),
+            mediaStoreRuntimeProvider.overrideWith((ref) async => runtime),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SizedBox(
+                width: 100,
+                height: 100,
+                child: MediaItemView(
+                  item: noThumbRow,
+                  thumbnail: true,
+                  targetSize: const Size(100, 100),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 40; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byIcon(Icons.picture_as_pdf_outlined).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+    });
+
+    expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+  });
+
   testWidgets('keeps the native placeholder when no store runtime '
       'exists', (tester) async {
     await tester.runAsync(() async {

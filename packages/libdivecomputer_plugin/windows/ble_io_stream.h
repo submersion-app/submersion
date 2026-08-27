@@ -1,11 +1,13 @@
 #ifndef BLE_IO_STREAM_H_
 #define BLE_IO_STREAM_H_
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -83,12 +85,33 @@ class BleIoStream {
       winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
           GattValueChangedEventArgs const& args);
 
+  // Telit/Stollmann Terminal I/O credit handshake. See the block comment in
+  // ble_io_stream.cc and darwin's BleCharacteristicSelector.
+  bool GrantInitialCredits();
+  void ReplenishCredits();
+  // Unsubscribe from and forget the credit characteristics.
+  void ReleaseCreditCharacteristics();
+
   // Known service/characteristic UUIDs for dive computers.
   static const winrt::guid kPreferredServiceUuid;
   static const winrt::guid kPreferredWriteUuid;
   static const winrt::guid kPreferredNotifyUuid;
   static const winrt::guid kHalcyonSymbiosTxUuid;
   static const winrt::guid kHalcyonSymbiosRxUuid;
+  static const winrt::guid kTerminalIoServiceUuid;
+  static const winrt::guid kTerminalIoDataRxUuid;
+  static const winrt::guid kTerminalIoDataTxUuid;
+  static const winrt::guid kTerminalIoCreditsRxUuid;
+  static const winrt::guid kTerminalIoCreditsTxUuid;
+  static const winrt::guid kUbloxServiceUuid;
+  static const winrt::guid kUbloxDataUuid;
+  static const winrt::guid kUbloxCreditsUuid;
+
+  // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
+  // largest value that means "credits" rather than a control code.
+  static constexpr uint8_t kTerminalIoInitialGrant = 254;
+  // Balance at or below which the client tops the module back up.
+  static constexpr int kTerminalIoRefillThreshold = 32;
 
   winrt::Windows::Devices::Bluetooth::BluetoothLEDevice device_{nullptr};
   // Held for the connection's lifetime to keep a throughput-optimized
@@ -103,6 +126,42 @@ class BleIoStream {
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic notify_characteristic_{nullptr};
   winrt::event_token notify_token_;
+  // ATT handle of the data notify characteristic, cached so the notification
+  // thread can identify a callback's source without reading
+  // notify_characteristic_ -- Close() clears that member concurrently, and
+  // revoking the ValueChanged token does not wait for handlers already
+  // running, so reading the WinRT object from the callback would be a data
+  // race. Zero means "no characteristic selected", which rejects everything.
+  std::atomic<uint16_t> notify_attribute_handle_{0};
+  // UART Credits RX/TX, non-null only on Telit Terminal I/O devices.
+  winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+      GattCharacteristic credits_write_characteristic_{nullptr};
+  winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+      GattCharacteristic credits_notify_characteristic_{nullptr};
+  winrt::event_token credits_notify_token_;
+  // Whether a failed opening grant is fatal (Telit) or falls back to running
+  // without flow control (u-blox, where it is optional).
+  bool credits_required_ = false;
+  // Credit balance, held behind a shared_ptr so the fire-and-forget grant
+  // completion can settle it without capturing `this`: the async operation may
+  // outlive this stream, and the balance must survive that long to be updated
+  // safely.
+  //
+  // WinRT can dispatch ValueChanged on several thread-pool threads at once, so
+  // the decrement/check/grant sequence is guarded as a unit: two concurrent
+  // refills would hand the module credits twice.
+  struct CreditBalance {
+    std::mutex mutex;
+    int credits = 0;
+    bool grant_in_flight = false;
+    // Set once the opening grant is confirmed. Top-ups stay suppressed until
+    // then: notifications go live before that write is issued, and a refill
+    // requested in the window would put a second credit write on the wire
+    // beside it and count both grants.
+    bool open = false;
+  };
+  std::shared_ptr<CreditBalance> credits_ =
+      std::make_shared<CreditBalance>();
 
   std::mutex read_mutex_;
   std::condition_variable read_cv_;

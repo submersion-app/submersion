@@ -66,6 +66,14 @@ void main() {
     ),
     role: DiveRole.builtInBuddy(),
   );
+  domain.BuddyWithRole bwrRole(String id, String roleId) =>
+      domain.BuddyWithRole(
+        buddy: bwr(id).buddy,
+        role: DiveRole.synthetic(roleId),
+      );
+  Future<List<String>> buddyRolesOf(String d) async => (await (db.select(
+    db.diveBuddies,
+  )..where((t) => t.diveId.equals(d))).get()).map((r) => r.role).toList();
   domain.DiveTank tank(String name, {TankMaterial? material}) =>
       domain.DiveTank(id: '', name: name, material: material);
   domain.DiveWeight weight(double kg) => domain.DiveWeight(
@@ -250,6 +258,48 @@ void main() {
     expect(await buddiesOf('d1'), isEmpty);
   });
 
+  test(
+    'BuddiesOp update rewrites roles without adding missing links',
+    () async {
+      await seed('d1');
+      await seed('d2');
+      // Real buddy rows: the undo snapshot reads links back through a join
+      // on `buddies`, so orphan junction rows would not survive the trip.
+      await seedBuddy('b1');
+      await seedBuddy('b2');
+      // b1 is on both dives; b2 only on d1.
+      await buddyRepo.bulkAddBuddies(['d1', 'd2'], [bwr('b1')]);
+      await buddyRepo.bulkAddBuddies(['d1'], [bwr('b2')]);
+
+      final snap = await service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1', 'd2'],
+          ops: [
+            BuddiesOp(
+              mode: BulkCollectionMode.update,
+              buddies: [
+                bwrRole('b1', DiveRole.instructorId),
+                bwrRole('b2', DiveRole.diveGuideId),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      expect((await buddyRolesOf('d2')).single, DiveRole.instructorId);
+      expect((await buddiesOf('d2')).toSet(), {'b1'});
+      expect((await buddyRolesOf('d1')).toSet(), {
+        DiveRole.instructorId,
+        DiveRole.diveGuideId,
+      });
+
+      await service.undo(snap);
+      expect((await buddyRolesOf('d1')).toSet(), {DiveRole.buddyId});
+      expect((await buddyRolesOf('d2')).single, DiveRole.buddyId);
+      expect((await buddiesOf('d2')).toSet(), {'b1'});
+    },
+  );
+
   test('EquipmentOp add preserves existing gear on each dive', () async {
     // Reproduces the r/submersion report at the service layer: adding one
     // item in bulk must not wipe gear the dive already has.
@@ -294,6 +344,80 @@ void main() {
       expect((await equipOf('d1')).toSet(), {'keep', 'drop'});
     },
   );
+
+  group('TankSpecsOp', () {
+    // The #797 shape: an imported tank carrying pressures but no cylinder
+    // identity.
+    Future<void> seedImportedTank(String diveId) => diveRepo.bulkAddTank([
+      diveId,
+    ], const domain.DiveTank(id: '', startPressure: 200, endPressure: 50));
+
+    Future<DiveTank> tankRow(String diveId) => (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).getSingle();
+
+    test('apply overwrites specs in place and keeps the pressures', () async {
+      await seed('d1');
+      await seedImportedTank('d1');
+      final priorId = (await tankRow('d1')).id;
+
+      await service.apply(
+        const BulkEditRequest(
+          diveIds: ['d1'],
+          ops: [
+            TankSpecsOp(
+              specs: domain.DiveTank(
+                id: '',
+                volume: 11.1,
+                workingPressure: 207,
+                material: TankMaterial.aluminum,
+                presetName: 'al80',
+              ),
+              fields: {
+                TankSpecField.volume,
+                TankSpecField.workingPressure,
+                TankSpecField.material,
+                TankSpecField.preset,
+              },
+            ),
+          ],
+        ),
+      );
+
+      final row = await tankRow('d1');
+      expect(row.id, priorId); // same row, no delete/reinsert
+      expect(row.volume, 11.1);
+      expect(row.presetName, 'al80');
+      expect(row.startPressure, 200);
+      expect(row.endPressure, 50);
+    });
+
+    test('undo restores the prior specs on the same row id', () async {
+      await seed('d1');
+      await seedImportedTank('d1');
+      final priorId = (await tankRow('d1')).id;
+
+      final snap = await service.apply(
+        const BulkEditRequest(
+          diveIds: ['d1'],
+          ops: [
+            TankSpecsOp(
+              specs: domain.DiveTank(id: '', volume: 11.1),
+              fields: {TankSpecField.volume},
+            ),
+          ],
+        ),
+      );
+      expect((await tankRow('d1')).volume, 11.1);
+
+      await service.undo(snap);
+
+      final row = await tankRow('d1');
+      expect(row.volume, isNull); // prior NULL restored
+      expect(row.id, priorId); // undo did not re-insert under a new id
+      expect(row.startPressure, 200);
+    });
+  });
 
   test(
     'apply with no dives returns an empty snapshot; undo is a no-op',

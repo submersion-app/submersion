@@ -16,28 +16,33 @@ import '../../../../helpers/mock_providers.dart';
 
 final _t0 = DateTime(2026, 1, 1);
 
-DueClock _dueClock(String name, ServiceClockSeverity severity) => (
-  item: EquipmentItem(id: name, name: name, type: EquipmentType.regulator),
-  status: ServiceClockStatus(
-    schedule: ServiceSchedule(
-      id: 'schedule',
-      equipmentId: 'equipment',
-      serviceKindId: 'kind',
-      createdAt: _t0,
-      updatedAt: _t0,
-    ),
-    kind: ServiceKind(
-      id: 'kind',
-      name: 'Annual service',
-      createdAt: _t0,
-      updatedAt: _t0,
-    ),
-    anchor: _t0,
-    dueDate: DateTime(2026, 6, 1),
-    severity: severity,
-    now: DateTime(2026, 7, 24),
-  ),
-);
+DueClock _dueClock(String name, ServiceClockSeverity severity, {String? id}) =>
+    (
+      item: EquipmentItem(
+        id: id ?? name,
+        name: name,
+        type: EquipmentType.regulator,
+      ),
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 'schedule',
+          equipmentId: 'equipment',
+          serviceKindId: 'kind',
+          createdAt: _t0,
+          updatedAt: _t0,
+        ),
+        kind: ServiceKind(
+          id: 'kind',
+          name: 'Annual service',
+          createdAt: _t0,
+          updatedAt: _t0,
+        ),
+        anchor: _t0,
+        dueDate: DateTime(2026, 6, 1),
+        severity: severity,
+        now: DateTime(2026, 7, 24),
+      ),
+    );
 
 /// Records the location the banner navigated to, if any.
 class NavSpy {
@@ -59,7 +64,17 @@ Future<NavSpy> pumpBanner(WidgetTester tester, DashboardAlerts alerts) async {
         path: '/',
         builder: (_, _) => const Scaffold(body: UrgentBanner()),
       ),
-      GoRoute(path: '/equipment', builder: (_, _) => stub('/equipment')),
+      GoRoute(
+        path: '/equipment',
+        builder: (_, _) => stub('/equipment'),
+        routes: [
+          GoRoute(
+            path: ':equipmentId',
+            builder: (_, state) =>
+                stub('/equipment/${state.pathParameters['equipmentId']}'),
+          ),
+        ],
+      ),
       GoRoute(
         path: '/settings/diver-profile/insurance',
         builder: (_, _) => stub('/settings/diver-profile/insurance'),
@@ -82,6 +97,14 @@ Future<NavSpy> pumpBanner(WidgetTester tester, DashboardAlerts alerts) async {
   );
   await tester.pumpAndSettle();
   return spy;
+}
+
+/// Taps the banner line whose text is [label] and settles.
+Future<void> tapLine(WidgetTester tester, String label) async {
+  await tester.tap(
+    find.ancestor(of: find.text(label), matching: find.byType(InkWell)),
+  );
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -110,13 +133,13 @@ void main() {
     expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
   });
 
-  testWidgets('lists overdue gear and navigates to gear', (tester) async {
+  testWidgets('lists overdue gear and opens the tapped item', (tester) async {
     final spy = await pumpBanner(
       tester,
       DashboardAlerts(
         serviceClocksDue: [
-          _dueClock('Regulator', ServiceClockSeverity.overdue),
-          _dueClock('BCD', ServiceClockSeverity.dueSoon),
+          _dueClock('Regulator', ServiceClockSeverity.overdue, id: 'reg-1'),
+          _dueClock('BCD', ServiceClockSeverity.dueSoon, id: 'bcd-1'),
         ],
         insuranceExpiringSoon: false,
         insuranceExpired: false,
@@ -128,9 +151,27 @@ void main() {
     // Due-soon clocks stay in the strip, not the urgent banner.
     expect(find.text('BCD overdue'), findsNothing);
 
-    await tester.tap(find.byType(InkWell));
-    await tester.pumpAndSettle();
-    expect(spy.location, '/equipment');
+    // Issue #816: the line names one item, so open that item's detail page
+    // rather than dropping the diver on the equipment list.
+    await tapLine(tester, 'Regulator overdue');
+    expect(spy.location, '/equipment/reg-1');
+  });
+
+  testWidgets('each overdue line opens its own item', (tester) async {
+    final spy = await pumpBanner(
+      tester,
+      DashboardAlerts(
+        serviceClocksDue: [
+          _dueClock('Regulator', ServiceClockSeverity.overdue, id: 'reg-1'),
+          _dueClock('BCD', ServiceClockSeverity.overdue, id: 'bcd-1'),
+        ],
+        insuranceExpiringSoon: false,
+        insuranceExpired: false,
+      ),
+    );
+
+    await tapLine(tester, 'BCD overdue');
+    expect(spy.location, '/equipment/bcd-1');
   });
 
   testWidgets('caps overdue lines and shows a "+N more" overflow', (
@@ -154,9 +195,8 @@ void main() {
     expect(find.text('Gear 3 overdue'), findsNothing);
     expect(find.text('+3 more'), findsOneWidget);
 
-    // Tap still opens the gear list.
-    await tester.tap(find.byType(InkWell));
-    await tester.pumpAndSettle();
+    // The overflow line names no single item, so it keeps opening the list.
+    await tapLine(tester, '+3 more');
     expect(spy.location, '/equipment');
   });
 
@@ -173,19 +213,20 @@ void main() {
 
     expect(find.text('Insurance expired'), findsOneWidget);
 
-    await tester.tap(find.byType(InkWell));
-    await tester.pumpAndSettle();
+    await tapLine(tester, 'Insurance expired');
     expect(spy.location, '/settings/diver-profile/insurance');
   });
 
-  testWidgets('overdue gear wins the destination over expired insurance', (
+  testWidgets('insurance line keeps its own destination alongside gear', (
     tester,
   ) async {
+    // Previously one card-wide tap meant overdue gear hijacked the insurance
+    // line's destination; each line now routes independently.
     final spy = await pumpBanner(
       tester,
       DashboardAlerts(
         serviceClocksDue: [
-          _dueClock('Regulator', ServiceClockSeverity.overdue),
+          _dueClock('Regulator', ServiceClockSeverity.overdue, id: 'reg-1'),
         ],
         insuranceExpiringSoon: false,
         insuranceExpired: true,
@@ -195,8 +236,40 @@ void main() {
     expect(find.text('Regulator overdue'), findsOneWidget);
     expect(find.text('Insurance expired'), findsOneWidget);
 
-    await tester.tap(find.byType(InkWell));
-    await tester.pumpAndSettle();
-    expect(spy.location, '/equipment');
+    await tapLine(tester, 'Insurance expired');
+    expect(spy.location, '/settings/diver-profile/insurance');
+  });
+
+  testWidgets('every banner line is tappable', (tester) async {
+    // Guard mirroring the gauge-strip contract: an InkWell with onTap: null
+    // renders identically to a live row, so a dead line is invisible to both
+    // the user and the compiler.
+    await pumpBanner(
+      tester,
+      DashboardAlerts(
+        serviceClocksDue: [
+          for (var i = 0; i < 5; i++)
+            _dueClock('Gear $i', ServiceClockSeverity.overdue, id: 'gear-$i'),
+        ],
+        insuranceExpiringSoon: false,
+        insuranceExpired: true,
+      ),
+    );
+
+    // Scoped to the banner so the count asserts the banner's own contract
+    // rather than the surrounding harness's widget structure.
+    final inkWells = tester
+        .widgetList<InkWell>(
+          find.descendant(
+            of: find.byType(UrgentBanner),
+            matching: find.byType(InkWell),
+          ),
+        )
+        .toList();
+    // Three capped gear lines, the "+2 more" overflow, and insurance.
+    expect(inkWells, hasLength(5));
+    for (final ink in inkWells) {
+      expect(ink.onTap, isNotNull);
+    }
   });
 }

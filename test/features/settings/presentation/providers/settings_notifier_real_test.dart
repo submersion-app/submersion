@@ -186,6 +186,31 @@ void main() {
       );
     });
 
+    test('setDefaultCurrency normalises and persists the code', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).defaultCurrency, 'USD');
+
+      // Free-text entry elsewhere means the code can arrive padded or in the
+      // wrong case; the setter is the single place that normalises it.
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultCurrency('  eur ');
+      expect(container.read(settingsProvider).defaultCurrency, 'EUR');
+
+      // The derived provider the equipment pages read tracks the change.
+      expect(container.read(defaultCurrencyProvider), 'EUR');
+    });
+
+    test('setDefaultCurrency accepts a code outside the presets', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await container.read(settingsProvider.notifier).setDefaultCurrency('isk');
+      expect(container.read(settingsProvider).defaultCurrency, 'ISK');
+    });
+
     test('sets showDetailsPaneSites to true', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -414,27 +439,6 @@ void main() {
       );
     });
 
-    test('fullscreen tile preferences persist and reload', () async {
-      final notifier = container.read(settingsProvider.notifier);
-      await waitForInit();
-
-      await notifier.setFullscreenTilePreferences(
-        order: ['depth', 'runtime', 'ppO2'],
-        hidden: ['heartRate'],
-      );
-
-      expect(notifier.state.fullscreenTileOrder, ['depth', 'runtime', 'ppO2']);
-      expect(notifier.state.fullscreenHiddenTiles, ['heartRate']);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getStringList('fullscreen_tile_order'), [
-        'depth',
-        'runtime',
-        'ppO2',
-      ]);
-      expect(prefs.getStringList('fullscreen_hidden_tiles'), ['heartRate']);
-    });
-
     test('readout card position defaults to null and persists', () async {
       final notifier = container.read(settingsProvider.notifier);
       await waitForInit();
@@ -649,6 +653,88 @@ void main() {
         expect(s.perdixOverlayY, 0.0);
       },
     );
+  });
+
+  group('Real SettingsNotifier color accent toggles', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('default to false', () {
+      expect(const AppSettings().accentNavIcons, isFalse);
+      expect(const AppSettings().accentSectionHeaders, isFalse);
+      expect(const AppSettings().accentListIcons, isFalse);
+    });
+
+    // Repository persistence is covered by
+    // diver_settings_repository_accents_test.dart against a real database:
+    // this harness has no current diver, so _saveSettings() early-returns.
+    test('setters update state independently of each other', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).accentNavIcons, isFalse);
+
+      await notifier.setAccentNavIcons(true);
+      var s = container.read(settingsProvider);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isFalse);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentSectionHeaders(true);
+      s = container.read(settingsProvider);
+      expect(s.accentSectionHeaders, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentListIcons(true);
+      s = container.read(settingsProvider);
+      expect(s.accentListIcons, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isTrue);
+    });
+
+    test('gate providers reflect the individual toggles', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(accentNavIconsProvider), isFalse);
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+
+      await notifier.setAccentNavIcons(true);
+
+      expect(container.read(accentNavIconsProvider), isTrue);
+      // The other surfaces stay independent.
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+    });
   });
 
   group('Real SettingsNotifier cached theme mode', () {

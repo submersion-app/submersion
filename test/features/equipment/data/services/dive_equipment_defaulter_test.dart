@@ -18,10 +18,26 @@ void main() {
   setUp(() async {
     db = await setUpTestDatabase();
     // This test exercises junction writes (dive_equipment) without building
-    // full Dives/Equipment fixtures; relax FK enforcement for it.
+    // full Dives fixtures; relax FK enforcement for it.
     await db.customStatement('PRAGMA foreign_keys = OFF');
     sets = EquipmentSetRepository();
     defaulter = DiveEquipmentDefaulter();
+    // Set membership is pruned to ids that have a real equipment row, so these
+    // must exist even with FK enforcement off (issue #819).
+    final t = DateTime.now().millisecondsSinceEpoch;
+    for (final id in ['e1', 'e2', 'warm', 'drysuit']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'bcd',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    }
   });
   tearDown(tearDownTestDatabase);
 

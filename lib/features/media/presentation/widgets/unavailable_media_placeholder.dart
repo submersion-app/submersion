@@ -52,6 +52,8 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
     UnavailableKind.fromOtherDevice => Icons.devices_other,
     UnavailableKind.networkError => Icons.cloud_off_outlined,
     UnavailableKind.volumeOffline => Icons.usb_off_outlined,
+    UnavailableKind.stillFetching => Icons.hourglass_empty,
+    UnavailableKind.accessDenied => Icons.no_photography_outlined,
   };
 
   String _messageFor(BuildContext context, UnavailableData d) {
@@ -74,6 +76,10 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
         l10n.media_unavailablePlaceholder_networkError,
       UnavailableKind.volumeOffline =>
         l10n.media_unavailablePlaceholder_volumeOffline,
+      UnavailableKind.stillFetching =>
+        l10n.media_unavailablePlaceholder_stillFetching,
+      UnavailableKind.accessDenied =>
+        l10n.media_unavailablePlaceholder_accessDenied,
     };
   }
 }

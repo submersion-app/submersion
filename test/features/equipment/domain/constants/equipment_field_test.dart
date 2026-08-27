@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -440,15 +440,24 @@ void main() {
       );
     });
 
-    test('formats purchasePrice as currency', () {
-      final expected = NumberFormat.currency(
-        symbol: r'$',
-        decimalDigits: 2,
-      ).format(599.99);
+    test('formats purchasePrice in the diver default currency', () {
+      // This column has no per-item context, so it follows the diver's
+      // default currency rather than a hardcoded dollar sign.
       expect(
         adapter.formatValue(EquipmentField.purchasePrice, 599.99, units),
-        equals(expected),
+        equals(formatMoney(599.99, 'USD')),
       );
+    });
+
+    test('purchasePrice follows a non-USD default currency', () {
+      const euroUnits = UnitFormatter(AppSettings(defaultCurrency: 'EUR'));
+      final formatted = adapter.formatValue(
+        EquipmentField.purchasePrice,
+        599.99,
+        euroUnits,
+      );
+      expect(formatted, equals(formatMoney(599.99, 'EUR')));
+      expect(formatted, contains('€'));
     });
 
     test('formats lastServiceDate with units.formatDate', () {

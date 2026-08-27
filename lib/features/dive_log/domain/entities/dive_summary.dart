@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -20,6 +21,7 @@ class DiveSummary extends Equatable {
   final double? waterTemp;
   final int? rating;
   final bool isFavorite;
+  final DiveMode diveMode;
   final List<String> diveTypeIds;
   final List<Tag> tags;
 
@@ -49,6 +51,7 @@ class DiveSummary extends Equatable {
     this.waterTemp,
     this.rating,
     this.isFavorite = false,
+    this.diveMode = DiveMode.oc,
     this.diveTypeIds = const ['recreational'],
     this.tags = const [],
     this.siteName,
@@ -79,6 +82,7 @@ class DiveSummary extends Equatable {
       waterTemp: dive.waterTemp,
       rating: dive.rating,
       isFavorite: dive.isFavorite,
+      diveMode: dive.diveMode,
       diveTypeIds: dive.diveTypeIds,
       tags: dive.tags,
       siteName: dive.site?.name,
@@ -129,6 +133,7 @@ class DiveSummary extends Equatable {
     double? waterTemp,
     int? rating,
     bool? isFavorite,
+    DiveMode? diveMode,
     List<String>? diveTypeIds,
     List<Tag>? tags,
     String? siteName,
@@ -151,6 +156,7 @@ class DiveSummary extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       rating: rating ?? this.rating,
       isFavorite: isFavorite ?? this.isFavorite,
+      diveMode: diveMode ?? this.diveMode,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       tags: tags ?? this.tags,
       siteName: siteName ?? this.siteName,
@@ -176,6 +182,7 @@ class DiveSummary extends Equatable {
     waterTemp,
     rating,
     isFavorite,
+    diveMode,
     diveTypeIds,
     tags,
     siteName,

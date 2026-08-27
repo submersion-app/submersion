@@ -90,6 +90,17 @@ class LocalMediaPlatform {
     await _channel.invokeMethod<void>('releaseAllBookmarks');
   }
 
+  /// Whether [ref] is an Android SAF content URI — the only kind of
+  /// reference [takePersistableUri] can persist.
+  ///
+  /// Worth a named predicate because the obvious candidate is wrong:
+  /// file_picker's `PlatformFile.path` on Android is a copy the plugin made
+  /// under `<cacheDir>/file_picker/`, and passing it to
+  /// `takePersistableUriPermission` throws PERMISSION_DENIED (issue #1002).
+  /// The content URI arrives separately, in `PlatformFile.identifier`.
+  static bool isPersistableUri(String? ref) =>
+      ref != null && ref.startsWith('content://');
+
   /// Android only. Calls `ContentResolver.takePersistableUriPermission` and
   /// returns the URI string itself (which becomes the bookmarkRef stored in
   /// the [MediaItem.bookmarkRef] column).

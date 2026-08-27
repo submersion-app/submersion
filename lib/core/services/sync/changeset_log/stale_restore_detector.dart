@@ -25,7 +25,10 @@ class StaleRestoreDetector {
     final manifest = await _readOwnManifest(provider, folderId, deviceId);
     final published = manifest?.publishedHlcHigh;
     if (published == null) return false; // never published anything
-    final localHigh = await _repo.maxRowHlc();
+    // Tombstones count: a device that deliberately deleted its newest records
+    // has not been rewound, and treating that as a restore triggers a full
+    // cold-start re-pull of every peer on every sync (#997).
+    final localHigh = await _repo.maxAccountedHlc();
     if (localHigh == null) return true; // cloud has data, local has none
     return localHigh.compareTo(published) < 0;
   }

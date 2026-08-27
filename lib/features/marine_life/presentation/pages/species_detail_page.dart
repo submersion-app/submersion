@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -49,6 +50,8 @@ class SpeciesDetailPage extends ConsumerWidget {
             );
           }
 
+          final description = species.localizedDescription(context.l10n);
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -56,7 +59,7 @@ class SpeciesDetailPage extends ConsumerWidget {
               children: [
                 _buildHeader(
                   context,
-                  species.commonName,
+                  species.localizedCommonName(context.l10n),
                   species.scientificName,
                   species.category,
                 ),
@@ -64,10 +67,9 @@ class SpeciesDetailPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   _buildTaxonomyBadge(context, species.taxonomyClass!),
                 ],
-                if (species.description != null &&
-                    species.description!.isNotEmpty) ...[
+                if (description != null && description.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildDescription(context, species.description!),
+                  _buildDescription(context, description),
                 ],
                 const SizedBox(height: 24),
                 _buildStatisticsSection(context, ref),
@@ -121,7 +123,7 @@ class SpeciesDetailPage extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Chip(
-          label: Text(category.displayName),
+          label: Text(category.localizedName(context.l10n)),
           backgroundColor: _getCategoryColor(category).withAlpha(30),
           side: BorderSide(color: _getCategoryColor(category).withAlpha(77)),
         ),

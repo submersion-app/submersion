@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -76,19 +77,12 @@ class CourseListPage extends ConsumerWidget {
           },
           columnSettingsAction: IconButton(
             icon: const Icon(Icons.view_column_outlined),
-            tooltip: 'Column settings',
-            onPressed: () {
-              final config = ref.read(courseTableConfigProvider);
-              final notifier = ref.read(courseTableConfigProvider.notifier);
-              showEntityTableColumnPicker<CourseField>(
-                context,
-                config: config,
-                adapter: CourseFieldAdapter.instance,
-                onToggleColumn: notifier.toggleColumn,
-                onReorderColumn: notifier.reorderColumn,
-                onTogglePin: notifier.togglePin,
-              );
-            },
+            tooltip: context.l10n.columnConfig_tooltip_columnSettings,
+            onPressed: () => showEntityTableColumnPicker<CourseField>(
+              context,
+              configProvider: courseTableConfigProvider,
+              adapter: CourseFieldAdapter.instance,
+            ),
           ),
           appBarActions: [
             IconButton(
@@ -102,7 +96,8 @@ class CourseListPage extends ConsumerWidget {
                   currentField: sort.field,
                   currentDirection: sort.direction,
                   fields: CourseSortField.values,
-                  getFieldDisplayName: (field) => field.displayName,
+                  getFieldDisplayName: (field) =>
+                      field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
                     ref.read(courseSortProvider.notifier).state = SortState(

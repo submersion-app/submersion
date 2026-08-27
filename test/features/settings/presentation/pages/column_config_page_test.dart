@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -178,45 +179,68 @@ Widget _buildColumnConfigPage({
           fieldFromName: CourseFieldAdapter.instance.fieldFromName,
         ),
       ),
-      // Entity card config providers for detailed / compact card sections
+      // Entity card config providers for detailed / compact card sections.
+      // Sites and buddies are persisted notifiers now; the test never sets a
+      // diver id, so init() is not called and nothing touches the database.
       buddyDetailedCardConfigProvider.overrideWith(
-        (ref) =>
-            buddyDetailedConfig ??
-            const EntityCardViewConfig<BuddyField>(
-              slots: [
-                EntityCardSlotConfig(
-                  slotId: 'title',
-                  field: BuddyField.buddyName,
-                ),
-                EntityCardSlotConfig(
-                  slotId: 'subtitle',
-                  field: BuddyField.email,
-                ),
-              ],
-            ),
+        (ref) => EntityCardConfigNotifier<BuddyField>(
+          defaultConfig:
+              buddyDetailedConfig ??
+              const EntityCardViewConfig<BuddyField>(
+                slots: [
+                  EntityCardSlotConfig(
+                    slotId: 'title',
+                    field: BuddyField.buddyName,
+                  ),
+                  EntityCardSlotConfig(
+                    slotId: 'subtitle',
+                    field: BuddyField.email,
+                  ),
+                ],
+              ),
+          fieldFromName: BuddyFieldAdapter.instance.fieldFromName,
+        ),
       ),
       buddyCompactCardConfigProvider.overrideWith(
-        (ref) => const EntityCardViewConfig<BuddyField>(
-          slots: [
-            EntityCardSlotConfig(slotId: 'title', field: BuddyField.buddyName),
-            EntityCardSlotConfig(slotId: 'subtitle', field: BuddyField.email),
-          ],
+        (ref) => EntityCardConfigNotifier<BuddyField>(
+          defaultConfig: const EntityCardViewConfig<BuddyField>(
+            slots: [
+              EntityCardSlotConfig(
+                slotId: 'title',
+                field: BuddyField.buddyName,
+              ),
+              EntityCardSlotConfig(slotId: 'subtitle', field: BuddyField.email),
+            ],
+          ),
+          fieldFromName: BuddyFieldAdapter.instance.fieldFromName,
         ),
       ),
       siteDetailedCardConfigProvider.overrideWith(
-        (ref) => const EntityCardViewConfig<SiteField>(
-          slots: [
-            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
-            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.country),
-          ],
+        (ref) => EntityCardConfigNotifier<SiteField>(
+          defaultConfig: const EntityCardViewConfig<SiteField>(
+            slots: [
+              EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+              EntityCardSlotConfig(
+                slotId: 'subtitle',
+                field: SiteField.country,
+              ),
+            ],
+          ),
+          fieldFromName: SiteFieldAdapter.instance.fieldFromName,
         ),
       ),
       siteCompactCardConfigProvider.overrideWith(
-        (ref) => const EntityCardViewConfig<SiteField>(
-          slots: [
-            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
-            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.country),
-          ],
+        (ref) => EntityCardConfigNotifier<SiteField>(
+          defaultConfig: const EntityCardViewConfig<SiteField>(
+            slots: [
+              EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+              EntityCardSlotConfig(
+                slotId: 'subtitle',
+                field: SiteField.country,
+              ),
+            ],
+          ),
+          fieldFromName: SiteFieldAdapter.instance.fieldFromName,
         ),
       ),
       tripDetailedCardConfigProvider.overrideWith(
@@ -376,7 +400,7 @@ void main() {
       await tester.pumpWidget(_buildColumnConfigPage());
       await tester.pump();
 
-      expect(find.text('Load Preset'), findsOneWidget);
+      expect(find.text('Preset'), findsOneWidget);
     });
 
     testWidgets('shows Save As button', (tester) async {
@@ -702,12 +726,12 @@ void main() {
 
       // Help text sits after the slot section; scroll to ensure it is visible
       await tester.scrollUntilVisible(
-        find.textContaining('Additional fields shown below'),
+        find.textContaining('Shown below main card content'),
         200,
         scrollable: find.byType(Scrollable).last,
       );
       expect(
-        find.textContaining('Additional fields shown below'),
+        find.textContaining('Shown below main card content'),
         findsOneWidget,
       );
     });
@@ -1137,7 +1161,7 @@ void main() {
         // Detailed mode shows extra fields section
         expect(find.text('EXTRA FIELDS'), findsOneWidget);
         expect(
-          find.textContaining('Additional fields shown below'),
+          find.textContaining('Shown below main card content'),
           findsOneWidget,
         );
       });

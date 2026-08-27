@@ -460,6 +460,38 @@ void main() {
         final result = await repository.getEnrichmentForMedia(media.id);
         expect(result!.depthMeters, equals(20.0));
       });
+
+      // An enrichment is a join product of the media and ONE dive's profile,
+      // so its diveId is part of the value, not just a back-pointer. The
+      // update path used to leave it at whatever the row was first written
+      // with, which meant a row repaired against a different dive kept
+      // claiming the old one.
+      test('should update the dive link when saving over an existing '
+          'enrichment', () async {
+        final dive = await createTestDiveInDb(diveNumber: 1);
+        final otherDive = await createTestDiveInDb(diveNumber: 2);
+        final media = await repository.createMedia(
+          createTestMediaItem(diveId: dive.id, filePath: '/photos/moved.jpg'),
+        );
+
+        await repository.saveEnrichment(
+          createTestEnrichment(
+            mediaId: media.id,
+            diveId: otherDive.id,
+            depthMeters: 10.0,
+          ),
+        );
+        await repository.saveEnrichment(
+          createTestEnrichment(
+            mediaId: media.id,
+            diveId: dive.id,
+            depthMeters: 20.0,
+          ),
+        );
+
+        final result = await repository.getEnrichmentForMedia(media.id);
+        expect(result!.diveId, equals(dive.id));
+      });
     });
 
     group('media count', () {
@@ -921,6 +953,97 @@ void main() {
           MediaSourceType.networkUrl,
         );
         expect(result, isEmpty);
+      });
+
+      // Null and empty mean opposite things here, and getting them backwards
+      // would either sweep the whole library or sweep none of it.
+      test(
+        'a null filter returns every row, an empty set returns none',
+        () async {
+          await repository.createMedia(
+            createTestMediaItem(platformAssetId: 'gallery-1'),
+          );
+
+          expect(await repository.getAllBySourceTypes(null), isNotEmpty);
+          expect(await repository.getAllBySourceTypes(const {}), isEmpty);
+        },
+      );
+    });
+
+    group('markVerified', () {
+      test('writes the flag and the stamp and nothing else', () async {
+        // Deliberately not updateMedia, which writes all 30 columns from the
+        // caller's snapshot. The passive reconciliation path is driven by
+        // grid tiles, whose snapshot is routinely stale, so a full-row write
+        // from there would roll back whatever changed since the tile built.
+        final created = await repository.createMedia(
+          createTestMediaItem(
+            caption: 'reef at 18m',
+            platformAssetId: 'asset-1',
+          ),
+        );
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: true,
+          verifiedAt: DateTime.utc(2026, 8, 22, 9),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.isOrphaned, isTrue);
+        // isAtSameMomentAs, not equals: the column stores epoch millis and
+        // the row mapper rebuilds a LOCAL DateTime, so an equals against a
+        // UTC literal compares zones rather than instants.
+        expect(
+          after.lastVerifiedAt!.isAtSameMomentAs(DateTime.utc(2026, 8, 22, 9)),
+          isTrue,
+        );
+        expect(after.caption, 'reef at 18m');
+        expect(after.platformAssetId, 'asset-1');
+        expect(after.diveId, created.diveId);
+      });
+
+      test('is a no-op when the row already has the desired flag', () async {
+        // Idempotent at the DB layer, not merely at the caller. The write is
+        // sync-visible (markRecordPending), and reconciledOrphanFlag's guard
+        // compares against the CALLER's snapshot, which for a grid tile can
+        // lag the row. A caller holding a stale snapshot must not be able to
+        // queue redundant sync work by asking for a state the row already has.
+        final created = await repository.createMedia(
+          createTestMediaItem(isOrphaned: true),
+        );
+        final before = await repository.getMediaById(created.id);
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: true,
+          verifiedAt: DateTime.utc(2026, 8, 22, 11),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.updatedAt, before!.updatedAt, reason: 'no row written');
+        expect(after.lastVerifiedAt, before.lastVerifiedAt);
+      });
+
+      test('clears the flag as readily as it sets it', () async {
+        // The un-orphan direction matters as much: a photo restored to the
+        // library must stop being reported as missing.
+        final created = await repository.createMedia(
+          createTestMediaItem(isOrphaned: true),
+        );
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: false,
+          verifiedAt: DateTime.utc(2026, 8, 22, 10),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.isOrphaned, isFalse);
+        expect(
+          after.lastVerifiedAt!.isAtSameMomentAs(DateTime.utc(2026, 8, 22, 10)),
+          isTrue,
+        );
       });
     });
   });

@@ -21,6 +21,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dar
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
@@ -67,7 +68,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
 
     return MapListScaffold(
       sectionKey: 'dives',
-      title: 'Dive Activity',
+      title: context.l10n.diveLog_map_title,
       onBackPressed: () => context.go('/dives'),
       listPane: DiveListContent(
         showAppBar: false,
@@ -96,14 +97,14 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error loading data: $error'),
+              Text(context.l10n.diveLog_map_errorLoading(error)),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () {
                   ref.invalidate(sitesWithCountsProvider);
                   ref.invalidate(diveActivityHeatMapProvider);
                 },
-                child: const Text('Retry'),
+                child: Text(context.l10n.diveLog_error_retry),
               ),
             ],
           ),
@@ -115,18 +116,18 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/dives/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Log Dive'),
+        label: Text(context.l10n.diveLog_listPage_fab_logDive),
       ),
       actions: [
         const HeatMapToggleButton(),
         IconButton(
           icon: const Icon(Icons.list),
-          tooltip: 'List View',
+          tooltip: context.l10n.diveLog_listPage_tooltip_listView,
           onPressed: () => context.go('/dives'),
         ),
         IconButton(
           icon: const Icon(Icons.my_location),
-          tooltip: 'Fit All Sites',
+          tooltip: context.l10n.diveLog_map_tooltip_fitAllSites,
           onPressed: () =>
               _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
         ),
@@ -140,7 +141,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     final units = UnitFormatter(appSettings);
 
     // Title: Site name (matching DiveListTile)
-    final title = dive.site?.name ?? 'Unknown Site';
+    final title = dive.site?.name ?? context.l10n.diveLog_listPage_unknownSite;
 
     // Build subtitle with date, depth, duration, water temp (matching DiveListTile)
     final parts = <String>[];
@@ -149,7 +150,9 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
       parts.add(units.formatDepth(dive.maxDepth!));
     }
     if (dive.bottomTime != null) {
-      parts.add('${dive.bottomTime!.inMinutes} min');
+      parts.add(
+        context.l10n.diveLog_map_infoCard_minutes(dive.bottomTime!.inMinutes),
+      );
     }
     if (dive.waterTemp != null) {
       parts.add(units.formatTemperature(dive.waterTemp));
@@ -264,6 +267,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
               initialZoom: zoom,
               minZoom: 2.0,
               maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
               onTap: (_, _) {
                 ref.read(mapListSelectionProvider('dives').notifier).deselect();
               },
@@ -301,7 +305,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                       height: isSelected ? 50 : 40,
                       child: Semantics(
                         button: true,
-                        label: 'Dive site: ${site.name}',
+                        label: context.l10n
+                            .diveSites_map_semantics_diveSiteMarker(site.name),
                         child: GestureDetector(
                           onTap: () => _onMarkerTapped(site),
                           child: _buildMarker(
@@ -381,12 +386,12 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No dive activity to display',
+                      context.l10n.diveLog_map_emptyTitle,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Log dives with location data to see your activity on the map',
+                      context.l10n.diveLog_map_emptySubtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

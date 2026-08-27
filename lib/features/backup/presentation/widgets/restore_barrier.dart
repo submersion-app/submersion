@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// True while a database restore is running. Derived (not the whole operation
 /// state) so widgets rebuild only when this specific flag flips, and so tests
@@ -13,6 +14,11 @@ final restoreInProgressProvider = Provider<bool>(
 /// The current restore progress message (e.g. "Restoring backup...").
 final restoreMessageProvider = Provider<String?>(
   (ref) => ref.watch(backupOperationProvider.select((s) => s.message)),
+);
+
+/// Non-null only while the post-restore safety review sweep is running.
+final restoreSweepProgressProvider = Provider<SafetyReviewSweepProgress?>(
+  (ref) => ref.watch(backupOperationProvider.select((s) => s.sweepProgress)),
 );
 
 /// Wraps the whole app and, while a database restore is running, covers it with
@@ -38,7 +44,13 @@ class RestoreBarrier extends ConsumerWidget {
         child,
         if (isRestoring)
           Positioned.fill(
-            child: _RestoreOverlay(message: ref.watch(restoreMessageProvider)),
+            child: _RestoreOverlay(
+              message: ref.watch(restoreMessageProvider),
+              sweepProgress: ref.watch(restoreSweepProgressProvider),
+              onSkipSweep: () => ref
+                  .read(backupOperationProvider.notifier)
+                  .skipSafetyReviewSweep(),
+            ),
           ),
       ],
     );
@@ -46,16 +58,30 @@ class RestoreBarrier extends ConsumerWidget {
 }
 
 class _RestoreOverlay extends StatelessWidget {
-  const _RestoreOverlay({this.message});
+  const _RestoreOverlay({
+    this.message,
+    this.sweepProgress,
+    required this.onSkipSweep,
+  });
 
   final String? message;
+  final SafetyReviewSweepProgress? sweepProgress;
+  final VoidCallback onSkipSweep;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // The provider already supplies an English progress string; fall back to a
-    // plain one if it is ever absent.
-    final label = message ?? 'Restoring backup...';
+    final sweep = sweepProgress;
+
+    // The provider supplies a localized progress string for the swap phases;
+    // fall back to the plain restoring line if it is ever absent. Once the
+    // safety sweep starts, its own label takes over.
+    final label = sweep != null
+        ? context.l10n.backup_restore_safetyReview_progress(
+            sweep.done,
+            sweep.total,
+          )
+        : (message ?? context.l10n.backup_operation_restoring);
 
     // Announce the busy/restoring state to screen readers as a live region, and
     // exclude the inner widgets' own semantics so the state is announced once
@@ -76,13 +102,14 @@ class _RestoreOverlay extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(label, style: theme.textTheme.bodyMedium),
-                    ],
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 320),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: sweep == null
+                          ? _spinnerChildren(theme, label)
+                          : _sweepChildren(context, theme, sweep, label),
+                    ),
                   ),
                 ),
               ),
@@ -91,5 +118,41 @@ class _RestoreOverlay extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _spinnerChildren(ThemeData theme, String label) {
+    return [
+      const CircularProgressIndicator(),
+      const SizedBox(height: 16),
+      Text(label, style: theme.textTheme.bodyMedium),
+    ];
+  }
+
+  List<Widget> _sweepChildren(
+    BuildContext context,
+    ThemeData theme,
+    SafetyReviewSweepProgress sweep,
+    String label,
+  ) {
+    return [
+      Text(
+        context.l10n.backup_restore_safetyReview_title,
+        style: theme.textTheme.titleMedium,
+        textAlign: TextAlign.center,
+      ),
+      const SizedBox(height: 16),
+      LinearProgressIndicator(
+        value: sweep.total == 0 ? null : sweep.done / sweep.total,
+      ),
+      const SizedBox(height: 12),
+      Text(label, style: theme.textTheme.bodyMedium),
+      const SizedBox(height: 8),
+      // Skipping is lossless: unswept dives still compute lazily when opened,
+      // and Settings > Safety > "Analyze all dives" remains available.
+      TextButton(
+        onPressed: onSkipSweep,
+        child: Text(context.l10n.backup_restore_safetyReview_skip),
+      ),
+    ];
   }
 }

@@ -331,9 +331,12 @@ class _TripDetailContent extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        if (dive.bottomTime != null)
+                        // Runtime with a bottom-time fallback, matching the
+                        // trip totals so these rows add up to the figure the
+                        // Overview tab reports (issue #889).
+                        if ((dive.runtime ?? dive.bottomTime) != null)
                           Text(
-                            '${dive.bottomTime!.inMinutes}min',
+                            '${(dive.runtime ?? dive.bottomTime)!.inMinutes}min',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
