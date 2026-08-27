@@ -214,13 +214,59 @@ void main() {
     });
 
     test('returns headers in csvHeaders field', () {
+      // Five dive-ish columns so the generic score clears its 0.3 gate --
+      // the old 3-column sample scored below it and the assertion never ran.
       const csv =
-          'Date,Depth,Duration\n'
-          '2024-01-15,25,45\n';
+          'date,depth,duration,location,temperature\n'
+          '2024-01-15,25,45,Reef,28\n';
       final result = detector.detect(_toBytes(csv));
-      if (result.format == ImportFormat.csv) {
-        expect(result.csvHeaders, ['Date', 'Depth', 'Duration']);
-      }
+      expect(result.format, ImportFormat.csv);
+      expect(result.csvHeaders, [
+        'date',
+        'depth',
+        'duration',
+        'location',
+        'temperature',
+      ]);
+    });
+
+    test('parses LF-only CSV into a real header row, not one giant row '
+        '(#190)', () {
+      // MySSI web export: LF line endings, 10 columns, 28 dive rows. The
+      // csv package's default eol is CRLF matched literally, so without
+      // normalization the whole file becomes ONE row and every cell is
+      // reported as a header (9 commas x 29 lines + 1 = 262).
+      final rows = List.generate(
+        28,
+        (i) =>
+            '${i + 1},Coral Garden,Egypt,2026-01-15 09:00,'
+            'Fun Dive,,Open Water,45,18.5,Alice',
+      );
+      final csv =
+          'dive #,Dive Site,Country,Date / Time,Dive Activity,'
+          'Specialty Dive,Dive type,Duration,Depth,'
+          'Dive Buddy / Instructor / Center\n'
+          '${rows.join('\n')}\n';
+      final result = detector.detect(_toBytes(csv));
+      expect(result.format, ImportFormat.csv);
+      expect(
+        result.csvHeaders,
+        hasLength(10),
+        reason: 'LF-only files must not merge every cell into the header row',
+      );
+      expect(result.csvHeaders!.first, 'dive #');
+      expect(result.sourceApp, SourceApp.ssiMyDiveGuide);
+    });
+
+    test('strips the UTF-8 BOM from the first CSV header (#190)', () {
+      const csv =
+          '\u{FEFF}dive #,Dive Site,Country,Date / Time,Dive Activity,'
+          'Specialty Dive,Dive type,Duration,Depth,'
+          'Dive Buddy / Instructor / Center\n'
+          '1,Reef,Egypt,2026-01-15 09:00,Fun Dive,,Open Water,45,18,Bob\n';
+      final result = detector.detect(_toBytes(csv));
+      expect(result.format, ImportFormat.csv);
+      expect(result.csvHeaders!.first, 'dive #');
     });
 
     test('does not detect non-dive CSV', () {
@@ -250,6 +296,72 @@ void main() {
 
       final result = detector.detect(combined);
       expect(result.format, ImportFormat.fit);
+    });
+  });
+
+  group('DAN DL7 detection', () {
+    test('detects DiverLog+ export (FSH prefix + AQUALUNG ZAR)', () {
+      const content =
+          'FSH|^~<>{}|OCI201^^|ZXU|20220604000837|\n'
+          'ZRH|^~<>{}||13960|MSWG|ThM|C|BAR|L|\n'
+          'ZAR{\n<AQUALUNG>\n<APP>DiverLog+</APP>\n</AQUALUNG>\n}\n'
+          'ZDH|1|1|I|Q1S|20220224130600|27.2||FO2|\n';
+      final result = detector.detect(_toBytes(content));
+      expect(result.format, ImportFormat.danDl7);
+      expect(result.sourceApp, SourceApp.diverLog);
+      expect(result.confidence, greaterThanOrEqualTo(0.85));
+    });
+
+    test('detects generic DL7 (FSH prefix, no AQUALUNG) as DAN', () {
+      const content =
+          'FSH|^~\\&{}|ANST01^12X456^A|ZXU|20180106163705+02:00|\n'
+          'ZRH|^~\\&{}|||MFWG|ThM|C|bar|L|\n'
+          'ZDH|1|1|I|QS|20180101101000|27|11|FO2|||\n';
+      final result = detector.detect(_toBytes(content));
+      expect(result.format, ImportFormat.danDl7);
+      expect(result.sourceApp, SourceApp.dan);
+    });
+
+    test('a BOM before FSH still detects', () {
+      final result = detector.detect(
+        _toBytes('\u{FEFF}FSH|^~<>{}|X^^|ZXU|20240101120000|\n'),
+      );
+      expect(result.format, ImportFormat.danDl7);
+    });
+
+    test('pipe-delimited text without FSH prefix is not DL7', () {
+      final result = detector.detect(_toBytes('name|depth|time\nreef|18|45\n'));
+      expect(result.format, isNot(ImportFormat.danDl7));
+    });
+  });
+
+  group('Ratio Computers XML detection', () {
+    test('detects diveSegment root element', () {
+      const xml =
+          '<?xml version="1.0" encoding="UTF-8"?>'
+          '<diveSegment version="1.2">'
+          '<segmentHeader>'
+          '<UTCStartingTimeS>586371714</UTCStartingTimeS>'
+          '</segmentHeader>'
+          '</diveSegment>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, ImportFormat.ratioXml);
+      expect(result.sourceApp, SourceApp.ratio);
+      expect(result.confidence, 0.95);
+    });
+
+    test('detects diveSegment with mixed case', () {
+      const xml =
+          '<?xml version="1.0"?><DiveSegment version="1.2">'
+          '<segmentHeader/></DiveSegment>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, ImportFormat.ratioXml);
+    });
+
+    test('does not detect non-diveSegment XML as Ratio', () {
+      const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
+      final result = detector.detect(_toBytes(xml));
+      expect(result.format, isNot(ImportFormat.ratioXml));
     });
   });
 }

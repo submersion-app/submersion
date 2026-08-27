@@ -11,14 +11,16 @@ class BackupSettings extends Equatable {
   final DateTime? lastBackupTime;
   final bool cloudBackupEnabled;
   final String? backupLocation;
+  final bool backupEncryptionEnabled;
 
   const BackupSettings({
     this.enabled = false,
     this.frequency = BackupFrequency.weekly,
     this.retentionCount = 10,
     this.lastBackupTime,
-    this.cloudBackupEnabled = true,
+    this.cloudBackupEnabled = false,
     this.backupLocation,
+    this.backupEncryptionEnabled = false,
   });
 
   BackupSettings copyWith({
@@ -28,6 +30,7 @@ class BackupSettings extends Equatable {
     DateTime? lastBackupTime,
     bool? cloudBackupEnabled,
     String? backupLocation,
+    bool? backupEncryptionEnabled,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -36,6 +39,8 @@ class BackupSettings extends Equatable {
       lastBackupTime: lastBackupTime ?? this.lastBackupTime,
       cloudBackupEnabled: cloudBackupEnabled ?? this.cloudBackupEnabled,
       backupLocation: backupLocation ?? this.backupLocation,
+      backupEncryptionEnabled:
+          backupEncryptionEnabled ?? this.backupEncryptionEnabled,
     );
   }
 
@@ -66,5 +71,6 @@ class BackupSettings extends Equatable {
     lastBackupTime,
     cloudBackupEnabled,
     backupLocation,
+    backupEncryptionEnabled,
   ];
 }

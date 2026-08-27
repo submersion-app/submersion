@@ -33,6 +33,8 @@ import 'package:submersion/features/media/data/services/network_url_resolver.dar
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/credentials_host_card.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
+
 class _FakeCredentialsService implements NetworkCredentialsService {
   _FakeCredentialsService(this.hosts);
   final List<NetworkCredentialHost> hosts;
@@ -108,7 +110,10 @@ Widget _wrap(
       if (resolver != null)
         networkUrlResolverProvider.overrideWithValue(resolver),
     ],
-    child: MaterialApp(home: Scaffold(body: child)),
+    child: localizedMaterialApp(
+      locale: const Locale('en'),
+      home: Scaffold(body: child),
+    ),
   );
 }
 

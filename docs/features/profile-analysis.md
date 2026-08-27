@@ -114,21 +114,30 @@ Special events are marked on the profile:
 | **Gas Switch** | Yellow circle | Changed gas mix |
 | **Alert** | Red triangle | Computer warning |
 
-## Multi-Profile Support
+## Multi-Computer Support
 
-If you dive with multiple computers:
+If you dive with multiple computers, a consolidated dive keeps every
+computer's data in one entry:
 
-### Profile Selector
+### Computer Toggle Bar
 
-A dropdown lets you switch between profiles:
+When a dive has two or more sources, toggle chips appear under the profile
+chart, one per computer:
 
-- Each computer's data shown separately
-- Compare profiles side by side
-- One profile marked as "primary" for stats
+- Each computer's depth line is drawn in its own color
+- Hiding a computer also hides its temperature curve, event markers, and
+  tank pressure curves
+- The primary computer's chip is shown in bold
 
-### Primary Profile
+### Data Sources Comparison
 
-The primary profile is used for:
+The Data Sources section lists each computer with a comparison grid so you
+can see what each unit recorded: max and average depth, duration, water
+temperature, CNS, OTU, deco algorithm, and gradient factors side by side.
+
+### Primary Source
+
+The primary computer's numbers drive the dive's headline stats:
 
 - Statistics calculations
 - SAC rate
@@ -137,8 +146,11 @@ The primary profile is used for:
 To change primary:
 
 1. Open dive detail
-2. Tap profile selector
-3. Tap **Set as Primary** on desired profile
+2. Find the computer in the Data Sources section
+3. Tap **Set as primary**
+
+**Unlink** detaches a computer's data back into its own standalone dive,
+taking its attributed tanks, pressure curves, and events with it.
 
 ## Profile Data
 

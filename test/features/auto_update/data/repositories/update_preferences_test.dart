@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/features/auto_update/data/repositories/update_preferences.dart';
+import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 
 void main() {
   late UpdatePreferences prefs;
@@ -54,6 +55,23 @@ void main() {
       final oldTime = DateTime.now().subtract(const Duration(hours: 5));
       await prefs.setLastCheckTime(oldTime);
       expect(prefs.isDueForCheck, true);
+    });
+
+    test('releaseChannel defaults to stable', () {
+      expect(prefs.releaseChannel, ReleaseChannel.stable);
+    });
+
+    test('setReleaseChannel round-trips', () async {
+      await prefs.setReleaseChannel(ReleaseChannel.beta);
+      expect(prefs.releaseChannel, ReleaseChannel.beta);
+    });
+
+    test('releaseChannel tolerates an unknown stored value', () async {
+      SharedPreferences.setMockInitialValues({
+        'update_release_channel': 'nightly',
+      });
+      final tolerant = UpdatePreferences(await SharedPreferences.getInstance());
+      expect(tolerant.releaseChannel, ReleaseChannel.stable);
     });
   });
 }

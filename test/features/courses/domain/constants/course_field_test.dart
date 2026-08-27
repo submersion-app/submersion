@@ -122,11 +122,11 @@ void main() {
       );
     });
 
-    test('returns durationDays computed from completionDate - startDate', () {
-      // Mar 5 - Mar 1 = 4 days
+    test('returns durationDays counted inclusively over calendar days', () {
+      // Mar 1 through Mar 5 inclusive = 5 training days (Mar 1, 2, 3, 4, 5).
       expect(
         adapter.extractValue(CourseField.durationDays, testCourse),
-        equals(4),
+        equals(5),
       );
     });
 

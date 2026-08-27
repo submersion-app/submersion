@@ -330,24 +330,58 @@ GoRoute(
 
 | Path | Name | Screen |
 |------|------|--------|
-| `/welcome` | welcome | WelcomePage |
+| `/welcome` | welcome | SetupWizardPage (first-run mode) |
+| `/settings/setup-assistant` | setupAssistant | SetupWizardPage (re-entry mode) |
 
 ## Navigation Patterns
 
 ### Programmatic Navigation
 
 ```dart
-// Named route
-context.goNamed('diveDetail', pathParameters: {'diveId': dive.id});
+// Switch top-level section (RESETS the stack - see below)
+context.go('/dives');
 
-// Path-based
-context.go('/dives/${dive.id}');
-
-// Push (adds to stack)
-context.push('/dives/new');
+// Open a detail page from wherever the user is (KEEPS the stack)
+context.push('/dives/${dive.id}');
+context.pushNamed('diveDetail', pathParameters: {'diveId': dive.id});
 
 // Pop (go back)
 context.pop();
+```text
+### `go` vs `push` - pick deliberately
+
+`go` is **declarative**: it discards the current stack and rebuilds it from
+the target location. Because most detail routes are *children* (`/dives/:diveId`
+is nested under `/dives`), `go` also materializes the ancestor, so the stack
+becomes `[dive list, dive detail]` and Back lands the user on a list they never
+visited - with the section they came from, and its filters and scroll position,
+gone.
+
+| Use | When |
+|-----|------|
+| `context.go(...)` | Switching top-level sections (bottom nav / rail, numbered shortcuts). Resetting the stack is the point. |
+| `context.push(...)` | Opening a detail or sub-page from anywhere. The originating section must stay underneath. |
+| `context.pushReplacement(...)` | The current page should be replaced, not returned to - e.g. landing on a newly created dive from `/dives/new`. |
+| `context.pop()` | Finishing a pushed page (Save, Delete). Do NOT `go` to a list instead. |
+
+`push` is not idempotent the way `go` is: a repeated tap or a navigation loop
+can stack duplicate copies of the same page. For jump-off points that a user
+can hit twice, use `context.pushOrReturnTo(...)` from
+`lib/core/router/section_navigation.dart`, which pushes only when the target is
+not already on the stack and otherwise walks back to it.
+
+The pattern below is the specific bug to avoid - it discards the caller's
+section every time:
+
+```dart
+// WRONG - rebuilds the stack from /dives
+Navigator.of(context).pop();
+context.go('/dives/search');
+
+// RIGHT - capture the router first, then push over the caller
+final router = GoRouter.of(context);
+Navigator.of(context).pop();
+router.push('/dives/search');
 ```text
 ### Passing Data
 
@@ -394,7 +428,10 @@ This provides instant transitions between main tabs, matching platform conventio
 
 ### First-Run Guard
 
-The router redirects to onboarding if no divers exist:
+The router redirects to the setup wizard if no divers exist. The wizard
+offers a fresh-start path (profile, units, appearance, backup and sync) and
+an existing-data path (restore a backup, connect cloud sync, or open an
+existing storage folder):
 
 ```dart
 redirect: (context, state) async {

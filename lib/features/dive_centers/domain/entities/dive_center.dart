@@ -76,21 +76,13 @@ class DiveCenter extends Equatable {
     return parts.isEmpty ? null : parts.join('\n');
   }
 
-  /// Get single-line address summary
-  String? get addressSummary {
+  /// Get full location string (city, state/province, country)
+  String? get fullLocationString {
     final parts = <String>[];
     if (city != null && city!.isNotEmpty) parts.add(city!);
     if (stateProvince != null && stateProvince!.isNotEmpty) {
       parts.add(stateProvince!);
     }
-    if (country != null && country!.isNotEmpty) parts.add(country!);
-    return parts.isEmpty ? null : parts.join(', ');
-  }
-
-  /// Get full location string (city, country)
-  String? get fullLocationString {
-    final parts = <String>[];
-    if (city != null && city!.isNotEmpty) parts.add(city!);
     if (country != null && country!.isNotEmpty) parts.add(country!);
     return parts.isEmpty ? null : parts.join(', ');
   }

@@ -17,6 +17,38 @@ import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 /// - Resolving the actual database path based on configuration
 /// - Platform-specific folder selection
 /// - Verifying folder accessibility
+/// The folder picker itself failed (as opposed to the user cancelling).
+class FolderPickException implements Exception {
+  final String message;
+  const FolderPickException(this.message);
+
+  @override
+  String toString() => 'FolderPickException: $message';
+}
+
+/// Outcome of the startup accessibility check for a custom DB location.
+enum StartupLocationCheck {
+  /// No custom location configured; nothing to check.
+  defaultLocation,
+
+  /// Custom database exists and is readable.
+  accessible,
+
+  /// The folder is configured but holds no database yet -- the normal
+  /// first launch after choosing a location. The configuration is KEPT on
+  /// every platform; the database is created at the chosen path.
+  keptDatabaseMissing,
+
+  /// Custom database is not accessible, but the configuration is KEPT
+  /// (non-sandbox platforms; the open will create the file or surface a
+  /// real error instead of silently discarding the user's choice, #218).
+  keptInaccessible,
+
+  /// Custom database is not accessible and the configuration was reset
+  /// (sandbox platforms, where folder access can be permanently revoked).
+  resetToDefault,
+}
+
 class DatabaseLocationService {
   final SharedPreferences _prefs;
 
@@ -30,6 +62,15 @@ class DatabaseLocationService {
   static const databaseFilename = 'submersion.db';
 
   DatabaseLocationService(this._prefs);
+
+  /// UI hook to let the user choose among external volumes (Android). Set by the
+  /// storage settings page; when null the first (internal) volume is used.
+  Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)?
+  _chooseExternalVolume;
+
+  set externalVolumeChooser(
+    Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
+  ) => _chooseExternalVolume = chooser;
 
   /// Get the current storage configuration
   Future<StorageConfig> getStorageConfig() async {
@@ -105,7 +146,9 @@ class DatabaseLocationService {
   /// - macOS: Full support with security-scoped bookmarks
   /// - iOS: Full support with security-scoped bookmarks for iCloud Drive
   /// - Windows/Linux: Full support with standard file system access
-  /// - Android: Uses Storage Access Framework (SAF)
+  /// - Android: app-specific external storage (internal or SD card). The live
+  ///   DB needs a real lockable path; arbitrary SAF folders cannot back a
+  ///   SQLite file, so the choice is curated to writable app-specific volumes.
   bool get isCustomFolderSupported => true;
 
   /// Check if we're running on a desktop platform
@@ -137,18 +180,39 @@ class DatabaseLocationService {
       }
     }
 
-    // On other platforms, use file_picker
+    // Android: the live DB needs a real lockable path (SQLite locking + WAL),
+    // so SAF content URIs cannot back it. Offer the app-specific external
+    // volumes (internal storage + SD card) from path_provider -- real writable
+    // paths that need no permissions.
+    // The native volume query + platform gate are untestable in the host VM;
+    // the selection/cancel logic lives in the unit-tested [resolveAndroidDbDir].
+    // coverage:ignore-start
+    if (Platform.isAndroid) {
+      final dirs = await getExternalStorageDirectories();
+      if (dirs == null || dirs.isEmpty) return null;
+      final options = classifyExternalDirs(dirs.map((d) => d.path).toList());
+      final dbDir = await resolveAndroidDbDir(options, _chooseExternalVolume);
+      if (dbDir == null) return null;
+      return FolderPickResultWithBookmark(path: dbDir);
+    }
+    // coverage:ignore-end
+
+    // On other platforms (desktop), use file_picker
     try {
       final result = await FilePicker.getDirectoryPath(
         dialogTitle: 'Choose Database Storage Location',
-        lockParentWindow: true,
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
+        linuxOptions: const LinuxOptions(lockParentWindow: true),
       );
 
       if (result == null) return null;
       return FolderPickResultWithBookmark(path: result);
-    } catch (e) {
-      // Handle any errors from file picker
-      return null;
+    } catch (e, stackTrace) {
+      // A thrown picker (e.g. a missing/broken XDG desktop portal on
+      // Linux) must be distinguishable from a user cancel, or the setting
+      // silently appears to do nothing (#218). Rethrow on the original
+      // stack so logs point at the failing portal/DBus call.
+      Error.throwWithStackTrace(FolderPickException('$e'), stackTrace);
     }
   }
 
@@ -201,6 +265,64 @@ class DatabaseLocationService {
   }
 
   /// Clear the storage configuration and reset to default
+  /// Verifies a configured custom database location at startup (#218).
+  ///
+  /// On bookmark platforms (macOS/iOS) an inaccessible custom database
+  /// resets to the default location: the sandbox may permanently revoke
+  /// folder access, and opening at the default path beats crashing. On
+  /// every other platform the user's choice is KEPT -- there is no sandbox
+  /// to lose access to, a missing file is created by the open, and the old
+  /// unconditional reset made the setting appear to never persist on
+  /// Linux.
+  Future<StartupLocationCheck> validateCustomLocationAtStartup({
+    bool? isBookmarkPlatform,
+  }) async {
+    final bookmarkPlatform =
+        isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
+    final config = await getStorageConfig();
+    if (config.mode != StorageLocationMode.customFolder ||
+        config.customFolderPath == null) {
+      return StartupLocationCheck.defaultLocation;
+    }
+
+    if (bookmarkPlatform && hasStoredBookmark()) {
+      await resolveStoredBookmark();
+    }
+
+    final dbPath = await getDatabasePath();
+    final file = File(dbPath);
+
+    // Nothing at the path is NOT an access failure: it is the first launch
+    // after choosing a folder. Resetting here would wipe a freshly-chosen
+    // location before the database was ever created (#218). Anything that
+    // DOES occupy the path (including a directory) has to be opened to
+    // decide, so test the entity type rather than File.exists().
+    if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
+      return StartupLocationCheck.keptDatabaseMissing;
+    }
+
+    var canAccess = false;
+    RandomAccessFile? handle;
+    try {
+      handle = await file.open(mode: FileMode.read);
+      await handle.read(16);
+      canAccess = true;
+    } catch (_) {
+      canAccess = false;
+    } finally {
+      // Close even when the read throws, or the handle leaks on every
+      // launch that hits a revoked-permission folder.
+      await handle?.close();
+    }
+
+    if (canAccess) return StartupLocationCheck.accessible;
+    if (bookmarkPlatform) {
+      await resetToDefault();
+      return StartupLocationCheck.resetToDefault;
+    }
+    return StartupLocationCheck.keptInaccessible;
+  }
+
   Future<void> resetToDefault() async {
     // Stop accessing any security-scoped resource first
     await SecurityScopedBookmarkService.stopAccessingSecurityScopedResource();
@@ -309,4 +431,55 @@ class FolderPickResultWithBookmark {
   final Uint8List? bookmarkData;
 
   const FolderPickResultWithBookmark({required this.path, this.bookmarkData});
+}
+
+/// A selectable external volume for the database location (Android).
+class ExternalVolumeOption {
+  const ExternalVolumeOption({required this.path, required this.isInternal});
+
+  final String path;
+
+  /// True for the primary emulated/internal volume; false for removable (SD).
+  final bool isInternal;
+}
+
+/// Classifies app-specific external dirs without native code: the primary
+/// emulated volume is internal; any other volume is removable (SD card). The UI
+/// maps [ExternalVolumeOption.isInternal] to a localized label.
+List<ExternalVolumeOption> classifyExternalDirs(List<String> dirPaths) {
+  final out = <ExternalVolumeOption>[];
+  for (var i = 0; i < dirPaths.length; i++) {
+    final path = dirPaths[i];
+    final isInternal = i == 0 || path.contains('/storage/emulated/');
+    out.add(ExternalVolumeOption(path: path, isInternal: isInternal));
+  }
+  return out;
+}
+
+/// Resolves and creates the database directory among [options] using [chooser]
+/// (or the primary internal volume when no chooser is provided). Returns null
+/// if the user dismissed the chooser.
+///
+/// Extracted from the Android branch of
+/// [DatabaseLocationService.pickCustomFolder] so the selection + cancel logic
+/// is unit-testable without a platform channel.
+Future<String?> resolveAndroidDbDir(
+  List<ExternalVolumeOption> options,
+  Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
+) async {
+  final ExternalVolumeOption chosen;
+  if (chooser != null) {
+    final picked = await chooser(options);
+    // A null result means the user dismissed the chooser -> cancel rather than
+    // silently relocating to the first volume.
+    if (picked == null) return null;
+    chosen = picked;
+  } else {
+    // No chooser injected (e.g. background/headless flows): default to the
+    // primary internal volume.
+    chosen = options.first;
+  }
+  final dbDir = p.join(chosen.path, 'Submersion');
+  await Directory(dbDir).create(recursive: true);
+  return dbDir;
 }

@@ -52,6 +52,29 @@ class DiverRepository {
     }
   }
 
+  /// Number of divers, counted in SQL without loading or mapping any rows.
+  ///
+  /// Used by the setup wizard's post-restore "did a library arrive?" gate,
+  /// which only needs existence -- loading and mapping every diver row (with
+  /// its emergency contacts, insurance, etc.) just to call `isNotEmpty` is
+  /// wasted work after a pull that may have brought in a large library.
+  Future<int> getDiverCount() async {
+    try {
+      final result = await _db
+          .customSelect('SELECT COUNT(*) AS count FROM divers')
+          .getSingle();
+      return result.read<int>('count');
+    } catch (e, stackTrace) {
+      _log.error('Failed to get diver count', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Emits whenever the `divers` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchDiversChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.divers));
+
   /// Get the default diver (or first if none marked default)
   Future<domain.Diver?> getDefaultDiver() async {
     try {
@@ -136,6 +159,9 @@ class DiverRepository {
               isDefault: Value(diver.isDefault),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
+              priorDiveCount: Value(diver.priorDiveCount),
+              priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
+              divingSince: Value(diver.divingSince?.year),
             ),
           );
 
@@ -194,6 +220,9 @@ class DiverRepository {
           notes: Value(diver.notes),
           isDefault: Value(diver.isDefault),
           updatedAt: Value(now),
+          priorDiveCount: Value(diver.priorDiveCount),
+          priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
+          divingSince: Value(diver.divingSince?.year),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -454,6 +483,10 @@ class DiverRepository {
           'DELETE FROM dive_computers WHERE diver_id = ?',
           [id],
         );
+        await _db.customStatement(
+          'DELETE FROM diver_weight_entries WHERE diver_id = ?',
+          [id],
+        );
 
         // Delete diver settings (not nullable, so delete instead of nullify).
         final settingsRows = await (_db.select(
@@ -653,6 +686,9 @@ class DiverRepository {
       isDefault: row.isDefault,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      priorDiveCount: row.priorDiveCount,
+      priorDiveTimeSeconds: row.priorDiveTimeSeconds,
+      divingSince: row.divingSince != null ? DateTime(row.divingSince!) : null,
     );
   }
 }

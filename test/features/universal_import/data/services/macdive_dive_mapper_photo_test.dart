@@ -29,8 +29,8 @@ MacDiveRawLogbook _logbook({
 }
 
 void main() {
-  test('maps ZDIVEIMAGE rows to imageRefs keyed by dive UUID', () {
-    final payload = MacDiveDiveMapper.toPayload(
+  test('maps ZDIVEIMAGE rows to imageRefs keyed by dive UUID', () async {
+    final payload = await MacDiveDiveMapper.toPayload(
       _logbook(
         dives: const [
           MacDiveRawDive(pk: 1, uuid: 'dive-uuid-1'),
@@ -65,8 +65,8 @@ void main() {
     expect(shark.sourceUuid, 'img-1');
   });
 
-  test('drops photos whose dive FK has no UUID (orphan rows)', () {
-    final payload = MacDiveDiveMapper.toPayload(
+  test('drops photos whose dive FK has no UUID (orphan rows)', () async {
+    final payload = await MacDiveDiveMapper.toPayload(
       _logbook(
         dives: const [MacDiveRawDive(pk: 1, uuid: 'dive-uuid-1')],
         images: const [
@@ -82,22 +82,25 @@ void main() {
     expect(payload.imageRefs, isEmpty);
   });
 
-  test('falls back to originalPath when path is null; drops if both null', () {
-    final payload = MacDiveDiveMapper.toPayload(
-      _logbook(
-        dives: const [MacDiveRawDive(pk: 1, uuid: 'dive-uuid-1')],
-        images: const [
-          MacDiveRawDiveImage(
-            pk: 1,
-            uuid: 'img-1',
-            diveFk: 1,
-            originalPath: '/orig/only.jpg',
-          ),
-          MacDiveRawDiveImage(pk: 2, uuid: 'img-2', diveFk: 1),
-        ],
-      ),
-    );
-    expect(payload.imageRefs.length, 1);
-    expect(payload.imageRefs.single.originalPath, '/orig/only.jpg');
-  });
+  test(
+    'falls back to originalPath when path is null; drops if both null',
+    () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _logbook(
+          dives: const [MacDiveRawDive(pk: 1, uuid: 'dive-uuid-1')],
+          images: const [
+            MacDiveRawDiveImage(
+              pk: 1,
+              uuid: 'img-1',
+              diveFk: 1,
+              originalPath: '/orig/only.jpg',
+            ),
+            MacDiveRawDiveImage(pk: 2, uuid: 'img-2', diveFk: 1),
+          ],
+        ),
+      );
+      expect(payload.imageRefs.length, 1);
+      expect(payload.imageRefs.single.originalPath, '/orig/only.jpg');
+    },
+  );
 }

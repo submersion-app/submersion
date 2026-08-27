@@ -1,0 +1,473 @@
+name: Promote Beta
+
+# Phase 5 of the release-channels spec: promotes an already-published beta
+# to the stable channel everywhere, without rebuilding anything. GitHub gets
+# the copied artifacts + a stable appcast entry (signature was computed at
+# beta build time); Play promotes the identical AAB from the beta track;
+# the App Store gets the existing TestFlight build submitted for review;
+# and the marketing-version bump PR opens immediately so the next merge
+# starts the next beta train (App Store trains close on release).
+on:
+  workflow_dispatch:
+    inputs:
+      build-number:
+        description: 'Beta build number to promote (e.g. 4951)'
+        required: true
+        type: string
+      play-rollout:
+        description: 'Play production rollout fraction (0.0-1.0)'
+        required: false
+        type: string
+        default: '1.0'
+      next-bump:
+        description: 'Version bump to open the next beta train'
+        required: false
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Publish stable release from beta
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: read
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      semver: ${{ steps.resolve.outputs.semver }}
+      build-number: ${{ steps.resolve.outputs.build-number }}
+    steps:
+      # RELEASE_BOT_TOKEN, not github.token: the stable tag points at a commit
+      # whose history touches .github/workflows, and GitHub rejects ANY token
+      # pushing a ref that makes workflow-file changes reachable unless the
+      # token carries the workflow-editing capability. Exact names by token
+      # type: not grantable to GITHUB_TOKEN at all; classic PAT `workflow`
+      # scope; fine-grained PAT "Workflows: Read and write" (what
+      # RELEASE_BOT_TOKEN uses). Both rejection variants were hit live:
+      # #835, run 30785339668.
+      - name: Require RELEASE_BOT_TOKEN
+        env:
+          RELEASE_BOT_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+        run: |
+          if [ -z "$RELEASE_BOT_TOKEN" ]; then
+            echo "::error::RELEASE_BOT_TOKEN secret is not configured; the" \
+              " stable tag cannot be pushed with the built-in token. See" \
+              " docs/developer/release-secrets-setup.md."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_BOT_TOKEN }}
+
+      - name: Resolve and verify the beta release
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+          BUILD: ${{ inputs.build-number }}
+        run: |
+          set -euo pipefail
+          # Digits only: BUILD lands in a grep pattern, where e.g. "49.7"
+          # (dot matches anything) could resolve the wrong release.
+          if ! [[ "$BUILD" =~ ^[0-9]+$ ]]; then
+            echo "::error::build-number must be digits only (got: ${BUILD})."
+            exit 1
+          fi
+          TAG=$(gh release list --repo submersion-app/beta-builds \
+            --json tagName -q ".[].tagName" | grep -E "\.${BUILD}$" | head -1)
+          if [ -z "$TAG" ]; then
+            echo "::error::No beta release ending in .${BUILD} found (pruned or never built)."
+            exit 1
+          fi
+          mkdir -p promoted && cd promoted
+          gh release download "$TAG" --repo submersion-app/beta-builds
+          sha256sum -c checksums-sha256.txt
+          SEMVER=$(python3 -c "import json;print(json.load(open('metadata.json'))['semver'])")
+          SHA=$(python3 -c "import json;print(json.load(open('metadata.json'))['sourceSha'])")
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "build-number=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Check for beta blockers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          OPEN=$(gh issue list --repo ${{ github.repository }} \
+            --label beta-blocker --state open --json number -q 'length')
+          if [ "$OPEN" != "0" ]; then
+            echo "::error::$OPEN open beta-blocker issue(s); resolve them before promoting."
+            exit 1
+          fi
+
+      - name: Verify the source commit is on main
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "${{ steps.resolve.outputs.sha }}" origin/main || {
+            echo "::error::Beta source commit is not on main."; exit 1; }
+
+      - name: Generate release notes and stable appcast
+        env:
+          TAG_NAME: ${{ steps.resolve.outputs.tag }}
+          # The changelog credits each bullet to its author and lists
+          # first-time contributors, which needs the API to turn commit emails
+          # into GitHub logins. Without a token it quietly falls back to
+          # unattributed bullets rather than failing the promotion.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git checkout "${{ steps.resolve.outputs.sha }}"
+          ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
+          ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          VERSION="${TAG_NAME#v}"
+          export SPARKLE_EDDSA_SIGNATURE=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['eddsaSignature'])")
+          export SPARKLE_DMG_LENGTH=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['dmgLength'])")
+          # Betas built before Windows signing existed have no
+          # windowsEddsaSignature in metadata.json; allow promoting those with
+          # the legacy unsigned enclosure instead of failing the pipeline.
+          export SPARKLE_WINDOWS_EDDSA_SIGNATURE=$(python3 -c "import json;print(json.load(open('promoted/metadata.json')).get('windowsEddsaSignature',''))")
+          export SPARKLE_WINDOWS_EXE_LENGTH=$(python3 -c "import json;print(json.load(open('promoted/metadata.json')).get('windowsExeLength',''))")
+          if [ -z "$SPARKLE_WINDOWS_EDDSA_SIGNATURE" ]; then
+            echo "::warning::Promoting a beta without a Windows EdDSA signature (pre-signing build)"
+            export SPARKLE_ALLOW_UNSIGNED_WINDOWS=1
+          fi
+          BASE="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}"
+          ./scripts/generate_appcast.sh "$VERSION" "${{ steps.resolve.outputs.build-number }}" \
+            "$(date -R)" \
+            "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
+            "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \
+            release-notes.html > appcast.xml
+          python3 -c "import xml.dom.minidom;xml.dom.minidom.parse('appcast.xml')"
+
+      - name: Create or verify the stable tag and release
+        env:
+          # RELEASE_BOT_TOKEN with the Workflows permission: creating the tag
+          # (via --target) is a ref that makes workflow-file changes reachable,
+          # which GitHub rejects for tokens without it.
+          GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+          TAG_NAME: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Re-entrancy: a promotion can be re-dispatched to redo a failed
+          # store leg after the release already published. If the release
+          # exists AND its checksums match this beta's, leave it untouched;
+          # a checksum mismatch or an ambiguous API failure aborts.
+          # -i prepends the HTTP status line, a protocol-stable format,
+          # rather than grepping gh's free-form error prose.
+          set +e
+          RESPONSE=$(gh api -i "repos/${{ github.repository }}/releases/tags/${TAG_NAME}" 2>&1)
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -eq 0 ]; then
+            mkdir -p existing && cd existing
+            gh release download "$TAG_NAME" --repo ${{ github.repository }} \
+              -p checksums-sha256.txt
+            if ! diff -q checksums-sha256.txt ../promoted/checksums-sha256.txt; then
+              echo "::error::Release $TAG_NAME already exists with different" \
+                " checksums than beta build ${TAG_NAME}; refusing to touch it."
+              exit 1
+            fi
+            echo "Release $TAG_NAME already published with matching checksums;" \
+              " skipping creation (re-entrant run)."
+            exit 0
+          fi
+          if ! echo "$RESPONSE" | head -1 | grep -qE '^HTTP/[0-9.]+ 404'; then
+            echo "::error::Could not determine whether $TAG_NAME already" \
+              " exists: $RESPONSE"
+            exit 1
+          fi
+          # --target creates the tag together with the release, so release.yml
+          # (triggered by the tag push, now that a PAT pushes it) never
+          # observes a promoted tag without its release - its precheck skips
+          # the legacy rebuild by seeing the release exists.
+          # Submersion-* (with hyphen) deliberately excludes the store-only
+          # Submersion.pkg, matching the historical stable asset list.
+          gh release create "$TAG_NAME" --repo ${{ github.repository }} \
+            --target "${{ steps.resolve.outputs.sha }}" \
+            --title "$TAG_NAME" --notes-file release-notes.md --latest \
+            promoted/Submersion-* promoted/checksums-sha256.txt \
+            appcast.xml release-notes.html
+
+      - name: Validate the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p check && cd check
+          gh release download "$TAG_NAME" --repo ${{ github.repository }}
+          # --ignore-missing: the beta checksums include Submersion.pkg (a
+          # store-only artifact deliberately not re-hosted on the stable
+          # release, matching the historical stable asset list).
+          sha256sum -c --ignore-missing checksums-sha256.txt
+          for suffix in macOS.dmg Windows-Setup.exe Linux.tar.gz Android.apk Android.aab iOS.ipa; do
+            ls Submersion-*-$suffix >/dev/null || { echo "::error::Missing $suffix"; exit 1; }
+          done
+          test -s appcast.xml
+
+  promote-play:
+    name: Promote Play build to production
+    runs-on: ubuntu-latest
+    needs: promote
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: android
+
+      - name: Setup Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        # The secret is stored base64-encoded; release.yml decodes it the same
+        # way and has authenticated against Play in production. Writing it raw
+        # yields base64 text in a .json file and fastlane fails to parse it.
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" | base64 --decode > android/fastlane/play-store-key.json
+          chmod 600 android/fastlane/play-store-key.json
+
+      - name: Promote beta track to production
+        working-directory: android
+        env:
+          GOOGLE_PLAY_JSON_KEY_PATH: fastlane/play-store-key.json
+        run: |
+          bundle exec fastlane promote_to_production \
+            version_code:"${{ needs.promote.outputs.build-number }}" \
+            rollout:"${{ inputs.play-rollout }}"
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f android/fastlane/play-store-key.json
+
+  # One job per Apple platform, not one job doing both in sequence. They were
+  # sequential steps until run 31859359618, where the iOS step succeeded, the
+  # macOS step failed, and re-running meant redoing the iOS submission that had
+  # already worked - which then failed too, because a version Apple already has
+  # cannot be resubmitted. Independent jobs make each platform separately
+  # retryable, matching how promote / promote-play / bump-pr already behave.
+  #
+  # fail-fast: false is the part that does the decoupling: without it, one leg
+  # failing cancels the other, which is the behavior being fixed.
+  #
+  # notify-failures still says `needs: submit-appstore` and needs no change: a
+  # matrix rolls up to its job id, and the roll-up fails if either leg fails.
+  submit-appstore:
+    name: Submit ${{ matrix.platform }} build for App Review
+    runs-on: macos-15
+    needs: promote
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, macos]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Prepare What's New from the release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ needs.promote.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Apple requires whatsNew on a new App Store version; deliver reads
+          # it from metadata/en-US/release_notes.txt (the only metadata file
+          # generated here; the committed review_information/notes.txt beside
+          # it is uploaded as-is and must not be touched).
+          #
+          # The GitHub release body is written for every platform at once, and
+          # App Review guideline 2.3.10 forbids naming other platforms in App
+          # Store metadata, so it is sanitized first. --report puts every
+          # redaction in this job's log, which is the only place a human can
+          # see what was silently changed. CRLF normalization happens inside
+          # the sanitizer. Truncated afterwards, in CHARACTERS (not bytes,
+          # which could split a multi-byte UTF-8 sequence and produce invalid
+          # text) below Apple's 4000-char limit.
+          mkdir -p ${{ matrix.platform }}/fastlane/metadata/en-US
+          gh release view "$TAG_NAME" --repo ${{ github.repository }} \
+            --json body -q .body \
+            | ./scripts/release/sanitize_apple_store_notes.py --report \
+                --fallback 'This release includes bug fixes and improvements.' \
+            | python3 -c 'import sys; sys.stdout.write(sys.stdin.read()[:3900])' \
+            > ${{ matrix.platform }}/fastlane/metadata/en-US/release_notes.txt
+          test -s ${{ matrix.platform }}/fastlane/metadata/en-US/release_notes.txt
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ${{ matrix.platform }}
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          mkdir -p ${{ matrix.platform }}/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode \
+            > ${{ matrix.platform }}/fastlane/AuthKey.p8
+
+      # The lane is a no-op when Apple already has a submission under way for
+      # this platform, whatever version it covers, so a re-dispatched promotion
+      # skips the leg that already succeeded instead of failing on it, and a
+      # promotion launched while the previous one is still in review skips
+      # rather than renaming that in-review version. See submission_blocker in
+      # the Fastfile.
+      - name: Submit build
+        working-directory: ${{ matrix.platform }}
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: |
+          bundle exec fastlane submit_existing \
+            app_version:"${{ needs.promote.outputs.semver }}" \
+            build_number:"${{ needs.promote.outputs.build-number }}"
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f ${{ matrix.platform }}/fastlane/AuthKey.p8
+
+  bump-pr:
+    name: Open the version bump PR
+    runs-on: ubuntu-latest
+    needs: promote
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Two tokens, deliberately split. RELEASE_BOT_TOKEN (fine-grained PAT)
+      # pushes the branch: pushes made with the built-in token never trigger
+      # workflows, so CI would not run on the bump branch and auto-merge
+      # would wait forever. github.token creates the PR: main requires one
+      # approving review and GitHub forbids approving your own PR, so a
+      # PAT-authored PR can never satisfy the rule and auto-merge waits
+      # forever (#842). With github-actions[bot] as author, the PAT account
+      # approves, arms auto-merge, and the PR lands itself when checks pass.
+      # Needs "Allow GitHub Actions to create and approve pull requests"
+      # enabled under Settings > Actions > General.
+      - name: Require RELEASE_BOT_TOKEN
+        env:
+          RELEASE_BOT_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+        run: |
+          if [ -z "$RELEASE_BOT_TOKEN" ]; then
+            echo "::error::RELEASE_BOT_TOKEN secret is not configured; the bump" \
+              " branch would push without triggering CI and the PR could never" \
+              " auto-merge. See docs/developer/release-secrets-setup.md."
+            exit 1
+          fi
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          token: ${{ secrets.RELEASE_BOT_TOKEN }}
+
+      - name: Bump and open auto-merging PR
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_BOT_TOKEN }}
+          BOT_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Approve with the PAT and arm auto-merge. On a re-dispatch where
+          # checks are already green the auto-merge API rejects a PR that is
+          # already clean, so fall back to merging it outright. Fatal, not a
+          # warning: a bump PR left unapproved or unarmed silently
+          # reintroduces the manual step and leaves the beta train closed.
+          # Failing here makes notify-failures open a tracking issue.
+          arm_automerge() {
+            gh pr review --approve "$1" \
+              --body "Automated release-train approval (promote workflow)." || {
+              echo "::error::Could not approve bump PR ${1}; approve and" \
+                " merge it manually to reopen the beta train."
+              return 1
+            }
+            gh pr merge --auto --merge "$1" || gh pr merge --merge "$1" || {
+              echo "::error::Could not enable auto-merge on bump PR ${1};" \
+                " merge it manually to reopen the beta train."
+              return 1
+            }
+          }
+          # Re-entrancy: on a re-dispatched promotion the bump may already be
+          # merged (pubspec moved past the promoted version - nothing to do)
+          # or already be an open PR from the previous attempt (re-arm it
+          # instead of opening a duplicate).
+          CURRENT_SEMVER=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          PROMOTED_SEMVER="${{ needs.promote.outputs.semver }}"
+          if [ "$CURRENT_SEMVER" != "$PROMOTED_SEMVER" ]; then
+            HIGHEST=$(printf '%s\n%s\n' "$CURRENT_SEMVER" "$PROMOTED_SEMVER" | sort -V | tail -1)
+            if [ "$HIGHEST" = "$CURRENT_SEMVER" ]; then
+              echo "pubspec is at ${CURRENT_SEMVER}, already past promoted" \
+                " ${PROMOTED_SEMVER}; the bump has landed - skipping."
+              exit 0
+            fi
+            echo "::error::pubspec is at ${CURRENT_SEMVER}, BEHIND the promoted" \
+              " ${PROMOTED_SEMVER} - unexpected state, refusing to bump."
+            exit 1
+          fi
+          # first() inside the query, not `| head -1`: under pipefail, head
+          # closing the pipe early can kill the producer with SIGPIPE and
+          # abort the job before it re-arms an existing bump PR.
+          OPEN_BUMP=$(gh pr list --repo ${{ github.repository }} --state open \
+            --json headRefName \
+            -q 'first(.[] | select(.headRefName | startswith("chore/bump-")) | .headRefName)')
+          if [ -n "$OPEN_BUMP" ]; then
+            echo "Bump PR from branch ${OPEN_BUMP} is already open;" \
+              " ensuring it is approved and armed to auto-merge."
+            arm_automerge "$OPEN_BUMP"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          ./scripts/release/bump_version.sh --${{ inputs.next-bump }}
+          NEWVER=$(grep '^version:' pubspec.yaml | sed 's/version: *//')
+          BRANCH="chore/bump-${NEWVER//+/-}"
+          git checkout -b "$BRANCH"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to ${NEWVER}
+
+          Opens the next beta train after promoting ${{ needs.promote.outputs.tag }};
+          the App Store closes a version train on release, so betas cannot
+          continue on the promoted marketing version."
+          git push origin "$BRANCH"
+          # Created with the built-in token so the author is
+          # github-actions[bot], leaving the PAT account free to approve.
+          GH_TOKEN="$BOT_TOKEN" gh pr create --base main --head "$BRANCH" \
+            --title "chore: bump version to ${NEWVER}" \
+            --body "Opens the next beta train after promoting ${{ needs.promote.outputs.tag }}. Auto-merges when checks pass; until it lands, the beta pipeline's train-closed guard fails every merge."
+          arm_automerge "$BRANCH"
+
+  notify-failures:
+    name: Open issue on promotion failure
+    runs-on: ubuntu-latest
+    needs: [promote, promote-play, submit-appstore, bump-pr]
+    if: always() && contains(needs.*.result, 'failure')
+    permissions:
+      issues: write
+    steps:
+      - name: Open tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo ${{ github.repository }} \
+            --title "Promotion of build ${{ inputs.build-number }} partially failed" \
+            --label ci \
+            --body "One or more promotion jobs failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. The GitHub release, Play promotion, App Store submission, and bump PR are independent - check which succeeded before re-running."

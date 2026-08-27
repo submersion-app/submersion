@@ -471,7 +471,7 @@ class _TideCyclePainter extends CustomPainter {
 
   /// Format a DateTime using the configured time format.
   String _formatTime(DateTime time) {
-    return DateFormat(timeFormat.pattern).format(time.toLocal());
+    return DateFormat(timeFormat.pattern).format(time);
   }
 
   /// Calculate the start and end times for the tide cycle.

@@ -5,4 +5,21 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- USB Host for serial-over-USB dive computers (e.g. Mares Puck Pro on an
+         FTDI cable). Per-device access is granted at runtime via
+         UsbManager.requestPermission; no install-time permission is needed.
+         required=false so the app still installs on devices without USB host. -->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+
+    <application>
+        <!-- Serial dive-computer downloads run here, in a separate process, so a
+             native libdivecomputer SIGSEGV takes down only :dc, not the app (#318).
+             Merged into the host app's <application> by the manifest merger. -->
+        <service
+            android:name=".DiveDownloadService"
+            android:process=":dc"
+            android:exported="false" />
+    </application>
 </manifest>

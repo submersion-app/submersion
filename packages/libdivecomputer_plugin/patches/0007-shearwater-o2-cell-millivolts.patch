@@ -1,0 +1,215 @@
+diff --git a/include/libdivecomputer/parser.h b/include/libdivecomputer/parser.h
+index 4bcbdbd..c51907a 100644
+--- a/include/libdivecomputer/parser.h
++++ b/include/libdivecomputer/parser.h
+@@ -274,6 +274,13 @@ typedef union dc_sample_value_t {
+ 	struct {
+ 		unsigned int sensor;
+ 		double value;
++		/* Submersion patch (O2 cell millivolts): raw output of the cell, in
++		 * millivolts, or zero when the device does not report it (including
++		 * the DC_SENSOR_NONE aggregate). Cells are measured in millivolts and
++		 * converted to a partial pressure with a calibration value; where that
++		 * calibration is missing or untrustworthy, `value` is NAN while this
++		 * field still carries the measurement. */
++		unsigned int millivolt;
+ 	} ppo2;
+ 	double cns;
+ 	struct {
+diff --git a/src/diverite_nitekq_parser.c b/src/diverite_nitekq_parser.c
+index d9f6dcc..c88316d 100644
+--- a/src/diverite_nitekq_parser.c
++++ b/src/diverite_nitekq_parser.c
+@@ -287,6 +287,7 @@ diverite_nitekq_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 				unsigned int ppo2 = data[offset];
+ 				sample.ppo2.sensor = DC_SENSOR_NONE;
+ 				sample.ppo2.value = ppo2 / 100.0;
++				sample.ppo2.millivolt = 0;
+ 				if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
+ 				offset++;
+ 			}
+diff --git a/src/divesoft_freedom_parser.c b/src/divesoft_freedom_parser.c
+index 1724bc3..2c3921f 100644
+--- a/src/divesoft_freedom_parser.c
++++ b/src/divesoft_freedom_parser.c
+@@ -917,6 +917,7 @@ divesoft_freedom_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callba
+ 			if (ppo2) {
+ 				sample.ppo2.sensor = DC_SENSOR_NONE;
+ 				sample.ppo2.value = ppo2 * 10.0 / BAR;
++				sample.ppo2.millivolt = 0;
+ 				if (callback) callback(DC_SAMPLE_PPO2, &sample, userdata);
+ 			}
+ 
+@@ -1019,6 +1020,7 @@ divesoft_freedom_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callba
+ 						continue;
+ 					sample.ppo2.sensor = i;
+ 					sample.ppo2.value = ppo2 * 10.0 / BAR;
++					sample.ppo2.millivolt = 0;
+ 					if (callback) callback(DC_SAMPLE_PPO2, &sample, userdata);
+ 				}
+ 			} else if (id == MEASURE_ID_OXYGEN_MV) {
+@@ -1030,6 +1032,7 @@ divesoft_freedom_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callba
+ 						continue;
+ 					sample.ppo2.sensor = i;
+ 					sample.ppo2.value = value / 100.0 * parser->calibration[i] / BAR;
++					sample.ppo2.millivolt = 0;
+ 					if (callback) callback(DC_SAMPLE_PPO2, &sample, userdata);
+ 				}
+ 			} else if (id == MEASURE_ID_GPS) {
+diff --git a/src/halcyon_symbios_parser.c b/src/halcyon_symbios_parser.c
+index 977e660..f87cd89 100644
+--- a/src/halcyon_symbios_parser.c
++++ b/src/halcyon_symbios_parser.c
+@@ -536,6 +536,7 @@ halcyon_symbios_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 				unsigned int ppo2 = data[offset + 2 + i];
+ 				sample.ppo2.sensor = i;
+ 				sample.ppo2.value = ppo2 / 100.0;
++				sample.ppo2.millivolt = 0;
+ 				if (callback) callback(DC_SAMPLE_PPO2, &sample, userdata);
+ 			}
+ 		} else if (type == ID_DECO) {
+@@ -581,6 +582,7 @@ halcyon_symbios_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 				unsigned int ppo2 = data[offset + 2 + i];
+ 				sample.ppo2.sensor = i;
+ 				sample.ppo2.value = ppo2 / 100.0;
++				sample.ppo2.millivolt = 0;
+ 				if (callback) callback(DC_SAMPLE_PPO2, &sample, userdata);
+ 			}
+ 			unsigned int pressure = array_uint16_le (data + offset + 8);
+diff --git a/src/hw_ostc_parser.c b/src/hw_ostc_parser.c
+index 38de7fc..627f089 100644
+--- a/src/hw_ostc_parser.c
++++ b/src/hw_ostc_parser.c
+@@ -1144,6 +1144,7 @@ hw_ostc_parser_internal_foreach (hw_ostc_parser_t *parser, dc_sample_callback_t
+ 						for (unsigned int j = 0; j < 3; ++j) {
+ 							sample.ppo2.sensor = j;
+ 							sample.ppo2.value = ppo2[j] / 100.0;
++							sample.ppo2.millivolt = 0;
+ 							if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
+ 						}
+ 					}
+diff --git a/src/oceanic_atom2_parser.c b/src/oceanic_atom2_parser.c
+index c67aae8..fde8bc4 100644
+--- a/src/oceanic_atom2_parser.c
++++ b/src/oceanic_atom2_parser.c
+@@ -1107,6 +1107,7 @@ oceanic_atom2_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callback_
+ 			if (parser->model == I330R || parser->model == I330R_C) {
+ 				sample.ppo2.sensor = DC_SENSOR_NONE;
+ 				sample.ppo2.value = data[offset + 9] / 100.0;
++				sample.ppo2.millivolt = 0;
+ 				if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
+ 			}
+ 
+diff --git a/src/shearwater_predator_parser.c b/src/shearwater_predator_parser.c
+index 81f6826..ab0f6d1 100644
+--- a/src/shearwater_predator_parser.c
++++ b/src/shearwater_predator_parser.c
+@@ -19,6 +19,7 @@
+  * MA 02110-1301 USA
+  */
+ 
++#include <math.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+@@ -161,6 +162,7 @@ struct shearwater_predator_parser_t {
+ 	unsigned int aimode;
+ 	unsigned int hpccr;
+ 	unsigned int calibrated;
++	unsigned int calibration_trusted;
+ 	double calibration[3];
+ 	unsigned int divemode;
+ 	unsigned int units;
+@@ -282,6 +284,7 @@ shearwater_common_parser_create (dc_parser_t **out, dc_context_t *context, const
+ 	parser->aimode = AI_OFF;
+ 	parser->hpccr = 0;
+ 	parser->calibrated = 0;
++	parser->calibration_trusted = 0;
+ 	for (unsigned int i = 0; i < 3; ++i) {
+ 		parser->calibration[i] = 0.0;
+ 	}
+@@ -680,16 +683,22 @@ shearwater_predator_parser_cache (shearwater_predator_parser_t *parser)
+ 			nsensors++;
+ 		}
+ 	}
++	parser->calibrated = data[base];
++	parser->calibration_trusted = 1;
+ 	if (nsensors && nsensors == ndefaults) {
+ 		// If all (calibrated) sensors still have their factory default
+ 		// calibration values (2100), they are probably not calibrated
+ 		// properly. To avoid returning incorrect ppO2 values to the
+-		// application, they are manually disabled (e.g. marked as
+-		// uncalibrated).
+-		WARNING (abstract->context, "Disabled all O2 sensors due to a default calibration value.");
+-		parser->calibrated = 0;
+-	} else {
+-		parser->calibrated = data[base];
++		// application, the ppO2 conversion is suppressed.
++		//
++		// Submersion patch (O2 cell millivolts): upstream cleared the
++		// calibrated mask here, which dropped the cell samples entirely.
++		// The raw cell output is measured data and needs no calibration to
++		// be meaningful, so the samples are still reported -- only the
++		// derived ppO2 is withheld. See
++		// packages/libdivecomputer_plugin/patches/0007-shearwater-o2-cell-millivolts.patch.
++		WARNING (abstract->context, "Disabled the O2 sensor ppO2 conversion due to a default calibration value.");
++		parser->calibration_trusted = 0;
+ 	}
+ 
+ 	// Get the dive mode from the header (if available).
+@@ -999,21 +1008,32 @@ shearwater_predator_parser_samples_foreach (dc_parser_t *abstract, dc_sample_cal
+ 			if (ccr) {
+ 				// PPO2
+ 				if ((status & PPO2_EXTERNAL) == 0) {
++					// Submersion patch (O2 cell millivolts): the cells are
++					// logged as raw millivolts and converted with the
++					// calibration value from the header. Report the
++					// millivolts unconditionally, and the derived ppO2 only
++					// when the calibration can be trusted.
++					const unsigned int cell_mv[3] = {
++						data[offset + pnf + 12],
++						data[offset + pnf + 14],
++						data[offset + pnf + 15],
++					};
++
+ 					sample.ppo2.sensor = DC_SENSOR_NONE;
+ 					sample.ppo2.value = data[offset + pnf + 6] / 100.0;
++					sample.ppo2.millivolt = 0;
+ 					if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
+ 
+-					sample.ppo2.sensor = 0;
+-					sample.ppo2.value = data[offset + pnf + 12] * parser->calibration[0];
+-					if (callback && (parser->calibrated & 0x01)) callback (DC_SAMPLE_PPO2, &sample, userdata);
+-
+-					sample.ppo2.sensor = 1;
+-					sample.ppo2.value = data[offset + pnf + 14] * parser->calibration[1];
+-					if (callback && (parser->calibrated & 0x02)) callback (DC_SAMPLE_PPO2, &sample, userdata);
+-
+-					sample.ppo2.sensor = 2;
+-					sample.ppo2.value = data[offset + pnf + 15] * parser->calibration[2];
+-					if (callback && (parser->calibrated & 0x04)) callback (DC_SAMPLE_PPO2, &sample, userdata);
++					for (unsigned int i = 0; i < 3; ++i) {
++						if (!(parser->calibrated & (1 << i)))
++							continue;
++						sample.ppo2.sensor = i;
++						sample.ppo2.millivolt = cell_mv[i];
++						sample.ppo2.value = parser->calibration_trusted
++							? cell_mv[i] * parser->calibration[i]
++							: NAN;
++						if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
++					}
+ 				}
+ 
+ 				// Setpoint
+diff --git a/src/tecdiving_divecomputereu_parser.c b/src/tecdiving_divecomputereu_parser.c
+index 4f3f514..80307a7 100644
+--- a/src/tecdiving_divecomputereu_parser.c
++++ b/src/tecdiving_divecomputereu_parser.c
+@@ -167,6 +167,7 @@ tecdiving_divecomputereu_parser_samples_foreach (dc_parser_t *abstract, dc_sampl
+ 		unsigned int ppo2 = data[offset + 1];
+ 		sample.ppo2.sensor = DC_SENSOR_NONE;
+ 		sample.ppo2.value = ppo2 / 10.0;
++		sample.ppo2.millivolt = 0;
+ 		if (callback) callback (DC_SAMPLE_PPO2, &sample, userdata);
+ 
+ 		// Setpoint

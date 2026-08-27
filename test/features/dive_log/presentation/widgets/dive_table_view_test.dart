@@ -1,7 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -16,7 +19,8 @@ import '../../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([AppSettings? initial])
+    : super(initial ?? const AppSettings());
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -57,18 +61,52 @@ Dive _makeDive({
   );
 }
 
+/// A dive with one back-gas tank chosen to yield clean SAC values:
+/// volume-based 9.3 L/min ([Dive.sacFor]) and pressure-based 1.0 bar/min
+/// ([Dive.sacPressure]).
+///
+/// minutes = 50, avgPressureAtm = 10/10 + 1 = 2.0
+/// sac        = gasVol(200)-gasVol(100) / 50 / 2.0 ≈ 9.3 L/min (Z-factor,
+/// 1 bar reference, issue #828)
+/// sacPressure = 100bar / 50 / 2.0        = 1.0 bar/min
+Dive _makeSacDive() {
+  return Dive(
+    id: 'sac-1',
+    dateTime: DateTime(2024, 6, 1),
+    diveNumber: 1,
+    runtime: const Duration(minutes: 50),
+    avgDepth: 10.0,
+    tanks: const [
+      DiveTank(
+        id: 'sac-tank',
+        volume: 10.0,
+        startPressure: 200.0,
+        endPressure: 100.0,
+        role: TankRole.backGas,
+      ),
+    ],
+  );
+}
+
+final _sacConfig = TableViewConfig(
+  columns: [
+    TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
+    TableColumnConfig(field: DiveField.sacRate),
+  ],
+);
+
 Widget _buildTable({
   required List<Dive> dives,
   void Function(String)? onDiveTap,
-  void Function(String)? onDiveLongPress,
   void Function(String)? onDiveDoubleTap,
   Set<String>? selectedIds,
   bool isSelectionMode = false,
   TableViewConfig? config,
+  AppSettings? settings,
 }) {
   return testApp(
     overrides: [
-      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
       tableViewConfigProvider.overrideWith(
         (ref) => _TestTableConfigNotifier(config ?? _testConfig),
       ),
@@ -76,7 +114,6 @@ Widget _buildTable({
     child: DiveTableView(
       dives: dives,
       onDiveTap: onDiveTap ?? (_) {},
-      onDiveLongPress: onDiveLongPress,
       onDiveDoubleTap: onDiveDoubleTap,
       selectedIds: selectedIds ?? const {},
       isSelectionMode: isSelectionMode,
@@ -157,21 +194,36 @@ void main() {
       expect(doubleTappedId, 'a');
     });
 
-    testWidgets('fires onDiveLongPress on long press', (tester) async {
-      String? longPressedId;
+    testWidgets('rows register no long-press recognizer', (tester) async {
       await tester.pumpWidget(
         _buildTable(
           dives: [_makeDive(id: 'lp-1', diveNumber: 7)],
           onDiveTap: (_) {},
-          onDiveLongPress: (id) => longPressedId = id,
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.text('#7'));
-      await tester.pumpAndSettle();
-
-      expect(longPressedId, 'lp-1');
+      // Long-press no longer enters selection mode anywhere, so no row may
+      // carry a handler for it.
+      //
+      // The assertion is on the recognizer, not on individual callbacks:
+      // GestureDetector registers one LongPressGestureRecognizer keyed by its
+      // own Type if ANY of seven long-press callbacks is non-null, so checking
+      // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
+      // and the rest without having to enumerate them.
+      final detectors = tester.widgetList<RawGestureDetector>(
+        find.descendant(
+          of: find.byType(DiveTableView),
+          matching: find.byType(RawGestureDetector),
+        ),
+      );
+      expect(detectors, isNotEmpty);
+      for (final detector in detectors) {
+        expect(
+          detector.gestures.containsKey(LongPressGestureRecognizer),
+          isFalse,
+        );
+      }
     });
 
     testWidgets('selection mode shows checkboxes', (tester) async {
@@ -530,18 +582,14 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // GestureDetector exists for tap/double-tap/long-press
+    // GestureDetector exists for tap/double-tap
     // -----------------------------------------------------------------------
 
     testWidgets('rows have GestureDetector for interaction', (tester) async {
       final dives = [_makeDive(id: 'gd1', diveNumber: 1, maxDepth: 10.0)];
 
       await tester.pumpWidget(
-        _buildTable(
-          dives: dives,
-          onDiveLongPress: (_) {},
-          onDiveDoubleTap: (_) {},
-        ),
+        _buildTable(dives: dives, onDiveDoubleTap: (_) {}),
       );
       await tester.pumpAndSettle();
 
@@ -760,13 +808,82 @@ void main() {
     testWidgets('table renders without optional callbacks', (tester) async {
       final dives = [_makeDive(id: 'nc1', diveNumber: 1, maxDepth: 10.0)];
 
-      await tester.pumpWidget(
-        _buildTable(dives: dives, onDiveLongPress: null, onDiveDoubleTap: null),
-      );
+      await tester.pumpWidget(_buildTable(dives: dives, onDiveDoubleTap: null));
       await tester.pumpAndSettle();
 
       expect(find.text('#1'), findsOneWidget);
       expect(find.text('10.0m'), findsOneWidget);
+    });
+
+    // -----------------------------------------------------------------------
+    // SAC rate column honors the diver's SAC unit and volume/pressure prefs
+    // (regression for issue #277: the column always showed raw L/min).
+    // -----------------------------------------------------------------------
+
+    testWidgets('sacRate pressure mode (default) shows bar/min', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTable(dives: [_makeSacDive()], config: _sacConfig),
+      );
+      await tester.pumpAndSettle();
+
+      // Default sacUnit is pressurePerMin -> back-gas pressure SAC in bar/min.
+      expect(find.text('1.0 bar/min'), findsOneWidget);
+    });
+
+    testWidgets('sacRate pressure mode converts to psi/min in imperial', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeSacDive()],
+          config: _sacConfig,
+          settings: const AppSettings(
+            sacUnit: SacUnit.pressurePerMin,
+            pressureUnit: PressureUnit.psi,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1.0 bar/min * 14.5038 = 14.5 psi/min
+      expect(find.text('14.5 psi/min'), findsOneWidget);
+    });
+
+    testWidgets('sacRate volume mode shows L/min', (tester) async {
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeSacDive()],
+          config: _sacConfig,
+          settings: const AppSettings(
+            sacUnit: SacUnit.litersPerMin,
+            volumeUnit: VolumeUnit.liters,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('9.3 L/min'), findsOneWidget);
+    });
+
+    testWidgets('sacRate volume mode converts to cuft/min in imperial', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeSacDive()],
+          config: _sacConfig,
+          settings: const AppSettings(
+            sacUnit: SacUnit.litersPerMin,
+            volumeUnit: VolumeUnit.cubicFeet,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 9.1 L/min * 0.0353147 = 0.3 cuft/min
+      expect(find.text('0.3 cuft/min'), findsOneWidget);
     });
   });
 }

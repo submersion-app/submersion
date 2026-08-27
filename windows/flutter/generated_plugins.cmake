@@ -4,18 +4,23 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   auto_updater_windows
+  connectivity_plus
   desktop_drop
+  desktop_webview_window
   file_selector_windows
   flutter_secure_storage_windows
   gal
   geolocator_windows
   libdivecomputer_plugin
+  local_auth_windows
   objectbox_flutter_libs
   permission_handler_windows
   printing
   share_plus
-  sqlite3_flutter_libs
+  submersion_ocr
+  submersion_transcoder
   url_launcher_windows
+  window_to_front
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

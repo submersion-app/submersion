@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying oxygen toxicity information (CNS% and OTU).
@@ -21,9 +23,17 @@ class O2ToxicityCard extends StatelessWidget {
   /// Weekly OTU rolling total (7-day window, null if not yet loaded)
   final double? weeklyOtu;
 
+  /// Unit preferences, so the max-ppO2 depth renders in m or ft.
+  ///
+  /// Passed rather than read from a provider: this widget is a plain
+  /// StatelessWidget and adding a provider dependency would require every
+  /// consumer test to supply a ProviderScope.
+  final UnitFormatter units;
+
   const O2ToxicityCard({
     super.key,
     required this.exposure,
+    required this.units,
     this.showDetails = true,
     this.showHeader = true,
     this.useCard = true,
@@ -147,7 +157,9 @@ class O2ToxicityCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Semantics(
-            label: 'CNS progress ${exposure.cnsEnd.toStringAsFixed(0)} percent',
+            label: context.l10n.o2Toxicity_cnsProgressSemantics(
+              exposure.cnsEnd.toStringAsFixed(0),
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
@@ -212,7 +224,7 @@ class O2ToxicityCard extends StatelessWidget {
         // This Dive
         _buildOtuRow(
           context,
-          label: 'This Dive',
+          label: context.l10n.o2Toxicity_thisDive,
           value: exposure.otu,
           textTheme: textTheme,
           colorScheme: colorScheme,
@@ -222,7 +234,7 @@ class O2ToxicityCard extends StatelessWidget {
         // Daily cumulative with progress bar
         _buildOtuProgressRow(
           context,
-          label: 'Daily',
+          label: context.l10n.o2Toxicity_daily,
           value: exposure.otuDaily,
           limit: O2Exposure.dailyOtuLimit,
           percent: dailyPct,
@@ -235,7 +247,7 @@ class O2ToxicityCard extends StatelessWidget {
         // Weekly rolling with progress bar
         _buildOtuProgressRow(
           context,
-          label: 'Weekly',
+          label: context.l10n.o2Toxicity_weekly,
           value: weeklyTotal,
           limit: O2Exposure.weeklyOtuLimit,
           percent: weeklyPct,
@@ -255,7 +267,10 @@ class O2ToxicityCard extends StatelessWidget {
     required ColorScheme colorScheme,
   }) {
     return Semantics(
-      label: '$label: ${value.toStringAsFixed(0)} OTU',
+      label: context.l10n.o2Toxicity_otuValueSemantics(
+        label,
+        value.toStringAsFixed(0),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -285,9 +300,12 @@ class O2ToxicityCard extends StatelessWidget {
     required ColorScheme colorScheme,
   }) {
     return Semantics(
-      label:
-          '$label: ${value.toStringAsFixed(0)} of ${limit.toStringAsFixed(0)} OTU, '
-          '${percent.toStringAsFixed(0)} percent',
+      label: context.l10n.o2Toxicity_otuSemantics(
+        label,
+        value.toStringAsFixed(0),
+        limit.toStringAsFixed(0),
+        percent.toStringAsFixed(0),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -351,14 +369,14 @@ class O2ToxicityCard extends StatelessWidget {
         _buildDetailRow(
           context,
           context.l10n.diveLog_o2tox_label_maxPpO2Depth,
-          '${exposure.maxPpO2Depth.toStringAsFixed(1)}m',
+          units.formatDepth(exposure.maxPpO2Depth, decimals: 1),
           icon: Icons.vertical_align_bottom,
         ),
         if (exposure.timeAboveWarning > 0)
           _buildDetailRow(
             context,
             context.l10n.diveLog_o2tox_label_timeAbove14,
-            _formatDuration(exposure.timeAboveWarning),
+            _formatDuration(context.l10n, exposure.timeAboveWarning),
             icon: Icons.timer,
             valueColor: Colors.orange,
           ),
@@ -366,7 +384,7 @@ class O2ToxicityCard extends StatelessWidget {
           _buildDetailRow(
             context,
             context.l10n.diveLog_o2tox_label_timeAbove16,
-            _formatDuration(exposure.timeAboveCritical),
+            _formatDuration(context.l10n, exposure.timeAboveCritical),
             icon: Icons.warning,
             valueColor: colorScheme.error,
           ),
@@ -421,12 +439,12 @@ class O2ToxicityCard extends StatelessWidget {
     );
   }
 
-  String _formatDuration(int seconds) {
-    if (seconds < 60) return '${seconds}s';
+  String _formatDuration(AppLocalizations l10n, int seconds) {
+    if (seconds < 60) return l10n.formatter_duration_seconds('$seconds');
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
-    if (secs == 0) return '${minutes}m';
-    return '${minutes}m ${secs}s';
+    if (secs == 0) return l10n.formatter_duration_minutes('$minutes');
+    return l10n.formatter_duration_minutesSeconds('$minutes', '$secs');
   }
 }
 
@@ -742,37 +760,44 @@ class CompactO2ToxicityPanel extends StatelessWidget {
 
         // Daily OTU bar
         _buildOtuBarSection(
+          l10n: context.l10n,
           colorScheme: colorScheme,
           textTheme: textTheme,
-          label: 'Daily',
+          label: context.l10n.o2Toxicity_daily,
           total: dailyTotal,
           limit: O2Exposure.dailyOtuLimit,
           prior: exposure.otuStart,
           thisDive: exposure.otu,
           percent: dailyPct,
           color: dailyColor,
-          priorLabel: 'Start: ${exposure.otuStart.toStringAsFixed(0)} OTU',
+          priorLabel: context.l10n.o2Toxicity_start(
+            exposure.otuStart.toStringAsFixed(0),
+          ),
         ),
         const SizedBox(height: 8),
 
         // Weekly OTU bar
         _buildOtuBarSection(
+          l10n: context.l10n,
           colorScheme: colorScheme,
           textTheme: textTheme,
-          label: 'Weekly',
+          label: context.l10n.o2Toxicity_weekly,
           total: weeklyTotal,
           limit: O2Exposure.weeklyOtuLimit,
           prior: weeklyPrior,
           thisDive: exposure.otu,
           percent: weeklyPct,
           color: weeklyColor,
-          priorLabel: 'Prior: ${weeklyPrior.toStringAsFixed(0)} OTU',
+          priorLabel: context.l10n.o2Toxicity_prior(
+            weeklyPrior.toStringAsFixed(0),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildOtuBarSection({
+    required AppLocalizations l10n,
     required ColorScheme colorScheme,
     required TextTheme textTheme,
     required String label,
@@ -797,10 +822,12 @@ class CompactO2ToxicityPanel extends StatelessWidget {
     }
 
     return Semantics(
-      label:
-          '$label: ${total.toStringAsFixed(0)} of '
-          '${limit.toStringAsFixed(0)} OTU, '
-          '${percent.toStringAsFixed(0)} percent',
+      label: l10n.o2Toxicity_otuSemantics(
+        label,
+        total.toStringAsFixed(0),
+        limit.toStringAsFixed(0),
+        percent.toStringAsFixed(0),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -843,7 +870,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
                 ),
               ),
               Text(
-                '+${thisDive.toStringAsFixed(0)} this dive',
+                l10n.o2Toxicity_addedThisDive(thisDive.toStringAsFixed(0)),
                 style: textTheme.labelSmall?.copyWith(
                   fontSize: 11,
                   color: colorScheme.onSurfaceVariant,
@@ -1013,7 +1040,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
         TextSpan(
           text:
               '${context.l10n.diveLog_o2tox_label_timeAbove14}: '
-              '${_formatDuration(exposure.timeAboveWarning)}',
+              '${_formatDuration(context.l10n, exposure.timeAboveWarning)}',
           style: textTheme.labelSmall?.copyWith(color: Colors.orange),
         ),
       );
@@ -1027,7 +1054,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
         TextSpan(
           text:
               '${context.l10n.diveLog_o2tox_label_timeAbove16}: '
-              '${_formatDuration(exposure.timeAboveCritical)}',
+              '${_formatDuration(context.l10n, exposure.timeAboveCritical)}',
           style: textTheme.labelSmall?.copyWith(color: colorScheme.error),
         ),
       );
@@ -1042,12 +1069,12 @@ class CompactO2ToxicityPanel extends StatelessWidget {
     return colorScheme.onSurfaceVariant;
   }
 
-  String _formatDuration(int seconds) {
-    if (seconds < 60) return '${seconds}s';
+  String _formatDuration(AppLocalizations l10n, int seconds) {
+    if (seconds < 60) return l10n.formatter_duration_seconds('$seconds');
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
-    if (secs == 0) return '${minutes}m';
-    return '${minutes}m ${secs}s';
+    if (secs == 0) return l10n.formatter_duration_minutes('$minutes');
+    return l10n.formatter_duration_minutesSeconds('$minutes', '$secs');
   }
 }
 

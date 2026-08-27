@@ -37,6 +37,11 @@ class ProfileEvent extends Equatable {
   /// Provenance of this event (imported, computed, or user-authored).
   final EventSource source;
 
+  /// The dive computer this event was attributed to, for multi-computer
+  /// dives. Null means the event belongs to the primary source (or was
+  /// user-authored / computed without per-computer attribution).
+  final String? computerId;
+
   /// When this event was created
   final DateTime createdAt;
 
@@ -58,6 +63,7 @@ class ProfileEvent extends Equatable {
     // `source: EventSource.user`. Factories enforce the correct default per
     // event type — prefer factories over direct construction.
     this.source = EventSource.imported,
+    this.computerId,
     required this.createdAt,
   });
 
@@ -366,6 +372,7 @@ class ProfileEvent extends Equatable {
     double? value,
     String? tankId,
     EventSource? source,
+    String? computerId,
     DateTime? createdAt,
   }) {
     return ProfileEvent(
@@ -379,6 +386,7 @@ class ProfileEvent extends Equatable {
       value: value ?? this.value,
       tankId: tankId ?? this.tankId,
       source: source ?? this.source,
+      computerId: computerId ?? this.computerId,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -395,6 +403,7 @@ class ProfileEvent extends Equatable {
     value,
     tankId,
     source,
+    computerId,
     createdAt,
   ];
 }

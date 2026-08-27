@@ -8,6 +8,11 @@ import 'package:submersion/core/constants/enums.dart';
 class Certification extends Equatable {
   final String id;
   final String? diverId;
+
+  /// Owner when this certification belongs to a buddy instead of the diver
+  /// (issue #553). At most one of {diverId, buddyId} is set -- ownerless rows
+  /// are allowed (legacy rows and the no-validated-diver fallback).
+  final String? buddyId;
   final String name;
   final CertificationAgency agency;
   final CertificationLevel? level;
@@ -16,6 +21,7 @@ class Certification extends Equatable {
   final DateTime? expiryDate;
   final String? instructorName;
   final String? instructorNumber;
+  final String? instructorId;
   final Uint8List? photoFront;
   final Uint8List? photoBack;
   final String notes;
@@ -25,6 +31,7 @@ class Certification extends Equatable {
   const Certification({
     required this.id,
     this.diverId,
+    this.buddyId,
     required this.name,
     required this.agency,
     this.level,
@@ -33,6 +40,7 @@ class Certification extends Equatable {
     this.expiryDate,
     this.instructorName,
     this.instructorNumber,
+    this.instructorId,
     this.photoFront,
     this.photoBack,
     this.notes = '',
@@ -77,6 +85,7 @@ class Certification extends Equatable {
   Certification copyWith({
     String? id,
     String? diverId,
+    String? buddyId,
     String? name,
     CertificationAgency? agency,
     CertificationLevel? level,
@@ -85,6 +94,7 @@ class Certification extends Equatable {
     DateTime? expiryDate,
     String? instructorName,
     String? instructorNumber,
+    String? instructorId,
     Uint8List? photoFront,
     Uint8List? photoBack,
     String? notes,
@@ -94,6 +104,7 @@ class Certification extends Equatable {
     return Certification(
       id: id ?? this.id,
       diverId: diverId ?? this.diverId,
+      buddyId: buddyId ?? this.buddyId,
       name: name ?? this.name,
       agency: agency ?? this.agency,
       level: level ?? this.level,
@@ -102,6 +113,7 @@ class Certification extends Equatable {
       expiryDate: expiryDate ?? this.expiryDate,
       instructorName: instructorName ?? this.instructorName,
       instructorNumber: instructorNumber ?? this.instructorNumber,
+      instructorId: instructorId ?? this.instructorId,
       photoFront: photoFront ?? this.photoFront,
       photoBack: photoBack ?? this.photoBack,
       notes: notes ?? this.notes,
@@ -115,6 +127,7 @@ class Certification extends Equatable {
     return Certification(
       id: id,
       diverId: diverId,
+      buddyId: buddyId,
       name: name,
       agency: agency,
       level: level,
@@ -123,6 +136,7 @@ class Certification extends Equatable {
       expiryDate: expiryDate,
       instructorName: instructorName,
       instructorNumber: instructorNumber,
+      instructorId: instructorId,
       photoFront: clearFront ? null : photoFront,
       photoBack: clearBack ? null : photoBack,
       notes: notes,
@@ -147,6 +161,7 @@ class Certification extends Equatable {
   List<Object?> get props => [
     id,
     diverId,
+    buddyId,
     name,
     agency,
     level,
@@ -155,6 +170,7 @@ class Certification extends Equatable {
     expiryDate,
     instructorName,
     instructorNumber,
+    instructorId,
     photoFront,
     photoBack,
     notes,

@@ -1,0 +1,156 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart'
+    show DiveListTile;
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// Renders a single dive in a list according to the active [ListViewMode] and
+/// card configuration, so every dive list honours the same display settings.
+///
+/// This is the single source of truth for "how a dive row looks" — the Dives
+/// tab and the home screen's Recent dives both use it, which is what keeps the
+/// home list in sync with the list settings (issue #506).
+class DiveListItem extends ConsumerWidget {
+  /// Summary used for slot/field extraction (title, date, stats, extra fields).
+  final DiveSummary summary;
+
+  /// Full dive, when available, for fields not on [DiveSummary] (tanks, SAC,
+  /// buddy, weights). Enables the detailed card's configurable extra fields.
+  final Dive? fullDive;
+
+  /// Display number for the leading badge (caller resolves any fallback).
+  final int diveNumber;
+
+  /// Value/range for attribute-based card coloring.
+  final double? colorValue;
+  final double? minValueInList;
+  final double? maxValueInList;
+  final Color? gradientStartColor;
+  final Color? gradientEndColor;
+
+  /// Card margin override (detailed tile only).
+  final EdgeInsetsGeometry? margin;
+
+  final VoidCallback? onTap;
+
+  /// Selection / highlight state (defaults suit read-only lists like Recent).
+  ///
+  /// [isChecked] and [isHighlighted] are independent channels and may both be
+  /// true at once: a dive can be in the bulk selection while also being the
+  /// one open in the detail pane. Checked renders as a fill tint plus the
+  /// leading checkbox; highlighted renders as a leading edge stripe.
+  final bool isSelectionMode;
+  final bool isChecked;
+  final bool isHighlighted;
+
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Required rather than optional: every list that renders dives must build
+  /// one via [watchDiveTypeLabelResolver], once above its item builder. Making
+  /// it optional would let a new list silently fall back to English dive-type
+  /// names, which is the bug #643 fixed.
+  final DiveTypeLabelResolver diveTypeLabelResolver;
+
+  const DiveListItem({
+    super.key,
+    required this.summary,
+    required this.diveNumber,
+    required this.diveTypeLabelResolver,
+    this.fullDive,
+    this.colorValue,
+    this.minValueInList,
+    this.maxValueInList,
+    this.gradientStartColor,
+    this.gradientEndColor,
+    this.margin,
+    this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.isHighlighted = false,
+  });
+
+  static DiveField _slotField(
+    List<CardSlotConfig> slots,
+    String slotId,
+    DiveField defaultField,
+  ) {
+    for (final slot in slots) {
+      if (slot.slotId == slotId) return slot.field;
+    }
+    return defaultField;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewMode = ref.watch(diveListViewModeProvider);
+
+    final duration = summary.runtime ?? summary.bottomTime;
+
+    switch (viewMode) {
+      case ListViewMode.compact:
+        final slots = ref.watch(compactCardConfigProvider).slots;
+        return CompactDiveListTile(
+          diveId: summary.id,
+          diveNumber: diveNumber,
+          dateTime: summary.dateTime,
+          siteName: summary.siteName,
+          maxDepth: summary.maxDepth,
+          duration: duration,
+          isSelectionMode: isSelectionMode,
+          isChecked: isChecked,
+          isHighlighted: isHighlighted,
+          colorValue: colorValue,
+          minValueInList: minValueInList,
+          maxValueInList: maxValueInList,
+          gradientStartColor: gradientStartColor,
+          gradientEndColor: gradientEndColor,
+          summary: summary,
+          titleField: _slotField(slots, 'title', DiveField.siteName),
+          dateField: _slotField(slots, 'date', DiveField.dateTime),
+          stat1Field: _slotField(slots, 'stat1', DiveField.maxDepth),
+          stat2Field: _slotField(slots, 'stat2', DiveField.bottomTime),
+          diveTypeLabelResolver: diveTypeLabelResolver,
+          onTap: onTap,
+        );
+      case ListViewMode.detailed:
+      case ListViewMode.dense:
+      case ListViewMode.table:
+        return DiveListTile(
+          diveId: summary.id,
+          diveNumber: diveNumber,
+          dateTime: summary.dateTime,
+          siteName: summary.siteName,
+          siteLocation: summary.siteLocation,
+          maxDepth: summary.maxDepth,
+          duration: duration,
+          waterTemp: summary.waterTemp,
+          rating: summary.rating,
+          isFavorite: summary.isFavorite,
+          tags: summary.tags,
+          isSelectionMode: isSelectionMode,
+          isChecked: isChecked,
+          isHighlighted: isHighlighted,
+          colorValue: colorValue,
+          minValueInList: minValueInList,
+          maxValueInList: maxValueInList,
+          gradientStartColor: gradientStartColor,
+          gradientEndColor: gradientEndColor,
+          siteLatitude: summary.siteLatitude,
+          siteLongitude: summary.siteLongitude,
+          margin: margin,
+          onTap: onTap,
+          summary: summary,
+          fullDive: fullDive,
+          diveTypeLabelResolver: diveTypeLabelResolver,
+        );
+    }
+  }
+}

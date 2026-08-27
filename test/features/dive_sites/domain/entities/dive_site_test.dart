@@ -157,13 +157,9 @@ void main() {
       expect(copy.region, equals('Cozumel'));
     });
 
-    test('replaces photoIds and conditions', () {
-      final copy = base.copyWith(
-        photoIds: ['p1', 'p2'],
-        conditions: const SiteConditions(waterType: 'salt'),
-      );
+    test('replaces photoIds', () {
+      final copy = base.copyWith(photoIds: ['p1', 'p2']);
       expect(copy.photoIds, equals(['p1', 'p2']));
-      expect(copy.conditions?.waterType, equals('salt'));
     });
   });
 
@@ -180,33 +176,97 @@ void main() {
     });
   });
 
-  group('SiteConditions', () {
-    test('equality by all fields', () {
-      const a = SiteConditions(
-        waterType: 'salt',
-        typicalVisibility: '20m',
-        typicalCurrent: 'mild',
-        bestSeason: 'summer',
-        minTemp: 22.0,
-        maxTemp: 28.0,
-        entryType: 'shore',
+  group('DiveSite location fields', () {
+    test('copyWith updates city, island, and bodyOfWater', () {
+      const site = DiveSite(id: 's1', name: 'Site');
+      final updated = site.copyWith(
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
       );
-      const b = SiteConditions(
-        waterType: 'salt',
-        typicalVisibility: '20m',
-        typicalCurrent: 'mild',
-        bestSeason: 'summer',
-        minTemp: 22.0,
-        maxTemp: 28.0,
-        entryType: 'shore',
+      expect(updated.city, 'Cebu City');
+      expect(updated.island, 'Malapascua');
+      expect(updated.bodyOfWater, 'Visayan Sea');
+      // Equatable: the new values change identity.
+      expect(updated, isNot(equals(site)));
+    });
+  });
+
+  group('locationString with locality', () {
+    test('city is preferred and prepended to region, country', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        city: 'Cebu City',
+        island: 'Mactan',
       );
-      expect(a, equals(b));
+      expect(site.locationString, 'Cebu City · Cebu, Philippines');
     });
 
-    test('distinguishes objects by field differences', () {
-      const a = SiteConditions(waterType: 'salt');
-      const b = SiteConditions(waterType: 'fresh');
-      expect(a == b, isFalse);
+    test('island is used when city is empty', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        island: 'Malapascua',
+      );
+      expect(site.locationString, 'Malapascua · Cebu, Philippines');
+    });
+
+    test('locality only, no region or country', () {
+      const site = DiveSite(id: 's', name: 'S', island: 'Malapascua');
+      expect(site.locationString, 'Malapascua');
+    });
+
+    test('no locality keeps region, country unchanged', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+      );
+      expect(site.locationString, 'Cebu, Philippines');
+    });
+
+    test('empty everything yields empty string', () {
+      const site = DiveSite(id: 's', name: 'S');
+      expect(site.locationString, '');
+    });
+
+    test('whitespace-only locality is ignored, not rendered', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        city: '   ',
+      );
+      // Whitespace-only city must not produce "   · Cebu, Philippines".
+      expect(site.locationString, 'Cebu, Philippines');
+    });
+
+    test('whitespace-only city falls back to island', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        city: '  ',
+        island: 'Malapascua',
+      );
+      expect(site.locationString, 'Malapascua');
+    });
+
+    test('surrounding whitespace is trimmed in rendered output', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: ' Philippines ',
+        region: ' Cebu ',
+        city: ' Cebu City ',
+      );
+      expect(site.locationString, 'Cebu City · Cebu, Philippines');
     });
   });
 }

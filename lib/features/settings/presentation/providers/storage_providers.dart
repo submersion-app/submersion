@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -16,17 +17,29 @@ class StoragePlatformCapabilities {
   /// Whether iCloud sync is supported (iOS/macOS only)
   final bool supportsICloud;
 
-  /// Whether Google Drive sync is supported (all platforms)
+  /// Whether Google Drive sync is supported: everywhere except a
+  /// Windows/Linux build with no Desktop-app OAuth client compiled in
   final bool supportsGoogleDrive;
 
   /// Whether this is a desktop platform
   final bool isDesktop;
+
+  /// Whether "custom folder" can only mean an app-specific device volume
+  /// (internal storage or SD card) rather than any folder the user names.
+  ///
+  /// True on Android: a live SQLite file needs a real lockable path for its
+  /// `-wal`/`-shm` byte-range locks, which a Storage Access Framework stream
+  /// cannot provide, so the picker offers app-specific external volumes
+  /// instead of an arbitrary folder. The UI must not promise cloud-synced
+  /// folders there (#311).
+  final bool customFolderIsDeviceVolumeOnly;
 
   const StoragePlatformCapabilities({
     required this.supportsCustomFolder,
     required this.supportsICloud,
     required this.supportsGoogleDrive,
     required this.isDesktop,
+    required this.customFolderIsDeviceVolumeOnly,
   });
 }
 
@@ -38,11 +51,17 @@ final storagePlatformCapabilitiesProvider =
         // - macOS: Uses security-scoped bookmarks for persistent access
         // - iOS: Uses security-scoped bookmarks for iCloud Drive folders
         // - Windows/Linux: Standard file system access
-        // - Android: Uses Storage Access Framework (SAF)
+        // - Android: app-specific external volumes only (internal/SD card);
+        //   scoped storage rules out an arbitrary folder for the live DB
         supportsCustomFolder: true,
         supportsICloud: Platform.isIOS || Platform.isMacOS,
-        supportsGoogleDrive: true, // All platforms
+        // Single source of truth shared with
+        // GoogleDriveStorageProvider.isAvailable(), so the two cannot
+        // diverge: compile-time OAuth config on mobile/macOS, and on
+        // Windows/Linux the Desktop-app client being compiled in.
+        supportsGoogleDrive: GoogleDriveClientConfig.isSupportedOnThisPlatform,
         isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
+        customFolderIsDeviceVolumeOnly: Platform.isAndroid,
       );
     });
 
@@ -139,8 +158,17 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
   ///
   /// Returns a [FolderPickResultWithBookmark] containing the path and optional
   /// bookmark data (for iOS), or null if cancelled.
-  Future<FolderPickResultWithBookmark?> pickCustomFolder() async {
-    return _locationService.pickCustomFolder();
+  Future<FolderPickResultWithBookmark?> pickCustomFolder({
+    Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
+  }) async {
+    _locationService.externalVolumeChooser = chooser;
+    try {
+      return await _locationService.pickCustomFolder();
+    } finally {
+      // Don't let the service retain a UI closure (which captures the page)
+      // beyond this call.
+      _locationService.externalVolumeChooser = null;
+    }
   }
 
   /// Check for existing database at a folder

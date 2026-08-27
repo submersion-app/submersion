@@ -1,15 +1,24 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+
+/// Provider for the local asset resolution cache (singleton).
+final localAssetCacheRepositoryProvider = Provider<LocalAssetCacheRepository>(
+  (ref) => LocalAssetCacheRepository(),
+);
 
 /// Provider for the asset resolution service (singleton).
 final assetResolutionServiceProvider = Provider<AssetResolutionService>((ref) {
   return AssetResolutionService(
-    cacheRepository: LocalAssetCacheRepository(),
+    cacheRepository: ref.watch(localAssetCacheRepositoryProvider),
     photoPickerService: ref.watch(photoPickerServiceProvider),
   );
 });
@@ -31,8 +40,15 @@ class ResolvedAssetResult {
 /// Resolves the media item's asset ID on the current device via
 /// AssetResolutionService, then loads the thumbnail.
 /// Use this instead of assetThumbnailProvider for display contexts.
+// no-tick: the only repository call is clearEntry, a cache EVICTION performed
+// when resolution fails. There is no read whose result could go stale, and a
+// tick would re-run resolution every time the eviction itself wrote a row.
 final resolvedThumbnailProvider =
     FutureProvider.family<ResolvedAssetResult, MediaItem>((ref, item) async {
+      // Auto-disposing with a window rather than caching forever: this family
+      // holds decoded thumbnail bytes per item, and before #1175 every item
+      // ever displayed kept its buffer for the process lifetime.
+      retainFor(ref, thumbnailRetention);
       final service = ref.watch(assetResolutionServiceProvider);
       final resolution = await service.resolveAssetId(item);
 
@@ -46,8 +62,7 @@ final resolvedThumbnailProvider =
 
       // If cached ID no longer loads, the photo was deleted — clear cache
       if (bytes == null) {
-        final cache = LocalAssetCacheRepository();
-        await cache.clearEntry(item.id);
+        await ref.read(localAssetCacheRepositoryProvider).clearEntry(item.id);
         return const ResolvedAssetResult(status: ResolutionStatus.unavailable);
       }
 
@@ -55,13 +70,18 @@ final resolvedThumbnailProvider =
         bytes: bytes,
         status: ResolutionStatus.resolved,
       );
-    });
+    }, isAutoDispose: true);
 
 /// Resolved full-resolution provider for photo viewer.
 ///
 /// Same pattern as resolvedThumbnailProvider but loads full-res bytes.
+// no-tick: as resolvedThumbnailProvider -- the only repository call is a
+// clearEntry cache eviction, not a read.
 final resolvedFullResolutionProvider =
     FutureProvider.family<ResolvedAssetResult, MediaItem>((ref, item) async {
+      // A FULL-RESOLUTION buffer per item, which is megabytes each. Kept only
+      // long enough to serve a swipe back to the photo just left (#1175).
+      retainFor(ref, fullResolutionRetention);
       final service = ref.watch(assetResolutionServiceProvider);
       final resolution = await service.resolveAssetId(item);
 
@@ -74,8 +94,7 @@ final resolvedFullResolutionProvider =
       final bytes = await pickerService.getFileBytes(resolution.localAssetId!);
 
       if (bytes == null) {
-        final cache = LocalAssetCacheRepository();
-        await cache.clearEntry(item.id);
+        await ref.read(localAssetCacheRepositoryProvider).clearEntry(item.id);
         return const ResolvedAssetResult(status: ResolutionStatus.unavailable);
       }
 
@@ -83,21 +102,40 @@ final resolvedFullResolutionProvider =
         bytes: bytes,
         status: ResolutionStatus.resolved,
       );
-    });
+    }, isAutoDispose: true);
 
 /// Resolved file path provider for video playback.
+///
+/// Resolution order: gallery asset (when the item carries an asset id) ->
+/// the item's own localPath when that file exists -> the media store
+/// fallback (downloads the original into the content-addressed cache;
+/// design spec section 10) -> null.
 final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
   ref,
   item,
 ) async {
-  final service = ref.watch(assetResolutionServiceProvider);
-  final resolution = await service.resolveAssetId(item);
-
-  if (resolution.status == ResolutionStatus.unavailable ||
-      resolution.localAssetId == null) {
-    return null;
+  // Gallery fast path.
+  if (item.platformAssetId != null) {
+    final service = ref.watch(assetResolutionServiceProvider);
+    final resolution = await service.resolveAssetId(item);
+    if (resolution.status != ResolutionStatus.unavailable &&
+        resolution.localAssetId != null) {
+      final pickerService = ref.watch(photoPickerServiceProvider);
+      final path = await pickerService.getFilePath(resolution.localAssetId!);
+      if (path != null) return path;
+    }
   }
 
-  final pickerService = ref.watch(photoPickerServiceProvider);
-  return pickerService.getFilePath(resolution.localAssetId!);
+  // Device-local file (localFile source rows).
+  final localPath = item.localPath;
+  if (localPath != null && await File(localPath).exists()) {
+    return localPath;
+  }
+
+  // Media store fallback: play from the cached (or freshly downloaded)
+  // original. The viewer's loading state covers the download.
+  final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+  final data = await runtime?.resolver.tryResolveRemote(item, thumbnail: false);
+  if (data is FileData) return data.file.path;
+  return null;
 });

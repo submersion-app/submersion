@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/wizard_step_indicator.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 void main() {
   const labels = ['Select', 'Review', 'Import', 'Done'];

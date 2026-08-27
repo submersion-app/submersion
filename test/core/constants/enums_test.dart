@@ -42,4 +42,16 @@ void main() {
       expect(WeatherSource.openMeteo.displayName, 'Open-Meteo');
     });
   });
+
+  group('DiveMode.gauge', () {
+    test('gauge has code "gauge" and displayName "Gauge"', () {
+      expect(DiveMode.gauge.code, 'gauge');
+      expect(DiveMode.gauge.displayName, 'Gauge');
+    });
+
+    test('fromCode("gauge") returns gauge; unknown still falls back to oc', () {
+      expect(DiveMode.fromCode('gauge'), DiveMode.gauge);
+      expect(DiveMode.fromCode('nonsense'), DiveMode.oc);
+    });
+  });
 }

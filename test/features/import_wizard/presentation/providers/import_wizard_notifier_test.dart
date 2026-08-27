@@ -39,6 +39,10 @@ class _TestAdapter implements ImportSourceAdapter {
   };
 
   @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError(invocation.memberName.toString());
 }
@@ -152,8 +156,10 @@ void main() {
       List<EntityItem>? diveItems,
       Set<int> diveDuplicateIndices = const {},
       Map<int, DiveMatchResult>? diveMatchResults,
+      Set<int>? diveAutoSkipIndices,
       List<EntityItem>? siteItems,
       Set<int> siteDuplicateIndices = const {},
+      String? currentComputerId,
     }) {
       final groups = <ImportEntityType, EntityGroup>{};
 
@@ -162,6 +168,7 @@ void main() {
           items: diveItems,
           duplicateIndices: diveDuplicateIndices,
           matchResults: diveMatchResults,
+          autoSkipIndices: diveAutoSkipIndices,
         );
       }
 
@@ -173,9 +180,10 @@ void main() {
       }
 
       return ImportBundle(
-        source: const ImportSourceInfo(
+        source: ImportSourceInfo(
           type: ImportSourceType.uddf,
           displayName: 'test.uddf',
+          currentComputerId: currentComputerId,
         ),
         groups: groups,
       );
@@ -183,9 +191,13 @@ void main() {
 
     EntityItem makeItem(String title) => EntityItem(title: title, subtitle: '');
 
-    DiveMatchResult makeMatchResult(double score) => DiveMatchResult(
+    DiveMatchResult makeMatchResult(
+      double score, {
+      String? matchedComputerId,
+    }) => DiveMatchResult(
       diveId: 'existing-dive',
       score: score,
+      matchedComputerId: matchedComputerId,
       timeDifferenceMs: 0,
     );
 
@@ -197,6 +209,12 @@ void main() {
       when(mockAdapter.acquisitionSteps).thenReturn([]);
       when(
         mockAdapter.supportedDuplicateActions,
+      ).thenReturn({DuplicateAction.skip, DuplicateAction.importAsNew});
+      // The notifier gates writes on the per-type set, so the mock has to
+      // answer duplicateActionsFor too -- unstubbed it returns an empty set
+      // and every setDuplicateAction/applyBulkAction call becomes a no-op.
+      when(
+        mockAdapter.duplicateActionsFor(any),
       ).thenReturn({DuplicateAction.skip, DuplicateAction.importAsNew});
       notifier = ImportWizardNotifier(
         mockAdapter,
@@ -319,6 +337,179 @@ void main() {
         expect(notifier.state.pendingFor(ImportEntityType.dives), equals({0}));
       });
 
+      // -----------------------------------------------------------------
+      // Cross-computer auto-consolidate default (Task 8)
+      // -----------------------------------------------------------------
+
+      test('score >= kAutoConsolidateScore with a DIFFERENT matchedComputerId '
+          'is auto-seeded with DuplicateAction.consolidate and drained from '
+          'pending', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: makeMatchResult(0.9, matchedComputerId: 'computer-other'),
+          },
+          currentComputerId: 'computer-current',
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.consolidate,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(notifier.state.selections[ImportEntityType.dives], contains(0));
+      });
+
+      test('score >= kAutoConsolidateScore with the SAME matchedComputerId as '
+          'the current computer seeds nothing -- stays pending', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: makeMatchResult(0.9, matchedComputerId: 'computer-current'),
+          },
+          currentComputerId: 'computer-current',
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives],
+          anyOf(isNull, isEmpty),
+        );
+        expect(notifier.state.pendingFor(ImportEntityType.dives), equals({0}));
+      });
+
+      test('score below kAutoConsolidateScore with a different computer seeds '
+          'nothing -- stays pending per #200', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: makeMatchResult(0.7, matchedComputerId: 'computer-other'),
+          },
+          currentComputerId: 'computer-current',
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives],
+          anyOf(isNull, isEmpty),
+        );
+        expect(notifier.state.pendingFor(ImportEntityType.dives), equals({0}));
+      });
+
+      // -----------------------------------------------------------------
+      // Exact-source-hit re-download must default to skip (Task 8, PR
+      // review finding 1)
+      // -----------------------------------------------------------------
+
+      test('matchedExistingSource=true with score 1.0 and a DIFFERENT '
+          'matchedComputerId is seeded with DuplicateAction.skip -- NOT '
+          'consolidate -- and drained from pending', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: const DiveMatchResult(
+              diveId: 'existing-dive',
+              score: 1.0,
+              timeDifferenceMs: 0,
+              matchedComputerId: 'computer-other',
+              matchedExistingSource: true,
+            ),
+          },
+          currentComputerId: 'computer-current',
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+      });
+
+      // -----------------------------------------------------------------
+      // Tier-1 first-sync cutoff auto-skip (Task 6)
+      // -----------------------------------------------------------------
+
+      test('an index in autoSkipIndices is seeded with DuplicateAction.skip '
+          'and drained from pending', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
+          diveAutoSkipIndices: {0},
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+        // The unaffected index is untouched: selected, no action, not pending.
+        expect(notifier.state.selections[ImportEntityType.dives], contains(1));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[1],
+          isNull,
+        );
+      });
+
+      test('an index that is both matchedExistingSource AND in autoSkipIndices '
+          'ends up skipped once, not double-handled', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {
+            0: const DiveMatchResult(
+              diveId: 'existing-dive',
+              score: 1.0,
+              timeDifferenceMs: 0,
+              matchedExistingSource: true,
+            ),
+          },
+          diveAutoSkipIndices: {0},
+        );
+
+        notifier.setBundle(bundle);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.pendingFor(ImportEntityType.dives),
+          isNot(contains(0)),
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+      });
+
       test('handles bundle with no duplicates — empty duplicateActions', () {
         final bundle = buildBundle(
           diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
@@ -388,6 +579,88 @@ void main() {
 
         expect(notifier.state.selections[ImportEntityType.sites], contains(0));
       });
+
+      // -----------------------------------------------------------------
+      // First-sync cutoff rescue: re-selecting an auto-skipped
+      // NON-duplicate dive must clear the seeded skip action, or
+      // DiveComputerAdapter.performImport silently drops it even though
+      // the review list shows it selected with a green IMPORT badge.
+      // -----------------------------------------------------------------
+
+      test('toggling on an auto-skipped non-duplicate index clears its '
+          'seeded skip action so it is not silently dropped from import', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1'), makeItem('Dive 2')],
+          diveAutoSkipIndices: {0},
+        );
+        notifier.setBundle(bundle);
+        // Sanity: setBundle seeded the first-sync-cutoff auto-skip default.
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.skip,
+        );
+        expect(
+          notifier.state.selections[ImportEntityType.dives],
+          isNot(contains(0)),
+        );
+
+        notifier.toggleSelection(ImportEntityType.dives, 0);
+
+        expect(notifier.state.selections[ImportEntityType.dives], contains(0));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          isNull,
+          reason:
+              'A stale DuplicateAction.skip left in place after '
+              're-selecting would make performImport silently skip this '
+              'dive even though it shows an IMPORT badge.',
+        );
+      });
+
+      test('toggling an auto-skipped index off then back on ends up selected '
+          'with no skip action', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveAutoSkipIndices: {0},
+        );
+        notifier.setBundle(bundle);
+
+        notifier.toggleSelection(ImportEntityType.dives, 0); // rescue
+        notifier.toggleSelection(ImportEntityType.dives, 0); // re-skip
+        notifier.toggleSelection(ImportEntityType.dives, 0); // rescue again
+
+        expect(notifier.state.selections[ImportEntityType.dives], contains(0));
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          isNull,
+        );
+      });
+
+      test('toggling a genuine duplicate index does not touch its recorded '
+          'action', () {
+        final bundle = buildBundle(
+          diveItems: [makeItem('Dive 1')],
+          diveDuplicateIndices: {0},
+          diveMatchResults: {0: makeMatchResult(0.9)},
+        );
+        notifier.setBundle(bundle);
+        notifier.setDuplicateAction(
+          ImportEntityType.dives,
+          0,
+          DuplicateAction.importAsNew,
+        );
+
+        notifier.toggleSelection(ImportEntityType.dives, 0);
+
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+          DuplicateAction.importAsNew,
+          reason:
+              'toggleSelection must never clobber a user-chosen '
+              'duplicate action -- only the seeded auto-skip default on '
+              'NON-duplicate indices is cleared.',
+        );
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -416,6 +689,40 @@ void main() {
         expect(selections, contains(0));
         expect(selections, isNot(contains(1))); // duplicate excluded
         expect(selections, contains(2));
+      });
+
+      test('selectAll clears seeded skip actions for auto-skipped indices', () {
+        final bundle = buildBundle(
+          diveItems: [
+            makeItem('Dive 1'),
+            makeItem('Dive 2'),
+            makeItem('Dive 3'),
+          ],
+          diveDuplicateIndices: {1},
+          diveMatchResults: {1: makeMatchResult(0.9)},
+          diveAutoSkipIndices: {2},
+        );
+        notifier.setBundle(bundle);
+        // Sanity: setBundle seeded the auto-skip default for index 2.
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[2],
+          DuplicateAction.skip,
+        );
+
+        notifier.selectAll(ImportEntityType.dives);
+
+        final selections = notifier.state.selections[ImportEntityType.dives]!;
+        expect(selections, contains(0));
+        expect(selections, isNot(contains(1))); // genuine duplicate
+        expect(selections, contains(2)); // rescued auto-skip row
+        expect(
+          notifier.state.duplicateActions[ImportEntityType.dives]?[2],
+          isNull,
+          reason:
+              'selectAll must clear the seeded skip action for the '
+              'rescued auto-skip row, or performImport would silently '
+              'drop it despite it showing as selected.',
+        );
       });
     });
 
@@ -1411,11 +1718,9 @@ void main() {
         notifier.toggleSelection(ImportEntityType.dives, 0);
 
         final state = container.read(importWizardNotifierProvider);
-        expect(
-          state.pendingFor(ImportEntityType.dives),
-          {1},
-          reason: 'Pending for duplicate should be unchanged',
-        );
+        expect(state.pendingFor(ImportEntityType.dives), {
+          1,
+        }, reason: 'Pending for duplicate should be unchanged');
         expect(state.selections[ImportEntityType.dives], isNot(contains(0)));
       },
     );
@@ -1572,11 +1877,9 @@ void main() {
         );
 
         final state = container.read(importWizardNotifierProvider);
-        expect(
-          state.pendingFor(ImportEntityType.dives),
-          {1},
-          reason: 'Weak match (score 0.55) should remain pending',
-        );
+        expect(state.pendingFor(ImportEntityType.dives), {
+          1,
+        }, reason: 'Weak match (score 0.55) should remain pending');
         expect(
           state.duplicateActions[ImportEntityType.dives]?[0],
           DuplicateAction.consolidate,
@@ -1588,6 +1891,77 @@ void main() {
         );
       },
     );
+
+    test('consolidate gate never touches a matchedExistingSource match: '
+        "setBundle's skip default survives a subsequent bulk consolidate, "
+        'while a qualifying pending match is still consolidated', () async {
+      const bundle = ImportBundle(
+        source: ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'existing-source.uddf',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [
+              EntityItem(title: 'Dive 1', subtitle: ''),
+              EntityItem(title: 'Dive 2', subtitle: ''),
+            ],
+            duplicateIndices: {0, 1},
+            matchResults: {
+              // Exact re-download: auto-seeded to skip by setBundle and
+              // drained from pending, so it can never reach the bulk
+              // consolidate gate through the normal review flow.
+              0: DiveMatchResult(
+                diveId: 'e1',
+                score: 1.0,
+                timeDifferenceMs: 0,
+                matchedExistingSource: true,
+              ),
+              // Ordinary probable match: stays pending, eligible for the
+              // bulk consolidate gate (score >= 0.7).
+              1: DiveMatchResult(diveId: 'e2', score: 0.9, timeDifferenceMs: 0),
+            },
+          ),
+        },
+      );
+      final container = ProviderContainer(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            (ref) => ImportWizardNotifier(_TestAdapter()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(importWizardNotifierProvider.notifier);
+      notifier.setBundle(bundle);
+
+      // Sanity check: index 0 was already resolved to skip by setBundle
+      // and is not part of what the bulk action below can touch.
+      expect(
+        notifier.state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.skip,
+      );
+      expect(notifier.state.pendingFor(ImportEntityType.dives), {1});
+
+      notifier.applyBulkAction(
+        ImportEntityType.dives,
+        DuplicateAction.consolidate,
+      );
+
+      final state = container.read(importWizardNotifierProvider);
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[0],
+        DuplicateAction.skip,
+        reason:
+            'matchedExistingSource match must never become '
+            'consolidate, even via bulk action',
+      );
+      expect(
+        state.duplicateActions[ImportEntityType.dives]?[1],
+        DuplicateAction.consolidate,
+      );
+      expect(state.pendingFor(ImportEntityType.dives), isEmpty);
+    });
 
     test('no-op when pending for type is empty', () async {
       final bundle = bundleWithTwoPendingDives();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
@@ -11,7 +12,7 @@ import '../../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.initial = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -49,6 +50,36 @@ void main() {
       expect(find.textContaining('52'), findsWidgets);
       // Should show abbreviated date (no time)
       expect(find.textContaining('Mar'), findsWidgets);
+    });
+
+    testWidgets('large dive number stays on one line and scales to fit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DenseDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 88888,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            siteName: 'Blue Corner Wall',
+            maxDepth: 28.5,
+            duration: const Duration(minutes: 52),
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final badge = find.text('#88888');
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Text>(badge).maxLines, 1);
+      expect(
+        find.ancestor(of: badge, matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('shows checkbox in selection mode', (tester) async {
@@ -214,30 +245,6 @@ void main() {
 
       expect(find.text('#5'), findsOneWidget);
       expect(find.text('Deep Wall'), findsOneWidget);
-    });
-
-    testWidgets('fires onLongPress callback', (tester) async {
-      bool longPressed = false;
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-          child: DenseDiveListTile(
-            diveId: 'lp-id',
-            diveNumber: 8,
-            dateTime: DateTime(2026, 3, 15),
-            siteName: 'Reef Point',
-            onTap: () {},
-            onLongPress: () => longPressed = true,
-          ),
-        ),
-      );
-
-      await tester.longPress(find.text('Reef Point'));
-      await tester.pumpAndSettle();
-
-      expect(longPressed, isTrue);
     });
 
     testWidgets('renders with configurable slot fields from summary', (
@@ -489,5 +496,41 @@ void main() {
         expect(find.text('#35'), findsOneWidget);
       },
     );
+
+    // The abbreviated slot date used to be a hardcoded month-first pattern,
+    // so it stayed "Mar 15 '24" for a diver on DD/MM/YYYY (#964).
+    for (final (format, expected, rejected) in const [
+      (DateFormatPreference.mmddyyyy, "Mar 15 '24", "15 Mar '24"),
+      (DateFormatPreference.ddmmyyyy, "15 Mar '24", "Mar 15 '24"),
+    ]) {
+      testWidgets('abbreviates the slot date for ${format.name}', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith(
+                (ref) => _TestSettingsNotifier(AppSettings(dateFormat: format)),
+              ),
+            ],
+            child: DenseDiveListTile(
+              diveId: 'slotdate-1',
+              diveNumber: 36,
+              // A past year, so the abbreviated form carries the short year.
+              dateTime: DateTime(2024, 3, 15),
+              siteName: 'Blue Hole',
+              maxDepth: 12.0,
+              duration: const Duration(minutes: 15),
+              slot1Field: DiveField.dateTime,
+              onTap: () {},
+            ),
+          ),
+        );
+
+        // The date shows in both the fixed column and the configurable slot.
+        expect(find.text(expected), findsWidgets);
+        expect(find.text(rejected), findsNothing);
+      });
+    }
   });
 }

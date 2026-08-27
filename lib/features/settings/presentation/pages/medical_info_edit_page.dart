@@ -6,6 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class MedicalInfoEditPage extends ConsumerStatefulWidget {
   const MedicalInfoEditPage({super.key});
@@ -104,7 +106,7 @@ class _MedicalInfoEditPageState extends ConsumerState<MedicalInfoEditPage> {
 
   Future<void> _selectMedicalClearanceExpiry() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate:
           _medicalClearanceExpiry ?? now.add(const Duration(days: 365)),
@@ -194,9 +196,9 @@ class _MedicalInfoEditPageState extends ConsumerState<MedicalInfoEditPage> {
                 ),
               )
             else
-              TextButton(
+              AppBarTextAction(
+                label: context.l10n.divers_edit_saveButton,
                 onPressed: () => _save(diver),
-                child: Text(context.l10n.divers_edit_saveButton),
               ),
           ],
         ),

@@ -18,13 +18,28 @@ final mediaForTripProvider =
         return {};
       }
 
-      // Fetch media for each dive
-      final Map<Dive, List<MediaItem>> result = {};
+      // Fetch each dive's media concurrently, but in bounded chunks: a single
+      // Future.wait over every dive would fire hundreds of DB/IO/platform calls
+      // at once on a large trip (jank/resource pressure), while a sequential
+      // await would make first paint grow linearly with dive count. Chunking
+      // caps in-flight work while still parallelizing within each batch.
+      const chunkSize = 12;
+      final mediaLists = <List<MediaItem>>[];
+      for (var offset = 0; offset < dives.length; offset += chunkSize) {
+        final chunk = dives.skip(offset).take(chunkSize);
+        mediaLists.addAll(
+          await Future.wait(
+            chunk.map(
+              (dive) => ref.watch(mediaForDiveProvider(dive.id).future),
+            ),
+          ),
+        );
+      }
 
-      for (final dive in dives) {
-        final media = await ref.watch(mediaForDiveProvider(dive.id).future);
-        if (media.isNotEmpty) {
-          result[dive] = media;
+      final Map<Dive, List<MediaItem>> result = {};
+      for (var i = 0; i < dives.length; i++) {
+        if (mediaLists[i].isNotEmpty) {
+          result[dives[i]] = mediaLists[i];
         }
       }
 

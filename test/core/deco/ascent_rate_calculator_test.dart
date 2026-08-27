@@ -247,11 +247,47 @@ void main() {
         final violations = calculator.findViolations(rates);
 
         expect(violations.length, equals(1));
-        expect(violations[0].startTimestamp, equals(30));
+        // The rate at t=30 was measured over 0..30, so that is when the diver
+        // was moving too fast -- not from t=30 onwards.
+        expect(violations[0].startTimestamp, equals(0));
         expect(violations[0].endTimestamp, equals(60));
         expect(violations[0].maxRate, equals(10));
         expect(violations[0].isCritical, isFalse);
       });
+
+      test(
+        'should span the interval a single violating rate was measured over',
+        () {
+          // A rate point describes the depth change since the previous sample,
+          // so a violation covering one point still covers one sample interval.
+          // Reporting start == end surfaced in the UI as "for 0s".
+          final rates = [
+            const AscentRatePoint(
+              timestamp: 0,
+              depth: 30,
+              rateMetersPerMin: 0,
+              category: AscentRateCategory.safe,
+            ),
+            const AscentRatePoint(
+              timestamp: 30,
+              depth: 25,
+              rateMetersPerMin: 10,
+              category: AscentRateCategory.warning,
+            ),
+            const AscentRatePoint(
+              timestamp: 60,
+              depth: 24,
+              rateMetersPerMin: 2,
+              category: AscentRateCategory.safe,
+            ),
+          ];
+
+          final violations = calculator.findViolations(rates);
+
+          expect(violations, hasLength(1));
+          expect(violations[0].durationSeconds, equals(30));
+        },
+      );
 
       test('should find multiple violations', () {
         final rates = [
@@ -361,7 +397,7 @@ void main() {
         final violations = calculator.findViolations(rates);
 
         expect(violations.length, equals(1));
-        expect(violations[0].startTimestamp, equals(30));
+        expect(violations[0].startTimestamp, equals(0));
         expect(violations[0].endTimestamp, equals(60));
       });
     });
@@ -650,8 +686,9 @@ void main() {
 
         final stats = calculator.getStats(rates);
 
-        // Violation from t=30 to t=60 = 30 seconds
-        expect(stats.timeInViolation, equals(30));
+        // The rates at t=30 and t=60 were measured over 0..30 and 30..60,
+        // so the diver was above the threshold for 60 seconds.
+        expect(stats.timeInViolation, equals(60));
       });
     });
   });

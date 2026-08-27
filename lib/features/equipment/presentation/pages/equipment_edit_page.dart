@@ -3,10 +3,19 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -34,34 +43,48 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _brandController = TextEditingController();
   final _modelController = TextEditingController();
   final _serialController = TextEditingController();
-  final _sizeController = TextEditingController();
   final _purchasePriceController = TextEditingController();
-  final _purchaseCurrencyController = TextEditingController(text: 'USD');
-  final _serviceIntervalController = TextEditingController();
+  // Filled from the diver's default (new items) or the stored value (existing
+  // items); left blank until then so a stale 'USD' never flashes on load.
+  final _purchaseCurrencyController = TextEditingController();
   final _notesController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
   DateTime? _purchaseDate;
-  DateTime? _lastServiceDate;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
   bool? _customReminderEnabled;
   List<int> _customReminderDays = [7, 14, 30];
 
+  /// The code this form opened with. Currency is free text, so it can be
+  /// outside the presets; keeping it lets the dropdown still offer it.
+  String _initialCurrencyCode = '';
+
   @override
   void initState() {
     super.initState();
+    // New items start in the diver's default currency; existing items get
+    // their stored currency from _loadEquipment.
+    if (widget.equipmentId == null) {
+      _initialCurrencyCode = ref.read(defaultCurrencyProvider);
+      _purchaseCurrencyController.text = _initialCurrencyCode;
+    }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);
     _modelController.addListener(_onFieldChanged);
     _serialController.addListener(_onFieldChanged);
-    _sizeController.addListener(_onFieldChanged);
     _purchasePriceController.addListener(_onFieldChanged);
     _purchaseCurrencyController.addListener(_onFieldChanged);
-    _serviceIntervalController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+  }
+
+  /// The code to store when the currency field is left blank: the diver's
+  /// default, or USD if that is somehow unset (the column is NOT NULL).
+  String _fallbackCurrencyCode() {
+    final code = ref.read(defaultCurrencyProvider).trim().toUpperCase();
+    return code.isEmpty ? 'USD' : code;
   }
 
   void _onFieldChanged() {
@@ -76,32 +99,52 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.dispose();
     _modelController.dispose();
     _serialController.dispose();
-    _sizeController.dispose();
     _purchasePriceController.dispose();
     _purchaseCurrencyController.dispose();
-    _serviceIntervalController.dispose();
     _notesController.dispose();
     super.dispose();
   }
+
+  /// Curated attribute values keyed by attrKey, plus user custom fields.
+  final Map<String, EquipmentAttribute> _attrValues = {};
+  List<EquipmentAttribute> _customFields = [];
 
   void _initializeFromEquipment(EquipmentItem equipment) {
     if (_isInitialized) return;
     _isInitialized = true;
 
+    for (final attr in equipment.attributes) {
+      if (attr.isCustom) {
+        _customFields.add(attr);
+      } else {
+        _attrValues[attr.key] = attr;
+      }
+    }
+    _customFields.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
     _nameController.text = equipment.name;
     _brandController.text = equipment.brand ?? '';
     _modelController.text = equipment.model ?? '';
     _serialController.text = equipment.serialNumber ?? '';
-    _sizeController.text = equipment.size ?? '';
-    _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
-    _purchaseCurrencyController.text = equipment.purchaseCurrency;
-    _serviceIntervalController.text =
-        equipment.serviceIntervalDays?.toString() ?? '';
+    // Seeded in the diver's locale convention, matching how the field is read
+    // back on save. double.toString() would seed "12.5" even where ',' is the
+    // decimal separator and '.' groups thousands, so an untouched re-save
+    // would store 125 (#1091).
+    final price = equipment.purchasePrice;
+    _purchasePriceController.text = price == null
+        ? ''
+        : formatDecimalForInput(price);
+    _initialCurrencyCode = equipment.purchaseCurrency;
+    _purchaseCurrencyController.text = _initialCurrencyCode;
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
-    _selectedStatus = equipment.status;
+    // A legacy row can carry isActive=false with a non-retired status.
+    // Show it as Retired so the form states the item's real condition --
+    // otherwise saving would silently reactivate it (#636).
+    _selectedStatus = !equipment.isActive
+        ? EquipmentStatus.retired
+        : equipment.status;
     _purchaseDate = equipment.purchaseDate;
-    _lastServiceDate = equipment.lastServiceDate;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
   }
@@ -271,40 +314,32 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // Serial Number & Size
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _serialController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.equipment_edit_serialNumberLabel,
-                    prefixIcon: const Icon(Icons.numbers),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _sizeController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.equipment_edit_sizeLabel,
-                    prefixIcon: const Icon(Icons.straighten),
-                    hintText: context.l10n.equipment_edit_sizeHint,
-                  ),
-                ),
-              ),
-            ],
+          // Type-specific attributes (catalog-driven; rebuilds on type change)
+          EquipmentAttributeFormSection(
+            key: ValueKey('attrs-${_selectedType.name}'),
+            type: _selectedType,
+            values: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onChanged: (attr) => setState(() {
+              _attrValues[attr.key] = attr;
+              _hasChanges = true;
+            }),
+            onCleared: (key) => setState(() {
+              _attrValues.remove(key);
+              _hasChanges = true;
+            }),
+          ),
+          // Serial #
+          TextFormField(
+            controller: _serialController,
+            decoration: InputDecoration(
+              labelText: context.l10n.equipment_edit_serialNumberLabel,
+              prefixIcon: const Icon(Icons.numbers),
+            ),
           ),
           const SizedBox(height: 24),
-
           // Purchase Date
           _buildDateSection(context),
-          const SizedBox(height: 24),
-
-          // Service Settings
-          _buildServiceSection(context),
           const SizedBox(height: 24),
 
           // Notes
@@ -317,6 +352,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ),
             maxLines: 3,
           ),
+          const SizedBox(height: 24),
+
+          // Advanced (buoyancy metadata for weight prediction)
+          _buildAdvancedSection(context),
           const SizedBox(height: 24),
 
           // Notification Overrides
@@ -553,27 +592,70 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 2,
-                  child: TextFormField(
-                    controller: _purchasePriceController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.equipment_edit_purchasePriceLabel,
-                      prefixIcon: const Icon(Icons.attach_money),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                  // Rebuild the price field when the currency changes so its
+                  // prefix shows the right symbol (€, $, £ ...).
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _purchaseCurrencyController,
+                    builder: (context, value, _) {
+                      final symbol = currencySymbol(value.text);
+                      return TextFormField(
+                        key: const ValueKey('equipment-purchase-price'),
+                        controller: _purchasePriceController,
+                        decoration: InputDecoration(
+                          labelText:
+                              context.l10n.equipment_edit_purchasePriceLabel,
+                          prefixText: symbol.isEmpty ? null : '$symbol ',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        // A price that cannot be read has to be reported. The
+                        // repository writes Value(null) rather than
+                        // Value.absent(), so accepting the save would erase
+                        // the stored price instead of leaving it alone.
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          return parseUserDecimal(text) == null
+                              ? context
+                                    .l10n
+                                    .equipment_edit_purchasePriceValidation
+                              : null;
+                        },
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: TextFormField(
+                  // Editable dropdown: common currencies as presets, but any
+                  // ISO code can still be typed.
+                  child: DropdownMenu<String>(
                     controller: _purchaseCurrencyController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.equipment_edit_currencyLabel,
-                    ),
+                    expandedInsets: EdgeInsets.zero,
+                    requestFocusOnTap: true,
+                    enableFilter: true,
+                    label: Text(context.l10n.equipment_edit_currencyLabel),
+                    dropdownMenuEntries: [
+                      // The stored code leads the list when it is outside the
+                      // presets, so an item priced in, say, ISK stays visible
+                      // and re-selectable.
+                      for (final code in currencyCodesWith(
+                        _initialCurrencyCode,
+                      ))
+                        DropdownMenuEntry(
+                          value: code,
+                          label: code,
+                          leadingIcon: SizedBox(
+                            width: 28,
+                            child: Center(child: Text(currencySymbol(code))),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -584,7 +666,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     );
   }
 
-  Widget _buildServiceSection(BuildContext context) {
+  Widget _buildAdvancedSection(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -593,52 +675,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.tune, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  context.l10n.equipment_edit_serviceSettingsTitle,
+                  context.l10n.equipment_edit_advanced_title,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _serviceIntervalController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_edit_serviceIntervalLabel,
-                prefixIcon: const Icon(Icons.schedule),
-                hintText: context.l10n.equipment_edit_serviceIntervalHint,
-              ),
-              keyboardType: TextInputType.number,
+            EquipmentCustomFieldsSection(
+              fields: _customFields,
+              onChanged: (fields) => setState(() {
+                _customFields = fields;
+                _hasChanges = true;
+              }),
             ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.equipment_edit_lastServiceDateLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _selectLastServiceDate,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(
-                _lastServiceDate != null
-                    ? '${_lastServiceDate!.month}/${_lastServiceDate!.day}/${_lastServiceDate!.year}'
-                    : context.l10n.equipment_edit_selectDate,
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ),
-            if (_lastServiceDate != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _lastServiceDate = null;
-                  _hasChanges = true;
-                }),
-                child: Text(context.l10n.equipment_edit_clearDate),
-              ),
           ],
         ),
       ),
@@ -740,7 +792,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   }
 
   Future<void> _selectPurchaseDate() async {
-    final date = await showDatePicker(
+    final date = await showAppDatePicker(
       context: context,
       initialDate: _purchaseDate ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -749,21 +801,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     if (date != null) {
       setState(() {
         _purchaseDate = date;
-        _hasChanges = true;
-      });
-    }
-  }
-
-  Future<void> _selectLastServiceDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _lastServiceDate ?? DateTime.now(),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-    );
-    if (date != null) {
-      setState(() {
-        _lastServiceDate = date;
         _hasChanges = true;
       });
     }
@@ -780,6 +817,21 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           existingEquipment?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
+      // De-dupe custom fields by trimmed key before building the attribute
+      // list. The schema enforces UNIQUE(equipment_id, attr_key, is_custom),
+      // so two custom fields sharing a label would fail the insert. First
+      // occurrence wins; sort order is re-packed to the surviving order.
+      final customAttributes = <EquipmentAttribute>[];
+      final seenCustomKeys = <String>{};
+      for (final field in _customFields) {
+        final key = field.key.trim();
+        if (key.isEmpty || !field.hasValue) continue;
+        if (!seenCustomKeys.add(key)) continue;
+        customAttributes.add(
+          field.copyWith(key: key, sortOrder: customAttributes.length),
+        );
+      }
+
       final equipment = EquipmentItem(
         id: widget.equipmentId ?? '',
         diverId: diverId,
@@ -795,22 +847,31 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         serialNumber: _serialController.text.trim().isEmpty
             ? null
             : _serialController.text.trim(),
-        size: _sizeController.text.trim().isEmpty
-            ? null
-            : _sizeController.text.trim(),
         purchaseDate: _purchaseDate,
-        purchasePrice: _purchasePriceController.text.isNotEmpty
-            ? double.tryParse(_purchasePriceController.text)
-            : null,
+        // Blank means "no price"; anything unreadable was already stopped by
+        // the field validator, so null here can only mean blank.
+        purchasePrice: parseUserDecimal(_purchasePriceController.text),
         purchaseCurrency: _purchaseCurrencyController.text.trim().isEmpty
-            ? 'USD'
+            ? _fallbackCurrencyCode()
             : _purchaseCurrencyController.text.trim(),
-        lastServiceDate: _lastServiceDate,
-        serviceIntervalDays: _serviceIntervalController.text.isNotEmpty
-            ? int.tryParse(_serviceIntervalController.text)
-            : null,
+        // Legacy service fields are frozen: service is managed via clocks on
+        // the detail page. Preserve any existing values for export/import.
+        lastServiceDate: existingEquipment?.lastServiceDate,
+        serviceIntervalDays: existingEquipment?.serviceIntervalDays,
         notes: _notesController.text.trim(),
-        isActive: existingEquipment?.isActive ?? true,
+        // Retiring via the status dropdown must deactivate the item, or it
+        // keeps appearing in active-gear pickers (#636).
+        isActive: _selectedStatus != EquipmentStatus.retired,
+        // Only attributes in the SELECTED type's catalog are kept: switching
+        // type drops out-of-catalog values at save time (form = source of
+        // truth), plus non-empty custom fields with re-packed sort order.
+        attributes: [
+          for (final def in EquipmentAttributeCatalog.attributesFor(
+            _selectedType,
+          ))
+            if (_attrValues[def.key] case final attr? when attr.hasValue) attr,
+          ...customAttributes,
+        ],
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true
             ? _customReminderDays

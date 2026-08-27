@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:submersion/core/services/secure_storage/fallback_secure_storage.dart';
 
 /// Persists iOS / macOS security-scoped bookmark blobs in the platform
 /// keychain via flutter_secure_storage.
@@ -20,10 +21,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// use the current bookmark-bytes resolution flow rather than the older
 /// `resolveBookmark()` session-based API.
 class LocalBookmarkStorage {
-  final FlutterSecureStorage _storage;
+  final FallbackSecureStorage _storage;
 
   LocalBookmarkStorage({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
 
   static String _key(String bookmarkRef) => 'bookmark:$bookmarkRef';
 

@@ -20,6 +20,11 @@ class TankPresetRepository {
   // CRUD Operations
   // ============================================================================
 
+  /// Emits whenever the `tank_presets` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchTankPresetsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.tankPresets));
+
   /// Get all tank presets (custom + built-in), with custom presets first
   /// If no diverId is provided, returns only built-in presets
   Future<List<TankPresetEntity>> getAllPresets({String? diverId}) async {

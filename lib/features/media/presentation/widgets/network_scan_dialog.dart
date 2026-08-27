@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/domain/value_objects/network_scan_progress.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The "Scan all network media" progress dialog.
 ///
@@ -75,8 +76,7 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
     final p = _progress;
     final finished = p?.phase == NetworkScanPhase.finished;
     return AlertDialog(
-      // TODO(media): l10n
-      title: const Text('Scan all network media'),
+      title: Text(context.l10n.media_scan_title),
       content: SizedBox(
         width: 400,
         child: Column(
@@ -85,8 +85,7 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
           children: [
             if (_error != null)
               Text(
-                // TODO(media): l10n
-                'Scan failed: $_error',
+                context.l10n.media_scan_failed('$_error'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               )
             else if (finished)
@@ -98,13 +97,18 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
               // arrives so `pumpAndSettle` can still drain the frame queue.
               LinearProgressIndicator(value: p?.fractionDone ?? 0.0),
               const SizedBox(height: 8),
-              // TODO(media): l10n
-              Text('${p?.done ?? 0} / ${p?.total ?? 0} items'),
+              Text(
+                context.l10n.media_scan_progressItems(
+                  p?.done ?? 0,
+                  p?.total ?? 0,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
-                // TODO(media): l10n
-                '${p?.available ?? 0} reachable  ·  '
-                '${p?.unreachable ?? 0} unreachable',
+                context.l10n.media_scan_progressReachability(
+                  p?.available ?? 0,
+                  p?.unreachable ?? 0,
+                ),
               ),
             ],
           ],
@@ -114,14 +118,12 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
         if (!finished)
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           )
         else
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            // TODO(media): l10n
-            child: const Text('Done'),
+            child: Text(context.l10n.common_action_done),
           ),
       ],
     );
@@ -130,14 +132,15 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
   String _summary(WidgetRef ref) {
     final report = ref.read(networkScanServiceProvider).lastReport;
     if (report == null) return '';
+    final l10n = context.l10n;
     final seconds = (report.durationMs / 1000).toStringAsFixed(1);
-    // TODO(media): l10n
-    final base =
-        'Scanned ${report.total} items in ${seconds}s: '
-        '${report.available} reachable, '
-        '${report.unreachable} unreachable';
+    final base = l10n.media_scan_summary(
+      report.total,
+      seconds,
+      report.available,
+      report.unreachable,
+    );
     if (report.skippedNoUrl == 0) return base;
-    // TODO(media): l10n
-    return '$base, ${report.skippedNoUrl} skipped (no URL)';
+    return l10n.media_scan_summarySkipped(base, report.skippedNoUrl);
   }
 }

@@ -63,7 +63,7 @@ class ImportProgressStep extends ConsumerWidget {
             if (total > 0) ...[
               const SizedBox(height: 8),
               Text(
-                '$current of $total',
+                l10n.universalImport_label_xOfY(current, total),
                 key: const Key('import_progress_count_text'),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -97,8 +97,8 @@ class ImportProgressStep extends ConsumerWidget {
   }
 
   String _resolvePhaseText(BuildContext context, ImportPhase? phase) {
-    if (phase == null) return 'Importing...';
     final l10n = context.l10n;
+    if (phase == null) return l10n.universalImport_label_importingEllipsis;
     return switch (phase) {
       ImportPhase.dives => l10n.settings_import_phase_dives,
       ImportPhase.sites => l10n.settings_import_phase_sites,

@@ -1,0 +1,479 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
+
+import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
+
+/// Row type alias so callers do not depend on the Drift-generated name.
+typedef MediaTransferQueueEntry = MediaTransferQueueData;
+
+/// Backoff schedule in minutes, indexed by (attempts - 1) and clamped.
+const List<int> _backoffMinutes = [1, 5, 30, 60];
+
+/// Attempts after which an entry becomes terminally 'failed'.
+const int _maxAttempts = 5;
+
+/// Per-device upload/download queue over the local cache database.
+/// States: 'pending' | 'transferring' | 'done' | 'failed'.
+class MediaTransferQueueRepository {
+  MediaTransferQueueRepository({LocalCacheDatabase? database})
+    : _database = database;
+
+  final LocalCacheDatabase? _database;
+
+  LocalCacheDatabase get _db =>
+      _database ?? LocalCacheDatabaseService.instance.database;
+
+  /// Idempotent per mediaId for every live state: pending/transferring
+  /// rows are reused, and a terminally 'failed' row is returned as-is so
+  /// backfill or re-import cannot resurrect it with a fresh attempt
+  /// budget (explicit retry() is the way back in). Only 'done' rows allow
+  /// a new enqueue. Transactional so concurrent enqueues cannot both miss
+  /// the select and insert duplicates.
+  Future<int> enqueueUpload({required String mediaId}) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)..where(
+                (t) =>
+                    t.mediaId.equals(mediaId) &
+                    t.direction.equals('upload') &
+                    t.state.isIn(['pending', 'transferring', 'failed']),
+              ))
+              .getSingleOrNull();
+      if (existing != null) return existing.id;
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
+  /// Forces a fresh upload of [mediaId] at [overrideLevel], replacing any
+  /// existing upload row (any state). Used by the per-item re-upload
+  /// override; unlike enqueueUpload it bypasses the terminal-state guard.
+  Future<int> enqueueReupload({
+    required String mediaId,
+    required String overrideLevel,
+  }) {
+    return _db.transaction(() async {
+      await (_db.delete(_db.mediaTransferQueue)..where(
+            (t) => t.mediaId.equals(mediaId) & t.direction.equals('upload'),
+          ))
+          .go();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              overrideLevel: Value(overrideLevel),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
+  /// Enqueue for reverse repair (verify sweep, orphan-prevention spec
+  /// 6.2): like [enqueueUpload], but a terminally failed row is re-armed
+  /// with a fresh attempt budget via [retry]. The sweep just observed the
+  /// remote object is missing - new evidence that a fresh attempt is
+  /// warranted, exactly the judgment an explicit user retry expresses.
+  /// Without this, a failed row would swallow the repair: nextPending
+  /// never selects 'failed', yet the intent would count as queued.
+  Future<int> enqueueRepairUpload({required String mediaId}) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)..where(
+                (t) =>
+                    t.mediaId.equals(mediaId) &
+                    t.direction.equals('upload') &
+                    t.state.isIn(['pending', 'transferring', 'failed']),
+              ))
+              .getSingleOrNull();
+      if (existing != null) {
+        if (existing.state == 'failed') await retry(existing.id);
+        return existing.id;
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
+  /// Enqueues a remote-blob delete intent (orphan-prevention spec 5.1).
+  /// One entry covers all tiers (original + thumb + rendition) of one
+  /// content hash. Idempotent per hash for every live state, mirroring
+  /// enqueueUpload's semantics: pending/transferring/failed delete rows
+  /// are reused (the sweep is the backstop for terminal failures); only
+  /// 'done' allows a fresh insert. [originalExt] and [renditionExt] are
+  /// captured here because the media row is gone by drain time.
+  Future<int> enqueueDelete({
+    required String mediaId,
+    required String contentHash,
+    required String originalExt,
+    required String renditionExt,
+  }) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)
+                ..where(
+                  (t) =>
+                      t.direction.equals('delete') &
+                      t.contentHash.equals(contentHash) &
+                      t.state.isIn(['pending', 'transferring', 'failed']),
+                )
+                ..limit(1))
+              .getSingleOrNull();
+      if (existing != null) return existing.id;
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              direction: const Value('delete'),
+              contentHash: Value(contentHash),
+              payloadJson: Value(
+                jsonEncode({
+                  'originalExt': originalExt,
+                  'renditionExt': renditionExt,
+                }),
+              ),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
+  Future<MediaTransferQueueEntry?> nextPending(DateTime now) {
+    final nowMs = now.millisecondsSinceEpoch;
+    return (_db.select(_db.mediaTransferQueue)
+          ..where(
+            (t) =>
+                t.state.equals('pending') &
+                (t.nextAttemptAt.isNull() |
+                    t.nextAttemptAt.isSmallerOrEqualValue(nowMs)),
+          )
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.priority),
+            (t) => OrderingTerm.asc(t.id),
+          ])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<void> markTransferring(int id) => _setState(id, 'transferring');
+
+  /// Completion also clears resume/progress state and any error message
+  /// from earlier attempts: a finished transfer must not leak a stale
+  /// resume point into a future re-enqueue of the same media, and a done
+  /// row must not display a failure it recovered from.
+  Future<void> markDone(int id) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('done'),
+        resumeStateJson: const Value(null),
+        progressBytes: const Value(null),
+        totalBytes: const Value(null),
+        errorMessage: const Value(null),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  /// Persists (or clears, with null) the adapter's opaque resume point.
+  /// markFailed, retry, and defer all PRESERVE it - resuming after a
+  /// failure is the entire point.
+  Future<void> updateResumeState(int id, String? resumeStateJson) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        resumeStateJson: Value(resumeStateJson),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<void> updateProgress(
+    int id, {
+    required int transferredBytes,
+    int? totalBytes,
+  }) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        progressBytes: Value(transferredBytes),
+        totalBytes: Value(totalBytes),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  /// [retryAfter] overrides the default minute-scale backoff for failures
+  /// whose underlying cause is itself rate-limited on a much longer clock.
+  /// Asset resolution is the motivating case: once it records a media item as
+  /// unresolved it refuses to re-scan the gallery for 24h/3d/7d, so a retry on
+  /// the default 1/5/30/60-minute ladder cannot reach the gallery at all - it
+  /// short-circuits to the same failure and silently burns one of the five
+  /// attempts. Passing a [retryAfter] longer than that lockout keeps the
+  /// attempt cap meaningful by ensuring every attempt is a real one.
+  /// Returns true when this failure was the terminal one (attempt budget
+  /// exhausted, state now 'failed') so callers can run terminal-only
+  /// cleanup such as abandoning a resumable upload session.
+  Future<bool> markFailed(int id, String error, {Duration? retryAfter}) async {
+    final row = await (_db.select(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).getSingle();
+    final attempts = row.attempts + 1;
+    final terminal = attempts >= _maxAttempts;
+    final backoff =
+        retryAfter ??
+        Duration(
+          minutes:
+              _backoffMinutes[(attempts - 1).clamp(
+                0,
+                _backoffMinutes.length - 1,
+              )],
+        );
+    final now = DateTime.now();
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        state: Value(terminal ? 'failed' : 'pending'),
+        attempts: Value(attempts),
+        nextAttemptAt: Value(
+          terminal ? null : now.add(backoff).millisecondsSinceEpoch,
+        ),
+        errorMessage: Value(error),
+        updatedAt: Value(now.millisecondsSinceEpoch),
+      ),
+    );
+    return terminal;
+  }
+
+  /// Transfers view feed: active work first, history last.
+  Stream<List<MediaTransferQueueEntry>> watchEntries() {
+    const rank = {'transferring': 0, 'pending': 1, 'failed': 2, 'done': 3};
+    return _db.select(_db.mediaTransferQueue).watch().map((rows) {
+      final sorted = [...rows]
+        ..sort((a, b) {
+          final byState = (rank[a.state] ?? 3).compareTo(rank[b.state] ?? 3);
+          if (byState != 0) return byState;
+          return b.updatedAt.compareTo(a.updatedAt);
+        });
+      return sorted;
+    });
+  }
+
+  /// Newest upload row for [mediaId] in any state, or null when none.
+  /// Delete rows are excluded: they describe a dead row's blob, not this
+  /// item's transfer status.
+  Stream<MediaTransferQueueEntry?> watchLatestForMedia(String mediaId) {
+    return (_db.select(_db.mediaTransferQueue)
+          ..where(
+            (t) => t.mediaId.equals(mediaId) & t.direction.equals('upload'),
+          )
+          ..orderBy([(t) => OrderingTerm.desc(t.id)])
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  /// Puts a terminally failed entry back in play with a clean slate.
+  Future<void> retry(int id) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('pending'),
+        attempts: const Value(0),
+        nextAttemptAt: const Value(null),
+        errorMessage: const Value(null),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  /// Crash recovery: returns rows stranded in 'transferring' back to
+  /// 'pending'. A drain can be interrupted (app killed or backgrounded
+  /// mid-upload) after markTransferring but before markDone/markFailed, and
+  /// nextPending only selects 'pending', so such a row is invisible to the
+  /// drainer forever and can be neither retried (failed-only) nor cleared
+  /// (done-only) from the Transfers UI.
+  ///
+  /// Callers MUST invoke this only when no transfer is actively running:
+  /// it is driven once per process by mediaTransferQueueReclaimProvider,
+  /// before any worker drains, where every 'transferring' row is provably
+  /// orphaned by a dead prior process. Running it while a worker is live
+  /// could flip that worker's in-flight row and cause double processing.
+  ///
+  /// A reclaimed row is made immediately due with its stale progress
+  /// cleared, but keeps its resume point so a resumable adapter can pick up
+  /// where it left off. Any leftover error message is cleared too: a row can
+  /// reach 'transferring' still carrying an earlier attempt's error (markFailed
+  /// sets it, markTransferring does not clear it), and the Transfers UI shows
+  /// errorMessage whenever it is non-null - a row reclaimed after an
+  /// interruption must not display a failure it recovered from. Attempts are
+  /// untouched: an interruption is not a failed attempt (contrast markFailed),
+  /// yet a genuinely broken item must still count toward its cap (contrast
+  /// retry). Returns the number of rows reclaimed.
+  Future<int> requeueStale() {
+    return (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.state.equals('transferring'))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('pending'),
+        progressBytes: const Value(null),
+        totalBytes: const Value(null),
+        nextAttemptAt: const Value(null),
+        errorMessage: const Value(null),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  /// Connectivity/policy postponement: unlike markFailed, no attempt is
+  /// consumed - the entry is simply not due until [until].
+  Future<void> defer(int id, DateTime until) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        nextAttemptAt: Value(until.millisecondsSinceEpoch),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<int> deleteDone() => (_db.delete(
+    _db.mediaTransferQueue,
+  )..where((t) => t.state.equals('done'))).go();
+
+  /// Removes a single queue entry.
+  ///
+  /// The queue is local bookkeeping, not synced data, so a plain delete is
+  /// enough -- no tombstone. Callers must not delete a row that is currently
+  /// `transferring`; see the guard in the transfers page.
+  Future<int> delete(int id) =>
+      (_db.delete(_db.mediaTransferQueue)..where((t) => t.id.equals(id))).go();
+
+  /// Live split of the outstanding queue for the settings page.
+  ///
+  /// Replaces a plain pending+transferring count, which reported a row
+  /// parked in a multi-hour retry backoff as work in progress. Due-ness is
+  /// evaluated per emission against [now]; a row that becomes due purely by
+  /// the passage of time does not re-emit on its own, which is why the
+  /// worker arms a timer at [earliestPendingWakeup] - that drain writes,
+  /// and the write is what refreshes this stream.
+  Stream<MediaTransferSummary> watchSummary({DateTime Function()? now}) {
+    final clock = now ?? DateTime.now;
+    final query = _db.select(_db.mediaTransferQueue)
+      ..where((t) => t.state.isIn(['pending', 'transferring']));
+    return query.watch().map((rows) => _summarize(rows, clock()));
+  }
+
+  static MediaTransferSummary _summarize(
+    List<MediaTransferQueueEntry> rows,
+    DateTime now,
+  ) {
+    final nowMs = now.millisecondsSinceEpoch;
+    var transferring = 0;
+    var queued = 0;
+    var waiting = 0;
+    String? reason;
+    int? reasonAt;
+    // Single pass, no intermediate list: this re-runs on every queue write,
+    // and a backfill writes once per row transition over the whole library.
+    for (final row in rows) {
+      final until = row.nextAttemptAt;
+      if (row.state == 'transferring') {
+        transferring++;
+      } else if (until != null && until > nowMs) {
+        waiting++;
+        // Newest wins: of several parked rows, the freshest failure is the
+        // one someone opening this page is looking for.
+        final error = row.errorMessage;
+        if (error != null && (reasonAt == null || row.updatedAt > reasonAt)) {
+          reason = error;
+          reasonAt = row.updatedAt;
+        }
+      } else {
+        queued++;
+      }
+    }
+    return MediaTransferSummary(
+      transferring: transferring,
+      queued: queued,
+      waiting: waiting,
+      waitingReason: reason,
+    );
+  }
+
+  /// The soonest future attempt time among pending rows, or null when no
+  /// pending row is waiting on one. Drives the worker's retry wakeup.
+  ///
+  /// Deliberately excludes rows that are already due. Those are the drain's
+  /// own job, and a drain that left one behind did so because it was
+  /// suspended - offline, or a failed preflight - both of which have their
+  /// own triggers. Arming a timer for an already-due row would spin a tight
+  /// loop against a drain that keeps declining to run.
+  ///
+  /// That leaves a row whose backoff expired *during* a drain that ran fine
+  /// answering to neither this query nor the drain's own (#1210). Closing that
+  /// gap is the caller's job rather than this query's, because only the worker
+  /// knows which of the two cases its drain was. See the immediate-wakeup
+  /// branch of `MediaStoreWorker._armWakeup`, in media_store_worker.dart.
+  Future<DateTime?> earliestPendingWakeup(DateTime now) async {
+    final soonest = _db.mediaTransferQueue.nextAttemptAt.min();
+    final query = _db.selectOnly(_db.mediaTransferQueue)
+      ..addColumns([soonest])
+      ..where(
+        _db.mediaTransferQueue.state.equals('pending') &
+            // A null nextAttemptAt fails this comparison in SQL, which is
+            // exactly right: an undeferred row is due, not a wakeup.
+            _db.mediaTransferQueue.nextAttemptAt.isBiggerThanValue(
+              now.millisecondsSinceEpoch,
+            ),
+      );
+    final row = await query.getSingleOrNull();
+    final ms = row?.read(soonest);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<List<MediaTransferQueueEntry>> allForTesting() =>
+      _db.select(_db.mediaTransferQueue).get();
+
+  Future<void> _setState(int id, String state) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        state: Value(state),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+}

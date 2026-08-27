@@ -7,6 +7,8 @@ import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/selection_contract.dart';
+
 // ---------------------------------------------------------------------------
 // Test data
 // ---------------------------------------------------------------------------
@@ -101,6 +103,11 @@ Widget _buildTestWidget({List<TagStatistic> stats = const []}) {
       tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
     ],
     child: const MaterialApp(
+      // flutter_test resolves against the HOST machine's locale list, so an
+      // unpinned MaterialApp renders translated on a non-English machine and
+      // every English literal here -- including the contract's "n selected" --
+      // stops matching.
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: TagManagePage(),
@@ -113,6 +120,28 @@ Widget _buildTestWidget({List<TagStatistic> stats = const []}) {
 // ---------------------------------------------------------------------------
 
 void main() {
+  group('selection contract', () {
+    testWidgets('satisfies the shared selection contract', (tester) async {
+      await verifySelectionContract(
+        tester,
+        build: () => _buildTestWidget(stats: _testStats),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Night Dive'),
+          matching: find.byType(ListTile),
+        ),
+        firstRow: find.text('Night Dive'),
+        applyFilter: (tester) async {
+          // Type into the real search field. Tags previously hid this field
+          // during selection and never pruned, so a hidden tag stayed checked.
+          await tester.enterText(find.byType(TextField).first, 'Night');
+          await tester.pump();
+        },
+        visibleAfterFilter: 1,
+      );
+    });
+  });
+
   group('TagManagePage', () {
     testWidgets('renders tag list with names and usage counts', (tester) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
@@ -177,12 +206,13 @@ void main() {
       expect(find.text('Color'), findsOneWidget);
     });
 
-    testWidgets('long-press enters selection mode', (tester) async {
+    testWidgets('Select button enters selection mode', (tester) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
       await tester.pumpAndSettle();
 
-      // Long press the first tag to enter selection mode
-      await tester.longPress(find.text('Night Dive'));
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
       // Selection mode indicators: close button, "1 selected" text, checkboxes
@@ -194,18 +224,36 @@ void main() {
       expect(find.byType(FloatingActionButton), findsNothing);
     });
 
+    testWidgets('long-press on a tag does not enter selection mode', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Night Dive'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 selected'), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
+      expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    });
+
     testWidgets('delete button shows confirmation with dive count', (
       tester,
     ) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
       await tester.pumpAndSettle();
 
-      // Enter selection mode by long-pressing "Night Dive" (12 dives)
-      await tester.longPress(find.text('Night Dive'));
+      // Enter selection mode and check "Night Dive" (12 dives)
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
-      // Tap the delete icon in the app bar
-      await tester.tap(find.byIcon(Icons.delete));
+      // Delete lives behind the selection bar's overflow menu.
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
       await tester.pumpAndSettle();
 
       // Confirmation dialog should show the tag name and dive count
@@ -221,20 +269,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Enter selection mode with one tag
-      await tester.longPress(find.text('Night Dive'));
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
-      // Find the merge IconButton and verify it is disabled
-      final mergeButton = find.byIcon(Icons.merge);
+      // Keyed by SelectionAppBar, so this no longer depends on which glyph
+      // merge happens to use.
+      final mergeButton = find.byKey(const ValueKey('selection_action_merge'));
       expect(mergeButton, findsOneWidget);
-
-      final iconButtonWidget = tester.widget<IconButton>(
-        find.ancestor(
-          of: find.byIcon(Icons.merge),
-          matching: find.byType(IconButton),
-        ),
-      );
-      expect(iconButtonWidget.onPressed, isNull);
+      expect(tester.widget<IconButton>(mergeButton).onPressed, isNull);
     });
 
     testWidgets('merge button enabled when 2 tags selected', (tester) async {
@@ -242,7 +286,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Enter selection mode with first tag
-      await tester.longPress(find.text('Night Dive'));
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night Dive'));
       await tester.pumpAndSettle();
 
       // Select second tag by tapping
@@ -252,13 +298,14 @@ void main() {
       expect(find.text('2 selected'), findsOneWidget);
 
       // Now merge button should be enabled
-      final iconButtonWidget = tester.widget<IconButton>(
-        find.ancestor(
-          of: find.byIcon(Icons.merge),
-          matching: find.byType(IconButton),
-        ),
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_merge')),
+            )
+            .onPressed,
+        isNotNull,
       );
-      expect(iconButtonWidget.onPressed, isNotNull);
     });
   });
 }

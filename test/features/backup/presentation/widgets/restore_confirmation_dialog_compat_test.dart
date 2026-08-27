@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -106,13 +107,13 @@ void main() {
   });
 
   group('show() static + button dismissal', () {
-    Future<bool?> openAndTap(
+    Future<RestoreMode?> openAndTap(
       WidgetTester tester,
       BackupRecord record,
       int currentSchemaVersion,
       String buttonText,
     ) async {
-      bool? result;
+      RestoreMode? result;
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -140,57 +141,59 @@ void main() {
       return result;
     }
 
-    testWidgets('green path Restore returns true', (tester) async {
+    testWidgets('green path Restore returns merge mode', (tester) async {
       final result = await openAndTap(
         tester,
         _preMigration(fromVersion: 63, toVersion: 64),
         63,
         'Restore',
       );
-      expect(result, isTrue);
+      expect(result, RestoreMode.merge);
     });
 
-    testWidgets('green path Cancel returns false', (tester) async {
+    testWidgets('green path Cancel returns null', (tester) async {
       final result = await openAndTap(
         tester,
         _preMigration(fromVersion: 63, toVersion: 64),
         63,
         'Cancel',
       );
-      expect(result, isFalse);
+      expect(result, isNull);
     });
 
-    testWidgets('warning path Restore anyway returns true', (tester) async {
+    testWidgets('warning path Restore anyway returns merge mode', (
+      tester,
+    ) async {
       final result = await openAndTap(
         tester,
         _preMigration(fromVersion: 63, toVersion: 64),
         64,
         'Restore anyway',
       );
-      expect(result, isTrue);
+      expect(result, RestoreMode.merge);
     });
 
-    testWidgets('warning path Cancel returns false', (tester) async {
+    testWidgets('warning path Cancel returns null', (tester) async {
       final result = await openAndTap(
         tester,
         _preMigration(fromVersion: 63, toVersion: 64),
         64,
         'Cancel',
       );
-      expect(result, isFalse);
+      expect(result, isNull);
     });
 
-    testWidgets('hard-block path Cancel returns false', (tester) async {
+    testWidgets('hard-block path Cancel returns null', (tester) async {
       final result = await openAndTap(
         tester,
         _preMigration(fromVersion: 65, toVersion: 66),
         64,
         'Cancel',
       );
-      expect(result, isFalse);
+      expect(result, isNull);
     });
 
-    testWidgets('metadata-incomplete Cancel returns false', (tester) async {
+    testWidgets('metadata-incomplete Cancel returns null', (tester) async {
       final incomplete = BackupRecord(
         id: 'inc',
         filename: 'pre.db',
@@ -202,7 +205,7 @@ void main() {
         appVersion: '1.0.0.0',
       );
       final result = await openAndTap(tester, incomplete, 64, 'Cancel');
-      expect(result, isFalse);
+      expect(result, isNull);
     });
   });
 

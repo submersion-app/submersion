@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 /// Site difficulty levels
 enum SiteDifficulty {
   beginner,
@@ -39,8 +41,12 @@ class DiveSite extends Equatable {
   final double? minDepth; // meters - shallowest point of the site
   final double? maxDepth; // meters - deepest point of the site
   final SiteDifficulty? difficulty; // Site difficulty level
+  final WaterType? waterType; // Salt / fresh / brackish
   final String? country;
   final String? region;
+  final String? city;
+  final String? island;
+  final String? bodyOfWater;
   final List<String> photoIds;
   final double? rating; // 1-5 stars
   final String notes;
@@ -50,7 +56,12 @@ class DiveSite extends Equatable {
   final String? parkingInfo; // Parking availability and tips
   final double?
   altitude; // Altitude above sea level in meters (for altitude diving)
-  final SiteConditions? conditions;
+  /// Typical way into the water at this site (issue #1104). Snapped onto a
+  /// dive when the site is assigned; the diver can always override it.
+  final EntryMethod? entryMethod;
+
+  /// Typical way out of the water at this site. Null means "same as entry".
+  final EntryMethod? exitMethod;
   final bool isShared;
 
   const DiveSite({
@@ -62,8 +73,12 @@ class DiveSite extends Equatable {
     this.minDepth,
     this.maxDepth,
     this.difficulty,
+    this.waterType,
     this.country,
     this.region,
+    this.city,
+    this.island,
+    this.bodyOfWater,
     this.photoIds = const [],
     this.rating,
     this.notes = '',
@@ -72,16 +87,34 @@ class DiveSite extends Equatable {
     this.mooringNumber,
     this.parkingInfo,
     this.altitude,
-    this.conditions,
+    this.entryMethod,
+    this.exitMethod,
     this.isShared = false,
   });
 
-  /// Full location string (region, country)
+  /// Compact one-line location formatted as `locality · region, country`.
+  /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
+  /// intentionally excluded to keep list tiles and map popups tight.
   String get locationString {
-    final parts = <String>[];
-    if (region != null && region!.isNotEmpty) parts.add(region!);
-    if (country != null && country!.isNotEmpty) parts.add(country!);
-    return parts.join(', ');
+    // Trim before testing meaningfulness and before rendering so whitespace-
+    // only values (e.g. from imported/synced data) are ignored and the output
+    // is normalized — consistent with the save/merge paths' trim().isNotEmpty.
+    final regionTrimmed = region?.trim() ?? '';
+    final countryTrimmed = country?.trim() ?? '';
+    final base = <String>[];
+    if (regionTrimmed.isNotEmpty) base.add(regionTrimmed);
+    if (countryTrimmed.isNotEmpty) base.add(countryTrimmed);
+    final baseStr = base.join(', ');
+
+    final cityTrimmed = city?.trim() ?? '';
+    final islandTrimmed = island?.trim() ?? '';
+    final locality = cityTrimmed.isNotEmpty ? cityTrimmed : islandTrimmed;
+
+    if (locality.isNotEmpty && baseStr.isNotEmpty) {
+      return '$locality · $baseStr';
+    }
+    if (locality.isNotEmpty) return locality;
+    return baseStr;
   }
 
   bool get hasCoordinates => location != null;
@@ -105,8 +138,12 @@ class DiveSite extends Equatable {
     double? minDepth,
     double? maxDepth,
     SiteDifficulty? difficulty,
+    WaterType? waterType,
     String? country,
     String? region,
+    String? city,
+    String? island,
+    String? bodyOfWater,
     List<String>? photoIds,
     double? rating,
     String? notes,
@@ -115,7 +152,8 @@ class DiveSite extends Equatable {
     String? mooringNumber,
     String? parkingInfo,
     double? altitude,
-    SiteConditions? conditions,
+    EntryMethod? entryMethod,
+    EntryMethod? exitMethod,
     bool? isShared,
   }) {
     return DiveSite(
@@ -127,8 +165,12 @@ class DiveSite extends Equatable {
       minDepth: minDepth ?? this.minDepth,
       maxDepth: maxDepth ?? this.maxDepth,
       difficulty: difficulty ?? this.difficulty,
+      waterType: waterType ?? this.waterType,
       country: country ?? this.country,
       region: region ?? this.region,
+      city: city ?? this.city,
+      island: island ?? this.island,
+      bodyOfWater: bodyOfWater ?? this.bodyOfWater,
       photoIds: photoIds ?? this.photoIds,
       rating: rating ?? this.rating,
       notes: notes ?? this.notes,
@@ -137,7 +179,8 @@ class DiveSite extends Equatable {
       mooringNumber: mooringNumber ?? this.mooringNumber,
       parkingInfo: parkingInfo ?? this.parkingInfo,
       altitude: altitude ?? this.altitude,
-      conditions: conditions ?? this.conditions,
+      entryMethod: entryMethod ?? this.entryMethod,
+      exitMethod: exitMethod ?? this.exitMethod,
       isShared: isShared ?? this.isShared,
     );
   }
@@ -152,8 +195,12 @@ class DiveSite extends Equatable {
     minDepth,
     maxDepth,
     difficulty,
+    waterType,
     country,
     region,
+    city,
+    island,
+    bodyOfWater,
     photoIds,
     rating,
     notes,
@@ -162,7 +209,8 @@ class DiveSite extends Equatable {
     mooringNumber,
     parkingInfo,
     altitude,
-    conditions,
+    entryMethod,
+    exitMethod,
     isShared,
   ];
 }
@@ -180,36 +228,4 @@ class GeoPoint extends Equatable {
   @override
   String toString() =>
       '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
-}
-
-/// Typical conditions at a dive site
-class SiteConditions extends Equatable {
-  final String? waterType; // salt, fresh, brackish
-  final String? typicalVisibility;
-  final String? typicalCurrent;
-  final String? bestSeason;
-  final double? minTemp; // celsius
-  final double? maxTemp; // celsius
-  final String? entryType; // shore, boat
-
-  const SiteConditions({
-    this.waterType,
-    this.typicalVisibility,
-    this.typicalCurrent,
-    this.bestSeason,
-    this.minTemp,
-    this.maxTemp,
-    this.entryType,
-  });
-
-  @override
-  List<Object?> get props => [
-    waterType,
-    typicalVisibility,
-    typicalCurrent,
-    bestSeason,
-    minTemp,
-    maxTemp,
-    entryType,
-  ];
 }

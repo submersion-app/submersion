@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -9,11 +11,14 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -70,12 +75,18 @@ Future<List<Override>> _buildOverrides({
     // The equipment list content watches equipmentByStatusProvider(null) for
     // all equipment when no filter is selected, so we override that.
     equipmentByStatusProvider.overrideWith((ref, status) => equipment),
+    activeEquipmentProvider.overrideWith((ref) async => equipment),
     equipmentListViewModeProvider.overrideWith((ref) => ListViewMode.table),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
     ),
   ];
 }
+
+/// Mutable source for the contract test's filter step.
+final _visibleEquipmentProvider = StateProvider<List<EquipmentItem>>(
+  (ref) => const [],
+);
 
 Future<List<Override>> _buildPhoneOverrides({
   required List<EquipmentItem> items,
@@ -90,6 +101,7 @@ Future<List<Override>> _buildPhoneOverrides({
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => items),
+    activeEquipmentProvider.overrideWith((ref) async => items),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
@@ -101,6 +113,160 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  group('bulk actions', () {
+    late _CapturingEquipmentNotifier notifier;
+
+    Future<Widget> host(List<EquipmentItem> items) async {
+      notifier = _CapturingEquipmentNotifier();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      return testApp(
+        locale: const Locale('en'),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          equipmentListNotifierProvider.overrideWith((ref) => notifier),
+          equipmentByStatusProvider.overrideWith((ref, status) => items),
+          activeEquipmentProvider.overrideWith((ref) async => items),
+          equipmentListViewModeProvider.overrideWith(
+            (ref) => ListViewMode.detailed,
+          ),
+          equipmentTableConfigProvider.overrideWith(
+            (ref) => _TestEquipTableConfigNotifier(_testConfig),
+          ),
+          highlightedEquipmentIdProvider.overrideWith((ref) => null),
+        ],
+        child: const EquipmentListContent(showAppBar: true),
+      );
+    }
+
+    testWidgets('deletes every checked item and reports the count', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+      ]);
+
+      await verifyBulkDelete(
+        tester,
+        build: () => widget,
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        expectedDeletedCount: 2,
+      );
+
+      expect(notifier.deleted, ['e1', 'e2']);
+      expect(find.text('2 deleted'), findsOneWidget);
+    });
+
+    testWidgets('retire acts on a uniformly active selection', (tester) async {
+      final widget = await host([
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      final retire = find.byKey(const ValueKey('selection_action_retire'));
+      expect(tester.widget<IconButton>(retire).onPressed, isNotNull);
+
+      // Reactivate is meaningless on an all-active selection, so the
+      // isEnabled predicate must refuse it.
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_reactivate')),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(retire);
+      await tester.pumpAndSettle();
+
+      expect(notifier.retired, ['e1', 'e2']);
+      expect(notifier.reactivated, isEmpty);
+    });
+
+    testWidgets('cancelling deletes nothing and keeps the selection', (
+      tester,
+    ) async {
+      final widget = await host([_makeEquipment(id: 'e1', name: 'Aaa Reg')]);
+
+      await verifyBulkDeleteCancels(
+        tester,
+        build: () => widget,
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+      );
+
+      expect(notifier.deleted, isEmpty);
+    });
+  });
+
+  group('selection contract', () {
+    testWidgets('satisfies the shared selection contract', (tester) async {
+      final all = <EquipmentItem>[
+        _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+        _makeEquipment(id: 'e2', name: 'Bbb BCD'),
+        _makeEquipment(id: 'e3', name: 'Ccc Fins'),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        _visibleEquipmentProvider.overrideWith((ref) => all),
+        equipmentByStatusProvider.overrideWith((ref, status) => all),
+        activeEquipmentProvider.overrideWith(
+          (ref) async => ref.watch(_visibleEquipmentProvider),
+        ),
+        equipmentListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        equipmentTableConfigProvider.overrideWith(
+          (ref) => _TestEquipTableConfigNotifier(_testConfig),
+        ),
+        highlightedEquipmentIdProvider.overrideWith((ref) => null),
+      ];
+
+      await verifySelectionContract(
+        tester,
+        build: () => testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const EquipmentListContent(showAppBar: true),
+        ),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.ancestor(
+          of: find.text('Aaa Reg'),
+          matching: find.byType(EquipmentListTile),
+        ),
+        firstRow: find.text('Aaa Reg'),
+        applyFilter: (tester) async {
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(EquipmentListContent)),
+          );
+          container.read(_visibleEquipmentProvider.notifier).state = [
+            all.first,
+          ];
+        },
+        visibleAfterFilter: 1,
+      );
+    });
+  });
+
   group('EquipmentListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final equipment = [
@@ -362,6 +528,73 @@ void main() {
     });
   });
 
+  group('EquipmentListTile avatar (clocks only)', () {
+    // Under the unified model the avatar reads overdue only from the ledger.
+    // A legacy item whose only signal is the old single interval has no ledger
+    // clock, so it must render as NOT overdue -- the legacy isServiceDue is
+    // ignored.
+    final legacyDueItem = EquipmentItem(
+      id: 'legacy1',
+      name: 'Old Reg',
+      type: EquipmentType.regulator,
+      lastServiceDate: DateTime(2020, 1, 1),
+      serviceIntervalDays: 365,
+    );
+
+    Widget buildTile(EquipmentItem item, ColorScheme scheme) {
+      return ProviderScope(
+        overrides: [
+          // Ledger map resolved but empty -> worstClock is null for this item.
+          equipmentWorstClockProvider.overrideWith((ref) async => {}),
+          // The tile reads the color-accent toggle, so settings must be
+          // stubbed: the real notifier reaches for SharedPreferences.
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(colorScheme: scheme),
+          home: Scaffold(body: EquipmentListTile(item: item)),
+        ),
+      );
+    }
+
+    testWidgets('legacy overdue item renders non-overdue without a clock', (
+      tester,
+    ) async {
+      expect(legacyDueItem.isServiceDue, isTrue); // legacy getter still true
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+
+      await tester.pumpWidget(buildTile(legacyDueItem, scheme));
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, scheme.tertiaryContainer);
+      expect(avatar.backgroundColor, isNot(scheme.errorContainer));
+      expect(find.text('Service Due'), findsNothing);
+    });
+
+    testWidgets('renders non-overdue avatar when nothing is due', (
+      tester,
+    ) async {
+      final upToDate = EquipmentItem(
+        id: 'ok1',
+        name: 'Fresh Reg',
+        type: EquipmentType.regulator,
+        lastServiceDate: DateTime.now(),
+        serviceIntervalDays: 365,
+      );
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+
+      await tester.pumpWidget(buildTile(upToDate, scheme));
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, scheme.tertiaryContainer);
+    });
+  });
+
   group('phone-mode highlight', () {
     testWidgets(
       'phone detailed view highlights equipment when highlightedEquipmentIdProvider is set',
@@ -430,4 +663,198 @@ void main() {
       },
     );
   });
+
+  group('filter selection and refresh target the right provider (#636)', () {
+    Future<void> pumpPhoneList(
+      WidgetTester tester,
+      List<EquipmentItem> items,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        items: items,
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('selecting a status filter switches to the status provider', (
+      tester,
+    ) async {
+      await pumpPhoneList(tester, [
+        _makeEquipment(id: 'e1', name: 'Alpha Reg'),
+        _makeEquipment(
+          id: 'e2',
+          name: 'Old BCD',
+          status: EquipmentStatus.retired,
+        ),
+      ]);
+
+      await tester.tap(find.byType(DropdownButton<Object?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(EquipmentStatus.retired.displayName).last);
+      await tester.pumpAndSettle();
+
+      // The status branch of build() is now live; both fixtures come back
+      // because the status provider is overridden to return the full list.
+      expect(find.byType(EquipmentListTile), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    /// Drives the RefreshIndicator directly: the list is short, so its
+    /// default physics do not permit the overscroll a drag would need.
+    Future<void> pullToRefresh(WidgetTester tester) async {
+      final state = tester.state<RefreshIndicatorState>(
+        find.byType(RefreshIndicator),
+      );
+      unawaited(state.show());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('refreshing the default view rebuilds the active provider', (
+      tester,
+    ) async {
+      var activeBuilds = 0;
+      var statusBuilds = 0;
+      final items = [_makeEquipment(id: 'e1', name: 'Alpha Reg')];
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            activeEquipmentProvider.overrideWith((ref) async {
+              activeBuilds++;
+              return items;
+            }),
+            equipmentByStatusProvider.overrideWith((ref, status) {
+              statusBuilds++;
+              return items;
+            }),
+            equipmentListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            equipmentTableConfigProvider.overrideWith(
+              (ref) => _TestEquipTableConfigNotifier(_testConfig),
+            ),
+          ],
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final activeBefore = activeBuilds;
+      final statusBefore = statusBuilds;
+
+      await pullToRefresh(tester);
+
+      expect(
+        activeBuilds,
+        greaterThan(activeBefore),
+        reason:
+            'the default view reads activeEquipmentProvider, so refresh must '
+            'invalidate that one or the list stays stale (#636)',
+      );
+      expect(
+        statusBuilds,
+        statusBefore,
+        reason: 'the status family is not what the default view is showing',
+      );
+    });
+
+    testWidgets('refreshing under a status filter rebuilds that status', (
+      tester,
+    ) async {
+      var activeBuilds = 0;
+      var statusBuilds = 0;
+      final items = [
+        _makeEquipment(
+          id: 'e2',
+          name: 'Old BCD',
+          status: EquipmentStatus.retired,
+        ),
+      ];
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            activeEquipmentProvider.overrideWith((ref) async {
+              activeBuilds++;
+              return items;
+            }),
+            equipmentByStatusProvider.overrideWith((ref, status) {
+              statusBuilds++;
+              return items;
+            }),
+            equipmentListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            equipmentTableConfigProvider.overrideWith(
+              (ref) => _TestEquipTableConfigNotifier(_testConfig),
+            ),
+          ],
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButton<Object?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(EquipmentStatus.retired.displayName).last);
+      await tester.pumpAndSettle();
+
+      final activeBefore = activeBuilds;
+      final statusBefore = statusBuilds;
+
+      await pullToRefresh(tester);
+
+      expect(
+        statusBuilds,
+        greaterThan(statusBefore),
+        reason:
+            'the filtered view reads the status family, so refresh must '
+            'invalidate that family',
+      );
+      expect(activeBuilds, activeBefore);
+    });
+  });
+}
+
+/// Records which ids each bulk action reached the notifier with.
+class _CapturingEquipmentNotifier
+    extends StateNotifier<AsyncValue<List<EquipmentItem>>>
+    implements EquipmentListNotifier {
+  _CapturingEquipmentNotifier() : super(const AsyncValue.data([]));
+
+  final deleted = <String>[];
+  final retired = <String>[];
+  final reactivated = <String>[];
+
+  @override
+  Future<void> deleteEquipment(String id) async => deleted.add(id);
+
+  @override
+  Future<void> retireEquipment(String id) async => retired.add(id);
+
+  @override
+  Future<void> reactivateEquipment(String id) async => reactivated.add(id);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

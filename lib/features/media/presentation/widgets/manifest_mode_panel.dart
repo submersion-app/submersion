@@ -1,9 +1,7 @@
-// Manifest mode panel inside the URL tab (Phase 3b, Tasks 13-14).
+// Manifest mode panel inside the URL tab.
 //
-// Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
-// Tasks 13 & 14. The panel renders one of four bodies based on the
-// [ManifestTabState] discriminated union:
+// The panel renders one of four bodies based on the [ManifestTabState]
+// discriminated union:
 //
 // - [ManifestTabIdle]            -> hint text "Paste a manifest URL to begin."
 // - [ManifestTabFetching]        -> CircularProgressIndicator
@@ -13,39 +11,26 @@
 //                                   Import button
 // - [ManifestTabCommitting]      -> CircularProgressIndicator
 //
-// Task 14 wires the Import button to a `commit()` flow that:
-//   - If Subscribe is OFF: calls
-//     [NetworkFetchPipeline.ingestManifestEntries] with an ephemeral
-//     subscription row created with `isActive: false`. The schema's
-//     unique partial index `(subscription_id, entry_key)` requires a
-//     non-null subscriptionId, so a sentinel sub row is created per
-//     one-shot import (and torn down on Undo).
-//   - If Subscribe is ON: creates a `MediaSubscription` row via
-//     [ManifestSubscriptionRepository.createSubscription] (active = true),
-//     then ingests the entries with the persisted subscriptionId.
-// Both paths show a snackbar with an Undo action that deletes the
-// inserted [MediaItem] rows AND the subscription created in this commit.
-//
-// Plan deviations:
-//
-// - The plan (lines 3920-3964) routes ingest through
-//   `MediaRepository.createMedia` per entry plus a non-existent
-//   `pipeline.enqueueManifestEntries(items)`. The actual codebase API is
-//   `pipeline.ingestManifestEntries(List<ManifestEntry>, String
-//   subscriptionId)`, which already inserts media rows itself. The plan
-//   code predates Task 10's API choice; we follow the API.
-// - Because the pipeline requires a non-null `subscriptionId`, every
-//   commit creates a `MediaSubscriptions` row (see comment above). For
-//   one-shot imports the row is `isActive: false` and is deleted by
-//   Undo.
+// The Import button resolves the entries, opens the import review so each
+// one gets a dive or a site, then creates a `MediaSubscription` row and
+// inserts the decided entries under it. The schema's unique partial index
+// `(subscription_id, entry_key)` requires a non-null subscriptionId, so
+// with Subscribe OFF a sentinel `isActive: false` row is created per
+// one-shot import (and torn down on Undo); with Subscribe ON the row is
+// active and polled. Both paths show a snackbar with an Undo action that
+// deletes the inserted [MediaItem] rows AND, for one-shot imports, the
+// sentinel subscription.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/domain/entities/import_candidate.dart';
+import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
 
 /// Standard poll-interval choices surfaced in the dropdown. The plan's
@@ -78,16 +63,18 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
     await notifier.fetch(_urlController.text);
   }
 
-  /// Triggered by the Import button on the preview pane. Drives the
-  /// notifier through `ShowingPreview -> Committing -> Idle` while
-  /// (optionally) creating a `MediaSubscription` row and ingesting the
-  /// manifest entries via [NetworkFetchPipeline.ingestManifestEntries].
+  /// Triggered by the Import button on the preview pane. Resolves the
+  /// entries, lets the user give each one a dive or a site in
+  /// [MediaImportReviewPage], and only then creates the subscription row
+  /// and inserts the decided entries. Drives the notifier through
+  /// `ShowingPreview -> Committing -> Idle` around all of that.
   ///
-  /// Captures the [ScaffoldMessenger] before the await so the snackbar
-  /// fires correctly across the async gap, and bails out via
-  /// `context.mounted` if the user navigated away mid-import.
+  /// Captures the [ScaffoldMessenger] and [Navigator] before the await so
+  /// the snackbar and the pushed review fire correctly across the async
+  /// gap, and bails out via `mounted` if the user navigated away.
   Future<void> _commit() async {
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     String? committedSubscriptionId;
     List<String>? committedMediaIds;
     bool subscriptionPersisted = false;
@@ -96,39 +83,57 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
         .read(manifestTabProvider.notifier)
         .commit(
           onCommit: (preview) async {
-            final subRepo = ref.read(manifestSubscriptionRepositoryProvider);
             final pipeline = ref.read(networkFetchPipelineProvider);
-            final format = preview.formatOverride ?? preview.result.format;
-            // Every commit creates a subscription row because the pipeline
-            // requires a non-null subscriptionId (the partial unique index
-            // on `(subscription_id, entry_key)` is keyed off it). When the
-            // user did NOT subscribe, the row is created `isActive: false`
-            // so no future poll cycle will pick it up, and Undo deletes
-            // the row entirely.
-            final created = await subRepo.createSubscription(
-              manifestUrl: preview.url,
-              format: format,
-              pollIntervalSeconds: preview.pollIntervalSeconds,
-              isActive: preview.subscribe,
-            );
-            subscriptionPersisted = preview.subscribe;
-            committedSubscriptionId = created.id;
-            final ids = await pipeline.ingestManifestEntries(
+            final resolved = await pipeline.resolveManifestEntries(
               preview.result.entries,
-              created.id,
             );
-            committedMediaIds = ids;
+            if (!mounted) return;
+            await navigator.push(
+              MaterialPageRoute<void>(
+                builder: (_) => MediaImportReviewPage(
+                  candidates: candidatesFor(resolved),
+                  onConfirm: (targets) async {
+                    final subRepo = ref.read(
+                      manifestSubscriptionRepositoryProvider,
+                    );
+                    final format =
+                        preview.formatOverride ?? preview.result.format;
+                    // Every commit creates a subscription row because the
+                    // pipeline keys manifest rows on it (the partial unique
+                    // index on `(subscription_id, entry_key)`). Subscribe off
+                    // means an inert `isActive: false` row that Undo removes.
+                    final created = await subRepo.createSubscription(
+                      manifestUrl: preview.url,
+                      format: format,
+                      pollIntervalSeconds: preview.pollIntervalSeconds,
+                      isActive: preview.subscribe,
+                    );
+                    subscriptionPersisted = preview.subscribe;
+                    committedSubscriptionId = created.id;
+                    final requests = requestsFromReview(resolved, targets);
+                    final ids = await pipeline.insertResolved(
+                      requests,
+                      subscriptionId: created.id,
+                    );
+                    committedMediaIds = ids;
+                    return ImportReviewResult(
+                      linked: ids.length,
+                      skipped: resolved.length - requests.length,
+                    );
+                  },
+                ),
+              ),
+            );
           },
         );
 
     if (!mounted) return;
-    if (!context.mounted) return;
     final ids = committedMediaIds;
     final subId = committedSubscriptionId;
     if (ids == null || subId == null) {
-      // Commit failed — the notifier state machine has already moved to
-      // [ManifestTabError]; the panel body renders the message. Nothing
-      // else to do.
+      // Cancelled in the review, or the fetch failed (the notifier state
+      // machine has already moved to [ManifestTabError] and the panel body
+      // renders the message): nothing was created.
       return;
     }
     messenger.showSnackBar(
@@ -162,10 +167,9 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
     required String subscriptionId,
     required bool deleteSubscription,
   }) async {
-    final mediaRepo = ref.read(mediaRepositoryProvider);
-    for (final id in mediaIds) {
-      await mediaRepo.deleteMedia(id);
-    }
+    await ref
+        .read(mediaDeletionCoordinatorProvider)
+        .deleteMultipleMedia(mediaIds);
     if (deleteSubscription) {
       await ref
           .read(manifestSubscriptionRepositoryProvider)

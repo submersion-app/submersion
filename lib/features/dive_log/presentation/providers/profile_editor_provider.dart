@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 
 /// Editor modes for the profile editor.
-enum EditorMode { select, smooth, outlier, draw }
+enum EditorMode { select, smooth, outlier, draw, trim }
 
 /// State for the profile editor session.
 class ProfileEditorState extends Equatable {
@@ -271,5 +271,17 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       intervalSeconds: intervalSeconds,
     );
     state = state.copyWith(editedProfile: generated, hasChanges: true);
+  }
+
+  /// Trim trailing zero-depth points from the profile, keeping the last one.
+  void trimEndZeros() {
+    final profile = state.editedProfile;
+    if (profile.length < 2) return;
+
+    final trimmed = _service.trimEndZeros(profile);
+    if (trimmed.length == profile.length) return;
+
+    _pushUndo();
+    state = state.copyWith(editedProfile: trimmed, hasChanges: true);
   }
 }

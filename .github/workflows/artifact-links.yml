@@ -1,0 +1,184 @@
+name: PR artifact links
+
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  artifact-links:
+    name: Post artifact links to PR
+    runs-on: ubuntu-latest
+    # PR runs only; a run cancelled by cancel-in-progress leaves the last-good
+    # comment untouched (the newer run will update it).
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    permissions:
+      contents: read
+      pull-requests: write
+      # issues: write — PR conversation comments go through the issues-comment
+      # API; pull-requests: write covers PR targets, but issues: write guarantees
+      # no 403 on this post-merge-only path.
+      issues: write
+      actions: read
+    steps:
+      # First-party download of the pr-number artifact from the CI run onto disk.
+      # github-script has no bundled unzip, so we do not decode the artifact zip
+      # inline. continue-on-error so a CI run that died before emitting pr-number
+      # does not fail this workflow.
+      - name: Download pr-number artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-number
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: ./pr-meta
+
+      - name: Upsert artifact-links comment
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+
+            // 1. Resolve the PR number from the downloaded artifact.
+            const prPath = './pr-meta/pr-number.txt';
+            if (!fs.existsSync(prPath)) {
+              core.info('No pr-number artifact; nothing to comment on.');
+              return;
+            }
+            const prNumber = parseInt(fs.readFileSync(prPath, 'utf8').trim(), 10);
+            if (!Number.isInteger(prNumber)) {
+              core.info('pr-number artifact did not contain a valid integer.');
+              return;
+            }
+
+            // 1b. Verify the PR corresponds to this run. The pr-number artifact
+            // is produced by the untrusted PR run, so a malicious PR could forge
+            // a different number to make this trusted job comment on an unrelated
+            // PR. Confirm the PR's head SHA matches the run's before trusting it.
+            let pr;
+            try {
+              pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            } catch (e) {
+              core.info(`Could not fetch PR #${prNumber}: ${e.message}`);
+              return;
+            }
+            // run.head_sha is the PR branch head for pull_request runs, but may
+            // be the test-merge commit in some environments — accept either so a
+            // legitimate run is never refused, while a forged pr-number pointing
+            // at an unrelated PR (whose head/merge SHAs the attacker cannot
+            // control) still fails.
+            const runSha = run.head_sha;
+            if (runSha !== pr.data.head.sha && runSha !== pr.data.merge_commit_sha) {
+              core.info(
+                `PR #${prNumber} (head ${pr.data.head.sha}, merge ` +
+                `${pr.data.merge_commit_sha}) does not match run head ${runSha}; ` +
+                `refusing to comment (forged pr-number or superseded run).`,
+              );
+              return;
+            }
+
+            // 2. Platform -> job name + artifact name + display label.
+            const PLATFORMS = [
+              { label: 'Android (APK)', job: 'Build Android', artifact: 'android-apk' },
+              { label: 'macOS',         job: 'Build macOS',   artifact: 'macos-build' },
+              { label: 'Windows',       job: 'Build Windows', artifact: 'windows-build' },
+              { label: 'Linux',         job: 'Build Linux',   artifact: 'linux-build' },
+            ];
+
+            // 3. List this run's artifacts and jobs. Both Actions endpoints
+            // return { total_count, artifacts|jobs: [...] }; read the namespaced
+            // array off .data directly (unambiguous, unlike paginate's response
+            // normalization). per_page: 100 covers this run's counts — a CI run
+            // has well under 100 artifacts/jobs — so no pagination is needed.
+            const artifactsResp = await github.rest.actions.listWorkflowRunArtifacts({
+              owner, repo, run_id: run.id, per_page: 100,
+            });
+            const artifactByName = new Map(
+              artifactsResp.data.artifacts.map(a => [a.name, a]),
+            );
+
+            const jobsResp = await github.rest.actions.listJobsForWorkflowRun({
+              owner, repo, run_id: run.id, per_page: 100,
+            });
+            const jobByName = new Map(jobsResp.data.jobs.map(j => [j.name, j]));
+
+            // 4. Render one row per platform.
+            const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+            const runUrl = `${serverUrl}/${owner}/${repo}/actions/runs/${run.id}`;
+            const rows = PLATFORMS.map(p => {
+              const artifact = artifactByName.get(p.artifact);
+              const job = jobByName.get(p.job);
+              let cell;
+              if (artifact) {
+                cell = `[${p.artifact}](${runUrl}/artifacts/${artifact.id})`;
+              } else if (job && job.conclusion === 'failure') {
+                cell = `❌ [build failed](${job.html_url})`;
+              } else if (job && (job.conclusion === 'cancelled' || job.conclusion === 'skipped')) {
+                cell = '⚠️ skipped';
+              } else if (job && job.conclusion === 'success') {
+                // Job passed but its upload step produced no artifact (e.g. the
+                // if-guard skipped the upload). Distinct from a missing job.
+                cell = '⚠️ artifact missing';
+              } else {
+                cell = '⚠️ unavailable';
+              }
+              return `| ${p.label} | ${cell} |`;
+            }).join('\n');
+
+            // Skip entirely if there is nothing useful to report.
+            const anyArtifact = PLATFORMS.some(p => artifactByName.has(p.artifact));
+            const anyFailure = PLATFORMS.some(p => {
+              const j = jobByName.get(p.job);
+              return j && j.conclusion === 'failure';
+            });
+            if (!anyArtifact && !anyFailure) {
+              core.info('No build artifacts and no build failures; skipping comment.');
+              return;
+            }
+
+            // 5. Build the comment body with the hidden sticky marker.
+            const MARKER = '<!-- submersion-artifact-links -->';
+            const shortSha = run.head_sha.substring(0, 7);
+            const body = [
+              `**📦 Build artifacts for this PR** · commit \`${shortSha}\``,
+              '',
+              '| Platform | Download |',
+              '| --- | --- |',
+              rows,
+              '',
+              'Artifacts expire in 7 days. Downloading requires being signed in to GitHub. ' +
+              'macOS needs two extractions: unzip the downloaded artifact, then unzip the ' +
+              '`submersion-macos.zip` inside it to get a runnable `submersion.app`. ' +
+              'The build is ad-hoc signed — right-click → Open on first launch.',
+              '',
+              '<sub>Updated automatically on each push.</sub>',
+              '',
+              MARKER,
+            ].join('\n');
+
+            // 6. Upsert: update the existing marked comment, else create one.
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: prNumber, per_page: 100 },
+            );
+            // Match only our own bot's marked comment so a human quoting the
+            // marker can never be overwritten.
+            const existing = comments.find(c =>
+              c.user && c.user.login === 'github-actions[bot]' &&
+              c.body && c.body.includes(MARKER),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              core.info(`Updated comment ${existing.id} on PR #${prNumber}.`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+              core.info(`Created comment on PR #${prNumber}.`);
+            }

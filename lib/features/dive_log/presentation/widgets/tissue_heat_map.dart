@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A Subsurface-style tissue loading heat map that visualizes all 16
 /// Bühlmann compartment loadings over the full dive duration.
@@ -49,7 +50,10 @@ class TissueHeatMap extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Tissue Loading', style: textTheme.titleSmall),
+                Text(
+                  context.l10n.diveLog_tissue_title,
+                  style: textTheme.titleSmall,
+                ),
                 const Spacer(),
                 TissueHeatMapLegend(
                   colorScheme: colorScheme,
@@ -70,14 +74,14 @@ class TissueHeatMap extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Fast',
+                  context.l10n.diveLog_deco_tissueFast,
                   style: textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontSize: 9,
                   ),
                 ),
                 Text(
-                  'Slow',
+                  context.l10n.diveLog_deco_tissueSlow,
                   style: textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontSize: 9,

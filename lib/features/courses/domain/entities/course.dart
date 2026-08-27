@@ -45,10 +45,21 @@ class Course extends Equatable {
   /// Display name for the instructor
   String get instructorDisplay => instructorName ?? 'Unknown Instructor';
 
-  /// Duration of the course in days (null if in progress)
+  /// Duration of the course in days (null if in progress).
+  ///
+  /// Counted inclusively over calendar days: a course running May 27 → 29 is
+  /// 3 training days (27, 28, 29), not 2. Both dates are floored to midnight
+  /// before subtraction so a [startDate] that carries an hh:mm from
+  /// `DateTime.now()` does not knock the count down by one.
   int? get durationDays {
     if (completionDate == null) return null;
-    return completionDate!.difference(startDate).inDays;
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(
+      completionDate!.year,
+      completionDate!.month,
+      completionDate!.day,
+    );
+    return end.difference(start).inDays + 1;
   }
 
   /// Days since course started

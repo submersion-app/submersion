@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -44,9 +47,22 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // The repository search only matches the English columns the database
+    // stores, so keep the full catalog in hand and fold in the rows whose
+    // localized name matches what the diver typed.
+    final catalog = ref.watch(allSpeciesProvider);
     final speciesAsync = _debouncedQuery.isEmpty
-        ? ref.watch(allSpeciesProvider)
-        : ref.watch(speciesSearchProvider(_debouncedQuery));
+        ? catalog
+        : ref
+              .watch(speciesSearchProvider(_debouncedQuery))
+              .whenData(
+                (results) => withLocalizedSpeciesMatches(
+                  results: results,
+                  catalog: catalog.value ?? const [],
+                  query: _debouncedQuery,
+                  l10n: context.l10n,
+                ),
+              );
 
     return Dialog(
       child: ConstrainedBox(
@@ -68,7 +84,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.pets, color: colorScheme.primary),
+                      Icon(MdiIcons.fish, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         context.l10n.marineLife_speciesPicker_title,
@@ -160,7 +176,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
                           return Padding(
                             padding: const EdgeInsetsDirectional.only(end: 8),
                             child: FilterChip(
-                              label: Text(category.displayName),
+                              label: Text(category.localizedName(context.l10n)),
                               selected: _selectedCategory == category,
                               onSelected: (selected) {
                                 setState(() {
@@ -315,7 +331,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Text(
-            category.displayName,
+            category.localizedName(context.l10n),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -342,7 +358,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
           }
         });
       },
-      title: Text(species.commonName),
+      title: Text(species.localizedCommonName(context.l10n)),
       subtitle: species.scientificName != null
           ? Text(
               species.scientificName!,
@@ -358,7 +374,7 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
           species.category,
         ).withValues(alpha: 0.2),
         child: Icon(
-          _getCategoryIcon(species.category),
+          iconForSpeciesCategory(species.category),
           size: 18,
           color: _getCategoryColor(species.category),
         ),
@@ -367,29 +383,6 @@ class _SpeciesPickerDialogState extends ConsumerState<SpeciesPickerDialog> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       visualDensity: VisualDensity.compact,
     );
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.water;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.water;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.park;
-      case SpeciesCategory.plant:
-        return Icons.grass;
-      case SpeciesCategory.other:
-        return Icons.pets;
-    }
   }
 
   Color _getCategoryColor(SpeciesCategory category) {

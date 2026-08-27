@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -67,9 +68,10 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: const Text('Save as Preset'),
+      title: Text(l10n.universalImport_preset_saveTitle),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -81,22 +83,26 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Preset Name',
-                    hintText: 'e.g., My Dive Log CSV',
+                  decoration: InputDecoration(
+                    labelText: l10n.universalImport_preset_nameLabel,
+                    hintText: l10n.universalImport_preset_nameHint,
                   ),
                   autofocus: true,
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Name is required' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.universalImport_preset_nameRequired
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<SourceApp?>(
                   initialValue: _sourceApp,
-                  decoration: const InputDecoration(
-                    labelText: 'Source Application',
+                  decoration: InputDecoration(
+                    labelText: l10n.universalImport_preset_sourceAppLabel,
                   ),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('None')),
+                    DropdownMenuItem(
+                      value: null,
+                      child: Text(l10n.universalImport_preset_sourceAppNone),
+                    ),
                     for (final app in SourceApp.values)
                       if (app != SourceApp.generic)
                         DropdownMenuItem(
@@ -107,7 +113,10 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
                   onChanged: (v) => setState(() => _sourceApp = v),
                 ),
                 const SizedBox(height: 20),
-                Text('Entity Types', style: theme.textTheme.labelLarge),
+                Text(
+                  l10n.universalImport_preset_entityTypesLabel,
+                  style: theme.textTheme.labelLarge,
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -132,10 +141,13 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text('Match Threshold', style: theme.textTheme.labelLarge),
+                Text(
+                  l10n.universalImport_preset_matchThresholdLabel,
+                  style: theme.textTheme.labelLarge,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'How closely CSV headers must match for auto-detection',
+                  l10n.universalImport_preset_matchThresholdHelp,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -150,8 +162,9 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${widget.csvHeaders.length} signature headers '
-                  'from current file',
+                  l10n.universalImport_preset_signatureHeaders(
+                    widget.csvHeaders.length,
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -164,9 +177,9 @@ class _SavePresetDialogState extends State<SavePresetDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.common_action_cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(onPressed: _save, child: Text(l10n.common_action_save)),
       ],
     );
   }

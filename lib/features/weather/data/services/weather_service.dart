@@ -25,12 +25,15 @@ class WeatherService {
   /// Fetch historical weather for a given location and date.
   ///
   /// [entryTime] is used to select the closest hourly data point.
+  /// [useLocationTimezone] requests timestamps in the coordinate's local
+  /// timezone instead of Open-Meteo's default GMT.
   /// Returns null if the request fails or data is unavailable.
   Future<WeatherData?> fetchWeather({
     required double latitude,
     required double longitude,
     required DateTime date,
     required DateTime entryTime,
+    bool useLocationTimezone = false,
   }) async {
     try {
       final dateStr =
@@ -42,6 +45,10 @@ class WeatherService {
         'start_date': dateStr,
         'end_date': dateStr,
         'hourly': _hourlyParams,
+        // Open-Meteo defaults to GMT. Surface-day summaries opt into the
+        // coordinate's local wall clock so their noon sample is really noon
+        // at the trip location; existing dive callers keep their current URL.
+        if (useLocationTimezone) 'timezone': 'auto',
       });
 
       final response = await _client.get(uri);

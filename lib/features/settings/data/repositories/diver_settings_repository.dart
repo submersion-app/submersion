@@ -1,18 +1,28 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
+import 'package:submersion/core/constants/place_name_language.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -40,6 +50,17 @@ class DiverSettingsRepository {
     }
   }
 
+  /// True when the diver's settings row exists AND has ever stored a
+  /// seascape appearance. Drives the one-time adoption of the legacy
+  /// device-local pref: a null column marks a pre-v151 row (or a diver
+  /// with no row yet), the only cases where the pref may seed the value.
+  Future<bool> hasSeascapeAppearance(String diverId) async {
+    final query = _db.select(_db.diverSettings)
+      ..where((t) => t.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row?.seascapeAppearance != null;
+  }
+
   /// Create default settings for a diver
   Future<AppSettings> createSettingsForDiver(
     String diverId, {
@@ -63,11 +84,23 @@ class DiverSettingsRepository {
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
               sacUnit: Value(s.sacUnit.name),
+              gasModel: Value(s.gasModel.name),
+              defaultCurrency: Value(s.defaultCurrency),
+              visibilityScalePreset: Value(s.visibilityScalePreset.name),
+              visibilityScaleExcellentM: Value(s.visibilityScaleExcellentM),
+              visibilityScaleGoodM: Value(s.visibilityScaleGoodM),
+              visibilityScaleModerateM: Value(s.visibilityScaleModerateM),
+              coordinateFormat: Value(s.coordinateFormat.name),
+              seascapeAppearance: Value(s.seascapeAppearance.encode()),
               timeFormat: Value(s.timeFormat.name),
               dateFormat: Value(s.dateFormat.name),
               themeMode: Value(_themeModeToString(s.themeMode)),
               themePreset: Value(s.themePresetId),
+              accentNavIcons: Value(s.accentNavIcons),
+              accentSectionHeaders: Value(s.accentSectionHeaders),
+              accentListIcons: Value(s.accentListIcons),
               locale: Value(s.locale),
+              placeNameLanguage: Value(s.placeNameLanguage),
               defaultDiveType: Value(s.defaultDiveType),
               defaultTankVolume: Value(s.defaultTankVolume),
               defaultStartPressure: Value(s.defaultStartPressure),
@@ -81,16 +114,27 @@ class DiverSettingsRepository {
               ascentRateWarning: Value(s.ascentRateWarning),
               ascentRateCritical: Value(s.ascentRateCritical),
               showCeilingOnProfile: Value(s.showCeilingOnProfile),
+              showDecoStopsOnProfile: Value(s.showDecoStopsOnProfile),
+              safetyReviewEnabled: Value(s.safetyReviewEnabled),
+              safetyReviewDisabledRules: Value(
+                _encodeDisabledRules(s.safetyReviewDisabledRules),
+              ),
+              noFlyPreset: Value(s.noFlyPreset.dbValue),
+              hiddenChamberIds: Value(_encodeDisabledRules(s.hiddenChamberIds)),
+              emergencyRegion: Value(s.emergencyRegion),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
               decoStopIncrement: Value(s.decoStopIncrement),
+              ascentGasSet: Value(s.ascentGasSet.index),
               o2Narcotic: Value(s.o2Narcotic),
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
               defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
+              defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
+              cnsCalculationMethod: Value(s.cnsCalculationMethod.dbValue),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
               diveListViewMode: Value(s.diveListViewMode.name),
@@ -100,6 +144,7 @@ class DiverSettingsRepository {
               buddyListViewMode: Value(s.buddyListViewMode.name),
               diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
               mapStyle: Value(s.mapStyle.name),
+              siteMatchSensitivity: Value(s.siteMatchSensitivity.name),
               cardColorGradientPreset: Value(s.cardColorGradientPreset),
               cardColorGradientStart: Value(s.cardColorGradientStart),
               cardColorGradientEnd: Value(s.cardColorGradientEnd),
@@ -132,10 +177,18 @@ class DiverSettingsRepository {
               defaultShowCns: Value(s.defaultShowCns),
               defaultShowOtu: Value(s.defaultShowOtu),
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
+              defaultShowPhotoMarkers: Value(s.defaultShowPhotoMarkers),
+              defaultShowGasTimeline: Value(s.defaultShowGasTimeline),
+              defaultShowO2CellMv: Value(s.defaultShowO2CellMv),
+              defaultShowEstimatedTankPressure: Value(
+                s.defaultShowEstimatedTankPressure,
+              ),
+              defaultShowAscentRateLine: Value(s.defaultShowAscentRateLine),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
                 _formatReminderDays(s.serviceReminderDays),
               ),
+              tripServiceLeadDays: Value(s.tripServiceLeadDays),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
@@ -195,11 +248,23 @@ class DiverSettingsRepository {
           weightUnit: Value(settings.weightUnit.name),
           altitudeUnit: Value(settings.altitudeUnit.name),
           sacUnit: Value(settings.sacUnit.name),
+          gasModel: Value(settings.gasModel.name),
+          defaultCurrency: Value(settings.defaultCurrency),
+          visibilityScalePreset: Value(settings.visibilityScalePreset.name),
+          visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
+          visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
+          visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
+          coordinateFormat: Value(settings.coordinateFormat.name),
+          seascapeAppearance: Value(settings.seascapeAppearance.encode()),
           timeFormat: Value(settings.timeFormat.name),
           dateFormat: Value(settings.dateFormat.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
           themePreset: Value(settings.themePresetId),
+          accentNavIcons: Value(settings.accentNavIcons),
+          accentSectionHeaders: Value(settings.accentSectionHeaders),
+          accentListIcons: Value(settings.accentListIcons),
           locale: Value(settings.locale),
+          placeNameLanguage: Value(settings.placeNameLanguage),
           defaultDiveType: Value(settings.defaultDiveType),
           defaultTankVolume: Value(settings.defaultTankVolume),
           defaultStartPressure: Value(settings.defaultStartPressure),
@@ -213,16 +278,29 @@ class DiverSettingsRepository {
           ascentRateWarning: Value(settings.ascentRateWarning),
           ascentRateCritical: Value(settings.ascentRateCritical),
           showCeilingOnProfile: Value(settings.showCeilingOnProfile),
+          showDecoStopsOnProfile: Value(settings.showDecoStopsOnProfile),
+          safetyReviewEnabled: Value(settings.safetyReviewEnabled),
+          safetyReviewDisabledRules: Value(
+            _encodeDisabledRules(settings.safetyReviewDisabledRules),
+          ),
+          noFlyPreset: Value(settings.noFlyPreset.dbValue),
+          hiddenChamberIds: Value(
+            _encodeDisabledRules(settings.hiddenChamberIds),
+          ),
+          emergencyRegion: Value(settings.emergencyRegion),
           showAscentRateColors: Value(settings.showAscentRateColors),
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
+          ascentGasSet: Value(settings.ascentGasSet.index),
           o2Narcotic: Value(settings.o2Narcotic),
           endLimit: Value(settings.endLimit),
           defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
           defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
+          defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
           defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
+          cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
           diveListViewMode: Value(settings.diveListViewMode.name),
@@ -232,6 +310,7 @@ class DiverSettingsRepository {
           buddyListViewMode: Value(settings.buddyListViewMode.name),
           diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
           mapStyle: Value(settings.mapStyle.name),
+          siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
           cardColorGradientPreset: Value(settings.cardColorGradientPreset),
           cardColorGradientStart: Value(settings.cardColorGradientStart),
           cardColorGradientEnd: Value(settings.cardColorGradientEnd),
@@ -266,10 +345,18 @@ class DiverSettingsRepository {
           defaultShowGasSwitchMarkers: Value(
             settings.defaultShowGasSwitchMarkers,
           ),
+          defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
+          defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
+          defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
+          defaultShowEstimatedTankPressure: Value(
+            settings.defaultShowEstimatedTankPressure,
+          ),
+          defaultShowAscentRateLine: Value(settings.defaultShowAscentRateLine),
           notificationsEnabled: Value(settings.notificationsEnabled),
           serviceReminderDays: Value(
             _formatReminderDays(settings.serviceReminderDays),
           ),
+          tripServiceLeadDays: Value(settings.tripServiceLeadDays),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
           showProfilePanelInTableView: Value(
@@ -367,11 +454,25 @@ class DiverSettingsRepository {
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
       sacUnit: _parseSacUnit(row.sacUnit),
+      gasModel: GasModel.fromName(row.gasModel),
+      defaultCurrency: row.defaultCurrency,
+      visibilityScalePreset: _parseVisibilityScalePreset(
+        row.visibilityScalePreset,
+      ),
+      visibilityScaleExcellentM: row.visibilityScaleExcellentM,
+      visibilityScaleGoodM: row.visibilityScaleGoodM,
+      visibilityScaleModerateM: row.visibilityScaleModerateM,
+      coordinateFormat: _parseCoordinateFormat(row.coordinateFormat),
+      seascapeAppearance: SeascapeAppearance.decode(row.seascapeAppearance),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
       themeMode: _parseThemeMode(row.themeMode),
       themePresetId: row.themePreset,
+      accentNavIcons: row.accentNavIcons,
+      accentSectionHeaders: row.accentSectionHeaders,
+      accentListIcons: row.accentListIcons,
       locale: row.locale,
+      placeNameLanguage: PlaceNameLanguage.normalize(row.placeNameLanguage),
       defaultDiveType: row.defaultDiveType,
       defaultTankVolume: row.defaultTankVolume,
       defaultStartPressure: row.defaultStartPressure,
@@ -385,16 +486,34 @@ class DiverSettingsRepository {
       ascentRateWarning: row.ascentRateWarning,
       ascentRateCritical: row.ascentRateCritical,
       showCeilingOnProfile: row.showCeilingOnProfile,
+      showDecoStopsOnProfile: row.showDecoStopsOnProfile,
+      safetyReviewEnabled: row.safetyReviewEnabled,
+      safetyReviewDisabledRules: _decodeDisabledRules(
+        row.safetyReviewDisabledRules,
+      ),
+      noFlyPreset: NoFlyPreset.fromDbValue(row.noFlyPreset),
+      hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
+      emergencyRegion: row.emergencyRegion,
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
       decoStopIncrement: row.decoStopIncrement,
+      ascentGasSet:
+          row.ascentGasSet >= 0 && row.ascentGasSet < AscentGasSet.values.length
+          ? AscentGasSet.values[row.ascentGasSet]
+          : AscentGasSet.allCarried,
       o2Narcotic: row.o2Narcotic,
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
       defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
+      defaultDecoStopSource: MetricDataSource.fromInt(
+        row.defaultDecoStopSource,
+      ),
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
+      cnsCalculationMethod: CnsCalculationMethod.fromDbValue(
+        row.cnsCalculationMethod,
+      ),
       cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
       diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
@@ -403,6 +522,9 @@ class DiverSettingsRepository {
       buddyListViewMode: ListViewMode.fromName(row.buddyListViewMode),
       diveCenterListViewMode: ListViewMode.fromName(row.diveCenterListViewMode),
       mapStyle: MapStyle.fromName(row.mapStyle),
+      siteMatchSensitivity: SiteMatchSensitivity.fromName(
+        row.siteMatchSensitivity,
+      ),
       cardColorGradientPreset: row.cardColorGradientPreset,
       cardColorGradientStart: row.cardColorGradientStart,
       cardColorGradientEnd: row.cardColorGradientEnd,
@@ -429,8 +551,14 @@ class DiverSettingsRepository {
       defaultShowCns: row.defaultShowCns,
       defaultShowOtu: row.defaultShowOtu,
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
+      defaultShowPhotoMarkers: row.defaultShowPhotoMarkers,
+      defaultShowGasTimeline: row.defaultShowGasTimeline,
+      defaultShowO2CellMv: row.defaultShowO2CellMv,
+      defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
+      defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
+      tripServiceLeadDays: row.tripServiceLeadDays,
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
@@ -504,6 +632,26 @@ class DiverSettingsRepository {
     );
   }
 
+  /// Falls back to tropical, which reproduces the pre-v144 thresholds, so an
+  /// unrecognized stored value degrades to the previous behaviour rather than
+  /// throwing.
+  VisibilityScalePreset _parseVisibilityScalePreset(String value) {
+    return VisibilityScalePreset.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => VisibilityScalePreset.tropical,
+    );
+  }
+
+  /// Falls back to decimal degrees, which is what the app rendered before
+  /// v150, so an unrecognized stored value degrades to the previous
+  /// behaviour rather than throwing.
+  CoordinateFormat _parseCoordinateFormat(String value) {
+    return CoordinateFormat.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => CoordinateFormat.decimalDegrees,
+    );
+  }
+
   TimeFormat _parseTimeFormat(String value) {
     return TimeFormat.values.firstWhere(
       (e) => e.name == value,
@@ -567,4 +715,26 @@ class DiverSettingsRepository {
 
   String _formatReminderTime(TimeOfDay time) =>
       '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+/// JSON-encodes the disabled safety rules set (sorted for deterministic
+/// storage); null when empty so the column stays compact.
+String? _encodeDisabledRules(Set<String> rules) {
+  if (rules.isEmpty) return null;
+  final sorted = rules.toList()..sort();
+  return jsonEncode(sorted);
+}
+
+Set<String> _decodeDisabledRules(String? raw) {
+  if (raw == null || raw.isEmpty) return const {};
+  try {
+    final decoded = jsonDecode(raw);
+    // Tolerate corrupted values (non-list JSON, non-string elements) from bad
+    // prefs or a malformed sync payload: fall back to "no rules disabled"
+    // rather than crashing settings load.
+    if (decoded is! List) return const {};
+    return decoded.whereType<String>().toSet();
+  } on FormatException {
+    return const {};
+  }
 }

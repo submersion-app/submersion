@@ -37,7 +37,7 @@ void main() {
 
       final db = sqlite3.sqlite3.open(tmp.path);
       db.execute('CREATE TABLE foo (id INTEGER PRIMARY KEY);');
-      db.dispose();
+      db.close();
 
       final otherBytes = Uint8List.fromList(await tmp.readAsBytes());
       expect(await MacDiveDbReader.isMacDiveDb(otherBytes), isFalse);
@@ -50,13 +50,55 @@ void main() {
   });
 
   group('MacDiveDbReader.readAll', () {
-    test('reads 3 dives, 2 sites, 2 buddies, 2 tags, 1 gear', () async {
+    test('reads 3 dives, 2 sites, 2 buddies, 2 tags, 2 gear', () async {
       final logbook = await MacDiveDbReader.readAll(bytes);
       expect(logbook.dives.length, 3);
       expect(logbook.sitesByPk.length, 2);
       expect(logbook.buddiesByPk.length, 2);
       expect(logbook.tagsByPk.length, 2);
-      expect(logbook.gearByPk.length, 1);
+      expect(logbook.gearByPk.length, 2);
+    });
+
+    test('reads dive types and their junction', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      expect(
+        logbook.diveTypesByPk.values.map((t) => t.name),
+        containsAll(['Shore', 'Aquarium']),
+      );
+      // Dive 1 has both types; dive 3 has none.
+      expect(logbook.diveToDiveTypePks[1], hasLength(2));
+      expect(logbook.diveToDiveTypePks[3], isNull);
+    });
+
+    test('reads the gear disabled flag', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      expect(logbook.gearByPk[1]!.disabled, isFalse);
+      expect(logbook.gearByPk[2]!.disabled, isTrue);
+    });
+
+    test('reads certifications with card number and shop', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final cert = logbook.certifications.single;
+      expect(cert.name, 'Rescue Scuba Diver');
+      expect(cert.agency, 'NAUI');
+      expect(cert.diverNumber, '2649227');
+      expect(cert.instructorShop, 'Bamboo Reef');
+      expect(cert.attained, isNotNull);
+    });
+
+    test('reads service records keyed to their gear item', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final record = logbook.serviceRecords.single;
+      expect(record.gearFk, 1);
+      expect(record.servicedBy, 'Seals Watersports');
+    });
+
+    test('reads logbooks and flags smart groups', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final log = logbook.diveLogsByPk.values.single;
+      expect(log.name, 'Tropical');
+      // A non-empty ZPREDICATE means membership is computed, not stored.
+      expect(log.isSmart, isTrue);
     });
 
     test('reads 2 tanks, 2 gases, 3 tank-and-gas junctions', () async {
@@ -119,8 +161,7 @@ void main() {
         final logbook = await MacDiveDbReader.readAll(bytes);
         expect(logbook.crittersByPk, isEmpty);
         expect(logbook.events, isEmpty);
-        expect(logbook.certifications, isEmpty);
-        expect(logbook.serviceRecords, isEmpty);
+        expect(logbook.diversByPk, isEmpty);
       },
     );
   });

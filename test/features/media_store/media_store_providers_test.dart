@@ -1,0 +1,95 @@
+import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/media_store/data/media_backfill_service.dart';
+import 'package:submersion/features/media_store/data/media_stores_repository.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+
+void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  test('the default provider bodies construct their singletons', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(mediaStoreCredentialsStoreProvider), isNotNull);
+    expect(container.read(mediaStoreAttachStateProvider), isNotNull);
+    expect(container.read(mediaStorePoliciesProvider), isNotNull);
+    expect(
+      container.read(mediaTransferQueueRepositoryProvider),
+      isA<MediaTransferQueueRepository>(),
+    );
+    expect(
+      container.read(mediaStoresRepositoryProvider),
+      isA<MediaStoresRepository>(),
+    );
+    expect(
+      container.read(mediaBackfillServiceProvider),
+      isA<MediaBackfillService>(),
+    );
+  });
+
+  test(
+    'status-hint and resolver providers are null without a runtime',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(mediaStoreResolverProvider), isNull);
+      final sub = container.listen(mediaStoreStatusHintProvider, (_, _) {});
+      addTearDown(sub.close);
+      expect(await container.read(mediaStoreStatusHintProvider.future), isNull);
+    },
+  );
+
+  test('the enqueue bridge is a no-op when no runtime is attached', () async {
+    final container = ProviderContainer(
+      overrides: [mediaStoreRuntimeProvider.overrideWith((ref) async => null)],
+    );
+    addTearDown(container.dispose);
+
+    final enqueue = container.read(mediaStoreEnqueueProvider);
+    // Runs the impl closure: reads the (default-on) policy, sees no runtime,
+    // and does nothing. Awaiting a tick lets the fire-and-forget body run.
+    enqueue('m1');
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(enqueue, isA<void Function(String)>());
+  });
+
+  test('the transfer stream providers subscribe to the queue', () async {
+    final db = LocalCacheDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = MediaTransferQueueRepository(database: db);
+    final container = ProviderContainer(
+      overrides: [mediaTransferQueueRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(container.dispose);
+
+    final subA = container.listen(mediaTransferSummaryProvider, (_, _) {});
+    final subB = container.listen(mediaTransferEntriesProvider, (_, _) {});
+    addTearDown(subA.close);
+    addTearDown(subB.close);
+
+    // Enqueue one row; the summary stream should report it as queued.
+    await repo.enqueueUpload(mediaId: 'm1');
+    var summary = const MediaTransferSummary();
+    for (var i = 0; i < 100; i++) {
+      summary =
+          container.read(mediaTransferSummaryProvider).value ??
+          const MediaTransferSummary();
+      if (summary.queued == 1) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(summary.queued, 1);
+    expect(container.read(mediaTransferEntriesProvider).hasValue, isTrue);
+  });
+}

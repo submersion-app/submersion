@@ -63,7 +63,7 @@ set(LIBDC_SOURCES
     ${LIBDC_DIR}/src/ihex.c
     ${LIBDC_DIR}/src/hw_ostc.c
     ${LIBDC_DIR}/src/hw_ostc_parser.c
-    ${LIBDC_DIR}/src/hw_frog.c
+    # hw_frog.c was merged into hw_ostc3.c upstream (frog/ostc3 integration).
     ${LIBDC_DIR}/src/hw_ostc3.c
     ${LIBDC_DIR}/src/aes.c
     ${LIBDC_DIR}/src/cressi_edy.c
@@ -127,8 +127,10 @@ set(LIBDC_SOURCES
     ${LIBDC_DIR}/src/serial_posix.c
 )
 
-# Build libdivecomputer as a static library
+# Build libdivecomputer as a static library. It ends up linked into the
+# shared plugin library below, so it must be position-independent.
 add_library(divecomputer STATIC ${LIBDC_SOURCES})
+set_target_properties(divecomputer PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(divecomputer PRIVATE
     ${LIBDC_DIR}/include
     ${LIBDC_DIR}/src

@@ -42,7 +42,6 @@ class UddfComparisonHelper {
     final normalized = dives.map((d) {
       // Note: Some fields are intentionally excluded from comparison because
       // the importer modifies them:
-      // - 'notes': Importer appends "Weight used: X.X kg"
       // - 'diveType': Defaults to 'recreational' when null
       // - 'runtime': Calculated differently on import
       return {

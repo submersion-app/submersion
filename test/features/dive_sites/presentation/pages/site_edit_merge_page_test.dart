@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -89,6 +91,9 @@ void main() {
   testWidgets(
     'merge mode cycles difficulty when sites have different difficulties',
     (tester) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final site1 = await siteRepository.createSite(
         const DiveSite(
           id: 'diff-1',
@@ -123,7 +128,7 @@ void main() {
       // The difficulty section has a sync_alt icon for cycling
       final difficultySection = find.ancestor(
         of: find.text('Difficulty Level'),
-        matching: find.byType(Card),
+        matching: find.byType(FormSection),
       );
       final difficultyCycleButton = find.descendant(
         of: difficultySection,
@@ -141,9 +146,71 @@ void main() {
     },
   );
 
+  testWidgets('merge mode cycles water type when sites differ', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final site1 = await siteRepository.createSite(
+      const DiveSite(id: 'wt-m1', name: 'Salt Site', waterType: WaterType.salt),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'wt-m2',
+        name: 'Fresh Site',
+        waterType: WaterType.fresh,
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Water Type'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    // Salt Water (site1, the first non-empty candidate) selected initially.
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Salt Water'))
+          .selected,
+      isTrue,
+    );
+
+    // Only water type differs, so exactly one cycle button sits in Dive Info.
+    final waterTypeSection = find.ancestor(
+      of: find.text('Water Type'),
+      matching: find.byType(FormSection),
+    );
+    final cycleButton = find.descendant(
+      of: waterTypeSection,
+      matching: find.byIcon(Icons.sync_alt),
+    );
+    expect(cycleButton, findsOneWidget);
+
+    await tester.tap(cycleButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Fresh Water'))
+          .selected,
+      isTrue,
+    );
+  });
+
   testWidgets('merge mode cycles rating when sites have different ratings', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     final site1 = await siteRepository.createSite(
       const DiveSite(id: 'rate-1', name: 'OK Site', rating: 2.0),
     );
@@ -175,7 +242,7 @@ void main() {
     // Cycle rating
     final ratingSection = find.ancestor(
       of: find.text('Rating'),
-      matching: find.byType(Card),
+      matching: find.byType(FormSection),
     );
     final ratingCycleButton = find.descendant(
       of: ratingSection,
@@ -194,6 +261,9 @@ void main() {
   testWidgets(
     'merge mode cycles GPS coordinates when sites have different locations',
     (tester) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final site1 = await siteRepository.createSite(
         const DiveSite(
           id: 'gps-1',
@@ -218,18 +288,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Scroll down to make the GPS section visible
+      // Scroll down to make the Location section's rows visible
       await tester.scrollUntilVisible(
-        find.text('GPS Coordinates'),
+        find.text('Latitude'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      // Find the GPS section
+      // Find the Location section
       final gpsSection = find.ancestor(
-        of: find.text('GPS Coordinates'),
-        matching: find.byType(Card),
+        of: find.text('Latitude'),
+        matching: find.byType(FormSection),
       );
       final gpsCycleButton = find.descendant(
         of: gpsSection,
@@ -237,16 +307,17 @@ void main() {
       );
       expect(gpsCycleButton, findsOneWidget);
 
-      // Verify initial coordinates (site1)
-      expect(find.text('17.288'), findsOneWidget);
-      expect(find.text('-87.812'), findsOneWidget);
+      // Verify initial coordinates (site1). The coordinate fields render at a
+      // fixed six decimal places whatever precision the site was stored with.
+      expect(find.text('17.288000'), findsOneWidget);
+      expect(find.text('-87.812000'), findsOneWidget);
 
       await tester.tap(gpsCycleButton);
       await tester.pumpAndSettle();
 
       // After cycling, should show site2 coordinates
-      expect(find.text('-8.409'), findsOneWidget);
-      expect(find.text('115.189'), findsOneWidget);
+      expect(find.text('-8.409000'), findsOneWidget);
+      expect(find.text('115.189000'), findsOneWidget);
     },
   );
 

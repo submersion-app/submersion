@@ -55,6 +55,9 @@ enum ImportEntityType {
 
   /// Courses.
   courses,
+
+  /// Photos referenced by an imported logbook.
+  media,
 }
 
 /// Metadata about the source of an [ImportBundle].
@@ -68,10 +71,19 @@ class ImportSourceInfo {
   /// Optional metadata about the source (e.g. device info, file headers).
   final Map<String, dynamic>? metadata;
 
+  /// The id of the dive computer this session is downloading from, when
+  /// [type] is [ImportSourceType.diveComputer].
+  ///
+  /// Used to distinguish a cross-computer duplicate match (auto-suggested
+  /// for consolidation) from a same-computer duplicate match (a plain
+  /// re-download, never auto-suggested for consolidation).
+  final String? currentComputerId;
+
   const ImportSourceInfo({
     required this.type,
     required this.displayName,
     this.metadata,
+    this.currentComputerId,
   });
 }
 
@@ -120,11 +132,18 @@ class EntityGroup {
   /// Null when no entity duplicate matching has been performed.
   final Map<int, EntityMatchResult>? entityMatches;
 
+  /// Indices within [items] that default to a skip action because they fall
+  /// at or before the diver's first-sync cutoff (tier-1 filter).
+  ///
+  /// Null when no cutoff was in effect or no downloaded item qualified.
+  final Set<int>? autoSkipIndices;
+
   const EntityGroup({
     required this.items,
     this.duplicateIndices = const {},
     this.matchResults,
     this.entityMatches,
+    this.autoSkipIndices,
   });
 }
 

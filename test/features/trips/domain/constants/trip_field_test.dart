@@ -30,7 +30,7 @@ void main() {
   final testEntity = TripWithStats(
     trip: testTrip,
     diveCount: 14,
-    totalBottomTime: 12600, // 210 minutes = 3h 30m in seconds
+    totalRuntime: 12600, // 210 minutes = 3h 30m in seconds
     maxDepth: 35.0,
     avgDepth: 18.5,
   );
@@ -81,7 +81,7 @@ void main() {
         byCategory['statistics'],
         containsAll([
           TripField.diveCount,
-          TripField.totalBottomTime,
+          TripField.totalRuntime,
           TripField.maxDepth,
           TripField.avgDepth,
         ]),
@@ -164,9 +164,9 @@ void main() {
       expect(adapter.extractValue(TripField.diveCount, testEntity), equals(14));
     });
 
-    test('returns totalBottomTime in seconds', () {
+    test('returns totalRuntime in seconds', () {
       expect(
-        adapter.extractValue(TripField.totalBottomTime, testEntity),
+        adapter.extractValue(TripField.totalRuntime, testEntity),
         equals(12600),
       );
     });
@@ -317,40 +317,40 @@ void main() {
       expect(adapter.formatValue(TripField.diveCount, 0, units), equals('0'));
     });
 
-    test('formats totalBottomTime with hours and minutes', () {
+    test('formats totalRuntime with hours and minutes', () {
       // 12600 seconds = 3h 30m
       expect(
-        adapter.formatValue(TripField.totalBottomTime, 12600, units),
+        adapter.formatValue(TripField.totalRuntime, 12600, units),
         equals('3h 30m'),
       );
     });
 
-    test('formats totalBottomTime with minutes only when under an hour', () {
+    test('formats totalRuntime with minutes only when under an hour', () {
       // 2700 seconds = 45m
       expect(
-        adapter.formatValue(TripField.totalBottomTime, 2700, units),
+        adapter.formatValue(TripField.totalRuntime, 2700, units),
         equals('45m'),
       );
     });
 
-    test('formats totalBottomTime zero as --', () {
+    test('formats totalRuntime zero as --', () {
       expect(
-        adapter.formatValue(TripField.totalBottomTime, 0, units),
+        adapter.formatValue(TripField.totalRuntime, 0, units),
         equals('--'),
       );
     });
 
-    test('formats totalBottomTime negative as --', () {
+    test('formats totalRuntime negative as --', () {
       expect(
-        adapter.formatValue(TripField.totalBottomTime, -1, units),
+        adapter.formatValue(TripField.totalRuntime, -1, units),
         equals('--'),
       );
     });
 
-    test('formats totalBottomTime exact hour', () {
+    test('formats totalRuntime exact hour', () {
       // 3600 seconds = 1h 0m
       expect(
-        adapter.formatValue(TripField.totalBottomTime, 3600, units),
+        adapter.formatValue(TripField.totalRuntime, 3600, units),
         equals('1h 0m'),
       );
     });
@@ -447,10 +447,21 @@ void main() {
       expect(adapter.fieldFromName('diveCount'), equals(TripField.diveCount));
     });
 
-    test('resolves totalBottomTime', () {
+    test('resolves totalRuntime', () {
+      expect(
+        adapter.fieldFromName('totalRuntime'),
+        equals(TripField.totalRuntime),
+      );
+    });
+
+    test('resolves the legacy totalBottomTime name to totalRuntime', () {
+      // Saved trip-table layouts persist field names verbatim. A layout
+      // written before issue #889 still names the column totalBottomTime,
+      // and an unresolved name throws out of EntityTableViewConfig.fromJson,
+      // which would leave those users with a broken trips table.
       expect(
         adapter.fieldFromName('totalBottomTime'),
-        equals(TripField.totalBottomTime),
+        equals(TripField.totalRuntime),
       );
     });
 
@@ -527,7 +538,7 @@ void main() {
     test('numeric fields are right-aligned', () {
       expect(TripField.durationDays.isRightAligned, isTrue);
       expect(TripField.diveCount.isRightAligned, isTrue);
-      expect(TripField.totalBottomTime.isRightAligned, isTrue);
+      expect(TripField.totalRuntime.isRightAligned, isTrue);
       expect(TripField.maxDepth.isRightAligned, isTrue);
       expect(TripField.avgDepth.isRightAligned, isTrue);
     });
@@ -553,10 +564,7 @@ void main() {
       expect(TripField.resortName.displayName, equals('Resort'));
       expect(TripField.liveaboardName.displayName, equals('Liveaboard'));
       expect(TripField.diveCount.displayName, equals('Dive Count'));
-      expect(
-        TripField.totalBottomTime.displayName,
-        equals('Total Bottom Time'),
-      );
+      expect(TripField.totalRuntime.displayName, equals('Total Runtime'));
       expect(TripField.maxDepth.displayName, equals('Max Depth'));
       expect(TripField.avgDepth.displayName, equals('Avg Depth'));
       expect(TripField.notes.displayName, equals('Notes'));
@@ -572,7 +580,7 @@ void main() {
       expect(TripField.resortName.shortLabel, equals('Resort'));
       expect(TripField.liveaboardName.shortLabel, equals('Liveaboard'));
       expect(TripField.diveCount.shortLabel, equals('Dives'));
-      expect(TripField.totalBottomTime.shortLabel, equals('BT Total'));
+      expect(TripField.totalRuntime.shortLabel, equals('RT Total'));
       expect(TripField.maxDepth.shortLabel, equals('Max D'));
       expect(TripField.avgDepth.shortLabel, equals('Avg D'));
       expect(TripField.notes.shortLabel, equals('Notes'));
@@ -588,7 +596,7 @@ void main() {
       expect(TripField.resortName.icon, equals(Icons.hotel));
       expect(TripField.liveaboardName.icon, equals(Icons.directions_boat));
       expect(TripField.diveCount.icon, equals(Icons.scuba_diving));
-      expect(TripField.totalBottomTime.icon, equals(Icons.access_time));
+      expect(TripField.totalRuntime.icon, equals(Icons.access_time));
       expect(TripField.maxDepth.icon, equals(Icons.arrow_downward));
       expect(TripField.avgDepth.icon, equals(Icons.trending_down));
       expect(TripField.notes.icon, equals(Icons.notes));
@@ -604,7 +612,7 @@ void main() {
       expect(TripField.resortName.defaultWidth, equals(120));
       expect(TripField.liveaboardName.defaultWidth, equals(120));
       expect(TripField.diveCount.defaultWidth, equals(80));
-      expect(TripField.totalBottomTime.defaultWidth, equals(90));
+      expect(TripField.totalRuntime.defaultWidth, equals(90));
       expect(TripField.maxDepth.defaultWidth, equals(80));
       expect(TripField.avgDepth.defaultWidth, equals(80));
       expect(TripField.notes.defaultWidth, equals(150));
@@ -620,7 +628,7 @@ void main() {
       expect(TripField.resortName.minWidth, equals(70));
       expect(TripField.liveaboardName.minWidth, equals(70));
       expect(TripField.diveCount.minWidth, equals(50));
-      expect(TripField.totalBottomTime.minWidth, equals(60));
+      expect(TripField.totalRuntime.minWidth, equals(60));
       expect(TripField.maxDepth.minWidth, equals(50));
       expect(TripField.avgDepth.minWidth, equals(50));
       expect(TripField.notes.minWidth, equals(60));
@@ -636,7 +644,7 @@ void main() {
       expect(TripField.resortName.categoryName, equals('accommodation'));
       expect(TripField.liveaboardName.categoryName, equals('accommodation'));
       expect(TripField.diveCount.categoryName, equals('statistics'));
-      expect(TripField.totalBottomTime.categoryName, equals('statistics'));
+      expect(TripField.totalRuntime.categoryName, equals('statistics'));
       expect(TripField.maxDepth.categoryName, equals('statistics'));
       expect(TripField.avgDepth.categoryName, equals('statistics'));
       expect(TripField.notes.categoryName, equals('other'));

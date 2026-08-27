@@ -57,7 +57,9 @@ class ProfileSample {
     this.temperatureCelsius,
     this.pressureBar,
     this.tankIndex,
+    this.tankPressuresBar,
     this.heartRate,
+    this.heading,
     this.setpoint,
     this.ppo2,
     this.cns,
@@ -66,13 +68,39 @@ class ProfileSample {
     this.decoTime,
     this.decoDepth,
     this.tts,
+    this.o2Sensor1,
+    this.o2Sensor2,
+    this.o2Sensor3,
+    this.o2Sensor4,
+    this.o2Sensor5,
+    this.o2Sensor6,
+    this.o2SensorMv1,
+    this.o2SensorMv2,
+    this.o2SensorMv3,
+    this.o2SensorMv4,
+    this.o2SensorMv5,
+    this.o2SensorMv6,
+    this.gasMixIndex,
   });
   final int timeSeconds;
   final double depthMeters;
   final double? temperatureCelsius;
   final double? pressureBar;
   final int? tankIndex;
+
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer fires one pressure
+  /// reading per air-integrated transmitter, so a single sample can carry
+  /// several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  /// rest (issue #1223). Null when the sample carries no pressure at all, and
+  /// trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  /// short list per sample.
+  final List<double?>? tankPressuresBar;
   final int? heartRate;
+
+  /// Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
+  /// computer does not report bearing samples.
+  final double? heading;
   final double? setpoint;
   final double? ppo2;
   final double? cns;
@@ -81,6 +109,30 @@ class ProfileSample {
   final int? decoTime;
   final double? decoDepth;
   final int? tts;
+
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  /// cell has no reading. libdivecomputer reports these per-sensor via
+  /// DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+  final double? o2Sensor1;
+  final double? o2Sensor2;
+  final double? o2Sensor3;
+  final double? o2Sensor4;
+  final double? o2Sensor5;
+  final double? o2Sensor6;
+
+  /// Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  /// reports none. Present even when the cell's ppO2 is unavailable because the
+  /// logged calibration could not be trusted (issue #810).
+  final int? o2SensorMv1;
+  final int? o2SensorMv2;
+  final int? o2SensorMv3;
+  final int? o2SensorMv4;
+  final int? o2SensorMv5;
+  final int? o2SensorMv6;
+
+  /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  /// from the most recent gas switch; null if the computer reported no gas.
+  final int? gasMixIndex;
 }
 
 class GasMix {
@@ -101,12 +153,17 @@ class TankInfo {
     this.volumeLiters,
     this.startPressureBar,
     this.endPressureBar,
+    this.usage,
   });
   final int index;
   final int gasMixIndex;
   final double? volumeLiters;
   final double? startPressureBar;
   final double? endPressureBar;
+
+  /// Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+  /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  final int? usage;
 }
 
 class DiveEvent {
@@ -142,6 +199,10 @@ class ParsedDive {
     this.decoConservatism,
     this.rawData,
     this.rawFingerprint,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
   });
   final String fingerprint;
   final int dateTimeYear;
@@ -167,6 +228,11 @@ class ParsedDive {
   final int? decoConservatism;
   final Uint8List? rawData;
   final Uint8List? rawFingerprint;
+  // GPS entry/exit fixes (Shearwater Swift); decimal degrees, null if unavailable.
+  final double? entryLatitude;
+  final double? entryLongitude;
+  final double? exitLatitude;
+  final double? exitLongitude;
 }
 
 class DownloadProgress {

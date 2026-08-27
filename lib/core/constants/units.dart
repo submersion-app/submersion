@@ -29,6 +29,16 @@ enum TemperatureUnit {
     if (this == fahrenheit && to == celsius) return (value - 32) * 5 / 9;
     return value;
   }
+
+  /// Converts a temperature difference between units.
+  ///
+  /// Deltas scale but never take the Fahrenheit offset: a +0.5 C anomaly is
+  /// +0.9 F, not +32.9 F.
+  double convertDelta(double value, TemperatureUnit to) {
+    if (this == to) return value;
+    if (this == celsius && to == fahrenheit) return value * 9 / 5;
+    return value * 5 / 9;
+  }
 }
 
 enum PressureUnit {
@@ -128,7 +138,8 @@ enum DateFormatPreference {
   ddmmyyyy('DD/MM/YYYY', 'dd/MM/yyyy'),
   yyyymmdd('YYYY-MM-DD', 'yyyy-MM-dd'),
   mmmDYYYY('MMM D, YYYY', 'MMM d, yyyy'),
-  dMMMYYYY('D MMM YYYY', 'd MMM yyyy');
+  dMMMYYYY('D MMM YYYY', 'd MMM yyyy'),
+  ddmmyyyyDots('DD.MM.YYYY', 'dd.MM.yyyy');
 
   final String displayName;
   final String pattern;
@@ -142,5 +153,8 @@ enum DateFormatPreference {
 
   /// Whether this format puts day before month
   bool get isDayFirst =>
-      this == ddmmyyyy || this == dMMMYYYY || this == yyyymmdd;
+      this == ddmmyyyy ||
+      this == dMMMYYYY ||
+      this == yyyymmdd ||
+      this == ddmmyyyyDots;
 }

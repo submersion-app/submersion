@@ -3,8 +3,8 @@ import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
 void main() {
   group('kNavDestinations', () {
-    test('has exactly 14 entries (13 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 14);
+    test('has exactly 16 entries (15 routable + more sentinel)', () {
+      expect(kNavDestinations.length, 16);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -25,12 +25,13 @@ void main() {
       }
     });
 
-    test('contains the expected 13 routable ids plus more sentinel', () {
+    test('contains the expected 15 routable ids plus more sentinel', () {
       expect(kNavDestinations.map((d) => d.id).toList(), [
         'dashboard',
         'dives',
         'sites',
         'trips',
+        'media',
         'equipment',
         'buddies',
         'dive-centers',
@@ -39,6 +40,7 @@ void main() {
         'statistics',
         'planning',
         'transfer',
+        'gps-log',
         'settings',
         'more',
       ]);
@@ -64,6 +66,7 @@ void main() {
         'dives',
         'sites',
         'trips',
+        'media',
         'equipment',
         'buddies',
         'dive-centers',
@@ -72,12 +75,13 @@ void main() {
         'statistics',
         'planning',
         'transfer',
+        'gps-log',
         'settings',
       ]);
     });
 
-    test('has exactly 12 entries', () {
-      expect(movableNavIds.length, 12);
+    test('has exactly 14 entries', () {
+      expect(movableNavIds.length, 14);
     });
   });
 }

@@ -8,10 +8,15 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -19,13 +24,32 @@ class CertificationEditPage extends ConsumerStatefulWidget {
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
 
+  /// Staging mode (issue #553): when [onStaged] is provided, Save builds the
+  /// [Certification] and hands it back via the callback WITHOUT persisting (no
+  /// diver-id lookup, no repository write). [initialCertification] prefills the
+  /// form from an in-memory staged cert instead of loading by id. Used by the
+  /// buddy edit form to stage a buddy's certs and commit them on its own Save.
+  final Certification? initialCertification;
+  final void Function(Certification result)? onStaged;
+
   const CertificationEditPage({
     super.key,
     this.certificationId,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-  });
+    this.initialCertification,
+    this.onStaged,
+  }) : assert(
+         onStaged == null || certificationId == null,
+         'Staging mode (onStaged) prefills from initialCertification and never '
+         'loads by id -- do not also pass certificationId.',
+       ),
+       assert(
+         initialCertification == null || onStaged != null,
+         'initialCertification is only read in staging mode; pass onStaged too, '
+         'or the persistent save path would run on the prefilled data.',
+       );
 
   @override
   ConsumerState<CertificationEditPage> createState() =>
@@ -53,13 +77,22 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   bool _isSaving = false;
   bool _hasChanges = false;
   Certification? _originalCertification;
+  String? _instructorId;
 
-  bool get isEditing => widget.certificationId != null;
+  // Editing when opened by id (self-diver flow) OR when staging an existing
+  // cert (non-empty initialCertification.id) -- otherwise the "Add" labels
+  // show while editing a staged buddy cert (issue #553 review).
+  bool get isEditing =>
+      widget.certificationId != null ||
+      (widget.initialCertification?.id.isNotEmpty ?? false);
+  bool get _isStaging => widget.onStaged != null;
 
   @override
   void initState() {
     super.initState();
-    if (isEditing) {
+    if (widget.initialCertification != null) {
+      _prefillFrom(widget.initialCertification!);
+    } else if (isEditing) {
       _loadCertification();
     }
     _nameController.addListener(_onFieldChanged);
@@ -75,6 +108,27 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     }
   }
 
+  /// Prefill the form from an in-memory (possibly unpersisted) certification,
+  /// used by staging mode instead of loading by id.
+  void _prefillFrom(Certification cert) {
+    _originalCertification = cert;
+    // A name that merely repeats agency + level is shown as blank, so the
+    // field's hint offers the derivation instead of duplicating it.
+    _nameController.text = hasDerivedName(cert) ? '' : cert.name;
+    _cardNumberController.text = cert.cardNumber ?? '';
+    _instructorNameController.text = cert.instructorName ?? '';
+    _instructorNumberController.text = cert.instructorNumber ?? '';
+    _notesController.text = cert.notes;
+    _agency = cert.agency;
+    _level = cert.level;
+
+    _issueDate = cert.issueDate;
+    _expiryDate = cert.expiryDate;
+    _photoFront = cert.photoFront;
+    _photoBack = cert.photoBack;
+    _instructorId = cert.instructorId;
+  }
+
   Future<void> _loadCertification() async {
     setState(() => _isLoading = true);
     try {
@@ -83,7 +137,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           .getCertificationById(widget.certificationId!);
       if (cert != null && mounted) {
         _originalCertification = cert;
-        _nameController.text = cert.name;
+        // See _prefillFrom: a derived name renders as a blank field.
+        _nameController.text = hasDerivedName(cert) ? '' : cert.name;
         _cardNumberController.text = cert.cardNumber ?? '';
         _instructorNameController.text = cert.instructorName ?? '';
         _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -95,6 +150,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           _expiryDate = cert.expiryDate;
           _photoFront = cert.photoFront;
           _photoBack = cert.photoBack;
+          _instructorId = cert.instructorId;
           _isLoading = false;
           _hasChanges = false;
         });
@@ -283,12 +339,72 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   @override
   void dispose() {
+    _nameController.removeListener(_onFieldChanged);
     _nameController.dispose();
     _cardNumberController.dispose();
     _instructorNameController.dispose();
     _instructorNumberController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  /// Items for the certification dropdown, grouped into the agency's
+  /// progression ladder and the cross-agency specialties.
+  ///
+  /// Headers are disabled items carrying their own [CertificationOption.header]
+  /// value, so no two rows share a value -- see [CertificationOption] for why
+  /// DropdownButton requires that. "Not specified" leads the list because it is
+  /// the clear-selection choice, not for any correctness reason.
+  List<DropdownMenuItem<CertificationOption>> _certificationItems(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(context);
+    final ladder = CertificationLevelCatalog.ladderFor(_agency);
+    final specialties = CertificationLevelCatalog.specialtiesFor(_agency);
+
+    // A stored value from another agency's catalog still has to render.
+    final level = _level;
+    final extra =
+        (level != null &&
+            level != CertificationLevel.other &&
+            !ladder.contains(level) &&
+            !specialties.contains(level))
+        ? level
+        : null;
+
+    DropdownMenuItem<CertificationOption> header(String key, String text) =>
+        DropdownMenuItem<CertificationOption>(
+          enabled: false,
+          value: CertificationOption.header(key),
+          child: Text(
+            text,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+
+    DropdownMenuItem<CertificationOption> item(CertificationLevel value) =>
+        DropdownMenuItem<CertificationOption>(
+          value: CertificationOption.value(value),
+          child: Text(value.displayName),
+        );
+
+    return [
+      DropdownMenuItem<CertificationOption>(
+        value: const CertificationOption.value(null),
+        child: Text(
+          context.l10n.certifications_edit_certification_notSpecified,
+        ),
+      ),
+      header('progression', context.l10n.certifications_edit_group_progression),
+      ...ladder.map(item),
+      header('specialties', context.l10n.certifications_edit_group_specialties),
+      ...specialties.map(item),
+      if (extra != null) item(extra),
+      item(CertificationLevel.other),
+    ];
   }
 
   @override
@@ -302,30 +418,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Certification name field
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: context
-                          .l10n
-                          .certifications_edit_label_certificationName,
-                      prefixIcon: const Icon(Icons.card_membership),
-                      hintText: context
-                          .l10n
-                          .certifications_edit_hint_certificationName,
-                    ),
-                    textCapitalization: TextCapitalization.words,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return context
-                            .l10n
-                            .certifications_edit_validation_nameRequired;
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
                   // Agency dropdown
                   DropdownButtonFormField<CertificationAgency>(
                     initialValue: _agency,
@@ -343,6 +435,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       if (value != null) {
                         setState(() {
                           _agency = value;
+                          // A level from another agency's catalog is reset -
+                          // a visible consequence of the user's own switch.
+                          if (_level != null &&
+                              !CertificationLevelCatalog.levelsFor(
+                                value,
+                              ).contains(_level)) {
+                            _level = null;
+                          }
                           _hasChanges = true;
                         });
                       }
@@ -350,32 +450,50 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Level dropdown
-                  DropdownButtonFormField<CertificationLevel>(
-                    initialValue: _level,
+                  // Certification dropdown (options depend on the agency)
+                  DropdownButtonFormField<CertificationOption>(
+                    // DropdownButtonFormField keeps its selection in its own
+                    // FormFieldState; the key forces a remount when the
+                    // agency changes or the level is reset externally, so
+                    // initialValue is re-read.
+                    key: ValueKey('level-${_agency.name}-${_level?.name}'),
+                    initialValue: CertificationOption.value(_level),
                     decoration: InputDecoration(
-                      labelText: context.l10n.certifications_edit_label_level,
-                      prefixIcon: const Icon(Icons.stairs),
+                      labelText:
+                          context.l10n.certifications_edit_label_certification,
+                      prefixIcon: const Icon(Icons.workspace_premium),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(
-                          context.l10n.certifications_edit_level_notSpecified,
-                        ),
-                      ),
-                      ...CertificationLevel.values.map((level) {
-                        return DropdownMenuItem(
-                          value: level,
-                          child: Text(level.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
+                    items: _certificationItems(context),
+                    onChanged: (option) {
                       setState(() {
-                        _level = value;
+                        _level = option?.level;
                         _hasChanges = true;
                       });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Name on card: optional. Blank means "use the derived
+                  // title", which the hint shows live.
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText:
+                          context.l10n.certifications_edit_label_nameOnCard,
+                      prefixIcon: const Icon(Icons.card_membership),
+                      hintText: derivedCertificationTitle(_agency, _level),
+                      helperText:
+                          context.l10n.certifications_edit_helper_nameOnCard,
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if ((value == null || value.trim().isEmpty) &&
+                          _level == null) {
+                        return context
+                            .l10n
+                            .certifications_edit_validation_certificationOrNameRequired;
+                      }
+                      return null;
                     },
                   ),
                   const SizedBox(height: 16),
@@ -441,6 +559,27 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  InstructorPickerField(
+                    instructorId: _instructorId,
+                    onSelected: (buddy, instructorCert) {
+                      setState(() {
+                        _instructorId = buddy?.id;
+                        _hasChanges = true;
+                        if (buddy != null) {
+                          // Snapshot the picked buddy fully: overwrite both
+                          // name and number so switching to a buddy without a
+                          // card number clears a stale one rather than
+                          // leaving the previous selection's value behind.
+                          _instructorNameController.text = buddy.name;
+                          _instructorNumberController.text =
+                              instructorCert?.cardNumber ?? '';
+                        }
+                        // Clearing to None keeps the text fields untouched.
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
                   // Instructor name field
                   TextFormField(
@@ -741,6 +880,51 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   Future<void> _saveCertification() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // issue #553 staging mode: build the cert and hand it back via onStaged;
+    // do NOT persist (the buddy edit form commits it on its own Save). Handled
+    // before the saving spinner because staging is synchronous -- setting
+    // _isSaving and returning would leave an embedded editor spinning forever
+    // if its host keeps it mounted.
+    if (_isStaging) {
+      final now = DateTime.now();
+      final result = Certification(
+        id: widget.initialCertification?.id ?? '',
+        diverId: widget.initialCertification?.diverId,
+        buddyId: widget.initialCertification?.buddyId,
+        name: _nameController.text.trim(),
+        agency: _agency,
+        level: _level,
+        cardNumber: _cardNumberController.text.trim().isEmpty
+            ? null
+            : _cardNumberController.text.trim(),
+        issueDate: _issueDate,
+        expiryDate: _expiryDate,
+        instructorName: _instructorNameController.text.trim().isEmpty
+            ? null
+            : _instructorNameController.text.trim(),
+        instructorNumber: _instructorNumberController.text.trim().isEmpty
+            ? null
+            : _instructorNumberController.text.trim(),
+        instructorId: _instructorId,
+        photoFront: _photoFront,
+        photoBack: _photoBack,
+        notes: _notesController.text.trim(),
+        createdAt: widget.initialCertification?.createdAt ?? now,
+        // Preserve updatedAt so an unmodified Save equals the persisted cert
+        // and replaceBuddyCertifications skips it (issue #553 review). A real
+        // edit changes another prop, so the update still fires -- and
+        // updateCertification stamps its own updatedAt on commit anyway.
+        updatedAt: widget.initialCertification?.updatedAt ?? now,
+      );
+      widget.onStaged!(result);
+      if (widget.embedded) {
+        widget.onSaved?.call(result.id);
+      } else {
+        context.pop();
+      }
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -767,6 +951,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         instructorNumber: _instructorNumberController.text.trim().isEmpty
             ? null
             : _instructorNumberController.text.trim(),
+        instructorId: _instructorId,
         photoFront: _photoFront,
         photoBack: _photoBack,
         notes: _notesController.text.trim(),
@@ -889,7 +1074,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: value ?? DateTime.now(),
       firstDate: DateTime(1950),

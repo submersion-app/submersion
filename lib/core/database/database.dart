@@ -1,6 +1,12 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:drift/drift.dart';
+
+import 'package:submersion/core/database/imported_computer_backfill.dart';
+import 'package:submersion/core/database/performance_indexes.dart';
+import 'package:submersion/core/database/tag_uniqueness.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 part 'database.g.dart';
 
@@ -40,6 +46,16 @@ class Divers extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  // Prior dive experience (issue #331): per-diver lifetime offsets for dives
+  // logged before the diver started using Submersion. Null = none.
+  IntColumn get priorDiveCount => integer().nullable()();
+  IntColumn get priorDiveTimeSeconds => integer().nullable()();
+  IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -57,8 +73,16 @@ class Trips extends Table {
   TextColumn get tripType => text().withDefault(const Constant('shore'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isShared => boolean().withDefault(const Constant(false))();
+
+  /// Return flight departure, wall-clock-as-UTC epoch ms (v142). Drives the
+  /// remaining-dive-window countdown; null when the trip has no flight set.
+  IntColumn get returnFlightAt => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -82,6 +106,10 @@ class LiveaboardDetailRecords extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -100,8 +128,459 @@ class TripItineraryDays extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Reusable checklist templates for trip planning (issue #164)
+class ChecklistTemplates extends Table {
+  // coverage:ignore-start
+  // Drift column getters run at build time via drift_dev, not at runtime, so
+  // lcov never records hits (true of every Table class in this file).
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Items belonging to a checklist template
+class ChecklistTemplateItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId => text().references(ChecklistTemplates, #id)();
+  TextColumn get title => text()();
+  TextColumn get category => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Days before trip start the item is due (14 = "two weeks out").
+  IntColumn get dueOffsetDays => integer().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Per-trip checklist items (copied from templates or added ad hoc)
+class TripChecklistItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get title => text()();
+  TextColumn get category => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Absolute due date, resolved from the template offset at apply time.
+  IntColumn get dueDate => integer().nullable()();
+  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
+  IntColumn get completedAt => integer().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Pre-dive checklist templates (spec 2026-07-16-pre-dive-checklist).
+/// Built-ins (isBuiltIn) are seeded by kSeedBuiltInPreDiveTemplate* SQL,
+/// re-asserted in beforeOpen, and skipped by sync export.
+class PreDiveChecklistTemplates extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  TextColumn get category => text().nullable()();
+
+  /// Enforce item order during sessions (CCR-build style).
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+
+  /// Stable identity for built-in re-seeding and content upgrades.
+  TextColumn get builtinKey => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Items belonging to a pre-dive checklist template.
+class PreDiveChecklistTemplateItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId =>
+      text().references(PreDiveChecklistTemplates, #id)();
+
+  /// Visual grouping header (e.g. "Cells", "Bailout").
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  /// 'check' | 'value' | 'equipmentSet' (PreDiveItemType.name).
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+
+  /// Warning thresholds for value items — advisory, never blocking.
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+
+  /// Required items must end Done or Flagged (never Skipped).
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// A pre-dive checklist run. Snapshots everything at start; completed and
+/// aborted sessions are immutable audit records (repository-enforced).
+class PreDiveSessions extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get templateId => text().nullable().references(
+    PreDiveChecklistTemplates,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Snapshot; survives template deletion.
+  TextColumn get templateName => text()();
+
+  /// Snapshot of the template's strictOrder at session start.
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  TextColumn get tripId =>
+      text().nullable().references(Trips, #id, onDelete: KeyAction.setNull)();
+  IntColumn get startedAt => integer()();
+  IntColumn get completedAt => integer().nullable()();
+
+  /// 'inProgress' | 'completed' | 'aborted' (PreDiveSessionStatus.name).
+  TextColumn get status => text().withDefault(const Constant('inProgress'))();
+  TextColumn get equipmentSetId => text().nullable().references(
+    EquipmentSets,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Display snapshot; survives set deletion.
+  TextColumn get equipmentSetName => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Per-session checklist items: a full snapshot of the template item plus
+/// run state. Mutated individually during a run, so first-class HLC rows.
+class PreDiveSessionItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(PreDiveSessions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+
+  /// 'pending' | 'done' | 'skipped' | 'flagged' (PreDiveItemState.name).
+  TextColumn get state => text().withDefault(const Constant('pending'))();
+  RealColumn get valueNumber => real().nullable()();
+  TextColumn get valueText => text().nullable()();
+
+  /// Diver note recorded during the run (e.g. "cell 2 sluggish").
+  TextColumn get note => text().withDefault(const Constant(''))();
+
+  /// Stamped at tap time — audit evidence, never backfilled.
+  IntColumn get completedAt => integer().nullable()();
+
+  /// Set for equipment-expanded rows; navigation only.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// GPS surface tracks recorded by the phone during a dive day (spec
+/// 2026-07-06-gps-track-logging). One row per recording session; points
+/// live in a gzipped JSON blob because matching always reads whole tracks
+/// and blob-per-session keeps sync to one HLC row per boat day.
+@DataClassName('GpsTrackRow')
+class GpsTracks extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+
+  /// Wall-clock-as-UTC epoch milliseconds (same convention as dives.entryTime)
+  IntColumn get startTime => integer()();
+  IntColumn get endTime => integer().nullable()();
+
+  /// Device UTC offset at recording start, to reconstruct true UTC later
+  IntColumn get tzOffsetMinutes => integer().withDefault(const Constant(0))();
+  TextColumn get deviceName => text().nullable()();
+  IntColumn get pointCount => integer().withDefault(const Constant(0))();
+
+  /// Provenance: 'phone' | 'gpx' | 'fit' | 'kml' | 'csv'. Rendering code
+  /// treats this as opaque -- no view logic branches on it.
+  TextColumn get source => text().withDefault(const Constant('phone'))();
+
+  /// Originating filename or device, for imported tracks.
+  TextColumn get sourceRef => text().nullable()();
+
+  /// User-editable label.
+  TextColumn get name => text().nullable()();
+
+  /// Non-destructive trim bounds, wall-clock-as-UTC epoch MILLISECONDS.
+  /// The points blob is never rewritten by a trim, so trimming is fully
+  /// reversible and cannot lose a fix.
+  IntColumn get trimStartTime => integer().nullable()();
+  IntColumn get trimEndTime => integer().nullable()();
+
+  /// Gzipped JSON array of [wallClockEpochSeconds, lat, lon, accuracyMeters]
+  BlobColumn get points => blob().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Local-only append buffer for the in-progress GPS recording session.
+/// Never synced (no hlc). Finalized into gps_tracks.points on stop or
+/// crash recovery.
+@DataClassName('GpsTrackPointRow')
+class GpsTrackPointsLocal extends Table {
+  // coverage:ignore-start
+  IntColumn get rowId => integer().autoIncrement()();
+  TextColumn get trackId => text()();
+
+  /// Wall-clock-as-UTC epoch seconds
+  IntColumn get timestamp => integer()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get accuracy => real().nullable()();
+  // coverage:ignore-end
+}
+
+/// Saved dive plans (dive planner redesign, Phase 2)
+class DivePlans extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// PlanMode enum name: 'oc' | 'ccr' | 'scr' | 'pscr'.
+  TextColumn get mode => text().withDefault(const Constant('oc'))();
+  TextColumn get siteId => text().nullable().references(DiveSites, #id)();
+
+  /// Planned start time (Unix seconds); null = "now" at planning. Drives
+  /// repetitive tissue init and overlap detection (v120).
+  IntColumn get startDateTime => integer().nullable()();
+
+  /// Tissue-seeding source dive (repetitive planning, Phase 6).
+  TextColumn get sourceDiveId => text().nullable().references(Dives, #id)();
+
+  /// Executed dive this plan is linked to (plan-vs-actual, Phase 6).
+  TextColumn get linkedDiveId => text().nullable().references(Dives, #id)();
+  RealColumn get altitude => real().nullable()();
+
+  /// WaterType enum name; null = unspecified (EN13319 density).
+  TextColumn get waterType => text().nullable()();
+  IntColumn get gfLow => integer()();
+  IntColumn get gfHigh => integer()();
+  RealColumn get descentRate => real().withDefault(const Constant(18.0))();
+  RealColumn get ascentRate => real().withDefault(const Constant(9.0))();
+  RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
+  IntColumn get gasSwitchStopSeconds =>
+      integer().withDefault(const Constant(0))();
+
+  /// Air-break policy; both null = no air breaks.
+  IntColumn get airBreakO2Seconds => integer().nullable()();
+  IntColumn get airBreakBreakSeconds => integer().nullable()();
+  RealColumn get sacBottom => real().withDefault(const Constant(15.0))();
+
+  /// Null = derive 0.8x / 2.5x of sacBottom.
+  RealColumn get sacDeco => real().nullable()();
+  RealColumn get sacStressed => real().nullable()();
+  RealColumn get reservePressure => real().withDefault(const Constant(50.0))();
+  IntColumn get surfaceIntervalSeconds => integer().nullable()();
+
+  /// CCR setpoints (Phase 4 UI; persisted now to avoid a later migration).
+  RealColumn get setpointLow => real().nullable()();
+  RealColumn get setpointHigh => real().nullable()();
+  RealColumn get setpointSwitchDepth => real().nullable()();
+
+  /// Contingency config (Phase 5 UI).
+  RealColumn get deviationDepthDelta =>
+      real().withDefault(const Constant(5.0))();
+  IntColumn get deviationTimeMinutes =>
+      integer().withDefault(const Constant(5))();
+
+  /// TurnPressureRule enum name; null = none.
+  TextColumn get turnPressureRule => text().nullable()();
+  RealColumn get turnPressureFraction => real().nullable()();
+
+  /// Accepted weight prediction snapshot (v104). Placement is a JSON object
+  /// keyed by WeightType.name -> kg.
+  RealColumn get plannedWeightKg => real().nullable()();
+  TextColumn get plannedWeightPlacement => text().nullable()();
+
+  /// Denormalized list-display summary (no engine run per list row).
+  RealColumn get summaryMaxDepth => real().nullable()();
+  IntColumn get summaryRuntimeSeconds => integer().nullable()();
+  IntColumn get summaryTtsSeconds => integer().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Tanks carried on a saved dive plan
+class DivePlanTanks extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get planId => text().references(DivePlans, #id)();
+  TextColumn get name => text().nullable()();
+  RealColumn get volume => real().nullable()();
+  RealColumn get workingPressure => real().nullable()();
+  RealColumn get startPressure => real().nullable()();
+  RealColumn get gasO2 => real().withDefault(const Constant(21.0))();
+  RealColumn get gasHe => real().withDefault(const Constant(0.0))();
+
+  /// TankRole enum name.
+  TextColumn get role => text().withDefault(const Constant('backGas'))();
+
+  /// TankMaterial enum name; null = unspecified.
+  TextColumn get material => text().nullable()();
+  TextColumn get presetName => text().nullable()();
+
+  /// Deco gas-switch depth override in meters; null = auto (MOD at deco pO2).
+  /// Subsurface per-cylinder "Deco switch at" (v120).
+  RealColumn get decoSwitchDepth => real().nullable()();
+
+  /// Whether this cylinder also doubles as travel gas, breathed on the
+  /// descent before switching to its primary role's gas (v156).
+  BoolColumn get isTravelGas => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// User-authored segments (the bottom portion) of a saved dive plan
+class DivePlanSegments extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get planId => text().references(DivePlans, #id)();
+
+  /// SegmentType enum name.
+  TextColumn get type => text()();
+  RealColumn get startDepth => real()();
+  RealColumn get endDepth => real()();
+  IntColumn get durationSeconds => integer()();
+  TextColumn get tankId => text().references(DivePlanTanks, #id)();
+  RealColumn get gasO2 => real()();
+  RealColumn get gasHe => real()();
+  RealColumn get rate => real().nullable()();
+  TextColumn get switchToTankId => text().nullable()();
+
+  /// Per-segment CCR setpoint override in bar; null = the plan's depth-based
+  /// setpoint (v120, Subsurface per-segment setpoint column).
+  RealColumn get setpointBar => real().nullable()();
+
+  /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'|'pscr'); null =
+  /// the plan's mode. Models mid-plan bailout (v120).
+  TextColumn get diveModeOverride => text().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
 }
 
 /// Dive log entries
@@ -109,6 +588,9 @@ class Dives extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
   IntColumn get diveNumber => integer().nullable()();
+  // User-defined dive name (#400). Null = never named; display falls back
+  // to the site name.
+  TextColumn get name => text().nullable()();
   IntColumn get diveDateTime =>
       integer()(); // Unix timestamp (legacy, kept for compatibility)
   IntColumn get entryTime =>
@@ -121,11 +603,25 @@ class Dives extends Table {
   RealColumn get avgDepth => real().nullable()();
   RealColumn get waterTemp => real().nullable()();
   RealColumn get airTemp => real().nullable()();
+
+  /// Legacy visibility bucket (pre-v144). Retained read-only so dives logged
+  /// before measured visibility keep the band they were filed under; cleared
+  /// when [visibilityMeters] is written. New code must not write this.
   TextColumn get visibility => text().nullable()();
+
+  /// v144: measured horizontal visibility in meters, canonical from v144 on.
+  ///
+  /// Storing the measurement rather than a judgment is what lets the
+  /// good/poor adjective be calibrated per diver: six meters is six meters in
+  /// Cozumel and in Puget Sound, only the adjective differs.
+  RealColumn get visibilityMeters => real().nullable()();
   TextColumn get diveType =>
       text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
+
+  /// The active diver's own role on this dive (dive_roles id, #547).
+  TextColumn get diverRole => text().nullable()();
   // MacDive import fields — common dive metadata
   TextColumn get boatName => text().nullable()();
   TextColumn get boatCaptain => text().nullable()();
@@ -167,6 +663,10 @@ class Dives extends Table {
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
+  // Weighting feedback (v104): 'correct' | 'overweighted' | 'underweighted'.
+  TextColumn get weightingFeedback => text().nullable()();
+  // Magnitude in kg; direction implied by weightingFeedback.
+  RealColumn get weightingFeedbackKg => real().nullable()();
   // Favorite flag (v1.1)
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // Dive mode for CCR/SCR (v1.5)
@@ -241,11 +741,27 @@ class Dives extends Table {
       text().nullable()(); // enum: WeatherSource.name
   IntColumn get weatherFetchedAt => integer().nullable()(); // unix timestamp
 
+  /// Raw WMO weather code from the forecast provider.
+  ///
+  /// Retained so the description can be rendered in the diver's locale and
+  /// units at display time rather than frozen as English prose at fetch time.
+  IntColumn get weatherCode => integer().nullable()();
+
+  // GPS entry/exit fixes from dive computer (Shearwater Swift). Decimal degrees.
+  RealColumn get entryLatitude => real().nullable()();
+  RealColumn get entryLongitude => real().nullable()();
+  RealColumn get exitLatitude => real().nullable()();
+  RealColumn get exitLongitude => real().nullable()();
+
   // Import version: null = pre-fix, 1 = wall-clock-as-UTC convention
   IntColumn get importVersion => integer().nullable()();
 
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -258,6 +774,26 @@ class DiveProfiles extends Table {
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
+
+  /// Owning [DiveDataSources] row (issue #1149).
+  ///
+  /// [computerId] cannot identify the owner on its own: file imports and
+  /// manual entries leave it null on both the source row and the profile
+  /// rows, so two file-imported sources on one dive are indistinguishable.
+  /// This FK names the owner outright, which is what `setPrimaryDataSource`
+  /// promotes on.
+  ///
+  /// Nullable, and consumers must tolerate null: rows written before v158,
+  /// and rows synced from a peer running an older schema, carry none. The
+  /// fallback is the legacy convention (match on [computerId]; null belongs
+  /// to the primary source). `onDelete: setNull` because samples must
+  /// outlive their metadata row -- dropping a source must never destroy the
+  /// profile it describes.
+  TextColumn get sourceId => text().nullable().references(
+    DiveDataSources,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   BoolColumn get isPrimary => boolean().withDefault(
     const Constant(true),
   )(); // Primary profile for stats
@@ -267,6 +803,9 @@ class DiveProfiles extends Table {
   RealColumn get pressure => real().nullable()();
   RealColumn get temperature => real().nullable()();
   IntColumn get heartRate => integer().nullable()();
+  // Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
+  // computer does not report bearing samples.
+  RealColumn get heading => real().nullable()();
   // Computed decompression data (optional, can be calculated on-the-fly)
   RealColumn get ascentRate => real().nullable()(); // m/min
   RealColumn get ceiling => real().nullable()(); // deco ceiling in meters
@@ -276,6 +815,24 @@ class DiveProfiles extends Table {
   RealColumn get setpoint =>
       real().nullable()(); // Current setpoint at sample (bar)
   RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
+
+  // Individual CCR O2 cell readings (bar). Subsurface exports up to 6
+  // (sensor1..sensor6); rebreathers run 3 (e.g. JJ-CCR) to 5 (e.g. rEvo).
+  // Stored raw exactly as the source reports them; null when absent.
+  RealColumn get o2Sensor1 => real().nullable()();
+  RealColumn get o2Sensor2 => real().nullable()();
+  RealColumn get o2Sensor3 => real().nullable()();
+  RealColumn get o2Sensor4 => real().nullable()();
+  RealColumn get o2Sensor5 => real().nullable()();
+  RealColumn get o2Sensor6 => real().nullable()();
+  // Raw O2 cell output in millivolts (issue #810). Reported even when the
+  // matching o2SensorN is null because the logged calibration was untrusted.
+  IntColumn get o2SensorMv1 => integer().nullable()();
+  IntColumn get o2SensorMv2 => integer().nullable()();
+  IntColumn get o2SensorMv3 => integer().nullable()();
+  IntColumn get o2SensorMv4 => integer().nullable()();
+  IntColumn get o2SensorMv5 => integer().nullable()();
+  IntColumn get o2SensorMv6 => integer().nullable()();
 
   // Per-sample decompression data (v1.5)
   RealColumn get cns => real().nullable()(); // CNS percentage 0-100
@@ -308,6 +865,9 @@ class DiveSites extends Table {
   // MacDive site metadata
   TextColumn get waterType => text().nullable()();
   TextColumn get bodyOfWater => text().nullable()();
+  // Location hierarchy
+  TextColumn get city => text().nullable()();
+  TextColumn get island => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
@@ -322,9 +882,17 @@ class DiveSites extends Table {
       text().nullable()(); // Parking availability and tips
   RealColumn get altitude => real()
       .nullable()(); // Altitude above sea level in meters (for altitude diving)
+  /// Typical entry and exit method at this site, stored as EntryMethod.name
+  /// (issue #1104). Snapped onto a dive when the site is assigned.
+  TextColumn get entryMethod => text().nullable()();
+  TextColumn get exitMethod => text().nullable()();
   BoolColumn get isShared => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -352,6 +920,14 @@ class DiveTanks extends Table {
       text().nullable()(); // user-friendly name like "Primary AL80"
   TextColumn get presetName =>
       text().nullable()(); // preset name (e.g., 'al80', 'hp100')
+  // Which computer contributed this tank (null = primary source / manual).
+  // Same null-means-primary semantics as dive_profiles.computerId; deletes
+  // set null.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -367,6 +943,11 @@ class Equipment extends Table {
   TextColumn get model => text().nullable()();
   TextColumn get serialNumber => text().nullable()();
   TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
+  TextColumn get thickness => text().nullable()(); // 2,3,4,5,6 or 6mm (v112)
+  // Buoyancy metadata (v104): net in-water buoyancy in kg (positive floats),
+  // and dry weight in kg (feeds displacement scaling).
+  RealColumn get buoyancyKg => real().nullable()();
+  RealColumn get weightKg => real().nullable()();
   TextColumn get status => text().withDefault(
     const Constant('active'),
   )(); // active, needsService, retired, etc.
@@ -386,8 +967,42 @@ class Equipment extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Type-specific and user-defined attributes for equipment items (v124).
+/// Curated rows (isCustom = false) use deterministic ids
+/// `attr_<equipmentId>_<attrKey>` so independently migrated devices converge;
+/// custom rows use random UUIDs. "Unset" is "no row" -- clearing a value
+/// deletes the row and writes a tombstone.
+@DataClassName('EquipmentAttributeRow')
+class EquipmentAttributes extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get attrKey => text()();
+  BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
+  TextColumn get valueText => text().nullable()();
+  RealColumn get valueNum => real().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {equipmentId, attrKey, isCustom},
+  ];
 }
 
 /// Junction table for equipment used per dive
@@ -416,6 +1031,35 @@ class DiveWeights extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Dated body-mass measurements per diver (weight prediction, v104).
+@DataClassName('DiverWeightEntryRow')
+class DiverWeightEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().references(Divers, #id)();
+  IntColumn get measuredAt => integer()(); // Unix ms
+  RealColumn get weightKg => real()();
+  RealColumn get heightCm => real().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction: equipment attached to a saved dive plan (v104).
+class DivePlanEquipment extends Table {
+  TextColumn get planId =>
+      text().references(DivePlans, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  @override
+  Set<Column> get primaryKey => {planId, equipmentId};
+}
+
 /// Equipment sets (named collections of equipment items)
 class EquipmentSets extends Table {
   TextColumn get id => text()();
@@ -424,6 +1068,15 @@ class EquipmentSets extends Table {
   TextColumn get description => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Whether this set is the diver's default (auto-applied to new dives with
+  /// no equipment). Mutual exclusion is enforced per-diver at the repository
+  /// layer, mirroring DiverRepository.setDefaultDiver.
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -440,6 +1093,148 @@ class EquipmentSetItems extends Table {
   Set<Column> get primaryKey => {setId, equipmentId};
 }
 
+/// Geofences attached to an equipment set. A geofence matches a dive when its
+/// center is within [radiusMeters] of any of the dive's known points (linked
+/// site GPS, or the computer's entry/exit fixes). First-class synced entity:
+/// own id + hlc.
+class EquipmentSetGeofences extends Table {
+  TextColumn get id => text()();
+  TextColumn get setId =>
+      text().references(EquipmentSets, #id, onDelete: KeyAction.cascade)();
+
+  /// Display label; seeded from the anchor site's name or diver-entered.
+  TextColumn get label => text().nullable()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get radiusMeters => real()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Data-quality findings produced by the Data Quality Assistant detectors.
+/// One row per (dive, detector, discriminator). Ids are deterministic
+/// UUIDv5 values so independent scans on two devices converge on the same
+/// row. A user dismissal is a status update, never a delete -- deterministic
+/// ids would otherwise resurrect a dismissed finding on the next rescan. (The
+/// scan pipeline itself may still delete a finding that no longer reproduces;
+/// that path writes a sync tombstone.)
+@DataClassName('QualityFindingRow')
+class QualityFindings extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+
+  /// The other dive for cross-dive findings (duplicates, splits, overlaps).
+  TextColumn get relatedDiveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// Source computer for source-scoped findings.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get detectorId => text()();
+  IntColumn get detectorVersion => integer()();
+  TextColumn get category => text()();
+  TextColumn get severity => text()();
+  TextColumn get status => text().withDefault(const Constant('open'))();
+
+  /// JSON object of numeric arguments; the UI renders localized messages
+  /// from these. Never store prose.
+  TextColumn get params => text().withDefault(const Constant('{}'))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Catalog of service kinds (hydro, VIP, regulator service, ...).
+/// Built-ins are reference data: seeded on create/upgrade/open, skipped by
+/// sync export, undeletable through the repository. Custom kinds sync.
+@DataClassName('ServiceKindRow')
+class ServiceKinds extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+
+  /// JSON array of EquipmentType names this kind suggests for, e.g. '["tank"]'.
+  TextColumn get applicableTypes => text().withDefault(const Constant('[]'))();
+  IntColumn get defaultIntervalDays => integer().nullable()();
+  IntColumn get defaultIntervalDives => integer().nullable()();
+  RealColumn get defaultIntervalHours => real().nullable()();
+
+  /// v154: default price for this maintenance, prefilled into a new service
+  /// record. Nullable currency means "no opinion, use the diver's default
+  /// currency"; a NOT NULL default would make every task silently claim USD.
+  RealColumn get defaultCost => real().nullable()();
+  TextColumn get defaultCurrency => text().nullable()();
+
+  /// v160: the category prefilled into a new service record logged against
+  /// this service type. Nullable because a custom type has no opinion until
+  /// the diver gives it one; a NOT NULL default would make every custom type
+  /// silently claim "annual".
+  TextColumn get defaultCategory => text().nullable()();
+
+  /// Auto-create a schedule when matching equipment is created.
+  BoolColumn get autoAttach => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One service clock per (equipment item, service kind). Next-due is always
+/// computed from the newest ServiceRecord of the kind (anchorDate/purchase
+/// fallbacks) -- never stored, so dive logging does not churn sync rows.
+@DataClassName('ServiceScheduleRow')
+class ServiceSchedules extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get serviceKindId =>
+      text().references(ServiceKinds, #id, onDelete: KeyAction.cascade)();
+
+  /// Per-item overrides; null = inherit the kind's default interval.
+  IntColumn get intervalDays => integer().nullable()();
+  IntColumn get intervalDives => integer().nullable()();
+  RealColumn get intervalHours => real().nullable()();
+
+  /// v154: per-item default price, overriding the kind's. Most specific wins,
+  /// so two rebreathers serviced at different shops each keep their own
+  /// figure. Null inherits the kind's value.
+  RealColumn get defaultCost => real().nullable()();
+  TextColumn get defaultCurrency => text().nullable()();
+
+  /// Baseline when no ServiceRecord of this kind exists yet (e.g. last hydro
+  /// before app adoption). Fallback chain: purchaseDate, then createdAt.
+  IntColumn get anchorDate => integer().nullable()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Marine life species catalog
 class Species extends Table {
   TextColumn get id => text()();
@@ -450,6 +1245,7 @@ class Species extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -520,9 +1316,33 @@ class Media extends Table {
   TextColumn get connectorAccountId => text().nullable()();
   TextColumn get remoteAssetId => text().nullable()();
   TextColumn get originDeviceId => text().nullable()();
+  // Media store (v103) - content identity + upload confirmation stamps.
+  // Nullable adds; a row with remote_uploaded_at set has its original bytes
+  // confirmed present in the library's media store at the content-hash key.
+  TextColumn get contentHash => text().nullable()();
+  IntColumn get contentSizeBytes => integer().nullable()();
+  IntColumn get remoteUploadedAt => integer().nullable()();
+  IntColumn get remoteThumbUploadedAt => integer().nullable()();
+
+  // Adjustable upload quality (v133): a compressed rendition, keyed by the
+  // original's content hash, may be uploaded instead of the original.
+  TextColumn get compressedLevel => text().nullable()();
+  IntColumn get compressedSizeBytes => integer().nullable()();
+  IntColumn get remoteCompressedUploadedAt => integer().nullable()();
+  // Media section Phase 1 (v140): kept-in-library marker. Dormant until the
+  // Phase 2 link-management UI sets it; the orphan sweep will exclude rows
+  // where it is true. Synced with the row like every other media column.
+  BoolColumn get retainInLibrary =>
+      boolean().withDefault(const Constant(false))();
+  // v164: the moment in the dive the diver pinned this item to, in seconds
+  // from the dive start (issue #1090). Null means the position derives from
+  // taken_at. Lives on the media row, not on media_enrichment, so it syncs
+  // with the row and survives every enrichment recompute.
+  IntColumn get manualElapsedSeconds => integer().nullable()();
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -545,6 +1365,10 @@ class MediaEnrichment extends Table {
   )(); // exact, interpolated, estimated, no_profile
   IntColumn get timestampOffsetSeconds => integer().nullable()();
   IntColumn get createdAt => integer()();
+  // v130: sync replication. media_enrichment is the depth/time association for
+  // a linked photo; without an hlc it never travelled through sync and was
+  // lost on other devices / after restore.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -574,7 +1398,61 @@ class MediaSpecies extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Pending photo suggestions for background scan feature
+/// Repair history (Media section Phase 5, v143).
+///
+/// Deliberately NOT synced and NOT registered in [SyncRepository]: every
+/// row records a device-specific path change, so replaying one device's
+/// history onto another would describe files that never existed there.
+/// Same per-device reasoning as [PendingPhotoSuggestions]. Pruned to the
+/// newest 500 rows by MediaRepairLogRepository.
+class MediaRepairLog extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId => text()();
+
+  /// Groups every row written by one apply pass.
+  TextColumn get batchId => text()();
+  IntColumn get occurredAt => integer()();
+
+  /// A `RepairLogAction.name`: relink | cloudBacked | autoRelink.
+  TextColumn get action => text()();
+
+  /// The pointer before and after the repair (path, asset id, or null for
+  /// a cloud-backed conversion's new value).
+  TextColumn get oldValue => text().nullable()();
+  TextColumn get newValue => text().nullable()();
+
+  /// A `RepairLogSource.name`: folder | photoLibrary | store | watcher |
+  /// manual.
+  TextColumn get source => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A named saved library filter (Media section Phase 5, v143).
+///
+/// Synced like any other user data: the filter is expressed in ids and
+/// enum names that mean the same thing on every device.
+class MediaSmartAlbums extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+
+  /// A serialized `MediaLibraryFilter`.
+  TextColumn get filterJson => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Pending photo suggestions for background scan feature.
+///
+/// v106: connector suggestions (Lightroom) reuse this table. For those
+/// rows `connectorAccountId`/`remoteAssetId` are set and the remote asset
+/// id is mirrored into the NOT NULL `platformAssetId` key column.
 class PendingPhotoSuggestions extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
@@ -584,6 +1462,8 @@ class PendingPhotoSuggestions extends Table {
   TextColumn get thumbnailPath => text().nullable()();
   BoolColumn get dismissed => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get connectorAccountId => text().nullable()();
+  TextColumn get remoteAssetId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -610,6 +1490,10 @@ class MediaSubscriptions extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution (v108;
+  /// nullable: rows written before the rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -627,22 +1511,6 @@ class MediaSubscriptionState extends Table {
 
   @override
   Set<Column> get primaryKey => {subscriptionId};
-}
-
-/// Configured service-connector accounts (Immich, Dropbox, etc.). Not synced —
-/// each device signs in independently.
-class ConnectorAccounts extends Table {
-  TextColumn get id => text()();
-  TextColumn get connectorType => text()();
-  TextColumn get displayName => text()();
-  TextColumn get baseUrl => text().nullable()();
-  TextColumn get accountIdentifier => text().nullable()();
-  TextColumn get credentialsRef => text()();
-  IntColumn get addedAt => integer()();
-  IntColumn get lastUsedAt => integer().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }
 
 /// Per-host credentials for ad-hoc HTTP(S) media URLs. Not synced.
@@ -678,6 +1546,41 @@ class MediaFetchDiagnostics extends Table {
   @override
   Set<Column> get primaryKey => {mediaItemId};
 }
+
+/// The library's media store descriptor (secret-free). Synced so other
+/// devices learn a store exists and can prompt to connect. Exactly one
+/// active row is expected; credentials never live here (keychain only).
+class MediaStores extends Table {
+  TextColumn get id => text()(); // storeId UUID, matches smv1/store.json
+  TextColumn get providerType => text()(); // 's3' (Phase 4 adds others)
+  TextColumn get displayHint => text()(); // e.g. 'dive-media @ minio.host'
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+  // v136: epoch millis of the last completed Verify Library sweep on ANY
+  // device (fleet-wide cadence; orphan-prevention spec 6.4).
+  IntColumn get lastSweepAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Linked credentialed endpoints (secret-free). Synced roster: other
+/// devices see which accounts exist and prompt for sign-in (program spec
+/// section 5). Credentials live in the keychain under
+/// `account_<id>_credentials`, never here.
+class ConnectedAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get kind => text()(); // AccountKind.name
+  TextColumn get label => text()();
+  TextColumn get accountIdentifier => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
 // coverage:ignore-end
 
 /// Application settings key-value store (legacy - kept for backward compatibility)
@@ -685,6 +1588,10 @@ class Settings extends Table {
   TextColumn get key => text()();
   TextColumn get value => text().nullable()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {key};
@@ -705,6 +1612,46 @@ class DiverSettings extends Table {
   TextColumn get altitudeUnit => text().withDefault(const Constant('meters'))();
   TextColumn get sacUnit =>
       text().withDefault(const Constant('litersPerMin'))();
+
+  /// v155: which equation of state converts cylinder pressure to gas volume.
+  ///
+  /// 'real' reproduces the compressibility-corrected math the app used
+  /// unconditionally before the preference existed, so upgrading changes
+  /// nobody's numbers; 'ideal' matches hand calculation (issue #828).
+  TextColumn get gasModel => text().withDefault(const Constant('real'))();
+  TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
+
+  /// v144: per-diver calibration deciding which measured distances count as
+  /// excellent/good/moderate/poor visibility.
+  ///
+  /// Presentational only -- dives always store the measured distance, so
+  /// changing this re-labels a logbook without altering any dive. Defaults to
+  /// 'tropical', which reproduces the thresholds hardcoded before v144 so
+  /// upgrading re-labels nobody's existing dives.
+  TextColumn get visibilityScalePreset =>
+      text().withDefault(const Constant('tropical'))();
+
+  /// Custom calibration thresholds in meters, used only when
+  /// [visibilityScalePreset] is 'custom'.
+  RealColumn get visibilityScaleExcellentM => real().nullable()();
+  RealColumn get visibilityScaleGoodM => real().nullable()();
+  RealColumn get visibilityScaleModerateM => real().nullable()();
+
+  /// v150: how GPS coordinates are rendered and entered (issue #1041).
+  ///
+  /// Presentational only -- coordinates are always stored as decimal-degree
+  /// doubles, so changing this re-renders every site without altering a
+  /// single stored value. Defaults to 'decimalDegrees', which is what the app
+  /// showed before v150.
+  TextColumn get coordinateFormat =>
+      text().withDefault(const Constant('decimalDegrees'))();
+
+  /// v151: seascape terrain appearance (ramp range/banding, contour mode
+  /// and custom levels, steep-wall angle) as one JSON blob, per-diver so
+  /// it syncs. Nullable ON PURPOSE: null marks a row that predates v151
+  /// and has never held a value, which is what lets a device adopt its
+  /// legacy device-local pref exactly once (see SettingsNotifier).
+  TextColumn get seascapeAppearance => text().nullable()();
   // Time/Date format settings
   TextColumn get timeFormat =>
       text().withDefault(const Constant('twelveHour'))();
@@ -713,8 +1660,18 @@ class DiverSettings extends Table {
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   TextColumn get themePreset =>
       text().withDefault(const Constant('submersion'))();
+  // Color accents (optional per-surface icon tinting; all default off)
+  BoolColumn get accentNavIcons =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get accentSectionHeaders =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get accentListIcons =>
+      boolean().withDefault(const Constant(false))();
   // Locale (language preference: 'system', 'en', 'es', 'fr', etc.)
   TextColumn get locale => text().withDefault(const Constant('system'))();
+  // Language for reverse-geocoded place names, ISO 639-1 (issue #1187, v166)
+  TextColumn get placeNameLanguage =>
+      text().withDefault(const Constant('en'))();
   // Defaults
   TextColumn get defaultDiveType =>
       text().withDefault(const Constant('recreational'))();
@@ -739,11 +1696,15 @@ class DiverSettings extends Table {
   BoolColumn get showCeilingOnProfile =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get showAscentRateColors =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
   BoolColumn get showNdlOnProfile =>
       boolean().withDefault(const Constant(true))();
   RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
   RealColumn get decoStopIncrement => real().withDefault(const Constant(3.0))();
+  // coverage:ignore-start
+  /// Index of AscentGasSet (0 = allCarried). Drives the ideal-gas ascent set.
+  IntColumn get ascentGasSet => integer().withDefault(const Constant(0))();
+  // coverage:ignore-end
   BoolColumn get o2Narcotic => boolean().withDefault(const Constant(true))();
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
   BoolColumn get useDiveComputerCnsData =>
@@ -753,6 +1714,27 @@ class DiverSettings extends Table {
       integer().withDefault(const Constant(1))();
   IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
+  // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
+  TextColumn get cnsCalculationMethod =>
+      text().withDefault(const Constant('shearwater'))();
+  // Deco stop band on the profile chart (v133). Source is a MetricDataSource
+  // index: 0 = computer, 1 = calculated.
+  BoolColumn get showDecoStopsOnProfile =>
+      boolean().withDefault(const Constant(true))();
+  IntColumn get defaultDecoStopSource =>
+      integer().withDefault(const Constant(1))();
+  // Post-dive safety review (safety features phase 1, v123)
+  BoolColumn get safetyReviewEnabled =>
+      boolean().withDefault(const Constant(true))();
+  // JSON array of SafetyRuleId.dbValue strings; null/absent = none disabled.
+  TextColumn get safetyReviewDisabledRules => text().nullable()();
+  // Flying-after-diving conservatism (NoFlyPreset.dbValue, v125).
+  TextColumn get noFlyPreset =>
+      text().withDefault(const Constant('standard'))();
+  // Emergency card (v126): hidden bundled chamber ids (JSON list) and a
+  // manual region override (ISO country code).
+  TextColumn get hiddenChamberIds => text().nullable()();
+  TextColumn get emergencyRegion => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -794,6 +1776,9 @@ class DiverSettings extends Table {
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();
+  // Auto site matching sensitivity (v76): strict | balanced | relaxed
+  TextColumn get siteMatchSensitivity =>
+      text().withDefault(const Constant('balanced'))();
   // Dive profile chart defaults
   TextColumn get defaultRightAxisMetric =>
       text().withDefault(const Constant('temperature'))();
@@ -829,6 +1814,32 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
+  BoolColumn get defaultShowGasTimeline =>
+      boolean().withDefault(const Constant(false))();
+  // v161: default visibility for the per-cell O2 mV traces (issue #1235).
+  BoolColumn get defaultShowO2CellMv =>
+      boolean().withDefault(const Constant(false))();
+  // v163: whether synthesized ("(est.)") tank pressure lines are drawn on the
+  // profile chart at all (issue #731). Defaults to true, preserving the
+  // behavior estimates shipped with. Ignored for coverage for the reason
+  // given below: the declaration is a codegen input, never executed. Its
+  // default is pinned by migration_v163_estimated_tank_pressure_default_test.
+  // coverage:ignore-start
+  BoolColumn get defaultShowEstimatedTankPressure =>
+      boolean().withDefault(const Constant(true))();
+  // coverage:ignore-end
+  // Drift column declarations are codegen inputs shadowed by the generated
+  // table at runtime, so this line is never executed (every sibling column
+  // getter is likewise uncovered). The default is verified via the migration
+  // and settings tests, not by exercising this declaration.
+  // coverage:ignore-start
+  BoolColumn get defaultShowAscentRateLine =>
+      boolean().withDefault(const Constant(false))();
+  // coverage:ignore-end
+  // coverage:ignore-start
+  BoolColumn get defaultShowPhotoMarkers =>
+      boolean().withDefault(const Constant(true))();
+  // coverage:ignore-end
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -836,6 +1847,9 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('[7, 14, 30]'))(); // JSON array
   TextColumn get reminderTime =>
       text().withDefault(const Constant('09:00'))(); // HH:mm format
+  // v122: days before a trip to nag about gear due before trip end.
+  IntColumn get tripServiceLeadDays =>
+      integer().withDefault(const Constant(14))();
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
@@ -864,6 +1878,10 @@ class DiverSettings extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -875,12 +1893,15 @@ class Buddies extends Table {
   TextColumn get name => text()();
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
-  TextColumn get certificationLevel => text().nullable()();
-  TextColumn get certificationAgency => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -912,6 +1933,17 @@ class Certifications extends Table {
   IntColumn get expiryDate => integer().nullable()(); // For certs that expire
   TextColumn get instructorName => text().nullable()();
   TextColumn get instructorNumber => text().nullable()();
+  // Structured instructor link (issue #395). The text fields above remain
+  // the historical snapshot and survive buddy deletion.
+  TextColumn get instructorId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
+  // Owner when this certification belongs to a buddy instead of the diver
+  // (issue #553). At most one of {diverId, buddyId} is set (ownerless rows are
+  // allowed -- legacy + no-validated-diver). Cascade so a buddy delete removes
+  // their certs (deletion tombstones are written explicitly in the repository
+  // -- cascade alone does not tombstone).
+  TextColumn get buddyId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.cascade)();
   TextColumn get photoFrontPath => text()
       .nullable()(); // Front of cert card (deprecated, kept for migration)
   TextColumn get photoBackPath =>
@@ -925,6 +1957,10 @@ class Certifications extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -934,7 +1970,17 @@ class ServiceRecords extends Table {
   TextColumn get id => text()();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
-  TextColumn get serviceType => text()(); // annual, repair, inspection, etc.
+
+  /// v160: renamed from serviceType. The Drift getter name is also the sync
+  /// wire key, so this rename raises minimumCompatibleSchemaVersion; see
+  /// SyncDataSerializer._withRenamedKeys for the receiving-side tolerance
+  /// that the floor cannot provide.
+  TextColumn get serviceCategory =>
+      text()(); // annual, repair, inspection, etc.
+
+  /// v122: which service kind this record fulfills (resets that clock).
+  /// Plain text (no FK) so records survive custom-kind deletion.
+  TextColumn get serviceKindId => text().nullable()();
   IntColumn get serviceDate => integer()();
   TextColumn get provider => text().nullable()(); // Shop or technician name
   RealColumn get cost => real().nullable()();
@@ -943,6 +1989,10 @@ class ServiceRecords extends Table {
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -971,6 +2021,10 @@ class DiveCenters extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -983,6 +2037,10 @@ class Tags extends Table {
   TextColumn get color => text().nullable()(); // Hex color code for UI
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1000,6 +2058,10 @@ class DiveTypes extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1012,6 +2074,343 @@ class DiveTags extends Table {
   TextColumn get tagId =>
       text().references(Tags, #id, onDelete: KeyAction.cascade)();
   IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for dive types (many-to-many).
+///
+/// Surrogate UUID primary key (never a composite key) so fresh-id reinserts
+/// never collide with a replaced row's tombstone — this is how the junction
+/// stays clear of the composite-key sync data-loss bug (#347).
+class DiveDiveTypes extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveTypeId => text()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Seeds one junction row per existing dive from its representative dive_type
+/// slug. Used by the v92 migration and asserted directly in tests.
+const String kSeedDiveDiveTypesSql = '''
+  INSERT INTO dive_dive_types (id, dive_id, dive_type_id, created_at)
+  SELECT
+    lower(hex(randomblob(16))),
+    id,
+    COALESCE(NULLIF(dive_type, ''), 'recreational'),
+    CAST(strftime('%s','now') AS INTEGER) * 1000
+  FROM dives
+''';
+
+/// Seeds the built-in dive types. Used by BOTH [onCreate] (fresh installs) and
+/// the v93 migration (backfill for upgraded databases). The full built-in set
+/// was historically seeded only in onCreate, so every database that reached the
+/// app via migration kept an EMPTY `dive_types` table -- harmless until the
+/// multi-select dive-type picker (#414) read it and showed no options.
+///
+/// `INSERT OR IGNORE` keyed on the stable slug ids preserves any rows already
+/// present (synced custom types, or 'cavern' added by the v88 migration) and
+/// makes re-running the seed a no-op. Keep this list in sync with the
+/// onboarding documentation; it is asserted directly in tests.
+///
+/// The timestamp is computed once (the trailing `CROSS JOIN`) and reused for
+/// both `created_at` and `updated_at`, so the two can never diverge across a
+/// `strftime('now')` second boundary.
+const String kSeedBuiltInDiveTypesSql = '''
+  INSERT OR IGNORE INTO dive_types
+    (id, name, is_built_in, sort_order, created_at, updated_at)
+  SELECT t.id, t.name, 1, t.sort_order, n.now_ms, n.now_ms
+  FROM (
+    SELECT 'recreational' AS id, 'Recreational' AS name, 0 AS sort_order
+    UNION ALL SELECT 'technical', 'Technical', 1
+    UNION ALL SELECT 'freedive', 'Freedive', 2
+    UNION ALL SELECT 'training', 'Training', 3
+    UNION ALL SELECT 'wreck', 'Wreck', 4
+    UNION ALL SELECT 'cave', 'Cave', 5
+    UNION ALL SELECT 'ice', 'Ice', 6
+    UNION ALL SELECT 'night', 'Night', 7
+    UNION ALL SELECT 'drift', 'Drift', 8
+    UNION ALL SELECT 'deep', 'Deep', 9
+    UNION ALL SELECT 'altitude', 'Altitude', 10
+    UNION ALL SELECT 'shore', 'Shore', 11
+    UNION ALL SELECT 'boat', 'Boat', 12
+    UNION ALL SELECT 'liveaboard', 'Liveaboard', 13
+    UNION ALL SELECT 'cavern', 'Cavern', 14
+  ) t
+  CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// Per-dive role vocabulary: built-in + custom (v103, issues #551/#547).
+/// Built-in ids are the historical per-dive role names (buddy, diveGuide,
+/// instructor, student, diveMaster, solo) so existing dive_buddies.role
+/// strings resolve without data migration; custom ids are UUIDs so
+/// renames never break references.
+@DataClassName('DiveRoleRow')
+class DiveRoles extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // null for built-in roles
+  TextColumn get name => text()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Built-in pre-dive checklist templates. INSERT OR IGNORE keyed on stable
+/// ids so re-seeding on every open is idempotent and restores replace-adopt
+/// wipes. Built-ins are read-only in the UI and skipped by sync export.
+/// Timestamps are the constant 0: built-ins are device-local reference data,
+/// never synced, and deterministic values keep the statement idempotent.
+const String kSeedBuiltInPreDiveTemplatesSql = '''
+  INSERT OR IGNORE INTO pre_dive_checklist_templates
+    (id, name, description, category, strict_order, is_built_in,
+     builtin_key, created_at, updated_at)
+  VALUES
+    ('builtin-predive-bwraf', 'BWRAF Buddy Check',
+     'Standard recreational pre-dive safety check',
+     'Safety', 0, 1, 'builtin-predive-bwraf', 0, 0),
+    ('builtin-predive-gue-edge', 'GUE EDGE',
+     'Team pre-dive sequence',
+     'Safety', 0, 1, 'builtin-predive-gue-edge', 0, 0),
+    ('builtin-predive-ccr-build', 'CCR Build (generic)',
+     'Generic rebreather assembly and pre-breathe checklist',
+     'CCR', 1, 1, 'builtin-predive-ccr-build', 0, 0),
+    ('builtin-predive-gear-packing', 'Gear Packing',
+     'Pack and stage everything before leaving for the site',
+     'Packing', 0, 1, 'builtin-predive-gear-packing', 0, 0)
+''';
+
+/// Items for the built-in pre-dive templates. Same idempotence contract as
+/// [kSeedBuiltInPreDiveTemplatesSql].
+const String kSeedBuiltInPreDiveTemplateItemsSql = '''
+  INSERT OR IGNORE INTO pre_dive_checklist_template_items
+    (id, template_id, section, title, notes, sort_order, item_type,
+     value_label, value_unit, value_min, value_max, is_required,
+     created_at, updated_at)
+  VALUES
+    ('builtin-predive-bwraf-0', 'builtin-predive-bwraf', NULL,
+     'BCD / Buoyancy: inflate, deflate, dump valves', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-1', 'builtin-predive-bwraf', NULL,
+     'Weights: in place, releases clear', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-2', 'builtin-predive-bwraf', NULL,
+     'Releases: locate and check all buckles', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-3', 'builtin-predive-bwraf', NULL,
+     'Air: valve open, breathe both regs, check gauge', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-4', 'builtin-predive-bwraf', NULL,
+     'Final OK: mask, fins, computer set, buddy signal', '', 4, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-0', 'builtin-predive-gue-edge', NULL,
+     'Equipment: full gear check head to toe', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-1', 'builtin-predive-gue-edge', NULL,
+     'Descent: agree on descent method and reference', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-2', 'builtin-predive-gue-edge', NULL,
+     'Gas: analyze, label, confirm MOD and turn pressure', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-3', 'builtin-predive-gue-edge', NULL,
+     'Environment: conditions, entry/exit, hazards', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
+     'Scrubber packed and within duration limits', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-1', 'builtin-predive-ccr-build', 'Assembly',
+     'Loop assembled, mushroom valves checked', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-2', 'builtin-predive-ccr-build', 'Tests',
+     'Negative pressure test held 60 s', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-3', 'builtin-predive-ccr-build', 'Tests',
+     'Positive pressure test held 60 s', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-4', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 1 mV in air', '', 4, 'value',
+     'Cell 1', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-5', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 2 mV in air', '', 5, 'value',
+     'Cell 2', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-6', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 3 mV in air', '', 6, 'value',
+     'Cell 3', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-7', 'builtin-predive-ccr-build', 'Gas',
+     'Diluent and O2 analyzed, MOD labels on', '', 7, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-8', 'builtin-predive-ccr-build', 'Pre-breathe',
+     'Five-minute pre-breathe, setpoint holds', '', 8, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-9', 'builtin-predive-ccr-build', 'Bailout',
+     'Bailout analyzed, pressurized, clipped', '', 9, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-pack-0', 'builtin-predive-gear-packing', NULL,
+     'Certification card and insurance', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-1', 'builtin-predive-gear-packing', NULL,
+     'Equipment set', '', 1, 'equipmentSet',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-2', 'builtin-predive-gear-packing', NULL,
+     'Save-a-dive kit and spares', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-3', 'builtin-predive-gear-packing', NULL,
+     'Water, sun protection, logbook', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0)
+''';
+
+/// Seeds the nine built-in dive roles. Mirrors [kSeedBuiltInDiveTypesSql]:
+/// INSERT OR IGNORE keyed on stable slug ids keeps it idempotent, and the
+/// seed is re-asserted in beforeOpen so replace-adopt flows that clear the
+/// table cannot leave built-ins missing. The timestamp is computed once via
+/// the trailing CROSS JOIN.
+const String kSeedBuiltInDiveRolesSql = '''
+  INSERT OR IGNORE INTO dive_roles
+    (id, name, is_built_in, sort_order, created_at, updated_at)
+  SELECT t.id, t.name, 1, t.sort_order, n.now_ms, n.now_ms
+  FROM (
+    SELECT 'buddy' AS id, 'Buddy' AS name, 0 AS sort_order
+    UNION ALL SELECT 'diveGuide', 'Dive Guide', 1
+    UNION ALL SELECT 'instructor', 'Instructor', 2
+    UNION ALL SELECT 'student', 'Student', 3
+    UNION ALL SELECT 'diveMaster', 'Divemaster', 4
+    UNION ALL SELECT 'solo', 'Solo', 5
+    UNION ALL SELECT 'rearGuard', 'Rear Guard', 6
+    UNION ALL SELECT 'supportDiver', 'Support Diver', 7
+    UNION ALL SELECT 'safetyDiver', 'Safety Diver', 8
+  ) t
+  CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// Built-in service kinds: identical on every device, stable slug ids
+/// (service_schedules.service_kind_id references them), INSERT OR IGNORE
+/// so re-running is a no-op. Intervals per tech-diving convention.
+/// The category each built-in service type prefills, by stable slug id.
+///
+/// The v160 migration reads this map directly (existing installs).
+/// [kSeedBuiltInServiceKindsSql] cannot: it is a const SQL string, so it
+/// repeats the same categories as inline literals (fresh installs). The two
+/// are held in step by migration_v160_service_category_test.dart, which pins
+/// both the slug set and the category each slug is seeded with. Change one
+/// and change the other.
+const Map<String, String> kBuiltInServiceKindCategories = {
+  'hydro': 'inspection',
+  'vip': 'inspection',
+  'bcd-inspection': 'inspection',
+  'o2-clean': 'cleaning',
+  'regulator-service': 'annual',
+  'rebreather-annual': 'annual',
+  'general-service': 'annual',
+  'computer-battery': 'replacement',
+  'transmitter-battery': 'replacement',
+  'scrubber-repack': 'replacement',
+  'o2-cell-replacement': 'replacement',
+  'drysuit-seals': 'repair',
+};
+
+const String kSeedBuiltInServiceKindsSql = '''
+  INSERT OR IGNORE INTO service_kinds
+    (id, diver_id, name, applicable_types, default_interval_days,
+     default_interval_dives, default_interval_hours, auto_attach,
+     default_category, is_built_in, created_at, updated_at)
+  SELECT t.id, NULL, t.name, t.types, t.days, t.dives, t.hours, t.auto,
+         t.category, 1, n.now_ms, n.now_ms
+  FROM (
+    SELECT 'hydro' AS id, 'Hydrostatic test' AS name, '["tank"]' AS types,
+           1825 AS days, NULL AS dives, NULL AS hours, 1 AS auto,
+           'inspection' AS category
+    UNION ALL SELECT 'vip', 'Visual inspection (VIP)', '["tank"]',
+           365, NULL, NULL, 1, 'inspection'
+    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank"]', 365, NULL, NULL, 0,
+           'cleaning'
+    UNION ALL SELECT 'regulator-service', 'Regulator service',
+           '["regulator"]', 365, 100, NULL, 1, 'annual'
+    UNION ALL SELECT 'computer-battery', 'Computer battery', '["computer"]',
+           730, NULL, NULL, 1, 'replacement'
+    UNION ALL SELECT 'transmitter-battery', 'Transmitter battery',
+           '["transmitter"]', 365, NULL, NULL, 1, 'replacement'
+    UNION ALL SELECT 'bcd-inspection', 'BCD/wing inspection', '["bcd"]',
+           365, NULL, NULL, 1, 'inspection'
+    UNION ALL SELECT 'drysuit-seals', 'Drysuit seals', '["drysuit"]',
+           730, NULL, NULL, 0, 'repair'
+    -- A scrubber is consumed by loop time, not by the calendar, so this is
+    -- the only built-in with an hours-only clock. 3.0 h is conservative
+    -- across the 2-6 h range real units are rated for; the diver overrides
+    -- it per unit via ServiceSchedule.intervalHours.
+    UNION ALL SELECT 'scrubber-repack', 'Scrubber repack', '["rebreather"]',
+           NULL, NULL, 3.0, 1, 'replacement'
+    UNION ALL SELECT 'o2-cell-replacement', 'O2 cell replacement',
+           '["rebreather"]', 365, NULL, NULL, 1, 'replacement'
+    UNION ALL SELECT 'rebreather-annual', 'Rebreather annual service',
+           '["rebreather"]', 365, NULL, NULL, 1, 'annual'
+    UNION ALL SELECT 'general-service', 'General service', '[]',
+           NULL, NULL, NULL, 0, 'annual'
+  ) t
+  CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// A named, reusable set of cylinders. equipment_id set means "a config for
+/// this rebreather"; null means a generic gas plan usable on any dive.
+/// ON DELETE SET NULL demotes a config when its unit is deleted rather than
+/// destroying a painstakingly entered bailout plan.
+class CylinderConfigs extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One cylinder in a configuration. The spec columns are a SNAPSHOT: a tank
+/// preset may populate them at edit time, but there is deliberately no FK to
+/// tank_presets. A config records what the diver actually dives, so a later
+/// edit to a preset must not rewrite the meaning of a saved config.
+class CylinderConfigItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get configId =>
+      text().references(CylinderConfigs, #id, onDelete: KeyAction.cascade)();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get label => text().nullable()();
+  TextColumn get tankRole => text()(); // TankRole.name
+  RealColumn get volumeL => real().nullable()();
+  RealColumn get workingPressureBar => real().nullable()();
+  TextColumn get tankMaterial => text().nullable()(); // TankMaterial.name
+  RealColumn get o2Percent => real().withDefault(const Constant(21.0))();
+  RealColumn get hePercent => real().withDefault(const Constant(0.0))();
+  RealColumn get defaultStartPressureBar => real().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1033,6 +2432,10 @@ class TankPresets extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1048,7 +2451,9 @@ class DiveComputers extends Table {
   TextColumn get firmwareVersion => text().nullable()();
   TextColumn get connectionType =>
       text().nullable()(); // "bluetooth", "usb", "ble"
-  TextColumn get bluetoothAddress => text().nullable()(); // MAC address
+  /// Device-local BLE/MAC identifier. This must not be synchronized because
+  /// CoreBluetooth identifiers can differ between hosts for the same hardware.
+  TextColumn get bluetoothAddress => text().nullable()();
   TextColumn get lastDiveFingerprint => text().nullable()();
   IntColumn get lastDownloadTimestamp =>
       integer().nullable()(); // Unix timestamp
@@ -1057,6 +2462,10 @@ class DiveComputers extends Table {
   TextColumn get notes => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1084,6 +2493,10 @@ class DiveDataSources extends Table {
   RealColumn get avgDepth => real().nullable()();
   IntColumn get duration => integer().nullable()();
   RealColumn get waterTemp => real().nullable()();
+  RealColumn get entryLatitude => real().nullable()();
+  RealColumn get entryLongitude => real().nullable()();
+  RealColumn get exitLatitude => real().nullable()();
+  RealColumn get exitLongitude => real().nullable()();
   DateTimeColumn get entryTime => dateTime().nullable()();
   DateTimeColumn get exitTime => dateTime().nullable()();
   RealColumn get maxAscentRate => real().nullable()();
@@ -1105,6 +2518,15 @@ class DiveDataSources extends Table {
   TextColumn get libdivecomputerVersion => text().nullable()();
   DateTimeColumn get lastParsedAt => dateTime().nullable()();
 
+  /// Seconds added to this source's own sample times to place them on the
+  /// dive's timeline (issue #1177). Multi-computer consolidation re-bases a
+  /// folded-in computer's profile so both strands share one clock; the shift
+  /// it applied is recorded here because it cannot be recovered from the raw
+  /// bytes. Re-parsing this source must add it back, or the strand slides
+  /// away from the primary's. Null and 0 both mean "already on the dive's
+  /// time base", which is every source that was never consolidated.
+  IntColumn get timeOffsetSeconds => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1125,7 +2547,94 @@ class DiveProfileEvents extends Table {
   TextColumn get tankId => text().nullable()(); // for gas switch events
   TextColumn get source =>
       text().withDefault(const Constant('imported'))(); // EventSource.name
+  // Which computer contributed this event (null = primary source / manual).
+  // Same null-means-primary semantics as dive_profiles.computerId; deletes
+  // set null.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Marker row recording that the safety review engine has analyzed a dive.
+/// Lets zero-findings (clean) dives be distinguished from never-analyzed
+/// dives without replaying the profile. Write-once child of Dives: no HLC
+/// columns; sync uses markRecordPending/logDeletion like DiveProfileEvents.
+class DiveSafetyReviews extends Table {
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get engineVersion => integer()();
+  IntColumn get reviewedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {diveId};
+}
+
+/// One safety review observation for a dive (see SafetyFinding entity).
+/// Write-once child of Dives except for dismissed_at, which toggles.
+class DiveSafetyFindings extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ruleId => text()(); // SafetyRuleId.dbValue
+  TextColumn get severity => text()(); // SafetySeverity.dbValue
+  IntColumn get startTimestamp => integer().nullable()();
+  IntColumn get endTimestamp => integer().nullable()();
+  RealColumn get value => real().nullable()();
+  IntColumn get engineVersion => integer()();
+  IntColumn get dismissedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// User-added hyperbaric chamber entries for the offline emergency card
+/// (bundled chambers stay asset-resident). Aggregate root with HLC for
+/// cross-device conflict resolution.
+class EmergencyChambers extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get country => text()();
+  TextColumn get city => text().nullable()();
+  TextColumn get phone => text()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Near-miss incident reports (safety phase 4). Standalone aggregate root
+/// with optional dive link; the link is severed (not cascaded) on dive
+/// deletion so the report survives. Synced between the diver's devices but
+/// deliberately absent from every outbound exporter.
+class Incidents extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  IntColumn get occurredAt => integer()();
+  TextColumn get category => text()();
+  TextColumn get severity => text()();
+  TextColumn get narrative => text()();
+  TextColumn get contributingFactors => text().nullable()();
+  TextColumn get lessonsLearned => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1156,6 +2665,14 @@ class TankPressureProfiles extends Table {
       text().references(DiveTanks, #id, onDelete: KeyAction.cascade)();
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get pressure => real()(); // bar
+  // Which computer contributed this pressure sample (null = primary source /
+  // manual). Same null-means-primary semantics as dive_profiles.computerId;
+  // deletes set null.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1216,13 +2733,38 @@ class SyncMetadata extends Table {
       integer().nullable()(); // Unix timestamp ms of last successful sync
   TextColumn get deviceId => text()(); // This device's unique UUID
   TextColumn get syncProvider =>
-      text().nullable()(); // 'icloud' or 'googledrive'
+      text().nullable()(); // 'icloud', 'googledrive', or 's3'
+
+  /// The connected account driving sync, or null pre-account-migration.
+  /// syncProvider stays populated (kind name) for backward compatibility.
+  TextColumn get syncAccountId => text().nullable()();
   TextColumn get remoteFileId =>
       text().nullable()(); // Provider-specific file reference
   IntColumn get syncVersion =>
       integer().withDefault(const Constant(1))(); // Sync format version
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  /// Opaque per-database token, rotated on each launch and mirrored outside the
+  /// database. A mismatch between this and the mirrored copy means the on-disk
+  /// database was replaced (restore/overwrite), even when the device id is
+  /// unchanged. Nullable: rows predating this column read as "no token yet".
+  TextColumn get instanceToken => text().nullable()();
+
+  /// The library epoch this device last accepted (see library_epoch.dart).
+  /// Dual-anchored: mirrored in SharedPreferences so a database restore
+  /// cannot silently rewind it. Null means the pre-epoch world.
+  TextColumn get lastAcceptedEpochId => text().nullable()();
+
+  /// The provider [lastSyncTimestamp] was minted against. A cursor read for a
+  /// different provider returns null, so first contact with a newly switched
+  /// backend is detectable. Null means a legacy cursor (pre-stamp rows),
+  /// valid for any provider. Written only together with the cursor.
+  TextColumn get lastSyncProvider => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1253,9 +2795,55 @@ class DeletionLog extends Table {
   TextColumn get entityType => text()(); // Which table the record was in
   TextColumn get recordId => text()(); // Primary key of deleted record
   IntColumn get deletedAt => integer()(); // Unix timestamp of deletion
+  // Monotonic HLC stamped at deletion time (local filter metadata only, not on
+  // the wire). Lets an incremental changeset carry only tombstones newer than
+  // the published watermark instead of re-sending the whole log every sync.
+  // Nullable as a safety net: the v86 migration backfills pre-existing rows to a
+  // minimal sentinel, so null only arises for a delete logged before the sync
+  // clock was configured; such a tombstone is always included in a base.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Per-peer download cursor: how far this device has consumed each peer's
+/// changeset log. Scoped per provider so a backend switch starts fresh
+/// (mirrors the v81 per-provider cursor lesson).
+@DataClassName('SyncPeerCursor')
+class SyncPeerCursors extends Table {
+  TextColumn get peerDeviceId => text()();
+  TextColumn get provider => text()();
+  IntColumn get baseSeqApplied => integer().nullable()();
+  IntColumn get lastSeqApplied => integer().withDefault(const Constant(0))();
+
+  // Highest HLC applied FROM this peer's log -- published in our manifest's
+  // appliedPeerHlc map so the peer can garbage-collect tombstones we have
+  // provably seen (fleet-acked horizon).
+  TextColumn get appliedHlcHigh => text().nullable()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {peerDeviceId, provider};
+}
+
+/// This device's own published position in its changeset log, per provider.
+/// Splits the old conflated lastSyncTimestamp: this is the upload side
+/// (per-peer cursors are the download side).
+@DataClassName('LocalPublishState')
+class LocalPublishStates extends Table {
+  TextColumn get provider => text()();
+  IntColumn get baseSeq => integer().nullable()();
+  IntColumn get basePartCount => integer().nullable()();
+  IntColumn get baseBytes => integer().nullable()();
+  IntColumn get headSeq => integer().withDefault(const Constant(0))();
+  TextColumn get publishedHlcHigh => text().nullable()();
+  IntColumn get changesetBytesSinceBase =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {provider};
 }
 
 /// Cached map regions for offline use
@@ -1299,6 +2887,56 @@ class Courses extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Countable requirements for a training course (requirement tracker spec,
+/// docs/superpowers/specs/2026-07-16-course-requirement-tracker-design.md).
+/// kind is a RequirementKind enum name: 'dive' rows derive progress from
+/// course_requirement_dives links; 'checklist' rows complete via completedAt.
+@DataClassName('CourseRequirementRow')
+class CourseRequirements extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseId =>
+      text().references(Courses, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get kind => text()();
+  IntColumn get targetCount => integer().withDefault(const Constant(1))();
+  IntColumn get completedAt => integer().nullable()(); // Unix ms, checklist
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction crediting a logged dive toward a course requirement.
+///
+/// The id is a DETERMINISTIC UUIDv5 of (requirementId, diveId) -- see
+/// CourseRequirementRepository.linkIdFor -- so the same link created on two
+/// devices converges to a single row under sync upsert; no unique index is
+/// needed. No hlc column: delta export is gated by the parent requirement's
+/// hlc, which linkDive/unlinkDive bump (equipment_set_items pattern).
+@DataClassName('CourseRequirementDiveRow')
+class CourseRequirementDives extends Table {
+  TextColumn get id => text()();
+  TextColumn get requirementId =>
+      text().references(CourseRequirements, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -1317,11 +2955,49 @@ class SiteSpecies extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Diver-placed annotations on a dive site (slice 2 of the seascape
+/// usefulness program): wrecks, moorings, entry/exit points,
+/// swim-throughs, hazards, and typical-current arrows. Points only;
+/// optional bearing (current direction, wreck orientation) and optional
+/// depth (meters). Mutable LWW entity: carries its own hlc.
+class SiteFeatures extends Table {
+  TextColumn get id => text()();
+  TextColumn get siteId =>
+      text().references(DiveSites, #id, onDelete: KeyAction.cascade)();
+
+  /// SiteFeatureType enum name. Plain text so rows from a newer build
+  /// with unknown types survive; the UI renders a generic marker.
+  TextColumn get type => text()();
+  TextColumn get name => text().withDefault(const Constant(''))();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+
+  /// 0-359 compass degrees; current direction or wreck orientation.
+  RealColumn get bearingDeg => real().nullable()();
+
+  /// Stored meters; displayed in the diver's unit.
+  RealColumn get depthMeters => real().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Tracks scheduled notifications to enable smart rescheduling
 class ScheduledNotifications extends Table {
   TextColumn get id => text()();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  /// v122: the service schedule this reminder belongs to (null = legacy
+  /// single-clock reminder). Local-only table, not synced.
+  TextColumn get scheduleId => text().nullable()();
   IntColumn get scheduledDate => integer()(); // Unix timestamp
   IntColumn get reminderDaysBefore => integer()(); // 7, 14, or 30
   IntColumn get notificationId => integer()(); // Platform notification ID
@@ -1331,13 +3007,17 @@ class ScheduledNotifications extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// User-saved CSV import presets (local-only, not synced)
+/// User-saved CSV import presets (synced across devices; carries an hlc column)
 class CsvPresets extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get presetJson => text()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1351,6 +3031,10 @@ class ViewConfigs extends Table {
   TextColumn get viewMode => text()();
   TextColumn get configJson => text()();
   IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1366,6 +3050,7 @@ class FieldPresets extends Table {
   TextColumn get configJson => text()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1374,6 +3059,19 @@ class FieldPresets extends Table {
 // ============================================================================
 // Database Class
 // ============================================================================
+
+/// Prefix of the deterministic id for a synthesized/backfilled primary data
+/// source -- the row a dive gets when it has profile samples but no
+/// dive_data_sources row (older file imports). Shared by the beforeOpen
+/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
+/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
+/// sees before the heal equals the id persisted afterward. Never change it:
+/// existing databases already carry rows with this exact prefix.
+const String kLegacyDataSourceIdPrefix = 'legacy-src-';
+
+/// Full deterministic data-source id for [diveId]. See
+/// [kLegacyDataSourceIdPrefix].
+String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
 
 @DriftDatabase(
   tables: [
@@ -1387,14 +3085,21 @@ class FieldPresets extends Table {
     Equipment,
     DiveEquipment,
     DiveWeights,
+    DiverWeightEntries,
+    DivePlanEquipment,
     EquipmentSets,
     EquipmentSetItems,
+    EquipmentSetGeofences,
+    QualityFindings,
+    EquipmentAttributes,
     Species,
     Sightings,
     Media,
     MediaEnrichment,
     MediaSpecies,
     PendingPhotoSuggestions,
+    MediaRepairLog,
+    MediaSmartAlbums,
     Settings,
     Buddies,
     DiveBuddies,
@@ -1403,22 +3108,34 @@ class FieldPresets extends Table {
     DiveCenters,
     Tags,
     DiveTags,
+    DiveDiveTypes,
     DiveTypes,
+    DiveRoles,
     TankPresets,
     DiveComputers,
     DiveDataSources,
     DiveProfileEvents,
+    DiveSafetyReviews,
+    DiveSafetyFindings,
+    EmergencyChambers,
+    Incidents,
     GasSwitches,
     TankPressureProfiles,
     TideRecords,
     // Site-species junction
     SiteSpecies,
+    SiteFeatures,
     // Training courses (v1.5)
     Courses,
+    // Course requirement tracker (v121)
+    CourseRequirements,
+    CourseRequirementDives,
     // Sync tables
     SyncMetadata,
     SyncRecords,
     DeletionLog,
+    SyncPeerCursors,
+    LocalPublishStates,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -1428,6 +3145,21 @@ class FieldPresets extends Table {
     // Liveaboard tracking (v2.0)
     LiveaboardDetailRecords,
     TripItineraryDays,
+    ChecklistTemplates,
+    ChecklistTemplateItems,
+    TripChecklistItems,
+    // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
+    PreDiveChecklistTemplates,
+    PreDiveChecklistTemplateItems,
+    PreDiveSessions,
+    PreDiveSessionItems,
+    // GPS surface track logging (discussion #289)
+    GpsTracks,
+    GpsTrackPointsLocal,
+    // Saved dive plans (planner redesign Phase 2)
+    DivePlans,
+    DivePlanTanks,
+    DivePlanSegments,
     // CSV import presets (local-only)
     CsvPresets,
     // Column view configuration
@@ -1435,9 +3167,14 @@ class FieldPresets extends Table {
     FieldPresets,
     MediaSubscriptions,
     MediaSubscriptionState,
-    ConnectorAccounts,
     NetworkCredentialHosts,
     MediaFetchDiagnostics,
+    MediaStores,
+    ConnectedAccounts,
+    ServiceKinds,
+    ServiceSchedules,
+    CylinderConfigs,
+    CylinderConfigItems,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1447,7 +3184,35 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 72;
+  static const int currentSchemaVersion = 168;
+
+  /// The oldest schema whose reader can apply this build's sync payloads
+  /// without loss or misinterpretation (the compatibility floor).
+  ///
+  /// Stamped into every published manifest's `schemaVersion` field, which
+  /// shipped readers compare against their own schema to decide whether to
+  /// hold a peer (changeset_reader.dart). Keeping the floor low lets older
+  /// builds keep syncing across additive schema changes; the receiving-side
+  /// overlay merge (issue #474) preserves columns an older peer omits, and
+  /// test/core/services/sync/cross_version_roundtrip_test.dart locks that in.
+  ///
+  /// Raise this to the NEW schema version ONLY when a migration:
+  ///  - drops, renames, or retypes an existing synced column,
+  ///  - changes the meaning or units of an existing column's values,
+  ///  - removes or folds a synced entity (the v147 buddyRoles case),
+  ///  - tightens a constraint an old writer's payloads would violate.
+  /// Do NOT raise it for new tables or synced entities, new nullable or
+  /// defaulted columns, new indexes, dedupe passes, or data repairs that
+  /// preserve meaning. When raising it, extend the round-trip test's
+  /// projection so the new boundary stays covered.
+  ///
+  /// Raised 137 -> 160 by the service type unification: v160 renames the
+  /// synced column service_records.service_type to service_category, which
+  /// the first rule above classifies as breaking. Peers below 160 are held
+  /// until they update. Note the gate is one-directional, so this does NOT
+  /// protect us from THEIR payloads; SyncDataSerializer._withRenamedKeys
+  /// carries the receiving-side tolerance.
+  static const int minimumCompatibleSchemaVersion = 160;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1523,6 +3288,2043 @@ class AppDatabase extends _$AppDatabase {
     70,
     71,
     72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    // v120 claimed in-worktree for the planner Subsurface-parity columns;
+    // 115-119 belong to other branches and interleave at merge time.
+    120,
+    // v121: course requirement tracker tables (renumbered from v114 at merge
+    // time; v114 became the tombstone-GC migration on main).
+    121,
+    // v122: gear service ledger (renumbered from v115 as main advanced past
+    // it; see schema-version ladder).
+    122,
+    // v123: post-dive safety review tables + diver safety settings columns
+    // (renumbered from v115 as main advanced past it at merge time).
+    123,
+    // v124: equipment type-specific attributes (renumbered from v115/v123 as
+    // main advanced past it at merge time; see schema-version ladder).
+    124,
+    // v125: diver_settings.no_fly_preset column (safety phase 2, no-fly
+    // countdown). Renumbered from v117/v124 as main advanced past it at merge
+    // time.
+    125,
+    // v126: emergency_chambers table + emergency card settings columns
+    // (renumbered from v118 as main advanced past it at merge time).
+    126,
+    // v127: incidents table (near-miss log, safety phase 4). Renumbered from
+    // v119 as main advanced past it at merge time.
+    127,
+    // v128: pre-dive checklist tables + built-in template seeds (renumbered
+    // from v117/v127 as main advanced past it at merge time).
+    128,
+    // v129: quality_findings table for the Data Quality Assistant (renumbered
+    // from v118 as main advanced past it at merge time).
+    129,
+    // v130: media_enrichment.hlc so a photo's depth/time association syncs.
+    130,
+    // v131: reconcile legacy service intervals edited after the v122 backfill
+    // into General service clocks (deletion-log guarded).
+    131,
+    // v132: backfill dives whose bottom_time was wrongly stored equal to
+    // runtime by older imports, recomputing it from the primary profile.
+    132,
+    // v133: deco stop band columns on diver_settings (renumbered from v130 as
+    // main advanced past it at merge time).
+    133,
+    // v134: media compressed-rendition columns (adjustable upload quality
+    // Phase A). Renumbered from v130 as main advanced past it at merge time.
+    134,
+    // v135: color accent toggle columns on diver_settings.
+    135,
+    136,
+    // v137: dives.weather_code, plus a one-time clear of the English weather
+    // prose this app generated itself so it can be re-rendered localized.
+    137,
+    // v138 is reserved by the divelogs.de branch (connected_accounts.diver_id).
+    // v139: cylinder_configs + cylinder_config_items (reusable diluent and
+    // bailout setups).
+    139,
+    // v140: media.retain_in_library (Media section Phase 1).
+    140,
+    // v141: diver_settings.default_currency (default currency for priced
+    // items). Renumbered from v138 and then v139 as those went to the
+    // divelogs.de branch and the cylinder configs respectively.
+    141,
+    // v142: trips.return_flight_at (return-flight dive-window countdown).
+    142,
+    // v143: media_repair_log (per-device) + media_smart_albums (synced),
+    // Media section Phase 5. Main reserved this number for PR #894 and
+    // continued at v144, so it lands here without renumbering.
+    143,
+    // v144: dives.visibility_meters plus the diver_settings visibility scale
+    // calibration columns (measured visibility replaces the tropical-biased
+    // bucket enum).
+    144,
+    // v145: gps_tracks provenance, label, and non-destructive trim bounds.
+    // Renumbered from v144 as main took that step for the visibility scale
+    // work at merge time.
+    145,
+    // v146: recompute machine-derived bottom times that the retired
+    // square-profile heuristic collapsed on multilevel dives.
+    146,
+    // v147: fold buddy_roles (professional credentials, issue #395) into
+    // buddy-owned certifications rows and drop the table (spec
+    // 2026-08-08-buddy-professional-roles-fold). Originally authored as v145;
+    // renumbered when PR #908 reserved 145 and v146 landed first.
+    147,
+    // v148: site media attachments (issues #211/#627): media(site_id) query
+    // index plus the site-side dedupe cleanup and partial unique index
+    // mirroring the dive-side v38 pair.
+    148,
+    // v149: duplicate tags (issue #1032): collapse `tags` rows sharing a
+    // (diver scope, case-folded name) and `dive_tags` rows sharing a
+    // (dive, tag), then add the two unique indexes that stop them recurring.
+    149,
+    // v150: diver_settings.coordinate_format (issue #1041): the diver's GPS
+    // coordinate notation. Presentational only -- coordinates stay decimal
+    // degrees in storage.
+    150,
+    // v151: diver_settings.seascape_appearance (PR #1073): the seascape
+    // terrain appearance knobs as one JSON blob, per-diver so they sync.
+    // Nullable so pre-v151 rows can adopt the legacy device-local pref.
+    151,
+    // v152: site_features (seascape program slice 2): diver-placed
+    // annotations on a site, synced LWW.
+    152,
+    // v153 (issue #810): raw O2 cell output in millivolts on dive_profiles.
+    153,
+    // v154 (issue #1104): dive_sites.entry_method / exit_method, the site's
+    // typical way in and out of the water.
+    154,
+    // v155 (issue #828): gas model preference on diver_settings, selecting
+    // ideal or real gas for every pressure-to-volume conversion. Renumbered
+    // from 154, which #1104 claimed first on main.
+    155,
+    // v156: dive_plan_tanks.is_travel_gas: flags a cylinder as also
+    // breathed on the descent, independent of its role, so the lost-gas
+    // contingency can cover stage/deco/diluent/pony/etc. cylinders used
+    // that way. Renumbered from 155, which #828 claimed first on main.
+    156,
+    // v157 (issue #829): default service price on service_kinds and
+    // service_schedules, prefilled when a maintenance record is logged.
+    // Renumbered from 154 and then 156, which #1104, #828 and #1127 claimed
+    // first on main.
+    157,
+    // v158 (issue #1149): owning-source FK on dive_profiles. Renumbered
+    // from 154 and then 156, which #1104, #1127 and #829 claimed first
+    // on main.
+    158,
+    // v159 (issue #1177): dive_data_sources.time_offset_seconds, the shift
+    // multi-computer consolidation applied to a folded-in source's timeline.
+    // Without it a re-parse re-inserts the secondary strand on the raw
+    // download's clock and it slides away from the primary's. Renumbered
+    // from 158, which #1149 claimed first on main.
+    159,
+    // v160 (service type unification): service_kinds.default_category, the
+    // category prefilled when a maintenance record is logged, plus the
+    // service_records.service_type -> service_category rename. Renumbered
+    // from 158 and then 159, which #1149 and #1177 claimed first on main.
+    160,
+    // v161: diver_settings.default_show_o2_cell_mv, a persisted default for
+    // the per-cell O2 mV toggle on the profile chart (issue #1235).
+    161,
+    // v163: diver_settings.default_show_estimated_tank_pressure, the switch
+    // that suppresses synthesized "(est.)" tank pressure lines on the profile
+    // chart (issue #731). v162 is skipped rather than missing: main was at
+    // v161 when that branch was cut, and this branch had already written 162.
+    // Two branches writing the same scalar auto-merge with no conflict
+    // marker, so #731 took 163 instead and 162 stays permanently unused.
+    163,
+    // v164: media.manual_elapsed_seconds, the diver's own placement of a
+    // media item in the dive when its capture time is wrong (issue #1090).
+    // Renumbered from 162, which #731 landed past while this branch was open.
+    164,
+    // v165 is deliberately absent, not missing: it is claimed by issue #1092
+    // (PR #1290, diver_settings.trim_tank_pressure_at_surfacing) on a branch
+    // that is still open. This ladder is monotonic and unique, not
+    // contiguous, so do not "fix" the gap by renumbering downwards.
+    // v166: diver_settings.place_name_language, the synced language used for
+    // reverse-geocoded country/region/town/body of water (issue #1187).
+    // Renumbered from 162, which #731 landed past while this branch was open.
+    166,
+    // v167 is likewise absent: it is claimed by issue #1269 (PR #1276) on a
+    // branch that is still open.
+    // v168 (issue #638): buddies.is_favorite, so frequently-dived buddies can
+    // be pinned to the top of the "Add buddy" picker regardless of sort.
+    // Renumbered from 161, which #1235 landed on main while this branch was
+    // open.
+    168,
+  ];
+
+  /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
+  /// auto-linking). Called from the v106 onUpgrade block and from the
+  /// beforeOpen backstop so a parallel-branch schema-version collision
+  /// cannot strand a database without them.
+  Future<void> _assertConnectorSuggestionColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pending_photo_suggestions')",
+    ).get();
+    // An empty PRAGMA result means the table itself is absent (only
+    // possible in minimal test fixtures); skip the ALTERs rather than fail.
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('connector_account_id')) {
+      await customStatement(
+        'ALTER TABLE pending_photo_suggestions '
+        'ADD COLUMN connector_account_id TEXT',
+      );
+    }
+    if (!names.contains('remote_asset_id')) {
+      await customStatement(
+        'ALTER TABLE pending_photo_suggestions '
+        'ADD COLUMN remote_asset_id TEXT',
+      );
+    }
+  }
+
+  /// v107: connected accounts roster + sync account selection. Idempotent;
+  /// also run from beforeOpen as a parallel-branch collision backstop.
+  Future<void> _assertConnectedAccountsSchema() async {
+    await customStatement(
+      'CREATE TABLE IF NOT EXISTS connected_accounts ('
+      'id TEXT NOT NULL PRIMARY KEY, '
+      'kind TEXT NOT NULL, '
+      'label TEXT NOT NULL, '
+      'account_identifier TEXT, '
+      'created_at INTEGER NOT NULL, '
+      'updated_at INTEGER NOT NULL, '
+      'hlc TEXT)',
+    );
+    final metaCols = await customSelect(
+      "PRAGMA table_info('sync_metadata')",
+    ).get();
+    if (metaCols.isNotEmpty &&
+        !metaCols.any((c) => c.read<String>('name') == 'sync_account_id')) {
+      await customStatement(
+        'ALTER TABLE sync_metadata ADD COLUMN sync_account_id TEXT',
+      );
+    }
+  }
+
+  /// v108: HLC on media_subscriptions so the table can sync. Idempotent;
+  /// also run from beforeOpen as a parallel-branch collision backstop.
+  Future<void> _assertMediaSubscriptionsHlc() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('media_subscriptions')",
+    ).get();
+    // An empty PRAGMA result means the table itself is absent (only
+    // possible in minimal test fixtures); skip the ALTER rather than fail.
+    if (cols.isEmpty) return;
+    if (!cols.any((c) => c.read<String>('name') == 'hlc')) {
+      await customStatement(
+        'ALTER TABLE media_subscriptions ADD COLUMN hlc TEXT',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the issue #553 buddy-owner column on certifications.
+  /// Called from the v109 onUpgrade block and the beforeOpen backstop.
+  Future<void> _assertCertificationBuddyOwnerColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('certifications')",
+    ).get();
+    if (cols.isEmpty) return;
+    final has = cols.any((c) => c.read<String>('name') == 'buddy_id');
+    if (!has) {
+      await customStatement(
+        'ALTER TABLE certifications ADD COLUMN buddy_id TEXT '
+        'REFERENCES buddies (id) ON DELETE CASCADE',
+      );
+    }
+  }
+
+  /// v124: equipment_attributes table + indexes. Idempotent so it is safe to
+  /// call from both onUpgrade and the beforeOpen backstop. Deliberately does
+  /// NOT copy legacy data -- see _migrateLegacyEquipmentColumnsToAttributes,
+  /// which must run exactly once (re-running it on open would resurrect
+  /// attribute rows the user has since cleared).
+  Future<void> _assertEquipmentAttributesSchema() async {
+    await createMigrator().createTable(equipmentAttributes);
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_equipment_attributes_equipment_id
+      ON equipment_attributes(equipment_id)
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_num
+      ON equipment_attributes(attr_key, value_num)
+    ''');
+  }
+
+  /// v124 data copy: legacy equipment.size/thickness/buoyancy_kg/weight_kg
+  /// into equipment_attributes rows. Deterministic ids and parent-row
+  /// timestamps make the result byte-identical on every device that runs the
+  /// migration, so no sync traffic is needed to converge; hlc stays NULL
+  /// (LWW falls back to updated_at, same as pre-HLC equipment rows).
+  /// INSERT OR IGNORE keeps a re-run harmless, but this is still only called
+  /// from onUpgrade (never beforeOpen) to avoid resurrecting cleared values.
+  Future<void> _migrateLegacyEquipmentColumnsToAttributes() async {
+    // PRAGMA-guarded like every other migration helper: a database without
+    // the equipment table or without a given legacy column (minimal
+    // old-schema test fixtures; ancient databases) simply has nothing to
+    // copy for that column.
+    final cols = await customSelect("PRAGMA table_info('equipment')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.isEmpty) return;
+    // Every copy reads the parent-row timestamps.
+    if (!names.contains('created_at') || !names.contains('updated_at')) {
+      return;
+    }
+    if (names.contains('size')) await _copyLegacySizeColumn();
+    if (names.contains('thickness')) await _copyLegacyThicknessColumn();
+    if (names.contains('buoyancy_kg')) await _copyLegacyBuoyancyColumn();
+    if (names.contains('weight_kg')) await _copyLegacyDryWeightColumn();
+  }
+
+  Future<void> _copyLegacySizeColumn() async {
+    await customStatement('''
+      INSERT OR IGNORE INTO equipment_attributes
+        (id, equipment_id, attr_key, is_custom, value_text, value_num,
+         sort_order, created_at, updated_at, hlc)
+      SELECT 'attr_' || id || '_size', id, 'size', 0, TRIM(size), NULL,
+             0, created_at, updated_at, NULL
+      FROM equipment WHERE size IS NOT NULL AND TRIM(size) != ''
+    ''');
+  }
+
+  Future<void> _copyLegacyThicknessColumn() async {
+    await customStatement('''
+      INSERT OR IGNORE INTO equipment_attributes
+        (id, equipment_id, attr_key, is_custom, value_text, value_num,
+         sort_order, created_at, updated_at, hlc)
+      SELECT 'attr_' || id || '_thickness_mm', id, 'thickness_mm', 0,
+             TRIM(thickness),
+             CASE WHEN TRIM(thickness) GLOB '[0-9]*'
+                  THEN CAST(TRIM(thickness) AS REAL) ELSE NULL END,
+             0, created_at, updated_at, NULL
+      FROM equipment WHERE thickness IS NOT NULL AND TRIM(thickness) != ''
+    ''');
+  }
+
+  Future<void> _copyLegacyBuoyancyColumn() async {
+    await customStatement('''
+      INSERT OR IGNORE INTO equipment_attributes
+        (id, equipment_id, attr_key, is_custom, value_text, value_num,
+         sort_order, created_at, updated_at, hlc)
+      SELECT 'attr_' || id || '_buoyancy_kg', id, 'buoyancy_kg', 0, NULL,
+             buoyancy_kg, 0, created_at, updated_at, NULL
+      FROM equipment WHERE buoyancy_kg IS NOT NULL
+    ''');
+  }
+
+  Future<void> _copyLegacyDryWeightColumn() async {
+    await customStatement('''
+      INSERT OR IGNORE INTO equipment_attributes
+        (id, equipment_id, attr_key, is_custom, value_text, value_num,
+         sort_order, created_at, updated_at, hlc)
+      SELECT 'attr_' || id || '_dry_weight_kg', id, 'dry_weight_kg', 0, NULL,
+             weight_kg, 0, created_at, updated_at, NULL
+      FROM equipment WHERE weight_kg IS NOT NULL
+    ''');
+  }
+
+  /// v132 data fix: older imports (Subsurface/MacDive/CSV routed through the
+  /// UDDF entity importer) seeded `bottom_time` from the total-time `duration`,
+  /// so bottom time was stored equal to `runtime`. For any such dive that also
+  /// carries a profile, recompute bottom time from the PRIMARY profile the same
+  /// way [Dive.calculateBottomTimeFromProfile] does (time at/above 85% of max
+  /// depth) and correct it only when the derived value is shorter than runtime.
+  ///
+  /// Deterministic on every device, so `hlc` is left untouched and no sync
+  /// traffic is needed to converge (LWW falls back to the existing hlc /
+  /// updated_at, exactly like the v124 legacy-attribute copy). PRAGMA-guarded
+  /// for minimal old-schema fixtures. onUpgrade only -- never beforeOpen -- so
+  /// a dive a user deliberately left with bottom_time == runtime (and no
+  /// profile to prove otherwise) is never re-touched.
+  Future<void> _backfillBottomTimeFromProfile() async {
+    // PRAGMA-guarded like every other migration helper: minimal old-schema
+    // test fixtures (and any DB that reached this block through a guarded
+    // path) may lack the tables or the specific columns this reads, in which
+    // case there is simply nothing to backfill.
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    final diveColNames = diveCols.map((c) => c.read<String>('name')).toSet();
+    if (!diveColNames.contains('bottom_time') ||
+        !diveColNames.contains('runtime')) {
+      return;
+    }
+    final profileCols = await customSelect(
+      "PRAGMA table_info('dive_profiles')",
+    ).get();
+    final profileColNames = profileCols
+        .map((c) => c.read<String>('name'))
+        .toSet();
+    if (!profileColNames.contains('dive_id') ||
+        !profileColNames.contains('is_primary') ||
+        !profileColNames.contains('timestamp') ||
+        !profileColNames.contains('depth')) {
+      return;
+    }
+
+    final candidates = await customSelect(
+      'SELECT id, runtime FROM dives '
+      'WHERE bottom_time IS NOT NULL AND runtime IS NOT NULL '
+      'AND bottom_time = runtime',
+    ).get();
+
+    var processed = 0;
+    for (final candidate in candidates) {
+      // On an imported library nearly every dive is a candidate, and during a
+      // migration the executor is a synchronous main-isolate NativeDatabase:
+      // drift's awaits complete in microtasks, so this loop would run as one
+      // unbroken microtask chain that never reaches the timer/vsync queue —
+      // freezing the migration spinner for the whole step. A real event-loop
+      // yield every few dives lets the UI animate while the backfill runs.
+      if (processed++ % 25 == 24) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final diveId = candidate.read<String>('id');
+      final runtimeSeconds = candidate.read<int>('runtime');
+
+      // Primary profile rows only, mirroring the domain profile hydration in
+      // DiveRepositoryImpl (is_primary = 1); mixing a secondary computer's rows
+      // would compute the wrong bottom window.
+      final points = await customSelect(
+        'SELECT timestamp, depth FROM dive_profiles '
+        'WHERE dive_id = ? AND is_primary = 1 '
+        'ORDER BY timestamp ASC',
+        variables: [Variable<String>(diveId)],
+      ).get();
+
+      final bottomSeconds = _bottomTimeSecondsFromProfileRows(points);
+      if (bottomSeconds != null && bottomSeconds < runtimeSeconds) {
+        await customStatement('UPDATE dives SET bottom_time = ? WHERE id = ?', [
+          bottomSeconds,
+          diveId,
+        ]);
+      }
+    }
+  }
+
+  /// Bottom time in seconds from timestamp-ordered profile rows, replicating
+  /// [Dive.calculateBottomTimeFromProfile]: the span between the first and last
+  /// samples at/above 85% of max depth. Returns null when the profile is too
+  /// small or lacks a clear bottom window.
+  int? _bottomTimeSecondsFromProfileRows(List<QueryRow> points) {
+    if (points.length < 3) return null;
+
+    var maxDepth = 0.0;
+    for (final point in points) {
+      final depth = point.read<double>('depth');
+      if (depth > maxDepth) maxDepth = depth;
+    }
+    if (maxDepth <= 0) return null;
+
+    final threshold = maxDepth * 0.85;
+
+    int? descentEnd;
+    for (final point in points) {
+      if (point.read<double>('depth') >= threshold) {
+        descentEnd = point.read<int>('timestamp');
+        break;
+      }
+    }
+
+    int? ascentStart;
+    for (var i = points.length - 1; i >= 0; i--) {
+      if (points[i].read<double>('depth') >= threshold) {
+        ascentStart = points[i].read<int>('timestamp');
+        break;
+      }
+    }
+
+    if (descentEnd == null || ascentStart == null) return null;
+    if (ascentStart <= descentEnd) return null;
+    return ascentStart - descentEnd;
+  }
+
+  /// v146 data fix: the retired bottom-time heuristic (time at/above 85% of
+  /// max depth -- kept frozen above in [_bottomTimeSecondsFromProfileRows])
+  /// collapsed multilevel dives to their deepest segment: 10 min at 29 m
+  /// followed by 40 min at 15 m reported ~9 min of bottom time. For any dive
+  /// whose stored bottom_time exactly reproduces the old heuristic's output
+  /// for its primary profile (in practice machine-derived by an import,
+  /// download, or the v132 backfill; a user-typed value that coincidentally
+  /// reproduces it is recomputed too, which still yields a
+  /// profile-consistent result), recompute it with the multilevel-correct
+  /// rule in [_multilevelBottomTimeSecondsFromProfileRows].
+  ///
+  /// Both algorithms are frozen private copies so every device computes
+  /// identical values no matter which app version it migrates with; `hlc`
+  /// is left untouched (deterministic local recompute, no sync traffic
+  /// needed to converge, exactly like v132). onUpgrade only.
+  Future<void> _recomputeMultilevelBottomTimes() async {
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    final diveColNames = diveCols.map((c) => c.read<String>('name')).toSet();
+    if (!diveColNames.contains('bottom_time')) {
+      return;
+    }
+    final profileCols = await customSelect(
+      "PRAGMA table_info('dive_profiles')",
+    ).get();
+    final profileColNames = profileCols
+        .map((c) => c.read<String>('name'))
+        .toSet();
+    if (!profileColNames.contains('dive_id') ||
+        !profileColNames.contains('is_primary') ||
+        !profileColNames.contains('timestamp') ||
+        !profileColNames.contains('depth')) {
+      return;
+    }
+
+    final candidates = await customSelect(
+      'SELECT id, bottom_time FROM dives WHERE bottom_time IS NOT NULL',
+    ).get();
+
+    var processed = 0;
+    for (final candidate in candidates) {
+      // Same event-loop yield as the v132 backfill: during a migration the
+      // executor completes drift awaits in microtasks, so an unbroken loop
+      // would freeze the migration progress spinner.
+      if (processed++ % 25 == 24) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final diveId = candidate.read<String>('id');
+      final storedSeconds = candidate.read<int>('bottom_time');
+
+      final points = await customSelect(
+        'SELECT timestamp, depth FROM dive_profiles '
+        'WHERE dive_id = ? AND is_primary = 1 '
+        'ORDER BY timestamp ASC',
+        variables: [Variable<String>(diveId)],
+      ).get();
+
+      // Fingerprint check: a value reproducing the old heuristic is
+      // treated as machine-written and replaced (a coincidental user match
+      // is recomputed too); anything else is user data and stays.
+      final oldSeconds = _bottomTimeSecondsFromProfileRows(points);
+      if (oldSeconds == null || oldSeconds != storedSeconds) continue;
+
+      final newSeconds = _multilevelBottomTimeSecondsFromProfileRows(points);
+      if (newSeconds != null && newSeconds != storedSeconds) {
+        await customStatement('UPDATE dives SET bottom_time = ? WHERE id = ?', [
+          newSeconds,
+          diveId,
+        ]);
+      }
+    }
+  }
+
+  /// Multilevel-correct bottom time in seconds from timestamp-ordered
+  /// profile rows: surface departure (first sample) to the last sample
+  /// at/deeper than min(max(6 m, 33% of max depth), 85% of max depth).
+  /// Frozen copy of the v146-era BottomTimeCalculator so the migration is
+  /// deterministic across app versions; do not sync with later changes to
+  /// the domain calculator.
+  int? _multilevelBottomTimeSecondsFromProfileRows(List<QueryRow> points) {
+    if (points.length < 3) return null;
+
+    var maxDepth = 0.0;
+    for (final point in points) {
+      final depth = point.read<double>('depth');
+      if (depth > maxDepth) maxDepth = depth;
+    }
+    if (maxDepth <= 0) return null;
+
+    var threshold = maxDepth * 0.33;
+    if (threshold < 6.0) threshold = 6.0;
+    final cap = maxDepth * 0.85;
+    if (threshold > cap) threshold = cap;
+
+    int? ascentStart;
+    for (var i = points.length - 1; i >= 0; i--) {
+      if (points[i].read<double>('depth') >= threshold) {
+        ascentStart = points[i].read<int>('timestamp');
+        break;
+      }
+    }
+    if (ascentStart == null) return null;
+
+    final firstTimestamp = points.first.read<int>('timestamp');
+    final bottomSeconds = ascentStart - firstTimestamp;
+    return bottomSeconds > 0 ? bottomSeconds : null;
+  }
+
+  /// v114: collapse duplicate tombstones (newest deleted_at per entity_type +
+  /// record_id wins) and (re-)assert the unique index that keeps the deletion
+  /// log collapsed. Cheap when the index already exists; the dedupe DELETE
+  /// only runs when index creation fails *and* actual duplicates are present.
+  /// Any other index-creation failure (corruption, disk full, locked DB) is
+  /// rethrown unchanged rather than masked behind a destructive DELETE. Called
+  /// from the v114 upgrade and the beforeOpen backstop (parallel-branch
+  /// schema-version collisions heal here, mirroring the v111 backstop).
+  Future<void> ensureDeletionLogIndex() async {
+    // Self-guarding when the table is absent (minimal migration-test
+    // fixtures), mirroring the other beforeOpen backstop helpers.
+    final table = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='deletion_log'",
+    ).get();
+    if (table.isEmpty) return;
+    const createIndex =
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_deletion_log_entity_record '
+        'ON deletion_log (entity_type, record_id)';
+    try {
+      await customStatement(createIndex);
+    } catch (_) {
+      // The only expected cause is pre-existing duplicate (entity_type,
+      // record_id) rows -- a DB written before the unique index existed
+      // (parallel-branch collision, or logDeletion duplicates from before the
+      // v114 upsert). Confirm duplicates are actually present before running
+      // the dedupe DELETE; if there are none, the failure is something else
+      // (corruption, disk full, locked) that must surface, not be swallowed.
+      final hasDuplicates = await customSelect(
+        'SELECT 1 FROM deletion_log GROUP BY entity_type, record_id '
+        'HAVING COUNT(*) > 1 LIMIT 1',
+      ).get();
+      if (hasDuplicates.isEmpty) rethrow;
+      await customStatement('''
+        DELETE FROM deletion_log WHERE rowid NOT IN (
+          SELECT rowid FROM (
+            SELECT rowid, ROW_NUMBER() OVER (
+              PARTITION BY entity_type, record_id
+              ORDER BY deleted_at DESC, COALESCE(hlc, '') DESC, rowid DESC
+            ) AS rn FROM deletion_log
+          ) WHERE rn = 1
+        )
+      ''');
+      await customStatement(createIndex);
+    }
+  }
+
+  /// v112: equipment.thickness column. Idempotent so it is safe to call from
+  /// both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertEquipmentThicknessColumn() async {
+    final cols = await customSelect("PRAGMA table_info('equipment')").get();
+    final hasThickness = cols.any((c) => c.read<String>('name') == 'thickness');
+    if (cols.isNotEmpty && !hasThickness) {
+      await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
+    }
+  }
+
+  /// v129: quality_findings table for the Data Quality Assistant.
+  /// Idempotent so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertQualityFindingsSchema() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS quality_findings (
+        id TEXT NOT NULL PRIMARY KEY,
+        dive_id TEXT NOT NULL REFERENCES dives (id) ON DELETE CASCADE,
+        related_dive_id TEXT REFERENCES dives (id) ON DELETE SET NULL,
+        computer_id TEXT REFERENCES dive_computers (id) ON DELETE SET NULL,
+        detector_id TEXT NOT NULL,
+        detector_version INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        params TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_quality_findings_dive '
+      'ON quality_findings (dive_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_quality_findings_status '
+      'ON quality_findings (status)',
+    );
+  }
+
+  /// v139: cylinder configuration tables. CREATE TABLE IF NOT EXISTS, so this
+  /// is safe to call from both onUpgrade and the beforeOpen backstop
+  /// (parallel-branch version-collision self-heal).
+  ///
+  /// o2_percent / he_percent carry the same non-null defaults as dive_tanks
+  /// so a configuration cylinder is never in an "unset gas" state.
+  Future<void> _assertCylinderConfigSchema() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS cylinder_configs (
+        id TEXT NOT NULL PRIMARY KEY,
+        diver_id TEXT REFERENCES divers (id),
+        equipment_id TEXT REFERENCES equipment (id) ON DELETE SET NULL,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS cylinder_config_items (
+        id TEXT NOT NULL PRIMARY KEY,
+        config_id TEXT NOT NULL
+          REFERENCES cylinder_configs (id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        label TEXT,
+        tank_role TEXT NOT NULL,
+        volume_l REAL,
+        working_pressure_bar REAL,
+        tank_material TEXT,
+        o2_percent REAL NOT NULL DEFAULT 21.0,
+        he_percent REAL NOT NULL DEFAULT 0.0,
+        default_start_pressure_bar REAL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_configs_equipment '
+      'ON cylinder_configs (equipment_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_config_items_config '
+      'ON cylinder_config_items (config_id)',
+    );
+  }
+
+  /// Test hook: re-assert the v139 tables on demand so tests can prove the
+  /// stranded-database self-heal path is idempotent.
+  Future<void> assertCylinderConfigSchemaForTest() =>
+      _assertCylinderConfigSchema();
+
+  /// v127: pre-dive checklist tables. Migrator.createTable is IF NOT EXISTS,
+  /// so this is safe to call from both onUpgrade and the beforeOpen backstop
+  /// (parallel-branch version-collision self-heal).
+  Future<void> _assertPreDiveChecklistSchema() async {
+    final m = createMigrator();
+    await m.createTable(preDiveChecklistTemplates);
+    await m.createTable(preDiveChecklistTemplateItems);
+    await m.createTable(preDiveSessions);
+    await m.createTable(preDiveSessionItems);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_template_items_template_id '
+      'ON pre_dive_checklist_template_items(template_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_sessions_dive_id '
+      'ON pre_dive_sessions(dive_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_session_items_session_id '
+      'ON pre_dive_session_items(session_id)',
+    );
+  }
+
+  /// Seeds the built-in pre-dive templates and their items, but only when the
+  /// FK parent `divers` table exists. pre_dive_checklist_templates.diver_id
+  /// references divers, so with foreign_keys=ON the seed cannot even prepare
+  /// when that table is absent. Minimal migration-test fixtures upgrade an old
+  /// schema without the full table set and legitimately lack it -- skipping
+  /// the seed there is correct (the tables are still created). Real databases
+  /// always have divers, so they always seed. Mirrors the guarded dive_types
+  /// re-seed in beforeOpen.
+  Future<void> _seedBuiltInPreDiveTemplates() async {
+    final diversTable = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
+    ).get();
+    if (diversTable.isEmpty) return;
+    await customStatement(kSeedBuiltInPreDiveTemplatesSql);
+    await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
+  }
+
+  /// v120: planner Subsurface-parity columns - plan start time, per-segment
+  /// setpoint + dive-mode override, and per-tank deco-switch depth. Idempotent
+  /// (each ALTER is PRAGMA-guarded) so it is safe from both onUpgrade and the
+  /// beforeOpen backstop (shared sandbox DB heals across parallel branches).
+  Future<void> _assertPlannerParitySchema() async {
+    Future<void> add(String table, String column, String type) async {
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) return;
+      final has = cols.any((c) => c.read<String>('name') == column);
+      if (!has) {
+        await customStatement('ALTER TABLE $table ADD COLUMN $column $type');
+      }
+    }
+
+    await add('dive_plans', 'start_date_time', 'INTEGER');
+    await add('dive_plan_segments', 'setpoint_bar', 'REAL');
+    await add('dive_plan_segments', 'dive_mode_override', 'TEXT');
+    await add('dive_plan_tanks', 'deco_switch_depth', 'REAL');
+  }
+
+  /// v113: diver_settings.cns_calculation_method column. Self-guarding when
+  /// the diver_settings table is absent (partial-schema migration tests), so
+  /// it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertCnsCalculationMethodColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final hasColumn = cols.any(
+      (c) => c.read<String>('name') == 'cns_calculation_method',
+    );
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN cns_calculation_method "
+        "TEXT NOT NULL DEFAULT 'shearwater'",
+      );
+    }
+  }
+
+  /// v123: safety review tables, index, and settings columns. Idempotent
+  /// (createTable is IF NOT EXISTS; the ALTERs are PRAGMA-guarded) so it is
+  /// safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSafetyReviewSchema() async {
+    final m = createMigrator();
+    await m.createTable(diveSafetyReviews);
+    await m.createTable(diveSafetyFindings);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_safety_findings_dive_id '
+      'ON dive_safety_findings (dive_id)',
+    );
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('safety_review_enabled')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN safety_review_enabled '
+        'INTEGER NOT NULL DEFAULT 1 CHECK (safety_review_enabled IN (0, 1))',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('safety_review_disabled_rules')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN safety_review_disabled_rules '
+        'TEXT',
+      );
+    }
+  }
+
+  /// v125: diver_settings.no_fly_preset column. Idempotent so it is safe to
+  /// call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertNoFlySettingsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('no_fly_preset')) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN no_fly_preset TEXT "
+        "NOT NULL DEFAULT 'standard'",
+      );
+    }
+  }
+
+  /// v126: emergency_chambers table + emergency card settings columns.
+  /// Idempotent so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertEmergencyCardSchema() async {
+    await createMigrator().createTable(emergencyChambers);
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('hidden_chamber_ids')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN hidden_chamber_ids TEXT',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('emergency_region')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN emergency_region TEXT',
+      );
+    }
+  }
+
+  /// v127: incidents table (near-miss log). Idempotent for onUpgrade +
+  /// beforeOpen backstop use.
+  Future<void> _assertIncidentsSchema() async {
+    await createMigrator().createTable(incidents);
+  }
+
+  /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
+  /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
+  /// backstop. The guard on cols.isNotEmpty keeps partial-schema migration
+  /// tests, which open databases without this table, from crashing on DDL.
+  Future<void> _assertDecoStopSettingsColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('show_deco_stops_on_profile')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN show_deco_stops_on_profile '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (show_deco_stops_on_profile IN (0, 1))',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('default_deco_stop_source')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_deco_stop_source '
+        'INTEGER NOT NULL DEFAULT 1',
+      );
+    }
+  }
+
+  /// v135: color accent toggle columns on diver_settings. Idempotent; safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertAccentColorSettingsColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    for (final column in const [
+      'accent_nav_icons',
+      'accent_section_headers',
+      'accent_list_icons',
+    ]) {
+      if (!names.contains(column)) {
+        await customStatement(
+          'ALTER TABLE diver_settings ADD COLUMN $column '
+          'INTEGER NOT NULL DEFAULT 0 CHECK ($column IN (0, 1))',
+        );
+      }
+    }
+  }
+
+  /// v143: Media section Phase 5 tables. createTable is CREATE TABLE IF NOT
+  /// EXISTS, so this is safe to call from both onUpgrade and the beforeOpen
+  /// backstop (parallel-branch collision self-heal).
+  Future<void> _assertMediaPhase5Schema() async {
+    await createMigrator().createTable(mediaRepairLog);
+    await createMigrator().createTable(mediaSmartAlbums);
+  }
+
+  /// v140: media.retain_in_library (Media section Phase 1). Idempotent; safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertMediaRetainInLibraryColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('retain_in_library')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN retain_in_library '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (retain_in_library IN (0, 1))',
+      );
+    }
+  }
+
+  /// v164: media.manual_elapsed_seconds (issue #1090). Idempotent; safe to
+  /// call from both onUpgrade and the beforeOpen backstop. Nullable with no
+  /// default, so every pre-existing row reads back as "position from
+  /// taken_at".
+  Future<void> _assertMediaManualElapsedColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('manual_elapsed_seconds')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN manual_elapsed_seconds INTEGER',
+      );
+    }
+  }
+
+  /// v111: equipment_sets.is_default column + equipment_set_geofences table.
+  /// Idempotent (createTable is IF NOT EXISTS; the ALTER is PRAGMA-guarded) so
+  /// it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertEquipmentSetDefaultAndGeofenceSchema() async {
+    await createMigrator().createTable(equipmentSetGeofences);
+    final cols = await customSelect(
+      "PRAGMA table_info('equipment_sets')",
+    ).get();
+    final hasIsDefault = cols.any(
+      (c) => c.read<String>('name') == 'is_default',
+    );
+    if (cols.isNotEmpty && !hasIsDefault) {
+      await customStatement(
+        'ALTER TABLE equipment_sets ADD COLUMN is_default '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1))',
+      );
+    }
+  }
+
+  /// v122: service ledger -- service_kinds + service_schedules tables,
+  /// service_records.service_kind_id, scheduled_notifications.schedule_id,
+  /// diver_settings.trip_service_lead_days, built-in kind seed, and the
+  /// legacy single-clock backfill. Idempotent; called from onUpgrade AND
+  /// the beforeOpen backstop (parallel-branch collision self-heal).
+  Future<void> _assertServiceLedgerSchema() async {
+    await createMigrator().createTable(serviceKinds);
+    await createMigrator().createTable(serviceSchedules);
+
+    final srCols = await customSelect(
+      "PRAGMA table_info('service_records')",
+    ).get();
+    if (srCols.isNotEmpty &&
+        !srCols.any((c) => c.read<String>('name') == 'service_kind_id')) {
+      await customStatement(
+        'ALTER TABLE service_records ADD COLUMN service_kind_id TEXT',
+      );
+    }
+
+    final snCols = await customSelect(
+      "PRAGMA table_info('scheduled_notifications')",
+    ).get();
+    if (snCols.isNotEmpty &&
+        !snCols.any((c) => c.read<String>('name') == 'schedule_id')) {
+      await customStatement(
+        'ALTER TABLE scheduled_notifications ADD COLUMN schedule_id TEXT',
+      );
+    }
+
+    final dsCols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (dsCols.isNotEmpty &&
+        !dsCols.any(
+          (c) => c.read<String>('name') == 'trip_service_lead_days',
+        )) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN trip_service_lead_days '
+        'INTEGER NOT NULL DEFAULT 14',
+      );
+    }
+
+    // Indexes: onCreate's createAll() never builds raw-SQL indexes, so they
+    // must be asserted here to exist on fresh installs too. The
+    // service_records index is guarded on the table existing so this helper
+    // stays self-guarding for partial fixture databases (old-migration
+    // tests) where service_records is absent.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_service_schedules_equipment '
+      'ON service_schedules(equipment_id)',
+    );
+    if (srCols.isNotEmpty) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_service_records_kind '
+        'ON service_records(equipment_id, service_kind_id)',
+      );
+    }
+
+    // Seed built-ins only when the divers FK parent exists (self-guard for
+    // partial fixture databases; real databases always have divers).
+    final diversTable = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
+    ).get();
+    if (diversTable.isNotEmpty) {
+      await customStatement(kSeedBuiltInServiceKindsSql);
+    }
+  }
+
+  /// v122 one-time data copy: items with a legacy single-clock interval get
+  /// one "General service" schedule. Invoked from the v122 onUpgrade block
+  /// only, NEVER the beforeOpen backstop -- re-running on every open would
+  /// resurrect a schedule the user deleted (mirrors the v109 buddy-cert
+  /// rule). The deterministic id ('legacy-svc-' || equipment id) plus
+  /// INSERT OR IGNORE makes independent per-device migrations converge to
+  /// one row under sync instead of duplicating.
+  Future<void> _backfillLegacyServiceSchedules() async {
+    // Self-guard for partial fixture databases: skip unless the equipment
+    // table exists WITH the legacy columns the copy reads.
+    final eqCols = await customSelect("PRAGMA table_info('equipment')").get();
+    final names = eqCols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll({'service_interval_days', 'last_service_date'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO service_schedules
+        (id, equipment_id, service_kind_id, interval_days, anchor_date,
+         enabled, created_at, updated_at)
+      SELECT 'legacy-svc-' || e.id, e.id, 'general-service',
+             e.service_interval_days, e.last_service_date, 1,
+             n.now_ms, n.now_ms
+      FROM equipment e
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms
+      ) n
+      WHERE e.service_interval_days IS NOT NULL
+    ''');
+  }
+
+  /// v131 one-time reconciliation: items whose legacy interval was set via the
+  /// edit form AFTER the v122 backfill ran have an interval column but no
+  /// clock. Create the same deterministic `legacy-svc-<id>` "General service"
+  /// clock for them so removing the legacy edit field does not drop their due
+  /// signal. Guarded by the deletion log so a clock the user deleted is never
+  /// resurrected. onUpgrade only, never beforeOpen (re-running would resurrect
+  /// a user-deleted clock; mirrors [_backfillLegacyServiceSchedules]).
+  Future<void> _reconcileLegacyServiceSchedules() async {
+    // Self-guard for partial fixture databases (old-migration tests): skip
+    // unless every table the copy reads exists. Real databases always have
+    // deletion_log; a minimal fixture that omits it must not crash the copy.
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    ).get();
+    final tableNames = tables.map((t) => t.read<String>('name')).toSet();
+    if (!tableNames.containsAll({
+      'equipment',
+      'service_schedules',
+      'deletion_log',
+    })) {
+      return;
+    }
+    final eqCols = await customSelect("PRAGMA table_info('equipment')").get();
+    final names = eqCols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll({'service_interval_days', 'last_service_date'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO service_schedules
+        (id, equipment_id, service_kind_id, interval_days, anchor_date,
+         enabled, created_at, updated_at)
+      SELECT 'legacy-svc-' || e.id, e.id, 'general-service',
+             e.service_interval_days, e.last_service_date, 1,
+             n.now_ms, n.now_ms
+      FROM equipment e
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms
+      ) n
+      WHERE e.service_interval_days IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM service_schedules s WHERE s.id = 'legacy-svc-' || e.id
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM deletion_log d
+          WHERE d.entity_type = 'serviceSchedules'
+            AND d.record_id = 'legacy-svc-' || e.id
+        )
+    ''');
+  }
+
+  /// Test-only hook exercising the v131 reconciliation directly.
+  Future<void> reconcileLegacyServiceSchedulesForTest() =>
+      _reconcileLegacyServiceSchedules();
+
+  /// Data self-heal: synthesize a primary [DiveDataSources] row for any dive
+  /// that has profile samples but no data-source row. Older file imports (and
+  /// any import path predating dive_data_sources) wrote dive_profiles without
+  /// the metadata row, which stranded the grouped-by-source view that the 3D
+  /// scene, spatial map, and computer-compare all read -- they spun forever on
+  /// a null scene. The 2D chart survived because it reads dive.profile directly.
+  ///
+  /// Runs on every open; a cheap no-op once healed (the NOT EXISTS guard leaves
+  /// nothing to insert). Local-only by design: the id is deterministic
+  /// (`legacy-src-<diveId>`), so every device heals to the identical row
+  /// without syncing, and a device on an older build simply heals itself after
+  /// upgrade. It never touches the parent dive's HLC, so it does not trigger a
+  /// fleet re-sync of the healed dives. imported_at/created_at are Drift
+  /// dateTime() columns stored as unix SECONDS (unlike the dives table's plain
+  /// millisecond int columns), hence strftime('%s') without the *1000.
+  Future<void> _backfillMissingDataSources() async {
+    // Self-guard for partial/legacy schemas (migration tests and databases
+    // caught mid-upgrade): skip unless all three tables exist. beforeOpen runs
+    // for every open, including old-version fixtures where these tables may not
+    // exist yet.
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name IN ('dives', 'dive_profiles', 'dive_data_sources')",
+    ).get();
+    final present = tables.map((r) => r.read<String>('name')).toSet();
+    if (!present.containsAll({'dives', 'dive_profiles', 'dive_data_sources'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO dive_data_sources
+        (id, dive_id, is_primary, imported_at, created_at)
+      SELECT '$kLegacyDataSourceIdPrefix' || d.id, d.id, 1, n.now_s, n.now_s
+      FROM dives d
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) AS now_s
+      ) n
+      WHERE EXISTS (
+        SELECT 1 FROM dive_profiles p
+        WHERE p.dive_id = d.id AND p.is_primary = 1
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM dive_data_sources s WHERE s.dive_id = d.id
+      )
+    ''');
+  }
+
+  /// Data self-heal: adopt each dive's computer attribution from its data-source
+  /// rows when `dives.computer_id` is null.
+  ///
+  /// The download path only began stamping `dives.computer_id` in v1.6 (commit
+  /// 9ddb281); before that every child row (profiles, tanks, data source)
+  /// carried the computer id but the parent dive did not. Those dives are
+  /// invisible to the "dives from this computer" filter, which keys on the
+  /// parent column (issue #1064), and to the consolidation service's
+  /// same-computer guard.
+  ///
+  /// Runs on every open; a cheap no-op once healed (the `IN` set is empty when
+  /// no dive is missing attribution). Local-only by design: the value is
+  /// derived from already-synced `dive_data_sources` rows, so every device
+  /// heals to the identical id independently. It never touches the dive's HLC,
+  /// so healing does not trigger a fleet re-sync.
+  ///
+  /// The primary source wins, with the source id as a tiebreak so devices
+  /// resolve a multi-source dive to the same computer rather than whichever row
+  /// SQLite happened to visit first.
+  ///
+  /// Runs after `ensurePerformanceIndexes` so the correlated subquery uses
+  /// idx_dive_data_sources_dive_id rather than scanning a million-row table on
+  /// a fresh or restored database. Order relative to
+  /// [_backfillMissingDataSources] is immaterial: the rows that helper
+  /// synthesizes carry no computer_id, so they never satisfy the `IN` set here.
+  Future<void> _backfillDiveComputerIds() async {
+    // PRAGMA-guarded like every other self-heal helper. beforeOpen runs for
+    // every open, including minimal old-schema test fixtures and databases
+    // caught mid-upgrade. Unlike _backfillMissingDataSources, which only names
+    // columns that have existed since those tables were created, this statement
+    // reads computer_id on both sides, so a table-existence check is not
+    // enough: PRAGMA table_info returns empty for a missing table, so probing
+    // the columns covers both cases.
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    if (!diveCols.map((c) => c.read<String>('name')).contains('computer_id')) {
+      return;
+    }
+    final sourceCols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final sourceColNames = sourceCols
+        .map((c) => c.read<String>('name'))
+        .toSet();
+    if (!sourceColNames.contains('computer_id') ||
+        !sourceColNames.contains('dive_id') ||
+        !sourceColNames.contains('is_primary')) {
+      return;
+    }
+
+    await customStatement('''
+      UPDATE dives SET computer_id = (
+        SELECT s.computer_id FROM dive_data_sources s
+        WHERE s.dive_id = dives.id AND s.computer_id IS NOT NULL
+        ORDER BY s.is_primary DESC, s.id
+        LIMIT 1
+      )
+      WHERE computer_id IS NULL
+        AND id IN (
+          SELECT dive_id FROM dive_data_sources WHERE computer_id IS NOT NULL
+        )
+    ''');
+  }
+
+  /// Test-only hook exercising the #1064 attribution self-heal directly.
+  Future<void> backfillDiveComputerIdsForTest() => _backfillDiveComputerIds();
+
+  /// Register the dive computers that file-imported dives name (issue
+  /// #1288). Body lives in `imported_computer_backfill.dart`.
+  Future<void> _backfillImportedDiveComputers() =>
+      backfillImportedDiveComputers(this);
+
+  /// Test-only hook exercising the #1288 registration self-heal directly.
+  Future<void> backfillImportedDiveComputersForTest() =>
+      _backfillImportedDiveComputers();
+
+  /// Copy each buddy's inline certification into a certifications row owned by
+  /// that buddy (issue #553). Invoked from the onUpgrade blocks only (v109
+  /// expand + the v110 contract safety-net), NEVER the beforeOpen backstop --
+  /// the inline columns survive until v110, and re-running the copy on every
+  /// open would resurrect a user-deleted buddy cert. The id is deterministic
+  /// (`buddycert-<buddyId>`) and the insert upserts, so independent per-device
+  /// migrations converge to one row under sync instead of duplicating.
+  Future<void> _migrateBuddyInlineCertifications() async {
+    final buddyCols = await customSelect("PRAGMA table_info('buddies')").get();
+    final names = buddyCols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('certification_level') &&
+        !names.contains('certification_agency')) {
+      return;
+    }
+    final rows = await customSelect(
+      'SELECT id, certification_level, certification_agency FROM buddies '
+      'WHERE certification_level IS NOT NULL '
+      'OR certification_agency IS NOT NULL',
+    ).get();
+    for (final r in rows) {
+      final buddyId = r.read<String>('id');
+      final level = r.read<String?>('certification_level');
+      final agency = r.read<String?>('certification_agency') ?? 'other';
+      final certId = 'buddycert-$buddyId';
+      final name = _displayNameForMigratedCert(level, agency);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await customStatement(
+        'INSERT INTO certifications '
+        '(id, buddy_id, diver_id, name, agency, level, notes, '
+        'created_at, updated_at) '
+        "VALUES (?, ?, NULL, ?, ?, ?, '', ?, ?) "
+        'ON CONFLICT(id) DO UPDATE SET buddy_id = excluded.buddy_id',
+        [certId, buddyId, name, agency, level, now, now],
+      );
+    }
+  }
+
+  /// Fold buddy professional credentials (buddy_roles, issue #395) into
+  /// buddy-owned certifications rows, then drop the table (v147; spec
+  /// 2026-08-08-buddy-professional-roles-fold). Invoked from onUpgrade AND
+  /// as a guarded beforeOpen backstop -- unlike the #553 inline-cert copy
+  /// (whose source columns survive until v110, so it must never run in
+  /// beforeOpen), this helper's own DROP TABLE makes the sqlite_master guard
+  /// below a strict no-op once buddy_roles is gone, so re-running it on
+  /// every open cannot resurrect a user-deleted cert. The beforeOpen call
+  /// exists purely to protect a DB whose user_version advanced past 145
+  /// (parallel-branch schema-version collision) without ever running the
+  /// v147 block, which would otherwise strand it with an orphaned
+  /// buddy_roles table nothing else reads. Ids are deterministic
+  /// (`buddyrolecert-<rowId>`): synced replicas share buddy_roles row ids,
+  /// so independent per-device migrations converge on identical cert rows
+  /// instead of duplicating.
+  Future<void> _migrateBuddyRolesToCertifications() async {
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name='buddy_roles'",
+    ).get();
+    if (tables.isEmpty) return;
+
+    const levelForRole = {
+      'instructor': 'instructor',
+      'diveMaster': 'diveMaster',
+      'diveGuide': 'diveGuide',
+    };
+    const nameForRole = {
+      'instructor': 'Instructor',
+      'diveMaster': 'Divemaster',
+      'diveGuide': 'Dive Guide',
+    };
+
+    // JOIN buddies so an orphaned credential row (FK-off test databases)
+    // can never fail the certifications FK on insert.
+    final rows = await customSelect(
+      'SELECT br.id, br.buddy_id, br.role, br.credential_number, br.agency, '
+      'br.notes, br.created_at, br.updated_at '
+      'FROM buddy_roles br JOIN buddies b ON b.id = br.buddy_id',
+    ).get();
+    for (final r in rows) {
+      final role = r.read<String>('role');
+      final level = levelForRole[role];
+      if (level == null) continue; // unknown role: feature is gone, drop it
+      final buddyId = r.read<String>('buddy_id');
+      final agency = r.read<String?>('agency') ?? 'other';
+      final cardNumber = r.read<String?>('credential_number');
+
+      // ORDER BY id keeps the backfill target deterministic across replicas
+      // when a buddy has multiple pre-existing certs at the same
+      // (agency, level) -- this migration runs independently per device.
+      final existing = await customSelect(
+        'SELECT id, card_number FROM certifications '
+        'WHERE buddy_id = ? AND agency = ? AND level = ? '
+        'ORDER BY id',
+        variables: [
+          Variable<String>(buddyId),
+          Variable<String>(agency),
+          Variable<String>(level),
+        ],
+      ).get();
+      if (existing.isNotEmpty) {
+        // Same fact already recorded as a certification. Backfill the card
+        // number when the cert lacks one -- the common "entered both halves"
+        // case -- otherwise leave the richer cert row alone.
+        final target = existing.first;
+        final existingNumber = target.read<String?>('card_number');
+        if ((existingNumber == null || existingNumber.isEmpty) &&
+            cardNumber != null &&
+            cardNumber.isNotEmpty) {
+          await customStatement(
+            'UPDATE certifications SET card_number = ? WHERE id = ?',
+            [cardNumber, target.read<String>('id')],
+          );
+        }
+        continue;
+      }
+
+      await customStatement(
+        'INSERT INTO certifications '
+        '(id, buddy_id, diver_id, name, agency, level, card_number, notes, '
+        'created_at, updated_at) '
+        'VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?) '
+        'ON CONFLICT(id) DO NOTHING',
+        [
+          'buddyrolecert-${r.read<String>('id')}',
+          buddyId,
+          nameForRole[role]!,
+          agency,
+          level,
+          cardNumber,
+          r.read<String>('notes'),
+          r.read<int>('created_at'),
+          r.read<int>('updated_at'),
+        ],
+      );
+    }
+    await customStatement('DROP TABLE IF EXISTS buddy_roles');
+  }
+
+  /// Human-readable name for a migrated buddy cert: the level's display name
+  /// when present, else the agency's.
+  String _displayNameForMigratedCert(String? level, String agency) {
+    if (level != null) {
+      return CertificationLevel.values
+          .firstWhere(
+            (e) => e.name == level,
+            orElse: () => CertificationLevel.other,
+          )
+          .displayName;
+    }
+    return CertificationAgency.values
+        .firstWhere(
+          (e) => e.name == agency,
+          orElse: () => CertificationAgency.other,
+        )
+        .displayName;
+  }
+
+  /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
+  /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
+  /// call from both onUpgrade and the beforeOpen backstop (parallel-branch
+  /// collision self-heal).
+  Future<void> _assertMediaEnrichmentHlcColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('media_enrichment')",
+    ).get();
+    final hasColumn = cols.any((c) => c.read<String>('name') == 'hlc');
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement('ALTER TABLE media_enrichment ADD COLUMN hlc TEXT');
+    }
+  }
+
+  /// Idempotent DDL for the v103 media store objects. Called from the v103
+  /// onUpgrade block and from the beforeOpen backstop so a parallel-branch
+  /// schema-version collision cannot strand a database without them.
+  Future<void> _assertMediaStoreSchema() async {
+    // An empty PRAGMA result means the media table itself is absent (only
+    // possible in minimal test fixtures); skip the ALTERs rather than fail.
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isNotEmpty) {
+      final names = cols.map((c) => c.read<String>('name')).toSet();
+      Future<void> add(String name, String type) async {
+        if (!names.contains(name)) {
+          await customStatement('ALTER TABLE media ADD COLUMN $name $type');
+        }
+      }
+
+      await add('content_hash', 'TEXT');
+      await add('content_size_bytes', 'INTEGER');
+      await add('remote_uploaded_at', 'INTEGER');
+      await add('remote_thumb_uploaded_at', 'INTEGER');
+    }
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS media_stores (
+        id TEXT NOT NULL PRIMARY KEY,
+        provider_type TEXT NOT NULL,
+        display_hint TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+  }
+
+  /// Idempotent DDL for the v136 media_stores.last_sweep_at column
+  /// (fleet-wide Verify Library timestamp). Called from the v136 onUpgrade
+  /// step and the beforeOpen backstop, matching the _assertMediaStoreSchema
+  /// pattern so a schema-version collision cannot strand a database
+  /// without it. Self-guarding when the table is absent (minimal
+  /// fixtures) - the v103 backstop creates it first in real databases.
+  Future<void> _assertMediaStoresLastSweepColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media_stores')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('last_sweep_at')) {
+      await customStatement(
+        'ALTER TABLE media_stores ADD COLUMN last_sweep_at INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v137 weather code column. Called from the v137
+  /// onUpgrade step and the beforeOpen backstop, matching the
+  /// _assertMediaStoreSchema pattern so a schema-version collision cannot
+  /// strand a database without it. Self-guarding when the table is absent
+  /// (minimal migration-test fixtures).
+  Future<void> _assertWeatherCodeColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('weather_code')) {
+      await customStatement(
+        'ALTER TABLE dives ADD COLUMN weather_code INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v141 diver_settings.default_currency column.
+  /// Called from the v141 onUpgrade step and the beforeOpen backstop, and
+  /// self-guarding when the table is absent (minimal migration-test fixtures).
+  Future<void> _assertDefaultCurrencyColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_currency')) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN default_currency TEXT NOT NULL DEFAULT 'USD'",
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v145 gps_tracks provenance, label, and
+  /// non-destructive trim-bound columns.
+  ///
+  /// Self-guarding like its siblings: a DB that upgraded past 145 on a
+  /// parallel branch never enters the migration block, so the beforeOpen
+  /// backstop is its only path to these columns.
+  Future<void> _assertGpsTrackColumns() async {
+    final cols = await customSelect("PRAGMA table_info('gps_tracks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source')) {
+      await customStatement(
+        "ALTER TABLE gps_tracks ADD COLUMN source TEXT NOT NULL DEFAULT 'phone'",
+      );
+    }
+    if (!names.contains('source_ref')) {
+      await customStatement(
+        'ALTER TABLE gps_tracks ADD COLUMN source_ref TEXT',
+      );
+    }
+    if (!names.contains('name')) {
+      await customStatement('ALTER TABLE gps_tracks ADD COLUMN name TEXT');
+    }
+    if (!names.contains('trim_start_time')) {
+      await customStatement(
+        'ALTER TABLE gps_tracks ADD COLUMN trim_start_time INTEGER',
+      );
+    }
+    if (!names.contains('trim_end_time')) {
+      await customStatement(
+        'ALTER TABLE gps_tracks ADD COLUMN trim_end_time INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v142 return-flight column. Called from the v142
+  /// onUpgrade step and the beforeOpen backstop, matching the
+  /// _assertWeatherCodeColumn pattern so a schema-version collision cannot
+  /// strand a database without it. Self-guarding when the table is absent
+  /// (minimal migration-test fixtures).
+  Future<void> _assertTripReturnFlightColumn() async {
+    final cols = await customSelect("PRAGMA table_info('trips')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('return_flight_at')) {
+      await customStatement(
+        'ALTER TABLE trips ADD COLUMN return_flight_at INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v144 dives.visibility_meters column. Called from
+  /// the v144 onUpgrade step and the beforeOpen backstop, matching the
+  /// _assertTripReturnFlightColumn pattern so a schema-version collision
+  /// cannot strand a database without it. Self-guarding when the table is
+  /// absent (minimal migration-test fixtures).
+  ///
+  /// Deliberately does not backfill the legacy `visibility` bucket: a bucket
+  /// only says the dive fell somewhere in a range, so deriving a number would
+  /// fabricate precision the diver never entered.
+  Future<void> _assertVisibilityMetersColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('visibility_meters')) {
+      await customStatement(
+        'ALTER TABLE dives ADD COLUMN visibility_meters REAL',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v144 diver_settings visibility calibration
+  /// columns. Same dual-call contract as [_assertVisibilityMetersColumn].
+  Future<void> _assertVisibilityScaleColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('visibility_scale_preset')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN visibility_scale_preset '
+        "TEXT NOT NULL DEFAULT 'tropical'",
+      );
+    }
+    if (!names.contains('visibility_scale_excellent_m')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN visibility_scale_excellent_m '
+        'REAL',
+      );
+    }
+    if (!names.contains('visibility_scale_good_m')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN visibility_scale_good_m REAL',
+      );
+    }
+    if (!names.contains('visibility_scale_moderate_m')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN visibility_scale_moderate_m '
+        'REAL',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v150 diver_settings coordinate format column.
+  /// Same dual-call contract as [_assertVisibilityScaleColumns].
+  Future<void> _assertCoordinateFormatColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('coordinate_format')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN coordinate_format '
+        "TEXT NOT NULL DEFAULT 'decimalDegrees'",
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v151 diver_settings seascape appearance blob.
+  /// Same dual-call contract as [_assertVisibilityScaleColumns]. Nullable
+  /// with no default: null marks a pre-v151 row (see the table comment).
+  Future<void> _assertSeascapeAppearanceColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('seascape_appearance')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN seascape_appearance TEXT',
+      );
+    }
+  }
+
+  /// Raw O2 cell output columns on dive_profiles (issue #810). PRAGMA-guarded
+  /// so a healthy database no-ops and a partial schema does not throw.
+  /// Add `diver_settings.gas_model` if it is missing (v155, issue #828).
+  Future<void> _assertGasModelColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('gas_model')) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN gas_model TEXT NOT NULL "
+        "DEFAULT 'real'",
+      );
+    }
+  }
+
+  Future<void> _assertO2CellMillivoltColumns() async {
+    final cols = await customSelect("PRAGMA table_info('dive_profiles')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    for (var n = 1; n <= 6; n++) {
+      if (!names.contains('o2_sensor_mv$n')) {
+        await customStatement(
+          'ALTER TABLE dive_profiles ADD COLUMN o2_sensor_mv$n INTEGER',
+        );
+      }
+    }
+  }
+
+  /// v161: default_show_o2_cell_mv on diver_settings (issue #1235). The
+  /// per-cell O2 mV toggle previously had no persisted default; this lets a
+  /// diver make it visible by default on the profile chart.
+  Future<void> _assertO2CellMvDefaultColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_show_o2_cell_mv')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_show_o2_cell_mv '
+        'INTEGER NOT NULL DEFAULT 0 '
+        'CHECK (default_show_o2_cell_mv IN (0, 1))',
+      );
+    }
+  }
+
+  /// v163: default_show_estimated_tank_pressure on diver_settings (issue
+  /// #731). Synthesized "(est.)" pressure lines previously had no off switch.
+  /// Defaults to 1 so existing databases keep drawing them.
+  Future<void> _assertEstimatedTankPressureDefaultColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_show_estimated_tank_pressure')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN '
+        'default_show_estimated_tank_pressure '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (default_show_estimated_tank_pressure IN (0, 1))',
+      );
+    }
+  }
+
+  /// v166: place_name_language on diver_settings (issue #1187). Defaults to
+  /// 'en', the language every pre-v166 row was geocoded in (issue #214).
+  Future<void> _assertPlaceNameLanguageColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('place_name_language')) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN place_name_language TEXT "
+        "NOT NULL DEFAULT 'en'",
+      );
+    }
+  }
+
+  /// Default service price columns on service_kinds and service_schedules
+  /// (issue #829). PRAGMA-guarded so a healthy database no-ops. The
+  /// cols.isEmpty guard matters: minimal migration fixtures build databases
+  /// without these tables and would otherwise crash the whole migration.
+  /// v160: service_kinds.default_category, plus the built-in seeding.
+  ///
+  /// Self-guards on the table existing, because minimal migration fixtures
+  /// ride the ladder from versions that predate service_kinds. The seeding is
+  /// an UPDATE rather than an upsert so it cannot resurrect a built-in the
+  /// diver deleted (the v109 rule), and it only fills a NULL so it never
+  /// overwrites a category the diver chose.
+  Future<void> _assertServiceCategoryColumn() async {
+    final cols = await customSelect("PRAGMA table_info('service_kinds')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_category')) {
+      await customStatement(
+        'ALTER TABLE service_kinds ADD COLUMN default_category TEXT',
+      );
+    }
+    for (final entry in kBuiltInServiceKindCategories.entries) {
+      await customStatement(
+        'UPDATE service_kinds SET default_category = ? '
+        'WHERE id = ? AND default_category IS NULL',
+        [entry.value, entry.key],
+      );
+    }
+  }
+
+  /// v160: service_records.service_type becomes service_category.
+  ///
+  /// Separate from [_assertServiceCategoryColumn] so a database missing one
+  /// table still gets the other. ALTER TABLE RENAME COLUMN needs SQLite 3.25
+  /// (2018), which every supported platform ships.
+  Future<void> _assertServiceCategoryRename() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('service_records')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('service_type') && !names.contains('service_category')) {
+      await customStatement(
+        'ALTER TABLE service_records '
+        'RENAME COLUMN service_type TO service_category',
+      );
+    }
+  }
+
+  Future<void> _assertServiceCostColumns() async {
+    for (final table in const ['service_kinds', 'service_schedules']) {
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) continue;
+      final names = cols.map((c) => c.read<String>('name')).toSet();
+      if (!names.contains('default_cost')) {
+        await customStatement(
+          'ALTER TABLE $table ADD COLUMN default_cost REAL',
+        );
+      }
+      if (!names.contains('default_currency')) {
+        await customStatement(
+          'ALTER TABLE $table ADD COLUMN default_currency TEXT',
+        );
+      }
+    }
+  }
+
+  /// Idempotent DDL for the v168 buddies.is_favorite column (issue #638),
+  /// letting frequently-dived buddies be pinned to the top of the "Add
+  /// buddy" picker regardless of sort. Self-guards on the table existing, and
+  /// defaults every pre-existing row to not-favorited.
+  Future<void> _assertBuddyFavoriteColumn() async {
+    final cols = await customSelect("PRAGMA table_info('buddies')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('is_favorite')) {
+      await customStatement(
+        'ALTER TABLE buddies ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v159 dive_data_sources.time_offset_seconds
+  /// column (issue #1177). Same dual-call contract (onUpgrade + beforeOpen
+  /// backstop) as the other column-assert helpers. Nullable with no default,
+  /// so every pre-existing row reads back as "no offset applied".
+  Future<void> _assertDataSourceTimeOffsetColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('time_offset_seconds')) {
+      await customStatement(
+        'ALTER TABLE dive_data_sources ADD COLUMN time_offset_seconds INTEGER',
+      );
+    }
+  }
+
+  /// Site-level entry/exit method columns on dive_sites (issue #1104).
+  /// PRAGMA-guarded so a healthy database no-ops and a partial schema does
+  /// not throw.
+  Future<void> _assertSiteEntryExitMethodColumns() async {
+    final cols = await customSelect("PRAGMA table_info('dive_sites')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('entry_method')) {
+      await customStatement(
+        'ALTER TABLE dive_sites ADD COLUMN entry_method TEXT',
+      );
+    }
+    if (!names.contains('exit_method')) {
+      await customStatement(
+        'ALTER TABLE dive_sites ADD COLUMN exit_method TEXT',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v156 dive_plan_tanks travel-gas flag. Same
+  /// dual-call contract (onUpgrade + beforeOpen backstop) as the other
+  /// column-assert helpers.
+  Future<void> _assertTravelGasColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_plan_tanks')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('is_travel_gas')) {
+      await customStatement(
+        'ALTER TABLE dive_plan_tanks ADD COLUMN is_travel_gas '
+        'INTEGER NOT NULL DEFAULT 0',
+      );
+    }
+  }
+
+  /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
+  /// healthy database no-ops and a partial schema does not throw.
+  Future<void> _assertProfileSourceIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_profiles')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('source_id')) return;
+    await customStatement(
+      'ALTER TABLE dive_profiles ADD COLUMN source_id TEXT '
+      'REFERENCES dive_data_sources(id) ON DELETE SET NULL',
+    );
+  }
+
+  /// One-time attribution of existing dive_profiles rows to their owning
+  /// dive_data_sources row (issue #1149).
+  ///
+  /// Reproduces the pre-v158 read convention that `getProfilesByDataSource`
+  /// implements, so nothing changes owner as a result of the migration:
+  ///
+  /// 1. A row whose `computer_id` matches a source on the same dive belongs
+  ///    to that source.
+  /// 2. Everything else -- a null `computer_id` (file imports, manual
+  ///    entries, and the rows `saveEditedProfile` writes) or a `computer_id`
+  ///    matching no source -- belongs to the dive's primary source.
+  ///
+  /// Rule 2 is lossy for the one case this FK exists to fix: a dive carrying
+  /// two file-imported sources has two indistinguishable null-`computer_id`
+  /// row sets, and they all land on the primary. That is exactly where the
+  /// old read path already put them, so this is not a regression, and every
+  /// row written from v158 on is attributed at insert time instead.
+  ///
+  /// Runs in the ladder only, never in `beforeOpen`: dive_profiles is the
+  /// largest table in the database and an "is anything unowned?" probe on
+  /// every open would be a full scan once the answer is no.
+  Future<void> _backfillProfileSourceIds() async {
+    // Probe BOTH tables' columns, not just dive_profiles'. PRAGMA table_info
+    // returns empty for a missing table, so this covers "table absent" and
+    // "column absent" in one check -- the same guard _backfillDiveComputerIds
+    // uses. Migration-test fixtures and databases caught mid-upgrade routinely
+    // hold dive_profiles without dive_data_sources, and the correlated
+    // subqueries below would fail with "no such table".
+    final cols = await customSelect("PRAGMA table_info('dive_profiles')").get();
+    if (!cols.map((c) => c.read<String>('name')).contains('source_id')) return;
+
+    final sourceCols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final sourceNames = sourceCols.map((c) => c.read<String>('name')).toSet();
+    if (!sourceNames.containsAll({
+      'id',
+      'dive_id',
+      'computer_id',
+      'is_primary',
+      'created_at',
+    })) {
+      return;
+    }
+
+    // Deterministic pick so a re-run cannot move a row: primary first, then
+    // oldest. Mirrors the ordering getProfilesByDataSource reads sources in.
+    const primaryForDive =
+        'SELECT s.id FROM dive_data_sources s '
+        'WHERE s.dive_id = dive_profiles.dive_id '
+        'ORDER BY s.is_primary DESC, s.created_at ASC LIMIT 1';
+
+    await customStatement(
+      'UPDATE dive_profiles SET source_id = ('
+      'SELECT s.id FROM dive_data_sources s '
+      'WHERE s.dive_id = dive_profiles.dive_id '
+      'AND s.computer_id = dive_profiles.computer_id '
+      'ORDER BY s.is_primary DESC, s.created_at ASC LIMIT 1) '
+      'WHERE source_id IS NULL AND computer_id IS NOT NULL '
+      'AND EXISTS (SELECT 1 FROM dive_data_sources s '
+      'WHERE s.dive_id = dive_profiles.dive_id '
+      'AND s.computer_id = dive_profiles.computer_id)',
+    );
+
+    await customStatement(
+      'UPDATE dive_profiles SET source_id = ($primaryForDive) '
+      'WHERE source_id IS NULL '
+      'AND EXISTS (SELECT 1 FROM dive_data_sources s '
+      'WHERE s.dive_id = dive_profiles.dive_id)',
+    );
+  }
+
+  /// One-time clear of weather descriptions this app generated itself.
+  ///
+  /// Only rows whose weather_source is 'openMeteo' are touched -- those are
+  /// the English, metric strings the old WeatherMapper built and persisted.
+  /// They are now rendered at display time from the structured fields, so the
+  /// frozen copy would override the localized one. Manually entered and
+  /// imported descriptions are user data and are left verbatim.
+  Future<void> _clearGeneratedWeatherDescriptions() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('weather_source') ||
+        !names.contains('weather_description')) {
+      return;
+    }
+    await customStatement(
+      "UPDATE dives SET weather_description = NULL "
+      "WHERE weather_source = 'openMeteo'",
+    );
+  }
+
+  /// Test-only wrapper. The column assert is exercised through beforeOpen, but
+  /// the one-time clear only runs on upgrade, so it needs a direct handle.
+  Future<void> clearGeneratedWeatherDescriptionsForTesting() =>
+      _clearGeneratedWeatherDescriptions();
+
+  /// Idempotent DDL for the v133 compressed-rendition columns. Called from the
+  /// v133 onUpgrade step and the beforeOpen backstop, matching the
+  /// _assertMediaStoreSchema pattern so a schema-version collision cannot
+  /// strand a database without them.
+  Future<void> _assertMediaCompressedRenditionColumns() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    Future<void> add(String name, String type) async {
+      if (!names.contains(name)) {
+        await customStatement('ALTER TABLE media ADD COLUMN $name $type');
+      }
+    }
+
+    await add('compressed_level', 'TEXT');
+    await add('compressed_size_bytes', 'INTEGER');
+    await add('remote_compressed_uploaded_at', 'INTEGER');
+  }
+
+  /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
+  /// resolution (plus sync_metadata for the device clock). Shared between the
+  /// v77 backfill (original add), the v82 backfill (recovery for databases that
+  /// landed at user_version = 77 via the schema-version collision with PR #302's
+  /// surface-interval index migration) and the v83 backfill (comprehensive
+  /// recovery for databases stranded past v77 by the wider set of sync-branch
+  /// version collisions — see the v82 and v83 blocks below).
+  static const List<String> _hlcTables = [
+    'divers',
+    'diver_settings',
+    'buddies',
+    'dive_centers',
+    'trips',
+    'liveaboard_detail_records',
+    'trip_itinerary_days',
+    'equipment',
+    'equipment_sets',
+    'equipment_attributes',
+    'dive_types',
+    'dive_roles',
+    'tank_presets',
+    'dive_computers',
+    'tags',
+    'courses',
+    'dives',
+    'dive_sites',
+    'diver_weight_entries',
+    'certifications',
+    'service_records',
+    'settings',
+    'csv_presets',
+    'view_configs',
+    'sync_metadata',
+    'media',
+    'species',
+    'field_presets',
+    'quality_findings',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -1534,37 +5336,143 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => currentSchemaVersion;
 
+  /// Test hook: run the v102 stranded-pressure repair on demand so tests can
+  /// assert it is idempotent (a second run over already-healed data is a
+  /// no-op). Not used in production; the migration invokes the private method.
+  Future<void> relinkStrandedTankPressuresForTest() =>
+      _relinkStrandedTankPressures();
+
+  /// Re-link tank pressure series stranded under a stale tank id (issue #510).
+  ///
+  /// A reparse, re-import, or multi-computer consolidation can regenerate a
+  /// dive's tanks with fresh UUIDs while its `tank_pressure_profiles` rows keep
+  /// the old tank id. The per-cylinder SAC calculation looked those up by exact
+  /// tank id and missed them, so SAC by cylinder went blank even though the
+  /// pressure data was present (the runtime fix now tolerates this at read
+  /// time; this migration heals the stored data once so the exact-id path works
+  /// for every future consumer too).
+  ///
+  /// Mirrors the runtime resolver (`GasAnalysisService`): exact id matches are
+  /// left alone; each orphaned series (keyed to an id that is no longer one of
+  /// the dive's tanks) is adopted by a still-unmatched current tank, in tank
+  /// order. Every reassignment targets a current tank of the same dive, so it
+  /// is foreign-key safe. Idempotent: a second run finds no orphans.
+  Future<void> _relinkStrandedTankPressures() async {
+    // Defensive: both tables predate v102 in any real database, but migration
+    // tests (and any partial DB) may reach this block without them. A missing
+    // table would make the query below throw and abort the whole upgrade.
+    Future<bool> tableExists(String name) async {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(name)],
+      ).get();
+      return rows.isNotEmpty;
+    }
+
+    if (!await tableExists('dive_tanks') ||
+        !await tableExists('tank_pressure_profiles')) {
+      return;
+    }
+
+    // Current tanks per dive (id + order for deterministic assignment).
+    final tankRows = await customSelect(
+      'SELECT dive_id, id, tank_order FROM dive_tanks',
+    ).get();
+    final tanksByDive = <String, List<({String id, int order})>>{};
+    for (final r in tankRows) {
+      (tanksByDive[r.read<String>('dive_id')] ??= []).add((
+        id: r.read<String>('id'),
+        order: r.read<int>('tank_order'),
+      ));
+    }
+    if (tanksByDive.isEmpty) return;
+
+    // One entry per (dive, pressure tank id), with the earliest sample time so
+    // orphans are ordered the same way the runtime resolver iterates them.
+    final pressureKeyRows = await customSelect(
+      'SELECT dive_id, tank_id, MIN(timestamp) AS first_ts '
+      'FROM tank_pressure_profiles GROUP BY dive_id, tank_id',
+    ).get();
+    final pressureKeysByDive = <String, List<({String tankId, int firstTs})>>{};
+    for (final r in pressureKeyRows) {
+      (pressureKeysByDive[r.read<String>('dive_id')] ??= []).add((
+        tankId: r.read<String>('tank_id'),
+        firstTs: r.read<int>('first_ts'),
+      ));
+    }
+
+    for (final entry in pressureKeysByDive.entries) {
+      final diveId = entry.key;
+      final tanks = tanksByDive[diveId];
+      if (tanks == null || tanks.isEmpty) continue;
+
+      final currentIds = {for (final t in tanks) t.id};
+      final matchedIds = {
+        for (final k in entry.value)
+          if (currentIds.contains(k.tankId)) k.tankId,
+      };
+
+      final orphans =
+          [
+            for (final k in entry.value)
+              if (!currentIds.contains(k.tankId)) k,
+          ]..sort((a, b) {
+            final byTime = a.firstTs.compareTo(b.firstTs);
+            return byTime != 0 ? byTime : a.tankId.compareTo(b.tankId);
+          });
+      if (orphans.isEmpty) continue;
+
+      final unmatchedTanks =
+          [
+            for (final t in tanks)
+              if (!matchedIds.contains(t.id)) t,
+          ]..sort((a, b) {
+            // id tie-break so tanks sharing the default order (0) pair
+            // deterministically -- Dart's sort is not stable.
+            final byOrder = a.order.compareTo(b.order);
+            return byOrder != 0 ? byOrder : a.id.compareTo(b.id);
+          });
+      if (unmatchedTanks.isEmpty) continue;
+
+      final count = orphans.length < unmatchedTanks.length
+          ? orphans.length
+          : unmatchedTanks.length;
+      for (var i = 0; i < count; i++) {
+        await customStatement(
+          'UPDATE tank_pressure_profiles SET tank_id = ? '
+          'WHERE dive_id = ? AND tank_id = ?',
+          [unmatchedTanks[i].id, diveId, orphans[i].tankId],
+        );
+      }
+    }
+  }
+
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
 
-        // Seed built-in dive types
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final builtInTypes = [
-          ('recreational', 'Recreational', 0),
-          ('technical', 'Technical', 1),
-          ('freedive', 'Freedive', 2),
-          ('training', 'Training', 3),
-          ('wreck', 'Wreck', 4),
-          ('cave', 'Cave', 5),
-          ('ice', 'Ice', 6),
-          ('night', 'Night', 7),
-          ('drift', 'Drift', 8),
-          ('deep', 'Deep', 9),
-          ('altitude', 'Altitude', 10),
-          ('shore', 'Shore', 11),
-          ('boat', 'Boat', 12),
-          ('liveaboard', 'Liveaboard', 13),
-        ];
+        // Seed built-in dive types (the same set the v93 migration backfills
+        // for databases created before this seed existed).
+        await customStatement(kSeedBuiltInDiveTypesSql);
 
-        for (final type in builtInTypes) {
-          await customStatement('''
-            INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
-            VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
-          ''');
-        }
+        // Seed built-in dive roles (the v103 migration backfills these for
+        // upgraded databases).
+        await customStatement(kSeedBuiltInDiveRolesSql);
+
+        // Seed built-in pre-dive checklist templates (the v127 migration
+        // backfills these for upgraded databases).
+        await _seedBuiltInPreDiveTemplates();
+
+        // Seed built-in service kinds (the v122 migration backfills these
+        // for upgraded databases; beforeOpen re-asserts).
+        await customStatement(kSeedBuiltInServiceKindsSql);
+
+        // Tag uniqueness indexes (v149, issue #1032): createAll() never builds
+        // raw-SQL indexes, so a fresh install would otherwise be the one
+        // device in the library without them.
+        await assertTagUniqueness(this);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -3573,10 +7481,1587 @@ class AppDatabase extends _$AppDatabase {
           ''');
         }
         if (from < 72) await reportProgress();
+        if (from < 73) {
+          // Guard: dives may not exist in older migration-test contexts.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          if (divesCols.isNotEmpty) {
+            final divesExisting = divesCols
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!divesExisting.contains('entry_latitude')) {
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN entry_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN entry_longitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN exit_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dives ADD COLUMN exit_longitude REAL',
+              );
+            }
+          }
+        }
+        if (from < 73) await reportProgress();
+        if (from < 74) {
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_data_sources')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('entry_latitude')) {
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN entry_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN entry_longitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN exit_latitude REAL',
+              );
+              await customStatement(
+                'ALTER TABLE dive_data_sources ADD COLUMN exit_longitude REAL',
+              );
+            }
+          }
+        }
+        if (from < 74) await reportProgress();
+        if (from < 75) {
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_gas_timeline')) {
+              await customStatement(
+                'ALTER TABLE diver_settings ADD COLUMN default_show_gas_timeline INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 75) await reportProgress();
+        if (from < 76) {
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('site_match_sensitivity')) {
+              await customStatement(
+                "ALTER TABLE diver_settings ADD COLUMN site_match_sensitivity TEXT NOT NULL DEFAULT 'balanced'",
+              );
+            }
+          }
+        }
+        if (from < 76) await reportProgress();
+        if (from < 77) {
+          // Add nullable Hybrid Logical Clock column to every conflict-capable
+          // syncable table (and sync_metadata for the device clock). Nullable
+          // so existing rows fall back to updatedAt ordering until rewritten.
+          for (final table in _hlcTables) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 77) await reportProgress();
+        if (from < 78) {
+          // Add the nullable per-database instance token to sync_metadata. Used
+          // to detect a database restore/overwrite that leaves the device id
+          // unchanged (a same-device backup). Nullable so existing rows read as
+          // "no token yet" and are treated like a first-run seed.
+          final cols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          final existing = cols.map((c) => c.read<String>('name')).toSet();
+          if (cols.isNotEmpty && !existing.contains('instance_token')) {
+            await customStatement(
+              'ALTER TABLE sync_metadata ADD COLUMN instance_token TEXT',
+            );
+          }
+        }
+        if (from < 78) await reportProgress();
+        if (from < 79) {
+          // Support surface-interval derivation from timestamps (issue #235):
+          // the correlated subquery SELECT MAX(exit_time) WHERE diver_id AND
+          // exit_time < entry_time needs this index to stay fast at scale.
+          // Guard with PRAGMA in case partial-schema migration fixtures are
+          // used in tests where dives may not yet have these columns.
+          final divesCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          if (divesCols.isNotEmpty) {
+            final colNames = divesCols
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (colNames.contains('diver_id') &&
+                colNames.contains('exit_time')) {
+              await customStatement('''
+                CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime
+                ON dives(diver_id, exit_time DESC)
+              ''');
+            }
+          }
+        }
+        if (from < 79) await reportProgress();
+        if (from < 80) {
+          // Library epoch anchor for restore Replace mode: the epoch this
+          // device last accepted, dual-anchored with a SharedPreferences
+          // mirror (see library_epoch_store.dart).
+          final cols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          final existing = cols.map((c) => c.read<String>('name')).toSet();
+          if (cols.isNotEmpty && !existing.contains('last_accepted_epoch_id')) {
+            await customStatement(
+              'ALTER TABLE sync_metadata ADD COLUMN last_accepted_epoch_id TEXT',
+            );
+          }
+        }
+        if (from < 80) await reportProgress();
+        if (from < 81) {
+          // Provider stamp for the sync cursor: lastSyncTimestamp minted
+          // against one backend must read as absent for another, so first
+          // contact with a switched backend stays detectable. Nullable so
+          // existing cursors read as legacy (valid for any provider).
+          final cols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          final existing = cols.map((c) => c.read<String>('name')).toSet();
+          if (cols.isNotEmpty && !existing.contains('last_sync_provider')) {
+            await customStatement(
+              'ALTER TABLE sync_metadata ADD COLUMN last_sync_provider TEXT',
+            );
+          }
+        }
+        if (from < 81) await reportProgress();
+        if (from < 82) {
+          // Recover databases stranded by the v77 schema-version collision:
+          // PR #302 (surface-interval index) shipped a v77 that only created
+          // an index, while the HLC backfill also claimed v77. Any database
+          // that upgraded under the index-only v77 sits at user_version >= 77
+          // with no hlc columns, so the v77 guard above (from < 77) is false
+          // and the backfill is skipped — leaving every sync UNION query
+          // (e.g. SELECT MAX(hlc) FROM "equipment") failing at prepare time.
+          //
+          // Re-run the same PRAGMA-guarded ALTER: healthy databases that
+          // already have hlc no-op on every table; affected databases get the
+          // missing columns added and sync starts working again.
+          for (final table in _hlcTables) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 82) await reportProgress();
+        if (from < 83) {
+          // Comprehensive recovery for databases stranded past v77 by the wider
+          // set of sync-branch schema-version collisions. The v77 HLC / PR #302
+          // index collision (healed by the v82 block above) was only the first:
+          // the abandoned encrypted-sync and iCloud-diagnostic lineages also
+          // reused v78-v81 for unrelated migrations. A database that reached
+          // user_version >= 78 via one of those branches skipped the canonical
+          // sync_metadata ALTERs — instance_token (v78), last_accepted_epoch_id
+          // (v80), last_sync_provider (v81) — because their `from < N` guards
+          // are false once `from` already passed N. The v82 block re-added only
+          // hlc, so the three text columns stayed missing once the database sat
+          // at the current version and stopped running onUpgrade. Every identity
+          // write then failed at prepare time with "no such column:
+          // instance_token" (launch-time reconcile and the twin-split
+          // adopt-fresh-identity path), so sync could never start.
+          //
+          // Re-assert every post-v76 sync_metadata column with PRAGMA-guarded
+          // ALTERs: healthy databases no-op, stranded databases are healed. The
+          // columns are all nullable, so existing rows read as "not yet set"
+          // exactly as they did on the original add.
+          const syncMetadataColumns = <String, String>{
+            'instance_token': 'TEXT',
+            'last_accepted_epoch_id': 'TEXT',
+            'last_sync_provider': 'TEXT',
+          };
+          final smCols = await customSelect(
+            "PRAGMA table_info('sync_metadata')",
+          ).get();
+          if (smCols.isNotEmpty) {
+            final existing = smCols.map((c) => c.read<String>('name')).toSet();
+            for (final entry in syncMetadataColumns.entries) {
+              if (!existing.contains(entry.key)) {
+                await customStatement(
+                  'ALTER TABLE sync_metadata '
+                  'ADD COLUMN ${entry.key} ${entry.value}',
+                );
+              }
+            }
+          }
+          // Re-run the hlc backfill as well, covering any database that reached
+          // user_version 82 (so the v82 block no longer fires) while still
+          // missing hlc on some table via a collision that also claimed v82.
+          for (final table in _hlcTables) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 83) await reportProgress();
+        if (from < 84) {
+          // Incremental changeset-log sync: per-peer download cursors and this
+          // device's own per-provider publish position.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS sync_peer_cursors (
+              peer_device_id TEXT NOT NULL,
+              provider TEXT NOT NULL,
+              base_seq_applied INTEGER,
+              last_seq_applied INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL,
+              PRIMARY KEY (peer_device_id, provider)
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS local_publish_states (
+              provider TEXT NOT NULL PRIMARY KEY,
+              base_seq INTEGER,
+              base_part_count INTEGER,
+              base_bytes INTEGER,
+              head_seq INTEGER NOT NULL DEFAULT 0,
+              published_hlc_high TEXT,
+              changeset_bytes_since_base INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+        }
+        if (from < 84) await reportProgress();
+        if (from < 85) {
+          // media, species, field_presets become first-class HLC entities so
+          // they delta by their own hlc instead of being exported in full.
+          // Table/column identifiers cannot be SQL-parameterized; these names
+          // are a fixed compile-time const list (no user input), so the string
+          // interpolation below is injection-safe.
+          for (final table in const ['media', 'species', 'field_presets']) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 85) await reportProgress();
+        if (from < 86) {
+          // Deletions become HLC-versioned like rows: logDeletion now stamps a
+          // monotonic hlc so an incremental changeset can carry only NEW
+          // tombstones instead of re-publishing the whole deletion log every
+          // sync. Backfill pre-existing tombstones with a minimal sentinel so
+          // they read as already-published (excluded from incrementals) while
+          // still riding every full base -- no re-publish, no resurrection.
+          final cols = await customSelect(
+            "PRAGMA table_info('deletion_log')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('hlc')) {
+              await customStatement(
+                'ALTER TABLE deletion_log ADD COLUMN hlc TEXT',
+              );
+            }
+            await customStatement(
+              "UPDATE deletion_log SET hlc = '000000000000000:000000:legacy' "
+              'WHERE hlc IS NULL',
+            );
+          }
+        }
+        if (from < 86) await reportProgress();
+        if (from < 87) {
+          // Prior dive experience (issue #331): three nullable columns on
+          // `divers`. PRAGMA-guarded so a healthy database no-ops; existing
+          // rows read as NULL = "no prior experience".
+          final cols = await customSelect("PRAGMA table_info('divers')").get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('prior_dive_count')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN prior_dive_count INTEGER',
+              );
+            }
+            if (!existing.contains('prior_dive_time_seconds')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN prior_dive_time_seconds INTEGER',
+              );
+            }
+            if (!existing.contains('diving_since')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN diving_since INTEGER',
+              );
+            }
+          }
+        }
+        if (from < 87) await reportProgress();
+        if (from < 88) {
+          // Add 'Cavern' as a built-in dive type. Cavern diving (light-zone
+          // only, cavern cert) is a distinct discipline from Cave (beyond
+          // light zone, full cave cert). Guarded by a sqlite_master check so
+          // minimal-schema test databases without dive_types are not affected;
+          // INSERT OR IGNORE preserves any user-created 'cavern' row.
+          //
+          // Renumbered from v84 to v88 because upstream claimed v84-v87 for
+          // sync-infrastructure migrations (see blocks above).
+          final tables = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+          ).get();
+          if (tables.isNotEmpty) {
+            final now = DateTime.now().millisecondsSinceEpoch;
+            await customStatement('''
+              INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
+              VALUES ('cavern', 'Cavern', 1, 14, $now, $now)
+            ''');
+          }
+        }
+        if (from < 88) await reportProgress();
+        if (from < 89) {
+          // Individual CCR O2 cell readings (sensor1..sensor6 from Subsurface
+          // CCR imports): six nullable columns on `dive_profiles`. PRAGMA-guarded
+          // so a healthy database no-ops; existing rows read as NULL.
+          //
+          // Renumbered from v88 to v89 because upstream claimed v88 for the
+          // Cavern dive-type migration (see block above).
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_profiles')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            for (var n = 1; n <= 6; n++) {
+              if (!existing.contains('o2_sensor$n')) {
+                await customStatement(
+                  'ALTER TABLE dive_profiles ADD COLUMN o2_sensor$n REAL',
+                );
+              }
+            }
+          }
+        }
+        if (from < 89) await reportProgress();
+        if (from < 90) {
+          // City and Island localities for dive sites (issue #344). Lets
+          // divers tell apart sites that share a country and region (e.g.
+          // multiple islands off Cebu). PRAGMA-guarded so a healthy database
+          // no-ops; existing rows read as NULL. body_of_water already exists.
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('city')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN city TEXT',
+              );
+            }
+            if (!existing.contains('island')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN island TEXT',
+              );
+            }
+          }
+        }
+        if (from < 90) await reportProgress();
+        if (from < 91) {
+          // Persisted default for the "Ascent Rate Line" profile overlay
+          // (issue: ascent-rate toggles default-off). Previously the line was a
+          // session-only toggle with no setting; it now joins the Default
+          // Visible Metrics list. PRAGMA-guarded so a healthy database no-ops
+          // and an interrupted upgrade does not fail on a duplicate ALTER.
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_ascent_rate_line')) {
+              await customStatement(
+                'ALTER TABLE diver_settings '
+                'ADD COLUMN default_show_ascent_rate_line '
+                'INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 91) await reportProgress();
+        if (from < 92) {
+          await m.createTable(diveDiveTypes);
+          // Seed only when the dives table (with its dive_type column) is
+          // present. Minimal-schema migration tests build a partial database
+          // without it, and the seed must not fail there.
+          final diveCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final hasDiveType = diveCols.any(
+            (c) => c.read<String>('name') == 'dive_type',
+          );
+          if (hasDiveType) {
+            await customStatement(kSeedDiveDiveTypesSql);
+          }
+        }
+        if (from < 92) await reportProgress();
+        if (from < 93) {
+          // Backfill built-in dive types. The full built-in set was only ever
+          // seeded in onCreate, so every database that reached the app via
+          // migration (rather than a fresh install) kept an EMPTY dive_types
+          // table -- the multi-select dive-type picker (#414) then showed no
+          // options. Guarded by a sqlite_master check so minimal-schema
+          // migration tests without dive_types are unaffected; INSERT OR IGNORE
+          // preserves rows already present (synced custom types, 'cavern' from
+          // the v88 migration).
+          final tables = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+          ).get();
+          if (tables.isNotEmpty) {
+            await customStatement(kSeedBuiltInDiveTypesSql);
+          }
+        }
+        if (from < 93) await reportProgress();
+        if (from < 94) {
+          // Guarded by sqlite_master so minimal-schema migration tests without
+          // diver_settings are unaffected.
+          final dsTable = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='diver_settings'",
+          ).get();
+          if (dsTable.isNotEmpty) {
+            await m.addColumn(diverSettings, diverSettings.ascentGasSet);
+          }
+        }
+        if (from < 94) await reportProgress();
+        if (from < 95) {
+          // Dive naming (#400): optional user-defined dive name. Guarded by a
+          // PRAGMA check so an interrupted upgrade that already added the
+          // column does not fail on a duplicate ALTER, and so minimal-schema
+          // migration tests without a dives table are unaffected (empty
+          // table_info means no dives table).
+          final diveCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final hasName = diveCols.any((c) => c.read<String>('name') == 'name');
+          if (diveCols.isNotEmpty && !hasName) {
+            await customStatement('ALTER TABLE dives ADD COLUMN name TEXT');
+          }
+        }
+        if (from < 95) await reportProgress();
+        if (from < 96) {
+          // Persisted default for the "Photo Markers" profile overlay
+          // (issue #162). Guarded like v91: skip when diver_settings does
+          // not exist (minimal-schema migration tests) or the column is
+          // already present (interrupted upgrade).
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_photo_markers')) {
+              await customStatement(
+                'ALTER TABLE diver_settings '
+                'ADD COLUMN default_show_photo_markers '
+                'INTEGER NOT NULL DEFAULT 1',
+              );
+            }
+          }
+        }
+        if (from < 96) await reportProgress();
+        if (from < 97) {
+          // Multi-computer consolidation: per-source attribution for tanks,
+          // pressure curves, and events. Guarded per table so minimal-schema
+          // migration tests without these tables are unaffected; existing
+          // rows keep NULL (= primary source / manual entry). (Authored as
+          // v94 on the feature branch; renumbered on merge as later
+          // migrations landed on main: ascent_gas_set v94, dive naming v95,
+          // photo markers v96.)
+          for (final table in [
+            'dive_tanks',
+            'tank_pressure_profiles',
+            'dive_profile_events',
+          ]) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            if (cols.isEmpty) continue;
+            final names = cols.map((c) => c.read<String>('name')).toSet();
+            if (!names.contains('computer_id')) {
+              await customStatement(
+                'ALTER TABLE $table ADD COLUMN computer_id TEXT '
+                'REFERENCES dive_computers (id) ON DELETE SET NULL',
+              );
+            }
+          }
+        }
+        if (from < 97) await reportProgress();
+        if (from < 98) {
+          // Checklist tables for trip planning (issue #164). Raw idempotent
+          // DDL (matches the v84 idiom) so interrupted migrations are safe.
+          // Renumbered v95 -> v96 -> v97 -> v98 as parallel branches each
+          // consumed a version before this merged (dive naming v95, photo
+          // markers v96, multi-computer consolidation v97), stranding some
+          // live databases at those versions without the checklist tables.
+          // Re-running the idempotent CREATE TABLE/INDEX IF NOT EXISTS
+          // statements here recovers them without disturbing what earlier
+          // versions added — the same recovery pattern as the v82/v83
+          // schema-version-collision blocks above.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS checklist_templates (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT REFERENCES divers (id),
+              name TEXT NOT NULL,
+              description TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS checklist_template_items (
+              id TEXT NOT NULL PRIMARY KEY,
+              template_id TEXT NOT NULL REFERENCES checklist_templates (id),
+              title TEXT NOT NULL,
+              category TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              due_offset_days INTEGER,
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS trip_checklist_items (
+              id TEXT NOT NULL PRIMARY KEY,
+              trip_id TEXT NOT NULL REFERENCES trips (id),
+              title TEXT NOT NULL,
+              category TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              due_date INTEGER,
+              is_done INTEGER NOT NULL DEFAULT 0,
+              completed_at INTEGER,
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_checklist_template_items_template_id
+            ON checklist_template_items(template_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_trip_checklist_items_trip_id
+            ON trip_checklist_items(trip_id)
+          ''');
+        }
+        if (from < 98) await reportProgress();
+        if (from < 99) {
+          // Structured instructor link on certifications (issue #395).
+          // PRAGMA-guarded so a healthy database no-ops and an interrupted
+          // upgrade does not fail on a duplicate ALTER. (v99: renumbered
+          // from v94 repeatedly as main claimed 94-96, then 97, then 98
+          // while the branch was in review; a beforeOpen backstop
+          // re-asserts this object too, so a version collision can't
+          // strand it.)
+          //
+          // This block also created the buddy_roles table historically
+          // (buddy professional credentials); v147 folds those rows into
+          // certifications and drops the table.
+          final certCols = await customSelect(
+            "PRAGMA table_info('certifications')",
+          ).get();
+          if (certCols.isNotEmpty) {
+            final existing = certCols
+                .map((c) => c.read<String>('name'))
+                .toSet();
+            if (!existing.contains('instructor_id')) {
+              await customStatement(
+                'ALTER TABLE certifications ADD COLUMN instructor_id TEXT '
+                'REFERENCES buddies (id) ON DELETE SET NULL',
+              );
+            }
+          }
+        }
+        if (from < 99) await reportProgress();
+        if (from < 100) {
+          // Saved dive plans (planner redesign Phase 2): three synced tables.
+          // createTable is IF NOT EXISTS and the indexes are guarded, so this
+          // block is idempotent; the beforeOpen backstop re-asserts the same
+          // objects against schema-version collisions.
+          await m.createTable(divePlans);
+          await m.createTable(divePlanTanks);
+          await m.createTable(divePlanSegments);
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_plan_tanks_plan_id
+            ON dive_plan_tanks(plan_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_dive_plan_segments_plan_id
+            ON dive_plan_segments(plan_id)
+          ''');
+        }
+        if (from < 100) await reportProgress();
+        if (from < 101) {
+          // GPS surface track logging (discussion #289). Raw idempotent DDL
+          // (v98 checklist idiom) so interrupted migrations and schema-version
+          // collisions are safe. gps_track_points_local is a device-local
+          // recording buffer and is never synced.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS gps_tracks (
+              id TEXT NOT NULL PRIMARY KEY,
+              start_time INTEGER NOT NULL,
+              end_time INTEGER,
+              tz_offset_minutes INTEGER NOT NULL DEFAULT 0,
+              device_name TEXT,
+              point_count INTEGER NOT NULL DEFAULT 0,
+              points BLOB,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS gps_track_points_local (
+              row_id INTEGER PRIMARY KEY AUTOINCREMENT,
+              track_id TEXT NOT NULL,
+              timestamp INTEGER NOT NULL,
+              latitude REAL NOT NULL,
+              longitude REAL NOT NULL,
+              accuracy REAL
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id
+            ON gps_track_points_local(track_id)
+          ''');
+        }
+        if (from < 101) await reportProgress();
+        if (from < 102) {
+          await _relinkStrandedTankPressures();
+        }
+        if (from < 102) await reportProgress();
+        if (from < 103) {
+          // Two features independently claimed v103 on parallel branches
+          // (media store spec 2026-07-10; dive roles #551/#547). Both
+          // blocks are idempotent and touch disjoint tables, so the merge
+          // keeps both and beforeOpen re-asserts each against the
+          // schema-version collision this very overlap illustrates.
+
+          // Media store Phase 1: content identity + upload stamps on media,
+          // plus the secret-free store descriptor. Guarded ALTERs and
+          // IF NOT EXISTS keep this idempotent.
+          await _assertMediaStoreSchema();
+
+          // Dive roles vocabulary (#551) + the diver's own role (#547).
+          // createTable is IF NOT EXISTS and the seed is INSERT OR IGNORE,
+          // so this block is idempotent. The existence guards (divers for
+          // the seed's FK parent, dives for the ALTER) only matter for
+          // minimal test-fixture databases.
+          await m.createTable(diveRoles);
+          final diversTable = await customSelect(
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='divers'",
+          ).get();
+          if (diversTable.isNotEmpty) {
+            await customStatement(kSeedBuiltInDiveRolesSql);
+          }
+          final diveCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final hasDiverRole = diveCols.any(
+            (c) => c.read<String>('name') == 'diver_role',
+          );
+          if (diveCols.isNotEmpty && !hasDiverRole) {
+            await customStatement(
+              'ALTER TABLE dives ADD COLUMN diver_role TEXT',
+            );
+          }
+        }
+        if (from < 103) await reportProgress();
+        if (from < 104) {
+          await m.createTable(diverWeightEntries);
+          await m.createTable(divePlanEquipment);
+          Future<void> addColumnIfMissing(
+            String table,
+            String column,
+            String type,
+          ) async {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final has = cols.any((c) => c.read<String>('name') == column);
+            if (cols.isNotEmpty && !has) {
+              await customStatement(
+                'ALTER TABLE $table ADD COLUMN $column $type',
+              );
+            }
+          }
+
+          await addColumnIfMissing('dives', 'weighting_feedback', 'TEXT');
+          await addColumnIfMissing('dives', 'weighting_feedback_kg', 'REAL');
+          await addColumnIfMissing('equipment', 'buoyancy_kg', 'REAL');
+          await addColumnIfMissing('equipment', 'weight_kg', 'REAL');
+          await addColumnIfMissing('dive_plans', 'planned_weight_kg', 'REAL');
+          await addColumnIfMissing(
+            'dive_plans',
+            'planned_weight_placement',
+            'TEXT',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_diver_weight_entries_diver_id '
+            'ON diver_weight_entries(diver_id)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
+            'ON dive_plan_equipment(plan_id)',
+          );
+        }
+        if (from < 104) await reportProgress();
+        if (from < 105) {
+          // v105: per-sample compass heading (DC_SAMPLE_BEARING) on
+          // dive_profiles. PRAGMA-guarded so a healthy database no-ops.
+          final profileCols = await customSelect(
+            "PRAGMA table_info('dive_profiles')",
+          ).get();
+          if (profileCols.isNotEmpty) {
+            final hasHeading = profileCols.any(
+              (c) => c.read<String>('name') == 'heading',
+            );
+            if (!hasHeading) {
+              await customStatement(
+                'ALTER TABLE dive_profiles ADD COLUMN heading REAL',
+              );
+            }
+          }
+        }
+        if (from < 105) await reportProgress();
+        if (from < 106) {
+          // Lightroom auto-linking: connector identity on pending photo
+          // suggestions. PRAGMA-guarded ALTERs keep this idempotent; the
+          // beforeOpen backstop re-asserts it against parallel-branch
+          // schema-version collisions (v104 weight planner and v105
+          // heading both renumbered this block already, the same disease
+          // the v103 comment documents).
+          await _assertConnectorSuggestionColumns();
+        }
+        if (from < 106) await reportProgress();
+        if (from < 107) {
+          // Connected accounts (program spec section 5). Idempotent DDL;
+          // beforeOpen re-asserts against parallel-branch version collisions.
+          await _assertConnectedAccountsSchema();
+          // Adopt Lightroom connector accounts (ids preserved: scan state
+          // and suggestion rows key on them), then retire the table. Guarded
+          // on table existence for fresh installs and minimal test fixtures.
+          final connectorTable = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name='connector_accounts'",
+          ).get();
+          if (connectorTable.isNotEmpty) {
+            await customStatement(
+              "INSERT OR IGNORE INTO connected_accounts "
+              "(id, kind, label, account_identifier, created_at, updated_at) "
+              "SELECT id, 'adobeLightroom', display_name, account_identifier, "
+              "added_at, added_at FROM connector_accounts "
+              "WHERE connector_type = 'lightroom'",
+            );
+            await customStatement('DROP TABLE IF EXISTS connector_accounts');
+          }
+        }
+        if (from < 107) await reportProgress();
+        if (from < 108) {
+          // Manifest subscriptions become synced (program spec section 6).
+          await _assertMediaSubscriptionsHlc();
+        }
+        if (from < 108) await reportProgress();
+        if (from < 109) {
+          // issue #553: certifications can belong to a buddy. Add the owner
+          // column, then copy each buddy's inline cert into a certifications
+          // row (deterministic id so per-device migration converges). The copy
+          // runs here only -- see _migrateBuddyInlineCertifications.
+          await _assertCertificationBuddyOwnerColumn();
+          await _migrateBuddyInlineCertifications();
+        }
+        if (from < 109) await reportProgress();
+        if (from < 110) {
+          // issue #553 contract: the inline buddy cert columns are redundant
+          // (data now lives in certifications rows). Copy once more as a
+          // safety net -- covers a collision that advanced user_version to
+          // v109 without running the v109 copy -- THEN drop. SQLite >= 3.35
+          // supports DROP COLUMN; the PRAGMA guard keeps a fresh v110 db a
+          // no-op.
+          await _migrateBuddyInlineCertifications();
+          final buddyCols = await customSelect(
+            "PRAGMA table_info('buddies')",
+          ).get();
+          final names = buddyCols.map((c) => c.read<String>('name')).toSet();
+          if (names.contains('certification_level')) {
+            await customStatement(
+              'ALTER TABLE buddies DROP COLUMN certification_level',
+            );
+          }
+          if (names.contains('certification_agency')) {
+            await customStatement(
+              'ALTER TABLE buddies DROP COLUMN certification_agency',
+            );
+          }
+        }
+        if (from < 110) await reportProgress();
+        if (from < 111) {
+          await _assertEquipmentSetDefaultAndGeofenceSchema();
+        }
+        if (from < 111) await reportProgress();
+        if (from < 112) {
+          await _assertEquipmentThicknessColumn();
+        }
+        if (from < 112) await reportProgress();
+        if (from < 113) {
+          await _assertCnsCalculationMethodColumn();
+        }
+        if (from < 113) await reportProgress();
+        if (from < 114) {
+          // Guarded like the beforeOpen backstops: minimal migration-test
+          // fixtures may lack the table entirely.
+          final peerCursorCols = await customSelect(
+            "PRAGMA table_info('sync_peer_cursors')",
+          ).get();
+          final hasAck = peerCursorCols.any(
+            (c) => c.read<String>('name') == 'applied_hlc_high',
+          );
+          if (peerCursorCols.isNotEmpty && !hasAck) {
+            await m.addColumn(syncPeerCursors, syncPeerCursors.appliedHlcHigh);
+          }
+          await ensureDeletionLogIndex();
+        }
+        if (from < 114) await reportProgress();
+        // v120: planner Subsurface-parity columns. Version claimed in-worktree
+        // per the schema-ladder convention; reconcile numbering at merge time.
+        if (from < 120) {
+          await _assertPlannerParitySchema();
+        }
+        if (from < 120) await reportProgress();
+        // v121: course requirement tracker (renumbered from v114 at merge
+        // time; v114 became the tombstone-GC migration on main). Both tables
+        // are new, no data migration. createTable is idempotent (IF NOT
+        // EXISTS).
+        if (from < 121) {
+          await m.createTable(courseRequirements);
+          await m.createTable(courseRequirementDives);
+        }
+        if (from < 121) await reportProgress();
+        // v122: gear service ledger (renumbered from v115 as main advanced
+        // past it at merge time). The legacy backfill runs here only, never in
+        // beforeOpen, so user-deleted schedules are not resurrected.
+        if (from < 122) {
+          await _assertServiceLedgerSchema();
+          await _backfillLegacyServiceSchedules();
+        }
+        if (from < 122) await reportProgress();
+        // v123: post-dive safety review tables + diver safety settings columns
+        // (renumbered from v115 as main advanced past it at merge time).
+        if (from < 123) {
+          await _assertSafetyReviewSchema();
+        }
+        if (from < 123) await reportProgress();
+        // v124: equipment type-specific attributes (renumbered from v115/v123
+        // as main advanced past it at merge time). The legacy-column copy runs
+        // here only, never in beforeOpen, so user-cleared attributes are not
+        // resurrected.
+        if (from < 124) {
+          await _assertEquipmentAttributesSchema();
+          await _migrateLegacyEquipmentColumnsToAttributes();
+        }
+        if (from < 124) await reportProgress();
+        // v125: diver_settings.no_fly_preset column (safety phase 2, no-fly
+        // countdown). Renumbered from v117/v124 as main advanced past it at
+        // merge time.
+        if (from < 125) {
+          await _assertNoFlySettingsColumn();
+        }
+        if (from < 125) await reportProgress();
+        // v126: emergency_chambers table + emergency card settings columns
+        // (renumbered from v118 as main advanced past it at merge time).
+        if (from < 126) {
+          await _assertEmergencyCardSchema();
+        }
+        if (from < 126) await reportProgress();
+        // v127: incidents table (near-miss log, safety phase 4). Renumbered
+        // from v119 as main advanced past it at merge time.
+        if (from < 127) {
+          await _assertIncidentsSchema();
+        }
+        if (from < 127) await reportProgress();
+        // v128: pre-dive checklist tables + built-in template seeds
+        // (renumbered from v117/v127 as main advanced past it at merge time).
+        if (from < 128) {
+          await _assertPreDiveChecklistSchema();
+          await _seedBuiltInPreDiveTemplates();
+        }
+        if (from < 128) await reportProgress();
+        // v129: quality_findings table for the Data Quality Assistant
+        // (renumbered from v118 as main advanced past it at merge time).
+        if (from < 129) {
+          await _assertQualityFindingsSchema();
+        }
+        if (from < 129) await reportProgress();
+        // v130: media_enrichment.hlc so a photo's depth/time association
+        // replicates through sync (it was local-only before).
+        if (from < 130) {
+          await _assertMediaEnrichmentHlcColumn();
+        }
+        if (from < 130) await reportProgress();
+        // v131: reconcile legacy service intervals edited after the v122
+        // backfill into General service clocks (deletion-log guarded).
+        if (from < 131) {
+          await _reconcileLegacyServiceSchedules();
+        }
+        if (from < 131) await reportProgress();
+        // v132: correct dives whose bottom_time was stored equal to runtime by
+        // older imports (Subsurface/MacDive/CSV via the UDDF entity importer,
+        // which seeded bottom_time from the total-time `duration`). onUpgrade
+        // only -- a deterministic local recompute, never beforeOpen, so a
+        // profile-less dive a user deliberately left with bottom_time==runtime
+        // is not re-touched on every open.
+        if (from < 132) {
+          await _backfillBottomTimeFromProfile();
+        }
+        if (from < 132) await reportProgress();
+        // v133: deco stop band columns on diver_settings (renumbered from v130
+        // as main advanced past it at merge time).
+        if (from < 133) {
+          await _assertDecoStopSettingsColumns();
+        }
+        if (from < 133) await reportProgress();
+        // v134: media compressed-rendition columns (adjustable upload quality
+        // Phase A). Renumbered from v130 as main advanced past it at merge time.
+        if (from < 134) {
+          await _assertMediaCompressedRenditionColumns();
+        }
+        if (from < 134) await reportProgress();
+        // v135: color accent toggle columns on diver_settings. Devices that
+        // upgraded through main's v136/v137 before this merge skipped 135;
+        // the beforeOpen backstop re-asserts the columns for them.
+        if (from < 135) {
+          await _assertAccentColorSettingsColumns();
+        }
+        if (from < 135) await reportProgress();
+        // v136: media_stores.last_sweep_at (Verify Library fleet cadence).
+        // v136 shipped while v135 was still on its branch, so a DB can be at
+        // 136+ without the accent columns; see the v135 note above.
+        if (from < 136) {
+          await _assertMediaStoresLastSweepColumn();
+        }
+        if (from < 136) await reportProgress();
+        // v137: dives.weather_code + clear the English weather prose we
+        // generated ourselves, so it re-renders in the diver's locale.
+        if (from < 137) {
+          await _assertWeatherCodeColumn();
+          await _clearGeneratedWeatherDescriptions();
+        }
+        if (from < 137) await reportProgress();
+        if (from < 139) {
+          await _assertCylinderConfigSchema();
+          await reportProgress();
+        }
+        // v140: media.retain_in_library (Media section Phase 1). v138
+        // (divelogs) lives on a parallel branch; a DB arriving here from 137
+        // runs the v139 cylinder block then this one, and the beforeOpen
+        // backstop self-heals any DB a parallel branch strands in between.
+        if (from < 140) {
+          await _assertMediaRetainInLibraryColumn();
+        }
+        if (from < 140) await reportProgress();
+        // v141: default currency for priced items (e.g. equipment). A DB
+        // that upgraded past 141 on a parallel branch never enters this block;
+        // the beforeOpen backstop below is its only path to the column.
+        if (from < 141) {
+          await _assertDefaultCurrencyColumn();
+        }
+        if (from < 141) await reportProgress();
+        // v142: trips.return_flight_at (return-flight dive-window countdown).
+        // v138 (#603) is reserved by a parallel branch; the beforeOpen
+        // backstop heals any DB stranded between.
+        if (from < 142) {
+          await _assertTripReturnFlightColumn();
+        }
+        if (from < 142) await reportProgress();
+        // v143: repair history + smart albums (Media section Phase 5). A DB
+        // already carried to 144-150 by main never enters this block; the
+        // beforeOpen backstop is its only path to those tables.
+        if (from < 143) {
+          await _assertMediaPhase5Schema();
+        }
+        if (from < 143) await reportProgress();
+        // v144: dives.visibility_meters + the diver_settings visibility
+        // calibration columns.
+        if (from < 144) {
+          await _assertVisibilityMetersColumn();
+          await _assertVisibilityScaleColumns();
+        }
+        if (from < 144) await reportProgress();
+        // v145: gps_tracks source/source_ref/name + non-destructive trim
+        // bounds. Renumbered from v144 as main took that step for the
+        // visibility scale work at merge time.
+        if (from < 145) {
+          await _assertGpsTrackColumns();
+        }
+        if (from < 145) await reportProgress();
+        // v146: recompute bottom times the retired square-profile heuristic
+        // derived too short on multilevel dives. Fingerprinted -- stored
+        // values that exactly reproduce the old heuristic get replaced
+        // (machine-derived, or a coincidental user match that recomputes to
+        // a profile-consistent value); anything else is treated as user
+        // data and left alone. onUpgrade only, hlc untouched (v132 pattern).
+        if (from < 146) {
+          await _recomputeMultilevelBottomTimes();
+        }
+        if (from < 146) await reportProgress();
+        if (from < 147) {
+          // Fold buddy professional credentials into certifications and drop
+          // buddy_roles (spec 2026-08-08). Conversion + drop in one step; the
+          // sqlite_master guard makes a fresh v147 db a no-op.
+          await _migrateBuddyRolesToCertifications();
+        }
+        if (from < 147) await reportProgress();
+        if (from < 148) {
+          // Site media (issues #211/#627). Query index for the site gallery;
+          // dedupe cleanup + partial unique index mirroring the dive-side
+          // v38 pair so the same gallery asset cannot be linked to the same
+          // site twice. The survivor is the oldest row, tie-broken by rowid:
+          // created_at is epoch MILLISECONDS and a bulk import writes many
+          // rows inside one, so a `created_at > MIN(created_at)` cleanup
+          // would leave every tied row behind and the unique index below
+          // would then abort the whole migration.
+          // Guarded on media.site_id existing so partial migration-test
+          // fixture databases (which build only the tables and columns their
+          // migration touches) pass through unharmed.
+          final mediaSiteCol = await customSelect(
+            "SELECT name FROM pragma_table_info('media') "
+            "WHERE name = 'site_id'",
+          ).get();
+          if (mediaSiteCol.isNotEmpty) {
+            await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_media_site_id
+            ON media(site_id)
+          ''');
+            await customStatement('''
+            DELETE FROM media
+            WHERE platform_asset_id IS NOT NULL
+              AND site_id IS NOT NULL
+              AND rowid NOT IN (
+                SELECT rowid FROM (
+                  SELECT rowid, ROW_NUMBER() OVER (
+                    PARTITION BY platform_asset_id, site_id
+                    ORDER BY created_at ASC, rowid ASC
+                  ) AS rn FROM media
+                  WHERE platform_asset_id IS NOT NULL AND site_id IS NOT NULL
+                ) WHERE rn = 1
+              )
+          ''');
+            await customStatement('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_media_asset_site_unique
+            ON media(platform_asset_id, site_id)
+            WHERE platform_asset_id IS NOT NULL AND site_id IS NOT NULL
+          ''');
+          }
+        }
+        if (from < 148) await reportProgress();
+        if (from < 149) {
+          // Duplicate tags (issue #1032). The helper dedupes BEFORE creating
+          // the unique indexes and its dedupe is total (rowid/id tie-breaks),
+          // so no tie can survive to abort the index creation -- the failure
+          // mode v148 documents. Self-guarding on the tables existing.
+          await assertTagUniqueness(this);
+        }
+        if (from < 149) await reportProgress();
+        // v150: the diver's GPS coordinate notation (issue #1041).
+        if (from < 150) {
+          await _assertCoordinateFormatColumn();
+        }
+        if (from < 150) await reportProgress();
+        // v151: per-diver seascape terrain appearance (synced; PR #1073).
+        if (from < 151) {
+          await _assertSeascapeAppearanceColumn();
+        }
+        if (from < 151) await reportProgress();
+        // v152: site features annotation table (slice 2).
+        if (from < 152) {
+          await createMigrator().createTable(siteFeatures);
+        }
+        if (from < 152) await reportProgress();
+        // v153: raw O2 cell output in millivolts (issue #810).
+        if (from < 153) {
+          await _assertO2CellMillivoltColumns();
+        }
+        if (from < 153) await reportProgress();
+        // v154: site-level entry/exit method (issue #1104).
+        if (from < 154) {
+          await _assertSiteEntryExitMethodColumns();
+        }
+        if (from < 154) await reportProgress();
+        // v155: selectable gas model for every pressure-to-volume
+        // conversion (issue #828).
+        if (from < 155) {
+          await _assertGasModelColumn();
+        }
+        if (from < 155) await reportProgress();
+        // v156: dive_plan_tanks travel-gas flag (lost-gas contingency
+        // planning for stage/deco/diluent cylinders also used on descent).
+        if (from < 156) {
+          await _assertTravelGasColumn();
+        }
+        if (from < 156) await reportProgress();
+        // v157: default service price on kinds and schedules (issue #829).
+        if (from < 157) {
+          await _assertServiceCostColumns();
+        }
+        if (from < 157) await reportProgress();
+        // v158: owning-source FK on dive_profiles (issue #1149), plus the
+        // one-time attribution of existing rows.
+        if (from < 158) {
+          await _assertProfileSourceIdColumn();
+          await _backfillProfileSourceIds();
+        }
+        if (from < 158) await reportProgress();
+        // v159: the consolidation time offset carried on a folded-in
+        // source, so a re-parse can put its strand back on the dive's
+        // clock (issue #1177).
+        if (from < 159) {
+          await _assertDataSourceTimeOffsetColumn();
+        }
+        if (from < 159) await reportProgress();
+        // v160: default category on service_kinds, prefilled into a new
+        // maintenance record, plus the service_records category rename
+        // (service type unification).
+        if (from < 160) {
+          await _assertServiceCategoryColumn();
+          await _assertServiceCategoryRename();
+        }
+        if (from < 160) await reportProgress();
+        // v161: default_show_o2_cell_mv on diver_settings (issue #1235).
+        if (from < 161) {
+          await _assertO2CellMvDefaultColumn();
+        }
+        if (from < 161) await reportProgress();
+        // v163: default_show_estimated_tank_pressure on diver_settings
+        // (issue #731).
+        if (from < 163) {
+          await _assertEstimatedTankPressureDefaultColumn();
+        }
+        if (from < 163) await reportProgress();
+        // v164: media.manual_elapsed_seconds (issue #1090).
+        if (from < 164) {
+          await _assertMediaManualElapsedColumn();
+        }
+        if (from < 164) await reportProgress();
+        // v166: place_name_language on diver_settings (issue #1187).
+        if (from < 166) {
+          await _assertPlaceNameLanguageColumn();
+        }
+        if (from < 166) await reportProgress();
+        // v168 (issue #638): buddies.is_favorite, so frequently-dived buddies
+        // can be pinned to the top of the "Add buddy" picker regardless of
+        // sort.
+        if (from < 168) {
+          await _assertBuddyFavoriteColumn();
+        }
+        if (from < 168) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v103 backstop: re-assert media store schema (the helper is
+        // self-guarding when the media table is absent).
+        await _assertMediaStoreSchema();
+
+        // v130 backstop: re-assert the media_enrichment.hlc column.
+        await _assertMediaEnrichmentHlcColumn();
+
+        // v134 backstop: re-assert compressed-rendition columns.
+        await _assertMediaCompressedRenditionColumns();
+
+        // v136 backstop: re-assert media_stores.last_sweep_at.
+        await _assertMediaStoresLastSweepColumn();
+
+        // v137 backstop: re-assert dives.weather_code.
+        await _assertWeatherCodeColumn();
+
+        // v140 backstop: re-assert media.retain_in_library. A device
+        // already at 141/142 never enters the `from < 140` block above, so
+        // this is the ONLY path that gives it the column.
+        await _assertMediaRetainInLibraryColumn();
+
+        // v141 backstop: re-assert diver_settings.default_currency.
+        await _assertDefaultCurrencyColumn();
+
+        // v143 backstop: re-assert the Phase 5 tables. Same reason as the
+        // v140 backstop above -- a parallel branch that claims 143 or higher
+        // for something else would carry a device past the `from < 143`
+        // block without ever creating these tables.
+        await _assertMediaPhase5Schema();
+
+        // v106 backstop: re-assert connector-suggestion columns (the helper
+        // is self-guarding when the suggestions table is absent).
+        await _assertConnectorSuggestionColumns();
+
+        // v107 backstop: re-assert connected accounts schema.
+        await _assertConnectedAccountsSchema();
+
+        // v108 backstop: re-assert media_subscriptions.hlc.
+        await _assertMediaSubscriptionsHlc();
+
+        // v109 backstop (issue #553): re-assert the certifications.buddy_id
+        // column ONLY. The one-time inline-cert data copy lives in the v109
+        // onUpgrade block, not here -- re-running it every open would
+        // resurrect a user-deleted buddy cert from the still-present inline
+        // column (dropped in v110).
+        await _assertCertificationBuddyOwnerColumn();
+
+        // v111 backstop: re-assert equipment_sets.is_default + the
+        // equipment_set_geofences table (parallel-branch collision self-heal).
+        await _assertEquipmentSetDefaultAndGeofenceSchema();
+
+        // v112 backstop: re-assert equipment.thickness column.
+        await _assertEquipmentThicknessColumn();
+
+        // v113 backstop: re-assert diver_settings.cns_calculation_method.
+        await _assertCnsCalculationMethodColumn();
+
+        // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
+        // deletion_log unique index.
+        final peerCursorCols = await customSelect(
+          "PRAGMA table_info('sync_peer_cursors')",
+        ).get();
+        final hasAppliedHlcHigh = peerCursorCols.any(
+          (c) => c.read<String>('name') == 'applied_hlc_high',
+        );
+        if (peerCursorCols.isNotEmpty && !hasAppliedHlcHigh) {
+          await customStatement(
+            'ALTER TABLE sync_peer_cursors ADD COLUMN applied_hlc_high TEXT',
+          );
+        }
+        await ensureDeletionLogIndex();
+
+        // v120 backstop: re-assert planner Subsurface-parity columns.
+        await _assertPlannerParitySchema();
+
+        // v121 backstop: course requirement tables (parallel-branch
+        // collision self-heal; createTable is idempotent).
+        await createMigrator().createTable(courseRequirements);
+        await createMigrator().createTable(courseRequirementDives);
+
+        // v152 backstop: site features table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await createMigrator().createTable(siteFeatures);
+
+        // v122 backstop: re-assert service ledger schema + built-in kinds.
+        // The legacy backfill is NOT here (onUpgrade only) -- re-running it
+        // would resurrect user-deleted schedules.
+        await _assertServiceLedgerSchema();
+
+        // v123 backstop: re-assert safety review tables + settings columns
+        // (parallel-branch collision self-heal).
+        await _assertSafetyReviewSchema();
+
+        // v124 backstop: re-assert the equipment_attributes table (schema
+        // only -- the legacy-column copy must NOT run here, it would
+        // resurrect attribute rows the user has cleared).
+        await _assertEquipmentAttributesSchema();
+
+        // v125 backstop: re-assert diver_settings.no_fly_preset.
+        await _assertNoFlySettingsColumn();
+
+        // v126 backstop: re-assert emergency card schema.
+        await _assertEmergencyCardSchema();
+
+        // v127 backstop: re-assert incidents table.
+        await _assertIncidentsSchema();
+
+        // v128 backstop: re-assert the pre-dive checklist tables and their
+        // built-in templates (same rationale as the dive-types re-seed).
+        await _assertPreDiveChecklistSchema();
+        await _seedBuiltInPreDiveTemplates();
+
+        // v129 backstop: re-assert quality_findings schema.
+        await _assertQualityFindingsSchema();
+
+        // v133 backstop: re-assert the deco stop band settings columns.
+        await _assertDecoStopSettingsColumns();
+
+        // v135 backstop: re-assert color accent toggle columns.
+        await _assertAccentColorSettingsColumns();
+
+        // v139 backstop: re-assert the cylinder configuration tables. A
+        // database stranded at any lower version by a parallel-branch
+        // version collision self-heals here.
+        await _assertCylinderConfigSchema();
+
+        // v142 backstop: re-assert trips.return_flight_at.
+        await _assertTripReturnFlightColumn();
+
+        // v144 backstop: re-assert the measured-visibility column and the
+        // diver_settings calibration columns.
+        await _assertVisibilityMetersColumn();
+        await _assertVisibilityScaleColumns();
+
+        // v150 backstop: re-assert the coordinate format column.
+        await _assertCoordinateFormatColumn();
+
+        // v151 backstop: re-assert the seascape appearance column (the
+        // shared-dev-machine ladder-collision trap: a DB already at this
+        // version number from a parallel branch skips onUpgrade).
+        await _assertSeascapeAppearanceColumn();
+
+        // v153 backstop: re-assert the O2 cell millivolt columns (issue
+        // #810; same parallel-branch version-collision self-heal).
+        await _assertO2CellMillivoltColumns();
+
+        // v154 backstop: re-assert the site entry/exit method columns (issue
+        // #1104; same parallel-branch version-collision self-heal).
+        await _assertSiteEntryExitMethodColumns();
+
+        // v155 backstop: re-assert the gas model column (issue #828). A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and reading settings without this column throws. This
+        // also covers a database stranded at 154 by the #1104 collision.
+        await _assertGasModelColumn();
+        // v158 backstop: re-assert the dive_profiles owning-source column
+        // (issue #1149; same parallel-branch version-collision self-heal).
+        // Column only -- _backfillProfileSourceIds is a full-table pass and
+        // belongs to the ladder, not to every open.
+        await _assertProfileSourceIdColumn();
+
+        // v156 backstop: re-assert the dive_plan_tanks travel-gas column
+        // (same parallel-branch version-collision self-heal).
+        await _assertTravelGasColumn();
+
+        // v157 backstop: re-assert the default service price columns (issue
+        // #829; same parallel-branch version-collision self-heal).
+        await _assertServiceCostColumns();
+
+        // v159 backstop: re-assert the consolidation time offset column
+        // (issue #1177; same parallel-branch version-collision self-heal).
+        // Reading a consolidated dive's sources throws without it.
+        await _assertDataSourceTimeOffsetColumn();
+
+        // v160 backstop: re-assert service_kinds.default_category. A device
+        // that reached 160 or higher through a parallel branch never enters
+        // the `from < 160` block above, and the seed SQL below is
+        // INSERT OR IGNORE, so it cannot add the column to existing rows.
+        await _assertServiceCategoryColumn();
+
+        // v160 backstop: re-assert the service_records column rename. A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and every read of a service record would throw.
+        await _assertServiceCategoryRename();
+
+        // v161 backstop: re-assert diver_settings.default_show_o2_cell_mv
+        // (issue #1235; same parallel-branch version-collision self-heal).
+        await _assertO2CellMvDefaultColumn();
+
+        // v163 backstop: re-assert
+        // diver_settings.default_show_estimated_tank_pressure (issue #731;
+        // same parallel-branch version-collision self-heal).
+        await _assertEstimatedTankPressureDefaultColumn();
+
+        // v164 backstop: re-assert media.manual_elapsed_seconds (issue
+        // #1090; same parallel-branch version-collision self-heal). The
+        // media row mapper reads it on every hydration.
+        await _assertMediaManualElapsedColumn();
+
+        // v168 backstop: re-assert buddies.is_favorite (issue #638). A
+        // database that arrives by restore or sync-adopt never runs
+        // onUpgrade, and every read of a buddy would throw without it.
+        await _assertBuddyFavoriteColumn();
+
+        // v145 backstop: re-assert the gps_tracks provenance and trim columns.
+        await _assertGpsTrackColumns();
+
+        // v147 backstop: re-run the buddy_roles fold (parallel-branch
+        // schema-version collision self-heal). This is safe to re-run on
+        // every open, unlike the #553 inline-cert copy above, which must
+        // NEVER run here -- that helper's source columns (buddies.
+        // certification_level/_agency) survive until v110, so re-running it
+        // in beforeOpen would resurrect a user-deleted buddy cert from
+        // still-present source data. _migrateBuddyRolesToCertifications has
+        // no such hazard: its own DROP TABLE makes the sqlite_master guard a
+        // strict no-op the moment buddy_roles is gone, so there is no source
+        // data left to resurrect from. Its purpose here is purely to protect
+        // a DB whose user_version advanced past 145 without ever running the
+        // v147 block -- without this backstop, that DB would carry an
+        // orphaned buddy_roles table whose credentials silently vanish from
+        // the UI forever (nothing else reads that table).
+        await _migrateBuddyRolesToCertifications();
+
+        // Built-in dive types are reference data: identical on every device and
+        // undeletable through DiveTypeRepository. Nothing else restores them --
+        // the seed runs only in onCreate and the one-shot v93 step -- yet a
+        // replace-adopt clears dive_types and refills from a payload that omits
+        // built-ins, and a library copied from an already-empty device carries
+        // the hole with it. Re-assert on every open, mirroring the built-in
+        // species seed. INSERT OR IGNORE is idempotent, and the stable slug ids
+        // are exactly what dive_dive_types references, so orphaned junction
+        // rows resolve again.
+        final diveTypesTable = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+        ).get();
+        if (diveTypesTable.isNotEmpty) {
+          await customStatement(kSeedBuiltInDiveTypesSql);
+        }
+
+        // Backstop for schema-version collisions (issue #395; same disease
+        // as the v77/v82/v83 sync-branch incidents): a parallel branch build
+        // that claims the same schema version can advance user_version past
+        // the v99 block without creating its objects, and no later migration
+        // would ever repair that. The ALTER is PRAGMA-guarded, so re-assert
+        // the v99 object on every open. (buddy_roles was also created here
+        // historically; v147 dropped it, so it must NOT be re-created below
+        // -- doing so would resurrect the dropped table on every open.)
+        final certCols = await customSelect(
+          "PRAGMA table_info('certifications')",
+        ).get();
+        final hasInstructorId = certCols.any(
+          (c) => c.read<String>('name') == 'instructor_id',
+        );
+        if (certCols.isNotEmpty && !hasInstructorId) {
+          await customStatement(
+            'ALTER TABLE certifications ADD COLUMN instructor_id TEXT '
+            'REFERENCES buddies (id) ON DELETE SET NULL',
+          );
+        }
+
+        // v100 backstop: re-assert the dive plan tables (same collision
+        // disease; createTable is idempotent). Their indexes
+        // (idx_dive_plan_tanks_plan_id / idx_dive_plan_segments_plan_id) are
+        // in the canonical performance-index set and created by
+        // ensurePerformanceIndexes below, so they are not re-declared here.
+        await createMigrator().createTable(divePlans);
+        await createMigrator().createTable(divePlanTanks);
+        await createMigrator().createTable(divePlanSegments);
+
+        // v103 backstop: dive_roles table + built-in seed + dives.diver_role
+        // column (same collision disease; all DDL idempotent). The seed is
+        // guarded on the divers FK parent existing, which only matters for
+        // minimal test-fixture databases.
+        await createMigrator().createTable(diveRoles);
+        final diversParent = await customSelect(
+          "SELECT name FROM sqlite_master "
+          "WHERE type='table' AND name='divers'",
+        ).get();
+        if (diversParent.isNotEmpty) {
+          await customStatement(kSeedBuiltInDiveRolesSql);
+        }
+        final divesCols = await customSelect(
+          "PRAGMA table_info('dives')",
+        ).get();
+        final hasDiverRoleCol = divesCols.any(
+          (c) => c.read<String>('name') == 'diver_role',
+        );
+        if (divesCols.isNotEmpty && !hasDiverRoleCol) {
+          await customStatement('ALTER TABLE dives ADD COLUMN diver_role TEXT');
+        }
+
+        // v104 backstop: weight prediction tables + columns (same collision
+        // disease; all DDL idempotent). Indexes for the new tables are in the
+        // canonical performance-index set below.
+        await createMigrator().createTable(diverWeightEntries);
+        await createMigrator().createTable(divePlanEquipment);
+        Future<void> addColumnIfMissing(
+          String table,
+          String column,
+          String type,
+        ) async {
+          final cols = await customSelect("PRAGMA table_info('$table')").get();
+          final has = cols.any((c) => c.read<String>('name') == column);
+          if (cols.isNotEmpty && !has) {
+            await customStatement(
+              'ALTER TABLE $table ADD COLUMN $column $type',
+            );
+          }
+        }
+
+        await addColumnIfMissing('dives', 'weighting_feedback', 'TEXT');
+        await addColumnIfMissing('dives', 'weighting_feedback_kg', 'REAL');
+        await addColumnIfMissing('equipment', 'buoyancy_kg', 'REAL');
+        await addColumnIfMissing('equipment', 'weight_kg', 'REAL');
+        await addColumnIfMissing('dive_plans', 'planned_weight_kg', 'REAL');
+        await addColumnIfMissing(
+          'dive_plans',
+          'planned_weight_placement',
+          'TEXT',
+        );
+
+        // v105 backstop: heading column on dive_profiles.
+        final profilesCols = await customSelect(
+          "PRAGMA table_info('dive_profiles')",
+        ).get();
+        final hasHeadingCol = profilesCols.any(
+          (c) => c.read<String>('name') == 'heading',
+        );
+        if (profilesCols.isNotEmpty && !hasHeadingCol) {
+          await customStatement(
+            'ALTER TABLE dive_profiles ADD COLUMN heading REAL',
+          );
+        }
+
+        // Performance indexes historically existed only in onUpgrade blocks,
+        // so a database created fresh at a recent schema version -- or
+        // arriving via restore or sync-adopt -- never got them, and per-dive
+        // child lookups degraded to full scans of million-row tables.
+        // Re-assert the canonical set on every open (IF NOT EXISTS: free
+        // after the first heal). ANALYZE runs inside only when something was
+        // actually created.
+        final createdIndexes = await ensurePerformanceIndexes(this);
+        assert(() {
+          if (createdIndexes.isNotEmpty) {
+            developer.log(
+              'Healed ${createdIndexes.length} performance indexes: '
+              '${createdIndexes.join(', ')}',
+              name: 'AppDatabase',
+            );
+          }
+          return true;
+        }());
+
+        // v149 backstop (issue #1032): re-assert the tag uniqueness indexes,
+        // deduping first so the creation cannot abort. A database that
+        // arrives by restore or sync-adopt never runs onUpgrade, and that is
+        // exactly the second device the duplicate tags came from.
+        await assertTagUniqueness(this);
+
+        // Data self-heal: backfill a primary dive_data_sources row for dives
+        // that have profile samples but no source row (legacy file imports).
+        // Without it, the 3D/spatial/compare views spin forever on those dives.
+        // Idempotent and local-only (deterministic ids, no HLC bump). Runs
+        // AFTER ensurePerformanceIndexes so its per-dive EXISTS/NOT EXISTS
+        // subqueries hit idx_dive_profiles_dive_id / idx_dive_data_sources_dive_id
+        // instead of full-scanning million-row tables on a fresh/restored DB.
+        await _backfillMissingDataSources();
+
+        // Data self-heal (issue #1064): adopt dives.computer_id from the
+        // data-source rows for dives downloaded before v1.6 stamped it.
+        // Idempotent and local-only (derived from already-synced rows, no HLC
+        // bump). Also AFTER ensurePerformanceIndexes, for the same reason as
+        // the backfill above.
+        await _backfillDiveComputerIds();
+
+        // Data self-heal (issue #1288): register the computers that
+        // file-imported dives name, so they reach the filter at all. AFTER
+        // the #1064 heal above, which resolves the same column from the
+        // stronger download-derived signal.
+        await _backfillImportedDiveComputers();
       },
     );
   }

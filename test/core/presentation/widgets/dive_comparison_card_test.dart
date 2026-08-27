@@ -130,7 +130,9 @@ void main() {
         expect(importCalled, isTrue);
       });
 
-      testWidgets('Consolidate button is disabled', (tester) async {
+      testWidgets('Consolidate button fires onConsolidate callback', (
+        tester,
+      ) async {
         var consolidateCalled = false;
         await tester.pumpWidget(
           _buildCard(
@@ -144,12 +146,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Consolidate button should be visible but disabled.
+        // Consolidate button is enabled and fires its callback on tap.
         expect(find.text('Consolidate'), findsOneWidget);
         await tester.tap(find.text('Consolidate'));
         await tester.pump();
 
-        expect(consolidateCalled, isFalse);
+        expect(consolidateCalled, isTrue);
       });
     },
   );
@@ -254,7 +256,7 @@ void main() {
       },
     );
 
-    testWidgets('Consolidate button is disabled in tri-state mode', (
+    testWidgets('tapping Consolidate calls onActionChanged with consolidate', (
       tester,
     ) async {
       DuplicateAction? received;
@@ -271,12 +273,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Consolidate button should be visible but disabled.
+      // Consolidate button is enabled and reports its action on tap.
       expect(find.text('Consolidate'), findsOneWidget);
       await tester.tap(find.text('Consolidate'));
       await tester.pump();
 
-      expect(received, isNull);
+      expect(received, DuplicateAction.consolidate);
     });
 
     testWidgets('availableActions hides Consolidate button when not in set', (

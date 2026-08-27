@@ -108,7 +108,7 @@ const Map<String, double> constituentSpeeds = {
   'Ssa': 0.0821373, // 182.6 days
   'Sa': 0.0410686, // 365.2 days
   'Msqm': 0.4715211,
-  'Mtm': 1.4423708,
+  'Mtm': 1.6424078,
 
   // Shallow-water overtides
   'M4': 57.9682084, // 6.21 hours (2 × M2)
@@ -153,11 +153,11 @@ const Map<String, List<int>> doodsonNumbers = {
   '2Q1': [1, -3, 0, 2, 0, 0],
   'Sig1': [1, -3, 2, 0, 0, 0],
   'Rho1': [1, -2, 2, -1, 0, 0],
-  'M1': [1, 0, 0, -1, 0, 0],
+  'M1': [1, 0, 0, 1, 0, 0],
   'Chi1': [1, 0, 2, -1, 0, 0],
   'Pi1': [1, 1, -3, 0, 0, 1],
-  'Phi1': [1, 1, 1, 0, 0, -1],
-  'The1': [1, 2, 0, -1, 0, 0],
+  'Phi1': [1, 1, 2, 0, 0, 0],
+  'The1': [1, 2, -2, 1, 0, 0],
   'J1': [1, 2, 0, -1, 0, 0],
   'OO1': [1, 3, 0, 0, 0, 0],
 
@@ -172,6 +172,32 @@ const Map<String, List<int>> doodsonNumbers = {
   // Shallow-water
   'M4': [4, 0, 0, 0, 0, 0],
   'MS4': [4, 2, -2, 0, 0, 0],
+};
+
+/// Additive phase constants (degrees) completing the equilibrium argument.
+///
+/// The six Doodson integers define V0 only up to a per-constituent constant
+/// (Schureman's tables). In this codebase's convention (tau = 15t + h - s,
+/// solar time from midnight) the O1-group diurnals carry -90 degrees, the
+/// K1-group diurnals +90 degrees, and L2/R2 +180 degrees. Constituents not
+/// listed have a zero constant.
+const Map<String, double> doodsonPhaseConstants = {
+  'O1': -90.0,
+  'Q1': -90.0,
+  '2Q1': -90.0,
+  'Rho1': -90.0,
+  'Sig1': -90.0,
+  'P1': -90.0,
+  'Pi1': -90.0,
+  'K1': 90.0,
+  'J1': 90.0,
+  'OO1': 90.0,
+  'The1': 90.0,
+  'Chi1': 90.0,
+  'Phi1': 90.0,
+  'M1': 90.0,
+  'L2': 180.0,
+  'R2': 180.0,
 };
 
 /// Number of tidal species for each constituent.

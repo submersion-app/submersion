@@ -14,7 +14,51 @@ const List<CsvPreset> builtInCsvPresets = [
   _garminConnect,
   _shearwater,
   _submersionNative,
+  _myssi,
 ];
+
+// ======================== 8. MySSI (SSI website export) ========================
+
+/// The CSV downloadable from my.divessi.com (#190). Country, Dive Activity,
+/// Specialty Dive, and Dive type have no import target field and stay
+/// unmapped.
+const _myssi = CsvPreset(
+  id: 'myssi',
+  name: 'MySSI',
+  source: PresetSource.builtIn,
+  sourceApp: SourceApp.ssiMyDiveGuide,
+  signatureHeaders: [
+    'dive #',
+    'dive site',
+    'country',
+    'date / time',
+    'dive activity',
+    'specialty dive',
+    'dive type',
+    'duration',
+    'depth',
+    'dive buddy / instructor / center',
+  ],
+  matchThreshold: 0.6,
+  mappings: {
+    'primary': FieldMapping(
+      name: 'MySSI Default',
+      sourceApp: SourceApp.ssiMyDiveGuide,
+      columns: [
+        ColumnMapping(sourceColumn: 'dive #', targetField: 'diveNumber'),
+        ColumnMapping(sourceColumn: 'Dive Site', targetField: 'siteName'),
+        ColumnMapping(sourceColumn: 'Date / Time', targetField: 'dateTime'),
+        ColumnMapping(sourceColumn: 'Duration', targetField: 'duration'),
+        ColumnMapping(sourceColumn: 'Depth', targetField: 'maxDepth'),
+        ColumnMapping(
+          sourceColumn: 'Dive Buddy / Instructor / Center',
+          targetField: 'buddy',
+        ),
+      ],
+    ),
+  },
+  supportedEntities: {ImportEntityType.dives},
+);
 
 // ======================== 1. Subsurface (multi-file) ========================
 

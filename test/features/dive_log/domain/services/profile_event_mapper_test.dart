@@ -102,4 +102,45 @@ void main() {
       );
     });
   });
+
+  // Task 11: the mapper must carry computerId through so the profile chart
+  // can filter events by the multi-computer toggle bar.
+  group('mapDiveProfileEventToProfileEvent computerId field', () {
+    test('reads a non-null computerId from the DB row', () {
+      const dbEvent = DiveProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: 'bookmark',
+        severity: 'info',
+        description: null,
+        depth: null,
+        value: null,
+        tankId: null,
+        source: 'imported',
+        computerId: 'comp-uuid-1',
+        createdAt: 1700000000000,
+      );
+      final domain = mapDiveProfileEventToProfileEvent(dbEvent);
+      expect(domain.computerId, 'comp-uuid-1');
+    });
+
+    test('a null computerId (primary/manual) maps to null', () {
+      const dbEvent = DiveProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: 'bookmark',
+        severity: 'info',
+        description: null,
+        depth: null,
+        value: null,
+        tankId: null,
+        source: 'imported',
+        createdAt: 1700000000000,
+      );
+      final domain = mapDiveProfileEventToProfileEvent(dbEvent);
+      expect(domain.computerId, isNull);
+    });
+  });
 }

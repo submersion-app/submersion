@@ -28,6 +28,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+
+import '../../../../helpers/l10n_test_helpers.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/services/cached_network_image_diagnostics.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
@@ -99,7 +101,10 @@ void main() {
           cachedNetworkImageDiagnosticsProvider.overrideWithValue(_FakeDiag()),
           networkScanServiceProvider.overrideWithValue(_FakeScan()),
         ],
-        child: const MaterialApp(home: NetworkSourcesPage()),
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const NetworkSourcesPage(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -119,7 +124,10 @@ void main() {
           cachedNetworkImageDiagnosticsProvider.overrideWithValue(_FakeDiag()),
           networkScanServiceProvider.overrideWithValue(_FakeScan()),
         ],
-        child: const MaterialApp(home: NetworkSourcesPage()),
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const NetworkSourcesPage(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -131,7 +139,7 @@ void main() {
     final appBar = find.byType(AppBar);
     expect(appBar, findsOneWidget);
     expect(
-      find.descendant(of: appBar, matching: find.text('Network Sources')),
+      find.descendant(of: appBar, matching: find.text('Network sources')),
       findsOneWidget,
     );
   });
@@ -145,7 +153,10 @@ void main() {
           cachedNetworkImageDiagnosticsProvider.overrideWithValue(_FakeDiag()),
           networkScanServiceProvider.overrideWithValue(_FakeScan()),
         ],
-        child: const MaterialApp(home: NetworkSourcesPage()),
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const NetworkSourcesPage(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

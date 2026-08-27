@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_photo_locate_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -71,20 +77,25 @@ class _ImportSummaryStepState extends ConsumerState<ImportSummaryStep> {
       });
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _SuccessView(
+    return Column(
+      children: [
+        Expanded(
+          child: _SuccessView(
             importedCounts: result.importedCounts,
             consolidatedCount: result.consolidatedCount,
             updatedCount: result.updatedCount,
             skippedCount: result.skippedCount,
+            attachedPhotoCount: result.attachedPhotoCount,
+            unmatchedPhotoCount: result.unmatchedPhotoCount,
+            importedDiveIds: result.importedDiveIds,
+            fileOutcomes: result.fileOutcomes,
+            notices: result.notices,
             onDone: widget.onDone,
             onViewDives: widget.onViewDives,
           ),
-          const ImportPhotoLocatePrompt(),
-        ],
-      ),
+        ),
+        const ImportPhotoLocatePrompt(),
+      ],
     );
   }
 }
@@ -98,6 +109,11 @@ class _SuccessView extends StatelessWidget {
   final int consolidatedCount;
   final int updatedCount;
   final int skippedCount;
+  final int attachedPhotoCount;
+  final int unmatchedPhotoCount;
+  final List<String> importedDiveIds;
+  final List<ImportFileOutcome> fileOutcomes;
+  final List<ImportNotice> notices;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
 
@@ -106,6 +122,11 @@ class _SuccessView extends StatelessWidget {
     required this.consolidatedCount,
     this.updatedCount = 0,
     required this.skippedCount,
+    this.attachedPhotoCount = 0,
+    this.unmatchedPhotoCount = 0,
+    this.importedDiveIds = const [],
+    this.fileOutcomes = const [],
+    this.notices = const [],
     required this.onDone,
     required this.onViewDives,
   });
@@ -177,7 +198,7 @@ class _SuccessView extends StatelessWidget {
               if (entry.value > 0)
                 _CountRow(
                   icon: _iconForType(entry.key),
-                  label: _labelForType(entry.key),
+                  label: _labelForType(l10n, entry.key),
                   count: entry.value,
                 ),
             if (updatedCount > 0)
@@ -194,26 +215,123 @@ class _SuccessView extends StatelessWidget {
                 count: consolidatedCount,
                 key: const Key('import_summary_consolidated_row'),
               ),
+            if (attachedPhotoCount > 0)
+              _CountRow(
+                icon: Icons.photo_library_outlined,
+                label: l10n.universalImport_label_photosAttached,
+                count: attachedPhotoCount,
+                key: const Key('import_summary_photos_row'),
+              ),
+            if (unmatchedPhotoCount > 0)
+              _CountRow(
+                icon: Icons.hide_image_outlined,
+                label: l10n.universalImport_label_photosUnmatched,
+                count: unmatchedPhotoCount,
+                key: const Key('import_summary_unmatched_photos_row'),
+              ),
             if (skippedCount > 0)
               _CountRow(
                 icon: Icons.skip_next,
-                label: 'Skipped',
+                label: l10n.universalImport_label_skipped,
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
               ),
+            if (importedDiveIds.isNotEmpty)
+              Consumer(
+                builder: (context, ref, _) {
+                  final count =
+                      ref
+                          .watch(
+                            importedDivesOpenFindingsCountProvider(
+                              importedDivesFindingsKey(importedDiveIds),
+                            ),
+                          )
+                          .value ??
+                      0;
+                  if (count == 0) return const SizedBox.shrink();
+                  return ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.rule),
+                    title: Text(l10n.dataQuality_summary_flagged(count)),
+                    trailing: TextButton(
+                      onPressed: () => context.push(
+                        '/dives/quality?dive=${importedDiveIds.join(',')}',
+                      ),
+                      child: Text(l10n.dataQuality_summary_review),
+                    ),
+                  );
+                },
+              ),
+            if (notices.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Column(
+                key: const Key('import_summary_notices'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.universalImport_summary_noticesTitle,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  for (final notice in notices) _NoticeCard(notice: notice),
+                ],
+              ),
+            ],
+            if (fileOutcomes.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                l10n.universalImport_summary_filesTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              for (final outcome in fileOutcomes)
+                _FileOutcomeRow(outcome: outcome),
+            ],
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                OutlinedButton(onPressed: onDone, child: const Text('Done')),
+                OutlinedButton(
+                  onPressed: onDone,
+                  child: Text(l10n.universalImport_action_done),
+                ),
                 if (hasActivity) ...[
                   const SizedBox(width: 16),
                   FilledButton(
                     onPressed: onViewDives,
-                    child: const Text('View Dives'),
+                    child: Text(l10n.universalImport_action_viewDives),
                   ),
                 ],
               ],
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                if (importedDiveIds.isEmpty) return const SizedBox.shrink();
+                final eligible = ref.watch(
+                  eligibleImportedDivesProvider(
+                    ImportedDiveIds(importedDiveIds),
+                  ),
+                );
+                return eligible.maybeWhen(
+                  data: (ids) => ids.isEmpty
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.add_location_alt_outlined),
+                            label: Text(
+                              context.l10n.importSummary_matchSitesButton(
+                                ids.length,
+                              ),
+                            ),
+                            onPressed: () =>
+                                context.push('/dives/match-sites', extra: ids),
+                          ),
+                        ),
+                  orElse: () => const SizedBox.shrink(),
+                );
+              },
             ),
           ],
         ),
@@ -245,33 +363,37 @@ class _SuccessView extends StatelessWidget {
         return Icons.inventory;
       case ImportEntityType.courses:
         return Icons.school;
+      case ImportEntityType.media:
+        return Icons.photo_library;
     }
   }
 
-  String _labelForType(ImportEntityType type) {
+  String _labelForType(AppLocalizations l10n, ImportEntityType type) {
     switch (type) {
       case ImportEntityType.dives:
-        return 'Dives';
+        return l10n.diveImport_uddf_dives;
       case ImportEntityType.sites:
-        return 'Sites';
+        return l10n.diveImport_uddf_sites;
       case ImportEntityType.buddies:
-        return 'Buddies';
+        return l10n.diveImport_uddf_buddies;
       case ImportEntityType.equipment:
-        return 'Equipment';
+        return l10n.diveImport_uddf_equipment;
       case ImportEntityType.trips:
-        return 'Trips';
+        return l10n.diveImport_uddf_trips;
       case ImportEntityType.certifications:
-        return 'Certifications';
+        return l10n.diveImport_uddf_certifications;
       case ImportEntityType.diveCenters:
-        return 'Dive Centers';
+        return l10n.diveImport_uddf_diveCenters;
       case ImportEntityType.tags:
-        return 'Tags';
+        return l10n.diveImport_uddf_tags;
       case ImportEntityType.diveTypes:
-        return 'Dive Types';
+        return l10n.diveImport_uddf_diveTypes;
       case ImportEntityType.equipmentSets:
-        return 'Equipment Sets';
+        return l10n.diveImport_uddf_equipmentSets;
       case ImportEntityType.courses:
-        return 'Courses';
+        return l10n.diveImport_uddf_tabCourses;
+      case ImportEntityType.media:
+        return l10n.diveImport_uddf_media;
     }
   }
 }
@@ -307,9 +429,139 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            OutlinedButton(onPressed: onDone, child: const Text('Done')),
+            OutlinedButton(
+              onPressed: onDone,
+              child: Text(context.l10n.universalImport_action_done),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Per-file outcome row (bulk imports)
+// ---------------------------------------------------------------------------
+
+/// Explains data the source files did not contain.
+///
+/// Styled as information, not as a problem: the dives imported fine, and the
+/// gap is in the file rather than in the import. Uses the theme's surface
+/// container rather than an error colour for exactly that reason.
+class _NoticeCard extends StatelessWidget {
+  final ImportNotice notice;
+
+  const _NoticeCard({required this.notice});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
+    final (title, body) = switch (notice.kind) {
+      ImportNoticeKind.noTankPressure => (
+        l10n.universalImport_summary_noticeNoTankPressureTitle,
+        l10n.universalImport_summary_noticeNoTankPressureBody,
+      ),
+    };
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: theme.colorScheme.surfaceContainerHighest,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  Text(
+                    body,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.universalImport_summary_noticeAffectedDives(
+                      notice.affectedDives,
+                    ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FileOutcomeRow extends StatelessWidget {
+  final ImportFileOutcome outcome;
+
+  const _FileOutcomeRow({required this.outcome});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
+    final icon = switch (outcome.status) {
+      ImportFileOutcomeStatus.imported => Icons.check_circle_outline,
+      ImportFileOutcomeStatus.parseFailed => Icons.error_outline,
+      ImportFileOutcomeStatus.needsIndividualImport => Icons.block,
+      ImportFileOutcomeStatus.unsupported => Icons.help_outline,
+    };
+    final label = switch (outcome.status) {
+      ImportFileOutcomeStatus.imported =>
+        l10n.universalImport_summary_fileImported(outcome.importedDives),
+      ImportFileOutcomeStatus.parseFailed =>
+        l10n.universalImport_summary_fileParseFailed,
+      ImportFileOutcomeStatus.needsIndividualImport =>
+        l10n.universalImport_summary_fileNeedsIndividualImport,
+      ImportFileOutcomeStatus.unsupported =>
+        l10n.universalImport_summary_fileUnsupported,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Text(
+              outcome.fileName,
+              style: theme.textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -21,6 +21,13 @@ class DebugModeNotifier extends StateNotifier<bool> {
     state = true;
     await _prefs.setBool(_kDebugModeKey, true);
     LoggerService.setFileService(_logFileService);
+    // Deliberately no session-environment line here, unlike main.dart. It
+    // would have to be fire-and-forget (a settings toggle must not wait on a
+    // platform channel), and a background version lookup plus a file write
+    // outliving the toggle is a timer and a real-IO future escaping whatever
+    // widget test flipped it. The export header in debug_log_providers.dart
+    // already names the build on every copy, share and save, which is the
+    // path a bug report actually travels (issue #1246).
   }
 
   Future<void> disable() async {

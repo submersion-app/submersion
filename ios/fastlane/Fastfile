@@ -13,9 +13,59 @@
 #   bundle exec fastlane upload_only           # Upload pre-built IPA to App Store
 #   bundle exec fastlane upload_testflight_only # Upload pre-built IPA to TestFlight
 #
+#   Beta pipeline (upload and distribution are separate so each can be rerun):
+#   bundle exec fastlane upload_testflight_beta_binary ipa:PATH
+#   bundle exec fastlane distribute_testflight_beta app_version:1.7.3 build_number:5829
+#
 #   Signing is handled automatically via Xcode + App Store Connect API key.
 
+require 'json'
+
 default_platform(:ios)
+
+# Apple rejects an upload whose whatsNew exceeds 4000 characters.
+TESTFLIGHT_CHANGELOG_LIMIT = 4000
+
+# Markers App Store Connect returns when the build number has already been
+# accepted for this app. Re-running the beta pipeline after a distribution
+# failure hits this, because the binary landed on the first pass.
+DUPLICATE_BUILD_MARKERS = [
+  "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE",
+  "bundle version must be higher than the previously uploaded version",
+].freeze
+
+# App Store version states meaning the version is already out of our hands.
+# App Store Connect refuses build and metadata changes from any of these, so
+# submitting again cannot succeed; the only useful behavior is to skip.
+#
+# Rejected states are deliberately absent. REJECTED, DEVELOPER_REJECTED,
+# METADATA_REJECTED and INVALID_BINARY all need a fresh submission, which is
+# exactly what this lane is for.
+ALREADY_SUBMITTED_STATES = [
+  "WAITING_FOR_REVIEW",
+  "IN_REVIEW",
+  "PENDING_APPLE_RELEASE",
+  "PENDING_DEVELOPER_RELEASE",
+  "PROCESSING_FOR_DISTRIBUTION",
+  "READY_FOR_DISTRIBUTION",
+  "READY_FOR_SALE",
+  "ACCEPTED",
+].freeze
+
+# Apple's name for "we reviewed this and found problems", ie a rejection. It is
+# a REVIEW SUBMISSION state, not a version state, and the distinction is the
+# whole point of the handling below: App Store Connect shows the version as
+# Rejected while the submission that carried it stays OPEN in this state until
+# someone clears it.
+REJECTED_REVIEW_STATE = "UNRESOLVED_ISSUES"
+
+# How long to wait for App Store Connect to retire a cancelled submission.
+# Cancelling moves it to CANCELING, which is not a state the in-progress
+# lookup matches, but the transition is not documented as synchronous, and
+# submitting into a half-cancelled submission is exactly the kind of ambiguity
+# this guard exists to avoid.
+CANCELLED_SUBMISSION_POLL_ATTEMPTS = 10
+CANCELLED_SUBMISSION_POLL_INTERVAL = 3
 
 platform :ios do
   # ============================================================================
@@ -66,6 +116,279 @@ platform :ios do
   # ============================================================================
   # Helper Methods
   # ============================================================================
+
+  # Reads the notes the beta pipeline generated.
+  #
+  # BETA_CHANGELOG_FILE (a path) is the pipeline's contract; BETA_CHANGELOG
+  # (the text) remains for local runs. Passing a path keeps commit-derived text
+  # out of GITHUB_ENV, where a line matching the heredoc delimiter would be a
+  # environment-variable injection vector in a workflow holding signing
+  # credentials.
+  def read_beta_notes
+    path = ENV["BETA_CHANGELOG_FILE"].to_s.strip
+    return ENV["BETA_CHANGELOG"].to_s if path.empty?
+
+    unless File.exist?(path)
+      UI.important("BETA_CHANGELOG_FILE points at #{path}, which does not exist.")
+      return ENV["BETA_CHANGELOG"].to_s
+    end
+
+    File.read(path)
+  end
+
+  # Last resort for a local run. Notes handed straight to fastlane through
+  # BETA_CHANGELOG never pass through sanitize_apple_store_notes.py, and App
+  # Review guideline 2.3.10 forbids naming other platforms in App Store
+  # metadata. The term list is shared with that script so the two cannot
+  # drift.
+  #
+  # This only redacts. The Python path additionally repairs platform lists,
+  # which is what keeps the prose readable, so this is a safety net rather
+  # than an equivalent implementation.
+  APPLE_BANNED_TERMS_PATH = File.expand_path(
+    "../../scripts/release/apple_store_banned_terms.json", __dir__
+  )
+  APPLE_TERM_REPLACEMENT = {
+    "platform" => "other platforms",
+    "store" => "another store",
+  }.freeze
+
+  def strip_non_apple_platforms(text)
+    unless File.exist?(APPLE_BANNED_TERMS_PATH)
+      UI.important(
+        "Banned-term list missing at #{APPLE_BANNED_TERMS_PATH}; " \
+        "publishing notes unsanitized."
+      )
+      return text
+    end
+
+    terms = JSON.parse(File.read(APPLE_BANNED_TERMS_PATH))["terms"]
+    terms.reduce(text) do |acc, term|
+      options = term["ignorecase"] ? Regexp::IGNORECASE : 0
+      acc.gsub(
+        Regexp.new(term["pattern"], options),
+        APPLE_TERM_REPLACEMENT[term["class"]],
+      )
+    end
+  end
+
+  # The TestFlight "What to Test" text, supplied by the beta pipeline.
+  #
+  # Blank is treated as unset: Ruby's `||` only falls back on nil, so an empty
+  # BETA_CHANGELOG would publish empty notes, which a tester reads as "the
+  # previous build's notes still apply" - the exact confusion this replaced.
+  def beta_changelog
+    notes = strip_non_apple_platforms(read_beta_notes).strip
+
+    if notes.empty?
+      UI.important("No beta release notes supplied; falling back to a generic note.")
+      return "Beta build. See the beta-builds release for the change list."
+    end
+
+    if notes.length > TESTFLIGHT_CHANGELOG_LIMIT
+      UI.important(
+        "Release notes are #{notes.length} characters; truncating to " \
+        "#{TESTFLIGHT_CHANGELOG_LIMIT} for TestFlight."
+      )
+    end
+
+    notes[0, TESTFLIGHT_CHANGELOG_LIMIT]
+  end
+
+  # True when an upload failed only because this exact build is already on App
+  # Store Connect.
+  #
+  # A build number can be uploaded once, so any retry or workflow re-run after
+  # the binary was accepted reports the duplicate rather than the failure that
+  # actually stopped the pipeline. Treating it as "already uploaded" lets the
+  # run continue to distribution, which is the step that still needs to happen.
+  def duplicate_build_error?(message)
+    text = message.to_s
+    DUPLICATE_BUILD_MARKERS.any? { |marker| text.include?(marker) }
+  end
+
+  # Whether to skip App Review submission, given facts already read from App
+  # Store Connect. Pure, so scripts/release/fastlane_submit_guard_test.rb can
+  # drive every branch without a network call.
+  #
+  # Returns a reason string to skip, or nil to go ahead.
+  #
+  # The first check is version-AGNOSTIC, and that is the whole point. Promotion
+  # run 31903095751 submitted 1.7.4 while 1.7.3 was still with Apple. The old
+  # guard asked only whether THIS version was already submitted, so a different
+  # version in review did not stop it. deliver then called ensure_version!,
+  # which renames the editable version in place when the version string
+  # differs, and WAITING_FOR_REVIEW counts as editable: iOS 1.7.3 was silently
+  # renamed to 1.7.4 with build 6027 still attached, and the follow-up
+  # select_build was refused. The result was a submission labelled 1.7.4
+  # carrying 1.7.3's binary. macOS escaped with a clean error only because
+  # Apple had moved its copy to IN_REVIEW, which is not editable, so deliver
+  # tried to create a version instead. The loud failure was luck.
+  #
+  # Note what is deliberately NOT blocking: an editable version carrying an
+  # older version string. Renaming that forward is legitimate, and is how the
+  # recovery from that incident worked.
+  #
+  # Nor is a REJECTION blocking, which promote run 32779335838 showed the hard
+  # way. Apple rejected iOS 1.7.4, but a rejected submission does not close: it
+  # sits in UNRESOLVED_ISSUES, which the in-progress lookup matches, so the
+  # version-agnostic check above skipped 1.7.5 and reported 1.7.4 as "already
+  # in review" while App Store Connect showed it as Rejected. Resubmitting
+  # after a rejection is precisely what this lane is for, and
+  # ALREADY_SUBMITTED_STATES already says so; the short-circuit above simply
+  # never let that decision run. Only an EXPLICIT UNRESOLVED_ISSUES lowers the
+  # block - an unreadable or unrecognised state keeps the old behaviour.
+  def submission_skip_reason(app_version:, review_in_progress:,
+                             review_version: nil, review_state: nil,
+                             edit_version: nil, edit_state: nil)
+    if review_in_progress && review_state != REJECTED_REVIEW_STATE
+      held_by = review_version ? "#{review_version} is" : "another version is"
+      return "#{held_by} already in review; skipping submission of " \
+             "#{app_version}. App Store Connect allows one submission at a " \
+             "time, and submitting now would rename the version under review " \
+             "rather than create a new one. Wait for it to clear, or remove it " \
+             "from review in App Store Connect."
+    end
+
+    if edit_version == app_version && ALREADY_SUBMITTED_STATES.include?(edit_state)
+      return "#{app_version} is already #{edit_state}; skipping submission. " \
+             "Remove it from review in App Store Connect if you need to resubmit."
+    end
+
+    nil
+  end
+
+  # The reason to skip submitting <app_version> on <platform>, or nil to go
+  # ahead.
+  #
+  # A missing app record returns nil and lets the submission attempt produce
+  # its own error rather than inventing one. A failure of the App Store Connect
+  # lookups themselves is deliberately NOT swallowed: after promotion run
+  # 31903095751, stopping is better than proceeding without knowing whether a
+  # review is already under way, because proceeding blind is what renamed an
+  # in-review version and left it carrying the wrong build.
+  #
+  # No explicit spaceship auth: both branches of load_api_key go through the
+  # app_store_connect_api_key action, whose set_spaceship_token defaults to
+  # true, so Spaceship::ConnectAPI.token is already set by the time a lane
+  # calls this.
+  def submission_blocker(app_version, platform,
+                         poll_interval: CANCELLED_SUBMISSION_POLL_INTERVAL)
+    app = Spaceship::ConnectAPI::App.find(
+      CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+    )
+    return nil if app.nil?
+
+    mapped = Spaceship::ConnectAPI::Platform.map(platform)
+
+    # Apple's own record of "a review is under way for this platform", covering
+    # WAITING_FOR_REVIEW, IN_REVIEW and UNRESOLVED_ISSUES. Preferred over
+    # reading version states ourselves because it cannot be fooled by a version
+    # string, and because it never matches the live version, which every
+    # published app always has.
+    submission = app.get_in_progress_review_submission(
+      platform: mapped,
+      includes: "appStoreVersionForReview",
+    )
+
+    # Short-circuit. A submission Apple is actually working on is already a
+    # block, so the editable version cannot change the answer. Skipping the
+    # second lookup is partly about latency, but mostly about failure surface:
+    # this method deliberately lets App Store Connect errors propagate, so a
+    # call made after the answer is known could fail the lane at the moment we
+    # already knew the safe outcome. Blocking beats erroring.
+    unless submission.nil?
+      reason = submission_skip_reason(
+        app_version: app_version,
+        review_in_progress: true,
+        review_state: review_submission_state(submission),
+        review_version: review_submission_version(submission),
+      )
+      return reason unless reason.nil?
+
+      # Only a rejection gets past that, and a rejected submission has to be
+      # retired before anything else can be submitted: deliver runs the same
+      # in-progress lookup in create_review_submission and hard-errors on it,
+      # but only AFTER it has renamed the editable version and uploaded
+      # metadata. Clearing it here keeps that half-finished state from ever
+      # existing. Nothing is withdrawn from Apple by this: the review is over,
+      # which is what UNRESOLVED_ISSUES means.
+      cleared = clear_rejected_submission(
+        app, mapped, submission, poll_interval: poll_interval
+      )
+
+      unless cleared
+        return "the rejected review submission was cancelled but App Store " \
+               "Connect still reports it in progress; skipping submission of " \
+               "#{app_version}. Re-run once it clears, or remove it from " \
+               "review in App Store Connect."
+      end
+    end
+
+    version = app.get_edit_app_store_version(platform: mapped)
+
+    submission_skip_reason(
+      app_version: app_version,
+      review_in_progress: false,
+      edit_version: version&.version_string,
+      # app_store_state is deprecated as of App Store Connect API 3.3 in favor
+      # of app_version_state; read the new field first and fall back.
+      edit_state: version && (version.app_version_state || version.app_store_state),
+    )
+  end
+
+  # Best effort only: the version a review submission covers is used to make
+  # the skip message actionable, never to decide whether to skip. An unknown
+  # version must not weaken the block, so every failure path returns nil and
+  # leaves the caller blocking on the submission's mere existence.
+  def review_submission_version(submission)
+    return nil if submission.nil?
+
+    submission.app_store_version_for_review&.version_string
+  rescue StandardError
+    nil
+  end
+
+  # The state of a review submission, or nil when it cannot be read.
+  #
+  # Read defensively for the same reason as the version above, but note the
+  # consequence is inverted: an unknown version only costs a vaguer message,
+  # while an unknown state decides whether CI may cancel a submission. nil is
+  # therefore the SAFE answer here, because only an explicit
+  # REJECTED_REVIEW_STATE lowers the block or triggers a cancel.
+  def review_submission_state(submission)
+    return nil if submission.nil?
+
+    submission.state
+  rescue StandardError
+    nil
+  end
+
+  # Cancels a rejected review submission and waits for App Store Connect to
+  # stop reporting it. True when the road is clear.
+  #
+  # A cancel that raises is deliberately NOT rescued, matching the rest of this
+  # guard: an unexpected App Store Connect error must stop the lane, not be
+  # read as permission to carry on.
+  def clear_rejected_submission(app, mapped, submission,
+                                poll_interval: CANCELLED_SUBMISSION_POLL_INTERVAL)
+    held = review_submission_version(submission)
+    UI.important(
+      "#{held || 'A previous version'} was rejected and its review submission " \
+      "is still open; cancelling it so this version can be submitted."
+    )
+
+    submission.cancel_submission
+
+    CANCELLED_SUBMISSION_POLL_ATTEMPTS.times do |attempt|
+      return true if app.get_in_progress_review_submission(platform: mapped).nil?
+
+      last = attempt == CANCELLED_SUBMISSION_POLL_ATTEMPTS - 1
+      sleep(poll_interval) if poll_interval.positive? && !last
+    end
+
+    false
+  end
 
   # Loads API key from environment variables or falls back to api_key.json
   def load_api_key
@@ -168,7 +491,7 @@ platform :ios do
 
     # Build the Flutter app (version comes from pubspec.yaml -> Generated.xcconfig -> Info.plist)
     UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build ios --release --no-codesign")
+    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore")
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")
@@ -265,6 +588,130 @@ platform :ios do
       skip_waiting_for_build_processing: true
     )
     UI.success("iOS build uploaded to TestFlight!")
+  end
+
+  # Uploading and distributing are separate lanes on purpose.
+  #
+  # They used to be one upload_to_testflight call, which uploads the binary,
+  # waits for processing, then submits it for beta review. Only the upload is
+  # one-shot: a build number can never be uploaded twice. So when the beta
+  # review submission failed (Apple's submission limit), every retry and
+  # re-run re-uploaded the same IPA and died on a duplicate-version error that
+  # masked the real cause, leaving the build stranded in TestFlight with no way
+  # to distribute it short of the App Store Connect UI.
+  desc "Upload pre-built IPA to TestFlight without distributing it"
+  lane :upload_testflight_beta_binary do |options|
+    api_key = load_api_key
+    ipa_path = options[:ipa] || "./build/Submersion.ipa"
+
+    UI.message("Uploading IPA to TestFlight: #{ipa_path}")
+    begin
+      # No changelog and no distribution here, so pilot returns as soon as the
+      # binary is accepted instead of waiting out processing.
+      upload_to_testflight(
+        api_key: api_key,
+        ipa: ipa_path,
+        skip_waiting_for_build_processing: true,
+      )
+    rescue StandardError => e
+      raise unless duplicate_build_error?(e.message)
+
+      UI.important(
+        "This build is already on App Store Connect; skipping the upload. " \
+        "This lane does not distribute: run distribute_testflight_beta to " \
+        "assign the build to the Public Beta group."
+      )
+    end
+    UI.success("iOS beta binary is on App Store Connect!")
+  end
+
+  desc "Distribute an already-uploaded TestFlight build to the Public Beta group"
+  lane :distribute_testflight_beta do |options|
+    api_key = load_api_key
+    app_version = options[:app_version] || UI.user_error!("app_version is required")
+    build_number = options[:build_number] || UI.user_error!("build_number is required")
+
+    UI.message("Distributing #{app_version} (#{build_number}) to the Public Beta group...")
+    # distribute_only touches no binary, so this lane is safe to retry and safe
+    # to run by hand against a build whose distribution failed earlier.
+    #
+    # app_platform is required rather than optional here: pilot normally infers
+    # the platform from the IPA, and with distribute_only there is no IPA to
+    # infer from, so it would fall back to an interactive prompt in CI.
+    upload_to_testflight(
+      api_key: api_key,
+      distribute_only: true,
+      app_platform: "ios",
+      app_version: app_version,
+      build_number: build_number.to_s,
+      distribute_external: true,
+      groups: ["Public Beta"],
+      changelog: beta_changelog,
+    )
+    UI.success("iOS beta distributed to the Public Beta group!")
+  end
+
+  desc "Submit an already-uploaded build for App Review (no upload)"
+  lane :submit_existing do |options|
+    api_key = load_api_key
+    app_version = options[:app_version] || UI.user_error!("app_version is required")
+    build_number = options[:build_number] || UI.user_error!("build_number is required")
+
+    # Makes the lane a no-op once Apple has this version, or any other version,
+    # so a re-dispatched promotion does not fail on the leg that already
+    # succeeded and cannot rename a submission that is already under review. A
+    # REJECTED version is not "Apple has it": rejection leaves the submission
+    # open in UNRESOLVED_ISSUES, and the blocker retires that so this run can
+    # resubmit, which is what the lane is for.
+    if (reason = submission_blocker(app_version, "ios"))
+      UI.important("ios: #{reason}")
+      next
+    end
+
+    UI.message("Submitting #{app_version} (#{build_number}) for App Review...")
+    upload_to_app_store(
+      api_key: api_key,
+      app_version: app_version,
+      build_number: build_number.to_s,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      # skip_metadata false so deliver uploads metadata/en-US/release_notes.txt
+      # (written by promote.yml from the GitHub release notes) - Apple requires
+      # whatsNew on a new version. Only files present are uploaded. The other
+      # file provided is the committed metadata/review_information/notes.txt,
+      # which lands in App Review Information > Notes on every submission: it
+      # explains that the app has no accounts, after 1.7.4 and 1.7.5 were both
+      # rejected under 5.1.1(v) for the first-launch "Create Your Profile"
+      # step. scripts/release/app_review_notes_test.sh keeps it in lockstep
+      # with the macOS copy.
+      skip_metadata: false,
+      # Required BECAUSE skip_metadata is false. deliver renders the metadata
+      # it is about to upload to fastlane/Preview.html and blocks on "Does the
+      # Preview look okay for you?", which no one can answer on a CI runner:
+      # promotion run 31850203979 died there with "Could not retrieve response
+      # as fastlane runs in non-interactive mode". force skips that preview
+      # confirmation only; run_precheck_before_submit still defaults to true,
+      # so Apple's content rules are checked as before. The upload_screenshots
+      # lane above has carried this flag since it was written.
+      #
+      # platform is left at deliver's default of "ios", which is correct here.
+      # The mac lane must set it explicitly; see the comment there.
+      force: true,
+      submit_for_review: true,
+      # Goes live the moment Apple approves, with no human gate. The other two
+      # channels already behave this way: Play promotes at rollout 1.0 and the
+      # desktop appcast publishes at promotion time, so the manual App Store
+      # button was the one thing holding the platforms out of sync.
+      #
+      # The trade, accepted deliberately: Apple's approval becomes the only
+      # gate, there is no staged rollout to halt, and undoing a live version
+      # means pulling it and submitting a fix through another review cycle.
+      # Switch to phased_release (iOS only) if that ever needs a safety valve.
+      automatic_release: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: { add_id_info_uses_idfa: false },
+    )
+    UI.success("Submitted for review; releases automatically once Apple approves.")
   end
 
   desc "Full release: capture screenshots, upload everything, and submit build"

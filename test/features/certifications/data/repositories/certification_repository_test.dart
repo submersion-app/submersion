@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 
@@ -190,6 +192,34 @@ void main() {
 
         expect(result!.agency, equals(CertificationAgency.ssi));
         expect(result.level, equals(CertificationLevel.advancedOpenWater));
+      });
+    });
+
+    group('instructorId', () {
+      test('persists and reads back instructorId', () async {
+        // Seed a buddy with id 'buddy-1' to satisfy FK constraint
+        final buddyRepository = BuddyRepository();
+        final now = DateTime.now();
+        final buddy = await buddyRepository.createBuddy(
+          Buddy(
+            id: 'buddy-1',
+            name: 'Instructor Buddy',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        final created = await repository.createCertification(
+          Certification.empty()
+              .copyWith(name: 'Rescue Diver')
+              .copyWith(instructorId: buddy.id),
+        );
+        final loaded = await repository.getCertificationById(created.id);
+        expect(loaded!.instructorId, 'buddy-1');
+
+        await repository.updateCertification(loaded.copyWith(name: 'Rescue'));
+        final reloaded = await repository.getCertificationById(created.id);
+        expect(reloaded!.instructorId, 'buddy-1'); // survives update
       });
     });
 

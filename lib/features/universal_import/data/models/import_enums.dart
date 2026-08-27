@@ -12,6 +12,7 @@ enum ImportFormat {
   shearwaterDb,
   scubapro,
   danDl7,
+  ratioXml,
   sqlite,
   unknown;
 
@@ -28,6 +29,7 @@ enum ImportFormat {
     shearwaterDb => 'Shearwater Cloud',
     scubapro => 'Scubapro',
     danDl7 => 'DAN DL7',
+    ratioXml => 'Ratio XML',
     sqlite => 'SQLite Database',
     unknown => 'Unknown',
   };
@@ -40,7 +42,9 @@ enum ImportFormat {
     fit ||
     shearwaterDb ||
     macdiveXml ||
-    macdiveSqlite => true,
+    macdiveSqlite ||
+    danDl7 ||
+    ratioXml => true,
     _ => false,
   };
 }
@@ -58,6 +62,8 @@ enum SourceApp {
   scubapro,
   ssiMyDiveGuide,
   dan,
+  diverLog,
+  ratio,
   generic;
 
   String get displayName => switch (this) {
@@ -72,12 +78,15 @@ enum SourceApp {
     scubapro => 'Scubapro',
     ssiMyDiveGuide => 'SSI MyDiveGuide',
     dan => 'DAN',
+    diverLog => 'DiverLog+',
+    ratio => 'Ratio Computers',
     generic => 'Unknown App',
   };
 
   /// Instructions for exporting from this app in a supported format.
   String? get exportInstructions => switch (this) {
     shearwater => null, // Native .db import supported
+    ratio => null, // Native XML import supported
     suunto =>
       'In Suunto DM5, select your dives and go to File > Export > UDDF.',
     scubapro =>
@@ -85,8 +94,14 @@ enum SourceApp {
     ssiMyDiveGuide =>
       'In the SSI app, go to My Logbook and export your dives as CSV.',
     dan =>
-      'DAN DL7 format support is planned for a future update. '
-          'Please export your dives in UDDF format if possible.',
+      'Export your dives as DAN DL7 (.zxu) files and import them directly '
+          'into Submersion.',
+    diverLog =>
+      'In DiverLog+, sync your dives to DiveCloud. Then sign in at '
+          'divecloud.net in a browser, select your dives, and choose Export '
+          'to download a ZIP of DL7 (.zxu) files with photos. Import that '
+          'ZIP directly into Submersion. Desktop DiverLog Full can also '
+          'export .zxu files via Export Dive Data.',
     _ => null,
   };
 }
@@ -188,6 +203,21 @@ class SourceOverrideOption {
       format: ImportFormat.uddf,
       displayName: 'Scubapro (UDDF)',
     ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.diverLog,
+      format: ImportFormat.danDl7,
+      displayName: 'DiverLog+ (DL7)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.dan,
+      format: ImportFormat.danDl7,
+      displayName: 'DAN (DL7)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.ratio,
+      format: ImportFormat.ratioXml,
+      displayName: 'Ratio Computers (XML)',
+    ),
   ];
 
   /// Find the matching option for a given app and format pair, or null.
@@ -225,26 +255,6 @@ class SourceOverrideOption {
   int get hashCode => Object.hash(sourceApp, format);
 }
 
-/// Resolution choice for a dive that was flagged as a potential duplicate.
-///
-/// When a dive match is detected during import, the user can choose how to
-/// handle it:
-/// - [skip]: Do not import this dive at all (default for matched dives).
-/// - [importAsNew]: Import the dive as a brand-new separate entry.
-/// - [consolidate]: Attach the imported data as a secondary computer reading
-///   on the matched existing dive.
-enum DiveDuplicateResolution {
-  skip,
-  importAsNew,
-  consolidate;
-
-  String get displayName => switch (this) {
-    skip => 'Skip',
-    importAsNew => 'Import as New',
-    consolidate => 'Consolidate as additional computer',
-  };
-}
-
 /// Entity types that can be included in an import payload.
 ///
 /// Mirrors the existing `UddfEntityType` but used across all import formats.
@@ -259,7 +269,9 @@ enum ImportEntityType {
   certifications,
   courses,
   tags,
-  diveTypes;
+  diveTypes,
+  serviceRecords,
+  media;
 
   String get displayName => switch (this) {
     dives => 'Dives',
@@ -273,6 +285,8 @@ enum ImportEntityType {
     courses => 'Courses',
     tags => 'Tags',
     diveTypes => 'Dive Types',
+    serviceRecords => 'Service Records',
+    media => 'Photos',
   };
 
   String get shortName => switch (this) {
@@ -287,5 +301,7 @@ enum ImportEntityType {
     courses => 'Courses',
     tags => 'Tags',
     diveTypes => 'Types',
+    serviceRecords => 'Service',
+    media => 'Photos',
   };
 }

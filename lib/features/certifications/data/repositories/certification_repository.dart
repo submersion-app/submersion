@@ -16,6 +16,11 @@ class CertificationRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(CertificationRepository);
 
+  /// Emits whenever the `certifications` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchCertificationsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.certifications));
+
   /// Get all certifications ordered by issue date (newest first)
   Future<List<domain.Certification>> getAllCertifications({
     String? diverId,
@@ -85,39 +90,105 @@ class CertificationRepository {
       ORDER BY issue_date DESC, name ASC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
+  }
+
+  /// All certifications owned by a buddy (newest issue date first). Issue #553.
+  Future<List<domain.Certification>> getCertificationsByBuddy(
+    String buddyId,
+  ) async {
+    final query = _db.select(_db.certifications)
+      ..where((t) => t.buddyId.equals(buddyId))
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.issueDate),
+        (t) => OrderingTerm.asc(t.name),
+      ]);
+    final rows = await query.get();
+    return rows.map(_mapRowToCertification).toList();
+  }
+
+  /// Certifications for many buddies at once, grouped by buddyId. Single query
+  /// (no N+1) so buddy-list hydration stays O(1). Issue #553.
+  Future<Map<String, List<domain.Certification>>> getCertificationsForBuddies(
+    List<String> buddyIds,
+  ) async {
+    if (buddyIds.isEmpty) return {};
+    final query = _db.select(_db.certifications)
+      ..where((t) => t.buddyId.isIn(buddyIds));
+    final rows = await query.get();
+    final out = <String, List<domain.Certification>>{};
+    for (final row in rows) {
+      final cert = _mapRowToCertification(row);
+      (out[cert.buddyId!] ??= []).add(cert);
+    }
+    return out;
+  }
+
+  /// Replace a buddy's certification set with [desired]: insert new (empty id),
+  /// update existing, and delete+tombstone existing rows not in [desired].
+  /// Backs the buddy edit form's stage-then-commit-on-save flow (issue #553).
+  Future<void> replaceBuddyCertifications(
+    String buddyId,
+    List<domain.Certification> desired,
+  ) async {
+    // Atomic (issue #553 review): a mid-way interruption must not leave a
+    // partially-updated cert set. Mirrors the transaction pattern in
+    // BuddyMergeRepository. The create/update/delete calls run with
+    // notify:false so a single notifyLocalChange() fires after commit instead
+    // of one per row mid-transaction (which would churn UI / let observers read
+    // a half-updated set). markRecordPending/logDeletion still run inside the
+    // transaction -- only the observable event is deferred.
+    var mutated = false;
+    await _db.transaction(() async {
+      final existing = await getCertificationsByBuddy(buddyId);
+      final existingById = {for (final c in existing) c.id: c};
+      final keptIds = <String>{};
+      for (final cert in desired) {
+        final owned = cert.copyWith(buddyId: buddyId);
+        final current = existingById[owned.id];
+        if (owned.id.isEmpty || current == null) {
+          final created = await createCertification(owned, notify: false);
+          keptIds.add(created.id);
+          mutated = true;
+        } else {
+          // Only write when something actually changed, so saving a buddy
+          // (e.g. editing only name/notes) doesn't bump every cert's
+          // updatedAt and sync state (issue #553 review).
+          if (owned != current) {
+            await updateCertification(owned, notify: false);
+            mutated = true;
+          }
+          keptIds.add(owned.id);
+        }
+      }
+      for (final c in existing) {
+        if (!keptIds.contains(c.id)) {
+          await deleteCertification(c.id, notify: false);
+          mutated = true;
+        }
+      }
+    });
+    if (mutated) SyncEventBus.notifyLocalChange();
   }
 
   /// Create a new certification
   Future<domain.Certification> createCertification(
-    domain.Certification cert,
-  ) async {
+    domain.Certification cert, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Creating certification: ${cert.name}');
       final id = cert.id.isEmpty ? _uuid.v4() : cert.id;
       final now = DateTime.now();
+
+      // issue #553: a certification belongs to a diver or a buddy, never
+      // both. (Ownerless certs remain valid: legacy rows and the
+      // no-validated-diver fallback both create them.)
+      if (cert.diverId != null && cert.buddyId != null) {
+        throw ArgumentError(
+          'Certification cannot belong to both a diver and a buddy',
+        );
+      }
 
       await _db
           .into(_db.certifications)
@@ -125,6 +196,7 @@ class CertificationRepository {
             CertificationsCompanion(
               id: Value(id),
               diverId: Value(cert.diverId),
+              buddyId: Value(cert.buddyId),
               name: Value(cert.name),
               agency: Value(cert.agency.name),
               level: Value(cert.level?.name),
@@ -133,6 +205,7 @@ class CertificationRepository {
               expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
               instructorName: Value(cert.instructorName),
               instructorNumber: Value(cert.instructorNumber),
+              instructorId: Value(cert.instructorId),
               photoFront: Value(cert.photoFront),
               photoBack: Value(cert.photoBack),
               notes: Value(cert.notes),
@@ -146,7 +219,7 @@ class CertificationRepository {
         recordId: id,
         localUpdatedAt: now.millisecondsSinceEpoch,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
 
       _log.info('Created certification with id: $id');
       return cert.copyWith(id: id, createdAt: now, updatedAt: now);
@@ -161,7 +234,10 @@ class CertificationRepository {
   }
 
   /// Update an existing certification
-  Future<void> updateCertification(domain.Certification cert) async {
+  Future<void> updateCertification(
+    domain.Certification cert, {
+    bool notify = true,
+  }) async {
     try {
       _log.info('Updating certification: ${cert.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -178,6 +254,7 @@ class CertificationRepository {
           expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
           instructorName: Value(cert.instructorName),
           instructorNumber: Value(cert.instructorNumber),
+          instructorId: Value(cert.instructorId),
           photoFront: Value(cert.photoFront),
           photoBack: Value(cert.photoBack),
           notes: Value(cert.notes),
@@ -189,7 +266,7 @@ class CertificationRepository {
         recordId: cert.id,
         localUpdatedAt: now,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated certification: ${cert.id}');
     } catch (e, stackTrace) {
       _log.error(
@@ -202,7 +279,7 @@ class CertificationRepository {
   }
 
   /// Delete a certification
-  Future<void> deleteCertification(String id) async {
+  Future<void> deleteCertification(String id, {bool notify = true}) async {
     try {
       _log.info('Deleting certification: $id');
       await (_db.delete(
@@ -212,7 +289,7 @@ class CertificationRepository {
         entityType: 'certifications',
         recordId: id,
       );
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {
       _log.error(
@@ -250,29 +327,7 @@ class CertificationRepository {
       ORDER BY expiry_date ASC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
   }
 
   /// Get expired certifications
@@ -295,29 +350,7 @@ class CertificationRepository {
       ORDER BY expiry_date DESC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
   }
 
   /// Get certifications by agency
@@ -332,10 +365,40 @@ class CertificationRepository {
     return rows.map(_mapRowToCertification).toList();
   }
 
+  /// Maps a raw certifications row (from a customSelect query) to a domain
+  /// entity. Kept in step with [_mapRowToCertification] -- notably it hydrates
+  /// buddyId (issue #553), which the per-query hand-mapping used to drop.
+  domain.Certification _mapQueryRowToCertification(QueryRow row) {
+    return domain.Certification(
+      id: row.data['id'] as String,
+      diverId: row.data['diver_id'] as String?,
+      buddyId: row.data['buddy_id'] as String?,
+      name: row.data['name'] as String,
+      agency: _parseCertificationAgency(row.data['agency'] as String),
+      level: _parseCertificationLevel(row.data['level'] as String?),
+      cardNumber: row.data['card_number'] as String?,
+      issueDate: _parseDateTime(row.data['issue_date'] as int?),
+      expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
+      instructorName: row.data['instructor_name'] as String?,
+      instructorNumber: row.data['instructor_number'] as String?,
+      instructorId: row.data['instructor_id'] as String?,
+      photoFront: row.data['photo_front'] as Uint8List?,
+      photoBack: row.data['photo_back'] as Uint8List?,
+      notes: (row.data['notes'] as String?) ?? '',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['created_at'] as int,
+      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['updated_at'] as int,
+      ),
+    );
+  }
+
   domain.Certification _mapRowToCertification(Certification row) {
     return domain.Certification(
       id: row.id,
       diverId: row.diverId,
+      buddyId: row.buddyId,
       name: row.name,
       agency: _parseCertificationAgency(row.agency),
       level: _parseCertificationLevel(row.level),
@@ -344,6 +407,7 @@ class CertificationRepository {
       expiryDate: _parseDateTime(row.expiryDate),
       instructorName: row.instructorName,
       instructorNumber: row.instructorNumber,
+      instructorId: row.instructorId,
       photoFront: row.photoFront,
       photoBack: row.photoBack,
       notes: row.notes,

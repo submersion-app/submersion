@@ -68,7 +68,7 @@ Widget _buildTestWidget() {
 
 void main() {
   group('DiveDetailSectionsPage', () {
-    testWidgets('renders all 17 section names', (tester) async {
+    testWidgets('renders all section names', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -80,14 +80,17 @@ void main() {
       }
     });
 
-    testWidgets('renders 17 switches', (tester) async {
+    testWidgets('renders a switch per section', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byType(Switch), findsNWidgets(17));
+      expect(
+        find.byType(Switch),
+        findsNWidgets(DiveDetailSectionId.values.length),
+      );
     });
 
     testWidgets('renders drag handles', (tester) async {
@@ -97,7 +100,10 @@ void main() {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(17));
+      expect(
+        find.byIcon(Icons.drag_handle),
+        findsNWidgets(DiveDetailSectionId.values.length),
+      );
     });
 
     testWidgets('shows fixed sections note', (tester) async {
@@ -310,7 +316,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // First section should be Tanks, second should be Deco Status
+      // First section should be Cylinders (tanks id), second Deco Status
       final titles = tester.widgetList<Text>(
         find.descendant(of: find.byType(ListTile), matching: find.byType(Text)),
       );
@@ -323,7 +329,7 @@ void main() {
                 DiveDetailSectionId.values.any((id) => id.displayName == d),
           )
           .toList();
-      expect(displayNames.first, 'Tanks');
+      expect(displayNames.first, 'Cylinders');
     });
 
     testWidgets('shows app bar title', (tester) async {

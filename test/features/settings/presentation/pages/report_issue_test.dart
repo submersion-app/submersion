@@ -64,6 +64,102 @@ void main() {
       expect(find.byType(SnackBar), findsNothing);
     });
 
+    testWidgets('launches even when canLaunch reports false', (tester) async {
+      // canLaunchUrl false-negatives on Android 11+ without a matching
+      // <queries> entry, so launchReportIssue must not gate on it.
+      bool launchCalled = false;
+
+      const channel = MethodChannel('plugins.flutter.io/url_launcher');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'canLaunch') return false;
+            if (methodCall.method == 'launch') {
+              launchCalled = true;
+              return true;
+            }
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () => launchReportIssue(context),
+                child: const Text('Report'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Report'));
+      await tester.pumpAndSettle();
+
+      expect(launchCalled, isTrue);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('fallback snackbar copy action copies the URL', (tester) async {
+      const channel = MethodChannel('plugins.flutter.io/url_launcher');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'launch') return false;
+            if (methodCall.method == 'canLaunch') return false;
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+
+      final platformCalls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            platformCalls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () => launchReportIssue(context),
+                child: const Text('Report'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Report'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.byType(SnackBarAction), findsOneWidget);
+
+      await tester.tap(find.byType(SnackBarAction));
+      await tester.pump();
+
+      final setData = platformCalls.firstWhere(
+        (c) => c.method == 'Clipboard.setData',
+      );
+      expect((setData.arguments as Map)['text'], reportIssueUrl);
+    });
+
     testWidgets('shows snackbar fallback when launch fails', (tester) async {
       const channel = MethodChannel('plugins.flutter.io/url_launcher');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

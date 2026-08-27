@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -39,13 +40,15 @@ class PlanTankList extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.divePlanner_label_tanks,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                Expanded(
+                  child: Text(
+                    context.l10n.divePlanner_label_tanks,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: context.l10n.divePlanner_action_addTank,
@@ -132,10 +135,11 @@ class _TankChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final tankSize = units.formatTankVolume(tank.volume, tank.workingPressure);
     final tankLabel =
         '${tank.name ?? tank.gasMix.name}, '
         '${units.formatPressure(tank.startPressure)}, '
-        '${units.formatVolume(tank.volume)}';
+        '$tankSize';
 
     return Semantics(
       label: tankLabel,
@@ -158,7 +162,7 @@ class _TankChip extends StatelessWidget {
           children: [
             Text(tank.name ?? tank.gasMix.name),
             Text(
-              '${units.formatPressure(tank.startPressure)} • ${units.formatVolume(tank.volume)}',
+              '${units.formatPressure(tank.startPressure)} • $tankSize',
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -189,30 +193,32 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
   TankRole _role = TankRole.backGas;
+  bool _isTravelGas = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.tank?.name ?? '');
     _volumeController = TextEditingController(
-      text: widget.tank?.volume != null
-          ? widget.units.convertVolume(widget.tank!.volume!).toStringAsFixed(1)
-          : widget.units.convertVolume(11.1).toStringAsFixed(1),
+      text: formatRoundedForInput(
+        widget.units.convertVolume(widget.tank?.volume ?? 11.1),
+        1,
+      ),
     );
     _pressureController = TextEditingController(
-      text: widget.tank?.startPressure != null
-          ? widget.units
-                .convertPressure(widget.tank!.startPressure!)
-                .toStringAsFixed(0)
-          : widget.units.convertPressure(200).toStringAsFixed(0),
+      text: formatRoundedForInput(
+        widget.units.convertPressure(widget.tank?.startPressure ?? 200),
+        0,
+      ),
     );
     _o2Controller = TextEditingController(
-      text: widget.tank?.gasMix.o2.toString() ?? '21',
+      text: formatDecimalForInput(widget.tank?.gasMix.o2 ?? 21),
     );
     _heController = TextEditingController(
-      text: widget.tank?.gasMix.he.toString() ?? '0',
+      text: formatDecimalForInput(widget.tank?.gasMix.he ?? 0),
     );
     _role = widget.tank?.role ?? TankRole.backGas;
+    _isTravelGas = widget.tank?.isTravelGas ?? false;
   }
 
   @override
@@ -320,6 +326,15 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                 ),
               ),
             ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _isTravelGas,
+              title: Text(context.l10n.divePlanner_field_travelGas),
+              onChanged: (value) {
+                setState(() => _isTravelGas = value ?? false);
+              },
+            ),
           ],
         ),
       ),
@@ -337,8 +352,8 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   }
 
   void _save() {
-    final parsedVolume = double.tryParse(_volumeController.text);
-    final parsedPressure = double.tryParse(_pressureController.text);
+    final parsedVolume = parseUserDecimal(_volumeController.text);
+    final parsedPressure = parseUserDecimal(_pressureController.text);
 
     final tank = DiveTank(
       id: widget.tank?.id ?? _uuid.v4(),
@@ -350,11 +365,12 @@ class _TankEditDialogState extends State<_TankEditDialog> {
           ? widget.units.pressureToBar(parsedPressure)
           : null,
       gasMix: GasMix(
-        o2: double.tryParse(_o2Controller.text) ?? 21,
-        he: double.tryParse(_heController.text) ?? 0,
+        o2: parseUserDecimal(_o2Controller.text) ?? 21,
+        he: parseUserDecimal(_heController.text) ?? 0,
       ),
       role: _role,
       order: widget.tank?.order ?? 0,
+      isTravelGas: _isTravelGas,
     );
 
     widget.onSave(tank);

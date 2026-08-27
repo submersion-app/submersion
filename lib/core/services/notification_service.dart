@@ -1,10 +1,27 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/services/logger_service.dart';
+
+/// Deterministic 32-bit notification id for [key].
+///
+/// [String.hashCode] is seeded with a per-launch random value (hash-flood
+/// mitigation), so an id derived from it changes between app runs and can also
+/// fall outside the positive int32 range Android notification ids require. This
+/// FNV-1a hash is stable across launches and always fits 31 bits, so a reminder
+/// scheduled in one run can be replaced or cancelled by id in the next.
+int _stableNotificationId(String key) {
+  var hash = 0x811c9dc5; // FNV-1a 32-bit offset basis
+  for (final unit in key.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xFFFFFFFF; // FNV prime, wrap to 32 bits
+  }
+  return hash & 0x7FFFFFFF; // positive, within int32
+}
 
 /// Service for managing local notifications
 class NotificationService {
@@ -124,10 +141,32 @@ class NotificationService {
     return false;
   }
 
-  /// Schedule a notification for equipment service
+  /// Compose the body text for a service reminder notification.
+  ///
+  /// A reminder fires on or before the due date, so [daysBefore] == 0 means
+  /// "due today" (never overdue), and 1 must read "tomorrow" rather than the
+  /// ungrammatical "1 days". Any negative value degrades to "due today".
+  @visibleForTesting
+  static String serviceReminderBody({
+    required String prefix,
+    required String kindName,
+    required int daysBefore,
+  }) {
+    if (daysBefore <= 0) return '$prefix: $kindName is due today';
+    if (daysBefore == 1) return '$prefix: $kindName is due tomorrow';
+    return '$prefix: $kindName is due in $daysBefore days';
+  }
+
+  /// Schedule a notification for one service clock.
+  ///
+  /// The platform id derives from [scheduleId], NOT the equipment id: two
+  /// clocks on one item (hydro + VIP on a cylinder) must not collide, and
+  /// flutter_local_notifications silently replaces on id collision.
   Future<int> scheduleServiceReminder({
+    required String scheduleId,
     required String equipmentId,
     required String equipmentName,
+    required String kindName,
     required String? brandModel,
     required DateTime scheduledDate,
     required int daysBefore,
@@ -135,12 +174,14 @@ class NotificationService {
     // Skip on desktop platforms
     if (!_isMobilePlatform) return 0;
 
-    final notificationId = equipmentId.hashCode + daysBefore;
+    final notificationId = _stableNotificationId('$scheduleId#$daysBefore');
 
-    final title = 'Service Due: $equipmentName';
-    final body = daysBefore > 0
-        ? '${brandModel ?? equipmentName} service is due in $daysBefore days'
-        : '${brandModel ?? equipmentName} service is overdue';
+    final title = '$kindName due: $equipmentName';
+    final body = serviceReminderBody(
+      prefix: brandModel ?? equipmentName,
+      kindName: kindName,
+      daysBefore: daysBefore,
+    );
 
     const androidDetails = AndroidNotificationDetails(
       'equipment_service_reminders',
@@ -182,6 +223,93 @@ class NotificationService {
     return notificationId;
   }
 
+  /// Schedule the one-per-trip nag: gear needs service before the trip.
+  /// Same channel as equipment reminders; the id derives from the trip id.
+  Future<int> scheduleTripServiceReminder({
+    required String tripId,
+    required String tripName,
+    required int itemCount,
+    required DateTime scheduledDate,
+  }) async {
+    if (!_isMobilePlatform) return 0;
+
+    final notificationId = _stableNotificationId('trip#$tripId');
+    final title = 'Gear service before $tripName';
+    final body = itemCount == 1
+        ? '1 item needs service before this trip'
+        : '$itemCount items need service before this trip';
+
+    const androidDetails = AndroidNotificationDetails(
+      'equipment_service_reminders',
+      'Equipment Service Reminders',
+      channelDescription: 'Reminders for equipment service due dates',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      category: AndroidNotificationCategory.reminder,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final scheduledTz = tz.TZDateTime.from(scheduledDate, tz.local);
+    await _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: scheduledTz,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+
+    _log.info(
+      'Scheduled trip service notification $notificationId for $tripName '
+      'at $scheduledTz',
+    );
+    return notificationId;
+  }
+
+  /// Title for [showBackupNotification]. Pure, so the wording is testable
+  /// without the platform channel (as with [serviceReminderBody]).
+  static String backupNotificationTitle({
+    required bool success,
+    required bool cloudCopyMissing,
+  }) {
+    if (!success) return 'Backup Failed';
+    return cloudCopyMissing
+        ? 'Backup Complete (device only)'
+        : 'Backup Complete';
+  }
+
+  /// Body for [showBackupNotification].
+  ///
+  /// [cloudCopyMissing] means the user has cloud backup switched on but this
+  /// run produced no cloud copy -- an unreachable provider, expired auth, or
+  /// no network. The local backup is intact, so this is not a failure, but
+  /// saying "backed up successfully" would tell the user their off-device
+  /// copy is safe when it is not.
+  static String backupNotificationBody({
+    required bool success,
+    required bool cloudCopyMissing,
+    String? error,
+  }) {
+    if (!success) {
+      return 'Automatic backup failed'
+          '${error != null ? ': $error' : '. Please try a manual backup.'}';
+    }
+    return cloudCopyMissing
+        ? 'Your dive data was backed up on this device. The cloud copy could '
+              'not be uploaded -- it will be retried at the next backup.'
+        : 'Your dive data has been backed up successfully.';
+  }
+
   /// Show an immediate notification for backup results.
   ///
   /// Used by both foreground operations and background tasks.
@@ -189,6 +317,7 @@ class NotificationService {
   Future<void> showBackupNotification({
     required bool success,
     String? error,
+    bool cloudCopyMissing = false,
   }) async {
     if (!_isMobilePlatform) return;
 
@@ -212,18 +341,20 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    final title = success ? 'Backup Complete' : 'Backup Failed';
-    final body = success
-        ? 'Your dive data has been backed up successfully.'
-        : 'Automatic backup failed${error != null ? ': $error' : '. Please try a manual backup.'}';
-
     // Use a fixed ID so repeated backup notifications replace each other
     const backupNotificationId = 99000;
 
     await _plugin.show(
       id: backupNotificationId,
-      title: title,
-      body: body,
+      title: backupNotificationTitle(
+        success: success,
+        cloudCopyMissing: cloudCopyMissing,
+      ),
+      body: backupNotificationBody(
+        success: success,
+        cloudCopyMissing: cloudCopyMissing,
+        error: error,
+      ),
       notificationDetails: details,
     );
 

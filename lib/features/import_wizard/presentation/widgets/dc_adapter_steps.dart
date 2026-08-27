@@ -160,14 +160,15 @@ class _DcConfirmDeviceStepState extends ConsumerState<DcConfirmDeviceStep> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Known Computer',
+                            l10n.importWizard_dc_knownComputer,
                             style: theme.textTheme.titleSmall?.copyWith(
                               color: colorScheme.primary,
                             ),
                           ),
                           Text(
-                            'Saved as "${knownComputer.displayName}". '
-                            'Only new dives will be downloaded.',
+                            l10n.importWizard_dc_knownComputerBody(
+                              knownComputer.displayName,
+                            ),
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
@@ -184,7 +185,7 @@ class _DcConfirmDeviceStepState extends ConsumerState<DcConfirmDeviceStep> {
               decoration: InputDecoration(
                 labelText: l10n.diveComputer_discovery_deviceNameLabel,
                 hintText: l10n.diveComputer_discovery_deviceNameHint(
-                  device.model ?? 'Dive Computer',
+                  device.model ?? l10n.diveComputer_title,
                 ),
                 prefixIcon: const Icon(Icons.edit),
                 border: const OutlineInputBorder(),
@@ -214,8 +215,8 @@ class _DcConfirmDeviceStepState extends ConsumerState<DcConfirmDeviceStep> {
                         children: [
                           Text(
                             isRecognized
-                                ? 'Recognized Device'
-                                : 'Unknown Device',
+                                ? l10n.diveComputer_discovery_recognizedDevice
+                                : l10n.diveComputer_discovery_unknownDevice,
                             style: theme.textTheme.titleSmall?.copyWith(
                               color: isRecognized
                                   ? colorScheme.primary
@@ -224,10 +225,8 @@ class _DcConfirmDeviceStepState extends ConsumerState<DcConfirmDeviceStep> {
                           ),
                           Text(
                             isRecognized
-                                ? 'This device is in our supported devices '
-                                      'library. Dive download should work '
-                                      'automatically.'
-                                : 'This device may not be fully supported.',
+                                ? l10n.diveComputer_discovery_recognizedDeviceDescription
+                                : l10n.diveComputer_discovery_unknownDeviceDescription,
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
@@ -279,6 +278,11 @@ class DcAdapterDownloadStep extends ConsumerStatefulWidget {
   final DiveComputerAdapter adapter;
   final DiveComputer? knownComputer;
 
+  /// How long a saved-computer download scans for the computer's stored
+  /// address before falling back to a direct connect with that address.
+  /// Matches the first resolve attempt of the macOS/iOS native resolver.
+  static const knownDeviceScanTimeout = Duration(seconds: 15);
+
   @override
   ConsumerState<DcAdapterDownloadStep> createState() =>
       _DcAdapterDownloadStepState();
@@ -287,19 +291,70 @@ class DcAdapterDownloadStep extends ConsumerStatefulWidget {
 class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   bool _captured = false;
   bool _computerResolved = false;
+  bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
   @override
   void initState() {
     super.initState();
-    // In discovery mode, check if the device matches a known computer
-    // BEFORE the download starts. If found, the computer's fingerprint
-    // enables incremental download (only new dives).
-    if (widget.knownComputer != null) {
-      _computerResolved = true;
-    } else {
+    final computer = widget.knownComputer;
+    if (computer == null) {
+      // In discovery mode, check if the device matches a known computer
+      // BEFORE the download starts. If found, the computer's fingerprint
+      // enables incremental download (only new dives).
       WidgetsBinding.instance.addPostFrameCallback((_) => _resolveComputer());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _reacquireKnownDevice(computer),
+      );
     }
+  }
+
+  /// Re-acquires a saved Bluetooth computer by scanning for its stored
+  /// address before the download connects (issue #1232).
+  ///
+  /// Connecting straight to a stored address fails on Android and Windows
+  /// unless the stack has recently seen the device advertise, which is why
+  /// the scan-and-download flow worked for the same computer while the
+  /// saved entry did not. If the scan does not see the address, the step
+  /// falls back to the stored address exactly as before.
+  Future<void> _reacquireKnownDevice(DiveComputer computer) async {
+    if (!mounted) return;
+    final address = computer.bluetoothAddress;
+    final notifier = ref.read(discoveryNotifierProvider.notifier);
+    final selected = ref.read(discoveryNotifierProvider).selectedDevice;
+    final alreadyAcquired =
+        selected != null &&
+        address != null &&
+        bluetoothAddressesMatch(selected.address, address);
+    // A saved computer downloads only from a device carrying its stored
+    // address. A selection left over from an earlier discovery session is
+    // dropped from the provider itself, because the completion path reads
+    // the provider's selection to capture the descriptor the import
+    // service records; hiding it locally here would not be enough.
+    if (selected != null && !alreadyAcquired) {
+      notifier.clearSelectedDevice();
+    }
+    final isBluetooth =
+        _connectionTypeFromString(computer.connectionType) ==
+        DeviceConnectionType.ble;
+
+    if (address == null || !isBluetooth || alreadyAcquired) {
+      setState(() => _computerResolved = true);
+      return;
+    }
+
+    setState(() => _searchingForKnownDevice = true);
+    final device = await notifier.scanForAddress(
+      address,
+      timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
+    );
+    if (device != null) notifier.selectDevice(device);
+    if (!mounted) return;
+    setState(() {
+      _searchingForKnownDevice = false;
+      _computerResolved = true;
+    });
   }
 
   Future<void> _resolveComputer() async {
@@ -319,33 +374,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // from a previous session is ignored — only fresh transitions trigger.
     ref.listen<DownloadState>(downloadNotifierProvider, (previous, next) {
       if (!_captured && next.phase == DownloadPhase.complete) {
-        _captured = true;
-        widget.adapter.setDownloadedDives(next.downloadedDives);
-
-        // No new dives — show an informational message instead of advancing
-        // to an empty Review step.
-        if (next.downloadedDives.isEmpty) {
-          if (mounted) setState(() => _noDives = true);
-          return;
-        }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-
-          final discoveryState = ref.read(discoveryNotifierProvider);
-          final device = discoveryState.selectedDevice;
-          if (device != null) {
-            await widget.adapter.ensureComputer(
-              device: device,
-              serialNumber: next.serialNumber,
-              firmwareVersion: next.firmwareVersion,
-            );
-          }
-
-          if (mounted) {
-            ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
-          }
-        });
+        _captureAndAdvance(next);
       }
     });
 
@@ -357,6 +386,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // Wait for computer resolution before creating the download widget.
     // This ensures the fingerprint is available for incremental download.
     if (!_computerResolved) {
+      final knownComputer = widget.knownComputer;
+      if (_searchingForKnownDevice && knownComputer != null) {
+        return _KnownDeviceSearchView(computer: knownComputer);
+      }
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -396,17 +429,99 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       );
     }
 
+    // The first-sync cutoff prompt only ever applies when this computer has
+    // no stored fingerprint yet and the caller isn't forcing a full
+    // re-download -- in every other case the default's value is irrelevant.
+    // Only wait on the provider when it could matter: firstSyncCutoffDefault
+    // is a FutureProvider backed by a real Drift query, so the very first
+    // watch always yields AsyncLoading (valueOrNull == null) synchronously.
+    // If DownloadStepWidget were constructed immediately with that
+    // transient null, its initState would read "no cutoff" and
+    // unconditionally auto-start the download before the query resolves;
+    // the later rebuild with the real value could arrive after the
+    // download already started (or, worse, after this widget's state
+    // already decided not to show the prompt), silently skipping it.
+    // Gating here -- the same pattern already used above for
+    // _computerResolved and deviceDescriptorsProvider -- ensures
+    // DownloadStepWidget only ever sees the final, settled value.
+    final promptCouldApply =
+        computer?.lastDiveFingerprint == null &&
+        !widget.adapter.forceFullDownload;
+    DateTime? cutoffDefault;
+    if (promptCouldApply) {
+      final cutoffAsync = ref.watch(firstSyncCutoffDefaultProvider);
+      if (cutoffAsync.isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      // A diver with an empty log (or no active diver) resolves to null
+      // here and falls through to the normal auto-start path below --
+      // this branch never hangs once the future settles, error or not.
+      cutoffDefault = cutoffAsync.valueOrNull;
+    }
+
     return DownloadStepWidget(
       device: device,
       computer: computer,
       forceFullDownload: widget.adapter.forceFullDownload,
+      firstSyncCutoffDefault: cutoffDefault,
       onComplete: () {
         // Handled by the state watcher above.
       },
       onError: (error) {
         // Download errors are shown by the DownloadStepWidget itself.
       },
+      onImportPartial: () {
+        // The user chose to keep the dives delivered before an interrupted
+        // download. For drivers that deliver oldest-first (as Shearwater
+        // does), this is a contiguous prefix of the oldest dives, so capturing
+        // it advances the fingerprint to a correct resume point for the next
+        // download. Ordering depends on the native driver, not this code.
+        _captureAndAdvance(ref.read(downloadNotifierProvider));
+      },
     );
+  }
+
+  /// Captures the downloaded dives into the adapter and advances the wizard to
+  /// the Review step. Shared by the normal completion path and the
+  /// import-partial action for an interrupted download.
+  void _captureAndAdvance(DownloadState state) {
+    if (_captured) return;
+    _captured = true;
+    widget.adapter.setSinceCutoff(state.sinceCutoff);
+    widget.adapter.setDownloadedDives(state.downloadedDives);
+
+    // No dives — show an informational message instead of advancing to an
+    // empty Review step. The computer itself is still saved below: reaching
+    // this point means it paired, connected and completed a download, which is
+    // exactly what makes it worth remembering for next time. Returning early
+    // here used to strand a working computer as unknown whenever the diver's
+    // first download had nothing new on it (issue #865).
+    final hasDives = state.downloadedDives.isNotEmpty;
+    if (!hasDives && mounted) {
+      setState(() => _noDives = true);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final discoveryState = ref.read(discoveryNotifierProvider);
+      final device = discoveryState.selectedDevice;
+      if (device != null) {
+        // Serial and firmware ride on the completion event, not on the dives,
+        // so the hardware-identity rebind still works with an empty download.
+        await widget.adapter.ensureComputer(
+          device: device,
+          serialNumber: state.serialNumber,
+          firmwareVersion: state.firmwareVersion,
+        );
+      }
+
+      // Only a download that actually produced dives has a Review step to
+      // advance to; the empty case stays on DcNoNewDivesView.
+      if (hasDives && mounted) {
+        ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
+      }
+    });
   }
 }
 
@@ -429,6 +544,33 @@ DeviceConnectionType _connectionTypeFromString(String? type) {
 }
 
 // ---------------------------------------------------------------------------
+// Searching for a saved computer
+// ---------------------------------------------------------------------------
+
+class _KnownDeviceSearchView extends StatelessWidget {
+  const _KnownDeviceSearchView({required this.computer});
+
+  final DiveComputer computer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            l10n.diveComputer_download_searchingForDevice(computer.displayName),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // No new dives view
 // ---------------------------------------------------------------------------
 
@@ -441,6 +583,7 @@ class DcNoNewDivesView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
     return Center(
       child: Padding(
@@ -463,19 +606,22 @@ class DcNoNewDivesView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No new dives to download',
+              l10n.importWizard_dc_noNewDives,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'All dives from this computer have already been imported.',
+              l10n.importWizard_dc_noNewDivesBody,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            FilledButton(onPressed: onDone, child: const Text('Done')),
+            FilledButton(
+              onPressed: onDone,
+              child: Text(l10n.universalImport_action_done),
+            ),
           ],
         ),
       ),

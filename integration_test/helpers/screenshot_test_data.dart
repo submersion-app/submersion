@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:uuid/uuid.dart';
 
@@ -325,46 +326,68 @@ class ScreenshotTestDataSeeder {
       {
         'name': 'Sarah Chen',
         'email': 'sarah.chen@email.com',
-        'certLevel': 'PADI Rescue Diver',
-        'agency': 'PADI',
+        'certName': 'Rescue Diver',
+        'level': CertificationLevel.rescue,
+        'agency': CertificationAgency.padi,
       },
       {
         'name': 'Marcus Johnson',
         'email': 'marcus.j@email.com',
-        'certLevel': 'SSI Advanced Open Water',
-        'agency': 'SSI',
+        'certName': 'Advanced Open Water',
+        'level': CertificationLevel.advancedOpenWater,
+        'agency': CertificationAgency.ssi,
       },
       {
         'name': 'Elena Rodriguez',
         'email': 'elena.r@email.com',
-        'certLevel': 'PADI Divemaster',
-        'agency': 'PADI',
+        'certName': 'Divemaster',
+        'level': CertificationLevel.diveMaster,
+        'agency': CertificationAgency.padi,
       },
       {
         'name': 'James Wilson',
         'email': 'jwilson@email.com',
-        'certLevel': 'NAUI Open Water',
-        'agency': 'NAUI',
+        'certName': 'Open Water Diver',
+        'level': CertificationLevel.openWater,
+        'agency': CertificationAgency.naui,
       },
       {
         'name': 'Yuki Tanaka',
         'email': 'yuki.t@email.com',
-        'certLevel': 'TDI Advanced Nitrox',
-        'agency': 'TDI',
+        'certName': 'Advanced Nitrox',
+        'level': CertificationLevel.advancedNitrox,
+        'agency': CertificationAgency.tdi,
       },
     ];
 
     for (final buddy in buddies) {
+      final buddyId = _uuid.v4();
       await db
           .into(db.buddies)
           .insert(
             BuddiesCompanion.insert(
-              id: _uuid.v4(),
+              id: buddyId,
               diverId: Value(_diverId),
               name: buddy['name'] as String,
               email: Value(buddy['email'] as String),
-              certificationLevel: Value(buddy['certLevel'] as String),
-              certificationAgency: Value(buddy['agency'] as String),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      // Seed a buddy-owned certification row. The inline buddy cert columns
+      // were dropped in v110; a buddy's primary cert is now derived from these
+      // rows (issue #553), so without this the screenshot buddies would show
+      // an empty Certifications section.
+      await db
+          .into(db.certifications)
+          .insert(
+            CertificationsCompanion.insert(
+              id: _uuid.v4(),
+              buddyId: Value(buddyId),
+              name: buddy['certName'] as String,
+              agency: (buddy['agency'] as CertificationAgency).name,
+              level: Value((buddy['level'] as CertificationLevel).name),
               createdAt: now,
               updatedAt: now,
             ),

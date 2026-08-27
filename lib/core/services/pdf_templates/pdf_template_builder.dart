@@ -1,6 +1,7 @@
 import 'package:pdf/pdf.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -26,6 +27,7 @@ abstract class PdfTemplateBuilder {
   /// Parameters:
   /// - [dives]: List of dives to include in the logbook
   /// - [pageSize]: Page size for the PDF (A4 or Letter)
+  /// - [dates]: Date and time rendering for the diver's preferences (#964)
   /// - [title]: Title for the logbook cover page
   /// - [diveSignatures]: Map of dive ID to list of signatures for that dive
   /// - [certifications]: Optional list of certifications to include
@@ -35,6 +37,7 @@ abstract class PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,

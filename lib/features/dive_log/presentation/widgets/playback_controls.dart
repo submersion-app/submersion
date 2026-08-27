@@ -216,7 +216,7 @@ class _SpeedSelector extends StatelessWidget {
       tooltip: context.l10n.diveLog_playback_tooltip_speed,
       child: Semantics(
         label:
-            '${context.l10n.diveLog_playback_tooltip_speed} ${currentSpeed}x',
+            '${context.l10n.diveLog_playback_tooltip_speed} ${currentSpeed.toInt()}x',
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
@@ -224,7 +224,7 @@ class _SpeedSelector extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            '${currentSpeed}x',
+            '${currentSpeed.toInt()}x',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -232,10 +232,8 @@ class _SpeedSelector extends StatelessWidget {
         ),
       ),
       itemBuilder: (context) => [
-        const PopupMenuItem(value: 0.5, child: Text('0.5x')),
-        const PopupMenuItem(value: 1.0, child: Text('1x')),
-        const PopupMenuItem(value: 2.0, child: Text('2x')),
-        const PopupMenuItem(value: 4.0, child: Text('4x')),
+        for (final speed in PlaybackNotifier.speedPresets)
+          PopupMenuItem(value: speed, child: Text('${speed.toInt()}x')),
       ],
     );
   }

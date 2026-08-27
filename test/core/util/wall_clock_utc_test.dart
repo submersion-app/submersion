@@ -138,4 +138,22 @@ void main() {
       }
     });
   });
+
+  group('fromWallClockUtc', () {
+    test('reads the UTC components back as local digits', () {
+      final got = fromWallClockUtc(DateTime.utc(2024, 4, 12, 14, 32, 5, 250));
+      expect(got, DateTime(2024, 4, 12, 14, 32, 5, 250));
+      expect(got.isUtc, isFalse);
+    });
+
+    test('round-trips a local DateTime through asWallClockUtc', () {
+      final local = DateTime(2026, 6, 1, 23, 59, 59, 999);
+      expect(fromWallClockUtc(asWallClockUtc(local)), local);
+    });
+
+    test('leaves an already-local DateTime alone', () {
+      final local = DateTime(2024, 4, 12, 14, 32);
+      expect(fromWallClockUtc(local), local);
+    });
+  });
 }

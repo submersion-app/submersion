@@ -1,0 +1,82 @@
+{
+  "au-fionastanley": {
+    "lat": -32.0716,
+    "lon": 115.8347
+  },
+  "au-townsville": {
+    "lat": -19.3204,
+    "lon": 146.7626
+  },
+  "bq-bonaire": {
+    "lat": 12.15,
+    "lon": -68.276
+  },
+  "eg-sharm": {
+    "lat": 27.8617,
+    "lon": 34.2988
+  },
+  "gb-ddrc": {
+    "lat": 50.4169,
+    "lon": -4.1097
+  },
+  "id-bali": {
+    "lat": -8.6705,
+    "lon": 115.2126
+  },
+  "mt-gozo": {
+    "lat": 36.0443,
+    "lon": 14.2419
+  },
+  "mv-bandos": {
+    "lat": 4.2762,
+    "lon": 73.4903
+  },
+  "mv-kuredu": {
+    "lat": 5.554,
+    "lon": 73.47
+  },
+  "mx-cozumel": {
+    "lat": 20.5083,
+    "lon": -86.9458
+  },
+  "nz-slark": {
+    "lat": -36.7796,
+    "lon": 174.7559
+  },
+  "pf-chpf": {
+    "lat": -17.5334,
+    "lon": -149.5533
+  },
+  "ph-batangas": {
+    "lat": 13.7565,
+    "lon": 121.0583
+  },
+  "pr-isabela": {
+    "lat": 18.5,
+    "lon": -67.0244
+  },
+  "pr-san-juan": {
+    "lat": 18.398,
+    "lon": -66.064
+  },
+  "th-samui": {
+    "lat": 9.5357,
+    "lon": 100.0629
+  },
+  "us-catalina": {
+    "lat": 33.4456,
+    "lon": -118.4849
+  },
+  "us-duke": {
+    "lat": 36.0076,
+    "lon": -78.9382
+  },
+  "vi-st-thomas": {
+    "lat": 18.3419,
+    "lon": -64.9236
+  },
+  "za-capetown": {
+    "lat": -33.9096,
+    "lon": 18.6089
+  }
+}

@@ -1,11 +1,17 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies that avoid touching the real database.
@@ -111,6 +117,98 @@ void main() {
           .read(settingsProvider.notifier)
           .setShowDetailsPaneForSection('dives', true);
       expect(container.read(settingsProvider).showDetailsPaneDives, isTrue);
+    });
+
+    test('setChamberHidden toggles hidden chamber ids', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', true);
+      expect(
+        container.read(settingsProvider).hiddenChamberIds,
+        contains('au-townsville'),
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', false);
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+    });
+
+    test('setHomeChipEnabled toggles hidden home chips', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // All home chips are visible by default.
+      expect(container.read(settingsProvider).hiddenHomeChips, isEmpty);
+
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeChipEnabled('noFly', false);
+      expect(
+        container.read(settingsProvider).hiddenHomeChips,
+        contains('noFly'),
+      );
+
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeChipEnabled('noFly', true);
+      expect(container.read(settingsProvider).hiddenHomeChips, isEmpty);
+    });
+
+    test('setEmergencyRegion sets and clears the override', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
+      await container.read(settingsProvider.notifier).setEmergencyRegion('US');
+      expect(container.read(settingsProvider).emergencyRegion, 'US');
+      await container.read(settingsProvider.notifier).setEmergencyRegion(null);
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
+    });
+
+    test('sets siteMatchSensitivity', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).siteMatchSensitivity,
+        SiteMatchSensitivity.balanced,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setSiteMatchSensitivity(SiteMatchSensitivity.strict);
+      expect(
+        container.read(settingsProvider).siteMatchSensitivity,
+        SiteMatchSensitivity.strict,
+      );
+    });
+
+    test('setDefaultCurrency normalises and persists the code', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).defaultCurrency, 'USD');
+
+      // Free-text entry elsewhere means the code can arrive padded or in the
+      // wrong case; the setter is the single place that normalises it.
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultCurrency('  eur ');
+      expect(container.read(settingsProvider).defaultCurrency, 'EUR');
+
+      // The derived provider the equipment pages read tracks the change.
+      expect(container.read(defaultCurrencyProvider), 'EUR');
+    });
+
+    test('setDefaultCurrency accepts a code outside the presets', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await container.read(settingsProvider.notifier).setDefaultCurrency('isk');
+      expect(container.read(settingsProvider).defaultCurrency, 'ISK');
     });
 
     test('sets showDetailsPaneSites to true', () async {
@@ -273,6 +371,415 @@ void main() {
           .read(settingsProvider.notifier)
           .setShowDataSourceBadges(false);
       expect(container.read(settingsProvider).showDataSourceBadges, isFalse);
+    });
+
+    test('setDefaultShowAscentRateLine persists the new default', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Promoted from session-only to a persisted default in v91; starts off.
+      expect(
+        container.read(settingsProvider).defaultShowAscentRateLine,
+        isFalse,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultShowAscentRateLine(true);
+      expect(
+        container.read(settingsProvider).defaultShowAscentRateLine,
+        isTrue,
+      );
+    });
+
+    test('setDefaultShowPhotoMarkers persists the new default', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Added as a persisted default in v96; photo markers start visible.
+      expect(container.read(settingsProvider).defaultShowPhotoMarkers, isTrue);
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultShowPhotoMarkers(false);
+      expect(container.read(settingsProvider).defaultShowPhotoMarkers, isFalse);
+    });
+
+    test(
+      'setShowAscentRateColors toggles the velocity-coloring default',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        // Coloring now defaults off as of this change.
+        expect(container.read(settingsProvider).showAscentRateColors, isFalse);
+        await container
+            .read(settingsProvider.notifier)
+            .setShowAscentRateColors(true);
+        expect(container.read(settingsProvider).showAscentRateColors, isTrue);
+      },
+    );
+
+    test('setCnsCalculationMethod updates state and persists', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).cnsCalculationMethod,
+        CnsCalculationMethod.shearwater,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setCnsCalculationMethod(CnsCalculationMethod.subsurface);
+      expect(
+        container.read(settingsProvider).cnsCalculationMethod,
+        CnsCalculationMethod.subsurface,
+      );
+      expect(
+        container.read(cnsCalculationMethodProvider),
+        CnsCalculationMethod.subsurface,
+      );
+    });
+
+    test('readout card position defaults to null and persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, isNull);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, isNull);
+
+      await notifier.setFullscreenReadoutCardPosition(0.25, 0.75);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 0.25);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.75);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 0.25);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.75);
+    });
+
+    test('readout card position clamps out-of-range values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Keep persisted data inside the 0..1 contract even if a future call
+      // site passes junk; the widget clamps on read too, but stored values
+      // should stay canonical.
+      await notifier.setFullscreenReadoutCardPosition(5.0, -3.0);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
+
+    test('readout card position sanitizes non-finite values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // NaN bypasses clamp (NaN.clamp(0,1) is NaN); it must never be
+      // persisted or the card would seed with invalid layout input.
+      await notifier.setFullscreenReadoutCardPosition(
+        double.nan,
+        double.negativeInfinity,
+      );
+
+      // Non-finite inputs canonicalize to the default corner (1, 0).
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
+  });
+
+  group('Real SettingsNotifier safety review settings', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('setSafetyReviewEnabled persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).safetyReviewEnabled, isTrue);
+      await notifier.setSafetyReviewEnabled(false);
+      expect(container.read(settingsProvider).safetyReviewEnabled, isFalse);
+    });
+
+    test('setNoFlyPreset persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).noFlyPreset,
+        NoFlyPreset.standard,
+      );
+      await notifier.setNoFlyPreset(NoFlyPreset.strict);
+      expect(container.read(settingsProvider).noFlyPreset, NoFlyPreset.strict);
+    });
+
+    test('setSafetyRuleEnabled toggles the disabled-rules set', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, false);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        contains('sawtoothProfile'),
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, true);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
+    });
+  });
+
+  group('Real SettingsNotifier perdix overlay settings', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('defaults: disabled, null position', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final s = container.read(settingsProvider);
+      expect(s.perdixOverlayEnabled, isFalse);
+      expect(s.perdixOverlayX, isNull);
+      expect(s.perdixOverlayY, isNull);
+    });
+
+    test('setPerdixOverlayEnabled persists to prefs and state', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPerdixOverlayEnabled(true);
+      expect(container.read(settingsProvider).perdixOverlayEnabled, isTrue);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('perdix_overlay_enabled'), isTrue);
+
+      await notifier.setPerdixOverlayEnabled(false);
+      expect(container.read(settingsProvider).perdixOverlayEnabled, isFalse);
+      expect(prefs.getBool('perdix_overlay_enabled'), isFalse);
+    });
+
+    test('setPerdixOverlayPosition persists and clamps', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPerdixOverlayPosition(0.25, 0.75);
+      var s = container.read(settingsProvider);
+      expect(s.perdixOverlayX, 0.25);
+      expect(s.perdixOverlayY, 0.75);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('perdix_overlay_x'), 0.25);
+      expect(prefs.getDouble('perdix_overlay_y'), 0.75);
+
+      await notifier.setPerdixOverlayPosition(-2.0, 9.0);
+      s = container.read(settingsProvider);
+      expect(s.perdixOverlayX, 0.0);
+      expect(s.perdixOverlayY, 1.0);
+      expect(prefs.getDouble('perdix_overlay_x'), 0.0);
+      expect(prefs.getDouble('perdix_overlay_y'), 1.0);
+    });
+
+    test(
+      'setPerdixOverlayPosition sanitizes non-finite to default corner',
+      () async {
+        final notifier = container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        await notifier.setPerdixOverlayPosition(double.nan, double.infinity);
+        final s = container.read(settingsProvider);
+        expect(s.perdixOverlayX, 1.0);
+        expect(s.perdixOverlayY, 0.0);
+      },
+    );
+  });
+
+  group('Real SettingsNotifier color accent toggles', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('default to false', () {
+      expect(const AppSettings().accentNavIcons, isFalse);
+      expect(const AppSettings().accentSectionHeaders, isFalse);
+      expect(const AppSettings().accentListIcons, isFalse);
+    });
+
+    // Repository persistence is covered by
+    // diver_settings_repository_accents_test.dart against a real database:
+    // this harness has no current diver, so _saveSettings() early-returns.
+    test('setters update state independently of each other', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).accentNavIcons, isFalse);
+
+      await notifier.setAccentNavIcons(true);
+      var s = container.read(settingsProvider);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isFalse);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentSectionHeaders(true);
+      s = container.read(settingsProvider);
+      expect(s.accentSectionHeaders, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentListIcons(true);
+      s = container.read(settingsProvider);
+      expect(s.accentListIcons, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isTrue);
+    });
+
+    test('gate providers reflect the individual toggles', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(accentNavIconsProvider), isFalse);
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+
+      await notifier.setAccentNavIcons(true);
+
+      expect(container.read(accentNavIconsProvider), isTrue);
+      // The other surfaces stay independent.
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+    });
+  });
+
+  group('Real SettingsNotifier cached theme mode', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      // Construct the notifier and let async _initializeAndLoad settle.
+      container.read(settingsProvider);
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('hydration writes the default theme mode into prefs', () {
+      final prefs = container.read(sharedPreferencesProvider);
+      expect(prefs.getString(cachedThemeModeKey), 'system');
+    });
+
+    test('setThemeMode mirrors the new value into prefs', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      final prefs = container.read(sharedPreferencesProvider);
+
+      await notifier.setThemeMode(ThemeMode.dark);
+      expect(prefs.getString(cachedThemeModeKey), 'dark');
+
+      await notifier.setThemeMode(ThemeMode.light);
+      expect(prefs.getString(cachedThemeModeKey), 'light');
+
+      await notifier.setThemeMode(ThemeMode.system);
+      expect(prefs.getString(cachedThemeModeKey), 'system');
     });
   });
 }

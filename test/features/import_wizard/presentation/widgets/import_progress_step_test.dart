@@ -8,7 +8,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -38,6 +38,10 @@ class _FakeAdapter implements ImportSourceAdapter {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
   };
+
+  @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
 
   @override
   Future<ImportBundle> buildBundle() => throw UnimplementedError();

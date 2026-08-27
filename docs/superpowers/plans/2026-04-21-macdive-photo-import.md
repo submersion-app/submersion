@@ -1152,3 +1152,27 @@ git commit -am "chore: changelog for MacDive photo import"
 - Large photo folders (10k+ files) make `_indexByFilename` slow (O(n)). For this milestone, that's fine — MacDive users typically keep their dive photos in a focused folder. If it becomes a perf issue, switch to lazy filename lookup triggered per miss.
 - The storage path `<mediaRoot>/dive/<diveId>/<position>-<filename>` should match whatever pattern existing dive-photo code expects. Search `dive_photo_repository` for the current convention and align.
 - If `sourceUuidToDiveId` doesn't exist on `UddfEntityImportResult` yet, add it as the first step of Task 11 — it's a small change to existing importer code.
+
+---
+
+## Correction 2026-08-09: `ZPATH` is a filename, not a path
+
+Written while working #912. **This plan's core resolution assumption is wrong**, so revise before executing it.
+
+The plan states: "Real MacDive SQLite (6.7 MB) references 261 dive images via `ZDIVEIMAGE.ZPATH`. Paths are absolute to the machine where MacDive ran." Measured against that same database:
+
+| Column | Reality |
+|---|---|
+| `ZPATH` | A **bare filename**, always: `E963EE6B-C4C8-4CC6-B956-02374F950EB7.jpg`. **0 of 261** rows contain a `/`. This is MacDive's own copy inside its Application Support folder, not a user path. |
+| `ZORIGINALPATH` | Absolute, on the machine that imported it (`/Users/Marci/Downloads/IMG_5649.jpg`), and populated for only **43 of 261** rows. |
+| `ZCAPTION` | Empty for **all 261** rows. |
+
+Consequences for the design:
+
+1. **The primary resolution strategy is wrong.** `PhotoResolver`'s direct-path → rebased-path → filename-match ladder assumes an absolute path to rebase. For 218 of 261 images there is no user path at all; the only locator is a filename relative to MacDive's image directory.
+2. **Add a strategy the plan does not have: resolve against MacDive's image store.** The renamed-to-UUID files live under MacDive's Application Support directory. On a desktop import the user should be asked for that folder (or it should be probed at the standard location), and `ZPATH` joined onto it. `ZORIGINALPATH` becomes the *fallback* for the 43 rows that have one, not the primary.
+3. **`ImportImageRef.originalPath` is misnamed** for this source. It needs to carry both the store-relative filename and the optional original absolute path, since they resolve differently.
+4. **Caption is dead weight for SQLite.** Keep the field for the XML path, but do not build UI that assumes captions exist.
+5. **Picking a single file is not enough.** Unlike every other import, photos need a *directory* alongside the `.sqlite` the user chose. That is a wizard-flow consequence worth confirming before implementation.
+
+None of this changes the plan's architecture — new payload field, resolver service, optional wizard step — only the resolution strategy at its centre.

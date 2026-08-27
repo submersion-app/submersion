@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -67,6 +68,8 @@ class PhotoImportHelper {
       ),
       buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
+      // Lets the Files tab link photos this dive's date window rejected.
+      target: DiveAttachTarget(dive.id),
     );
     // coverage:ignore-end
 

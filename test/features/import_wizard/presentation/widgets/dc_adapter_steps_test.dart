@@ -8,12 +8,14 @@ import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
@@ -84,6 +86,35 @@ class _FakeDiveComputerRepository extends DiveComputerRepository {
   @override
   Future<DiveComputer?> findByBluetoothAddress(
     String address, {
+    String? diverId,
+  }) async => null;
+}
+
+/// Repository that records the computers created through it, so a test can
+/// assert that a download persisted the dive computer it talked to.
+class _RecordingDiveComputerRepository extends DiveComputerRepository {
+  final List<DiveComputer> created = [];
+
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async {
+    created.add(computer);
+    return computer;
+  }
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
     String? diverId,
   }) async => null;
 }
@@ -174,10 +205,12 @@ DiveComputerAdapter _makeAdapter({
   DiveComputerRepository? computerRepository,
 }) {
   final repo = computerRepository ?? _FakeDiveComputerRepository();
+  final diveRepository = DiveRepository();
   return DiveComputerAdapter(
     importService: DiveImportService(repository: repo),
     computerRepository: repo,
-    diveRepository: DiveRepository(),
+    diveRepository: diveRepository,
+    consolidationService: DiveConsolidationService(diveRepository),
     diverId: 'diver-1',
     knownComputer: knownComputer,
   );
@@ -349,7 +382,10 @@ void main() {
 
       expect(find.text('Unknown Device'), findsOneWidget);
       expect(
-        find.text('This device may not be fully supported.'),
+        find.text(
+          "This device is not in our library. We'll try to connect, "
+          'but download may not work.',
+        ),
         findsOneWidget,
       );
     });
@@ -529,5 +565,158 @@ void main() {
       // After resolution, the DownloadStepWidget is rendered.
       expect(find.byType(DownloadStepWidget), findsOneWidget);
     });
+
+    // -----------------------------------------------------------------------
+    // Capturing downloaded dives (_captureAndAdvance): the completion listener
+    // and the import-partial action both funnel here.
+    // -----------------------------------------------------------------------
+
+    testWidgets('a completed download captures dives and advances the wizard', (
+      tester,
+    ) async {
+      final computer = _makeComputer();
+      final adapter = _makeAdapter(knownComputer: computer);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          knownComputer: computer,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+
+      // Transition the download to complete with dives: the step's listener
+      // fires _captureAndAdvance, which (via a post-frame callback) flips the
+      // can-advance provider so the wizard can move to Review.
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive(), _downloadedDive()],
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+    });
+
+    testWidgets('a completed download with no dives shows the no-dives view', (
+      tester,
+    ) async {
+      final computer = _makeComputer();
+      final adapter = _makeAdapter(knownComputer: computer);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          knownComputer: computer,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container
+          .read(downloadNotifierProvider.notifier)
+          .state = const DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DcNoNewDivesView), findsOneWidget);
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+    });
+
+    // Issue #865: a first-time pairing whose download happened to find nothing
+    // new used to return before ensureComputer(), so a dive computer that had
+    // just proved it pairs, connects and downloads was never saved -- the diver
+    // had to rediscover it every time.
+    testWidgets(
+      'a completed download with no dives still saves the dive computer',
+      (tester) async {
+        final repository = _RecordingDiveComputerRepository();
+        final adapter = _makeAdapter(computerRepository: repository);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container
+            .read(downloadNotifierProvider.notifier)
+            .state = const DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [],
+          firmwareVersion: '92',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DcNoNewDivesView), findsOneWidget);
+        expect(repository.created, hasLength(1));
+        expect(repository.created.single.bluetoothAddress, _testDevice.address);
+        expect(repository.created.single.firmwareVersion, '92');
+        // Still no Review step to advance to -- only the saving changed.
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+      },
+    );
+
+    testWidgets(
+      'importing a partial download captures dives and advances the wizard',
+      (tester) async {
+        final computer = _makeComputer();
+        final adapter = _makeAdapter(knownComputer: computer);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            knownComputer: computer,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+
+        // An interrupted download that already delivered dives: the download
+        // widget offers an import-partial action wired to _captureAndAdvance.
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Connection timed out',
+          downloadedDives: [_downloadedDive(), _downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 2 downloaded dives'));
+        await tester.pumpAndSettle();
+
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
   });
 }
+
+DownloadedDive _downloadedDive() => DownloadedDive(
+  startTime: DateTime(2026, 3, 15, 10, 0),
+  durationSeconds: 40 * 60,
+  maxDepth: 20.0,
+  profile: const [],
+  tanks: const [],
+);

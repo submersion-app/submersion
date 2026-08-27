@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -14,8 +16,13 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 /// - **Gas-switch**: Segments divided by tank changes
 /// - **Depth-phase**: Segments based on dive phases (descent, bottom, ascent)
 class GasAnalysisService {
-  /// Standard surface pressure in bar
-  static const double surfacePressureBar = 1.013;
+  /// Equation of state used to convert cylinder pressure to gas volume.
+  ///
+  /// Injected from `gasModelProvider` so a change to the preference rebuilds
+  /// this service and invalidates every SAC readout that depends on it.
+  final GasModel gasModel;
+
+  const GasAnalysisService({this.gasModel = GasModel.real});
 
   /// Minimum segment duration in seconds to be considered valid
   static const int minSegmentDuration = 30;
@@ -39,6 +46,7 @@ class GasAnalysisService {
   }) {
     if (profile.isEmpty || gasSwitches.isEmpty) return null;
 
+    final resolvedPressures = _resolveTankPressureSeries(tanks, tankPressures);
     final segments = <SacSegment>[];
     final diveEndTimestamp = profile.last.timestamp;
 
@@ -76,20 +84,32 @@ class GasAnalysisService {
       final maxDepth = depths.reduce(math.max);
 
       // Calculate SAC for this segment
+      // Window to prorate a pressure-series-less tank across: its own
+      // usage range when the gas switches identify one, else the dive.
+      final usageRange = _getTankUsageRange(
+        tank: tank,
+        gasSwitches: sortedSwitches,
+        diveStart: profile.first.timestamp,
+        diveEnd: diveEndTimestamp,
+        tanks: tanks,
+      );
+
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
-        tankPressures: tankPressures?[tank.id],
+        tankPressures: resolvedPressures[tank.id],
         startTime: startTime,
         endTime: endTime,
+        prorationStart: usageRange?.start ?? profile.first.timestamp,
+        prorationEnd: usageRange?.end ?? profile.last.timestamp,
       );
 
       if (sacRate == null) continue;
 
       // Calculate gas consumed
       final durationMin = (endTime - startTime) / 60.0;
-      final ambientPressure = surfacePressureBar + (avgDepth / 10.0);
-      final gasConsumed = sacRate * durationMin * ambientPressure;
+      final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+      final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
       segments.add(
         SacSegment(
@@ -124,6 +144,8 @@ class GasAnalysisService {
     List<GasSwitchWithTank>? gasSwitches,
   }) {
     if (profile.length < 10) return null;
+
+    final resolvedPressures = _resolveTankPressureSeries(tanks, tankPressures);
 
     // Find max depth
     final maxDepth = profile.map((p) => p.depth).reduce(math.max);
@@ -189,19 +211,32 @@ class GasAnalysisService {
       final maxD = depths.reduce(math.max);
 
       // Calculate SAC
+      // Same proration window as the gas-switch path: a tank that was only
+      // breathed for part of the dive must not have its drop spread across
+      // the whole of it.
+      final usageRange = _getTankUsageRange(
+        tank: tank,
+        gasSwitches: gasSwitches,
+        diveStart: profile.first.timestamp,
+        diveEnd: profile.last.timestamp,
+        tanks: tanks,
+      );
+
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
-        tankPressures: tankPressures?[tank.id],
+        tankPressures: resolvedPressures[tank.id],
         startTime: seg.start,
         endTime: seg.end,
+        prorationStart: usageRange?.start ?? profile.first.timestamp,
+        prorationEnd: usageRange?.end ?? profile.last.timestamp,
       );
 
       if (sacRate == null) continue;
 
       final durationMin = (seg.end - seg.start) / 60.0;
-      final ambientPressure = surfacePressureBar + (avgDepth / 10.0);
-      final gasConsumed = sacRate * durationMin * ambientPressure;
+      final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+      final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
       segments.add(
         SacSegment(
@@ -236,6 +271,13 @@ class GasAnalysisService {
   }) {
     final results = <CylinderSac>[];
 
+    // Resolve each tank's time-series pressure, tolerating series that were
+    // re-keyed under a stale tank id (see [_resolveTankPressureSeries]).
+    final resolvedPressures = _resolveTankPressureSeries(
+      dive.tanks,
+      tankPressures,
+    );
+
     for (final tank in dive.tanks) {
       // Determine when this tank was in use
       final usageRange = _getTankUsageRange(
@@ -268,32 +310,55 @@ class GasAnalysisService {
             usageProfile.length;
       }
 
-      // Check if we have time-series pressure data for this tank
-      final hasTsData = tankPressures?.containsKey(tank.id) ?? false;
-      final tsPressures = tankPressures?[tank.id];
+      // Check if we have time-series pressure data for this tank (matched by
+      // id, or adopted from a re-keyed/orphaned series).
+      final tsPressures = resolvedPressures[tank.id];
+      final hasTsData = tsPressures != null;
 
       // Calculate SAC rate
       double? sacRate;
 
-      if (hasTsData && tsPressures != null && tsPressures.length >= 2) {
+      if (tsPressures != null && tsPressures.length >= 2) {
         // Enhanced calculation using time-series data
         sacRate = _calculateSacFromTimeSeries(
           pressurePoints: tsPressures,
           startTime: usageRange.start,
           endTime: usageRange.end,
           avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
+          tankVolume: tank.volume,
+          gasMix: tank.gasMix,
         );
       } else if (tank.startPressure != null &&
           tank.endPressure != null &&
-          avgDepthDuringUse != null) {
-        // Basic calculation from start/end pressures
+          (avgDepthDuringUse ?? dive.avgDepth) != null) {
+        // Basic calculation from start/end pressures with Z-factor correction.
+        //
+        // Fall back to the dive's average depth when there are no profile
+        // samples in the usage window (older or manually-logged dives store a
+        // summary avgDepth but no depth profile). Without this the ambient
+        // pressure correction below could not run and SAC by cylinder would be
+        // blank for every profileless dive (issue #510).
+        final effectiveAvgDepth = avgDepthDuringUse ?? dive.avgDepth!;
         final pressureUsed = tank.startPressure! - tank.endPressure!;
         if (pressureUsed > 0) {
           final durationMin = (usageRange.end - usageRange.start) / 60.0;
           if (durationMin > 0) {
-            final ambientPressure =
-                surfacePressureBar + (avgDepthDuringUse / 10.0);
-            sacRate = pressureUsed / durationMin / ambientPressure;
+            final ambientPressureBar = (effectiveAvgDepth / 10.0) + 1.0;
+            if (tank.volume != null) {
+              sacRate = _zCorrectedSacRate(
+                tankVolume: tank.volume!,
+                startPressureBar: tank.startPressure!,
+                endPressureBar: tank.endPressure!,
+                o2Percent: tank.gasMix.o2,
+                hePercent: tank.gasMix.he,
+                durationMin: durationMin,
+                ambientPressureBar: ambientPressureBar,
+                model: gasModel,
+              );
+            } else {
+              // Fallback: pressure-based SAC (bar/min) when no tank volume
+              sacRate = pressureUsed / durationMin / ambientPressureBar;
+            }
           }
         }
       }
@@ -324,6 +389,108 @@ class GasAnalysisService {
   // ─────────────────────────────────────────────────────────────────────────
   // Private Helper Methods
   // ─────────────────────────────────────────────────────────────────────────
+
+  /// Map each tank to its time-series pressure, tolerating a re-keyed series.
+  ///
+  /// A dive's transmitter pressure is stored in `tank_pressure_profiles` keyed
+  /// by tank id. A reparse, re-import, or multi-computer consolidation can
+  /// regenerate the dive's tanks with fresh UUIDs while the pressure rows keep
+  /// the old tank id (issue #276). The overall SAC curve already tolerates this
+  /// (`combineMultiTankPressures`); this does the same for per-cylinder SAC so
+  /// it does not silently go blank on those dives (issue #510).
+  ///
+  /// Exact id matches win. Any remaining series whose key matches no current
+  /// tank ("orphaned") is adopted by a still-unmatched tank so the
+  /// single-transmitter case (one tank, one orphaned series) is always
+  /// resolved and multi-tank is a stable best effort.
+  ///
+  /// Both sides are sorted with a full tie-breaker so the pairing is
+  /// deterministic regardless of map insertion order or tanks sharing the same
+  /// [DiveTank.order] (the default is 0): orphaned series by earliest sample
+  /// then key; unmatched tanks by order then id. This mirrors the v102 data
+  /// migration exactly, so the runtime result and the healed data agree.
+  static Map<String, List<TankPressurePoint>> _resolveTankPressureSeries(
+    List<DiveTank> tanks,
+    Map<String, List<TankPressurePoint>>? tankPressures,
+  ) {
+    final resolved = <String, List<TankPressurePoint>>{};
+    if (tankPressures == null || tankPressures.isEmpty) return resolved;
+
+    final tankIds = {for (final t in tanks) t.id};
+
+    for (final tank in tanks) {
+      final series = tankPressures[tank.id];
+      if (series != null) resolved[tank.id] = series;
+    }
+
+    final orphanEntries =
+        [
+          for (final entry in tankPressures.entries)
+            if (!tankIds.contains(entry.key)) entry,
+        ]..sort((a, b) {
+          final aFirst = a.value.isEmpty ? 0 : a.value.first.timestamp;
+          final bFirst = b.value.isEmpty ? 0 : b.value.first.timestamp;
+          final byTime = aFirst.compareTo(bFirst);
+          return byTime != 0 ? byTime : a.key.compareTo(b.key);
+        });
+    if (orphanEntries.isEmpty) return resolved;
+
+    final unmatchedTanks =
+        [
+          for (final tank in tanks)
+            if (!resolved.containsKey(tank.id)) tank,
+        ]..sort((a, b) {
+          final byOrder = a.order.compareTo(b.order);
+          return byOrder != 0 ? byOrder : a.id.compareTo(b.id);
+        });
+
+    for (
+      var i = 0;
+      i < unmatchedTanks.length && i < orphanEntries.length;
+      i++
+    ) {
+      resolved[unmatchedTanks[i].id] = orphanEntries[i].value;
+    }
+
+    return resolved;
+  }
+
+  /// Compute SAC rate under [model], using its gas volumes.
+  ///
+  /// Returns the SAC rate in bar/min at surface, or null if gas used ≤ 0.
+  /// gasVolume() returns liters at 1 bar, so dividing by tankVolume yields
+  /// bar directly and [ambientPressureBar] is in the same reference.
+  static double? _zCorrectedSacRate({
+    required double tankVolume,
+    required double startPressureBar,
+    required double endPressureBar,
+    required double o2Percent,
+    required double hePercent,
+    required double durationMin,
+    required double ambientPressureBar,
+    required GasModel model,
+  }) {
+    if (tankVolume <= 0 || durationMin <= 0 || ambientPressureBar <= 0) {
+      return null;
+    }
+    final startVol = gasVolume(
+      tankSizeLiters: tankVolume,
+      pressureBar: startPressureBar,
+      o2Percent: o2Percent,
+      hePercent: hePercent,
+      model: model,
+    );
+    final endVol = gasVolume(
+      tankSizeLiters: tankVolume,
+      pressureBar: endPressureBar,
+      o2Percent: o2Percent,
+      hePercent: hePercent,
+      model: model,
+    );
+    final gasUsedLiters = startVol - endVol;
+    if (gasUsedLiters <= 0) return null;
+    return gasUsedLiters / tankVolume / durationMin / ambientPressureBar;
+  }
 
   /// Classify a profile point into a dive phase
   DivePhase _classifyPhase(
@@ -522,6 +689,8 @@ class GasAnalysisService {
     List<TankPressurePoint>? tankPressures,
     required int startTime,
     required int endTime,
+    required int prorationStart,
+    required int prorationEnd,
   }) {
     if (profile.isEmpty) return null;
 
@@ -534,14 +703,13 @@ class GasAnalysisService {
     if (avgDepth <= 0) return null;
 
     double? pressureUsed;
+    double? startPressure;
+    double? endPressure;
 
     // Try time-series pressure data first
     if (tankPressures != null && tankPressures.length >= 2) {
-      final startPressure = _interpolatePressureAtTime(
-        tankPressures,
-        startTime,
-      );
-      final endPressure = _interpolatePressureAtTime(tankPressures, endTime);
+      startPressure = _interpolatePressureAtTime(tankPressures, startTime);
+      endPressure = _interpolatePressureAtTime(tankPressures, endTime);
       if (startPressure != null && endPressure != null) {
         pressureUsed = startPressure - endPressure;
       }
@@ -550,23 +718,49 @@ class GasAnalysisService {
     // Fallback: estimate from tank start/end (less accurate for segments)
     if (pressureUsed == null || pressureUsed <= 0) {
       if (tank.startPressure != null && tank.endPressure != null) {
-        // Estimate proportionally based on segment duration
-        final totalDuration = profile.last.timestamp - profile.first.timestamp;
+        // Prorate across the window the tank was actually breathed, NOT the
+        // segment's own span: the profile passed in is the segment slice, so
+        // dividing by it made proportion ~1.0 and charged every segment the
+        // entire cylinder (#110). The window is the tank's usage range when
+        // gas switches identify it -- spreading a stage/deco tank's drop over
+        // the whole dive would understate its SAC by the ratio of its stint
+        // to the dive, and calculateCylinderSac already prorates this way.
+        final totalDuration = prorationEnd - prorationStart;
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;
           final proportion = durationSec / totalDuration;
           pressureUsed = tankPressureUsed * proportion;
+          // Estimate absolute pressures for this segment
+          startPressure =
+              tank.startPressure! -
+              (tankPressureUsed * (startTime - prorationStart) / totalDuration);
+          endPressure = startPressure - pressureUsed;
         }
       }
     }
 
     if (pressureUsed == null || pressureUsed <= 0) return null;
 
-    // Calculate SAC
+    // Calculate SAC under the configured gas model
     final durationMin = durationSec / 60.0;
-    final ambientPressure = surfacePressureBar + (avgDepth / 10.0);
+    final ambientPressureBar = (avgDepth / 10.0) + 1.0;
 
-    return pressureUsed / durationMin / ambientPressure;
+    // Use volume-corrected SAC when tank data available
+    if (tank.volume != null && startPressure != null && endPressure != null) {
+      final result = _zCorrectedSacRate(
+        tankVolume: tank.volume!,
+        startPressureBar: startPressure,
+        endPressureBar: endPressure,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+        durationMin: durationMin,
+        ambientPressureBar: ambientPressureBar,
+        model: gasModel,
+      );
+      if (result != null) return result;
+    }
+
+    return pressureUsed / durationMin / ambientPressureBar;
   }
 
   /// Calculate SAC from time-series pressure data
@@ -575,6 +769,8 @@ class GasAnalysisService {
     required int startTime,
     required int endTime,
     required double avgDepth,
+    double? tankVolume,
+    GasMix gasMix = const GasMix(),
   }) {
     if (pressurePoints.length < 2) return null;
 
@@ -589,9 +785,25 @@ class GasAnalysisService {
     final durationMin = (endTime - startTime) / 60.0;
     if (durationMin <= 0) return null;
 
-    final ambientPressure = surfacePressureBar + (avgDepth / 10.0);
+    final ambientPressureBar = (avgDepth / 10.0) + 1.0;
 
-    return pressureUsed / durationMin / ambientPressure;
+    // Use volume-corrected SAC if tank size is known
+    if (tankVolume != null && tankVolume > 0) {
+      final result = _zCorrectedSacRate(
+        tankVolume: tankVolume,
+        startPressureBar: startPressure,
+        endPressureBar: endPressure,
+        o2Percent: gasMix.o2,
+        hePercent: gasMix.he,
+        durationMin: durationMin,
+        ambientPressureBar: ambientPressureBar,
+        model: gasModel,
+      );
+      if (result != null) return result;
+    }
+
+    // Fallback: simple pressure-based (no volume correction possible)
+    return pressureUsed / durationMin / ambientPressureBar;
   }
 
   /// Interpolate pressure at a specific timestamp from time-series data

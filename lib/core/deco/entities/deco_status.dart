@@ -14,8 +14,18 @@ class DecoStatus extends Equatable {
   /// Decompression ceiling in meters (0 if no deco obligation)
   final double ceilingMeters;
 
-  /// Time To Surface in seconds (including deco stops)
+  /// Time To Surface in seconds: the mandatory ascent time plus any
+  /// decompression stops. The recommended safety stop is NOT included here --
+  /// it is reported separately in [safetyStopSeconds] so entering deco can only
+  /// ever increase TTS, never drop it.
   final int ttsSeconds;
+
+  /// Recommended safety-stop time remaining in seconds: a 3-minute stop on
+  /// no-deco dives, minus time already accumulated in the 3-6 m safety-stop
+  /// zone during the ascent. Zero once completed or when a mandatory
+  /// decompression obligation exists (the deco stops supersede the safety
+  /// stop). Not part of [ttsSeconds].
+  final int safetyStopSeconds;
 
   /// Gradient Factor Low (0.0 - 1.0)
   final double gfLow;
@@ -32,16 +42,21 @@ class DecoStatus extends Equatable {
   /// Current ambient pressure in bar absolute
   final double ambientPressureBar;
 
+  /// Surface pressure in bar used for surface-referenced metrics (SurfGF).
+  final double surfacePressureBar;
+
   const DecoStatus({
     required this.compartments,
     required this.ndlSeconds,
     required this.ceilingMeters,
     required this.ttsSeconds,
+    this.safetyStopSeconds = 0,
     required this.gfLow,
     required this.gfHigh,
     required this.decoStops,
     required this.currentDepthMeters,
     required this.ambientPressureBar,
+    this.surfacePressureBar = 1.0,
   });
 
   /// Whether the diver is currently in decompression obligation.
@@ -93,7 +108,7 @@ class DecoStatus extends Equatable {
     if (compartments.isEmpty) return 0.0;
     double maxGf = double.negativeInfinity;
     for (final comp in compartments) {
-      final gf = comp.surfaceGradientFactor;
+      final gf = comp.gradientFactor(surfacePressureBar);
       if (gf > maxGf) maxGf = gf;
     }
     // Clamp at 0: negative SurfGF means all tissues are below surface
@@ -167,22 +182,26 @@ class DecoStatus extends Equatable {
     int? ndlSeconds,
     double? ceilingMeters,
     int? ttsSeconds,
+    int? safetyStopSeconds,
     double? gfLow,
     double? gfHigh,
     List<DecoStop>? decoStops,
     double? currentDepthMeters,
     double? ambientPressureBar,
+    double? surfacePressureBar,
   }) {
     return DecoStatus(
       compartments: compartments ?? this.compartments,
       ndlSeconds: ndlSeconds ?? this.ndlSeconds,
       ceilingMeters: ceilingMeters ?? this.ceilingMeters,
       ttsSeconds: ttsSeconds ?? this.ttsSeconds,
+      safetyStopSeconds: safetyStopSeconds ?? this.safetyStopSeconds,
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       decoStops: decoStops ?? this.decoStops,
       currentDepthMeters: currentDepthMeters ?? this.currentDepthMeters,
       ambientPressureBar: ambientPressureBar ?? this.ambientPressureBar,
+      surfacePressureBar: surfacePressureBar ?? this.surfacePressureBar,
     );
   }
 
@@ -192,11 +211,13 @@ class DecoStatus extends Equatable {
     ndlSeconds,
     ceilingMeters,
     ttsSeconds,
+    safetyStopSeconds,
     gfLow,
     gfHigh,
     decoStops,
     currentDepthMeters,
     ambientPressureBar,
+    surfacePressureBar,
   ];
 }
 
@@ -214,11 +235,16 @@ class DecoStop extends Equatable {
   /// Whether this is a deep stop (below 9m)
   final bool isDeepStop;
 
+  /// Seconds of this stop spent on the break gas (air breaks). Included in
+  /// [durationSeconds]. Zero when no air breaks occurred.
+  final int airBreakSeconds;
+
   const DecoStop({
     required this.depthMeters,
     required this.durationSeconds,
     this.gasName,
     this.isDeepStop = false,
+    this.airBreakSeconds = 0,
   });
 
   /// Duration formatted as minutes
@@ -243,5 +269,6 @@ class DecoStop extends Equatable {
     durationSeconds,
     gasName,
     isDeepStop,
+    airBreakSeconds,
   ];
 }

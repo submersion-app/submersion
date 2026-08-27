@@ -11,8 +11,58 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 import '../../../../helpers/test_database.dart';
+
+/// The v2 chrome renders row labels outside the text field, so
+/// widgetWithText(TextFormField, label) no longer matches; resolve the
+/// field through its SuggestionFormRow instead.
+Finder _rowField(String label) => find.descendant(
+  of: find.ancestor(
+    of: find.text(label),
+    matching: find.byType(SuggestionFormRow),
+  ),
+  matching: find.byType(TextFormField),
+);
+
+/// A [LocationService] returning fixed [country]/[region] for both geocoding
+/// entry points, so tests can (a) prove the edit form never re-imposes geocoded
+/// names over the user's chosen or cleared fields, and (b) drive "Use my
+/// location" deterministically. Only [reverseGeocode] and [getCurrentLocation]
+/// are exercised; any other call throws via [noSuchMethod].
+class _FakeLocationService implements LocationService {
+  _FakeLocationService({this.country, this.region});
+
+  final String? country;
+  final String? region;
+
+  @override
+  Future<PlaceLookup> reverseGeocode(
+    double latitude,
+    double longitude, {
+    required String languageCode,
+  }) async => PlaceLookup(country: country, region: region);
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => LocationResult(
+    latitude: 12.3,
+    longitude: 45.6,
+    accuracy: 5,
+    country: country,
+    region: region,
+  );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 Widget _buildHarness({
   required SharedPreferences prefs,
@@ -96,6 +146,9 @@ void main() {
     testWidgets('shows toggle reflecting AppSettings default with 2+ divers', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final twoDivers = [
         Diver(
           id: 'd1',
@@ -117,7 +170,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Scroll until the share toggle is visible (it appears near the end of the form).
+      // The Life & notes group rests collapsed; its summary reads 'shared'
+      // because share-by-default is on. Expand it to reach the toggle.
+      await tester.scrollUntilVisible(
+        find.text('shared'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('shared'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('Share with all dive profiles'),
         50.0,
@@ -125,14 +186,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
-      );
+      final switchFinder = find.byType(Switch);
       expect(switchFinder, findsOneWidget);
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      expect(tester.widget<Switch>(switchFinder).value, isTrue);
     });
   });
 
@@ -140,6 +196,9 @@ void main() {
     testWidgets('un-share on existing shared site shows confirmation dialog', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final twoDivers = [
         Diver(
           id: 'd1',
@@ -179,7 +238,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Scroll until the share toggle is visible.
+      // The Life & notes group rests collapsed with a 'shared' summary;
+      // expand it to reach the toggle.
+      await tester.scrollUntilVisible(
+        find.text('shared'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('shared'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('Share with all dive profiles'),
         50.0,
@@ -187,13 +254,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
-      );
-      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      final switchFinder = find.byType(Switch);
+      expect(tester.widget<Switch>(switchFinder).value, isTrue);
 
       // Tapping OFF should present the unshare confirmation dialog.
       await tester.tap(switchFinder);
@@ -226,17 +288,21 @@ void main() {
     testWidgets('renders depth/difficulty/rating/gps/altitude sections', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
       );
       await tester.pumpAndSettle();
-      // Depth Range is visible before Access & Logistics.
+      // Depth renders as ordinary rows in the Dive Info section.
       await tester.scrollUntilVisible(
-        find.text('Depth Range'),
+        find.textContaining('Minimum Depth'),
         100,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Depth Range'), findsOneWidget);
+      expect(find.textContaining('Minimum Depth'), findsOneWidget);
+      expect(find.textContaining('Maximum Depth'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Difficulty Level'),
         100,
@@ -252,6 +318,9 @@ void main() {
     });
 
     testWidgets('tapping a rating star updates rating', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
       );
@@ -268,15 +337,18 @@ void main() {
       await tester.pumpAndSettle();
       // Should now show 4 filled stars.
       expect(find.byIcon(Icons.star), findsNWidgets(4));
-      // Clear button appears when rating > 0.
-      expect(find.text('Clear Rating'), findsOneWidget);
+      // Clear affordance appears on the rating row when rating > 0.
+      expect(find.byIcon(Icons.clear), findsOneWidget);
       // Clear it.
-      await tester.tap(find.text('Clear Rating'));
+      await tester.tap(find.byIcon(Icons.clear));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsNothing);
     });
 
     testWidgets('selecting a difficulty chip updates state', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
       );
@@ -301,6 +373,39 @@ void main() {
       expect(
         tester
             .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Intermediate'))
+            .selected,
+        isFalse,
+      );
+    });
+
+    testWidgets('selecting a water type chip updates state', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Water Type'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // Tap the Brackish chip.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
+            .selected,
+        isTrue,
+      );
+      // Tap again to deselect.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
             .selected,
         isFalse,
       );
@@ -520,14 +625,11 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'changed',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'changed');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
-      expect(find.text('Discard Changes?'), findsOneWidget);
+      expect(find.text('Discard changes?'), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, 'Discard'));
       await tester.pumpAndSettle();
       expect(cancelCalled, isTrue);
@@ -609,10 +711,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OPEN_EDIT'));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'Brand New Site',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'Brand New Site');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       // Save flow either completes (pop to list) or surfaces a snackbar,
@@ -647,10 +746,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'Embedded Save Site',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'Embedded Save Site');
       await tester.tap(find.text('Save'));
       // Use pump with duration since onSaved doesn't reset _isLoading.
       await tester.pump();
@@ -722,19 +818,320 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byWidgetPredicate(
-        (w) =>
-            w is SwitchListTile &&
-            w.title is Text &&
-            (w.title as Text).data == 'Share with all dive profiles',
-      );
+      final switchFinder = find.byType(Switch);
       expect(switchFinder, findsOneWidget);
       expect(
-        tester.widget<SwitchListTile>(switchFinder).value,
+        tester.widget<Switch>(switchFinder).value,
         isTrue,
         reason:
             'Merging a shared primary site must preserve isShared=true; '
             '_initializeFromMerge was not setting _isShared before the fix.',
+      );
+    });
+
+    testWidgets('initializes city/island/bodyOfWater from a merge candidate', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Primary has no locality; secondary carries the values that must not be
+      // silently dropped during a merge.
+      final repo = SiteRepository();
+      final primarySite = await repo.createSite(
+        const DiveSite(id: 'merge-primary', name: 'Primary'),
+      );
+      await repo.createSite(
+        const DiveSite(
+          id: 'merge-secondary',
+          name: 'Secondary',
+          city: 'Cebu City',
+          island: 'Malapascua',
+          bodyOfWater: 'Visayan Sea',
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildMergeHarness(
+          prefs: prefs,
+          divers: const [],
+          mergeSiteIds: [primarySite.id, 'merge-secondary'],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The merge picks the first meaningful value, so the locality fields are
+      // populated from the secondary site rather than left empty.
+      expect(
+        find.widgetWithText(TextFormField, 'Cebu City'),
+        findsOneWidget,
+        reason: 'city must be initialized from the merge candidate',
+      );
+      expect(find.widgetWithText(TextFormField, 'Malapascua'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Visayan Sea'), findsOneWidget);
+    });
+  });
+
+  group('location fields', () {
+    testWidgets('renders City, Island, and Body of Water fields', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('City'), findsWidgets);
+      expect(find.text('Island'), findsWidgets);
+      expect(find.text('Body of Water'), findsWidgets);
+    });
+
+    testWidgets('persists entered City, Island, Body of Water on save', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      String? savedId;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            // Null diver id keeps the nullable diverId column FK-free so the
+            // save commits in the test database (no seeded Divers row needed).
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteEditPage(
+                embedded: true,
+                onSaved: (id) => savedId = id,
+                onCancel: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(_rowField('Site Name *'), 'Locality Site');
+      await tester.enterText(_rowField('City'), 'Cebu City');
+      await tester.enterText(_rowField('Island'), 'Malapascua');
+      await tester.enterText(_rowField('Body of Water'), 'Visayan Sea');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(savedId, isNotNull);
+      final saved = await SiteRepository().getSiteById(savedId!);
+      expect(saved!.city, 'Cebu City');
+      expect(saved.island, 'Malapascua');
+      expect(saved.bodyOfWater, 'Visayan Sea');
+    });
+  });
+
+  group('location auto-fill does not override user edits', () {
+    testWidgets(
+      'clearing Region on a site with coordinates persists empty, not a '
+      'geocoded value',
+      (tester) async {
+        tester.view.physicalSize = const Size(900, 3200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        // A Grand Turk site whose coordinates reverse-geocode to a region the
+        // user wants gone. diverId stays null so no Divers FK row is needed.
+        final repo = SiteRepository();
+        final seeded = await repo.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Grand Turk Wall',
+            country: 'Turks and Caicos Islands',
+            region: 'St. Croix',
+            location: GeoPoint(21.4665, -71.139),
+          ),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              allDiversProvider.overrideWith((_) async => const <Diver>[]),
+              shareByDefaultProvider.overrideWith((_) async => false),
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+              siteProvider(seeded.id).overrideWith((_) async => seeded),
+              locationServiceProvider.overrideWithValue(
+                _FakeLocationService(
+                  country: 'Turks and Caicos Islands',
+                  region: 'St. Croix',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SiteEditPage(
+                  siteId: seeded.id,
+                  embedded: true,
+                  onSaved: (_) {},
+                  onCancel: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Remove the auto-suggested region the user does not want.
+        await tester.enterText(_rowField('Region'), '');
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        final saved = await repo.getSiteById(seeded.id);
+        expect(saved, isNotNull);
+        // The cleared region stays cleared instead of reverting to St. Croix.
+        expect(saved!.region, isNull);
+        // Coordinates and the untouched country are preserved.
+        expect(saved.location, isNotNull);
+        expect(saved.country, 'Turks and Caicos Islands');
+      },
+    );
+
+    testWidgets(
+      'clearing Country on a site with coordinates persists empty, not a '
+      'geocoded value',
+      (tester) async {
+        tester.view.physicalSize = const Size(900, 3200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        // A Bonaire site whose coordinates reverse-geocode to 'Caribbean
+        // Netherlands' — the value the user keeps having to fight.
+        final repo = SiteRepository();
+        final seeded = await repo.createSite(
+          const DiveSite(
+            id: '',
+            name: 'Bonaire House Reef',
+            country: 'Caribbean Netherlands',
+            region: 'Bonaire',
+            location: GeoPoint(12.16, -68.28),
+          ),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              allDiversProvider.overrideWith((_) async => const <Diver>[]),
+              shareByDefaultProvider.overrideWith((_) async => false),
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+              siteProvider(seeded.id).overrideWith((_) async => seeded),
+              locationServiceProvider.overrideWithValue(
+                _FakeLocationService(
+                  country: 'Caribbean Netherlands',
+                  region: 'Bonaire',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SiteEditPage(
+                  siteId: seeded.id,
+                  embedded: true,
+                  onSaved: (_) {},
+                  onCancel: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(_rowField('Country'), '');
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        final saved = await repo.getSiteById(seeded.id);
+        expect(saved, isNotNull);
+        // The cleared country stays cleared instead of reverting to the
+        // geocoder's 'Caribbean Netherlands'.
+        expect(saved!.country, isNull);
+        expect(saved.region, 'Bonaire');
+      },
+    );
+
+    testWidgets(
+      'Use my location fills empty Country/Region (the suggestion path is '
+      'preserved)',
+      (tester) async {
+        tester.view.physicalSize = const Size(900, 3200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              allDiversProvider.overrideWith((_) async => const <Diver>[]),
+              shareByDefaultProvider.overrideWith((_) async => false),
+              locationServiceProvider.overrideWithValue(
+                _FakeLocationService(
+                  country: 'Geocoded Country',
+                  region: 'Geocoded Region',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SiteEditPage(
+                  embedded: true,
+                  onSaved: (_) {},
+                  onCancel: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // The Location group rests collapsed; expand it to reach the GPS
+        // controls, then capture a position.
+        await tester.tap(find.text('Add GPS position or altitude'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Use My Location'));
+        await tester.pumpAndSettle();
+
+        // Explicit capture still fills the empty fields — the suggestion the
+        // reporter values is intact; only the silent save-time override is gone.
+        expect(find.text('Geocoded Country'), findsOneWidget);
+        expect(find.text('Geocoded Region'), findsOneWidget);
+      },
+    );
+  });
+
+  group('locationServiceProvider', () {
+    test('defaults to the LocationService singleton', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      expect(
+        container.read(locationServiceProvider),
+        same(LocationService.instance),
       );
     });
   });

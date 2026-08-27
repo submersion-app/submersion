@@ -1,14 +1,19 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
+import 'package:submersion/features/media/data/services/exif_date_parser.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 /// Photo picker implementation for iOS, Android, and macOS using photo_manager.
 ///
 /// This implementation provides full gallery access with date range filtering,
 /// making it ideal for selecting dive photos from a specific time window.
 class PhotoPickerServiceMobile implements PhotoPickerService {
+  static const MethodChannel _metadataChannel = MethodChannel(
+    'com.submersion.app/photo_metadata',
+  );
+
   /// Cache of AssetEntity objects keyed by their ID.
   /// Used to retrieve full file bytes after thumbnail selection.
   final Map<String, pm.AssetEntity> _assetCache = {};
@@ -178,6 +183,35 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     return file?.path;
   }
 
+  @override
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async {
+    try {
+      final result = await _metadataChannel.invokeMapMethod<String, Object?>(
+        'getAssetMetadata',
+        {'assetId': assetId},
+      );
+      if (result == null) return null;
+      final takenAt = parseExifDateTimeOriginal(
+        result['dateTimeOriginal']?.toString(),
+      );
+      final latitude = _asDouble(result['latitude']);
+      final longitude = _asDouble(result['longitude']);
+      return MediaSourceMetadata(
+        takenAt: takenAt,
+        latitude: latitude,
+        longitude: longitude,
+        width: _asInt(result['width']),
+        height: _asInt(result['height']),
+        durationSeconds: _asInt(result['durationSeconds']),
+        mimeType: result['mimeType']?.toString() ?? 'application/octet-stream',
+      );
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
   PhotoPermissionStatus _mapPermissionStatus(pm.PermissionState status) {
     switch (status) {
       case pm.PermissionState.authorized:
@@ -192,4 +226,18 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
         return PhotoPermissionStatus.restricted;
     }
   }
+}
+
+double? _asDouble(Object? value) {
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+int? _asInt(Object? value) {
+  if (value is int) return value;
+  if (value is double) return value.round();
+  if (value is String) return int.tryParse(value);
+  return null;
 }

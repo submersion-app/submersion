@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -117,19 +121,12 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         onMapViewToggle: _toggleMapView,
         columnSettingsAction: IconButton(
           icon: const Icon(Icons.view_column_outlined),
-          tooltip: 'Column settings',
-          onPressed: () {
-            final config = ref.read(siteTableConfigProvider);
-            final notifier = ref.read(siteTableConfigProvider.notifier);
-            showEntityTableColumnPicker<SiteField>(
-              context,
-              config: config,
-              adapter: SiteFieldAdapter.instance,
-              onToggleColumn: notifier.toggleColumn,
-              onReorderColumn: notifier.reorderColumn,
-              onTogglePin: notifier.togglePin,
-            );
-          },
+          tooltip: context.l10n.columnConfig_tooltip_columnSettings,
+          onPressed: () => showEntityTableColumnPicker<SiteField>(
+            context,
+            configProvider: siteTableConfigProvider,
+            adapter: SiteFieldAdapter.instance,
+          ),
         ),
         appBarActions: [
           IconButton(
@@ -164,7 +161,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                 currentField: sort.field,
                 currentDirection: sort.direction,
                 fields: SiteSortField.values,
-                getFieldDisplayName: (field) => field.displayName,
+                getFieldDisplayName: (field) =>
+                    field.localizedName(context.l10n),
                 getFieldIcon: (field) => field.icon,
                 onSortChanged: (field, direction) {
                   ref.read(siteSortProvider.notifier).state = SortState(
@@ -183,6 +181,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                   value.replaceFirst('view_', ''),
                 );
                 ref.read(siteListViewModeProvider.notifier).state = mode;
+              } else if (value == 'fill_location_details') {
+                unawaited(showSiteLocationBackfillFlow(context, ref));
               }
             },
             itemBuilder: (context) {
@@ -196,6 +196,17 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                     ListViewMode.compact,
                     ListViewMode.table,
                   ],
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'fill_location_details',
+                  child: ListTile(
+                    leading: const Icon(Icons.travel_explore),
+                    title: Text(
+                      context.l10n.diveSites_list_menu_fillLocationDetails,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
               ];
             },

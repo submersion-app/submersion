@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Main transfer page with master-detail layout on desktop.
 ///
@@ -87,7 +89,12 @@ class TransferMobileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.transfer_appBar_title)),
+      appBar: AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'transfer',
+          title: context.l10n.transfer_appBar_title,
+        ),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: transferSections.length,
@@ -370,6 +377,26 @@ class _ExportSectionContent extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.build_circle_outlined),
+                  title: Text(context.l10n.transfer_export_maintenanceTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_export_maintenanceSubtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showExportOptions(
+                    context,
+                    ref,
+                    title: context.l10n.transfer_export_maintenanceTitle,
+                    shareAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .exportMaintenanceLog(),
+                    saveAction: () => ref
+                        .read(exportNotifierProvider.notifier)
+                        .saveMaintenanceLogToFile(),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.map),
                   title: Text(context.l10n.transfer_export_kmlTitle),
                   subtitle: Text(context.l10n.transfer_export_kmlSubtitle),
@@ -645,7 +672,10 @@ class _ComputersSectionContent extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  _buildSectionHeader(context, 'Known Computers'),
+                  _buildSectionHeader(
+                    context,
+                    context.l10n.transfer_computers_knownComputersHeader,
+                  ),
                   const SizedBox(height: 8),
                   ...computers.map(
                     (computer) => _buildComputerCard(
@@ -759,7 +789,9 @@ class _ComputersSectionContent extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${computer.diveCount} dives',
+                          context.l10n.transfer_computers_diveCount(
+                            computer.diveCount,
+                          ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 11,
@@ -773,7 +805,7 @@ class _ComputersSectionContent extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          computer.lastDownloadFormatted,
+                          formatLastDownload(context, computer.lastDownload),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 11,
@@ -788,7 +820,7 @@ class _ComputersSectionContent extends ConsumerWidget {
                 onPressed: () =>
                     context.push('/dive-computers/${computer.id}/download'),
                 icon: const Icon(Icons.download, size: 20),
-                tooltip: 'Download dives',
+                tooltip: context.l10n.transfer_computers_downloadTooltip,
                 visualDensity: VisualDensity.compact,
               ),
             ],

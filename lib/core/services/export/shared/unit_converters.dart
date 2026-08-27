@@ -3,20 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 
 /// Format a date according to the user's preferred format.
-String formatDateForExport(DateTime date, DateFormatPreference format) {
-  switch (format) {
-    case DateFormatPreference.mmddyyyy:
-      return DateFormat('MM/dd/yyyy').format(date);
-    case DateFormatPreference.ddmmyyyy:
-      return DateFormat('dd/MM/yyyy').format(date);
-    case DateFormatPreference.yyyymmdd:
-      return DateFormat('yyyy-MM-dd').format(date);
-    case DateFormatPreference.mmmDYYYY:
-      return DateFormat('MMM d, yyyy').format(date);
-    case DateFormatPreference.dMMMYYYY:
-      return DateFormat('d MMM yyyy').format(date);
-  }
-}
+///
+/// Reads the pattern off the enum rather than restating it: a switch here
+/// drifted out of step with [DateFormatPreference.pattern] the moment a
+/// seventh preference was considered.
+String formatDateForExport(DateTime date, DateFormatPreference format) =>
+    DateFormat(format.pattern).format(date);
 
 /// Convert a depth from meters to the target unit, returning a formatted string.
 String convertDepth(double? depthMeters, DepthUnit targetUnit) {

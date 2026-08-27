@@ -6,6 +6,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 class TagMergeSheet extends ConsumerStatefulWidget {
   final List<TagStatistic> selectedStats;
@@ -40,7 +41,11 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
     _selectedColor = mostUsed.tag.colorHex ?? TagColors.predefined.first;
     _selectedNameFromTag = mostUsed.tag.id;
 
-    _loadAffectedDives();
+    logFailure(
+      _loadAffectedDives(),
+      _TagMergeSheetState,
+      'load affected dives',
+    );
   }
 
   Future<void> _loadAffectedDives() async {

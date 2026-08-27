@@ -19,6 +19,11 @@ class DiveTypeRepository {
   // CRUD Operations
   // ============================================================================
 
+  /// Emits whenever the `dive_types` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchDiveTypesChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.diveTypes));
+
   /// Get all dive types, ordered by sort order then name
   /// Returns built-in types plus custom types for the specified diver
   /// If no diverId is provided, returns only built-in types
@@ -290,15 +295,25 @@ class DiveTypeRepository {
   }) async {
     try {
       final String whereClause;
+      final String diverJoinFilter;
       final List<Variable> variables;
 
       if (diverId != null) {
+        // Count only this diver's dives (built-in types are shared, but their
+        // per-diver count must exclude other divers' dives). The diver filter
+        // sits in the dives join, before the WHERE, so its placeholder binds
+        // first.
+        diverJoinFilter = 'AND d.diver_id = ?';
         // Built-in types OR (custom types for this diver)
         whereClause =
             'WHERE dt.is_built_in = 1 OR (dt.is_built_in = 0 AND dt.diver_id = ?)';
-        variables = [Variable.withString(diverId)];
+        variables = [
+          Variable.withString(diverId),
+          Variable.withString(diverId),
+        ];
       } else {
         // No diver specified - only show built-in types
+        diverJoinFilter = '';
         whereClause = 'WHERE dt.is_built_in = 1';
         variables = [];
       }
@@ -306,7 +321,8 @@ class DiveTypeRepository {
       final result = await _db.customSelect('''
         SELECT dt.*, COUNT(d.id) as dive_count
         FROM dive_types dt
-        LEFT JOIN dives d ON dt.id = d.dive_type
+        LEFT JOIN dive_dive_types ddt ON dt.id = ddt.dive_type_id
+        LEFT JOIN dives d ON d.id = ddt.dive_id $diverJoinFilter
         $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name
@@ -348,7 +364,7 @@ class DiveTypeRepository {
       final result = await _db
           .customSelect(
             '''
-        SELECT COUNT(*) as count FROM dives WHERE dive_type = ?
+        SELECT COUNT(*) as count FROM dive_dive_types WHERE dive_type_id = ?
       ''',
             variables: [Variable.withString(id)],
           )

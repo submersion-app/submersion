@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 
 /// Provider for the [ReparseService] singleton.
 final reparseServiceProvider = Provider<ReparseService>((ref) {
@@ -27,5 +29,8 @@ final diveHasRawDataProvider = FutureProvider.family<bool, String>((
   diveId,
 ) {
   final service = ref.watch(reparseServiceProvider);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return service.hasRawData(diveId);
 });

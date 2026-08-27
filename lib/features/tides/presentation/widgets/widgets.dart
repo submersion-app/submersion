@@ -12,4 +12,5 @@ export 'current_tide_indicator.dart';
 export 'tide_chart.dart';
 export 'tide_cycle_graph.dart';
 export 'tide_section.dart';
+export 'tide_source_badge.dart';
 export 'tide_times_table.dart';

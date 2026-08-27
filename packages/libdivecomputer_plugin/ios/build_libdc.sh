@@ -11,10 +11,46 @@ CONFIG_DIR="${SCRIPT_DIR}/config"
 BUILD_DIR="${SCRIPT_DIR}/build"
 OUTPUT_LIB="${BUILD_DIR}/libdivecomputer.a"
 
-# Skip rebuild if already built
+# Determine target architectures and platform from the Xcode build
+# environment. These drive the compile below, but they are also the cache key:
+# a static library built for one platform must never be reused for another. On
+# Apple Silicon the device and the simulator are BOTH arm64, so architecture
+# alone cannot tell them apart -- only the Mach-O platform tag does. Reusing an
+# iphoneos .a for an iphonesimulator link (or vice versa) fails the linker with
+# "building for iOS-simulator, but linking in object file built for iOS".
+if [ -z "${ARCHS:-}" ]; then
+    ARCHS="arm64"
+fi
+PLATFORM_NAME="${PLATFORM_NAME:-iphoneos}"
+
+STAMP_FILE="${BUILD_DIR}/.built-for"
+BUILD_STAMP="${PLATFORM_NAME} ${ARCHS}"
+
+# Reuse the existing library only when it is still valid. Rebuild if either:
+#   1. a libdivecomputer source/header/config is newer than the built .a, so an
+#      applied patch (e.g. the Swift GPS exit fix in
+#      shearwater_predator_parser.c) is recompiled rather than left stale; or
+#   2. the existing .a was built for a different platform/arch than Xcode is
+#      asking for now.
+# flutter clean does not remove this pod-local build dir, so these checks are
+# all that stand between a stale .a and a confusing link failure.
 if [ -f "${OUTPUT_LIB}" ]; then
-    echo "libdivecomputer.a already built, skipping."
-    exit 0
+    rebuild_reason=""
+    if [ -n "$(find "${LIBDC_DIR}/src" "${LIBDC_DIR}/include" "${CONFIG_DIR}" -newer "${OUTPUT_LIB}" -print -quit 2>/dev/null)" ]; then
+        rebuild_reason="sources changed since it was built"
+    elif [ ! -f "${STAMP_FILE}" ] || [ "$(cat "${STAMP_FILE}")" != "${BUILD_STAMP}" ]; then
+        rebuild_reason="previous build targeted a different platform/arch (need [${BUILD_STAMP}])"
+    fi
+
+    if [ -n "${rebuild_reason}" ]; then
+        echo "Rebuilding libdivecomputer.a: ${rebuild_reason}."
+        # Purge the combined lib and the per-arch object trees so no object from
+        # the previous platform can survive into the new archive.
+        find "${BUILD_DIR}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+    else
+        echo "libdivecomputer.a already built for [${BUILD_STAMP}], skipping."
+        exit 0
+    fi
 fi
 
 mkdir -p "${BUILD_DIR}"
@@ -49,7 +85,7 @@ SOURCES=(
     mares_iconhd.c mares_iconhd_parser.c
     ihex.c
     hw_ostc.c hw_ostc_parser.c
-    hw_frog.c
+    # hw_frog.c was merged into hw_ostc3.c upstream (frog/ostc3 integration).
     hw_ostc3.c
     aes.c
     cressi_edy.c cressi_edy_parser.c
@@ -80,12 +116,6 @@ SOURCES=(
     hdlc.c packet.c
     usb.c usbhid.c ble.c bluetooth.c custom.c
 )
-
-# Determine target architectures from Xcode build settings
-if [ -z "${ARCHS:-}" ]; then
-    ARCHS="arm64"
-fi
-PLATFORM_NAME="${PLATFORM_NAME:-iphoneos}"
 
 if [ "${PLATFORM_NAME}" = "iphonesimulator" ]; then
     SDKROOT=$(xcrun --sdk iphonesimulator --show-sdk-path)
@@ -137,4 +167,9 @@ else
     xcrun lipo -create "${ARCH_LIBS[@]}" -output "${OUTPUT_LIB}"
 fi
 
-echo "libdivecomputer built successfully: ${OUTPUT_LIB}"
+# Record what this .a was built for, so the next invocation can detect a
+# device<->simulator (or arch) switch and rebuild instead of handing the linker
+# an incompatible archive.
+printf '%s\n' "${BUILD_STAMP}" > "${STAMP_FILE}"
+
+echo "libdivecomputer built successfully for [${BUILD_STAMP}]: ${OUTPUT_LIB}"

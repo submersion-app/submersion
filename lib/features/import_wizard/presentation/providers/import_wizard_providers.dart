@@ -21,6 +21,15 @@ class PendingLocation {
   final int index;
 }
 
+/// Match score threshold at or above which a cross-computer duplicate is
+/// auto-suggested for consolidation instead of being left for the user to
+/// decide.
+///
+/// Deliberately higher than the 0.7 "probable duplicate" threshold used
+/// elsewhere -- auto-selecting an action (rather than merely flagging a row
+/// for review) should only happen when the match is very likely correct.
+const double kAutoConsolidateScore = 0.85;
+
 // ============================================================================
 // State
 // ============================================================================
@@ -199,9 +208,15 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     state = state.copyWith(isCancellationRequested: true);
   }
 
-  /// The duplicate actions supported by the underlying adapter.
+  /// The duplicate actions supported by the underlying adapter, across all
+  /// entity types. Prefer [duplicateActionsFor] when a specific tab is in
+  /// scope: some adapters implement an action for only some entity types.
   Set<DuplicateAction> get supportedDuplicateActions =>
       _adapter.supportedDuplicateActions;
+
+  /// The duplicate actions the adapter supports for entities of [type].
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      _adapter.duplicateActionsFor(type);
 
   // -------------------------------------------------------------------------
   // setBundle
@@ -213,13 +228,35 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// - All items are selected except those in [EntityGroup.duplicateIndices].
   /// - Every suspected-duplicate index is recorded in
   ///   [ImportWizardState.pendingDuplicateReview] so the user must explicitly
-  ///   choose an action before the row gets a recorded resolution.
-  /// - [ImportWizardState.duplicateActions] is left empty — no auto-defaults
-  ///   are written for probable or possible matches. The user drains the
-  ///   pending set via per-row ([setDuplicateAction]) or bulk actions.
+  ///   choose an action before the row gets a recorded resolution -- UNLESS
+  ///   it qualifies for the cross-computer auto-consolidate default below.
+  /// - [ImportWizardState.duplicateActions] is left empty for every other
+  ///   duplicate — no auto-defaults are written for plain probable or
+  ///   possible matches (#200). The user drains the pending set via per-row
+  ///   ([setDuplicateAction]) or bulk actions.
+  ///
+  /// Auto-consolidate default: a dive duplicate whose [DiveMatchResult.score]
+  /// is at least [kAutoConsolidateScore] AND whose
+  /// [DiveMatchResult.matchedComputerId] is known AND differs from the
+  /// current download's computer is pre-selected with
+  /// [DuplicateAction.consolidate] and removed from the pending-review set.
+  /// A same-computer match (a plain re-download) is never auto-selected —
+  /// it stays pending like any other duplicate.
+  ///
+  /// Exact-source-hit default: a dive duplicate whose
+  /// [DiveMatchResult.matchedExistingSource] is true is ALWAYS pre-selected
+  /// with [DuplicateAction.skip] and removed from the pending-review set,
+  /// regardless of score or [DiveMatchResult.matchedComputerId]. This is a
+  /// re-download of data already recorded on the matched dive (its
+  /// fingerprint or source UUID is already one of the matched dive's
+  /// `dive_data_sources` keys) — auto-consolidating it would fold the same
+  /// data in a second time.
   void setBundle(ImportBundle bundle) {
     final selections = <ImportEntityType, Set<int>>{};
     final pendingReview = <ImportEntityType, Set<int>>{};
+    final duplicateActions = <ImportEntityType, Map<int, DuplicateAction>>{};
+
+    final currentComputerId = bundle.source.currentComputerId;
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
@@ -230,17 +267,70 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       );
       selections[type] = allIndices.difference(group.duplicateIndices);
 
-      if (group.duplicateIndices.isNotEmpty) {
-        pendingReview[type] = Set<int>.from(group.duplicateIndices);
+      var pendingForType = Set<int>.from(group.duplicateIndices);
+
+      if (type == ImportEntityType.dives) {
+        final matchResults = group.matchResults;
+        if (matchResults != null) {
+          for (final index in group.duplicateIndices) {
+            final match = matchResults[index];
+            if (match == null) continue;
+
+            if (match.matchedExistingSource || match.inBatchIndex != null) {
+              // Re-download of data the matched dive already carries as a
+              // source, OR a duplicate of another dive within this same
+              // import batch: default to skip and never auto-consolidate,
+              // no matter the score or matchedComputerId.
+              duplicateActions.putIfAbsent(type, () => {})[index] =
+                  DuplicateAction.skip;
+              selections[type] = selections[type]!.difference({index});
+              pendingForType = pendingForType.difference({index});
+              continue;
+            }
+
+            final matchedComputerId = match.matchedComputerId;
+            // Auto-consolidate only for dive-computer downloads
+            // (currentComputerId non-null): a file-based import cannot
+            // prove the match is cross-computer, so it stays pending.
+            if (match.score >= kAutoConsolidateScore &&
+                currentComputerId != null &&
+                matchedComputerId != null &&
+                matchedComputerId != currentComputerId) {
+              duplicateActions.putIfAbsent(type, () => {})[index] =
+                  DuplicateAction.consolidate;
+              selections[type] = {...selections[type]!, index};
+              pendingForType = pendingForType.difference({index});
+            }
+          }
+        }
+
+        // First-sync cutoff default (tier-1 filter): a downloaded dive at or
+        // before the diver's cutoff is pre-selected to skip and never left
+        // for review, using the exact same mechanism as the
+        // matchedExistingSource default above. An index that is both
+        // matched and auto-skipped is idempotent here -- setting the same
+        // map entry and removing from the same sets twice has no additional
+        // effect -- so it ends up skipped once, not double-handled.
+        final autoSkipIndices = group.autoSkipIndices;
+        if (autoSkipIndices != null) {
+          for (final index in autoSkipIndices) {
+            duplicateActions.putIfAbsent(type, () => {})[index] =
+                DuplicateAction.skip;
+            selections[type] = selections[type]!.difference({index});
+            pendingForType = pendingForType.difference({index});
+          }
+        }
+      }
+
+      if (pendingForType.isNotEmpty) {
+        pendingReview[type] = pendingForType;
       }
     }
 
     state = state.copyWith(
       bundle: bundle,
       selections: selections,
-      // Auto-default duplicateActions removed — pending indices are decided
-      // explicitly by the user via setDuplicateAction or applyBulkAction.
-      duplicateActions: const {},
+      duplicateActions: duplicateActions,
       pendingDuplicateReview: pendingReview,
       currentStep: 1,
       clearError: true,
@@ -252,24 +342,43 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   // -------------------------------------------------------------------------
 
   /// Toggle the selection of a single item.
+  ///
+  /// When [index] is being turned on and it is NOT a genuine duplicate (i.e.
+  /// it is absent from [EntityGroup.duplicateIndices]), this also clears any
+  /// [DuplicateAction.skip] seeded for it by [setBundle]'s first-sync-cutoff
+  /// auto-skip default. Without this, re-selecting a rescued row from the
+  /// collapsed "older dives" section would leave the stale skip action in
+  /// place, and [ImportSourceAdapter.performImport] would silently drop the
+  /// dive even though the UI shows it as selected for import. Genuine
+  /// duplicate rows never reach this path with a meaningful action — their
+  /// action is set via [setDuplicateAction] from `DuplicateActionCard` — so
+  /// this can't clobber a user's duplicate-resolution choice.
   void toggleSelection(ImportEntityType type, int index) {
     final current = state.selections[type] ?? const <int>{};
     final updated = Set<int>.from(current);
-    if (updated.contains(index)) {
-      updated.remove(index);
-    } else {
+    final isSelecting = !updated.contains(index);
+    if (isSelecting) {
       updated.add(index);
+    } else {
+      updated.remove(index);
     }
 
     final updatedPending = _drainPending(type, {index});
+    final updatedActions = _clearSeededSkip(type, {index}, isSelecting);
 
     state = state.copyWith(
       selections: {...state.selections, type: updated},
+      duplicateActions: updatedActions,
       pendingDuplicateReview: updatedPending,
     );
   }
 
   /// Select all non-duplicate items for [type].
+  ///
+  /// Also clears any [DuplicateAction.skip] seeded by the first-sync-cutoff
+  /// auto-skip default (see [toggleSelection]) for every newly-selected
+  /// index, so a bulk "Select All" rescues auto-skipped rows the same way a
+  /// single tap does.
   void selectAll(ImportEntityType type) {
     final group = state.bundle?.groups[type];
     if (group == null) return;
@@ -278,10 +387,49 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       List.generate(group.items.length, (i) => i),
     );
     final nonDuplicates = allIndices.difference(group.duplicateIndices);
+    final updatedActions = _clearSeededSkip(type, nonDuplicates, true);
 
     state = state.copyWith(
       selections: {...state.selections, type: nonDuplicates},
+      duplicateActions: updatedActions,
     );
+  }
+
+  /// Removes a seeded [DuplicateAction.skip] for any of [indices] that are
+  /// NOT genuine duplicates, when [isSelecting] is true.
+  ///
+  /// Used by [toggleSelection] and [selectAll] to undo the first-sync-cutoff
+  /// auto-skip default (see [setBundle]) the moment the user re-selects one
+  /// of those rows. Indices in `group.duplicateIndices` are always left
+  /// alone -- their action is owned by [setDuplicateAction] via
+  /// `DuplicateActionCard`, never by this selection path.
+  Map<ImportEntityType, Map<int, DuplicateAction>> _clearSeededSkip(
+    ImportEntityType type,
+    Set<int> indices,
+    bool isSelecting,
+  ) {
+    if (!isSelecting) return state.duplicateActions;
+
+    final group = state.bundle?.groups[type];
+    if (group == null) return state.duplicateActions;
+
+    final actionsForType = state.duplicateActions[type];
+    if (actionsForType == null || actionsForType.isEmpty) {
+      return state.duplicateActions;
+    }
+
+    final toClear = indices.where(
+      (i) =>
+          !group.duplicateIndices.contains(i) &&
+          actionsForType[i] == DuplicateAction.skip,
+    );
+    if (toClear.isEmpty) return state.duplicateActions;
+
+    final updated = Map<int, DuplicateAction>.from(actionsForType);
+    for (final i in toClear) {
+      updated.remove(i);
+    }
+    return {...state.duplicateActions, type: updated};
   }
 
   /// Deselect all items for [type].
@@ -360,11 +508,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     DuplicateAction action,
   ) {
     assert(
-      _adapter.supportedDuplicateActions.contains(action),
+      _adapter.duplicateActionsFor(type).contains(action),
       'DuplicateAction $action is not supported by adapter '
-      '${_adapter.runtimeType}',
+      '${_adapter.runtimeType} for entity type $type',
     );
-    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+    if (!_adapter.duplicateActionsFor(type).contains(action)) return;
 
     final actionsForType =
         state.duplicateActions[type] ?? const <int, DuplicateAction>{};
@@ -414,18 +562,20 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// state update.
   ///
   /// For [DuplicateAction.consolidate], only indices whose
-  /// `DiveMatchResult.score >= 0.7` are consolidated; weaker matches remain
-  /// pending. For other actions, every pending index is affected.
+  /// `DiveMatchResult.score >= 0.7` AND whose
+  /// `DiveMatchResult.matchedExistingSource` is false are consolidated;
+  /// weaker matches and exact-source-hit re-downloads remain pending. For
+  /// other actions, every pending index is affected.
   ///
   /// No-op if the type has no pending indices or (for consolidate) no
-  /// probable matches.
+  /// eligible matches.
   void applyBulkAction(ImportEntityType type, DuplicateAction action) {
     assert(
-      _adapter.supportedDuplicateActions.contains(action),
+      _adapter.duplicateActionsFor(type).contains(action),
       'DuplicateAction $action is not supported by adapter '
-      '${_adapter.runtimeType}',
+      '${_adapter.runtimeType} for entity type $type',
     );
-    if (!_adapter.supportedDuplicateActions.contains(action)) return;
+    if (!_adapter.duplicateActionsFor(type).contains(action)) return;
 
     final pending = state.pendingFor(type);
     if (pending.isEmpty) return;
@@ -436,7 +586,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       if (matchResults == null) return;
       affected = pending.where((i) {
         final match = matchResults[i];
-        return match != null && match.score >= 0.7;
+        // A matchedExistingSource hit is a re-download of data the matched
+        // dive already has -- never a valid consolidate target, no matter
+        // the score. An in-batch match has no existing dive to fold into.
+        return match != null &&
+            match.score >= 0.7 &&
+            !match.matchedExistingSource &&
+            match.inBatchIndex == null;
       }).toSet();
     } else {
       affected = pending;

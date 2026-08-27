@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -27,6 +28,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -42,6 +44,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         build: (context) => _buildCoverPage(
           title: title,
           diveCount: dives.length,
+          dates: dates,
           diver: diver,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
@@ -57,6 +60,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
           margin: const pw.EdgeInsets.all(32),
           build: (context) => PdfSharedComponents.buildCertificationCardsPage(
             certifications: certifications,
+            dates: dates,
             diver: diver,
             highlightAgency: 'padi',
             accentColor: _padiBlue,
@@ -85,6 +89,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 (dive) => [
                   _buildPadiDiveEntry(
                     dive,
+                    dates: dates,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 8),
@@ -102,6 +107,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
   pw.Widget _buildCoverPage({
     required String title,
     required int diveCount,
+    required PdfDateFormatter dates,
     Diver? diver,
     DateTime? firstDiveDate,
     DateTime? lastDiveDate,
@@ -118,7 +124,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
             child: pw.Center(
               child: pw.Text(
                 'DIVE LOG',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 36,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.white,
@@ -131,7 +137,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
           if (diver != null) ...[
             pw.Text(
               diver.name,
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 24,
                 fontWeight: pw.FontWeight.bold,
                 color: _padiBlue,
@@ -149,7 +155,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   '$diveCount',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 48,
                     fontWeight: pw.FontWeight.bold,
                     color: _padiBlue,
@@ -168,13 +174,13 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
           if (firstDiveDate != null && lastDiveDate != null) ...[
             pw.SizedBox(height: 20),
             pw.Text(
-              '${PdfSharedComponents.formatDate(firstDiveDate)} - ${PdfSharedComponents.formatDate(lastDiveDate)}',
+              '${dates.date(firstDiveDate)} - ${dates.date(lastDiveDate)}',
               style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey600),
             ),
           ],
           pw.Spacer(),
           pw.Text(
-            'Generated ${PdfSharedComponents.formatDateTime(DateTime.now())}',
+            'Generated ${dates.dateTime(DateTime.now())}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
           pw.SizedBox(height: 20),
@@ -193,7 +199,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             'DIVE LOG',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white,
@@ -209,10 +215,14 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     );
   }
 
-  pw.Widget _buildPadiDiveEntry(Dive dive, {List<Signature>? signatures}) {
+  pw.Widget _buildPadiDiveEntry(
+    Dive dive, {
+    required PdfDateFormatter dates,
+    List<Signature>? signatures,
+  }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
     final isTrainingDive =
-        dive.diveTypeId.toLowerCase().contains('training') ||
+        dive.diveTypeIds.any((t) => t.toLowerCase().contains('training')) ||
         dive.courseId != null;
 
     return pw.Container(
@@ -235,7 +245,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                   children: [
                     pw.Text(
                       'Dive #${dive.diveNumber ?? '-'}',
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         fontSize: 11,
                         fontWeight: pw.FontWeight.bold,
                         color: _padiBlue,
@@ -254,7 +264,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                         ),
                         child: pw.Text(
                           'TRAINING',
-                          style: pw.TextStyle(
+                          style: const pw.TextStyle(
                             fontSize: 7,
                             fontWeight: pw.FontWeight.bold,
                             color: PdfColors.white,
@@ -265,7 +275,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                   ],
                 ),
                 pw.Text(
-                  PdfSharedComponents.formatDateTime(dive.dateTime),
+                  dates.dateTime(dive.dateTime),
                   style: const pw.TextStyle(fontSize: 9),
                 ),
               ],
@@ -280,7 +290,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 // Site name
                 pw.Text(
                   dive.site?.name ?? 'Unknown Site',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 10,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -306,7 +316,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     ),
                     _buildPadiField(
                       'Time',
-                      '${dive.bottomTime?.inMinutes ?? '-'}min',
+                      '${pdfDiveDurationMinutes(dive)}min',
                     ),
                     _buildPadiField(
                       'Temp',
@@ -319,7 +329,15 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 // Conditions row
                 pw.Row(
                   children: [
-                    _buildPadiField('Vis', dive.visibility?.displayName ?? '-'),
+                    // Measured distance from v144; pre-v144 dives fall back to
+                    // their bucket label. Bare metres matches how this
+                    // template renders depth.
+                    _buildPadiField(
+                      'Vis',
+                      dive.visibilityMeters != null
+                          ? '${dive.visibilityMeters!.toStringAsFixed(0)}m'
+                          : (dive.visibility?.displayName ?? '-'),
+                    ),
                     if (tank != null) ...[
                       _buildPadiField(
                         'Air',
@@ -386,7 +404,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             label,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 7,
               fontWeight: pw.FontWeight.bold,
               color: _padiBlue,
@@ -409,7 +427,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
         children: [
           pw.Text(
             '$label: ',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 7,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,

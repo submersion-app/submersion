@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
@@ -935,6 +936,75 @@ void main() {
       );
     });
 
+    group('gas-aware ascent (AscentGasPlan)', () {
+      // A deco dive: 40 m for 25 min on air, then project ascent.
+      BuhlmannAlgorithm loadedAt40() {
+        final algo = BuhlmannAlgorithm(gfLow: 0.50, gfHigh: 0.80);
+        algo.reset();
+        algo.calculateSegment(
+          depthMeters: 40,
+          durationSeconds: 25 * 60,
+          fN2: airN2Fraction,
+          fHe: 0.0,
+        );
+        return algo;
+      }
+
+      test('FixedAscentGas TTS equals the fN2/fHe overload (equivalence)', () {
+        final a = loadedAt40();
+        final viaFraction = a.calculateTts(
+          currentDepth: 40,
+          fN2: airN2Fraction,
+        );
+        final b = loadedAt40();
+        final viaPlan = b.calculateTts(
+          currentDepth: 40,
+          ascentGas: FixedAscentGas(fN2: airN2Fraction),
+        );
+        expect(viaPlan, viaFraction);
+      });
+
+      test('richer ascent gas yields lower-or-equal TTS than all-air', () {
+        final allAir = loadedAt40().calculateTts(
+          currentDepth: 40,
+          fN2: airN2Fraction,
+        );
+        // Air back gas + EAN50 (MOD 22 m @1.6) + O2 (MOD 6 m @1.6).
+        final plan = OptimalOcAscentGas(
+          gases: const [
+            AvailableGas(fN2: 0.79, fHe: 0.0, maxPpO2Mod: double.infinity),
+            AvailableGas(fN2: 0.50, fHe: 0.0, maxPpO2Mod: 22.0),
+            AvailableGas(fN2: 0.0, fHe: 0.0, maxPpO2Mod: 6.0),
+          ],
+          maxPpO2: 1.6,
+        );
+        final gasAware = loadedAt40().calculateTts(
+          currentDepth: 40,
+          ascentGas: plan,
+        );
+        expect(gasAware, lessThanOrEqualTo(allAir));
+      });
+
+      test('MOD split: gas at the deeper end of each sub-leg is correct', () {
+        // Spy plan records the depths gasForDepth() is queried at during a leg.
+        final spy = _RecordingPlan(
+          OptimalOcAscentGas(
+            gases: const [
+              AvailableGas(fN2: 0.79, fHe: 0.0, maxPpO2Mod: double.infinity),
+              AvailableGas(fN2: 0.50, fHe: 0.0, maxPpO2Mod: 22.0),
+            ],
+            maxPpO2: 1.6,
+          ),
+        );
+        final a = loadedAt40();
+        // Drive a full schedule so _simulateAscent walks 40 -> first stop.
+        a.calculateDecoSchedule(currentDepth: 40, ascentGas: spy);
+        // The travel leg from 40 m must have been split at 22 m: back gas was
+        // queried at a depth > 22 and EAN50 at exactly 22 (sub-leg deeper end).
+        expect(spy.queriedDepths.any((d) => d >= 22.0), isTrue);
+      });
+    });
+
     group('cumulative tissue loading', () {
       test('processProfile should use pre-loaded compartments', () {
         final algorithm = BuhlmannAlgorithm(gfLow: 1.0, gfHigh: 1.0);
@@ -1029,4 +1099,20 @@ void main() {
       );
     });
   });
+}
+
+class _RecordingPlan extends AscentGasPlan {
+  _RecordingPlan(this._inner);
+  final AscentGasPlan _inner;
+  final List<double> queriedDepths = [];
+
+  @override
+  AscentGas gasForDepth(double depthMeters) {
+    queriedDepths.add(depthMeters);
+    return _inner.gasForDepth(depthMeters);
+  }
+
+  @override
+  List<double> switchDepthsBetween(double deeper, double shallower) =>
+      _inner.switchDepthsBetween(deeper, shallower);
 }

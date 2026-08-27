@@ -9,6 +9,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 class _StubPhotoPickerService implements PhotoPickerService {
   @override
@@ -29,6 +30,8 @@ class _StubPhotoPickerService implements PhotoPickerService {
       PhotoPermissionStatus.denied;
   @override
   Future<String?> getFilePath(String assetId) async => null;
+  @override
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async => null;
 }
 
 class _FakeService extends AssetResolutionService {

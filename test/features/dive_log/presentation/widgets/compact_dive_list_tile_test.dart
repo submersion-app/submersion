@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -47,6 +48,115 @@ void main() {
       expect(find.text('Blue Corner Wall'), findsOneWidget);
       expect(find.textContaining('28'), findsWidgets);
       expect(find.textContaining('52'), findsWidgets);
+      // No summary provided -- defaults to the open-circuit badge.
+      expect(find.text('OC'), findsOneWidget);
+    });
+
+    testWidgets('shows the dive mode badge from the summary', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+              diveMode: DiveMode.ccr,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('CCR'), findsOneWidget);
+    });
+
+    testWidgets('large dive number stays on one line and scales to fit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 88888,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            siteName: 'Blue Corner Wall',
+            maxDepth: 28.5,
+            duration: const Duration(minutes: 52),
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final badge = find.text('#88888');
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Text>(badge).maxLines, 1);
+      expect(
+        find.ancestor(of: badge, matching: find.byType(FittedBox)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows a safety finding badge when the summary has findings', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+              safetyFindingCount: 3,
+            ),
+          ),
+        ),
+      );
+
+      final badge = find.ancestor(
+        of: find.byIcon(Icons.circle),
+        matching: find.byType(Tooltip),
+      );
+      expect(badge, findsOneWidget);
+      expect(tester.widget<Tooltip>(badge).message, contains('3'));
+    });
+
+    testWidgets('shows no safety badge when there are no findings', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.circle), findsNothing);
     });
 
     testWidgets('shows checkbox in selection mode', (tester) async {
@@ -60,7 +170,7 @@ void main() {
             diveNumber: 42,
             dateTime: DateTime(2026, 3, 15),
             isSelectionMode: true,
-            isSelected: true,
+            isChecked: true,
             onTap: () {},
           ),
         ),
@@ -133,17 +243,24 @@ void main() {
         ),
       );
 
-      // The outer Container should have a highlight border decoration
-      final container = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byType(CompactDiveListTile),
-              matching: find.byType(Container),
-            )
-            .first,
+      // A highlighted row is filled, the same way a checked row is -- see
+      // dive_tile_highlight_fill_test.dart for the full channel matrix.
+      final context = tester.element(find.byType(CompactDiveListTile));
+      final card = tester.widget<Card>(
+        find.descendant(
+          of: find.byType(CompactDiveListTile),
+          matching: find.byType(Card),
+        ),
       );
-      final decoration = container.decoration;
-      expect(decoration, isNotNull);
+      expect(
+        card.color,
+        Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+      );
+      expect(
+        find.byKey(const ValueKey('dive_row_highlight')),
+        findsOneWidget,
+        reason: 'the highlighted row stays identifiable',
+      );
     });
 
     testWidgets('renders with null depth and duration shows fallback', (
@@ -250,7 +367,7 @@ void main() {
             diveNumber: 3,
             dateTime: DateTime(2026, 3, 15),
             siteName: 'Deep Wall',
-            isSelected: true,
+            isChecked: true,
             onTap: () {},
           ),
         ),
@@ -259,30 +376,6 @@ void main() {
       // Should render without crash when selected
       expect(find.text('#3'), findsOneWidget);
       expect(find.text('Deep Wall'), findsOneWidget);
-    });
-
-    testWidgets('fires onLongPress callback', (tester) async {
-      bool longPressed = false;
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-          child: CompactDiveListTile(
-            diveId: 'lp-id',
-            diveNumber: 8,
-            dateTime: DateTime(2026, 3, 15),
-            siteName: 'Reef Point',
-            onTap: () {},
-            onLongPress: () => longPressed = true,
-          ),
-        ),
-      );
-
-      await tester.longPress(find.text('Reef Point'));
-      await tester.pumpAndSettle();
-
-      expect(longPressed, isTrue);
     });
 
     testWidgets('renders stat slot with icon when field has icon', (

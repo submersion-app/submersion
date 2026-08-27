@@ -37,6 +37,8 @@ import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings -> Network Sources -> Manifest subscriptions card.
 ///
@@ -56,25 +58,19 @@ class ManifestSubscriptionCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child:
-                // TODO(media): l10n
-                Text(
-                  'Manifest subscriptions',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              context.l10n.media_manifest_cardTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           asyncSubs.when(
             data: (subs) => subs.isEmpty
-                ? const ListTile(
-                    leading: Icon(Icons.feed_outlined),
-                    // TODO(media): l10n
-                    title: Text('No manifest subscriptions'),
-                    subtitle: Text(
-                      'Subscribe to an Atom/RSS, JSON, or CSV manifest from '
-                      'the URL tab to keep your library in sync.',
-                    ),
+                ? ListTile(
+                    leading: const Icon(Icons.feed_outlined),
+                    title: Text(context.l10n.media_manifest_emptyTitle),
+                    subtitle: Text(context.l10n.media_manifest_emptySubtitle),
                   )
                 : Column(
                     children: [
@@ -84,14 +80,11 @@ class ManifestSubscriptionCard extends ConsumerWidget {
                       ],
                     ],
                   ),
-            loading: () => const ListTile(
-              // TODO(media): l10n
-              title: Text('Loading subscriptions...'),
-            ),
+            loading: () =>
+                ListTile(title: Text(context.l10n.media_manifest_loading)),
             error: (e, _) => ListTile(
               leading: const Icon(Icons.error_outline),
-              // TODO(media): l10n
-              title: const Text('Could not load subscriptions'),
+              title: Text(context.l10n.media_manifest_loadError),
               subtitle: Text('$e'),
             ),
           ),
@@ -121,7 +114,7 @@ class _SubscriptionTile extends ConsumerWidget {
           _FormatChip(format: sub.format),
         ],
       ),
-      subtitle: Text(_subtitle()),
+      subtitle: Text(_subtitle(context.l10n)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -130,16 +123,21 @@ class _SubscriptionTile extends ConsumerWidget {
             onChanged: (v) => _setActive(context, ref, v),
           ),
           PopupMenuButton<_SubAction>(
-            // TODO(media): l10n
-            tooltip: 'More',
+            tooltip: context.l10n.common_action_more,
             onSelected: (a) => _handle(context, ref, a),
-            itemBuilder: (_) => const [
-              // TODO(media): l10n
-              PopupMenuItem(value: _SubAction.poll, child: Text('Poll now')),
-              // TODO(media): l10n
-              PopupMenuItem(value: _SubAction.edit, child: Text('Edit')),
-              // TODO(media): l10n
-              PopupMenuItem(value: _SubAction.delete, child: Text('Delete')),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: _SubAction.poll,
+                child: Text(context.l10n.media_manifest_actionPollNow),
+              ),
+              PopupMenuItem(
+                value: _SubAction.edit,
+                child: Text(context.l10n.common_action_edit),
+              ),
+              PopupMenuItem(
+                value: _SubAction.delete,
+                child: Text(context.l10n.common_action_delete),
+              ),
             ],
           ),
         ],
@@ -147,21 +145,21 @@ class _SubscriptionTile extends ConsumerWidget {
     );
   }
 
-  String _subtitle() {
+  String _subtitle(AppLocalizations l10n) {
     final parts = <String>[];
     if (sub.lastError != null && sub.lastError!.isNotEmpty) {
-      // TODO(media): l10n
-      parts.add('Last error: ${sub.lastError}');
+      parts.add(l10n.media_manifest_lastError('${sub.lastError}'));
     } else if (sub.lastPolledAt != null) {
-      // TODO(media): l10n
-      parts.add('Last polled ${_relative(sub.lastPolledAt!)}');
+      parts.add(
+        l10n.media_manifest_lastPolled(_relative(l10n, sub.lastPolledAt!)),
+      );
     } else {
-      // TODO(media): l10n
-      parts.add('Never polled');
+      parts.add(l10n.media_manifest_neverPolled);
     }
     if (sub.nextPollAt != null) {
-      // TODO(media): l10n
-      parts.add('Next ${_nextRelative(sub.nextPollAt!)}');
+      parts.add(
+        l10n.media_manifest_nextPoll(_nextRelative(l10n, sub.nextPollAt!)),
+      );
     }
     return parts.join('  -  ');
   }
@@ -176,8 +174,7 @@ class _SubscriptionTile extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Could not update: $e')),
+        SnackBar(content: Text(context.l10n.media_manifest_updateError('$e'))),
       );
     }
   }
@@ -201,25 +198,27 @@ class _SubscriptionTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final poller = ref.read(subscriptionPollerProvider);
     final label = sub.displayName ?? sub.manifestUrl;
+    final l10n = context.l10n;
     try {
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Polling $label...')),
+        SnackBar(content: Text(l10n.media_manifest_polling(label))),
       );
       final polled = await poller.pollNow(sub.id, clock.now().toUtc());
       if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
       messenger.showSnackBar(
         SnackBar(
-          // TODO(media): l10n
-          content: Text(polled ? 'Polled $label' : 'Subscription not found'),
+          content: Text(
+            polled
+                ? l10n.media_manifest_polled(label)
+                : l10n.media_manifest_notFound,
+          ),
         ),
       );
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Poll failed: $e')),
+        SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
       );
     }
   }
@@ -229,23 +228,20 @@ class _SubscriptionTile extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        // TODO(media): l10n
-        title: Text('Delete ${sub.displayName ?? sub.manifestUrl}?'),
-        // TODO(media): l10n
-        content: const Text(
-          'Removes the subscription. Already-imported entries will remain '
-          '(you can clean them up via the orphan queue).',
+        title: Text(
+          dialogContext.l10n.media_manifest_deleteTitle(
+            sub.displayName ?? sub.manifestUrl,
+          ),
         ),
+        content: Text(dialogContext.l10n.media_manifest_deleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            // TODO(media): l10n
-            child: const Text('Delete'),
+            child: Text(dialogContext.l10n.common_action_delete),
           ),
         ],
       ),
@@ -259,8 +255,7 @@ class _SubscriptionTile extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Delete failed: $e')),
+        SnackBar(content: Text(context.l10n.media_manifest_deleteError('$e'))),
       );
     }
   }
@@ -271,23 +266,21 @@ class _SubscriptionTile extends ConsumerWidget {
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        // TODO(media): l10n
-        title: const Text('Edit subscription'),
+        title: Text(dialogContext.l10n.media_manifest_editTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: urlController,
-              decoration: const InputDecoration(
-                // TODO(media): l10n
-                labelText: 'Manifest URL',
+              decoration: InputDecoration(
+                labelText: dialogContext.l10n.media_manifest_urlLabel,
               ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                // TODO(media): l10n
-                labelText: 'Display name',
+              decoration: InputDecoration(
+                labelText: dialogContext.l10n.common_label_displayName,
               ),
             ),
           ],
@@ -295,13 +288,11 @@ class _SubscriptionTile extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            // TODO(media): l10n
-            child: const Text('Save'),
+            child: Text(dialogContext.l10n.common_action_save),
           ),
         ],
       ),
@@ -324,8 +315,7 @@ class _SubscriptionTile extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Save failed: $e')),
+        SnackBar(content: Text(context.l10n.media_manifest_saveError('$e'))),
       );
     }
   }
@@ -349,25 +339,33 @@ enum _SubAction { poll, edit, delete }
 /// Short relative-past formatter ("5m ago", "2h ago"). Matches the format
 /// produced by Task 6's `_relativeFromMillis` helper. Uses `clock.now()`
 /// so `package:fake_async` can drive the time in tests.
-// TODO(media): l10n — relative-time strings need translation + plural rules.
-String _relative(DateTime when) {
+String _relative(AppLocalizations l10n, DateTime when) {
   final diff = clock.now().toUtc().difference(when.toUtc());
-  if (diff.inMinutes < 1) return 'just now';
-  if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-  if (diff.inDays < 1) return '${diff.inHours}h ago';
-  if (diff.inDays < 30) return '${diff.inDays}d ago';
-  return '${(diff.inDays / 30).floor()}mo ago';
+  if (diff.inMinutes < 1) return l10n.common_relativeTime_justNow;
+  if (diff.inHours < 1) {
+    return l10n.common_relativeTime_minutesAgo(diff.inMinutes);
+  }
+  if (diff.inDays < 1) {
+    return l10n.common_relativeTime_hoursAgo(diff.inHours);
+  }
+  if (diff.inDays < 30) {
+    return l10n.common_relativeTime_daysAgo(diff.inDays);
+  }
+  return l10n.common_relativeTime_monthsAgo((diff.inDays / 30).floor());
 }
 
 /// Short relative-future formatter ("in 5m", "in 2h"). Returns "overdue"
 /// when the target is in the past — the scheduler will pick that row up
 /// on the next periodic cycle.
-// TODO(media): l10n — relative-time strings need translation + plural rules.
-String _nextRelative(DateTime when) {
+String _nextRelative(AppLocalizations l10n, DateTime when) {
   final diff = when.toUtc().difference(clock.now().toUtc());
-  if (diff.isNegative) return 'overdue';
-  if (diff.inMinutes < 1) return 'in <1m';
-  if (diff.inHours < 1) return 'in ${diff.inMinutes}m';
-  if (diff.inDays < 1) return 'in ${diff.inHours}h';
-  return 'in ${diff.inDays}d';
+  if (diff.isNegative) return l10n.common_relativeTime_overdue;
+  if (diff.inMinutes < 1) return l10n.common_relativeTime_inLessThanMinute;
+  if (diff.inHours < 1) {
+    return l10n.common_relativeTime_inMinutes(diff.inMinutes);
+  }
+  if (diff.inDays < 1) {
+    return l10n.common_relativeTime_inHours(diff.inHours);
+  }
+  return l10n.common_relativeTime_inDays(diff.inDays);
 }

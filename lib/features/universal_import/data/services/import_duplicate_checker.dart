@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -55,7 +57,7 @@ class ImportDuplicateResult {
 
 /// Checks import payload entities against existing data for duplicates.
 ///
-/// Uses the same matching strategies as [UddfDuplicateChecker]:
+/// Matching strategies:
 /// - Name matching (case-insensitive) for simple entities
 /// - Lat/lon proximity (100m) for sites
 /// - Name + type compound matching for equipment and certifications
@@ -80,6 +82,9 @@ class ImportDuplicateChecker {
   /// empty map. When an incoming dive carries a matching `sourceUuid` in its
   /// payload map, this short-circuits fuzzy content matching — faster and
   /// more precise for cross-format re-imports.
+  ///
+  /// [units] renders the site match preview's coordinates in the diver's
+  /// notation; the default keeps decimal degrees for callers without settings.
   ImportDuplicateResult check({
     required ImportPayload payload,
     required List<Dive> existingDives,
@@ -93,6 +98,8 @@ class ImportDuplicateChecker {
     required List<DiveTypeEntity> existingDiveTypes,
     Map<String, String> existingSourceUuidByDiveId = const {},
     DiveMatcher matcher = const DiveMatcher(),
+    bool checkIntraBatch = false,
+    UnitFormatter units = const UnitFormatter(AppSettings()),
   }) {
     final duplicates = <ImportEntityType, Set<int>>{};
     final entityMatches = <ImportEntityType, Map<int, EntityMatchResult>>{};
@@ -110,7 +117,7 @@ class ImportDuplicateChecker {
       entityMatches,
       ImportEntityType.sites,
       payload,
-      (items) => _checkSiteDuplicates(items, existingSites),
+      (items) => _checkSiteDuplicates(items, existingSites, units),
     );
 
     _checkEntityIfPresent(
@@ -168,6 +175,7 @@ class ImportDuplicateChecker {
             existingDives,
             existingSourceUuidByDiveId,
             matcher,
+            checkIntraBatch: checkIntraBatch,
           )
         : <int, DiveMatchResult>{};
 
@@ -392,6 +400,7 @@ class ImportDuplicateChecker {
   _EntityCheckResult _checkSiteDuplicates(
     List<Map<String, dynamic>> importedSites,
     List<DiveSite> existingSites,
+    UnitFormatter units,
   ) {
     final existingByNameLower = <String, DiveSite>{};
     for (final site in existingSites) {
@@ -409,7 +418,7 @@ class ImportDuplicateChecker {
         final existing = existingByNameLower[name.toLowerCase()];
         if (existing != null) {
           indices.add(i);
-          matches[i] = _buildSiteMatch(importedSites[i], existing);
+          matches[i] = _buildSiteMatch(importedSites[i], existing, units);
           continue;
         }
       }
@@ -428,7 +437,7 @@ class ImportDuplicateChecker {
             );
             if (distance <= 100) {
               indices.add(i);
-              matches[i] = _buildSiteMatch(importedSites[i], existing);
+              matches[i] = _buildSiteMatch(importedSites[i], existing, units);
               break;
             }
           }
@@ -442,14 +451,22 @@ class ImportDuplicateChecker {
   EntityMatchResult _buildSiteMatch(
     Map<String, dynamic> incoming,
     DiveSite existing,
+    UnitFormatter units,
   ) {
     final lat = incoming['latitude'] as double?;
     final lon = incoming['longitude'] as double?;
     final incomingLocation = (lat != null && lon != null)
-        ? '${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'
+        ? units.formatCoordinates(lat, lon)
         : incoming['location'] as String?;
 
-    final existingLocation = existing.location?.toString();
+    // Both sides of the preview must speak the same notation, or a match
+    // reads as a mismatch.
+    final existingLocation = existing.location == null
+        ? null
+        : units.formatCoordinates(
+            existing.location!.latitude,
+            existing.location!.longitude,
+          );
 
     final maxDepth = incoming['maxDepth'] as double?;
     final existingMaxDepth = existing.maxDepth;
@@ -671,11 +688,87 @@ class ImportDuplicateChecker {
     List<Map<String, dynamic>> importedDives,
     List<Dive> existingDives,
     Map<String, String> existingSourceUuidByDiveId,
-    DiveMatcher matcher,
-  ) {
-    if (existingDives.isEmpty) return {};
+    DiveMatcher matcher, {
+    bool checkIntraBatch = false,
+  }) {
+    // The intra-batch pass must run even against an empty database — a
+    // first-ever bulk import is exactly where cross-file duplicates appear.
+    if (existingDives.isEmpty && !checkIntraBatch) return {};
 
     final matches = <int, DiveMatchResult>{};
+    final handled = <int>{};
+
+    // Pass I (batch imports only): match dives against EARLIER dives in the
+    // same payload. Runs before the database passes so an in-batch duplicate
+    // is not also double-reported against the database.
+    if (checkIntraBatch) {
+      final seenUuidAt = <String, int>{};
+      for (var i = 0; i < importedDives.length; i++) {
+        final uuid = importedDives[i]['sourceUuid'] as String?;
+        if (uuid == null || uuid.isEmpty) continue;
+        final earlier = seenUuidAt[uuid];
+        if (earlier != null) {
+          matches[i] = DiveMatchResult(
+            diveId: '',
+            inBatchIndex: earlier,
+            score: _sourceUuidMatchScore,
+            timeDifferenceMs: 0,
+            siteName: importedDives[earlier]['_sourceFile'] as String?,
+          );
+          handled.add(i);
+        } else {
+          seenUuidAt[uuid] = i;
+        }
+      }
+
+      for (var i = 1; i < importedDives.length; i++) {
+        if (handled.contains(i)) continue;
+        final dateTime = importedDives[i]['dateTime'] as DateTime?;
+        if (dateTime == null) continue;
+        final maxDepth = importedDives[i]['maxDepth'] as double? ?? 0;
+        final durationSeconds =
+            ((importedDives[i]['runtime'] as Duration?) ??
+                    (importedDives[i]['duration'] as Duration?))
+                ?.inSeconds ??
+            0;
+
+        for (var j = 0; j < i; j++) {
+          if (handled.contains(j)) continue;
+          final otherDateTime = importedDives[j]['dateTime'] as DateTime?;
+          if (otherDateTime == null) continue;
+          final otherDepth = importedDives[j]['maxDepth'] as double? ?? 0;
+          final otherDuration =
+              ((importedDives[j]['runtime'] as Duration?) ??
+                      (importedDives[j]['duration'] as Duration?))
+                  ?.inSeconds ??
+              0;
+
+          final score = matcher.calculateMatchScore(
+            wearableStartTime: dateTime,
+            wearableMaxDepth: maxDepth,
+            wearableDurationSeconds: durationSeconds,
+            existingStartTime: otherDateTime,
+            existingMaxDepth: otherDepth,
+            existingDurationSeconds: otherDuration,
+          );
+
+          if (matcher.isPossibleDuplicate(score)) {
+            matches[i] = DiveMatchResult(
+              diveId: '',
+              inBatchIndex: j,
+              score: score,
+              timeDifferenceMs: dateTime
+                  .difference(otherDateTime)
+                  .inMilliseconds
+                  .abs(),
+              siteName: importedDives[j]['_sourceFile'] as String?,
+            );
+            handled.add(i);
+            break;
+          }
+        }
+      }
+    }
 
     // Pass 0: exact match by source_uuid. When a user imports MacDive's
     // SQLite and later re-imports the same dives from UDDF (or vice versa),
@@ -698,9 +791,9 @@ class ImportDuplicateChecker {
       });
     }
 
-    final handled = <int>{};
     if (existingBySourceUuid.isNotEmpty) {
       for (var i = 0; i < importedDives.length; i++) {
+        if (handled.contains(i)) continue;
         final uuid = importedDives[i]['sourceUuid'] as String?;
         if (uuid == null || uuid.isEmpty) continue;
         final existing = existingBySourceUuid[uuid];
@@ -711,6 +804,10 @@ class ImportDuplicateChecker {
           score: _sourceUuidMatchScore,
           timeDifferenceMs: 0,
           siteName: existing.site?.name,
+          // The incoming dive's source data is already present on `existing`
+          // (same source_uuid) — a re-import, not a new source. The wizard
+          // defaults these to skip and excludes them from bulk-consolidate.
+          matchedExistingSource: true,
         );
         handled.add(i);
       }

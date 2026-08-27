@@ -1,0 +1,39 @@
+diff --git a/src/hw_ostc3.c b/src/hw_ostc3.c
+index 6bd8560..9eb3c1d 100644
+--- a/src/hw_ostc3.c
++++ b/src/hw_ostc3.c
+@@ -215,18 +215,30 @@ hw_ostc3_read (hw_ostc3_device_t *device, dc_event_progress_t *progress, unsigne
+ 		if (nbytes + length > size)
+ 			length = size - nbytes;
+ 
+-		// Read the packet.
+-		rc = dc_iostream_read (device->iostream, data + nbytes, length, NULL);
++		// Read the packet, and advance by the number of bytes actually
++		// read rather than the requested length. Some transports return
++		// fewer bytes than requested per call: a BLE transport may deliver a
++		// single GATT notification per read (to preserve packet boundaries
++		// for the SLIP/packet based parsers), whereas a serial transport
++		// fills the request via its inter-byte timeout. Assuming a full read
++		// would skip over data that has not arrived yet and corrupt the
++		// downloaded logbook and dive profiles.
++		size_t actual = 0;
++		rc = dc_iostream_read (device->iostream, data + nbytes, length, &actual);
+ 		if (rc != DC_STATUS_SUCCESS)
+ 			return rc;
++		if (actual == 0) {
++			ERROR (((dc_device_t *) device)->context, "Failed to receive the packet.");
++			return DC_STATUS_TIMEOUT;
++		}
+ 
+ 		// Update and emit a progress event.
+ 		if (progress) {
+-			progress->current += length;
++			progress->current += actual;
+ 			device_event_emit ((dc_device_t *) device, DC_EVENT_PROGRESS, progress);
+ 		}
+ 
+-		nbytes += length;
++		nbytes += actual;
+ 	}
+ 
+ 	return rc;

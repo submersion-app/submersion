@@ -1,0 +1,28 @@
+diff --git a/src/shearwater_petrel.c b/src/shearwater_petrel.c
+index 2fbc314..d8711e9 100644
+--- a/src/shearwater_petrel.c
++++ b/src/shearwater_petrel.c
+@@ -288,12 +288,18 @@ shearwater_petrel_device_foreach (dc_device_t *abstract, dc_dive_callback_t call
+ 			count++;
+ 		}
+ 
+-		// Update the progress state.
++		// Update the progress state. Deleted records are never
++		// downloaded, so they must not count towards the maximum.
+ 		current += 1;
+-		maximum -= RECORD_COUNT - count - deleted;
+-
+-		// Append the manifest records to the main buffer.
+-		if (!dc_buffer_append (manifests, data, count * RECORD_SIZE)) {
++		maximum -= RECORD_COUNT - count;
++
++		// Append all walked records to the main buffer, including the
++		// deleted ones. The walk advances past deleted records without
++		// counting them, so appending only a count-sized prefix would
++		// push any valid record behind a deleted one past the appended
++		// bytes, and its dive would silently never be downloaded. The
++		// dive download loop skips the deleted records.
++		if (!dc_buffer_append (manifests, data, offset)) {
+ 			ERROR (abstract->context, "Insufficient buffer space available.");
+ 			dc_buffer_free (buffer);
+ 			dc_buffer_free (manifests);

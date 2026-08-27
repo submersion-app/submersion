@@ -8,24 +8,20 @@ import 'package:submersion/features/media/data/services/local_files_diagnostics_
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 import 'local_files_diagnostics_service_test.mocks.dart';
 
 @GenerateMocks([MediaRepository, LocalFileResolver, LocalMediaPlatform])
 void main() {
   late MockMediaRepository mockRepo;
-  late MockLocalFileResolver mockResolver;
   late MockLocalMediaPlatform mockPlatform;
   late LocalFilesDiagnosticsService subject;
 
   setUp(() {
     mockRepo = MockMediaRepository();
-    mockResolver = MockLocalFileResolver();
     mockPlatform = MockLocalMediaPlatform();
     subject = LocalFilesDiagnosticsService(
       repository: mockRepo,
-      resolver: mockResolver,
       platform: mockPlatform,
     );
   });
@@ -64,8 +60,10 @@ void main() {
         expect(result.total, 3);
         expect(result.available, 2);
         expect(result.unavailable, 1);
-        // Read path must not invoke the resolver.
-        verifyNever(mockResolver.verify(any));
+        // Read path reports the persisted flag and never touches the
+        // filesystem. Verification lives in MediaVerificationSweep, which
+        // this service deliberately does not depend on.
+        verifyNever(mockRepo.updateMedia(any));
       },
     );
 
@@ -79,87 +77,6 @@ void main() {
       expect(result.total, 0);
       expect(result.available, 0);
       expect(result.unavailable, 0);
-    });
-  });
-
-  group('reverifyAll', () {
-    test(
-      'updates lastVerifiedAt for every item and returns the number whose orphan status flipped',
-      () async {
-        final a = item(id: 'a', isOrphaned: false); // stays available
-        final b = item(id: 'b', isOrphaned: false); // flips to orphan
-        final c = item(id: 'c', isOrphaned: true); // flips to available
-        final d = item(id: 'd', isOrphaned: true); // stays orphan
-        when(
-          mockRepo.getAllBySourceType(MediaSourceType.localFile),
-        ).thenAnswer((_) async => [a, b, c, d]);
-
-        when(
-          mockResolver.verify(a),
-        ).thenAnswer((_) async => VerifyResult.available);
-        when(
-          mockResolver.verify(b),
-        ).thenAnswer((_) async => VerifyResult.notFound);
-        when(
-          mockResolver.verify(c),
-        ).thenAnswer((_) async => VerifyResult.available);
-        when(
-          mockResolver.verify(d),
-        ).thenAnswer((_) async => VerifyResult.notFound);
-        when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
-
-        final flipped = await subject.reverifyAll();
-
-        expect(flipped, 2);
-        // Every item must be updated, with lastVerifiedAt populated.
-        final captured = verify(
-          mockRepo.updateMedia(captureAny),
-        ).captured.cast<MediaItem>();
-        expect(captured.length, 4);
-        for (final updated in captured) {
-          expect(updated.lastVerifiedAt, isNotNull);
-        }
-        // Verify orphan flags got written correctly.
-        final byId = {for (final u in captured) u.id: u};
-        expect(byId['a']!.isOrphaned, isFalse);
-        expect(byId['b']!.isOrphaned, isTrue);
-        expect(byId['c']!.isOrphaned, isFalse);
-        expect(byId['d']!.isOrphaned, isTrue);
-      },
-    );
-
-    test('on empty repository returns zero', () async {
-      when(
-        mockRepo.getAllBySourceType(MediaSourceType.localFile),
-      ).thenAnswer((_) async => []);
-
-      final flipped = await subject.reverifyAll();
-
-      expect(flipped, 0);
-      verifyNever(mockResolver.verify(any));
-      verifyNever(mockRepo.updateMedia(any));
-    });
-
-    test('tolerates per-item failures: skips bad item, continues sweep, '
-        'returns flipped count excluding the failure', () async {
-      final a = item(id: 'a', isOrphaned: false); // throws on verify
-      final b = item(id: 'b', isOrphaned: false); // flips to orphan
-      when(
-        mockRepo.getAllBySourceType(MediaSourceType.localFile),
-      ).thenAnswer((_) async => [a, b]);
-
-      when(mockResolver.verify(a)).thenThrow(Exception('verify boom'));
-      when(
-        mockResolver.verify(b),
-      ).thenAnswer((_) async => VerifyResult.notFound);
-      when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
-
-      final flipped = await subject.reverifyAll();
-
-      // Only `b` flipped — `a` failed and was excluded.
-      expect(flipped, 1);
-      // `a` failed before update; only `b` got an update call.
-      verify(mockRepo.updateMedia(any)).called(1);
     });
   });
 

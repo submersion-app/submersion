@@ -27,7 +27,6 @@ class DiveTableView extends ConsumerStatefulWidget {
   final List<Dive> dives;
   final void Function(String diveId) onDiveTap;
   final void Function(String diveId)? onDiveTapDown;
-  final void Function(String diveId)? onDiveLongPress;
   final void Function(String diveId)? onDiveDoubleTap;
   final Set<String> selectedIds;
   final bool isSelectionMode;
@@ -38,7 +37,6 @@ class DiveTableView extends ConsumerStatefulWidget {
     required this.dives,
     required this.onDiveTap,
     this.onDiveTapDown,
-    this.onDiveLongPress,
     this.onDiveDoubleTap,
     this.selectedIds = const {},
     this.isSelectionMode = false,
@@ -138,8 +136,16 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
 
     final sorted = List<Dive>.from(widget.dives);
     sorted.sort((a, b) {
-      final va = field.extractFromDive(a);
-      final vb = field.extractFromDive(b);
+      final va = field.extractFromDive(
+        a,
+        sacUnit: units.sacUnit,
+        gasModel: units.settings.gasModel,
+      );
+      final vb = field.extractFromDive(
+        b,
+        sacUnit: units.sacUnit,
+        gasModel: units.settings.gasModel,
+      );
 
       // Nulls always sort to the end
       if (va == null && vb == null) return 0;
@@ -238,7 +244,11 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     required bool isSelected,
     bool isLastPinned = false,
   }) {
-    final value = column.field.extractFromDive(dive);
+    final value = column.field.extractFromDive(
+      dive,
+      sacUnit: units.sacUnit,
+      gasModel: units.settings.gasModel,
+    );
     final text = column.field.formatValue(value, units);
     final rightAligned = _isRightAligned(column.field);
 
@@ -413,9 +423,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                           onDoubleTap: widget.onDiveDoubleTap != null
                               ? () => widget.onDiveDoubleTap!(dive.id)
                               : null,
-                          onLongPress: widget.onDiveLongPress != null
-                              ? () => widget.onDiveLongPress!(dive.id)
-                              : null,
                           child: ColoredBox(
                             color: _rowBackground(
                               index: index,
@@ -501,9 +508,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
                               onTap: () => widget.onDiveTap(dive.id),
                               onDoubleTap: widget.onDiveDoubleTap != null
                                   ? () => widget.onDiveDoubleTap!(dive.id)
-                                  : null,
-                              onLongPress: widget.onDiveLongPress != null
-                                  ? () => widget.onDiveLongPress!(dive.id)
                                   : null,
                               child: ColoredBox(
                                 color: _rowBackground(

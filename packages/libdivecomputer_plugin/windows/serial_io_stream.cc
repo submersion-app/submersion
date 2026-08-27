@@ -140,11 +140,14 @@ int SerialIoStream::ConfigureCallback(void* userdata, unsigned int baudrate,
     dcb.ByteSize = static_cast<BYTE>(databits);
     dcb.Parity = static_cast<BYTE>(parity);
     dcb.StopBits = static_cast<BYTE>(stopbits);
-    // flowcontrol: 0=none, 1=software, 2=hardware (matches dc_flowcontrol_t)
-    dcb.fOutxCtsFlow = (flowcontrol == 2) ? TRUE : FALSE;
-    dcb.fRtsControl = (flowcontrol == 2) ? RTS_CONTROL_HANDSHAKE : RTS_CONTROL_ENABLE;
-    dcb.fOutX = (flowcontrol == 1) ? TRUE : FALSE;
-    dcb.fInX = (flowcontrol == 1) ? TRUE : FALSE;
+    // Flow control. See LIBDC_FLOWCONTROL_* in libdc_wrapper.h: hardware is 1
+    // and software is 2, not the other way round (issue #1155).
+    const bool hardware = (flowcontrol == LIBDC_FLOWCONTROL_HARDWARE);
+    const bool software = (flowcontrol == LIBDC_FLOWCONTROL_SOFTWARE);
+    dcb.fOutxCtsFlow = hardware ? TRUE : FALSE;
+    dcb.fRtsControl = hardware ? RTS_CONTROL_HANDSHAKE : RTS_CONTROL_ENABLE;
+    dcb.fOutX = software ? TRUE : FALSE;
+    dcb.fInX = software ? TRUE : FALSE;
 
     return SetCommState(stream->handle_, &dcb) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
 }

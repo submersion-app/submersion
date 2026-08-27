@@ -8,6 +8,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/security/database_security_sidecar.dart';
 
 /// Result of a database migration operation
 class MigrationResult {
@@ -246,8 +247,10 @@ class DatabaseMigrationService {
       await _checkpointWal();
 
       // Step 1: Close the current database FIRST to release file locks
-      // This is critical on macOS/iOS where WAL mode locks the -shm file
-      await _dbService.close();
+      // This is critical on macOS/iOS where WAL mode locks the -shm file.
+      // Strict: a timed-out close must throw (caught below -> rollback)
+      // rather than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -349,8 +352,10 @@ class DatabaseMigrationService {
       // inconsistent database state.
       await _checkpointWal();
 
-      // Step 1: Close current database FIRST to release file locks
-      await _dbService.close();
+      // Step 1: Close current database FIRST to release file locks.
+      // Strict: a timed-out close throws (caught below -> rollback) rather
+      // than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -444,8 +449,10 @@ class DatabaseMigrationService {
       await _checkpointWal();
 
       // Close current database FIRST to release file locks
-      // This is critical on macOS/iOS where WAL mode locks the -shm file
-      await _dbService.close();
+      // This is critical on macOS/iOS where WAL mode locks the -shm file.
+      // Strict: a timed-out close throws (caught below -> rollback) rather
+      // than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -512,11 +519,12 @@ class DatabaseMigrationService {
       DatabaseLocationService.databaseFilename,
     );
 
-    // Create backup of the existing database at target before overwriting
-    final existingFile = File(newPath);
-    if (await existingFile.exists()) {
-      final existingBackupPath = _generateBackupPath(newPath);
-      await existingFile.copy(existingBackupPath);
+    // Create backup of the existing database at target before overwriting.
+    // Through _createBackup so the copy carries the target's `-wal`: that file
+    // is not ours and may well have been left with an uncheckpointed sidecar,
+    // and this copy is the only way back from an overwrite.
+    if (await File(newPath).exists()) {
+      await _createBackup(newPath);
     }
 
     return migrateToCustomFolder(folderPath);
@@ -540,8 +548,12 @@ class DatabaseMigrationService {
       debugInfo?.writeln('DEBUG: File exists, size: $fileSize bytes');
 
       // Use sqlite3 directly to avoid Drift's migration system triggering
-      // when opening a database with a different schema version
-      final db = sqlite3.sqlite3.open(dbPath);
+      // when opening a database with a different schema version. openRaw
+      // applies the cipher key when the live database is encrypted.
+      final db = DatabaseService.openRaw(
+        dbPath,
+        keyHex: DatabaseService.instance.databaseKeyHex,
+      );
       try {
         // Run integrity check (quick_check is faster and avoids long stalls)
         final result = db.select('PRAGMA quick_check');
@@ -567,7 +579,7 @@ class DatabaseMigrationService {
         debugInfo?.writeln('DEBUG: Parsed status: "$status"');
         return status == 'ok';
       } finally {
-        db.dispose();
+        db.close();
         // Small delay to ensure SQLite fully releases the file lock
         await Future.delayed(const Duration(milliseconds: 50));
       }
@@ -620,6 +632,14 @@ class DatabaseMigrationService {
     if (await walSource.exists()) {
       await walSource.copy('$destPath-wal');
     }
+
+    // The security keyslot sidecar must travel with the database: without it
+    // a keychain wipe at the new location would leave the encrypted file
+    // permanently unopenable (the sidecar is the durable wrapped key copy).
+    final sidecarSource = File(DatabaseSecuritySidecar.pathFor(sourcePath));
+    if (await sidecarSource.exists()) {
+      await sidecarSource.copy(DatabaseSecuritySidecar.pathFor(destPath));
+    }
   }
 
   /// Verify that the database is functional by running a simple query
@@ -663,7 +683,15 @@ class DatabaseMigrationService {
     String originalPath,
     String? backupPath,
   ) async {
-    // Close any open connection
+    // Close any open connection. Best-effort (non-strict) on purpose: this
+    // is a recovery path that must reopen the original no matter what. A
+    // strict close would defeat that twice over — it would throw on a stuck
+    // connection AND keep _database non-null, so the reinitializeAtPath
+    // below (which starts with its own strict close) would re-hit the same
+    // stuck connection and abort the rollback, leaving the app with no open
+    // database and config already reset. Non-strict nulls _database so the
+    // reopen can proceed; the abandoned connection's locks are on the failed
+    // path, not the original being reopened.
     await _dbService.close();
 
     // Reset configuration to default or previous
@@ -675,8 +703,12 @@ class DatabaseMigrationService {
 
   Future<_DatabaseCounts> _fetchDatabaseCounts(String dbPath) async {
     // Use sqlite3 directly to avoid Drift's migration system triggering
-    // when opening a database with a different schema version
-    final db = sqlite3.sqlite3.open(dbPath);
+    // when opening a database with a different schema version. openRaw
+    // applies the cipher key when the live database is encrypted.
+    final db = DatabaseService.openRaw(
+      dbPath,
+      keyHex: DatabaseService.instance.databaseKeyHex,
+    );
     try {
       // Query each table individually to handle missing tables gracefully
       // (older database versions may not have all tables)
@@ -694,7 +726,7 @@ class DatabaseMigrationService {
         buddyCount: buddyCount,
       );
     } finally {
-      db.dispose();
+      db.close();
       await Future.delayed(const Duration(milliseconds: 50));
     }
   }

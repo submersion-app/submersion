@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 /// Diving equipment entity
 class EquipmentItem extends Equatable {
@@ -11,7 +13,6 @@ class EquipmentItem extends Equatable {
   final String? brand;
   final String? model;
   final String? serialNumber;
-  final String? size; // S, M, L, XL, or specific size
   final EquipmentStatus status;
   final DateTime? purchaseDate;
   final double? purchasePrice;
@@ -21,9 +22,17 @@ class EquipmentItem extends Equatable {
   final String notes;
   final bool isActive;
 
+  /// Type-specific and user-defined attributes (equipment_attributes rows).
+  /// Hydrated by detail/edit/list reads; empty on partially loaded items.
+  final List<EquipmentAttribute> attributes;
+
   // Notification overrides
   final bool? customReminderEnabled; // NULL = use global
   final List<int>? customReminderDays; // Override reminder days
+
+  /// Row creation time (null for entities built before persistence); used as
+  /// the last anchor fallback for service clocks.
+  final DateTime? createdAt;
 
   const EquipmentItem({
     required this.id,
@@ -33,7 +42,6 @@ class EquipmentItem extends Equatable {
     this.brand,
     this.model,
     this.serialNumber,
-    this.size,
     this.status = EquipmentStatus.active,
     this.purchaseDate,
     this.purchasePrice,
@@ -42,9 +50,38 @@ class EquipmentItem extends Equatable {
     this.serviceIntervalDays,
     this.notes = '',
     this.isActive = true,
+    this.attributes = const [],
     this.customReminderEnabled,
     this.customReminderDays,
+    this.createdAt,
   });
+
+  /// Curated attribute lookup helpers. Legacy field names are preserved as
+  /// getters so existing consumers (weight planner, CSV export, detail page)
+  /// read from the attribute store transparently.
+  String? attrText(String key) {
+    for (final a in attributes) {
+      if (!a.isCustom && a.key == key) return a.valueText;
+    }
+    return null;
+  }
+
+  double? attrNum(String key) {
+    for (final a in attributes) {
+      if (!a.isCustom && a.key == key) return a.valueNum;
+    }
+    return null;
+  }
+
+  String? get size => attrText(EquipmentAttrKeys.size);
+  String? get thickness => attrText(EquipmentAttrKeys.thicknessMm);
+  double? get buoyancyKg => attrNum(EquipmentAttrKeys.buoyancyKg);
+  double? get weightKg => attrNum(EquipmentAttrKeys.dryWeightKg);
+
+  /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
+  /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift
+  /// demand comparison; null when unspecified.
+  double? get liftCapacityKg => attrNum(EquipmentAttrKeys.liftCapacityKg);
 
   /// Full name including brand and model
   String get fullName {
@@ -88,7 +125,6 @@ class EquipmentItem extends Equatable {
     String? brand,
     String? model,
     String? serialNumber,
-    String? size,
     EquipmentStatus? status,
     DateTime? purchaseDate,
     double? purchasePrice,
@@ -97,8 +133,10 @@ class EquipmentItem extends Equatable {
     int? serviceIntervalDays,
     String? notes,
     bool? isActive,
+    List<EquipmentAttribute>? attributes,
     bool? customReminderEnabled,
     List<int>? customReminderDays,
+    DateTime? createdAt,
   }) {
     return EquipmentItem(
       id: id ?? this.id,
@@ -108,7 +146,6 @@ class EquipmentItem extends Equatable {
       brand: brand ?? this.brand,
       model: model ?? this.model,
       serialNumber: serialNumber ?? this.serialNumber,
-      size: size ?? this.size,
       status: status ?? this.status,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       purchasePrice: purchasePrice ?? this.purchasePrice,
@@ -117,9 +154,11 @@ class EquipmentItem extends Equatable {
       serviceIntervalDays: serviceIntervalDays ?? this.serviceIntervalDays,
       notes: notes ?? this.notes,
       isActive: isActive ?? this.isActive,
+      attributes: attributes ?? this.attributes,
       customReminderEnabled:
           customReminderEnabled ?? this.customReminderEnabled,
       customReminderDays: customReminderDays ?? this.customReminderDays,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -132,7 +171,6 @@ class EquipmentItem extends Equatable {
     brand,
     model,
     serialNumber,
-    size,
     status,
     purchaseDate,
     purchasePrice,
@@ -141,7 +179,9 @@ class EquipmentItem extends Equatable {
     serviceIntervalDays,
     notes,
     isActive,
+    attributes,
     customReminderEnabled,
     customReminderDays,
+    createdAt,
   ];
 }

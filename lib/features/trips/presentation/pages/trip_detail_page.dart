@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -113,6 +119,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: body),
         ],
       );
@@ -123,19 +130,24 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: body,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 
-  /// Tabbed layout for liveaboard trips with 4 tabs:
-  /// Overview, Itinerary, Photos, Dives.
+  /// Tabbed layout for liveaboard trips with 5 tabs:
+  /// Overview, Itinerary, Photos, Dives, Checklist.
   Widget _buildLiveaboardLayout(
     BuildContext context,
     WidgetRef ref,
     Trip trip,
   ) {
     final tabbedBody = DefaultTabController(
-      length: 4,
+      length: 5,
       child: Column(
         children: [
           Material(
@@ -146,6 +158,7 @@ class _TripDetailContent extends ConsumerWidget {
                 Tab(text: context.l10n.trips_detail_tab_itinerary),
                 Tab(text: context.l10n.trips_detail_tab_photos),
                 Tab(text: context.l10n.trips_detail_tab_dives),
+                Tab(text: context.l10n.trips_detail_tab_checklist),
               ],
             ),
           ),
@@ -156,6 +169,25 @@ class _TripDetailContent extends ConsumerWidget {
                 TripItineraryTab(tripId: trip.id),
                 _buildPhotosTab(context, ref, trip),
                 _buildDivesTab(context, ref, trip),
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.fact_check),
+                          label: Text(context.l10n.trips_detail_preDive_action),
+                          onPressed: () =>
+                              showStartSessionSheet(context, tripId: trip.id),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TripChecklistSection(trip: tripWithStats.trip),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -167,6 +199,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: tabbedBody),
         ],
       );
@@ -177,7 +210,12 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: tabbedBody,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: tabbedBody),
+        ],
+      ),
     );
   }
 
@@ -293,9 +331,12 @@ class _TripDetailContent extends ConsumerWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                        if (dive.bottomTime != null)
+                        // Runtime with a bottom-time fallback, matching the
+                        // trip totals so these rows add up to the figure the
+                        // Overview tab reports (issue #889).
+                        if ((dive.runtime ?? dive.bottomTime) != null)
                           Text(
-                            '${dive.bottomTime!.inMinutes}min',
+                            '${(dive.runtime ?? dive.bottomTime)!.inMinutes}min',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -394,6 +435,12 @@ class _TripDetailContent extends ConsumerWidget {
   }
 
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
+    // Read this during build, not inside itemBuilder: itemBuilder runs when the
+    // menu opens (outside this consumer's build phase), where ref.watch would
+    // register a dependency outside Riverpod's build lifecycle.
+    // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
+    final hasLightroomAccount =
+        lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -418,9 +465,46 @@ class _TripDetailContent extends ConsumerWidget {
           }
         } else if (value == 'export') {
           _showExportOptions(context, ref);
+        } else if (value == 'scan-dives') {
+          await scanForTripDives(context, ref, trip);
+        } else if (value == 'scan-photos') {
+          await scanGalleryForTripPhotos(context, ref, trip.id, trip);
+        } else if (value == 'scan-lightroom') {
+          await scanLightroomForTrip(context, ref, trip.id);
         }
       },
       itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'scan-dives',
+          child: Row(
+            children: [
+              const Icon(Icons.playlist_add),
+              const SizedBox(width: 8),
+              Flexible(child: Text(context.l10n.trips_diveScan_findButton)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'scan-photos',
+          child: Row(
+            children: [
+              const Icon(Icons.photo_library_outlined),
+              const SizedBox(width: 8),
+              Flexible(child: Text(context.l10n.trips_photos_tooltip_scan)),
+            ],
+          ),
+        ),
+        if (hasLightroomAccount)
+          PopupMenuItem(
+            value: 'scan-lightroom',
+            child: Row(
+              children: [
+                const Icon(Icons.cloud_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.settings_lightroom_scanNow)),
+              ],
+            ),
+          ),
         PopupMenuItem(
           value: 'export',
           child: Row(

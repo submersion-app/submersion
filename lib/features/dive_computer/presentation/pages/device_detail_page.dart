@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -237,7 +238,7 @@ class DeviceDetailPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     Icons.download,
-                    computer.lastDownloadFormatted,
+                    formatLastDownload(context, computer.lastDownload),
                     context.l10n.diveComputer_detail_lastDownload,
                     colorScheme,
                   ),
@@ -387,23 +388,21 @@ class DeviceDetailPage extends ConsumerWidget {
     ref.read(diveComputerNotifierProvider.notifier).setFavorite(computer.id);
   }
 
+  /// Shows the dive list restricted to this computer.
+  ///
+  /// Filters on the computer id, not its serial number. Keying this on the
+  /// serial used to dead-end with a "no serial number" snackbar on every
+  /// computer whose firmware never reported one (issue #1064), even though the
+  /// dives were downloaded and attributed correctly.
   void _viewDivesFromComputer(
     BuildContext context,
     WidgetRef ref,
     DiveComputer computer,
   ) {
-    if (computer.serialNumber != null && computer.serialNumber!.isNotEmpty) {
-      ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-        computerSerial: computer.serialNumber,
-      );
-      context.go('/dives');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.diveComputer_detail_cannotFilterNoSerial),
-        ),
-      );
-    }
+    ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+      computerId: computer.id,
+    );
+    context.go('/dives');
   }
 
   Future<void> _confirmReimportAll(

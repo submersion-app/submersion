@@ -31,6 +31,10 @@
             <tag>Reef</tag>
             <tag>Photography</tag>
         </tags>
+        <types>
+            <type>Shore</type>
+            <type>Aquarium</type>
+        </types>
         <buddies>
             <buddy>Alice</buddy>
         </buddies>

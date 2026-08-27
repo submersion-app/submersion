@@ -37,6 +37,11 @@ class CourseRepository {
     }
   }
 
+  /// Emits whenever the `courses` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchCoursesChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.courses));
+
   /// Get course by ID
   Future<domain.Course?> getCourseById(String id) async {
     try {
@@ -296,23 +301,33 @@ class CourseRepository {
       _log.info('Updating course: ${course.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.courses,
-      )..where((t) => t.id.equals(course.id))).write(
-        CoursesCompanion(
-          name: Value(course.name),
-          agency: Value(course.agency.name),
-          startDate: Value(course.startDate.millisecondsSinceEpoch),
-          completionDate: Value(course.completionDate?.millisecondsSinceEpoch),
-          instructorId: Value(course.instructorId),
-          instructorName: Value(course.instructorName),
-          instructorNumber: Value(course.instructorNumber),
-          certificationId: Value(course.certificationId),
-          location: Value(course.location),
-          notes: Value(course.notes),
-          updatedAt: Value(now),
-        ),
-      );
+      final rowsAffected =
+          await (_db.update(
+            _db.courses,
+          )..where((t) => t.id.equals(course.id))).write(
+            CoursesCompanion(
+              name: Value(course.name),
+              agency: Value(course.agency.name),
+              startDate: Value(course.startDate.millisecondsSinceEpoch),
+              completionDate: Value(
+                course.completionDate?.millisecondsSinceEpoch,
+              ),
+              instructorId: Value(course.instructorId),
+              instructorName: Value(course.instructorName),
+              instructorNumber: Value(course.instructorNumber),
+              certificationId: Value(course.certificationId),
+              location: Value(course.location),
+              notes: Value(course.notes),
+              updatedAt: Value(now),
+            ),
+          );
+
+      // A `where` clause that matches nothing is not an error to SQLite, so an
+      // update against a missing (or empty) id would otherwise report success
+      // while persisting nothing. Fail loudly instead of losing the edit.
+      if (rowsAffected == 0) {
+        throw StateError('No course found to update with id "${course.id}"');
+      }
 
       await _syncRepository.markRecordPending(
         entityType: 'courses',
@@ -332,26 +347,60 @@ class CourseRepository {
   }
 
   /// Delete a course
+  ///
+  /// The FK clears, the course delete, and every tombstone are wrapped in a
+  /// single transaction (TripRepository.deleteTrip pattern). The requirement
+  /// and link children are removed by FK cascade the moment the course row is
+  /// deleted, but sync needs per-row tombstones (issue #466) or peers
+  /// resurrect them; a non-atomic delete that failed after the cascade but
+  /// before the tombstones would leave the children permanently gone locally
+  /// yet un-tombstoned, so a peer would re-send them.
   Future<void> deleteCourse(String id) async {
     try {
       _log.info('Deleting course: $id');
 
-      // First, clear courseId from any linked dives
-      await _db.customStatement(
-        'UPDATE dives SET course_id = NULL WHERE course_id = ?',
-        [id],
-      );
+      await _db.transaction(() async {
+        // First, clear courseId from any linked dives
+        await _db.customStatement(
+          'UPDATE dives SET course_id = NULL WHERE course_id = ?',
+          [id],
+        );
 
-      // Clear courseId from any linked certifications
-      await _db.customStatement(
-        'UPDATE certifications SET course_id = NULL WHERE course_id = ?',
-        [id],
-      );
+        // Clear courseId from any linked certifications
+        await _db.customStatement(
+          'UPDATE certifications SET course_id = NULL WHERE course_id = ?',
+          [id],
+        );
 
-      // Delete the course
-      await (_db.delete(_db.courses)..where((t) => t.id.equals(id))).go();
+        // Collect requirement/link ids before the cascade removes the rows.
+        final requirements = await (_db.select(
+          _db.courseRequirements,
+        )..where((t) => t.courseId.equals(id))).get();
+        final requirementIds = requirements.map((r) => r.id).toList();
+        final links = requirementIds.isEmpty
+            ? <CourseRequirementDiveRow>[]
+            : await (_db.select(
+                _db.courseRequirementDives,
+              )..where((t) => t.requirementId.isIn(requirementIds))).get();
 
-      await _syncRepository.logDeletion(entityType: 'courses', recordId: id);
+        // Delete the course (FK cascade removes requirements and links)
+        await (_db.delete(_db.courses)..where((t) => t.id.equals(id))).go();
+
+        await _syncRepository.logDeletion(entityType: 'courses', recordId: id);
+        for (final requirement in requirements) {
+          await _syncRepository.logDeletion(
+            entityType: 'courseRequirements',
+            recordId: requirement.id,
+          );
+        }
+        for (final link in links) {
+          await _syncRepository.logDeletion(
+            entityType: 'courseRequirementDives',
+            recordId: link.id,
+          );
+        }
+      });
+
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted course: $id');
     } catch (e, stackTrace) {

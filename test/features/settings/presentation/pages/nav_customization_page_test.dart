@@ -6,9 +6,15 @@ import 'package:submersion/features/settings/presentation/pages/nav_customizatio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
+
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
   @override
   Future<List<String>?> getNavPrimaryIdsRaw() async => stored;
   @override
@@ -20,6 +26,14 @@ class _FakeRepo implements AppSettingsRepository {
   Future<bool> getShareByDefault() async => false;
   @override
   Future<void> setShareByDefault(bool value) async {}
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {
@@ -39,12 +53,13 @@ void main() {
     });
 
     test('drop below divider stays below divider', () {
-      // Move 'a' (flat index 0) to position 5 (between 'd' and 'e' below divider)
+      // onReorderItem reports the post-removal flat index, so moving 'a' (flat 0)
+      // to between 'd' and 'e' below the divider is newIndex 4 (not 5).
       final result = applyReorderPreservingDivider(
         movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
         dividerIndex: 3,
         oldIndex: 0,
-        newIndex: 5,
+        newIndex: 4,
       );
       expect(result, ['b', 'c', 'd', 'a', 'e', 'f']);
     });
@@ -59,17 +74,17 @@ void main() {
       expect(result, ['a', 'b', 'c', 'd', 'e', 'f']);
     });
 
-    test('Flutter-style newIndex > oldIndex accounts for the shift', () {
-      // Flutter convention: when moving down, newIndex is post-removal.
-      // Move 'a' (0) to just above 'e': newIndex=5 in the flat list means
-      // position 4 in the movable list after removal.
+    test('newIndex is treated as the post-removal index (no internal shift)', () {
+      // onReorderItem already adjusts for the removed item, so dragging 'a' (0)
+      // to the bottom reports newIndex 6 (end of the 6-item post-removal flat
+      // list); the helper must not subtract again.
       final result = applyReorderPreservingDivider(
         movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
         dividerIndex: 3,
         oldIndex: 0,
-        newIndex: 5,
+        newIndex: 6,
       );
-      expect(result, ['b', 'c', 'd', 'a', 'e', 'f']);
+      expect(result, ['b', 'c', 'd', 'e', 'f', 'a']);
     });
 
     test(
@@ -163,18 +178,18 @@ void main() {
     testWidgets('move-up on first overflow row promotes it to primary', (
       tester,
     ) async {
-      // Default primary: [dives, sites, trips]; first overflow = equipment.
+      // Default primary: [dives, sites, trips]; first overflow = media.
       final repo = _FakeRepo();
       await tester.pumpWidget(buildHarness(repo));
       await tester.pumpAndSettle();
 
-      // Find the move-up button whose tooltip targets Equipment.
-      await tester.tap(find.byTooltip('Move Equipment up'));
+      // Find the move-up button whose tooltip targets Media.
+      await tester.tap(find.byTooltip('Move Media up'));
       await tester.pumpAndSettle();
 
-      // Equipment should now be primary; trips (the last default primary)
+      // Media should now be primary; trips (the last default primary)
       // should drop to overflow.
-      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, contains('media'));
       expect(repo.stored, isNot(contains('trips')));
     });
 
@@ -189,10 +204,30 @@ void main() {
       await tester.tap(find.byTooltip('Move Trips down'));
       await tester.pumpAndSettle();
 
-      // Trips should be displaced; equipment (first overflow originally)
+      // Trips should be displaced; media (first overflow originally)
       // should now be primary.
-      expect(repo.stored, contains('equipment'));
+      expect(repo.stored, contains('media'));
       expect(repo.stored, isNot(contains('trips')));
+    });
+
+    testWidgets('move-down moves a row down by exactly one slot (not two)', (
+      tester,
+    ) async {
+      // Default primary order is [dives, sites, trips]. Moving the first row
+      // down by one must swap it with the second -> [sites, dives, trips], and
+      // must NOT overshoot to [sites, trips, dives]. The move buttons feed
+      // _commitReorder/applyReorderPreservingDivider, which expect
+      // onReorderItem-style (already-adjusted) indices; this guards against the
+      // old onReorder off-by-one in _moveDown.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      // The first arrow_downward belongs to the first movable row (dives).
+      await tester.tap(find.byIcon(Icons.arrow_downward).first);
+      await tester.pumpAndSettle();
+
+      expect(repo.stored, ['sites', 'dives', 'trips']);
     });
   });
 }

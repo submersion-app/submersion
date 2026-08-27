@@ -14,6 +14,9 @@ class Trip extends Equatable {
   final TripType tripType;
   final String notes;
   final bool isShared;
+
+  /// Return flight departure, wall-clock-as-UTC (the dive-time frame).
+  final DateTime? returnFlightAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -29,12 +32,18 @@ class Trip extends Equatable {
     this.tripType = TripType.shore,
     this.notes = '',
     this.isShared = false,
+    this.returnFlightAt,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  /// Duration of the trip in days
-  int get durationDays => endDate.difference(startDate).inDays + 1;
+  /// Duration of the trip in days.
+  ///
+  /// Counted in calendar days (UTC date-only) so a trip spanning a local DST
+  /// spring-forward isn't undercounted: `Duration.inDays` floors elapsed hours,
+  /// and a 23-hour calendar day would otherwise drop a day (e.g. Mar 7-10 is
+  /// 71 local hours -> 3 instead of 4).
+  int get durationDays => _calendarDaysBetween(startDate, endDate) + 1;
 
   /// Check if this is a liveaboard trip
   bool get isLiveaboard => tripType == TripType.liveaboard;
@@ -57,6 +66,34 @@ class Trip extends Equatable {
     return !dateOnly.isBefore(start) && !dateOnly.isAfter(end);
   }
 
+  /// Whether this trip is upcoming or currently underway (date-only
+  /// comparison, same normalization as [containsDate]).
+  bool get isUpcoming {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    return !end.isBefore(today);
+  }
+
+  /// Whether the trip has started but not yet ended (date-only).
+  bool get isInProgress {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    return !start.isAfter(today) && !end.isBefore(today);
+  }
+
+  /// Calendar days until the trip starts (0 when started or starting today).
+  ///
+  /// Counted in UTC date-only so a DST spring-forward between today and the
+  /// start date can't shave a day off the countdown (a local 23-hour day would
+  /// make `Duration.inDays` truncate 47 hours to 1 day instead of 2).
+  int get daysUntilStart {
+    final diff = _calendarDaysBetween(DateTime.now(), startDate);
+    return diff < 0 ? 0 : diff;
+  }
+
   Trip copyWith({
     String? id,
     String? diverId,
@@ -69,6 +106,7 @@ class Trip extends Equatable {
     TripType? tripType,
     String? notes,
     bool? isShared,
+    Object? returnFlightAt = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -88,6 +126,9 @@ class Trip extends Equatable {
       tripType: tripType ?? this.tripType,
       notes: notes ?? this.notes,
       isShared: isShared ?? this.isShared,
+      returnFlightAt: returnFlightAt == _undefined
+          ? this.returnFlightAt
+          : returnFlightAt as DateTime?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -106,6 +147,7 @@ class Trip extends Equatable {
     tripType,
     notes,
     isShared,
+    returnFlightAt,
     createdAt,
     updatedAt,
   ];
@@ -114,26 +156,42 @@ class Trip extends Equatable {
 // Sentinel value for distinguishing null from undefined in copyWith
 const _undefined = Object();
 
+/// Whole calendar days from [from] to [to], computed in UTC date-only so the
+/// result is DST-immune (UTC has no daylight-saving transitions, so every day
+/// is exactly 24 hours). Negative when [to] is before [from].
+int _calendarDaysBetween(DateTime from, DateTime to) {
+  final a = DateTime.utc(from.year, from.month, from.day);
+  final b = DateTime.utc(to.year, to.month, to.day);
+  return b.difference(a).inDays;
+}
+
 /// Trip with computed statistics
 class TripWithStats extends Equatable {
   final Trip trip;
   final int diveCount;
-  final int totalBottomTime; // seconds
+
+  /// Total time in the water across the trip's dives, in seconds.
+  ///
+  /// Runtime (surface to surface), falling back to bottom time for dives that
+  /// only carry one. This is the same `COALESCE(runtime, bottom_time)` total
+  /// the statistics page reports, so a trip's hours agree with the overall
+  /// dive-time figure instead of undercounting every ascent (issue #889).
+  final int totalRuntime; // seconds
   final double? maxDepth;
   final double? avgDepth;
 
   const TripWithStats({
     required this.trip,
     this.diveCount = 0,
-    this.totalBottomTime = 0,
+    this.totalRuntime = 0,
     this.maxDepth,
     this.avgDepth,
   });
 
-  /// Total bottom time formatted as hours:minutes
-  String get formattedBottomTime {
-    final hours = totalBottomTime ~/ 3600;
-    final minutes = (totalBottomTime % 3600) ~/ 60;
+  /// Total runtime formatted as hours:minutes
+  String get formattedRuntime {
+    final hours = totalRuntime ~/ 3600;
+    final minutes = (totalRuntime % 3600) ~/ 60;
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }
@@ -144,7 +202,7 @@ class TripWithStats extends Equatable {
   List<Object?> get props => [
     trip,
     diveCount,
-    totalBottomTime,
+    totalRuntime,
     maxDepth,
     avgDepth,
   ];

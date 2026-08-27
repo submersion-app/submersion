@@ -5,6 +5,7 @@ import 'package:submersion/features/universal_import/data/csv/presets/csv_preset
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/save_preset_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -30,6 +31,9 @@ Widget _buildDialog({
   },
 }) {
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('en'),
     home: Scaffold(
       body: Builder(
         builder: (context) => Center(

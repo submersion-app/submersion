@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Placemark>
+      <name>Geometry Only</name>
+      <LineString>
+        <coordinates>
+          -87.25,20.50,0
+          -87.26,20.51,0
+          -87.27,20.52,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>

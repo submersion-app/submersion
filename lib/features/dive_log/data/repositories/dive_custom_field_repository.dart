@@ -11,6 +11,19 @@ class DiveCustomFieldRepository {
 
   DiveCustomFieldRepository(this._db);
 
+  /// Emits whenever the custom-field rows a query could return change.
+  ///
+  /// Watches `dives` as well as `dive_custom_fields` because
+  /// [getDistinctKeysForDiver] joins the two: deleting a dive removes its
+  /// custom fields by cascade, which changes the suggestion set without the
+  /// `dive_custom_fields` table being written directly.
+  Stream<void> watchCustomFieldsChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.diveCustomFields),
+      TableUpdateQuery.onTable(_db.dives),
+    ]),
+  );
+
   /// Get all custom fields for a single dive, ordered by sort order.
   Future<List<domain.DiveCustomField>> getFieldsForDive(String diveId) async {
     final query = _db.select(_db.diveCustomFields)

@@ -3,35 +3,55 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
+import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
+import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
+import 'package:submersion/features/dive_3d/application/career_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
+import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
+import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
+import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/site_media_import_helper.dart';
+import 'package:submersion/features/media/presentation/widgets/site_media_section.dart';
+import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
   final bool embedded;
   final VoidCallback? onDeleted;
+  final VoidCallback? onClose;
 
   const SiteDetailPage({
     super.key,
     required this.siteId,
     this.embedded = false,
     this.onDeleted,
+    this.onClose,
   });
 
   @override
@@ -45,8 +65,11 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   Widget build(BuildContext context) {
     // Desktop redirect: if viewing detail page directly on desktop, redirect to master-detail.
     // Skip in table mode -- table view has no master-detail split to redirect into.
+    // Also skip if we can pop OR if we came from dive detail, which means we arrived here
+    // from another page and want to be able to go back.
     if (!widget.embedded &&
         !_hasRedirected &&
+        !Navigator.of(context).canPop() &&
         ResponsiveBreakpoints.isMasterDetail(context)) {
       final viewMode = ref.read(siteListViewModeProvider);
       if (viewMode != ListViewMode.table) {
@@ -83,6 +106,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           siteId: widget.siteId,
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
+          onClose: widget.onClose,
         );
       },
       loading: () {
@@ -115,22 +139,36 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   }
 }
 
-class _SiteDetailContent extends ConsumerWidget {
+class _SiteDetailContent extends ConsumerStatefulWidget {
   final DiveSite site;
   final String siteId;
   final bool embedded;
   final VoidCallback? onDeleted;
+  final VoidCallback? onClose;
 
   const _SiteDetailContent({
     required this.site,
     required this.siteId,
     required this.embedded,
     this.onDeleted,
+    this.onClose,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SiteDetailContent> createState() => _SiteDetailContentState();
+}
+
+class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
+  final MapController _previewController = MapController();
+  final MapController _fullController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final site = widget.site;
+    final siteId = widget.siteId;
+    final embedded = widget.embedded;
     final body = SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +192,7 @@ class _SiteDetailContent extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // Location Details Section
-          _buildLocationSection(context, site),
+          _buildLocationSection(context, ref, site),
           const SizedBox(height: 16),
 
           // Depth Information Section
@@ -167,14 +205,56 @@ class _SiteDetailContent extends ConsumerWidget {
             const SizedBox(height: 16),
           ],
 
-          // Tide Section (only if site has coordinates)
+          // Site Features Section (diver-placed annotations; placement happens
+          // on the map, so the add action opens the fullscreen scape armed to
+          // place)
           if (site.hasCoordinates) ...[
+            SiteFeaturesSection(
+              siteId: site.id,
+              onAddFeature: () =>
+                  _showFullscreenMap(context, ref, site, startPlacing: true),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Tide Section (only for non-freshwater sites with coordinates:
+          // a quarry or lake has no tides, and a nearby ocean station must
+          // not leak in)
+          if (site.hasCoordinates && site.waterType != WaterType.fresh) ...[
             TideSection(location: site.location!),
             const SizedBox(height: 16),
           ],
 
+          // Reef Section (only if site has coordinates)
+          if (site.hasCoordinates) ...[
+            ReefSection(location: site.location!, waterType: site.waterType),
+            const SizedBox(height: 16),
+          ],
+
           // Marine Life Section
-          SiteMarineLifeSection(siteId: site.id),
+          SiteMarineLifeSection(
+            siteId: site.id,
+            location: site.location,
+            waterType: site.waterType,
+          ),
+          const SizedBox(height: 16),
+
+          // Site Media Section (attachments + dive photos)
+          SiteMediaSection(
+            siteId: site.id,
+            onAddPhotosPressed: () => SiteMediaImportHelper.importPhotosForSite(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onAddDocumentPressed: () => DocumentOpenHelper.pickAndAttach(
+              context: context,
+              ref: ref,
+              siteId: site.id,
+            ),
+            onOpenDocument: (item) =>
+                DocumentOpenHelper.open(context, ref, item),
+          ),
           const SizedBox(height: 16),
 
           // Difficulty Section
@@ -219,6 +299,13 @@ class _SiteDetailContent extends ConsumerWidget {
       appBar: AppBar(
         title: Text(site.name),
         actions: [
+          if (site.hasCoordinates)
+            IconButton(
+              icon: const Icon(Icons.terrain),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () =>
+                  _showFullscreenMap(context, ref, site, initialScape3d: true),
+            ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,
@@ -238,7 +325,7 @@ class _SiteDetailContent extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -247,6 +334,14 @@ class _SiteDetailContent extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          if (widget.onClose != null) ...[
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: widget.onClose,
+              tooltip: context.l10n.common_action_back,
+            ),
+            const SizedBox(width: 8),
+          ],
           CircleAvatar(
             radius: 20,
             backgroundColor: colorScheme.primaryContainer,
@@ -278,13 +373,38 @@ class _SiteDetailContent extends ConsumerWidget {
               ],
             ),
           ),
+          if (site.hasCoordinates)
+            IconButton(
+              icon: const Icon(Icons.terrain, size: 20),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () =>
+                  _showFullscreenMap(context, ref, site, initialScape3d: true),
+            ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.diveSites_detail_editTooltipShort,
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
-              context.go('$currentPath?selected=$siteId&mode=edit');
+              if (currentPath.startsWith('/dives')) {
+                // If we're on the /dives path, keep it and just add mode=edit and site parameter.
+                // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
+                // because we'll have both ?site=... and &mode=edit in the query params.
+                final params = Map<String, String>.from(
+                  state.uri.queryParameters,
+                );
+                params['mode'] = 'edit';
+                // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
+                // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
+                // the scaffold will try to find a dive with that siteId and fail.
+                params['site'] = widget.siteId;
+                context.push(
+                  Uri(path: currentPath, queryParameters: params).toString(),
+                );
+              } else {
+                // Default to /sites path for site-related navigation if not on /dives.
+                context.go('/sites?selected=${widget.siteId}&mode=edit');
+              }
             },
           ),
           PopupMenuButton<String>(
@@ -351,13 +471,15 @@ class _SiteDetailContent extends ConsumerWidget {
       );
 
       if (confirmed == true) {
-        await ref.read(siteListNotifierProvider.notifier).deleteSite(siteId);
+        await ref
+            .read(siteListNotifierProvider.notifier)
+            .deleteSite(widget.siteId);
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
 
         if (context.mounted) {
-          if (embedded) {
-            onDeleted?.call();
+          if (widget.embedded) {
+            widget.onDeleted?.call();
           } else {
             context.go('/sites');
           }
@@ -378,69 +500,78 @@ class _SiteDetailContent extends ConsumerWidget {
       site.location!.longitude,
     );
 
+    // Flat 2D preview: the seascape lives behind the header's terrain
+    // button and the fullscreen map, both of which open a pane big enough
+    // to read. A 200px strip is not, so it carries no mode toggle.
     return Card(
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         height: 200,
         child: Stack(
           children: [
-            FlutterMap(
-              key: ValueKey(
-                '${site.location!.latitude}_${site.location!.longitude}',
-              ),
-              options: MapOptions(
-                initialCenter: siteLocation,
-                initialZoom: 14.0,
-                minZoom: 2.0,
-                maxZoom: 18.0,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            TrackpadZoomMap(
+              controller: _previewController,
+              child: FlutterMap(
+                mapController: _previewController,
+                key: ValueKey(
+                  '${site.location!.latitude}_${site.location!.longitude}',
                 ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
-                  maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
+                options: MapOptions(
+                  initialCenter: siteLocation,
+                  initialZoom: 14.0,
+                  minZoom: 2.0,
+                  maxZoom: 18.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
                 ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: siteLocation,
-                      width: 50,
-                      height: 50,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.onPrimary,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  BathymetryDepthOverlayLayer(location: site.location),
+                  SiteFeatureMarkerLayer(siteId: site.id),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: siteLocation,
+                        width: 50,
+                        height: 50,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
                             ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.scuba_diving,
-                            size: 24,
-                            color: colorScheme.onPrimary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 24,
+                              color: colorScheme.onPrimary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const MapAttribution(),
-              ],
+                    ],
+                  ),
+                  const MapAttribution(),
+                ],
+              ),
             ),
             Positioned(
               right: 8,
@@ -473,72 +604,20 @@ class _SiteDetailContent extends ConsumerWidget {
     );
   }
 
-  void _showFullscreenMap(BuildContext context, WidgetRef ref, DiveSite site) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation = LatLng(
-      site.location!.latitude,
-      site.location!.longitude,
-    );
-
+  void _showFullscreenMap(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site, {
+    bool initialScape3d = false,
+    bool startPlacing = false,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: Text(site.name)),
-          body: FlutterMap(
-            options: MapOptions(
-              initialCenter: siteLocation,
-              initialZoom: 14.0,
-              minZoom: 2.0,
-              maxZoom: 18.0,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: ref.watch(mapTileUrlProvider),
-                userAgentPackageName: 'app.submersion',
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: siteLocation,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.onPrimary,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.scuba_diving,
-                          size: 24,
-                          color: colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const MapAttribution(),
-            ],
-          ),
+        builder: (context) => _FullscreenSiteScapePage(
+          site: site,
+          controller: _fullController,
+          initialScape3d: initialScape3d,
+          startPlacing: startPlacing,
         ),
       ),
     );
@@ -652,6 +731,23 @@ class _SiteDetailContent extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    // Career terrain is built from the dives at this site,
+                    // so it belongs to this card rather than the page
+                    // chrome. Unconditional, as it was in the app bar:
+                    // it draws from dive profiles, not site coordinates.
+                    IconButton(
+                      key: const ValueKey('siteCareerTerrainButton'),
+                      icon: const Icon(Icons.view_in_ar),
+                      tooltip: context.l10n.dive3d_career_title,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => CareerTerrainPage(
+                            query: careerSiteQuery(site.id),
+                            title: site.name,
+                          ),
+                        ),
+                      ),
+                    ),
                     if (diveCount > 0)
                       Icon(
                         Icons.chevron_right,
@@ -730,8 +826,17 @@ class _SiteDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildLocationSection(BuildContext context, DiveSite site) {
+  Widget _buildLocationSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final colorScheme = Theme.of(context).colorScheme;
+    final coordinates = units.formatCoordinates(
+      site.location?.latitude,
+      site.location?.longitude,
+    );
 
     return Card(
       child: Padding(
@@ -770,17 +875,42 @@ class _SiteDetailContent extends ConsumerWidget {
             ),
             _buildDetailRow(
               context,
+              Icons.location_city,
+              context.l10n.diveSites_detail_location_city,
+              site.city?.isNotEmpty == true
+                  ? site.city!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.city?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
+              Icons.landscape,
+              context.l10n.diveSites_detail_location_island,
+              site.island?.isNotEmpty == true
+                  ? site.island!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.island?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
+              Icons.waves,
+              context.l10n.diveSites_detail_location_bodyOfWater,
+              site.bodyOfWater?.isNotEmpty == true
+                  ? site.bodyOfWater!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.bodyOfWater?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
               Icons.gps_fixed,
               context.l10n.diveSites_detail_location_gpsCoordinates,
               site.hasCoordinates
-                  ? site.location.toString()
+                  ? coordinates
                   : context.l10n.diveSites_detail_location_notSet,
               isEmpty: !site.hasCoordinates,
               onTap: site.hasCoordinates
                   ? () {
-                      Clipboard.setData(
-                        ClipboardData(text: site.location.toString()),
-                      );
+                      Clipboard.setData(ClipboardData(text: coordinates));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -858,7 +988,9 @@ class _SiteDetailContent extends ConsumerWidget {
   bool _hasAccessInfo(DiveSite site) {
     return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
         (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
-        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty);
+        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
+        site.entryMethod != null ||
+        site.exitMethod != null;
   }
 
   Widget _buildDepthSection(
@@ -1322,6 +1454,24 @@ class _SiteDetailContent extends ConsumerWidget {
                 site.accessNotes!,
               ),
             ],
+            if (site.entryMethod != null) ...[
+              _buildDetailRow(
+                context,
+                Icons.login,
+                context.l10n.diveSites_detail_access_entryMethod,
+                site.entryMethod!.localizedName(context.l10n),
+              ),
+            ],
+            // Only when it differs: a mirrored exit repeats the entry row.
+            if (site.exitMethod != null &&
+                site.exitMethod != site.entryMethod) ...[
+              _buildDetailRow(
+                context,
+                Icons.logout,
+                context.l10n.diveSites_detail_access_exitMethod,
+                site.exitMethod!.localizedName(context.l10n),
+              ),
+            ],
             if (site.mooringNumber != null &&
                 site.mooringNumber!.isNotEmpty) ...[
               _buildDetailRow(
@@ -1430,6 +1580,200 @@ class _SiteDetailContent extends ConsumerWidget {
                 fontStyle: hasNotes ? null : FontStyle.italic,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fullscreen morphable site scape pushed from the detail page: the same
+/// single-pin map the embedded card shows, with the 2D/3D toggle, and it
+/// can open directly in 3D (the app-bar terrain action).
+class _FullscreenSiteScapePage extends ConsumerStatefulWidget {
+  final DiveSite site;
+  final MapController controller;
+  final bool initialScape3d;
+
+  /// Opens armed for feature placement: the next map tap drops a point.
+  final bool startPlacing;
+
+  const _FullscreenSiteScapePage({
+    required this.site,
+    required this.controller,
+    required this.initialScape3d,
+    this.startPlacing = false,
+  });
+
+  @override
+  ConsumerState<_FullscreenSiteScapePage> createState() =>
+      _FullscreenSiteScapePageState();
+}
+
+class _FullscreenSiteScapePageState
+    extends ConsumerState<_FullscreenSiteScapePage> {
+  late SiteScapeMode _mode = widget.initialScape3d
+      ? SiteScapeMode.terrain3d
+      : SiteScapeMode.map2d;
+  late bool _placing = widget.startPlacing;
+
+  /// Drops a feature at the tapped point: depth pre-samples from the
+  /// cached bathymetry grid, then the sheet collects the rest. Placement
+  /// disarms on the first tap whether or not the diver saves.
+  Future<void> _onMapTap(BuildContext context, LatLng latLng) async {
+    if (!_placing) return;
+    setState(() => _placing = false);
+    final site = widget.site;
+    final grid = ref
+        .read(
+          bathymetryGridProvider(BathymetryRepository.quantize(site.location!)),
+        )
+        .valueOrNull;
+    final sampled = grid == null
+        ? null
+        : sampleGridDepth(grid, latLng.latitude, latLng.longitude);
+    if (!context.mounted) return;
+    final result = await showSiteFeatureSheet(
+      context,
+      initialDepthMeters: sampled,
+    );
+    if (result is! SiteFeatureSheetSave) return;
+    await ref
+        .read(siteFeatureRepositoryProvider)
+        .addFeature(
+          siteId: site.id,
+          typeName: result.typeName,
+          latitude: latLng.latitude,
+          longitude: latLng.longitude,
+          bearingDeg: result.bearingDeg,
+          depthMeters: result.depthMeters,
+          name: result.name,
+          notes: result.notes,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final site = widget.site;
+    final colorScheme = Theme.of(context).colorScheme;
+    final siteLocation = LatLng(
+      site.location!.latitude,
+      site.location!.longitude,
+    );
+    return Scaffold(
+      appBar: AppBar(title: Text(site.name)),
+      body: SiteScapeView(
+        mode: _mode,
+        onModeChanged: (m) => setState(() => _mode = m),
+        selectedSiteId: site.id,
+        selectedSiteLocation: site.location,
+        mapController: widget.controller,
+        mapBuilder: (context) => Stack(
+          children: [
+            TrackpadZoomMap(
+              controller: widget.controller,
+              child: FlutterMap(
+                mapController: widget.controller,
+                options: MapOptions(
+                  initialCenter: siteLocation,
+                  initialZoom: 14.0,
+                  minZoom: 2.0,
+                  maxZoom: 18.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
+                  onTap: (_, latLng) => _onMapTap(context, latLng),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  BathymetryDepthOverlayLayer(location: site.location),
+                  SiteFeatureMarkerLayer(siteId: site.id),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: siteLocation,
+                        width: 50,
+                        height: 50,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 24,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const MapAttribution(),
+                ],
+              ),
+            ),
+            if (_placing)
+              Positioned(
+                top: 8,
+                left: 56,
+                right: 8,
+                child: Material(
+                  key: const ValueKey('siteFeaturePlaceBanner'),
+                  color: colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.add_location_alt_outlined,
+                          size: 18,
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            context.l10n.siteFeature_placeHint,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: colorScheme.onSecondaryContainer,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          key: const ValueKey('siteFeaturePlaceCancel'),
+                          icon: const Icon(Icons.close, size: 18),
+                          tooltip: context.l10n.common_action_cancel,
+                          onPressed: () => setState(() => _placing = false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

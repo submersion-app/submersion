@@ -68,4 +68,61 @@ void main() {
     notifier.clearSelectedRange();
     expect(notifier.state.selectedRange, isNull);
   });
+
+  group('trimEndZeros', () {
+    test('is no-op for profiles shorter than two points', () {
+      final shortNotifier = ProfileEditorNotifier(
+        originalProfile: const [DiveProfilePoint(timestamp: 0, depth: 0.0)],
+        editingService: ProfileEditingService(),
+      );
+
+      shortNotifier.trimEndZeros();
+
+      expect(shortNotifier.state.editedProfile.length, 1);
+      expect(shortNotifier.state.undoStack, isEmpty);
+      expect(shortNotifier.state.hasChanges, isFalse);
+    });
+
+    test('trims trailing zeros, creates undo entry, and marks changes', () {
+      final profileWithTrailingZeros = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 60, depth: 20.0),
+        const DiveProfilePoint(timestamp: 120, depth: 0.0),
+        const DiveProfilePoint(timestamp: 180, depth: 0.0),
+        const DiveProfilePoint(timestamp: 240, depth: 0.0),
+      ];
+      final trimNotifier = ProfileEditorNotifier(
+        originalProfile: profileWithTrailingZeros,
+        editingService: ProfileEditingService(),
+      );
+
+      trimNotifier.trimEndZeros();
+
+      expect(trimNotifier.state.editedProfile.length, 3);
+      expect(trimNotifier.state.editedProfile.last.timestamp, 120);
+      expect(trimNotifier.state.undoStack.length, 1);
+      expect(trimNotifier.state.hasChanges, isTrue);
+    });
+
+    test('is no-op when profile does not change after trim', () {
+      final profileWithoutExtraTrailingZeros = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 60, depth: 18.0),
+        const DiveProfilePoint(timestamp: 120, depth: 0.0),
+      ];
+      final trimNotifier = ProfileEditorNotifier(
+        originalProfile: profileWithoutExtraTrailingZeros,
+        editingService: ProfileEditingService(),
+      );
+
+      trimNotifier.trimEndZeros();
+
+      expect(
+        trimNotifier.state.editedProfile,
+        profileWithoutExtraTrailingZeros,
+      );
+      expect(trimNotifier.state.undoStack, isEmpty);
+      expect(trimNotifier.state.hasChanges, isFalse);
+    });
+  });
 }

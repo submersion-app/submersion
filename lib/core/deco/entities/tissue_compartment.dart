@@ -100,16 +100,24 @@ class TissueCompartment extends Equatable {
     return (totalInertGas - 1.0) / denominator;
   }
 
-  /// Calculate ceiling (minimum safe depth) in meters for this compartment
-  /// Using gradient factor to add conservatism
-  double ceiling({double gf = 1.0}) {
+  /// Ceiling as an absolute ambient pressure in bar for this compartment,
+  /// with gradient factor [gf] applied. Depth conversion is the caller's
+  /// job (via DiveEnvironment) so this stays environment-agnostic.
+  double ceilingPressureBar({double gf = 1.0}) {
     // Ceiling in bar absolute = (P_tissue - a * gf) / (gf / b + 1 - gf)
     final a = blendedA;
     final b = blendedB;
-    final pCeiling = (totalInertGas - a * gf) / (gf / b + 1 - gf);
+    return (totalInertGas - a * gf) / (gf / b + 1 - gf);
+  }
 
-    // Convert from bar absolute to meters (1 bar = 10m water)
-    final ceilingMeters = (pCeiling - 1.0) * 10.0;
+  /// Calculate ceiling (minimum safe depth) in meters for this compartment
+  /// using gradient factor to add conservatism.
+  ///
+  /// LEGACY: assumes 1.0 bar surface and 10 m/bar. The Buhlmann engine now
+  /// converts [ceilingPressureBar] through its DiveEnvironment instead;
+  /// this remains for display widgets that predate environments.
+  double ceiling({double gf = 1.0}) {
+    final ceilingMeters = (ceilingPressureBar(gf: gf) - 1.0) * 10.0;
 
     // Ceiling cannot be negative (can't ascend above surface)
     return ceilingMeters < 0 ? 0 : ceilingMeters;

@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for displaying and managing plan segments.
@@ -31,13 +32,15 @@ class SegmentList extends ConsumerWidget {
               children: [
                 Icon(Icons.timeline, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.divePlanner_segmentList_title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                Expanded(
+                  child: Text(
+                    context.l10n.divePlanner_segmentList_title,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: context.l10n.divePlanner_segmentList_addSegment,
@@ -56,7 +59,7 @@ class SegmentList extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: planState.segments.length,
-                onReorder: (oldIndex, newIndex) {
+                onReorderItem: (oldIndex, newIndex) {
                   ref
                       .read(divePlanNotifierProvider.notifier)
                       .reorderSegments(oldIndex, newIndex);
@@ -68,6 +71,11 @@ class SegmentList extends ConsumerWidget {
                     segment: segment,
                     units: units,
                     index: index,
+                    selected:
+                        ref.watch(selectedSegmentIdProvider) == segment.id,
+                    onSelect: () =>
+                        ref.read(selectedSegmentIdProvider.notifier).state =
+                            segment.id,
                     onEdit: () => _showEditSegmentDialog(context, ref, segment),
                     onDelete: () => ref
                         .read(divePlanNotifierProvider.notifier)
@@ -128,6 +136,8 @@ class _SegmentTile extends StatelessWidget {
   final PlanSegment segment;
   final UnitFormatter units;
   final int index;
+  final bool selected;
+  final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -136,6 +146,8 @@ class _SegmentTile extends StatelessWidget {
     required this.segment,
     required this.units,
     required this.index,
+    required this.selected,
+    required this.onSelect,
     required this.onEdit,
     required this.onDelete,
   });
@@ -144,9 +156,24 @@ class _SegmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Compact trailing controls so the description keeps its width inside
+    // a 320px editor pane; tapping selects (mirrors the chart), the pencil
+    // edits.
+    const compactButton = BoxConstraints.tightFor(width: 32, height: 32);
     return ListTile(
+      contentPadding: const EdgeInsets.only(left: 12, right: 8),
+      horizontalTitleGap: 10,
+      selected: selected,
+      selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+        alpha: 0.35,
+      ),
+      onTap: onSelect,
       leading: _SegmentIcon(type: segment.type),
-      title: Text(_formatDescription()),
+      title: Text(
+        _formatDescription(context.l10n),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: Text(
         '${segment.durationFormatted} • ${segment.gasMix.name}',
         style: theme.textTheme.bodySmall,
@@ -155,18 +182,27 @@ class _SegmentTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit, size: 20),
+            icon: const Icon(Icons.edit, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: compactButton,
+            visualDensity: VisualDensity.compact,
             tooltip: context.l10n.divePlanner_segmentList_editSegment,
             onPressed: onEdit,
           ),
           IconButton(
-            icon: const Icon(Icons.delete, size: 20),
+            icon: const Icon(Icons.delete, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: compactButton,
+            visualDensity: VisualDensity.compact,
             tooltip: context.l10n.divePlanner_segmentList_deleteSegment,
             onPressed: onDelete,
           ),
           ReorderableDragStartListener(
             index: index,
-            child: const Icon(Icons.drag_handle),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(Icons.drag_handle, size: 20),
+            ),
           ),
         ],
       ),
@@ -174,24 +210,24 @@ class _SegmentTile extends StatelessWidget {
   }
 
   /// Format the segment description with proper unit settings.
-  String _formatDescription() {
+  String _formatDescription(AppLocalizations l10n) {
     final startDepth = units.formatDepth(segment.startDepth);
     final endDepth = units.formatDepth(segment.endDepth);
     final durationMin = segment.durationSeconds ~/ 60;
 
     switch (segment.type) {
       case SegmentType.descent:
-        return 'Descent $startDepth → $endDepth';
+        return l10n.divePlanner_segmentList_descent(startDepth, endDepth);
       case SegmentType.bottom:
-        return 'Bottom $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_bottom(startDepth, durationMin);
       case SegmentType.ascent:
-        return 'Ascent $startDepth → $endDepth';
+        return l10n.divePlanner_segmentList_ascent(startDepth, endDepth);
       case SegmentType.decoStop:
-        return 'Deco $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_deco(startDepth, durationMin);
       case SegmentType.gasSwitch:
-        return 'Gas switch to ${segment.gasMix.name}';
+        return l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name);
       case SegmentType.safetyStop:
-        return 'Safety stop $startDepth for $durationMin min';
+        return l10n.divePlanner_segmentList_safetyStop(startDepth, durationMin);
     }
   }
 }

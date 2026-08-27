@@ -1,11 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_simple.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+
+/// Existing coverage pins the historical ISO rendering; #964 preference
+/// coverage lives in pdf_date_preference_test.dart.
+final isoDates = PdfDateFormatter(
+  dateFormat: DateFormatPreference.yyyymmdd,
+  timeFormat: TimeFormat.twentyFourHour,
+);
 
 void main() {
   final dives = [
@@ -81,6 +90,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: divesWithTanks,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -90,6 +100,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: divesWithTanks,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -99,6 +110,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: divesWithTanks,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -110,6 +122,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: dives,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -119,6 +132,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: dives,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -128,6 +142,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: dives,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -137,6 +152,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: dives,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });
@@ -146,6 +162,7 @@ void main() {
       final bytes = await template.buildPdf(
         dives: dives,
         pageSize: PdfPageSize.a4,
+        dates: isoDates,
       );
       expect(bytes, isNotEmpty);
     });

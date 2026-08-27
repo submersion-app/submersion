@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/database/database.dart' hide FieldPreset;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/view_field_config.dart';
 
@@ -15,6 +17,9 @@ void main() {
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     repository = ViewConfigRepository(db);
+    // deletePreset logs a deletion through SyncRepository(), which reads
+    // DatabaseService.instance -- point it at this same in-memory db.
+    DatabaseService.instance.setTestDatabase(db);
 
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -30,6 +35,7 @@ void main() {
   });
 
   tearDown(() async {
+    DatabaseService.instance.resetForTesting();
     await db.close();
   });
 
@@ -325,6 +331,47 @@ void main() {
         );
         expect(presets.any((p) => p.id == 'builtin_standard'), isTrue);
       });
+    });
+
+    group('sync notifications', () {
+      // View-config edits stage themselves as pending; the change bus is what
+      // schedules on-change auto-sync. Regression for the missing bus calls.
+      test('saveTableConfig notifies the sync change bus', () async {
+        var fired = false;
+        final sub = SyncEventBus.changes.listen((_) => fired = true);
+        addTearDown(sub.cancel);
+
+        await repository.saveTableConfig(
+          testDiverId,
+          TableViewConfig.defaultConfig(),
+        );
+        await pumpEventQueue();
+
+        expect(fired, isTrue);
+      });
+
+      test(
+        'deletePreset notifies the bus when a user preset is removed',
+        () async {
+          final preset = FieldPreset(
+            id: 'np-1',
+            name: 'NotifyMe',
+            viewMode: ListViewMode.table,
+            configJson: TableViewConfig.defaultConfig().toJson(),
+            isBuiltIn: false,
+          );
+          await repository.savePreset(testDiverId, preset);
+
+          var fired = false;
+          final sub = SyncEventBus.changes.listen((_) => fired = true);
+          addTearDown(sub.cancel);
+
+          await repository.deletePreset('np-1');
+          await pumpEventQueue();
+
+          expect(fired, isTrue);
+        },
+      );
     });
   });
 }

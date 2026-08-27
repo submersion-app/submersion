@@ -1,19 +1,27 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/media/presentation/widgets/lightroom_suggestions_row.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
@@ -38,17 +46,29 @@ String showInOsFileManagerLabel() {
 
 /// Section widget displaying media (photos/videos) for a dive.
 ///
-/// Supports multi-select mode via long-press and drag, with bulk unlink.
+/// Supports multi-select mode via the Select control, with drag-to-range
+/// inside it and bulk unlink.
 class DiveMediaSection extends ConsumerStatefulWidget {
   final String diveId;
   final VoidCallback? onAddPressed;
   final VoidCallback? onScanPressed;
+
+  /// When provided, the add button becomes a menu offering photos and
+  /// documents; without it the button keeps its historical direct-tap
+  /// behavior for callers not yet migrated.
+  final VoidCallback? onAddDocumentPressed;
+
+  /// Invoked when a document tile is tapped (documents never enter the
+  /// photo viewer).
+  final void Function(MediaItem)? onOpenDocument;
 
   const DiveMediaSection({
     super.key,
     required this.diveId,
     this.onAddPressed,
     this.onScanPressed,
+    this.onAddDocumentPressed,
+    this.onOpenDocument,
   });
 
   @override
@@ -56,30 +76,96 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 }
 
 class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
-  bool _isSelectionMode = false;
-  Set<int> _selectedIndices = {};
+  /// Owns the bulk-selection state machine for this section.
+  ///
+  /// Id-based, unlike the positional [DragSelectGridView] it drives. Indices
+  /// are derived from ids on every build, so reordering the media list can no
+  /// longer repoint the selection at different files.
+  final SelectionController _selection = SelectionController();
 
-  void _exitSelectionMode() {
-    setState(() {
-      _isSelectionMode = false;
-      _selectedIndices = {};
-    });
+  bool get _isSelectionMode => _selection.value.isActive;
+
+  /// Media ids whose enrichment backfill we've already kicked off, so the
+  /// post-frame trigger fires once per item rather than on every rebuild.
+  final Set<String> _enrichAttempted = {};
+
+  @override
+  void dispose() {
+    _selection.dispose();
+    super.dispose();
   }
 
-  void _selectAll(int totalCount) {
-    setState(() {
-      _selectedIndices = Set<int>.from(List.generate(totalCount, (i) => i));
-    });
+  Future<void> _scanLightroom(BuildContext context) async {
+    final dive = await ref
+        .read(diveRepositoryProvider)
+        .getDiveById(widget.diveId);
+    if (dive == null || !context.mounted) return;
+    await runLightroomScan(context, ref, [dive]);
   }
+
+  // coverage:ignore-start
+  // Post-frame provider glue: schedules a best-effort enrichment backfill so
+  // locally-linked media (which the file/folder picker links WITHOUT an
+  // enrichment row) gets positioned on the dive profile chart. The logic lives
+  // in DiveMediaEnricher (dive_media_enricher_test); this wiring — a post-frame
+  // callback plus a provider round-trip — is exercised by manual smoke tests,
+  // as flutter_test can't deterministically pump it. Idempotent and guarded by
+  // [_enrichAttempted] so it runs once per item, not on every rebuild.
+  void _scheduleEnrichmentBackfill(List<MediaItem>? items) {
+    if (items == null) return;
+    final missing = items
+        .where((m) => m.enrichment == null && !m.isDocument)
+        .map((m) => m.id)
+        .toSet();
+    if (missing.difference(_enrichAttempted).isEmpty) return;
+    _enrichAttempted.addAll(missing);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _runEnrichmentBackfill(),
+    );
+  }
+
+  Future<void> _runEnrichmentBackfill() async {
+    // The post-frame callback can fire after this state is disposed; touching
+    // `ref` then throws, so bail before using it rather than leaning on the
+    // catch-all below.
+    if (!mounted) return;
+    try {
+      final enriched = await ref
+          .read(diveMediaEnricherProvider)
+          .enrichMissingForDive(widget.diveId);
+      // Re-read so the grid and the profile chart (both watch
+      // mediaForDiveProvider) pick up the new markers.
+      if (enriched > 0 && mounted) {
+        ref.invalidate(mediaForDiveProvider(widget.diveId));
+      }
+    } catch (_) {
+      // Best-effort: a failure just leaves those markers absent this session.
+    }
+  }
+  // coverage:ignore-end
+
+  void _exitSelectionMode() => _selection.exit();
+
+  /// Grid indices for the checked ids, against the current ordering.
+  ///
+  /// Derived every build rather than stored: the ids are the truth and the
+  /// positions are recomputed, which is what makes a reorder safe.
+  Set<int> _indicesFor(List<MediaItem> media) => {
+    for (var i = 0; i < media.length; i++)
+      if (_selection.value.isChecked(media[i].id)) i,
+  };
+
+  /// Ids for the controller, from the grid's positional selection.
+  List<String> _idsFor(List<MediaItem> media, Set<int> indices) => indices
+      .where((i) => i >= 0 && i < media.length)
+      .map((i) => media[i].id)
+      .toList();
 
   Future<void> _unlinkSelected(
     BuildContext context,
     List<MediaItem> media,
   ) async {
-    final selectedIds = _selectedIndices
-        .where((i) => i < media.length)
-        .map((i) => media[i].id)
-        .toList();
+    final selectedIds = _selection.value.checkedIds.toList();
 
     if (selectedIds.isEmpty) return;
 
@@ -111,9 +197,13 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
 
     if (confirmed == true && context.mounted) {
       try {
+        // Unlink IS the removal: the rows leave the library along with
+        // their cloud proxies and thumbnails, and only a row a dive site
+        // still references survives with its dive link cleared. The
+        // original source files are never touched.
         await ref
             .read(mediaListNotifierProvider(widget.diveId).notifier)
-            .deleteMultipleMedia(selectedIds);
+            .unlinkMultipleMedia(selectedIds);
 
         _exitSelectionMode();
 
@@ -132,9 +222,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
-              ),
+              content: Text(context.l10n.media_diveMediaSection_unlinkError(e)),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -150,51 +238,21 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   // `Process.run` / `FilePicker.pickFiles` / `showMenu`, none of which are
   // unit-testable from flutter_test. Exercised by manual desktop smoke tests.
 
-  /// Reveals [path] in the platform's native file manager. Failures of the
-  /// spawned process are intentionally swallowed: surfacing them would require
-  /// UX out of scope for the context menu.
-  Future<void> _showInFinder(String path) async {
-    if (Platform.isMacOS) {
-      await Process.run('open', ['-R', path]);
-    } else if (Platform.isWindows) {
-      await Process.run('explorer', ['/select,', path]);
-    } else if (Platform.isLinux) {
-      await Process.run('xdg-open', [File(path).parent.path]);
-    }
-  }
-
-  /// Prompts the user to pick a replacement file for [item] and updates the
-  /// existing media row's `localPath` (and on macOS regenerates the keychain
-  /// bookmark blob so resolution lands on the new file). Desktop-only by
-  /// virtue of the right-click gating in the cell builder.
+  /// Prompts the user to pick a replacement file for [item] and routes the
+  /// re-link through the repair engine (Media section Phase 3): the picked
+  /// file is hash-verified against the row's content identity, bookmark
+  /// regeneration is engine-owned, and picking DIFFERENT bytes requires an
+  /// explicit confirm because accepting re-uploads them to the media store.
+  /// Desktop-only by virtue of the right-click gating in the cell builder.
   ///
   /// Phase 2 photo-only constraint: picker is restricted to `FileType.image`
   /// (videos aren't supported as local-file media yet, see [FilesTab]).
   Future<void> _replaceLink(MediaItem item) async {
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    if (result == null) return;
-    final newPath = result.files.first.path;
-    if (newPath == null) return;
-
-    final notifier = ref.read(
-      mediaListNotifierProvider(widget.diveId).notifier,
-    );
-
-    if (Platform.isMacOS && item.sourceType == MediaSourceType.localFile) {
-      // Regenerate the security-scoped bookmark for the new path. Reuse the
-      // existing bookmarkRef as the keychain key (LocalBookmarkStorage.write
-      // is an idempotent overwrite) so we don't orphan the prior entry.
-      final platform = ref.read(localMediaPlatformProvider);
-      final storage = ref.read(localBookmarkStorageProvider);
-      final blob = await platform.createBookmark(newPath);
-      final newRef = item.bookmarkRef ?? const Uuid().v4();
-      await storage.write(newRef, blob);
-      await notifier.updateMedia(
-        item.copyWith(localPath: newPath, bookmarkRef: newRef),
-      );
-    } else {
-      await notifier.updateMedia(item.copyWith(localPath: newPath));
-    }
+    final applied = await replaceMediaLink(context, ref, item);
+    // The refresh stays here rather than in the helper: it is dive-scoped,
+    // and the info panel calls the same flow without a dive list to refresh.
+    if (!applied || !mounted) return;
+    await ref.read(mediaListNotifierProvider(widget.diveId).notifier).refresh();
   }
 
   /// Opens the right-click context menu for a local-file media item.
@@ -234,7 +292,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     );
 
     if (selected == 'show' && item.localPath != null) {
-      await _showInFinder(item.localPath!);
+      await revealInFileManager(item.localPath!);
     } else if (selected == 'replace') {
       if (!context.mounted) return;
       await _replaceLink(item);
@@ -245,10 +303,37 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   @override
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
+    _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
     final settings = ref.watch(settingsProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Drop checked media that is no longer attached to this dive, so an
+    // unlink can never reach an item that is not on screen.
+    final visibleIds =
+        mediaAsync.valueOrNull?.map((m) => m.id).toList() ?? const <String>[];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) =>
+            _buildCard(context, mediaAsync, settings, colorScheme, textTheme),
+      ),
+    );
+  }
+
+  Widget _buildCard(
+    BuildContext context,
+    AsyncValue<List<MediaItem>> mediaAsync,
+    AppSettings settings,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -258,12 +343,25 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // Header: selection mode or normal
             if (_isSelectionMode)
               mediaAsync.whenOrNull(
-                    data: (media) => _SelectionHeader(
-                      selectedCount: _selectedIndices.length,
-                      totalCount: media.length,
-                      onSelectAll: () => _selectAll(media.length),
-                      onCancel: _exitSelectionMode,
-                      onUnlinkSelected: () => _unlinkSelected(context, media),
+                    data: (media) => SelectionAppBar(
+                      controller: _selection,
+                      selectableIds: media.map((m) => m.id).toList(),
+                      shell: SelectionBarShell.pane,
+                      // Unlinking removes media from this dive without
+                      // destroying files, so this surface has no true delete
+                      // and the baseline delete control is omitted.
+                      onDelete: null,
+                      actions: [
+                        BulkAction(
+                          id: 'unlink',
+                          icon: Icons.link_off,
+                          label: context.l10n
+                              .media_diveMediaSection_unlinkSelectedButton(
+                                _selection.value.count,
+                              ),
+                          onInvoke: () => _unlinkSelected(context, media),
+                        ),
+                      ],
                     ),
                   ) ??
                   const SizedBox.shrink()
@@ -282,6 +380,24 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       style: textTheme.titleMedium,
                     ),
                   ),
+                  // The only way into selection: entry by long-press was
+                  // removed, so nothing but this control opens the mode.
+                  mediaAsync.whenOrNull(
+                        data: (media) => media.isEmpty
+                            ? const SizedBox.shrink()
+                            : IconButton(
+                                key: const ValueKey('enter_selection'),
+                                icon: Icon(
+                                  Icons.checklist,
+                                  color: colorScheme.primary,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                tooltip:
+                                    context.l10n.common_selection_enterTooltip,
+                                onPressed: _selection.enterExplicit,
+                              ),
+                      ) ??
+                      const SizedBox.shrink(),
                   if (widget.onScanPressed != null)
                     IconButton(
                       icon: Icon(
@@ -292,7 +408,21 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.media_diveScan_scanTooltip,
                       onPressed: widget.onScanPressed,
                     ),
-                  if (widget.onAddPressed != null)
+                  // Lightroom scan hidden pending Adobe review
+                  // (lightroomUiEnabled).
+                  if (lightroomUiEnabled &&
+                      ref.watch(lightroomAccountProvider).value != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.cloud_sync_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.l10n.settings_lightroom_scanNow,
+                      onPressed: () => _scanLightroom(context),
+                    ),
+                  if (widget.onAddPressed != null &&
+                      widget.onAddDocumentPressed == null)
                     IconButton(
                       icon: Icon(
                         Icons.add_photo_alternate,
@@ -301,6 +431,34 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       visualDensity: VisualDensity.compact,
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onPressed: widget.onAddPressed,
+                    )
+                  else if (widget.onAddPressed != null)
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.add_photo_alternate,
+                        color: colorScheme.primary,
+                      ),
+                      tooltip: context.l10n.media_diveMediaSection_addTooltip,
+                      onSelected: (value) {
+                        if (value == 'photos') widget.onAddPressed!();
+                        if (value == 'document') {
+                          widget.onAddDocumentPressed!();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'photos',
+                          child: Text(
+                            context.l10n.media_siteMediaSection_addPhotos,
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'document',
+                          child: Text(
+                            context.l10n.media_siteMediaSection_addDocument,
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -309,31 +467,48 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             mediaAsync.when(
               data: (media) {
                 if (media.isEmpty) {
-                  return const _EmptyMediaState();
+                  return MediaEmptyState(
+                    icon: Icons.photo_camera_outlined,
+                    message: context.l10n.media_diveMediaSection_emptyState,
+                  );
                 }
                 return DragSelectGridView<MediaItem>(
                   items: media,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   startInSelectionMode: _isSelectionMode,
-                  initialSelection: _selectedIndices,
+                  initialSelection: _indicesFor(media),
+                  // The controller owns the mode, because only it knows how the
+                  // mode was entered: a Select-button entry must survive at
+                  // zero checked, an incidental one must evaporate. Letting the
+                  // grid also decide had the two fight -- its exit callback
+                  // cleared the controller and the selection callback
+                  // immediately reactivated it, leaving the bar stranded at
+                  // "0 selected".
+                  exitOnEmptySelection: false,
                   onSelectionChanged: (indices) {
-                    setState(() {
-                      _selectedIndices = indices;
-                    });
+                    // The grid reports its complete selection, not a delta, so
+                    // this replaces rather than toggles. Not selectAll: that
+                    // declares the mode explicit, which would launder a
+                    // grid gesture into a deliberate entry.
+                    _selection.replaceChecked(_idsFor(media, indices));
                   },
-                  onSelectionModeChanged: (isSelecting) {
-                    setState(() {
-                      _isSelectionMode = isSelecting;
-                    });
-                  },
+                  // Entry and exit both travel through onSelectionChanged
+                  // above; the grid follows the controller back out via
+                  // startInSelectionMode.
+                  onSelectionModeChanged: (_) {},
                   onItemTap: (index) {
+                    final item = media[index];
+                    if (item.isDocument) {
+                      widget.onOpenDocument?.call(item);
+                      return;
+                    }
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         fullscreenDialog: true,
                         builder: (_) => PhotoViewerPage(
                           diveId: widget.diveId,
-                          initialMediaId: media[index].id,
+                          initialMediaId: item.id,
                         ),
                       ),
                     );
@@ -354,11 +529,13 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   // driver. Both are exercised by manual desktop smoke
                   // tests.
                   itemBuilder: (context, item, isSelected) {
-                    final thumbnail = _MediaThumbnailContent(
+                    final thumbnail = MediaThumbnailTile(
                       item: item,
                       settings: settings,
                       isSelectionMode: _isSelectionMode,
                       isSelected: isSelected,
+                      semanticsLabel:
+                          context.l10n.media_diveMediaSection_thumbnailLabel,
                     );
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -379,247 +556,11 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
+            // Lightroom suggestions hidden pending Adobe review
+            // (lightroomUiEnabled).
+            if (lightroomUiEnabled)
+              LightroomSuggestionsRow(diveId: widget.diveId),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Header shown during multi-select mode with count, select all, and unlink.
-class _SelectionHeader extends StatelessWidget {
-  final int selectedCount;
-  final int totalCount;
-  final VoidCallback onSelectAll;
-  final VoidCallback onCancel;
-  final VoidCallback onUnlinkSelected;
-
-  const _SelectionHeader({
-    required this.selectedCount,
-    required this.totalCount,
-    required this.onSelectAll,
-    required this.onCancel,
-    required this.onUnlinkSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: context.l10n.media_diveMediaSection_cancelSelectionButton,
-          onPressed: onCancel,
-        ),
-        Text(
-          context.l10n.media_diveMediaSection_selectedCount(selectedCount),
-          style: textTheme.titleMedium,
-        ),
-        const Spacer(),
-        if (selectedCount < totalCount)
-          TextButton(
-            onPressed: onSelectAll,
-            child: Text(context.l10n.media_diveMediaSection_selectAllButton),
-          ),
-        IconButton(
-          icon: Icon(Icons.delete_outline, color: colorScheme.error),
-          tooltip: context.l10n.media_diveMediaSection_unlinkSelectedButton(
-            selectedCount,
-          ),
-          onPressed: selectedCount > 0 ? onUnlinkSelected : null,
-        ),
-      ],
-    );
-  }
-}
-
-/// Empty state when no media is associated with the dive
-class _EmptyMediaState extends StatelessWidget {
-  const _EmptyMediaState();
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.photo_camera_outlined,
-            size: 48,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.media_diveMediaSection_emptyState,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Purely visual thumbnail content for media items.
-///
-/// Tap, long-press, and drag gestures are handled by [DragSelectGridView].
-/// Right-click (`onSecondaryTapDown`) is handled by an outer [GestureDetector]
-/// in the grid's `itemBuilder`, which opens a desktop-only context menu for
-/// local-file items.
-class _MediaThumbnailContent extends StatelessWidget {
-  final MediaItem item;
-  final AppSettings settings;
-  final bool isSelectionMode;
-  final bool isSelected;
-
-  const _MediaThumbnailContent({
-    required this.item,
-    required this.settings,
-    required this.isSelectionMode,
-    required this.isSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final formatter = UnitFormatter(settings);
-
-    return Semantics(
-      label: context.l10n.media_diveMediaSection_thumbnailLabel,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Thumbnail or placeholder.
-            // Orphaned items show a distinct error tile; all other items
-            // route through MediaItemView which dispatches to the correct
-            // resolver for the item's sourceType (gallery, signature, etc.)
-            // and renders UnavailableMediaPlaceholder for missing assets.
-            if (item.isOrphaned)
-              const _OrphanedPlaceholder()
-            else
-              MediaItemView(
-                item: item,
-                thumbnail: true,
-                targetSize: const Size(200, 200),
-                fit: BoxFit.cover,
-              ),
-
-            // Dimming overlay for unselected items in selection mode
-            if (isSelectionMode && !isSelected)
-              Container(color: Colors.black.withValues(alpha: 0.3)),
-
-            // Selection overlay with primary border and tint
-            if (isSelected)
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: colorScheme.primary, width: 3),
-                  color: colorScheme.primary.withValues(alpha: 0.2),
-                ),
-              ),
-
-            // Checkmark circle on selected items
-            if (isSelected)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.check,
-                    size: 16,
-                    color: colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-
-            // Video icon (top-right when no checkmark, hidden when checkmark)
-            if (item.isVideo && !isSelected)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(
-                    Icons.videocam,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-            // Depth badge (bottom-left)
-            if (item.enrichment?.depthMeters != null)
-              Positioned(
-                bottom: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    formatter.formatDepth(
-                      item.enrichment!.depthMeters,
-                      decimals: 0,
-                    ),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Placeholder shown for orphaned media (file no longer exists)
-class _OrphanedPlaceholder extends StatelessWidget {
-  const _OrphanedPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      color: colorScheme.errorContainer,
-      child: Center(
-        child: Icon(
-          Icons.broken_image_outlined,
-          color: colorScheme.onErrorContainer,
         ),
       ),
     );

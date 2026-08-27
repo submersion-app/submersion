@@ -19,6 +19,11 @@ echo "🔗 Configuring git hooks..."
 git config core.hooksPath hooks
 echo "✅ Git hooks configured"
 
+# libdivecomputer is vendored as a fork submodule
+# (submersion-app/libdivecomputer, branch submersion-patches) that already
+# includes our parser patches, so there is no patch step here. Fetch it with
+# `git submodule update --init --recursive`.
+
 # Install Flutter dependencies
 echo ""
 echo "📦 Installing Flutter dependencies..."

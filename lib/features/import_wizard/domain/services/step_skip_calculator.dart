@@ -1,4 +1,4 @@
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 
 /// Calculates the next page index by skipping steps whose auto-advance
 /// condition is already met.

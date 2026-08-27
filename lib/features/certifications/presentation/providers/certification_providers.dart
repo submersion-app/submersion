@@ -4,6 +4,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((
@@ -20,7 +22,12 @@ final certificationRepositoryProvider = Provider<CertificationRepository>((
   return CertificationRepository();
 });
 
-/// All certifications provider
+/// All certifications provider.
+///
+/// Self-invalidates whenever the `certifications` table changes -- including
+/// when a sync applies remote changes -- so the list refreshes automatically,
+/// while remaining a [FutureProvider] so imperative
+/// `ref.read(provider.future)` reads still resolve.
 final allCertificationsProvider = FutureProvider<List<Certification>>((
   ref,
 ) async {
@@ -28,8 +35,31 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchCertificationsChanges());
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
+
+/// Certifications owned by a specific buddy (issue #553). Self-invalidates on
+/// any certifications-table change, including sync.
+final buddyCertificationsProvider =
+    FutureProvider.family<List<Certification>, String>((ref, buddyId) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      return repository.getCertificationsByBuddy(buddyId);
+    });
+
+/// Certifications for every buddy, keyed by buddy id — the picker-annotation
+/// replacement for the removed allBuddyRolesProvider. Single batched query
+/// (no N+1); self-invalidates on any certifications change (local or sync).
+final allBuddyCertificationsProvider =
+    FutureProvider<Map<String, List<Certification>>>((ref) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      final buddies = await ref.watch(allBuddiesProvider.future);
+      return repository.getCertificationsForBuddies(
+        buddies.map((b) => b.id).toList(),
+      );
+    });
 
 /// Certification sort state provider
 final certificationSortProvider =
@@ -80,6 +110,7 @@ List<Certification> applyCertificationSorting(
 final certificationByIdProvider = FutureProvider.family<Certification?, String>(
   (ref, id) async {
     final repository = ref.watch(certificationRepositoryProvider);
+    ref.invalidateSelfWhen(repository.watchCertificationsChanges());
     return repository.getCertificationById(id);
   },
 );
@@ -94,6 +125,7 @@ final certificationSearchProvider =
         return ref.watch(allCertificationsProvider).value ?? [];
       }
       final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       return repository.searchCertifications(query, diverId: validatedDiverId);
     });
 
@@ -104,6 +136,7 @@ final expiringCertificationsProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       return repository.getExpiringCertifications(
         days,
         diverId: validatedDiverId,
@@ -118,6 +151,7 @@ final expiredCertificationsProvider = FutureProvider<List<Certification>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchCertificationsChanges());
   return repository.getExpiredCertifications(diverId: validatedDiverId);
 });
 
@@ -128,6 +162,7 @@ final certificationsByAgencyProvider =
       agency,
     ) async {
       final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       return repository.getCertificationsByAgency(agency);
     });
 
@@ -140,7 +175,11 @@ class CertificationListNotifier
 
   CertificationListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      CertificationListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -148,9 +187,20 @@ class CertificationListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allCertificationsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          CertificationListNotifier,
+          'initialize and load',
+        );
       }
     });
+
+    // Refresh when the certifications table changes (e.g. a sync writes rows
+    // directly).
+    final tableChangeSub = _repository.watchCertificationsChanges().listen(
+      (_) => _silentReloadCertifications(),
+    );
+    _ref.onDispose(tableChangeSub.cancel);
   }
 
   Future<void> _initializeAndLoad() async {
@@ -169,6 +219,24 @@ class CertificationListNotifier
       state = AsyncValue.data(certifications);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Reload without flipping to a loading state, so table-driven refreshes
+  /// (e.g. after a sync write) do not flash a spinner over existing data.
+  /// Resolves the validated diver id first so a tick arriving before
+  /// initialization completes still scopes the query correctly.
+  Future<void> _silentReloadCertifications() async {
+    try {
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
+      final certifications = await _repository.getAllCertifications(
+        diverId: _validatedDiverId,
+      );
+      if (mounted) state = AsyncValue.data(certifications);
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 
@@ -33,6 +34,11 @@ enum _TestField implements EntityField {
 
   @override
   String get categoryName => 'test';
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => displayName;
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => shortLabel;
 
   @override
   bool get isRightAligned => false;

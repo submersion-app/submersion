@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
 /// Bottom sheet for requesting a buddy's signature
 ///
@@ -82,7 +83,7 @@ class _BuddySignatureRequestSheetState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      widget.buddyWithRole.role.displayName,
+                      widget.buddyWithRole.role.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -332,6 +333,10 @@ Future<void> showBuddySignatureRequestSheet({
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    // Drawing on the signature canvas uses a pan gesture; the sheet's
+    // drag-to-dismiss would otherwise win the gesture arena and move the
+    // whole sheet instead of drawing. A Cancel button provides dismissal.
+    enableDrag: false,
     builder: (context) => BuddySignatureRequestSheet(
       buddyWithRole: buddyWithRole,
       onSave: onSave,

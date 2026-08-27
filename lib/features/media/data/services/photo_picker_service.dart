@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+
 /// Permission status for photo library access.
 enum PhotoPermissionStatus {
   /// User has granted access.
@@ -47,6 +49,17 @@ class AssetInfo {
   /// Original filename if available.
   final String? filename;
 
+  /// Absolute filesystem path, when the asset came from a file dialog rather
+  /// than a platform photo library.
+  ///
+  /// Null on iOS / Android / macOS, where [id] is a real photo_manager asset
+  /// ID and the library owns the file. Non-null on Windows / Linux, where
+  /// there is no platform gallery and [id] is only a synthetic key into an
+  /// in-memory map that dies with the process. Importers must persist this
+  /// path so the row survives a restart -- see [AssetInfo] usage in
+  /// `MediaImportService`.
+  final String? filePath;
+
   const AssetInfo({
     required this.id,
     required this.type,
@@ -57,6 +70,7 @@ class AssetInfo {
     this.latitude,
     this.longitude,
     this.filename,
+    this.filePath,
   });
 
   /// Whether this asset is a video.
@@ -117,4 +131,10 @@ abstract class PhotoPickerService {
   /// This is needed for video playback, which requires a file path rather
   /// than raw bytes. Returns null if the asset no longer exists.
   Future<String?> getFilePath(String assetId);
+
+  /// Get original metadata for an asset without exporting the whole asset.
+  ///
+  /// Platform implementations may use native gallery APIs for this. Returns
+  /// null when the platform cannot provide metadata or the asset is missing.
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId);
 }

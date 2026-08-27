@@ -1,12 +1,14 @@
 import 'dart:io';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/auto_update/data/repositories/update_preferences.dart';
 import 'package:submersion/features/auto_update/data/services/github_update_service.dart';
 import 'package:submersion/features/auto_update/data/services/sparkle_update_service.dart';
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
+import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,14 +17,29 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 const _githubOwner = 'submersion-app';
 const _githubRepo = 'submersion';
 
-/// Appcast feed URL for Sparkle/WinSparkle (macOS + Windows).
-const _appcastUrl =
-    'https://github.com/$_githubOwner/$_githubRepo/releases/latest/download/appcast.xml';
+/// Repository holding per-merge beta releases (superset appcast + artifacts).
+const _betaRepo = 'beta-builds';
+
+/// Appcast feed URL for Sparkle/WinSparkle (macOS + Windows) per channel.
+/// The beta feed is a superset (beta items first, stable items appended), so
+/// a device switched back to stable still walks forward onto the next stable.
+String appcastUrlFor(ReleaseChannel channel) => switch (channel) {
+  ReleaseChannel.stable =>
+    'https://github.com/$_githubOwner/$_githubRepo/releases/latest/download/appcast.xml',
+  ReleaseChannel.beta =>
+    'https://github.com/$_githubOwner/$_betaRepo/releases/latest/download/appcast-beta.xml',
+};
+
+/// GitHub repo polled by the non-Sparkle updater (Linux/Android) per channel.
+String githubRepoFor(ReleaseChannel channel) => switch (channel) {
+  ReleaseChannel.stable => _githubRepo,
+  ReleaseChannel.beta => _betaRepo,
+};
 
 /// Platform-specific asset suffix for GitHub Releases downloads.
 String get _platformSuffix {
   if (Platform.isMacOS) return 'macOS.dmg';
-  if (Platform.isWindows) return 'Windows.zip';
+  if (Platform.isWindows) return 'Windows-Setup.exe';
   if (Platform.isLinux) return 'Linux.tar.gz';
   if (Platform.isAndroid) return 'Android.apk';
   return '';
@@ -37,20 +54,29 @@ final updatePreferencesProvider = Provider<UpdatePreferences>((ref) {
   return UpdatePreferences(prefs);
 });
 
+/// The user-selected release channel, re-evaluated when preferences reload.
+final releaseChannelProvider = Provider<ReleaseChannel>((ref) {
+  return ref.watch(updatePreferencesProvider).releaseChannel;
+});
+
 /// The platform-appropriate update service.
 final updateServiceProvider = FutureProvider<UpdateService?>((ref) async {
   if (!UpdateChannelConfig.isAutoUpdateEnabled) return null;
 
+  final channel = ref.watch(releaseChannelProvider);
   final packageInfo = await PackageInfo.fromPlatform();
-  final currentVersion = packageInfo.version;
+  // Release tags are 4-segment (vX.Y.Z.N) while packageInfo.version is the
+  // 3-segment marketing version; without the build number appended, a
+  // current install always compares as older than its own release tag.
+  final currentVersion = formatAppVersion(packageInfo);
 
   if (_useSparkleEngine) {
-    return SparkleUpdateService(feedUrl: _appcastUrl);
+    return SparkleUpdateService(feedUrl: appcastUrlFor(channel));
   }
 
   return GithubUpdateService(
     owner: _githubOwner,
-    repo: _githubRepo,
+    repo: githubRepoFor(channel),
     currentVersion: currentVersion,
     platformSuffix: _platformSuffix,
   );

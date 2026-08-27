@@ -33,6 +33,14 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
+        repository.findByHardwareIdentity(
+          manufacturer: 'Shearwater',
+          model: 'Perdix',
+          serialNumber: 'SN-12345',
+        ),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.createComputer(
           DiveComputer(
             id: '',

@@ -3,6 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/conflict_data_preview.dart';
+import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for resolving sync conflicts between local and remote data
@@ -153,11 +155,11 @@ class _ConflictResolutionDialogState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        conflict.displayName,
+                        _conflictTitle(conflict),
                         style: theme.textTheme.titleMedium,
                       ),
                       Text(
-                        _formatEntityType(conflict.entityType),
+                        humanizeEntityType(conflict.entityType),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -197,7 +199,12 @@ class _ConflictResolutionDialogState
                   ],
                 ),
                 const SizedBox(height: 8),
-                _buildDataPreview(context, conflict.localData),
+                ConflictDataPreview(
+                  entityType: conflict.entityType,
+                  data: conflict.localData,
+                  references: conflict.localReferences,
+                  counterpart: conflict.remoteData,
+                ),
               ],
             ),
           ),
@@ -230,7 +237,12 @@ class _ConflictResolutionDialogState
                   ],
                 ),
                 const SizedBox(height: 8),
-                _buildDataPreview(context, conflict.remoteData),
+                ConflictDataPreview(
+                  entityType: conflict.entityType,
+                  data: conflict.remoteData,
+                  references: conflict.remoteReferences,
+                  counterpart: conflict.localData,
+                ),
               ],
             ),
           ),
@@ -239,79 +251,24 @@ class _ConflictResolutionDialogState
     );
   }
 
-  Widget _buildDataPreview(BuildContext context, Map<String, dynamic> data) {
-    if (data.isEmpty) {
-      return Text(
-        context.l10n.settings_conflict_noDataAvailable,
-        style: Theme.of(
-          context,
-        ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-      );
-    }
-
-    // Show key fields from the data
-    final displayFields = _getDisplayFields(data);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: displayFields.entries.map((entry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 100,
-                child: Text(
-                  '${entry.key}:',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  entry.value.toString(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
+  /// Names the record a user is being asked about. Junction and relation
+  /// entities have no name of their own, so they are named by the records they
+  /// point at; only a record that resolved to nothing falls back to its id.
+  ///
+  /// Either side can supply the name. When the local row is already gone the
+  /// remote one is all there is, and an id-based title would be a worse answer
+  /// than the name sitting in the version being offered.
+  String _conflictTitle(SyncConflict conflict) {
+    final own = _ownName(conflict.localData) ?? _ownName(conflict.remoteData);
+    if (own != null) return own;
+    return conflictReferenceSummary(conflict.localReferences) ??
+        conflictReferenceSummary(conflict.remoteReferences) ??
+        conflict.displayName;
   }
 
-  Map<String, dynamic> _getDisplayFields(Map<String, dynamic> data) {
-    // Filter to show only important fields
-    const importantKeys = [
-      'name',
-      'title',
-      'description',
-      'date',
-      'location',
-      'maxDepth',
-      'duration',
-      'notes',
-    ];
-
-    final result = <String, dynamic>{};
-    for (final key in importantKeys) {
-      if (data.containsKey(key) && data[key] != null) {
-        result[key] = data[key];
-      }
-    }
-
-    // If no important fields found, show first few fields
-    if (result.isEmpty) {
-      final entries = data.entries.take(5);
-      for (final entry in entries) {
-        if (entry.value != null) {
-          result[entry.key] = entry.value;
-        }
-      }
-    }
-
-    return result;
+  String? _ownName(Map<String, dynamic> data) {
+    final name = data['name'] as String? ?? data['title'] as String?;
+    return (name != null && name.isNotEmpty) ? name : null;
   }
 
   Widget _buildResolutionOptions(BuildContext context, SyncConflict conflict) {
@@ -444,38 +401,43 @@ class _ConflictResolutionDialogState
     }
   }
 
+  /// Icon for a sync entity type. Matched on the entity type the sync layer
+  /// actually uses (camelCase plurals such as `diveSites`), lowercased so the
+  /// legacy snake_case spellings keep working.
   IconData _getEntityIcon(String entityType) {
     switch (entityType.toLowerCase()) {
       case 'dive':
       case 'dives':
         return Icons.scuba_diving;
       case 'divesite':
+      case 'divesites':
       case 'dive_sites':
         return Icons.place;
       case 'gear':
+      case 'equipment':
+      case 'equipmentsets':
         return Icons.backpack;
       case 'diver':
       case 'divers':
         return Icons.person;
+      case 'buddies':
+        return Icons.people;
       case 'trip':
       case 'trips':
         return Icons.card_travel;
+      case 'tags':
+      case 'divetags':
+        return Icons.label;
+      case 'media':
+        return Icons.photo_library;
+      case 'species':
+      case 'sightings':
+        return Icons.pets;
+      case 'qualityfindings':
+        return Icons.rule;
       default:
         return Icons.description;
     }
-  }
-
-  String _formatEntityType(String entityType) {
-    // Convert snake_case to Title Case
-    return entityType
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map(
-          (word) => word.isNotEmpty
-              ? '${word[0].toUpperCase()}${word.substring(1)}'
-              : '',
-        )
-        .join(' ');
   }
 
   String _formatDateTime(DateTime dateTime) {

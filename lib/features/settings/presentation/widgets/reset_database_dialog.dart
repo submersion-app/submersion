@@ -40,7 +40,12 @@ class _ResetDatabaseDialogState extends State<ResetDatabaseDialog> {
   }
 
   void _onTextChanged() {
-    final confirmed = _controller.text.trim() == 'Delete';
+    // The expected word is localized. It used to be a hardcoded 'Delete',
+    // which made this dialog impossible to confirm in the seven locales whose
+    // hint quotes a translated word: the user typed what they were told and
+    // the button stayed disabled.
+    final expected = context.l10n.settings_storage_resetDialog_confirmWord;
+    final confirmed = _controller.text.trim() == expected;
     if (confirmed != _isConfirmed) {
       setState(() => _isConfirmed = confirmed);
     }

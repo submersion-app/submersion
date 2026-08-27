@@ -18,7 +18,8 @@ class PlaybackState extends Equatable {
   /// Step increment in seconds for forward/backward stepping
   final int stepIncrement;
 
-  /// Playback speed multiplier (1.0 = 1 second per second)
+  /// Playback speed multiplier: dive-seconds replayed per wall-second
+  /// (e.g. 30.0 = a 30-minute dive replays in 1 minute)
   final double playbackSpeed;
 
   /// Maximum timestamp in seconds (dive duration)
@@ -31,7 +32,7 @@ class PlaybackState extends Equatable {
     this.isPlaying = false,
     this.currentTimestamp = 0,
     this.stepIncrement = 10,
-    this.playbackSpeed = 1.0,
+    this.playbackSpeed = 30.0,
     this.maxTimestamp = 0,
     this.isActive = false,
   });
@@ -91,7 +92,18 @@ class PlaybackState extends Equatable {
 
 /// Notifier for managing dive profile playback state.
 class PlaybackNotifier extends StateNotifier<PlaybackState> {
+  /// Replay speed presets: dive-seconds per wall-second. A 60-minute dive
+  /// replays in 1 minute at 60x.
+  static const List<double> speedPresets = [1, 5, 15, 30, 60, 120];
+
+  /// Tick interval: 40 frames per second. 40 * 0.025 = 1.0, so one
+  /// wall-second advances exactly [playbackSpeed] dive-seconds.
+  static const Duration _tickInterval = Duration(milliseconds: 25);
+
   Timer? _timer;
+
+  /// Fractional dive-seconds accumulated between whole-second state updates.
+  double _fractional = 0;
 
   PlaybackNotifier() : super(const PlaybackState());
 
@@ -123,13 +135,9 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     if (!state.isActive || state.atEnd) return;
 
     state = state.copyWith(isPlaying: true);
-
-    // Calculate interval based on playback speed and step increment
-    // At 1x speed with 1-second steps, advance every 1 second
-    final intervalMs = (1000 / state.playbackSpeed).round();
-
+    _fractional = state.currentTimestamp.toDouble();
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(milliseconds: intervalMs), (_) => _tick());
+    _timer = Timer.periodic(_tickInterval, (_) => _tick());
   }
 
   /// Pause auto-playback
@@ -155,6 +163,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       0,
       state.maxTimestamp,
     );
+    _fractional = newTimestamp.toDouble();
     state = state.copyWith(currentTimestamp: newTimestamp);
 
     // Stop playing if we reached the end
@@ -171,12 +180,14 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       0,
       state.maxTimestamp,
     );
+    _fractional = newTimestamp.toDouble();
     state = state.copyWith(currentTimestamp: newTimestamp);
   }
 
   /// Jump to the start of the dive
   void skipToStart() {
     if (!state.isActive) return;
+    _fractional = 0;
     state = state.copyWith(currentTimestamp: 0);
   }
 
@@ -184,6 +195,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   void skipToEnd() {
     if (!state.isActive) return;
     pause(); // Stop playing when jumping to end
+    _fractional = state.maxTimestamp.toDouble();
     state = state.copyWith(currentTimestamp: state.maxTimestamp);
   }
 
@@ -192,6 +204,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     if (!state.isActive) return;
 
     final clampedTimestamp = timestamp.clamp(0, state.maxTimestamp);
+    _fractional = clampedTimestamp.toDouble();
     state = state.copyWith(currentTimestamp: clampedTimestamp);
   }
 
@@ -203,15 +216,9 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     seekTo(timestamp);
   }
 
-  /// Set the playback speed (1.0 = normal, 2.0 = 2x, etc.)
+  /// Set the playback speed (dive-seconds per wall-second)
   void setSpeed(double speed) {
-    state = state.copyWith(playbackSpeed: speed.clamp(0.5, 4.0));
-
-    // If playing, restart the timer with the new speed
-    if (state.isPlaying) {
-      pause();
-      play();
-    }
+    state = state.copyWith(playbackSpeed: speed.clamp(1.0, 120.0));
   }
 
   /// Set the step increment in seconds
@@ -220,15 +227,14 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   }
 
   void _tick() {
-    // Advance by 1 second each tick
-    final newTimestamp = state.currentTimestamp + 1;
+    _fractional += _tickInterval.inMilliseconds / 1000.0 * state.playbackSpeed;
+    final next = _fractional.floor();
 
-    if (newTimestamp >= state.maxTimestamp) {
-      // Reached the end
+    if (next >= state.maxTimestamp) {
       state = state.copyWith(currentTimestamp: state.maxTimestamp);
       pause();
-    } else {
-      state = state.copyWith(currentTimestamp: newTimestamp);
+    } else if (next != state.currentTimestamp) {
+      state = state.copyWith(currentTimestamp: next);
     }
   }
 

@@ -8,6 +8,7 @@ void main() {
     required String title,
     String? subtitle,
     Widget? leading,
+    Widget? trailing,
     VoidCallback? onTap,
     VoidCallback? onDetailsTap,
   }) {
@@ -25,6 +26,7 @@ void main() {
                 title: title,
                 subtitle: subtitle,
                 leading: leading,
+                trailing: trailing,
                 onTap: onTap,
                 onDetailsTap: onDetailsTap,
               ),
@@ -91,6 +93,25 @@ void main() {
     await tester.tap(find.byIcon(Icons.chevron_right));
     await tester.pumpAndSettle();
     expect(detailsTapped, isTrue);
+  });
+
+  testWidgets('renders the trailing widget before the details chevron', (
+    tester,
+  ) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      buildTestWidget(
+        title: 'Salt Pier',
+        onDetailsTap: () {},
+        trailing: IconButton(
+          icon: const Icon(Icons.terrain),
+          onPressed: () => tapped = true,
+        ),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.terrain));
+    expect(tapped, isTrue);
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
   });
 
   testWidgets('has correct styling', (tester) async {

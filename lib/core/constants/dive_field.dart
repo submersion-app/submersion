@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 export 'package:submersion/core/constants/dive_field_column_sizing.dart';
 export 'package:submersion/core/constants/dive_field_extractor.dart';
@@ -29,6 +30,7 @@ enum DiveField {
   diveNumber,
   dateTime,
   siteName,
+  diveName,
   maxDepth,
   avgDepth,
   bottomTime,
@@ -115,6 +117,7 @@ enum DiveField {
     DiveField.diveNumber,
     DiveField.dateTime,
     DiveField.siteName,
+    DiveField.diveName,
     DiveField.siteLocation,
     DiveField.maxDepth,
     DiveField.bottomTime,
@@ -141,6 +144,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.diveNumber:
       case DiveField.dateTime:
       case DiveField.siteName:
+      case DiveField.diveName:
       case DiveField.maxDepth:
       case DiveField.avgDepth:
       case DiveField.bottomTime:
@@ -234,6 +238,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Date & Time';
       case DiveField.siteName:
         return 'Site Name';
+      case DiveField.diveName:
+        return 'Dive Name';
       case DiveField.maxDepth:
         return 'Max Depth';
       case DiveField.avgDepth:
@@ -354,6 +360,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Date';
       case DiveField.siteName:
         return 'Site';
+      case DiveField.diveName:
+        return 'Name';
       case DiveField.maxDepth:
         return 'Max D';
       case DiveField.avgDepth:
@@ -465,6 +473,132 @@ extension DiveFieldMetadata on DiveField {
     }
   }
 
+  /// Localized full name for settings and picker UIs.
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    DiveField.diveNumber => l10n.enum_diveField_diveNumber,
+    DiveField.dateTime => l10n.enum_diveField_dateTime,
+    DiveField.siteName => l10n.enum_diveField_siteName,
+    DiveField.diveName => l10n.enum_diveField_diveName,
+    DiveField.maxDepth => l10n.enum_diveField_maxDepth,
+    DiveField.avgDepth => l10n.enum_diveField_avgDepth,
+    DiveField.bottomTime => l10n.enum_diveField_bottomTime,
+    DiveField.runtime => l10n.enum_diveField_runtime,
+    DiveField.waterTemp => l10n.enum_diveField_waterTemp,
+    DiveField.airTemp => l10n.enum_diveField_airTemp,
+    DiveField.visibility => l10n.enum_diveField_visibility,
+    DiveField.currentDirection => l10n.enum_diveField_currentDirection,
+    DiveField.currentStrength => l10n.enum_diveField_currentStrength,
+    DiveField.swellHeight => l10n.enum_diveField_swellHeight,
+    DiveField.entryMethod => l10n.enum_diveField_entryMethod,
+    DiveField.exitMethod => l10n.enum_diveField_exitMethod,
+    DiveField.waterType => l10n.enum_diveField_waterType,
+    DiveField.altitude => l10n.enum_diveField_altitude,
+    DiveField.surfacePressure => l10n.enum_diveField_surfacePressure,
+    DiveField.windSpeed => l10n.enum_diveField_windSpeed,
+    DiveField.cloudCover => l10n.enum_diveField_cloudCover,
+    DiveField.precipitation => l10n.enum_diveField_precipitation,
+    DiveField.humidity => l10n.enum_diveField_humidity,
+    DiveField.weatherDescription => l10n.enum_diveField_weatherDescription,
+    DiveField.primaryGas => l10n.enum_diveField_primaryGas,
+    DiveField.diluentGas => l10n.enum_diveField_diluentGas,
+    DiveField.tankCount => l10n.enum_diveField_tankCount,
+    DiveField.startPressure => l10n.enum_diveField_startPressure,
+    DiveField.endPressure => l10n.enum_diveField_endPressure,
+    DiveField.sacRate => l10n.enum_diveField_sacRate,
+    DiveField.gasConsumed => l10n.enum_diveField_gasConsumed,
+    DiveField.totalWeight => l10n.enum_diveField_totalWeight,
+    DiveField.diveComputerModel => l10n.enum_diveField_diveComputerModel,
+    DiveField.gradientFactorLow => l10n.enum_diveField_gradientFactorLow,
+    DiveField.gradientFactorHigh => l10n.enum_diveField_gradientFactorHigh,
+    DiveField.decoAlgorithm => l10n.enum_diveField_decoAlgorithm,
+    DiveField.decoConservatism => l10n.enum_diveField_decoConservatism,
+    DiveField.cnsStart => l10n.enum_diveField_cnsStart,
+    DiveField.cnsEnd => l10n.enum_diveField_cnsEnd,
+    DiveField.otu => l10n.enum_diveField_otu,
+    DiveField.diveMode => l10n.enum_diveField_diveMode,
+    DiveField.setpointLow => l10n.enum_diveField_setpointLow,
+    DiveField.setpointHigh => l10n.enum_diveField_setpointHigh,
+    DiveField.setpointDeco => l10n.enum_diveField_setpointDeco,
+    DiveField.buddy => l10n.enum_diveField_buddy,
+    DiveField.diveMaster => l10n.enum_diveField_diveMaster,
+    DiveField.siteLocation => l10n.enum_diveField_siteLocation,
+    DiveField.diveCenterName => l10n.enum_diveField_diveCenterName,
+    DiveField.siteLatitude => l10n.enum_diveField_siteLatitude,
+    DiveField.siteLongitude => l10n.enum_diveField_siteLongitude,
+    DiveField.tripName => l10n.enum_diveField_tripName,
+    DiveField.ratingStars => l10n.enum_diveField_ratingStars,
+    DiveField.isFavorite => l10n.enum_diveField_isFavorite,
+    DiveField.notes => l10n.enum_diveField_notes,
+    DiveField.tags => l10n.enum_diveField_tags,
+    DiveField.importSource => l10n.enum_diveField_importSource,
+    DiveField.diveTypeName => l10n.enum_diveField_diveTypeName,
+    DiveField.surfaceInterval => l10n.enum_diveField_surfaceInterval,
+  };
+
+  /// Localized compact label for table column headers.
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    DiveField.diveNumber => l10n.enum_diveField_diveNumber_short,
+    DiveField.dateTime => l10n.enum_diveField_dateTime_short,
+    DiveField.siteName => l10n.enum_diveField_siteName_short,
+    DiveField.diveName => l10n.enum_diveField_diveName_short,
+    DiveField.maxDepth => l10n.enum_diveField_maxDepth_short,
+    DiveField.avgDepth => l10n.enum_diveField_avgDepth_short,
+    DiveField.bottomTime => l10n.enum_diveField_bottomTime_short,
+    DiveField.runtime => l10n.enum_diveField_runtime_short,
+    DiveField.waterTemp => l10n.enum_diveField_waterTemp_short,
+    DiveField.airTemp => l10n.enum_diveField_airTemp_short,
+    DiveField.visibility => l10n.enum_diveField_visibility_short,
+    DiveField.currentDirection => l10n.enum_diveField_currentDirection_short,
+    DiveField.currentStrength => l10n.enum_diveField_currentStrength_short,
+    DiveField.swellHeight => l10n.enum_diveField_swellHeight_short,
+    DiveField.entryMethod => l10n.enum_diveField_entryMethod_short,
+    DiveField.exitMethod => l10n.enum_diveField_exitMethod_short,
+    DiveField.waterType => l10n.enum_diveField_waterType_short,
+    DiveField.altitude => l10n.enum_diveField_altitude_short,
+    DiveField.surfacePressure => l10n.enum_diveField_surfacePressure_short,
+    DiveField.windSpeed => l10n.enum_diveField_windSpeed_short,
+    DiveField.cloudCover => l10n.enum_diveField_cloudCover_short,
+    DiveField.precipitation => l10n.enum_diveField_precipitation_short,
+    DiveField.humidity => l10n.enum_diveField_humidity_short,
+    DiveField.weatherDescription =>
+      l10n.enum_diveField_weatherDescription_short,
+    DiveField.primaryGas => l10n.enum_diveField_primaryGas_short,
+    DiveField.diluentGas => l10n.enum_diveField_diluentGas_short,
+    DiveField.tankCount => l10n.enum_diveField_tankCount_short,
+    DiveField.startPressure => l10n.enum_diveField_startPressure_short,
+    DiveField.endPressure => l10n.enum_diveField_endPressure_short,
+    DiveField.sacRate => l10n.enum_diveField_sacRate_short,
+    DiveField.gasConsumed => l10n.enum_diveField_gasConsumed_short,
+    DiveField.totalWeight => l10n.enum_diveField_totalWeight_short,
+    DiveField.diveComputerModel => l10n.enum_diveField_diveComputerModel_short,
+    DiveField.gradientFactorLow => l10n.enum_diveField_gradientFactorLow_short,
+    DiveField.gradientFactorHigh =>
+      l10n.enum_diveField_gradientFactorHigh_short,
+    DiveField.decoAlgorithm => l10n.enum_diveField_decoAlgorithm_short,
+    DiveField.decoConservatism => l10n.enum_diveField_decoConservatism_short,
+    DiveField.cnsStart => l10n.enum_diveField_cnsStart_short,
+    DiveField.cnsEnd => l10n.enum_diveField_cnsEnd_short,
+    DiveField.otu => l10n.enum_diveField_otu_short,
+    DiveField.diveMode => l10n.enum_diveField_diveMode_short,
+    DiveField.setpointLow => l10n.enum_diveField_setpointLow_short,
+    DiveField.setpointHigh => l10n.enum_diveField_setpointHigh_short,
+    DiveField.setpointDeco => l10n.enum_diveField_setpointDeco_short,
+    DiveField.buddy => l10n.enum_diveField_buddy_short,
+    DiveField.diveMaster => l10n.enum_diveField_diveMaster_short,
+    DiveField.siteLocation => l10n.enum_diveField_siteLocation_short,
+    DiveField.diveCenterName => l10n.enum_diveField_diveCenterName_short,
+    DiveField.siteLatitude => l10n.enum_diveField_siteLatitude_short,
+    DiveField.siteLongitude => l10n.enum_diveField_siteLongitude_short,
+    DiveField.tripName => l10n.enum_diveField_tripName_short,
+    DiveField.ratingStars => l10n.enum_diveField_ratingStars_short,
+    DiveField.isFavorite => l10n.enum_diveField_isFavorite_short,
+    DiveField.notes => l10n.enum_diveField_notes_short,
+    DiveField.tags => l10n.enum_diveField_tags_short,
+    DiveField.importSource => l10n.enum_diveField_importSource_short,
+    DiveField.diveTypeName => l10n.enum_diveField_diveTypeName_short,
+    DiveField.surfaceInterval => l10n.enum_diveField_surfaceInterval_short,
+  };
+
   /// Optional icon associated with this field.
   IconData? get icon {
     switch (this) {
@@ -474,6 +608,8 @@ extension DiveFieldMetadata on DiveField {
         return Icons.calendar_today;
       case DiveField.siteName:
         return Icons.place;
+      case DiveField.diveName:
+        return Icons.drive_file_rename_outline;
       case DiveField.maxDepth:
         return Icons.arrow_downward;
       case DiveField.avgDepth:
@@ -593,6 +729,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.siteLatitude:
       case DiveField.siteLongitude:
       case DiveField.weatherDescription:
+      case DiveField.diveName:
         return false;
       default:
         return true;

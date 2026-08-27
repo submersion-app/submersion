@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -12,10 +16,19 @@ class SiteMarineLifeSection extends ConsumerWidget {
   final String siteId;
   final bool readOnly;
 
+  /// When present, a "Recorded nearby" tier is shown from online sources.
+  final GeoPoint? location;
+
+  /// The site's water type, forwarded to the nearby-species tier so it shares
+  /// the ecosystem section's snapshot request.
+  final WaterType? waterType;
+
   const SiteMarineLifeSection({
     super.key,
     required this.siteId,
     this.readOnly = false,
+    this.location,
+    this.waterType,
   });
 
   @override
@@ -34,6 +47,14 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildSpottedSection(context, ref, spottedAsync),
             const SizedBox(height: 16),
             _buildExpectedSection(context, ref, expectedAsync),
+            if (location != null) ...[
+              const SizedBox(height: 16),
+              NearbySpeciesTier(
+                siteId: siteId,
+                location: location!,
+                waterType: waterType,
+              ),
+            ],
           ],
         ),
       ),
@@ -99,7 +120,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
                   .map(
                     (s) => _SpeciesChipData(
                       id: s.speciesId,
-                      name: s.speciesName,
+                      name: localizedSpeciesName(
+                        context.l10n,
+                        s.speciesId,
+                        s.speciesName,
+                      ),
                       category: s.category,
                       count: s.sightingCount,
                     ),
@@ -177,7 +202,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
                   .map(
                     (s) => _SpeciesChipData(
                       id: s.speciesId,
-                      name: s.speciesName,
+                      name: localizedSpeciesName(
+                        context.l10n,
+                        s.speciesId,
+                        s.speciesName,
+                      ),
                       category: s.category,
                     ),
                   )
@@ -222,7 +251,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                entry.key.displayName,
+                entry.key.localizedName(context.l10n),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -244,7 +273,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
                     child: Chip(
                       avatar: ExcludeSemantics(
                         child: Icon(
-                          _getCategoryIcon(s.category),
+                          iconForSpeciesCategory(s.category),
                           size: 16,
                           color: _getCategoryColor(s.category),
                         ),
@@ -284,29 +313,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
       );
       await notifier.setSpecies(result.toList());
       ref.invalidate(siteExpectedSpeciesProvider(siteId));
-    }
-  }
-
-  IconData _getCategoryIcon(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Icons.water;
-      case SpeciesCategory.shark:
-        return Icons.water;
-      case SpeciesCategory.ray:
-        return Icons.water;
-      case SpeciesCategory.mammal:
-        return Icons.water;
-      case SpeciesCategory.turtle:
-        return Icons.water;
-      case SpeciesCategory.invertebrate:
-        return Icons.bug_report;
-      case SpeciesCategory.coral:
-        return Icons.park;
-      case SpeciesCategory.plant:
-        return Icons.grass;
-      case SpeciesCategory.other:
-        return Icons.pets;
     }
   }
 

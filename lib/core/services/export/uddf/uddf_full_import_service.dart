@@ -115,8 +115,12 @@ class UddfFullImportService {
             'gradientfactorhigh',
           );
           decoModels[modelId] = {
-            'gfLow': gfLowText != null ? int.tryParse(gfLowText) ?? 0 : 0,
-            'gfHigh': gfHighText != null ? int.tryParse(gfHighText) ?? 0 : 0,
+            'gfLow': gfLowText != null
+                ? UddfImportParsers.parseUddfInt(gfLowText) ?? 0
+                : 0,
+            'gfHigh': gfHighText != null
+                ? UddfImportParsers.parseUddfInt(gfHighText) ?? 0
+                : 0,
           };
         }
       }
@@ -152,6 +156,9 @@ class UddfFullImportService {
                 'model': model ?? '',
                 'serial': serial ?? '',
                 'firmware': firmware ?? '',
+                'manufacturer':
+                    UddfImportParsers.getManufacturerName(computerElement) ??
+                    '',
               };
             }
           }
@@ -206,6 +213,7 @@ class UddfFullImportService {
     final settings = <String, String>{};
     final tags = <Map<String, dynamic>>[];
     final customDiveTypes = <Map<String, dynamic>>[];
+    final customDiveRoles = <Map<String, dynamic>>[];
     final diveComputers = <Map<String, dynamic>>[];
     final equipmentSets = <Map<String, dynamic>>[];
     final courses = <Map<String, dynamic>>[];
@@ -342,6 +350,21 @@ class UddfFullImportService {
           }
         }
 
+        // Parse custom dive roles (#551)
+        final diveRolesSection = submersionElement
+            .findElements('diveroles')
+            .firstOrNull;
+        if (diveRolesSection != null) {
+          for (final roleElement in diveRolesSection.findElements('diverole')) {
+            final roleData = UddfImportParsers.parseDiveRoleElement(
+              roleElement,
+            );
+            if (roleData.isNotEmpty) {
+              customDiveRoles.add(roleData);
+            }
+          }
+        }
+
         // Parse dive computers
         final computersSection = submersionElement
             .findElements('divecomputers')
@@ -426,6 +449,7 @@ class UddfFullImportService {
       trips: trips,
       tags: tags,
       customDiveTypes: customDiveTypes,
+      customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,
@@ -529,12 +553,11 @@ class UddfFullImportService {
         'divemaster',
       );
 
-      final diveType = UddfImportParsers.getElementText(
-        beforeElement,
-        'divetype',
-      );
-      if (diveType != null) {
-        diveData['diveType'] = _parseDiveType(diveType);
+      final diveTypeElements = beforeElement.findElements('divetype').toList();
+      if (diveTypeElements.isNotEmpty) {
+        diveData['diveTypeIds'] = {
+          for (final e in diveTypeElements) _parseDiveType(e.innerText),
+        }.toList();
       }
 
       final entryType = UddfImportParsers.getElementText(
@@ -549,15 +572,9 @@ class UddfFullImportService {
       }
 
       // Parse dive mode
-      final diveModeStr = UddfImportParsers.getElementText(
-        beforeElement,
-        'divemode',
-      );
-      if (diveModeStr != null) {
-        diveData['diveMode'] = UddfImportParsers.parseEnumValue(
-          diveModeStr,
-          enums.DiveMode.values,
-        );
+      final diveMode = UddfImportParsers.parseDiveModeIn(beforeElement);
+      if (diveMode != null) {
+        diveData['diveMode'] = diveMode;
       }
 
       // Parse planned dive flag
@@ -763,7 +780,7 @@ class UddfFullImportService {
           sighting['speciesRef'] = sightingElement.getAttribute('speciesref');
           final countStr = sightingElement.getAttribute('count');
           sighting['count'] = countStr != null
-              ? int.tryParse(countStr) ?? 1
+              ? UddfImportParsers.parseUddfInt(countStr) ?? 1
               : 1;
           sighting['notes'] =
               UddfImportParsers.getElementText(sightingElement, 'notes') ?? '';
@@ -888,7 +905,7 @@ class UddfFullImportService {
           final event = <String, dynamic>{};
           final time = UddfImportParsers.getElementText(eventElement, 'time');
           if (time != null) {
-            event['timestamp'] = int.tryParse(time);
+            event['timestamp'] = UddfImportParsers.parseUddfInt(time);
           }
           final eventType = UddfImportParsers.getElementText(
             eventElement,
@@ -937,7 +954,7 @@ class UddfFullImportService {
           final gs = <String, dynamic>{};
           final time = UddfImportParsers.getElementText(gsElement, 'time');
           if (time != null) {
-            gs['timestamp'] = int.tryParse(time);
+            gs['timestamp'] = UddfImportParsers.parseUddfInt(time);
           }
           final depth = UddfImportParsers.getElementText(gsElement, 'depth');
           if (depth != null) {
@@ -959,7 +976,33 @@ class UddfFullImportService {
           switchesList.add(gs);
         }
         if (switchesList.isNotEmpty) {
-          diveData['gasSwitches'] = switchesList;
+          // Merge with waypoint-level <switchmix> entries already parsed
+          // from the samples (files like Submersion's own exports carry
+          // both). The top-level entry wins for a shared timestamp because
+          // it carries the richer tankref/depth payload; waypoint-only
+          // timestamps (e.g. the t=0 initial-mix marker) must survive.
+          final existing =
+              (diveData['gasSwitches'] as List<Map<String, dynamic>>?) ??
+              const <Map<String, dynamic>>[];
+          final seenTimestamps = switchesList
+              .map((gs) => gs['timestamp'])
+              .whereType<int>()
+              .toSet();
+          final merged = [
+            ...switchesList,
+            for (final gs in existing)
+              if (gs['timestamp'] is! int ||
+                  !seenTimestamps.contains(gs['timestamp']))
+                gs,
+          ];
+          merged.sort((a, b) {
+            final ta = a['timestamp'];
+            final tb = b['timestamp'];
+            if (ta is! int) return 1;
+            if (tb is! int) return -1;
+            return ta.compareTo(tb);
+          });
+          diveData['gasSwitches'] = merged;
         }
       }
     }
@@ -969,15 +1012,9 @@ class UddfFullImportService {
         .findElements('rebreather')
         .firstOrNull;
     if (rebreatherElement != null) {
-      final diveMode = UddfImportParsers.getElementText(
-        rebreatherElement,
-        'divemode',
-      );
+      final diveMode = UddfImportParsers.parseDiveModeIn(rebreatherElement);
       if (diveMode != null) {
-        diveData['diveMode'] = UddfImportParsers.parseEnumValue(
-          diveMode,
-          enums.DiveMode.values,
-        );
+        diveData['diveMode'] = diveMode;
       }
       // CCR setpoints
       final spLow = UddfImportParsers.getElementText(
@@ -1071,40 +1108,25 @@ class UddfFullImportService {
         'scrubberdurationminutes',
       );
       if (scrubDur != null) {
-        diveData['scrubberDurationMinutes'] = int.tryParse(scrubDur);
+        diveData['scrubberDurationMinutes'] = UddfImportParsers.parseUddfInt(
+          scrubDur,
+        );
       }
       final scrubRem = UddfImportParsers.getElementText(
         rebreatherElement,
         'scrubberremainingminutes',
       );
       if (scrubRem != null) {
-        diveData['scrubberRemainingMinutes'] = int.tryParse(scrubRem);
+        diveData['scrubberRemainingMinutes'] = UddfImportParsers.parseUddfInt(
+          scrubRem,
+        );
       }
     }
 
-    // Parse setpoint and ppO2 from waypoints (sensor readings)
-    final samplesElement = diveElement.findElements('samples').firstOrNull;
-    if (samplesElement != null) {
-      final existingProfile =
-          diveData['profile'] as List<Map<String, dynamic>>?;
-      if (existingProfile != null) {
-        // Enrich existing profile points with setpoint/ppO2
-        int idx = 0;
-        for (final waypoint in samplesElement.findElements('waypoint')) {
-          final sp = UddfImportParsers.getElementText(waypoint, 'setpoint');
-          final ppo2 = UddfImportParsers.getElementText(waypoint, 'ppo2');
-          if ((sp != null || ppo2 != null) && idx < existingProfile.length) {
-            if (sp != null) {
-              existingProfile[idx]['setpoint'] = double.tryParse(sp);
-            }
-            if (ppo2 != null) {
-              existingProfile[idx]['ppO2'] = double.tryParse(ppo2);
-            }
-          }
-          idx++;
-        }
-      }
-    }
+    // Oxygen sample data (setpoint, ppO2, per-cell readings) is parsed with
+    // the rest of the waypoint in _parseUddfDive. Enriching the profile in a
+    // second pass here would index waypoints against profile points, which
+    // drift apart as soon as a waypoint is dropped for lacking a depth.
 
     return diveData;
   }
@@ -1140,7 +1162,7 @@ class UddfFullImportService {
         'divenumber',
       );
       if (diveNumText != null) {
-        diveData['diveNumber'] = int.tryParse(diveNumText);
+        diveData['diveNumber'] = UddfImportParsers.parseUddfInt(diveNumText);
       }
 
       final airTempText = UddfImportParsers.getElementText(
@@ -1187,7 +1209,7 @@ class UddfFullImportService {
           'passedtime',
         );
         if (passedTimeText != null) {
-          final seconds = int.tryParse(passedTimeText);
+          final seconds = UddfImportParsers.parseUddfInt(passedTimeText);
           if (seconds != null && seconds > 0) {
             diveData['surfaceInterval'] = Duration(seconds: seconds);
           }
@@ -1204,7 +1226,7 @@ class UddfFullImportService {
           'leadquantity',
         );
         if (leadText != null) {
-          final leadKg = double.tryParse(leadText);
+          final leadKg = UddfImportParsers.parseUddfDouble(leadText);
           if (leadKg != null) {
             diveData['weightUsed'] = leadKg;
           }
@@ -1271,6 +1293,9 @@ class UddfFullImportService {
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
             }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
+            }
           }
         }
       }
@@ -1289,6 +1314,9 @@ class UddfFullImportService {
             }
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
+            }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
             }
           }
         }
@@ -1329,6 +1357,25 @@ class UddfFullImportService {
         if (existingRefs.isNotEmpty) {
           diveData['equipmentRefs'] = existingRefs;
         }
+
+        // Lead weight, when the exporter put <equipmentused> here rather
+        // than in <informationbeforedive>. UDDF is ambiguous about which
+        // half of the dive owns the element and exporters disagree
+        // (Oceanic Plus and MacDive both write it after), so it is read
+        // from whichever side supplies it. The before-dive value wins to
+        // keep this a fallback rather than an override.
+        if (diveData['weightUsed'] == null) {
+          final leadText = UddfImportParsers.getElementText(
+            afterEquipmentElement,
+            'leadquantity',
+          );
+          if (leadText != null) {
+            final leadKg = UddfImportParsers.parseUddfDouble(leadText);
+            if (leadKg != null) {
+              diveData['weightUsed'] = leadKg;
+            }
+          }
+        }
       }
     }
 
@@ -1350,13 +1397,22 @@ class UddfFullImportService {
         );
       }
 
-      // Get tank volume (in liters)
-      final volumeText = UddfImportParsers.getElementText(
-        tankDataElement,
-        'tankvolume',
-      );
-      if (volumeText != null) {
-        tankInfo['volume'] = double.tryParse(volumeText);
+      // Get tank volume. UDDF stores cubic meters; normalize to liters
+      // with tolerance for non-conforming exporters (#158). An element that
+      // declares its unit is converted exactly instead of being guessed at.
+      final volumeElement = tankDataElement
+          .findElements('tankvolume')
+          .firstOrNull;
+      final volumeText = volumeElement?.innerText.trim();
+      if (volumeText != null && volumeText.isNotEmpty) {
+        final rawVolume = double.tryParse(volumeText);
+        tankInfo['volume'] = rawVolume == null
+            ? null
+            : normalizeUddfTankVolumeToLiters(
+                rawVolume,
+                strictCubicMeters:
+                    volumeElement?.getAttribute('unit')?.toLowerCase() == 'm3',
+              );
       }
 
       // Get linked gas mix
@@ -1444,7 +1500,7 @@ class UddfFullImportService {
         'tankorder',
       );
       if (tankOrder != null) {
-        tankInfo['order'] = int.tryParse(tankOrder) ?? 0;
+        tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
       }
 
       // Validate tank data before adding
@@ -1534,13 +1590,21 @@ class UddfFullImportService {
       GasMix? pendingSwitchMix;
       double? lastWaypointCns;
       double? lastWaypointOtu;
+      enums.DiveMode? waypointDiveMode;
+
+      // Cell readings reference sensors declared once per document, so the
+      // order is resolved before walking the samples.
+      final document = diveElement.document;
+      final o2SensorOrder = document == null
+          ? const <String>[]
+          : UddfImportParsers.parseO2SensorOrder(document);
 
       for (final waypoint in samplesElement.findElements('waypoint')) {
         final point = <String, dynamic>{};
 
         final timeText = UddfImportParsers.getElementText(waypoint, 'divetime');
         if (timeText != null) {
-          point['timestamp'] = int.tryParse(timeText) ?? 0;
+          point['timestamp'] = UddfImportParsers.parseUddfInt(timeText) ?? 0;
         }
 
         final depthText = UddfImportParsers.getElementText(waypoint, 'depth');
@@ -1669,7 +1733,7 @@ class UddfFullImportService {
           'heartrate',
         );
         if (heartRateText != null) {
-          point['heartRate'] = int.tryParse(heartRateText);
+          point['heartRate'] = UddfImportParsers.parseUddfInt(heartRateText);
         }
 
         final cnsText = UddfImportParsers.getElementText(waypoint, 'cns');
@@ -1689,27 +1753,97 @@ class UddfFullImportService {
           }
         }
 
+        // Oxygen data. The spec elements are <setpo2> (setpoint),
+        // <calculatedpo2> (a single aggregate ppO2) and <measuredpo2 ref>
+        // (one per cell). <setpoint> and bare <ppo2> are the non-standard
+        // names our own exporter writes, kept so our files round-trip.
+        final setpoint =
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'setpo2'),
+            ) ??
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'setpoint'),
+            );
+        if (setpoint != null) {
+          point['setpoint'] = setpoint;
+        }
+
+        // A <measuredpo2> or <ppo2> without a ref names no cell, so it is an
+        // aggregate loop value rather than a per-cell reading.
+        final bareLoopPpO2 =
+            [
+              ...waypoint.findElements('measuredpo2'),
+              ...waypoint.findElements('ppo2'),
+            ].where((element) {
+              final ref = element.getAttribute('ref')?.trim();
+              return ref == null || ref.isEmpty;
+            }).firstOrNull;
+        final ppO2 =
+            UddfImportParsers.parsePartialPressureBar(
+              UddfImportParsers.getElementText(waypoint, 'calculatedpo2'),
+            ) ??
+            UddfImportParsers.parsePartialPressureBar(bareLoopPpO2?.innerText);
+        if (ppO2 != null) {
+          point['ppO2'] = ppO2;
+        }
+
+        final sensorReadings = UddfImportParsers.parseO2SensorReadings(
+          waypoint,
+          o2SensorOrder,
+        );
+        sensorReadings.forEach((index, value) {
+          point['o2Sensor${index + 1}'] = value;
+        });
+
+        // Shearwater and other computers mark the circuit per sample rather
+        // than on the dive. A dive that runs closed circuit for any part of
+        // it is a rebreather dive; bailout segments switch the samples to
+        // open circuit without changing that.
+        final waypointMode = UddfImportParsers.parseDiveModeIn(waypoint);
+        if (waypointMode != null && waypointMode != enums.DiveMode.oc) {
+          waypointDiveMode = waypointMode;
+        }
+
         final ndlText = UddfImportParsers.getElementText(
           waypoint,
           'nodecotime',
         );
         if (ndlText != null) {
-          point['ndl'] = int.tryParse(ndlText);
+          point['ndl'] = UddfImportParsers.parseUddfInt(ndlText);
         }
 
         final decoStop = waypoint.findElements('decostop').firstOrNull;
         if (decoStop != null) {
           final kind = decoStop.getAttribute('kind')?.trim().toLowerCase();
+          // UDDF 3.2.x specifies `safety` / `mandatory`; some exporters emit
+          // `safetystop` / `decostop`. Accept both spellings and only warn for
+          // a genuinely unknown kind (otherwise a spec-valid `mandatory` file
+          // logs a warning on every in-deco waypoint).
+          const safetyKinds = {'safety', 'safetystop'};
+          const decoKinds = {'mandatory', 'decostop'};
           if (kind != null &&
               kind.isNotEmpty &&
-              kind != 'safetystop' &&
-              kind != 'decostop') {
+              !safetyKinds.contains(kind) &&
+              !decoKinds.contains(kind)) {
             _logger.warning(
               'UDDF import: unsupported decostop kind "$kind"; '
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = kind == 'safetystop' ? 1 : 2;
+          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+
+          // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
+          // `decodepth` is metres and needs no conversion. Unlike Subsurface's
+          // delta-encoded stopdepth, `<decostop>` is present on every in-stop
+          // waypoint, so there is nothing to carry forward: a waypoint with no
+          // decostop is simply no obligation (null ceiling). A non-positive
+          // depth is treated as no stop.
+          final decoDepth = double.tryParse(
+            decoStop.getAttribute('decodepth') ?? '',
+          );
+          if (decoDepth != null && decoDepth > 0) {
+            point['ceiling'] = decoDepth;
+          }
         }
 
         // UDDF exposes both remainingbottomtime and remainingo2time.
@@ -1726,7 +1860,7 @@ class UddfFullImportService {
         );
         final rbtText = remainingBottomTimeText ?? remainingO2TimeText;
         if (rbtText != null) {
-          point['rbt'] = int.tryParse(rbtText);
+          point['rbt'] = UddfImportParsers.parseUddfInt(rbtText);
         }
 
         if (point.containsKey('timestamp') && point.containsKey('depth')) {
@@ -1742,6 +1876,10 @@ class UddfFullImportService {
 
       if (profile.isNotEmpty) {
         diveData['profile'] = profile;
+      }
+      // Only fills the gap: an explicit dive-level mode always wins.
+      if (waypointDiveMode != null && diveData['diveMode'] == null) {
+        diveData['diveMode'] = waypointDiveMode;
       }
       if (lastWaypointCns != null) {
         diveData['cnsEnd'] = lastWaypointCns;
@@ -1770,6 +1908,44 @@ class UddfFullImportService {
           }
         }
         diveData['gasSwitches'] = merged;
+      }
+
+      // Materialize every gas mix that was actually breathed (referenced by a
+      // waypoint <switchmix>) as a tank. Shearwater Cloud exports carry no
+      // <link> from <tankdata> to <mix>, so without this the deco/stage gases
+      // never surface and the importer cannot resolve the emitted gas
+      // switches back to a tank row (it drops them silently).
+      for (final gs in waypointGasSwitches) {
+        final mixRef = gs['gasMixRef'] as String?;
+        if (mixRef == null) continue;
+        final mix = gasMixes[mixRef];
+        if (mix == null) continue;
+        if (tanks.any((t) => t['uddfGasMixRef'] == mixRef)) continue;
+
+        // Claim an existing unlinked tank carrying the same mix (e.g. the
+        // transmitter tank that had the initial switch mix assigned), then
+        // one with no mix at all, before appending a gas-only tank.
+        final sameMix = tanks.firstWhere(
+          (t) => t['uddfGasMixRef'] == null && t['gasMix'] == mix,
+          orElse: () => const <String, dynamic>{},
+        );
+        if (sameMix.isNotEmpty) {
+          sameMix['uddfGasMixRef'] = mixRef;
+          continue;
+        }
+        final noMix = tanks.firstWhere(
+          (t) => t['uddfGasMixRef'] == null && t['gasMix'] == null,
+          orElse: () => const <String, dynamic>{},
+        );
+        if (noMix.isNotEmpty) {
+          noMix['gasMix'] = mix;
+          noMix['uddfGasMixRef'] = mixRef;
+          continue;
+        }
+        tanks.add(<String, dynamic>{'gasMix': mix, 'uddfGasMixRef': mixRef});
+      }
+      if (tanks.isNotEmpty) {
+        diveData['tanks'] = tanks;
       }
     }
 
@@ -1800,7 +1976,7 @@ class UddfFullImportService {
         'diveduration',
       );
       if (durationText != null) {
-        final seconds = int.tryParse(durationText);
+        final seconds = UddfImportParsers.parseUddfInt(durationText);
         if (seconds != null) {
           diveData['runtime'] = Duration(seconds: seconds);
         }
@@ -1849,7 +2025,12 @@ class UddfFullImportService {
         'visibility',
       );
       if (visibilityText != null) {
-        diveData['visibility'] = _parseUddfVisibility(visibilityText);
+        // UDDF carries visibility as a distance in meters. Keep the measured
+        // value rather than collapsing it into a bucket (see v144).
+        final meters = double.tryParse(visibilityText);
+        if (meters != null && meters > 0) {
+          diveData['visibilityMeters'] = meters;
+        }
       }
 
       // Parse rating
@@ -1860,7 +2041,7 @@ class UddfFullImportService {
           'ratingvalue',
         );
         if (ratingValue != null) {
-          diveData['rating'] = int.tryParse(ratingValue);
+          diveData['rating'] = UddfImportParsers.parseUddfInt(ratingValue);
         }
       }
 
@@ -1935,20 +2116,6 @@ class UddfFullImportService {
     }
 
     return diveData;
-  }
-
-  enums.Visibility _parseUddfVisibility(String value) {
-    final meters = double.tryParse(value) ?? 0;
-    if (meters >= 30) {
-      return enums.Visibility.excellent;
-    } else if (meters >= 15) {
-      return enums.Visibility.good;
-    } else if (meters >= 5) {
-      return enums.Visibility.moderate;
-    } else if (meters > 0) {
-      return enums.Visibility.poor;
-    }
-    return enums.Visibility.unknown;
   }
 
   /// Interpolates sparse temperature data across profile points.
@@ -2036,7 +2203,9 @@ class UddfFullImportService {
       return 'wreck';
     } else if (lower.contains('drift')) {
       return 'drift';
-    } else if (lower.contains('cave') || lower.contains('cavern')) {
+    } else if (lower.contains('cavern')) {
+      return 'cavern';
+    } else if (lower.contains('cave')) {
       return 'cave';
     } else if (lower.contains('tech')) {
       return 'technical';

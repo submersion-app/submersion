@@ -1,19 +1,26 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -23,9 +30,15 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart'
+    as equipment_domain;
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -48,10 +61,24 @@ class ImportRepositories {
   final CertificationRepository certificationRepository;
   final TagRepository tagRepository;
   final DiveTypeRepository diveTypeRepository;
+
+  /// Optional so existing constructors and mock bundles keep working;
+  /// when null, custom dive role restore is skipped.
+  final DiveRoleRepository? diveRoleRepository;
+
+  /// Optional for the same reason; when null, equipment service history in
+  /// the source is skipped rather than failing the import.
+  final ServiceRecordRepository? serviceRecordRepository;
   final SiteRepository siteRepository;
   final DiveRepository diveRepository;
   final TankPressureRepository tankPressureRepository;
   final CourseRepository courseRepository;
+
+  /// Optional for the same reason; when null, the dives keep their
+  /// `dive_computer_model`/`_serial` display snapshots but no
+  /// `dive_computers` row is registered and no attribution is stamped
+  /// (#1288).
+  final DiveComputerRepository? diveComputerRepository;
 
   const ImportRepositories({
     required this.tripRepository,
@@ -62,10 +89,13 @@ class ImportRepositories {
     required this.certificationRepository,
     required this.tagRepository,
     required this.diveTypeRepository,
+    this.diveRoleRepository,
+    this.serviceRecordRepository,
     required this.siteRepository,
     required this.diveRepository,
     required this.tankPressureRepository,
     required this.courseRepository,
+    this.diveComputerRepository,
   });
 }
 
@@ -79,6 +109,11 @@ class UddfImportSelections {
   final Set<int> tags;
   final Set<int> diveTypes;
   final Set<int> sites;
+
+  /// Maps import-list index → existing site ID for sites the user chose to
+  /// overwrite. These indices are NOT included in [sites] (which creates new
+  /// entries); instead, the matching existing site is updated in place.
+  final Map<int, String> siteOverrides;
   final Set<int> equipmentSets;
   final Set<int> dives;
   final Set<int> courses;
@@ -92,6 +127,7 @@ class UddfImportSelections {
     this.tags = const {},
     this.diveTypes = const {},
     this.sites = const {},
+    this.siteOverrides = const {},
     this.equipmentSets = const {},
     this.dives = const {},
     this.courses = const {},
@@ -142,6 +178,14 @@ class UddfEntityImportResult {
   /// treat missing entries as "no mapping" rather than as an error.
   final Map<String, String> sourceUuidToDiveId;
 
+  /// The persisted dive id created for each imported source-dive index.
+  ///
+  /// Keyed by the index into the `dives` list passed to [import] (the same
+  /// indices used by [UddfImportSelections.dives]), not by import order —
+  /// dives are persisted oldest-first for sequential numbering, so this map
+  /// is how callers recover which dive id corresponds to which input index.
+  final Map<int, String> diveIdByIndex;
+
   const UddfEntityImportResult({
     this.trips = 0,
     this.equipment = 0,
@@ -156,6 +200,7 @@ class UddfEntityImportResult {
     this.courses = 0,
     this.diveIds = const [],
     this.sourceUuidToDiveId = const {},
+    this.diveIdByIndex = const {},
   });
 
   int get total =>
@@ -201,13 +246,18 @@ class UddfEntityImporter {
   final int _defaultStartPressure;
   final bool _applyDefaultTankToImports;
 
+  /// ISO 639-1 code for reverse-geocoded country/region (issue #1187).
+  final String _placeNameLanguage;
+
   UddfEntityImporter({
     TankPresetEntity? defaultTankPreset,
     int defaultStartPressure = 200,
     bool applyDefaultTankToImports = false,
+    String placeNameLanguage = LocationService.defaultLanguageCode,
   }) : _defaultTankPreset = defaultTankPreset,
        _defaultStartPressure = defaultStartPressure,
-       _applyDefaultTankToImports = applyDefaultTankToImports;
+       _applyDefaultTankToImports = applyDefaultTankToImports,
+       _placeNameLanguage = placeNameLanguage;
 
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
@@ -231,12 +281,20 @@ class UddfEntityImporter {
   /// If [cancelToken] is non-null, the dive-import loop polls
   /// [ImportCancellationToken.isCancelled] between each dive and returns the
   /// partial result already persisted when cancellation is observed.
+  ///
+  /// [preResolvedBuddyIds] and [preResolvedTagIds] map source refs
+  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
+  /// reviewer chose not to import as new rows. Seeding the id mappings with
+  /// them makes dive linking resolve to the existing record instead of
+  /// silently dropping the association (#756).
   Future<UddfEntityImportResult> import({
     required UddfImportResult data,
     required UddfImportSelections selections,
     required ImportRepositories repositories,
     required String diverId,
     bool retainSourceDiveNumbers = false,
+    Map<String, String> preResolvedBuddyIds = const {},
+    Map<String, String> preResolvedTagIds = const {},
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
@@ -245,9 +303,9 @@ class UddfEntityImporter {
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
     final equipmentIdMapping = <String, String>{};
-    final buddyIdMapping = <String, String>{};
+    final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
     final diveCenterIdMapping = <String, String>{};
-    final tagIdMapping = <String, String>{};
+    final tagIdMapping = <String, String>{...preResolvedTagIds};
     final siteIdMapping = <String, DiveSite>{};
     final courseIdMapping = <String, String>{};
 
@@ -272,10 +330,21 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    // Service history belongs to the equipment it describes, so it rides
+    // along with whatever equipment was selected rather than being its own
+    // choice in the wizard.
+    await _importServiceRecords(
+      data.serviceRecords,
+      repositories.serviceRecordRepository,
+      equipmentIdMapping,
+      now,
+    );
+
     final buddiesCount = await _importBuddies(
       data.buddies,
       selections.buddies,
       repositories.buddyRepository,
+      repositories.certificationRepository,
       diverId,
       buddyIdMapping,
       now,
@@ -320,9 +389,18 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    // Custom dive roles restore unconditionally (no selection UI): they are
+    // tiny reference rows whose ids are referenced by imported dive_buddies
+    // and dives rows, and the id-preserving insert is idempotent.
+    final diveRoleRepository = repositories.diveRoleRepository;
+    if (diveRoleRepository != null) {
+      await _importDiveRoles(data.customDiveRoles, diveRoleRepository, diverId);
+    }
+
     final sitesCount = await _importSites(
       data.sites,
       selections.sites,
+      selections.siteOverrides,
       repositories.siteRepository,
       diverId,
       siteIdMapping,
@@ -383,6 +461,7 @@ class UddfEntityImporter {
       courses: coursesCount,
       diveIds: divesResult.diveIds,
       sourceUuidToDiveId: divesResult.sourceUuidToDiveId,
+      diveIdByIndex: divesResult.diveIdByIndex,
     );
   }
 
@@ -437,6 +516,59 @@ class UddfEntityImporter {
     return count;
   }
 
+  // -- Equipment service history --
+
+  /// Persists service records for equipment that was actually imported.
+  ///
+  /// Each record names its owner through `equipmentRef`, the same key
+  /// `_importEquipment` registered in [equipmentIdMapping]. Records whose
+  /// equipment was not imported (deselected, or a dangling reference) are
+  /// skipped - a service record with no item to attach to is unreachable.
+  Future<int> _importServiceRecords(
+    List<Map<String, dynamic>> items,
+    ServiceRecordRepository? repository,
+    Map<String, String> equipmentIdMapping,
+    DateTime now,
+  ) async {
+    if (repository == null || items.isEmpty) return 0;
+    var count = 0;
+
+    for (final recordData in items) {
+      final ref = recordData['equipmentRef'] as String?;
+      if (ref == null) continue;
+      final equipmentId = equipmentIdMapping[ref];
+      if (equipmentId == null) continue;
+
+      final serviceDate = recordData['serviceDate'] as DateTime?;
+      if (serviceDate == null) continue;
+
+      final record = equipment_domain.ServiceRecord(
+        id: _uuid.v4(),
+        equipmentId: equipmentId,
+        serviceCategory:
+            _parseEnum(recordData['serviceCategory'], ServiceCategory.values) ??
+            ServiceCategory.other,
+        serviceDate: serviceDate,
+        provider: recordData['provider'] as String?,
+        cost: asDoubleOrNull(recordData['cost']),
+        currency: recordData['currency'] as String? ?? 'USD',
+        nextServiceDue: recordData['nextServiceDue'] as DateTime?,
+        notes: recordData['notes'] as String? ?? '',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      try {
+        await repository.createRecord(record);
+        count++;
+      } catch (_) {
+        // One bad record must not abort the import.
+      }
+    }
+
+    return count;
+  }
+
   // -- Equipment import --
 
   Future<int> _importEquipment(
@@ -472,7 +604,6 @@ class UddfEntityImporter {
         brand: equipData['brand'] as String?,
         model: equipData['model'] as String?,
         serialNumber: equipData['serialNumber'] as String?,
-        size: equipData['size'] as String?,
         status: equipStatus,
         purchaseDate: equipData['purchaseDate'] as DateTime?,
         purchasePrice: equipData['purchasePrice'] as double?,
@@ -481,6 +612,14 @@ class UddfEntityImporter {
         serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
+        attributes: [
+          if ((equipData['size'] as String?)?.trim().isNotEmpty ?? false)
+            EquipmentAttribute.curated(
+              equipmentId: newId,
+              key: EquipmentAttrKeys.size,
+              valueText: (equipData['size'] as String).trim(),
+            ),
+        ],
       );
 
       await repository.createEquipment(item);
@@ -498,6 +637,7 @@ class UddfEntityImporter {
     List<Map<String, dynamic>> items,
     Set<int> selected,
     BuddyRepository repository,
+    CertificationRepository certRepository,
     String diverId,
     Map<String, String> idMapping,
     DateTime now,
@@ -522,20 +662,37 @@ class UddfEntityImporter {
         name: name,
         email: buddyData['email'] as String?,
         phone: buddyData['phone'] as String?,
-        certificationLevel: _parseEnum(
-          buddyData['certificationLevel'],
-          CertificationLevel.values,
-        ),
-        certificationAgency: _parseEnum(
-          buddyData['certificationAgency'],
-          CertificationAgency.values,
-        ),
         notes: buddyData['notes'] as String? ?? '',
         createdAt: now,
         updatedAt: now,
       );
 
       await repository.createBuddy(buddy);
+
+      // issue #553: buddy certs live in the certifications table now (setting
+      // them on the Buddy entity would be ignored). Create a buddy-owned cert
+      // row from the parsed certification, if any.
+      final certLevel = _parseEnum(
+        buddyData['certificationLevel'],
+        CertificationLevel.values,
+      );
+      final certAgency = _parseEnum(
+        buddyData['certificationAgency'],
+        CertificationAgency.values,
+      );
+      if (certLevel != null || certAgency != null) {
+        await certRepository.createCertification(
+          Certification(
+            id: '',
+            buddyId: newId,
+            name: certLevel?.displayName ?? certAgency?.displayName ?? name,
+            agency: certAgency ?? CertificationAgency.other,
+            level: certLevel,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
       onProgress?.call(ImportPhase.buddies, count, selected.length);
@@ -670,8 +827,18 @@ class UddfEntityImporter {
       if (name == null || name.isEmpty) continue;
 
       final uddfId = tagData['uddfId'] as String?;
-      final newId = _uuid.v4();
 
+      // Reuse the tag this diver already has by that name rather than minting
+      // a second uuid for it -- the same guard _importDiveTypes applies to
+      // colliding slugs. `tags` is uniquely indexed on (diver scope,
+      // case-folded name) since v149, so a blind mint would collide (#1032).
+      final existing = await repository.getTagByName(name, diverId: diverId);
+      if (existing != null) {
+        if (uddfId != null) idMapping[uddfId] = existing.id;
+        continue;
+      }
+
+      final newId = _uuid.v4();
       final tag = Tag(
         id: newId,
         diverId: diverId,
@@ -714,6 +881,12 @@ class UddfEntityImporter {
       final typeId =
           typeData['id'] as String? ?? DiveTypeEntity.generateSlug(name);
 
+      // createDiveType does not reject a colliding id - it suffixes it and
+      // inserts anyway. Without this check a source whose vocabulary overlaps
+      // the built-ins ("Shore", "Boat", "Night") would add a near-duplicate
+      // custom type beside every one of them.
+      if (await repository.getDiveTypeById(typeId) != null) continue;
+
       final diveType = DiveTypeEntity(
         id: typeId,
         diverId: diverId,
@@ -736,39 +909,211 @@ class UddfEntityImporter {
     return count;
   }
 
+  Future<int> _importDiveRoles(
+    List<Map<String, dynamic>> items,
+    DiveRoleRepository repository,
+    String diverId,
+  ) async {
+    var count = 0;
+    for (final roleData in items) {
+      final name = roleData['name'] as String?;
+      final id = roleData['id'] as String?;
+      final isBuiltIn = roleData['isBuiltIn'] as bool? ?? false;
+      if (isBuiltIn || id == null || name == null || name.isEmpty) continue;
+
+      try {
+        final imported = await repository.importDiveRole(
+          id: id,
+          name: name,
+          diverId: diverId,
+          sortOrder: roleData['sortOrder'] as int? ?? 100,
+        );
+        if (imported) count++;
+      } catch (_) {
+        // Ignore duplicates -- the role may already exist with the same id.
+      }
+    }
+    return count;
+  }
+
   // -- Site import --
+
+  /// How close a deselected site must be to an existing row to bind to it
+  /// when their names differ. Matches the radius `ImportDuplicateChecker`
+  /// uses to flag the site as a duplicate in the first place.
+  static const double _siteProximityMeters = 100;
+
+  /// Nearest existing site within [_siteProximityMeters] of [item]'s
+  /// coordinates, or null when the item has no coordinates or nothing sits
+  /// close enough.
+  DiveSite? _nearestExistingSite(
+    List<DiveSite> existingSites,
+    Map<String, dynamic> item,
+  ) {
+    final lat = (item['latitude'] as num?)?.toDouble();
+    final lon = (item['longitude'] as num?)?.toDouble();
+    if (lat == null || lon == null) return null;
+    final point = GeoPoint(lat, lon);
+
+    DiveSite? nearest;
+    var nearestMeters = double.infinity;
+    for (final site in existingSites) {
+      final location = site.location;
+      if (location == null) continue;
+      final meters = distanceMeters(location, point);
+      if (meters <= _siteProximityMeters && meters < nearestMeters) {
+        nearest = site;
+        nearestMeters = meters;
+      }
+    }
+    return nearest;
+  }
 
   Future<int> _importSites(
     List<Map<String, dynamic>> items,
     Set<int> selected,
+    Map<int, String> overrides,
     SiteRepository repository,
     String diverId,
     Map<String, DiveSite> idMapping,
     ImportProgressCallback? onProgress,
   ) async {
     // For deselected sites (duplicates the user chose not to re-import),
-    // resolve their UDDF IDs to existing database sites by name so that
-    // dives referencing them still get linked correctly.
+    // resolve their UDDF IDs to existing database sites so that dives
+    // referencing them still get linked correctly.
+    //
+    // The name lookup alone is not enough: ImportDuplicateChecker flags a site
+    // as a duplicate on name OR on proximity, so a site suppressed by the
+    // proximity arm carries a name that matches nothing here. Without the
+    // coordinate fallback its dives import with no site and no location at
+    // all, silently.
     final existingSites = await repository.getAllSites(diverId: diverId);
     final existingByName = <String, DiveSite>{};
+    final existingById = <String, DiveSite>{};
     for (final site in existingSites) {
       existingByName[site.name.toLowerCase()] = site;
+      existingById[site.id] = site;
     }
     for (var i = 0; i < items.length; i++) {
       if (selected.contains(i)) continue; // will be imported below
+      if (overrides.containsKey(i)) continue; // will be overwritten below
       final uddfId = items[i]['uddfId'] as String?;
+      if (uddfId == null) continue;
       final name = items[i]['name'] as String?;
-      if (uddfId != null && name != null) {
-        final existing = existingByName[name.toLowerCase()];
-        if (existing != null) {
-          idMapping[uddfId] = existing;
-        }
+      final existing =
+          (name == null ? null : existingByName[name.toLowerCase()]) ??
+          _nearestExistingSite(existingSites, items[i]);
+      if (existing != null) {
+        idMapping[uddfId] = existing;
       }
     }
 
-    if (selected.isEmpty) return 0;
-    onProgress?.call(ImportPhase.sites, 0, selected.length);
+    final totalWork = selected.length + overrides.length;
+    if (totalWork == 0) return 0;
+    onProgress?.call(ImportPhase.sites, 0, totalWork);
     var count = 0;
+
+    // Handle overwrite (replaceSource): update existing sites in place.
+    //
+    // Unlike the create path below, this builds the row from the EXISTING
+    // entity via copyWith so fields absent from the import payload keep their
+    // current values. Constructing a fresh DiveSite here would reset every
+    // unmapped field to its constructor default -- notably isShared, city,
+    // island, photoIds and conditions -- because updateSite writes the whole
+    // column set, not just the fields the import happened to supply.
+    for (final entry in overrides.entries) {
+      final i = entry.key;
+      final existingId = entry.value;
+      if (i < 0 || i >= items.length) {
+        _log.warning(
+          'Site override index $i is out of range (${items.length} items); '
+          'skipping',
+        );
+        continue;
+      }
+      final siteData = items[i];
+      final name = siteData['name'] as String?;
+      if (name == null || name.isEmpty) {
+        _log.warning('Site override at index $i has no name; skipping');
+        continue;
+      }
+
+      final existing = existingById[existingId];
+      if (existing == null) {
+        _log.warning(
+          'Site override at index $i targets unknown site $existingId; '
+          'skipping',
+        );
+        continue;
+      }
+
+      final uddfId = siteData['uddfId'] as String?;
+      final lat = siteData['latitude'] as double?;
+      final lon = siteData['longitude'] as double?;
+
+      String? country = siteData['country'] as String?;
+      String? region = siteData['region'] as String?;
+
+      // Auto-lookup country/region if coordinates exist but fields are empty.
+      if (lat != null && lon != null && (country == null || region == null)) {
+        try {
+          final geocodeResult = await LocationService.instance.reverseGeocode(
+            lat,
+            lon,
+            languageCode: _placeNameLanguage,
+          );
+          country ??= geocodeResult.country;
+          region ??= geocodeResult.region;
+        } catch (_) {
+          // Geocoding is best-effort
+        }
+      }
+
+      final difficultyStr = siteData['difficulty'] as String?;
+      final difficulty = difficultyStr != null
+          ? SiteDifficulty.fromString(difficultyStr)
+          : null;
+
+      // Every argument is nullable and copyWith treats null as "keep the
+      // existing value", so absent payload fields are preserved.
+      final overwrittenSite = existing.copyWith(
+        name: name,
+        description: siteData['description'] as String?,
+        location: (lat != null && lon != null) ? GeoPoint(lat, lon) : null,
+        minDepth: siteData['minDepth'] as double?,
+        maxDepth: siteData['maxDepth'] as double?,
+        difficulty: difficulty,
+        country: country,
+        region: region,
+        rating: siteData['rating'] as double?,
+        notes: siteData['notes'] as String?,
+        hazards: siteData['hazards'] as String?,
+        accessNotes: siteData['accessNotes'] as String?,
+        mooringNumber: siteData['mooringNumber'] as String?,
+        parkingInfo: siteData['parkingInfo'] as String?,
+        altitude: siteData['altitude'] as double?,
+      );
+
+      // Core fields and the importer-only metadata columns go out as one
+      // UPDATE so a failure can't leave the row half-overwritten.
+      final waterType = siteData['waterType'] as String?;
+      final bodyOfWater = siteData['bodyOfWater'] as String?;
+      await repository.updateSiteWithImportedMetadata(
+        overwrittenSite,
+        DiveSitesCompanion(
+          waterType: waterType != null
+              ? Value(waterType)
+              : const Value.absent(),
+          bodyOfWater: bodyOfWater != null
+              ? Value(bodyOfWater)
+              : const Value.absent(),
+        ),
+      );
+
+      if (uddfId != null) idMapping[uddfId] = overwrittenSite;
+      count++;
+      onProgress?.call(ImportPhase.sites, count, totalWork);
+    }
 
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;
@@ -789,6 +1134,7 @@ class UddfEntityImporter {
           final geocodeResult = await LocationService.instance.reverseGeocode(
             lat,
             lon,
+            languageCode: _placeNameLanguage,
           );
           country ??= geocodeResult.country;
           region ??= geocodeResult.region;
@@ -845,7 +1191,7 @@ class UddfEntityImporter {
 
       if (uddfId != null) idMapping[uddfId] = createdSite;
       count++;
-      onProgress?.call(ImportPhase.sites, count, selected.length);
+      onProgress?.call(ImportPhase.sites, count, totalWork);
     }
 
     return count;
@@ -964,6 +1310,69 @@ class UddfEntityImporter {
 
   // -- Dive import --
 
+  /// Group key for the computer a parsed dive names, matching the identity
+  /// [DiveComputerRepository.findOrRegisterImportedComputer] dedupes on, so
+  /// two spellings of one device share a single registration.
+  ///
+  /// Null when the source names no model, which is the signal to leave the
+  /// dive unattributed rather than register a placeholder device.
+  String? _importedComputerKey(Map<String, dynamic> diveData) {
+    final model = normalizeComputerIdentityPart(
+      diveData['diveComputerModel'] as String?,
+    );
+    if (model.isEmpty) return null;
+    final serial = normalizeComputerIdentityPart(
+      diveData['diveComputerSerial'] as String?,
+    );
+    return serial.isNotEmpty ? 'serial:$serial' : 'model:$model';
+  }
+
+  /// Register every distinct computer the selected dives name, returning the
+  /// registry id for each [_importedComputerKey].
+  ///
+  /// Runs once per import rather than per dive so a hundred dives off one
+  /// computer cost one registration lookup, not a hundred.
+  ///
+  /// Best-effort per device, mirroring `_relinkOrphanedRows`: attribution is
+  /// cosmetic next to the dives themselves, so a registry failure degrades
+  /// that one device to unattributed instead of costing the user the whole
+  /// import. The dive still keeps its `dive_computer_model` snapshot, which
+  /// is what the Details card renders.
+  Future<Map<String, String>> _registerImportedComputers(
+    List<Map<String, dynamic>> items,
+    List<int> selected,
+    String diverId,
+    DiveComputerRepository? repository,
+  ) async {
+    if (repository == null) return const {};
+
+    final idByKey = <String, String>{};
+    for (final i in selected) {
+      final diveData = items[i];
+      final key = _importedComputerKey(diveData);
+      if (key == null || idByKey.containsKey(key)) continue;
+
+      try {
+        final computer = await repository.findOrRegisterImportedComputer(
+          model: diveData['diveComputerModel'] as String,
+          manufacturer: diveData['diveComputerManufacturer'] as String?,
+          serialNumber: diveData['diveComputerSerial'] as String?,
+          firmwareVersion: diveData['diveComputerFirmware'] as String?,
+          diverId: diverId,
+        );
+        if (computer != null) idByKey[key] = computer.id;
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to register imported dive computer for "$key"; '
+          'its dives stay unattributed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    return idByKey;
+  }
+
   Future<_DiveImportResult> _importDives(
     List<Map<String, dynamic>> items,
     Set<int> selected,
@@ -989,6 +1398,7 @@ class UddfEntityImporter {
     var count = 0;
     final importedDiveIds = <String>[];
     final sourceUuidToDiveId = <String, String>{};
+    final diveIdByIndex = <int, String>{};
     final inlineBuddyIds = <String>{};
 
     // Sort selected indices by dateTime (oldest first) for sequential numbering.
@@ -1004,6 +1414,23 @@ class UddfEntityImporter {
     var nextDiveNumber = retainSourceDiveNumbers
         ? null
         : await repos.diveRepository.getNextDiveNumber(diverId: diverId);
+
+    // One instance for the run: its lookup cache collapses a batch of dives
+    // at the same location into a single elevation request.
+    final altitudeEnricher = DiveAltitudeEnricher();
+
+    // Register the computers this batch names, once per distinct device,
+    // before any dive is written. The filter, the statistics SQL, and "View
+    // dives from this computer" all read the `dive_computers` registry
+    // rather than the per-dive display snapshots, so without this a
+    // file-only logbook shows a computer on every dive and still reports
+    // "No dive computers registered" (#1288).
+    final computerIdByKey = await _registerImportedComputers(
+      items,
+      sortedSelected,
+      diverId,
+      repos.diveComputerRepository,
+    );
 
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -1022,10 +1449,26 @@ class UddfEntityImporter {
                   heartRate: p['heartRate'] as int?,
                   cns: asDoubleOrNull(p['cns']),
                   ndl: p['ndl'] as int?,
+                  tts: p['tts'] as int?,
+                  ceiling: asDoubleOrNull(p['ceiling']),
                   rbt: p['rbt'] as int?,
                   decoType: p['decoType'] as int?,
                   setpoint: asDoubleOrNull(p['setpoint']),
                   ppO2: asDoubleOrNull(p['ppO2']),
+                  o2Sensor1: asDoubleOrNull(p['o2Sensor1']),
+                  o2Sensor2: asDoubleOrNull(p['o2Sensor2']),
+                  o2Sensor3: asDoubleOrNull(p['o2Sensor3']),
+                  o2Sensor4: asDoubleOrNull(p['o2Sensor4']),
+                  o2Sensor5: asDoubleOrNull(p['o2Sensor5']),
+                  o2Sensor6: asDoubleOrNull(p['o2Sensor6']),
+                  // UDDF carries no millivolt field; these arrive only via the
+                  // libdivecomputer path that shares this map (issue #810).
+                  o2SensorMv1: p['o2SensorMv1'] as int?,
+                  o2SensorMv2: p['o2SensorMv2'] as int?,
+                  o2SensorMv3: p['o2SensorMv3'] as int?,
+                  o2SensorMv4: p['o2SensorMv4'] as int?,
+                  o2SensorMv5: p['o2SensorMv5'] as int?,
+                  o2SensorMv6: p['o2SensorMv6'] as int?,
                 ),
               )
               .toList() ??
@@ -1076,13 +1519,7 @@ class UddfEntityImporter {
         repos.equipmentRepository,
       );
 
-      // Parse notes with weight
-      var notes = diveData['notes'] as String? ?? '';
-      final weightUsed = diveData['weightUsed'] as double?;
-      if (weightUsed != null && weightUsed > 0) {
-        if (notes.isNotEmpty) notes += '\n';
-        notes += 'Weight used: ${weightUsed.toStringAsFixed(1)} kg';
-      }
+      final notes = diveData['notes'] as String? ?? '';
 
       // Parse sightings
       final sightings = _buildSightings(diveData);
@@ -1104,15 +1541,48 @@ class UddfEntityImporter {
               .toList() ??
           [];
 
+      // Formats that report a single ballast total rather than a breakdown
+      // (MacDive's ZWEIGHT, UDDF <leadquantity>, Shearwater Cloud) land here.
+      // These used to be appended to the dive notes as "Weight used: N kg",
+      // which left the Weights section empty and the value unusable for
+      // weighting statistics (#912).
+      if (weights.isEmpty) {
+        final totalKg =
+            asDoubleOrNull(diveData['weightUsed']) ??
+            asDoubleOrNull(diveData['weightAmount']);
+        if (totalKg != null && totalKg > 0) {
+          weights.add(
+            DiveWeight(
+              id: _uuid.v4(),
+              diveId: diveId,
+              weightType:
+                  _parseEnum(diveData['weightType'], WeightType.values) ??
+                  WeightType.integrated,
+              amountKg: totalKg,
+            ),
+          );
+        }
+      }
+
       final dateTime = diveData['dateTime'] as DateTime? ?? now;
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
-      final runtime =
-          diveData['runtime'] as Duration? ?? diveData['duration'] as Duration?;
+      final durationValue = diveData['duration'] as Duration?;
+      final runtime = diveData['runtime'] as Duration? ?? durationValue;
+      // `duration` is ambiguous across import formats: some parsers (FIT) put a
+      // genuine bottom time here, while others (Subsurface) put total runtime,
+      // which would make bottom time equal runtime. Only trust `duration` as a
+      // real bottom time when it differs from runtime; otherwise leave it null
+      // so the profile-based auto-calculation below can derive it.
+      final bottomTimeSeed = durationValue != null && durationValue != runtime
+          ? durationValue
+          : null;
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
-      final diveTypeId = diveData['diveType'] as String? ?? 'recreational';
+      final diveTypeIds =
+          (diveData['diveTypeIds'] as List?)?.cast<String>() ??
+          [diveData['diveType'] as String? ?? 'recreational'];
 
       // Parse dive mode, planner flag, and favorite
       final diveMode =
@@ -1139,16 +1609,18 @@ class UddfEntityImporter {
             )
           : null;
 
+      final diveName = (diveData['name'] as String?)?.trim();
       var dive = Dive(
         id: diveId,
         diverId: diverId,
+        name: diveName != null && diveName.isNotEmpty ? diveName : null,
         diveNumber: nextDiveNumber != null
             ? nextDiveNumber++
             : diveData['diveNumber'] as int?,
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
-        bottomTime: diveData['duration'] as Duration?,
+        bottomTime: bottomTimeSeed,
         runtime: runtime,
         maxDepth: asDoubleOrNull(diveData['maxDepth']),
         avgDepth: asDoubleOrNull(diveData['avgDepth']),
@@ -1167,7 +1639,8 @@ class UddfEntityImporter {
         rating: diveData['rating'] as int?,
         notes: notes,
         visibility: _parseEnum(diveData['visibility'], Visibility.values),
-        diveTypeId: diveTypeId,
+        visibilityMeters: diveData['visibilityMeters'] as double?,
+        diveTypeIds: diveTypeIds,
         profile: profile,
         tanks: tanks,
         weights: weights,
@@ -1189,6 +1662,13 @@ class UddfEntityImporter {
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
         altitude: asDoubleOrNull(diveData['altitude']),
+        // Entry/exit GPS, so file-imported dives become eligible for the
+        // existing site matcher.
+        entryLocation: _geoPoint(diveData['latitude'], diveData['longitude']),
+        exitLocation: _geoPoint(
+          diveData['exitLatitude'],
+          diveData['exitLongitude'],
+        ),
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
@@ -1217,9 +1697,51 @@ class UddfEntityImporter {
           dive = dive.copyWith(bottomTime: calculatedBottomTime);
         }
       }
+      // If bottom time still could not be derived (no profile, or a profile the
+      // heuristic could not resolve), fall back to the source duration so the
+      // field is not left empty for minimal imports such as CSV.
+      if (dive.bottomTime == null && durationValue != null) {
+        dive = dive.copyWith(bottomTime: durationValue);
+      }
 
       await repos.diveRepository.createDive(dive);
+
+      // createDive's companion deliberately omits computer_id, so attribution
+      // has to be an explicit second write (#1288).
+      final computerKey = _importedComputerKey(diveData);
+      final computerId = computerKey == null
+          ? null
+          : computerIdByKey[computerKey];
+      if (computerId != null) {
+        // Best-effort for the same reason as the registration above, and more
+        // pressingly: the dive is already committed, so throwing here would
+        // abort the loop and leave a half-imported logbook behind.
+        //
+        // The provenance row below is still stamped on failure, deliberately.
+        // The #1064 beforeOpen heal adopts dives.computer_id from exactly that
+        // column, so leaving it is what recovers the attribution on the next
+        // open; clearing it for symmetry would discard the recovery.
+        try {
+          await repos.diveComputerRepository?.attributeDiveToComputer(
+            diveId: diveId,
+            computerId: computerId,
+          );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to attribute imported dive $diveId to computer '
+            '$computerId; the data source keeps the link, so the beforeOpen '
+            'self-heal will adopt it on the next open',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+
+      await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      await ChecklistDiveLinker().applyForImportedDive(dive);
+      await altitudeEnricher.applyForImportedDive(dive);
       importedDiveIds.add(diveId);
+      diveIdByIndex[i] = diveId;
 
       // Capture source UUID -> new dive ID so the post-import photo
       // pipeline can resolve ImportImageRef.diveSourceUuid to this row.
@@ -1282,6 +1804,8 @@ class UddfEntityImporter {
         // persisted tank row id. MacDive-style switches reference a gas mix
         // UUID (via <switchmix ref>), while top-level <gasswitches>
         // entries reference a tank UUID (via <tankref>); we accept either.
+        // FIT imports carry no refs at all and address tanks positionally
+        // via `tankIndex`.
         final tankIdByRef = <String, String>{};
         final tankIdByGasMixRef = <String, String>{};
         final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
@@ -1319,6 +1843,14 @@ class UddfEntityImporter {
                   gasMixRef != null &&
                   gasMixRef.isNotEmpty) {
                 tankId = tankIdByGasMixRef[gasMixRef];
+              }
+              if (tankId == null || tankId.isEmpty) {
+                final tankIndex = gs['tankIndex'] as int?;
+                if (tankIndex != null &&
+                    tankIndex >= 0 &&
+                    tankIndex < tanks.length) {
+                  tankId = tanks[tankIndex].id;
+                }
               }
               if (tankId == null || tankId.isEmpty) return null;
               return GasSwitch(
@@ -1525,6 +2057,7 @@ class UddfEntityImporter {
           id: Value(_uuid.v4()),
           diveId: Value(diveId),
           isPrimary: const Value(true),
+          computerId: Value(computerId),
           computerModel: Value(diveData['diveComputerModel'] as String?),
           computerSerial: Value(diveData['diveComputerSerial'] as String?),
           sourceFileName: Value(sourceFileName),
@@ -1555,10 +2088,18 @@ class UddfEntityImporter {
       inlineBuddies: inlineBuddyIds.length,
       diveIds: importedDiveIds,
       sourceUuidToDiveId: sourceUuidToDiveId,
+      diveIdByIndex: diveIdByIndex,
     );
   }
 
   // -- Dive helper methods --
+
+  GeoPoint? _geoPoint(dynamic lat, dynamic lng) {
+    final latVal = asDoubleOrNull(lat);
+    final lngVal = asDoubleOrNull(lng);
+    if (latVal == null || lngVal == null) return null;
+    return GeoPoint(latVal, lngVal);
+  }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData) {
     final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
@@ -1716,7 +2257,7 @@ class UddfEntityImporter {
     for (final buddyRef in buddyRefs) {
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId != null) {
-        await repository.addBuddyToDive(diveId, newBuddyId, BuddyRole.buddy);
+        await repository.addBuddyToDive(diveId, newBuddyId, DiveRole.buddyId);
       }
     }
 
@@ -1731,7 +2272,7 @@ class UddfEntityImporter {
         await repository.addBuddyToDive(
           diveId,
           newGuideId,
-          BuddyRole.diveGuide,
+          DiveRole.diveGuideId,
         );
       }
     }
@@ -1747,7 +2288,7 @@ class UddfEntityImporter {
       if (buddy.diverId == null) {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, buddy.id, BuddyRole.buddy);
+      await repository.addBuddyToDive(diveId, buddy.id, DiveRole.buddyId);
       inlineIds.add(buddy.id);
     }
 
@@ -1761,7 +2302,7 @@ class UddfEntityImporter {
       if (guide.diverId == null) {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, guide.id, BuddyRole.diveGuide);
+      await repository.addBuddyToDive(diveId, guide.id, DiveRole.diveGuideId);
       inlineIds.add(guide.id);
     }
 
@@ -1809,8 +2350,12 @@ class UddfEntityImporter {
   CertificationAgency _parseCertificationAgency(dynamic value) {
     if (value is CertificationAgency) return value;
     if (value is String) {
+      // A named-but-unrecognised agency is "other", not PADI. Defaulting to
+      // PADI relabels real cards from agencies outside the enum (#912).
       return _parseEnumValue(value, CertificationAgency.values) ??
-          CertificationAgency.padi;
+          (value.trim().isEmpty
+              ? CertificationAgency.padi
+              : CertificationAgency.other);
     }
     return CertificationAgency.padi;
   }
@@ -1851,11 +2396,13 @@ class _DiveImportResult {
   final int inlineBuddies;
   final List<String> diveIds;
   final Map<String, String> sourceUuidToDiveId;
+  final Map<int, String> diveIdByIndex;
 
   const _DiveImportResult({
     required this.count,
     required this.inlineBuddies,
     this.diveIds = const [],
     this.sourceUuidToDiveId = const {},
+    this.diveIdByIndex = const {},
   });
 }

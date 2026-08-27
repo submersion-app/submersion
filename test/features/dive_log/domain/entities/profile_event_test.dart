@@ -195,4 +195,87 @@ void main() {
       expect(dv.source, EventSource.computed);
     });
   });
+
+  // Task 11: computerId attributes an event to the dive computer that
+  // logged it, so the profile chart can filter events by the toggle bar.
+  group('ProfileEvent computerId field', () {
+    test('defaults to null', () {
+      final e = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        createdAt: now,
+      );
+      expect(e.computerId, isNull);
+    });
+
+    test('constructor round-trips computerId', () {
+      final e = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-1',
+        createdAt: now,
+      );
+      expect(e.computerId, 'comp-uuid-1');
+    });
+
+    test('copyWith updates computerId while leaving other fields intact', () {
+      final e = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-1',
+        createdAt: now,
+      );
+      final copy = e.copyWith(computerId: 'comp-uuid-2');
+      expect(copy.computerId, 'comp-uuid-2');
+      expect(copy.timestamp, 100);
+    });
+
+    test('copyWith without computerId preserves the existing value', () {
+      final e = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-1',
+        createdAt: now,
+      );
+      final copy = e.copyWith(timestamp: 200);
+      expect(copy.computerId, 'comp-uuid-1');
+    });
+
+    test('equality and props include computerId', () {
+      final a = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-1',
+        createdAt: now,
+      );
+      final b = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-1',
+        createdAt: now,
+      );
+      final c = ProfileEvent(
+        id: 'e1',
+        diveId: 'd1',
+        timestamp: 100,
+        eventType: ProfileEventType.bookmark,
+        computerId: 'comp-uuid-2',
+        createdAt: now,
+      );
+      expect(a, equals(b));
+      expect(a, isNot(equals(c)));
+    });
+  });
 }

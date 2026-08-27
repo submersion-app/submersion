@@ -11,19 +11,44 @@ import 'package:submersion/features/universal_import/data/services/macdive_xml_m
 /// aren't sure risks worse corruption than letting the value through.
 class MacDiveUnitConverter {
   final MacDiveUnitSystem units;
-  const MacDiveUnitConverter(this.units);
+
+  /// True when depth and temperature are already SI regardless of [units].
+  final bool _depthAndTempAreSi;
+
+  /// For MacDive's XML export, which renders every value in the user's
+  /// display unit - `<units>Imperial</units>` means feet, Fahrenheit, psi
+  /// and cubic feet throughout.
+  const MacDiveUnitConverter(this.units) : _depthAndTempAreSi = false;
+
+  /// For MacDive's Core Data store, which is **mixed**: depth and
+  /// temperature are always SI (metres, Celsius), while pressure, cylinder
+  /// size and weight follow the user's display unit.
+  ///
+  /// Verified against the 540-dive reference library paired with MacDive's
+  /// own Imperial XML export of the same data: `ZMAXDEPTH` and
+  /// `ZAVERAGEDEPTH` are exactly 1/3.2808 of the exported feet across 527
+  /// and 349 dives, `ZTEMPLOW` is the exact Celsius of the exported
+  /// Fahrenheit across 513 dives, while `ZAIRSTART`, `ZAIREND` and
+  /// `ZTANK.ZSIZE` match the Imperial export 1:1 across 313-328 dives.
+  ///
+  /// Converting the SI columns as though they were imperial turned a 25.4 m
+  /// dive into 7.7 m; not converting the display-unit columns turned 3118
+  /// psi into 3118 bar (#912).
+  const MacDiveUnitConverter.coreData(this.units) : _depthAndTempAreSi = true;
 
   bool get _isImperial => units == MacDiveUnitSystem.imperial;
 
   /// Feet → meters when imperial; passthrough otherwise.
   double? depthToMeters(double? raw) {
     if (raw == null) return null;
+    if (_depthAndTempAreSi) return raw;
     return _isImperial ? raw * 0.3048 : raw;
   }
 
   /// Fahrenheit → Celsius when imperial; passthrough otherwise.
   double? tempToCelsius(double? raw) {
     if (raw == null) return null;
+    if (_depthAndTempAreSi) return raw;
     return _isImperial ? (raw - 32.0) * 5.0 / 9.0 : raw;
   }
 

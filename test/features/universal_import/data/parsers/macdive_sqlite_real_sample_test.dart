@@ -9,6 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_unit_inference.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart'
+    show MacDiveUnitSystem;
+import 'package:submersion/features/universal_import/data/services/shearwater_raw_decompressor.dart';
 
 const _realSamplePathEnvVar = 'MACDIVE_SQLITE_REAL_SAMPLE_PATH';
 
@@ -156,94 +161,69 @@ void main() {
       }
     });
 
-    test('Shearwater dives produce decoded profiles via ZRAWDATA', () async {
-      final payload = await const MacDiveSqliteParser().parse(bytes);
-      final dives = payload.entitiesOf(ImportEntityType.dives);
-
-      // Identify Shearwater dives by the computer field; these SHOULD all
-      // have ZRAWDATA and thus decoded profile samples.
-      final shearwaterDives = dives.where((d) {
-        final computer = (d['diveComputerModel'] as String?) ?? '';
-        return computer.startsWith('Shearwater');
-      }).toList();
-
+    // These three were written for the 2026-04 ZRAWDATA attempt and kept
+    // asserting `profile: []`, a shape the mapper never emitted. Because the
+    // whole group is env-gated they never ran in CI and so never went red.
+    // They now assert the real convention: the key is present only when
+    // samples decoded.
+    test('Shearwater dives are the ones carrying raw profile data', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final shearwater = logbook.dives
+          .where((d) => (d.computer ?? '').startsWith('Shearwater'))
+          .toList();
       expect(
-        shearwaterDives.length,
-        greaterThanOrEqualTo(250),
-        reason: 'sample DB has 267 Shearwater dives (217 Teric + 50 Tern)',
+        shearwater,
+        hasLength(267),
+        reason: 'sample DB has 217 Teric + 50 Tern',
       );
-
-      // When libdivecomputer FFI is unavailable (e.g. a unit-test host
-      // without the native plugin registered), all profiles remain empty.
-      // Detect this by checking whether 100% of Shearwater profiles are
-      // empty — that cannot happen in production if even one dive decodes.
-      final decoded = shearwaterDives.where(
-        (d) => (d['profile'] as List).isNotEmpty,
-      );
-      if (decoded.isEmpty) {
-        // FFI unavailable: validate only that the dive count is correct
-        // and bail before the rate assertion.
-        return;
-      }
+      // Every one of them has ZRAWDATA, which is why ZSAMPLES staying
+      // encrypted costs us nothing.
       expect(
-        decoded.length / shearwaterDives.length,
-        greaterThan(0.95),
-        reason:
-            '>=95% of Shearwater dives should decode cleanly via libdivecomputer',
+        shearwater.where((d) => d.rawDataBlob?.isNotEmpty ?? false),
+        hasLength(267),
       );
     });
 
-    test('decoded profile samples have expected keys', () async {
+    test('decoded profile samples carry timestamp and depth', () async {
       final payload = await const MacDiveSqliteParser().parse(bytes);
-      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final withProfiles = payload
+          .entitiesOf(ImportEntityType.dives)
+          .where((d) => (d['profile'] as List?)?.isNotEmpty ?? false);
 
-      // Skip key-structure assertions when FFI is unavailable; no profiles
-      // will be populated.
-      final withProfiles = dives.where(
-        (d) => (d['profile'] as List).isNotEmpty,
-      );
-      if (withProfiles.isEmpty) {
-        return; // FFI unavailable in this test environment
-      }
+      // The parse channel is not registered in a unit-test host, so nothing
+      // decodes here; the byte-level guarantee is covered by the
+      // decompression test below.
+      if (withProfiles.isEmpty) return;
 
-      final sample = withProfiles.first;
       final firstPoint =
-          (sample['profile'] as List).first as Map<String, dynamic>;
-      // Every projected sample has at minimum timestamp + depth.
+          (withProfiles.first['profile'] as List).first as Map<String, dynamic>;
       expect(firstPoint, containsPair('timestamp', isA<int>()));
       expect(firstPoint, containsPair('depth', isA<double>()));
-      // First sample's timestamp is 0s from dive start.
       expect(firstPoint['timestamp'], 0);
     });
 
-    test(
-      'non-Shearwater dives still emit profile:[] (no libdivecomputer support)',
-      () async {
-        final payload = await const MacDiveSqliteParser().parse(bytes);
-        final dives = payload.entitiesOf(ImportEntityType.dives);
-        final nonShearwater = dives.where((d) {
-          final computer = (d['diveComputerModel'] as String?) ?? '';
-          return !computer.startsWith('Shearwater');
-        }).toList();
+    test('dives without raw data omit the profile key entirely', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final nonShearwater = payload
+          .entitiesOf(ImportEntityType.dives)
+          .where(
+            (d) => !((d['diveComputerModel'] as String?) ?? '').startsWith(
+              'Shearwater',
+            ),
+          )
+          .toList();
 
-        expect(
-          nonShearwater,
-          isNotEmpty,
-          reason:
-              'sample DB has non-Shearwater dives (Oceanic Matrix Master, manual, etc.)',
-        );
-        for (final dive in nonShearwater) {
-          expect(
-            dive['profile'] as List,
-            isEmpty,
-            reason:
-                'non-Shearwater computer "${dive['diveComputerModel']}" — '
-                'libdivecomputer does not parse this vendor in the current build; '
-                'profile should be empty without a warning for a null rawDataBlob',
-          );
-        }
-      },
-    );
+      expect(
+        nonShearwater,
+        isNotEmpty,
+        reason: 'sample DB has Oceanic and manual-entry dives',
+      );
+      for (final dive in nonShearwater) {
+        // Matches macdive_xml_parser: omit the key rather than emit an empty
+        // list, so downstream can tell "no samples" from "zero-length dive".
+        expect(dive.containsKey('profile'), isFalse);
+      }
+    });
 
     test(
       'warning count bounded: <5% of Shearwater dives emit decode warnings',
@@ -286,6 +266,239 @@ void main() {
       expect(payload.metadata['source'], 'macdive_sqlite');
       expect(payload.metadata['units'], isA<String>());
       expect(payload.metadata['diveCount'], 540);
+    });
+  });
+
+  // #912 regressions. The 2026-04 ZRAWDATA attempt shipped green because its
+  // tests mocked the parser against a synthetic fixture with no real blob, so
+  // these run against real bytes on purpose.
+  group('MacDive SQLite #912 regressions', skip: skipReason, () {
+    late Uint8List bytes;
+
+    setUpAll(() async {
+      if (skipReason != null) throw StateError(skipReason);
+      bytes = Uint8List.fromList(await File(realSamplePath!).readAsBytes());
+    });
+
+    test(
+      'every ZRAWDATA blob decompresses to valid Petrel Native Format',
+      () async {
+        final logbook = await MacDiveDbReader.readAll(bytes);
+        final withRaw = logbook.dives
+            .where((d) => d.rawDataBlob != null && d.rawDataBlob!.isNotEmpty)
+            .toList();
+        expect(
+          withRaw,
+          hasLength(267),
+          reason: 'the reference DB has 217 Teric + 50 Tern dives',
+        );
+
+        final failures = <String>[];
+        for (final dive in withRaw) {
+          final out = ShearwaterRawDecompressor.decompress(dive.rawDataBlob!);
+          if (out == null || out.isEmpty) {
+            failures.add('${dive.uuid}: did not decompress');
+            continue;
+          }
+          if (out.length % 32 != 0) {
+            failures.add(
+              '${dive.uuid}: ${out.length} bytes, not 32-byte records',
+            );
+            continue;
+          }
+          final types = <int>[for (var i = 0; i < out.length; i += 32) out[i]];
+          // libdivecomputer's shearwater_predator_parser requires opening and
+          // closing records 0..5; missing one is the exact failure the earlier
+          // attempt hit ("Opening or closing record 1 not found").
+          for (var i = 0; i < 6; i++) {
+            if (!types.contains(0x10 + i)) {
+              failures.add('${dive.uuid}: missing opening record $i');
+              break;
+            }
+            if (!types.contains(0x20 + i)) {
+              failures.add('${dive.uuid}: missing closing record $i');
+              break;
+            }
+          }
+        }
+
+        expect(
+          failures,
+          isEmpty,
+          reason: 'first few: ${failures.take(5).join("; ")}',
+        );
+      },
+    );
+
+    test(
+      'decoded sample counts are plausible against ZTOTALDURATION',
+      () async {
+        final logbook = await MacDiveDbReader.readAll(bytes);
+        var checked = 0;
+        var short = 0;
+        for (final dive in logbook.dives) {
+          final blob = dive.rawDataBlob;
+          final duration = dive.totalDuration;
+          final interval = dive.sampleInterval;
+          if (blob == null || blob.isEmpty) continue;
+          if (duration == null || interval == null || interval <= 0) continue;
+
+          final out = ShearwaterRawDecompressor.decompress(blob)!;
+          var samples = 0;
+          for (var i = 0; i < out.length; i += 32) {
+            if (out[i] == 0x01) samples++;
+          }
+          // Shearwater logs at a fixed interval; the raw log also keeps a few
+          // surface samples MacDive trims, so allow generous headroom rather
+          // than asserting an exact count.
+          // A handful of blobs in the reference DB are genuinely
+          // truncated, so assert on the population rather than requiring
+          // every dive to be complete.
+          checked++;
+          if (samples < duration / interval * 0.5) short++;
+        }
+        expect(checked, greaterThan(200));
+        expect(
+          short / checked,
+          lessThan(0.1),
+          reason: '$short of $checked dives decoded few samples',
+        );
+      },
+    );
+
+    test('dive types are imported from ZDIVETYPE', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final types = payload.entitiesOf(ImportEntityType.diveTypes);
+      expect(types.map((t) => t['id']), contains('aquarium'));
+
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final aquarium = dives.where(
+        (d) => (d['diveTypeIds'] as List?)?.contains('aquarium') ?? false,
+      );
+      expect(
+        aquarium.length,
+        greaterThanOrEqualTo(90),
+        reason: '96 dives are tagged Aquarium in the reference DB',
+      );
+    });
+
+    test('operators become dive centers', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final centers = payload.entitiesOf(ImportEntityType.diveCenters);
+      expect(
+        centers.map((c) => c['name']),
+        contains('California Academy Dive Ops'),
+      );
+      expect(centers.length, greaterThanOrEqualTo(50));
+
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final linked = dives.where((d) => d['diveCenterRef'] != null);
+      expect(linked, isNotEmpty);
+    });
+
+    test('certifications and service records are imported', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      expect(payload.entitiesOf(ImportEntityType.certifications), hasLength(4));
+      expect(payload.entitiesOf(ImportEntityType.serviceRecords), hasLength(1));
+    });
+
+    test('inactive gear imports as retired', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final retired = payload
+          .entitiesOf(ImportEntityType.equipment)
+          .where((g) => g['status'] == 'retired');
+      expect(
+        retired,
+        hasLength(2),
+        reason: '2 of 32 gear items are disabled in the reference DB',
+      );
+    });
+
+    test('units are inferred when MacDive omits SystemOfUnits', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      // The reference library genuinely has no SystemOfUnits row.
+      expect(logbook.unitsPreference, isNull);
+      expect(
+        MacDiveUnitInference.infer(logbook),
+        MacDiveUnitSystem.imperial,
+        reason: 'fill pressures reach 3500, which can only be psi',
+      );
+    });
+
+    test('tank pressures land in a plausible bar range', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final pressures = <double>[
+        for (final dive in payload.entitiesOf(ImportEntityType.dives))
+          for (final tank in (dive['tanks'] as List? ?? const []))
+            ...[
+              tank['startPressure'],
+              tank['endPressure'],
+            ].whereType<double>().where((p) => p > 0),
+      ];
+      expect(pressures, isNotEmpty);
+
+      // #912: psi passed through as bar produced 3118 "bar" fills. A real
+      // cylinder tops out near 300 bar.
+      final max = pressures.reduce((a, b) => a > b ? a : b);
+      expect(
+        max,
+        lessThan(350),
+        reason: 'highest imported fill pressure was $max bar',
+      );
+      expect(
+        max,
+        greaterThan(150),
+        reason: 'and it should still be a real fill',
+      );
+    });
+
+    test('depth and temperature are not double-converted', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final depths = dives
+          .map((d) => d['maxDepth'])
+          .whereType<double>()
+          .where((d) => d > 0)
+          .toList();
+      final maxDepth = depths.reduce((a, b) => a > b ? a : b);
+      // MacDive stores depth in metres even for an imperial diver; treating
+      // it as feet would have turned this 38 m dive into 11.6 m.
+      expect(maxDepth, closeTo(38.0, 0.5));
+
+      final temps = dives
+          .map((d) => d['waterTemp'])
+          .whereType<double>()
+          .where((t) => t != 0)
+          .toList();
+      final maxTemp = temps.reduce((a, b) => a > b ? a : b);
+      expect(maxTemp, closeTo(31.1, 0.5));
+    });
+
+    test('cylinder volumes are plausible litres', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final volumes = <double>[
+        for (final dive in payload.entitiesOf(ImportEntityType.dives))
+          for (final tank in (dive['tanks'] as List? ?? const []))
+            if (tank['volume'] is double && (tank['volume'] as double) > 0)
+              tank['volume'] as double,
+      ];
+      expect(volumes, isNotEmpty);
+      // An AL80 is 77.4 cft at 3000 psi, i.e. ~11 L of water capacity. Read
+      // as litres directly it would have been an 80 L cylinder.
+      for (final volume in volumes) {
+        expect(volume, lessThan(40));
+        expect(volume, greaterThan(3));
+      }
+    });
+
+    test('weight is carried as a number, not appended to notes', () async {
+      final payload = await const MacDiveSqliteParser().parse(bytes);
+      final dives = payload.entitiesOf(ImportEntityType.dives);
+      final withWeight = dives.where((d) => d['weightUsed'] != null);
+      expect(withWeight, isNotEmpty);
+      for (final dive in dives) {
+        expect(dive['notes'] as String? ?? '', isNot(contains('Weight used')));
+      }
     });
   });
 }

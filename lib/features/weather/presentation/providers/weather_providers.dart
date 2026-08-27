@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/weather/data/repositories/weather_repository.dart';
+import 'package:submersion/features/weather/data/services/elevation_service.dart';
 import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 
@@ -15,6 +16,12 @@ final weatherHttpClientProvider = Provider<http.Client>((ref) {
 final weatherServiceProvider = Provider<WeatherService>((ref) {
   final client = ref.watch(weatherHttpClientProvider);
   return WeatherService(client: client);
+});
+
+/// ElevationService provider
+final elevationServiceProvider = Provider<ElevationService>((ref) {
+  final client = ref.watch(weatherHttpClientProvider);
+  return ElevationService(client: client);
 });
 
 /// WeatherRepository provider

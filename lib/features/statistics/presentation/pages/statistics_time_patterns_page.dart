@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
@@ -94,9 +94,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: 'Dives by day of week. $description',
+            label: context.l10n.statistics_timePatterns_dayOfWeek_semanticLabel(
+              description,
             ),
             child: CategoryBarChart(data: fullData, barColor: Colors.blue),
           );
@@ -120,14 +119,19 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
       title: context.l10n.statistics_timePatterns_timeOfDay_title,
       subtitle: context.l10n.statistics_timePatterns_timeOfDay_subtitle,
       child: timeOfDayAsync.when(
-        data: (data) {
+        data: (raw) {
+          // The repository's bucket names are stable keys -- they are also its
+          // ORDER BY sort keys -- so they become display text only here.
+          final data = localizeDistribution(
+            raw,
+            (key) => timeOfDayDistributionLabel(key, context.l10n),
+          );
           final description = data
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Pie',
-              description: 'Dives by time of day. $description',
+            label: context.l10n.statistics_timePatterns_timeOfDay_semanticLabel(
+              description,
             ),
             child: DistributionPieChart(
               data: data,
@@ -181,9 +185,8 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: 'Dives by month. $description',
+            label: context.l10n.statistics_timePatterns_seasonal_semanticLabel(
+              description,
             ),
             child: CategoryBarChart(data: fullData, barColor: Colors.teal),
           );
@@ -266,7 +269,10 @@ class StatisticsTimePatternsPage extends ConsumerWidget {
     Color color,
   ) {
     return Semantics(
-      label: statLabel(name: '$label surface interval', value: value),
+      label: context.l10n.statistics_timePatterns_surfaceInterval_statLabel(
+        label,
+        value,
+      ),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

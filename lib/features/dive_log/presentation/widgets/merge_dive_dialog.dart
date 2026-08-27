@@ -6,17 +6,23 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Multi-step dialog for merging another dive into the current one
 /// as an additional computer reading.
 ///
 /// Step 1: Shows candidate dives from the same calendar day, sorted by
 ///         time proximity. User selects one.
-/// Step 2: Data-loss warning confirmation screen.
+/// Step 2: Confirmation screen explaining what the fold does.
 class MergeDiveDialog extends ConsumerStatefulWidget {
   final String currentDiveId;
   final DateTime currentDiveDate;
-  final void Function(String selectedDiveId) onMerge;
+
+  /// Called with the selected dive's id wrapped in a single-element list --
+  /// the shape [DiveConsolidationService.apply]'s `secondaryDiveIds`
+  /// parameter expects, since it supports folding in more than one computer
+  /// at a time even though this dialog currently only lets the user pick one.
+  final void Function(List<String> secondaryDiveIds) onMerge;
 
   const MergeDiveDialog({
     super.key,
@@ -53,6 +59,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -68,7 +75,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
-                  'Merge with another dive',
+                  l10n.diveLog_mergeDialog_title,
                   style: textTheme.headlineSmall,
                 ),
               ),
@@ -76,7 +83,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Select a dive from the same day to merge as an additional computer.',
+            l10n.diveLog_mergeDialog_subtitle,
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -86,8 +93,9 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
             child: divesAsync.when(
               data: (allDives) => _buildCandidateList(context, allDives),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) =>
-                  Center(child: Text('Error loading dives: $error')),
+              error: (error, _) => Center(
+                child: Text(l10n.diveLog_mergeDialog_loadError('$error')),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -96,14 +104,14 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child: Text(l10n.common_action_cancel),
               ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: _selectedDive == null
                     ? null
                     : () => setState(() => _showConfirmation = true),
-                child: const Text('Next'),
+                child: Text(l10n.diveLog_mergeDialog_next),
               ),
             ],
           ),
@@ -129,7 +137,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
               ),
               const SizedBox(height: 12),
               Text(
-                'No other dives found on this day.',
+                context.l10n.diveLog_mergeDialog_empty,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -165,6 +173,7 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
   Widget _buildConfirmationScreen(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
     final dive = _selectedDive!;
 
     final timeLabel = dive.entryTime != null
@@ -191,38 +200,38 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
               ),
               const SizedBox(width: 12),
               Flexible(
-                child: Text('Confirm merge', style: textTheme.headlineSmall),
+                child: Text(
+                  l10n.diveLog_mergeDialog_confirmTitle,
+                  style: textTheme.headlineSmall,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            'Merging dive at $timeLabel into this dive.',
+            l10n.diveLog_mergeDialog_confirmSubtitle(timeLabel),
             style: textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
           Card(
-            color: colorScheme.errorContainer.withValues(alpha: 0.4),
+            color: colorScheme.secondaryContainer.withValues(alpha: 0.4),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Data loss warning',
+                    l10n.diveLog_mergeDialog_whatThisDoes,
                     style: textTheme.titleSmall?.copyWith(
-                      color: colorScheme.error,
+                      color: colorScheme.onSecondaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'The following data from the selected dive will be discarded: '
-                    'tanks, equipment links, notes, buddy, rating. '
-                    'Only the dive computer\'s profile data and metadata will be kept. '
-                    'This action can be reversed with \'Unlink computer\'.',
+                    l10n.diveLog_mergeDialog_explanation,
                     style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onErrorContainer,
+                      color: colorScheme.onSecondaryContainer,
                     ),
                   ),
                 ],
@@ -235,18 +244,18 @@ class _MergeDiveDialogState extends ConsumerState<MergeDiveDialog> {
             children: [
               TextButton(
                 onPressed: () => setState(() => _showConfirmation = false),
-                child: const Text('Back'),
+                child: Text(l10n.common_action_back),
               ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  widget.onMerge(dive.id);
+                  widget.onMerge([dive.id]);
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.error,
                 ),
-                child: const Text('Merge'),
+                child: Text(l10n.diveLog_mergeDialog_merge),
               ),
             ],
           ),
@@ -365,7 +374,7 @@ Future<void> showMergeDiveDialog({
   required BuildContext context,
   required String currentDiveId,
   required DateTime currentDiveDate,
-  required void Function(String selectedDiveId) onMerge,
+  required void Function(List<String> secondaryDiveIds) onMerge,
 }) {
   return showDialog(
     context: context,

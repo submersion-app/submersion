@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for searching and importing dive sites from online sources.
@@ -194,6 +196,8 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
+
     // Error state
     if (state.hasError) {
       return Center(
@@ -361,6 +365,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             return _DiveSiteCard(
               site: site,
               isImported: isImported,
+              units: units,
               onImport: () => _importSite(site),
             );
           }),
@@ -530,11 +535,13 @@ class _LocalSiteCard extends StatelessWidget {
 class _DiveSiteCard extends StatelessWidget {
   final ExternalDiveSite site;
   final bool isImported;
+  final UnitFormatter units;
   final VoidCallback onImport;
 
   const _DiveSiteCard({
     required this.site,
     required this.isImported,
+    required this.units,
     required this.onImport,
   });
 
@@ -547,7 +554,7 @@ class _DiveSiteCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: Semantics(
         button: true,
-        label: 'View details for ${site.name}',
+        label: context.l10n.diveSites_import_semantics_viewDetails(site.name),
         child: InkWell(
           onTap: () => _showDetails(context),
           borderRadius: BorderRadius.circular(12),
@@ -617,7 +624,7 @@ class _DiveSiteCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Imported',
+                              context.l10n.diveSites_import_badge_imported,
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: colorScheme.primary,
                               ),
@@ -628,7 +635,9 @@ class _DiveSiteCard extends StatelessWidget {
                     else
                       FilledButton.tonal(
                         onPressed: onImport,
-                        child: const Text('Import'),
+                        child: Text(
+                          context.l10n.diveSites_import_button_import,
+                        ),
                       ),
                   ],
                 ),
@@ -688,7 +697,7 @@ class _DiveSiteCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'GPS',
+                          context.l10n.diveSites_import_label_gps,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -788,15 +797,19 @@ class _DiveSiteCard extends StatelessWidget {
                         Chip(
                           avatar: const Icon(Icons.arrow_downward, size: 18),
                           label: Text(
-                            'Max ${site.maxDepth!.toStringAsFixed(0)}m',
+                            context.l10n.diveSites_import_detail_maxDepth(
+                              units.formatDepth(site.maxDepth!, decimals: 0),
+                            ),
                           ),
                         ),
                       if (site.hasCoordinates)
                         Chip(
                           avatar: const Icon(Icons.location_on, size: 18),
                           label: Text(
-                            '${site.latitude!.toStringAsFixed(4)}, '
-                            '${site.longitude!.toStringAsFixed(4)}',
+                            units.formatCoordinates(
+                              site.latitude,
+                              site.longitude,
+                            ),
                           ),
                         ),
                       ...site.features.map((f) => Chip(label: Text(f))),
@@ -806,7 +819,7 @@ class _DiveSiteCard extends StatelessWidget {
 
                   // Source
                   Text(
-                    'Source: ${site.source}',
+                    context.l10n.diveSites_import_detail_source(site.source),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -823,7 +836,9 @@ class _DiveSiteCard extends StatelessWidget {
                           onImport();
                         },
                         icon: const Icon(Icons.download),
-                        label: const Text('Import to My Sites'),
+                        label: Text(
+                          context.l10n.diveSites_import_detail_importToMySites,
+                        ),
                       ),
                     )
                   else
@@ -836,7 +851,11 @@ class _DiveSiteCard extends StatelessWidget {
                           children: [
                             Icon(Icons.check, color: colorScheme.primary),
                             const SizedBox(width: 8),
-                            const Text('Already Imported'),
+                            Text(
+                              context
+                                  .l10n
+                                  .diveSites_import_detail_alreadyImported,
+                            ),
                           ],
                         ),
                       ),

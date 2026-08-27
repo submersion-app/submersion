@@ -1,6 +1,11 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Repository provider (singleton)
 final mediaRepositoryProvider = Provider<MediaRepository>((ref) {
@@ -13,7 +18,46 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
   diveId,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return repository.getMediaForDive(diveId);
+});
+
+/// Positions a dive's linked media on the profile chart by backfilling any
+/// missing [MediaEnrichment] rows. Idempotent; wired to a dive-with-profile
+/// loader and the media repository's read/save.
+final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
+  final mediaRepo = ref.watch(mediaRepositoryProvider);
+  final diveRepo = ref.watch(diveRepositoryProvider);
+  return DiveMediaEnricher(
+    loadDive: diveRepo.getDiveById,
+    loadMediaForDive: mediaRepo.getMediaForDive,
+    saveEnrichments: mediaRepo.saveEnrichments,
+  );
+});
+
+/// Applies the Set-time dialog's choice (issue #1090): one media-row write
+/// plus one enrichment pass, so the new position lands on the next tick.
+final mediaTimePinnerProvider = Provider<MediaTimePinner>((ref) {
+  return MediaTimePinner(
+    repository: ref.watch(mediaRepositoryProvider),
+    enricher: ref.watch(diveMediaEnricherProvider),
+  );
+});
+
+/// The one implementation of "unlink from a dive", shared by the Media
+/// section's selection bar and dive detail's.
+///
+/// The coordinator is read lazily inside the closure rather than watched, so
+/// consumer widget tests without a media-store runtime are unaffected. This
+/// mirrors [mediaDeletionCoordinatorProvider]'s own reasoning.
+final mediaUnlinkServiceProvider = Provider<MediaUnlinkService>((ref) {
+  return MediaUnlinkService(
+    repository: ref.watch(mediaRepositoryProvider),
+    deleteMedia: (ids) =>
+        ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids),
+  );
 });
 
 /// Get single media by ID
@@ -22,6 +66,7 @@ final mediaByIdProvider = FutureProvider.family<MediaItem?, String>((
   id,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchMediaChanges());
   return repository.getMediaById(id);
 });
 
@@ -31,6 +76,7 @@ final mediaCountForDiveProvider = FutureProvider.family<int, String>((
   diveId,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchMediaChanges());
   return repository.getMediaCountForDive(diveId);
 });
 
@@ -40,12 +86,14 @@ final pendingSuggestionCountProvider = FutureProvider.family<int, String>((
   diveId,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchMediaChanges());
   return repository.getPendingSuggestionCount(diveId);
 });
 
 /// Get all orphaned media
 final orphanedMediaProvider = FutureProvider<List<MediaItem>>((ref) async {
   final repository = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchMediaChanges());
   return repository.getOrphanedMedia();
 });
 
@@ -59,6 +107,7 @@ final divePhotoGpsProvider =
       diveId,
     ) async {
       final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
       return repository.getBestGpsFromDiveMedia(diveId);
     });
 
@@ -69,6 +118,7 @@ final allDivePhotoGpsProvider =
       String
     >((ref, diveId) async {
       final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
       return repository.getGpsFromDiveMedia(diveId);
     });
 
@@ -113,16 +163,29 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
     _ref.invalidate(mediaByIdProvider(item.id));
   }
 
-  /// Delete a media item
+  /// Delete a media item. Routed through the deletion coordinator so the
+  /// remote-blob delete intent is enqueued before the row dies
+  /// (orphan-prevention spec 5.2).
   Future<void> deleteMedia(String id) async {
-    await _repository.deleteMedia(id);
+    await _ref.read(mediaDeletionCoordinatorProvider).deleteMedia(id);
     await refresh();
   }
 
   /// Delete multiple media items at once
   Future<void> deleteMultipleMedia(List<String> ids) async {
-    await _repository.deleteMultipleMedia(ids);
+    await _ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
     await refresh();
+  }
+
+  /// Unlinks from the dive: the rows leave the library, along with their
+  /// cloud proxies and thumbnails, unless a dive site still needs them.
+  /// Original source files are never touched. See [MediaUnlinkService].
+  Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
+    final outcome = await _ref
+        .read(mediaUnlinkServiceProvider)
+        .unlinkFromDive(ids);
+    await refresh();
+    return outcome;
   }
 
   /// Mark a media item as orphaned (photo deleted from gallery)

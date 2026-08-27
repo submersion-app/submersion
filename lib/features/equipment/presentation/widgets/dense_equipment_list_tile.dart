@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the equipment list (maximum density).
 ///
 /// Row: Equipment name (expanded) | Type label (~80px) | Service status (~80px) | Chevron
-class DenseEquipmentListTile extends StatelessWidget {
+class DenseEquipmentListTile extends ConsumerWidget {
   final EquipmentItem item;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DenseEquipmentListTile({
     super.key,
     required this.item,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
@@ -45,6 +56,12 @@ class DenseEquipmentListTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  gap: 8,
+                ),
                 // Equipment name (expanded)
                 Expanded(
                   child: Text(
@@ -70,7 +87,10 @@ class DenseEquipmentListTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 // Service status indicator (~80px)
-                SizedBox(width: 80, child: _buildServiceStatus(context)),
+                SizedBox(
+                  width: 80,
+                  child: _buildServiceStatus(context, worstClock),
+                ),
                 ExcludeSemantics(
                   child: Icon(
                     Icons.chevron_right,
@@ -86,27 +106,17 @@ class DenseEquipmentListTile extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceStatus(BuildContext context) {
+  Widget _buildServiceStatus(BuildContext context, DueClock? worstClock) {
     final theme = Theme.of(context);
 
-    if (item.isServiceDue) {
+    if (worstClock != null) {
+      final overdue =
+          worstClock.status.severity == ServiceClockSeverity.overdue;
       return Text(
-        'Service Due',
+        worstClock.status.kind.name,
         style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.error,
+          color: overdue ? theme.colorScheme.error : theme.colorScheme.tertiary,
           fontWeight: FontWeight.w600,
-        ),
-        textAlign: TextAlign.right,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    if (item.daysUntilService != null) {
-      final days = item.daysUntilService!;
-      return Text(
-        'In $days days',
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
         ),
         textAlign: TextAlign.right,
         overflow: TextOverflow.ellipsis,

@@ -1,12 +1,37 @@
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 /// Extension providing raw value extraction from [Dive] and [DiveSummary]
 /// entities for each [DiveField].
 extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a full [Dive] entity.
-  dynamic extractFromDive(Dive dive) {
+  ///
+  /// [sacUnit] selects which base value [DiveField.sacRate] yields: volume-based
+  /// L/min ([Dive.sacFor]) or pressure-based bar/min ([Dive.sacPressure]). It must
+  /// match the [UnitFormatter] later used to format the value so the unit suffix
+  /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
+  /// default, so an omitted argument stays consistent with default settings.
+  /// Other fields ignore it.
+  ///
+  /// [diveTypeLabel] resolves a dive-type slug to its display label for
+  /// [DiveField.diveTypeName]. On-screen callers pass the localizing resolver
+  /// (`diveTypeLabel` in `dive_log/presentation/formatters/`) so the column
+  /// honors the active locale (issue #643). Omitting it keeps the English slug
+  /// capitalization, which is what locale-independent consumers want.
+  /// [gasModel] selects the equation of state behind the volumetric L/min
+  /// value, and is ignored for every other field and for pressure-based SAC.
+  /// Defaults to [GasModel.real] to match the AppSettings default, so an
+  /// omitted argument stays consistent with default settings (issue #828).
+  dynamic extractFromDive(
+    Dive dive, {
+    SacUnit sacUnit = SacUnit.pressurePerMin,
+    GasModel gasModel = GasModel.real,
+    String Function(String id)? diveTypeLabel,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return dive.diveNumber;
@@ -14,6 +39,8 @@ extension DiveFieldExtractor on DiveField {
         return dive.effectiveEntryTime;
       case DiveField.siteName:
         return dive.site?.name;
+      case DiveField.diveName:
+        return dive.effectiveName ?? dive.site?.name;
       case DiveField.maxDepth:
         return dive.maxDepth;
       case DiveField.avgDepth:
@@ -27,7 +54,10 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.airTemp:
         return dive.airTemp;
       case DiveField.visibility:
-        return dive.visibility?.displayName;
+        // Raw metric value, consistent with maxDepth and swellHeight: the
+        // UnitFormatter converts at render time. Pre-v144 dives have no
+        // measurement, so they fall back to the legacy bucket's English label.
+        return dive.visibilityMeters ?? dive.visibility?.displayName;
       case DiveField.currentDirection:
         return dive.currentDirection?.displayName;
       case DiveField.currentStrength:
@@ -65,7 +95,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.endPressure:
         return dive.tanks.isNotEmpty ? dive.tanks.first.endPressure : null;
       case DiveField.sacRate:
-        return _computeSacRate(dive);
+        return _computeSacRate(dive, sacUnit, gasModel);
       case DiveField.gasConsumed:
         return _computeGasConsumed(dive);
       case DiveField.totalWeight:
@@ -95,9 +125,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.setpointDeco:
         return dive.setpointDeco;
       case DiveField.buddy:
-        return dive.buddy;
+        return _buddyColumnValue(dive);
       case DiveField.diveMaster:
-        return dive.diveMaster;
+        return _diveMasterColumnValue(dive);
       case DiveField.siteLocation:
         return dive.site?.locationString;
       case DiveField.diveCenterName:
@@ -119,7 +149,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.importSource:
         return dive.importSource;
       case DiveField.diveTypeName:
-        return dive.diveTypeName;
+        return diveTypeLabel == null
+            ? dive.diveTypeNames.join(', ')
+            : dive.diveTypeIds.map(diveTypeLabel).join(', ');
       case DiveField.surfaceInterval:
         return dive.surfaceInterval;
     }
@@ -128,7 +160,12 @@ extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a [DiveSummary].
   ///
   /// Returns null for fields not available on [DiveSummary].
-  dynamic extractFromSummary(DiveSummary summary) {
+  ///
+  /// See [extractFromDive] for [diveTypeLabel].
+  dynamic extractFromSummary(
+    DiveSummary summary, {
+    String Function(String id)? diveTypeLabel,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return summary.diveNumber;
@@ -136,6 +173,8 @@ extension DiveFieldExtractor on DiveField {
         return summary.entryTime ?? summary.dateTime;
       case DiveField.siteName:
         return summary.siteName;
+      case DiveField.diveName:
+        return summary.effectiveName ?? summary.siteName;
       case DiveField.maxDepth:
         return summary.maxDepth;
       case DiveField.avgDepth:
@@ -150,10 +189,12 @@ extension DiveFieldExtractor on DiveField {
         return summary.rating;
       case DiveField.isFavorite:
         return summary.isFavorite;
+      case DiveField.diveMode:
+        return summary.diveMode.name.toUpperCase();
       case DiveField.diveTypeName:
-        final id = summary.diveTypeId;
-        if (id.isEmpty) return 'Recreational';
-        return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
+        return summary.diveTypeIds
+            .map(diveTypeLabel ?? Dive.diveTypeDisplayName)
+            .join(', ');
       case DiveField.tags:
         return summary.tags.map((t) => t.name).toList();
       case DiveField.siteLocation:
@@ -168,48 +209,69 @@ extension DiveFieldExtractor on DiveField {
   }
 }
 
-/// Compute the SAC rate (Surface Air Consumption) in L/min from a [Dive].
+/// Compute the SAC rate (Surface Air Consumption) for a [Dive].
 ///
-/// Uses the first tank's gas consumption and effective runtime with average
-/// depth to calculate surface-equivalent consumption.
-double? _computeSacRate(Dive dive) {
-  if (dive.tanks.isEmpty) return null;
-  final runtime = dive.effectiveRuntime;
-  final avgDepth = dive.avgDepth;
-  if (runtime == null || avgDepth == null) return null;
+/// Returns the base value matching [sacUnit]:
+/// - [SacUnit.litersPerMin]: volume-based L/min from [Dive.sacFor] under
+///   [gasModel] (sums gas across all tanks with volume data).
+/// - [SacUnit.pressurePerMin]: pressure-based bar/min from [Dive.sacPressure]
+///   (back gas tank pressure drop; no tank volume or gas model required).
+double? _computeSacRate(Dive dive, SacUnit sacUnit, GasModel gasModel) =>
+    sacUnit == SacUnit.litersPerMin ? dive.sacFor(gasModel) : dive.sacPressure;
 
-  final minutes = runtime.inSeconds / 60.0;
-  if (minutes <= 0) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
-  }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  final gasLiters = tank.volume! * pressureUsed;
-  final avgPressureAtm = (avgDepth / 10.0) + 1.0;
-
-  return gasLiters / minutes / avgPressureAtm;
+/// Names shown in the Buddy table column: every recorded participant whose
+/// role is NOT a guide/divemaster (see [_isGuideRole]), comma-joined.
+///
+/// The `dive_buddies` junction (#553) is the source of truth for modern dives.
+/// The legacy free-text [Dive.buddy] scalar is only a whole-dive fallback: it
+/// is used when the junction is empty -- a legacy dive that only ever used the
+/// scalar, or a code path that did not hydrate [Dive.buddies]. Once the
+/// junction holds any participant the dive is treated as junction-authoritative
+/// and the (frozen, never-migrated) scalar is ignored, so stale legacy text
+/// cannot leak onto -- or duplicate a name already shown for -- a modern dive.
+String? _buddyColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.buddy;
+  final names = dive.buddies
+      .where((b) => !_isGuideRole(b.role.id))
+      .map((b) => b.buddy.name.trim())
+      .where((n) => n.isNotEmpty)
+      .toList();
+  return names.isEmpty ? null : names.join(', ');
 }
 
-/// Compute the total gas consumed in liters from the first tank of a [Dive].
+/// Names shown in the Dive Master table column: recorded participants whose
+/// role is a guide/divemaster, comma-joined.
+///
+/// Uses the same junction-authoritative rule as [_buddyColumnValue]: the legacy
+/// [Dive.diveMaster] scalar is used only when [Dive.buddies] is empty.
+String? _diveMasterColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.diveMaster;
+  final names = dive.buddies
+      .where((b) => _isGuideRole(b.role.id))
+      .map((b) => b.buddy.name.trim())
+      .where((n) => n.isNotEmpty)
+      .toList();
+  return names.isEmpty ? null : names.join(', ');
+}
+
+/// A `dive_roles` id representing someone guiding the dive rather than a peer
+/// buddy: the built-in dive guide or dive master roles (#553).
+bool _isGuideRole(String roleId) =>
+    roleId == DiveRole.diveGuideId || roleId == DiveRole.diveMasterId;
+
+/// Compute the total gas consumed in liters across all tanks of a [Dive].
 double? _computeGasConsumed(Dive dive) {
   if (dive.tanks.isEmpty) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
+  double total = 0;
+  for (final tank in dive.tanks) {
+    if (tank.startPressure == null ||
+        tank.endPressure == null ||
+        tank.volume == null) {
+      continue;
+    }
+    final used = tank.startPressure! - tank.endPressure!;
+    if (used <= 0) continue;
+    total += tank.volume! * used;
   }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  return tank.volume! * pressureUsed;
+  return total > 0 ? total : null;
 }

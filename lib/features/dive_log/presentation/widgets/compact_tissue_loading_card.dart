@@ -10,6 +10,20 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_ma
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Glyph size for every control in the card header.
+const double _headerIconSize = 16;
+
+/// Shared style for every control in the card header.
+///
+/// The header mixes plain [IconButton]s with a [PopupMenuButton], so the only
+/// way the icons stay evenly spaced is for all of them to lay out to the same
+/// box. [ButtonStyle.tapTargetSize] is deliberately left unset so it falls
+/// back to the theme default of [MaterialTapTargetSize.padded]: that is what
+/// gives each control an accessible touch target of
+/// `kMinInteractiveDimension` (48) plus the compact density adjustment (-8),
+/// i.e. 40x40 around a [_headerIconSize] glyph.
+const _headerButtonStyle = ButtonStyle(visualDensity: VisualDensity.compact);
+
 /// Compact card displaying tissue loading visualizations and live data.
 ///
 /// Contains:
@@ -42,6 +56,10 @@ class CompactTissueLoadingCard extends ConsumerStatefulWidget {
   /// (e.g. in the wide two-column layout).
   final bool expandVisualization;
 
+  /// Opens the 3D tissue saturation view. The button is hidden when null,
+  /// keeping this widget free of any dive_3d navigation dependency.
+  final VoidCallback? onOpen3dView;
+
   const CompactTissueLoadingCard({
     super.key,
     required this.status,
@@ -50,6 +68,7 @@ class CompactTissueLoadingCard extends ConsumerStatefulWidget {
     this.subtitle,
     this.onHeatMapHover,
     this.expandVisualization = false,
+    this.onOpen3dView,
   });
 
   @override
@@ -119,9 +138,27 @@ class _CompactTissueLoadingCardState
                   ),
                 ],
                 const Spacer(),
-                _buildVizModeToggle(colorScheme, vizMode),
-                const SizedBox(width: 4),
+                // Every control below shares _headerButtonStyle, so each one
+                // lays out to the same box and the gaps stay even. Do not add
+                // manual spacers between them: the icons are built from three
+                // different widget types whose intrinsic widths differ, and
+                // uniform spacers on top of non-uniform boxes is exactly what
+                // made the spacing drift before.
+                _modeIcon(
+                  Icons.grid_on,
+                  TissueVizMode.heatMap,
+                  vizMode,
+                  colorScheme,
+                ),
+                _modeIcon(
+                  Icons.area_chart,
+                  TissueVizMode.stackedArea,
+                  vizMode,
+                  colorScheme,
+                ),
                 _buildColorSchemeSelector(colorScheme),
+                if (widget.onOpen3dView != null)
+                  _build3dViewButton(colorScheme),
               ],
             ),
             const SizedBox(height: 14),
@@ -280,20 +317,25 @@ class _CompactTissueLoadingCardState
       ),
     ];
 
-    // Wrap bar segments in an outline when highlighted.
-    // The outline container is only as tall as the bar itself.
+    final barColumn = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: barSegments,
+    );
+
+    // Highlight via foregroundDecoration so the outline is painted OVER the
+    // bar without enlarging it. A decoration border would inset the child and
+    // add its width to the box on every side, making the bar taller than its
+    // fixed-height slot (overflowing when the bar is already full height) and
+    // wider than its unhighlighted neighbours (hover jitter).
     final bar = outlineColor != null
         ? Container(
-            decoration: BoxDecoration(
+            foregroundDecoration: BoxDecoration(
               border: Border.all(color: outlineColor, width: 2),
               borderRadius: BorderRadius.circular(2),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: barSegments,
-            ),
+            child: barColumn,
           )
-        : Column(mainAxisSize: MainAxisSize.min, children: barSegments);
+        : barColumn;
 
     return Tooltip(
       message:
@@ -524,29 +566,6 @@ class _CompactTissueLoadingCardState
     );
   }
 
-  Widget _buildVizModeToggle(
-    ColorScheme colorScheme,
-    TissueVizMode currentMode,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _modeIcon(
-          Icons.grid_on,
-          TissueVizMode.heatMap,
-          currentMode,
-          colorScheme,
-        ),
-        _modeIcon(
-          Icons.area_chart,
-          TissueVizMode.stackedArea,
-          currentMode,
-          colorScheme,
-        ),
-      ],
-    );
-  }
-
   Widget _modeIcon(
     IconData icon,
     TissueVizMode mode,
@@ -554,18 +573,34 @@ class _CompactTissueLoadingCardState
     ColorScheme colorScheme,
   ) {
     final isActive = mode == currentMode;
-    return GestureDetector(
-      onTap: () => ref.read(settingsProvider.notifier).setTissueVizMode(mode),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Icon(
-          icon,
-          size: 16,
-          color: isActive
-              ? colorScheme.primary
-              : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-        ),
+    return IconButton(
+      icon: Icon(
+        icon,
+        size: _headerIconSize,
+        color: isActive
+            ? colorScheme.primary
+            : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      style: _headerButtonStyle,
+      onPressed: () =>
+          ref.read(settingsProvider.notifier).setTissueVizMode(mode),
+    );
+  }
+
+  Widget _build3dViewButton(ColorScheme colorScheme) {
+    return IconButton(
+      icon: Icon(
+        Icons.view_in_ar,
+        size: _headerIconSize,
+        color: colorScheme.onSurfaceVariant,
+      ),
+      tooltip: context.l10n.dive3d_previewTitle,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      style: _headerButtonStyle,
+      onPressed: widget.onOpen3dView,
     );
   }
 
@@ -573,15 +608,14 @@ class _CompactTissueLoadingCardState
     return PopupMenuButton<TissueColorScheme>(
       icon: Icon(
         Icons.palette_outlined,
-        size: 16,
+        size: _headerIconSize,
         color: colorScheme.onSurfaceVariant,
       ),
+      // No `constraints:` here. On PopupMenuButton that parameter sizes the
+      // popup menu, not the button, so passing it the button's BoxConstraints
+      // only stripped the menu's standard minimum width.
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      style: const ButtonStyle(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
+      style: _headerButtonStyle,
       itemBuilder: (context) => TissueColorScheme.values.map((scheme) {
         return PopupMenuItem<TissueColorScheme>(
           value: scheme,

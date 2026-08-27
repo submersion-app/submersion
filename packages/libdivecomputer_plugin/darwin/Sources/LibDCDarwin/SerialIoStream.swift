@@ -14,9 +14,20 @@ class SerialIoStream {
         close()
     }
 
-    func open(path: String, baudRate: speed_t = 9600) -> Bool {
-        fileDescriptor = Darwin.open(path, O_RDWR | O_NOCTTY | O_NONBLOCK)
-        guard fileDescriptor >= 0 else { return false }
+    /// Opens and configures the port. Returns `nil` on success, or the reason
+    /// the open was refused.
+    ///
+    /// The failure is returned rather than collapsed to a Bool so callers can
+    /// log why. A sandboxed macOS build missing
+    /// `com.apple.security.device.serial` is denied here with EPERM even though
+    /// the port enumerated fine moments earlier (issue #291).
+    func open(path: String, baudRate: speed_t = 9600) -> SerialOpenFailure? {
+        switch openSerialPort(path: path) {
+        case .failure(let failure):
+            return failure
+        case .success(let fd):
+            fileDescriptor = fd
+        }
 
         // Configure serial port.
         var options = termios()
@@ -33,7 +44,7 @@ class SerialIoStream {
         let flags = fcntl(fileDescriptor, F_GETFL)
         _ = fcntl(fileDescriptor, F_SETFL, flags & ~O_NONBLOCK)
 
-        return true
+        return nil
     }
 
     func close() {
@@ -74,6 +85,25 @@ class SerialIoStream {
             Thread.sleep(forTimeInterval: Double(milliseconds) / 1000.0)
             return Int32(LIBDC_STATUS_SUCCESS)
         }
+        // Serial line-control callbacks. Without these the bridge in
+        // libdc_download.c treats configure/DTR/RTS as no-ops, leaving the port
+        // at its open() default (9600 8N1). Devices like the Mares Puck Pro
+        // (ICONHD family) require 115200 8E1 with DTR/RTS deasserted, so they
+        // never respond unless these are honored.
+        callbacks.configure = { userdata, baudrate, databits, parity, stopbits, flowcontrol in
+            let stream = Unmanaged<SerialIoStream>.fromOpaque(userdata!).takeUnretainedValue()
+            return stream.performConfigure(
+                baudRate: baudrate, dataBits: databits, parity: parity,
+                stopBits: stopbits, flowControl: flowcontrol)
+        }
+        callbacks.set_dtr = { userdata, value in
+            let stream = Unmanaged<SerialIoStream>.fromOpaque(userdata!).takeUnretainedValue()
+            return stream.performSetModemLine(TIOCM_DTR, value: value)
+        }
+        callbacks.set_rts = { userdata, value in
+            let stream = Unmanaged<SerialIoStream>.fromOpaque(userdata!).takeUnretainedValue()
+            return stream.performSetModemLine(TIOCM_RTS, value: value)
+        }
         return callbacks
     }
 
@@ -86,25 +116,19 @@ class SerialIoStream {
             return Int32(LIBDC_STATUS_IO)
         }
 
-        // Use poll() for timeout support (simpler than select() in Swift).
-        var pfd = pollfd(fd: fileDescriptor, events: Int16(POLLIN), revents: 0)
-        let ready = poll(&pfd, 1, timeoutMs)
-        if ready < 0 {
-            actual.pointee = 0
-            return Int32(LIBDC_STATUS_IO)
+        // Accumulate exactly `size` bytes (or time out). A single poll()+read()
+        // returns only the first ~64-byte USB chunk of a larger device
+        // response, which truncates multi-chunk packets like the Mares Puck Pro
+        // 140-byte version block and desyncs libdivecomputer's framing (#334).
+        // serialReadFully mirrors the serial_posix.c read contract.
+        let outcome = serialReadFully(
+            fd: fileDescriptor, into: buffer, size: size, timeoutMs: timeoutMs)
+        actual.pointee = outcome.bytesRead
+        switch outcome.status {
+        case .success: return Int32(LIBDC_STATUS_SUCCESS)
+        case .timeout: return Int32(LIBDC_STATUS_TIMEOUT)
+        case .io: return Int32(LIBDC_STATUS_IO)
         }
-        if ready == 0 {
-            actual.pointee = 0
-            return Int32(LIBDC_STATUS_TIMEOUT)
-        }
-
-        let n = Darwin.read(fileDescriptor, buffer, size)
-        if n < 0 {
-            actual.pointee = 0
-            return Int32(LIBDC_STATUS_IO)
-        }
-        actual.pointee = n
-        return Int32(LIBDC_STATUS_SUCCESS)
     }
 
     private func performWrite(
@@ -138,5 +162,90 @@ class SerialIoStream {
         }
         tcflush(fileDescriptor, queue)
         return Int32(LIBDC_STATUS_SUCCESS)
+    }
+
+    /// Applies the serial line settings libdivecomputer requests for a device.
+    ///
+    /// Mirrors the Linux backend (serial_io_stream.c serial_configure). On
+    /// Darwin, speed_t constants equal their numeric baud values, so an
+    /// arbitrary baud rate can be set directly without a Bxxxx lookup table.
+    /// parity: 0=none, 1=odd, 2=even. stopbits: 2=two, else one.
+    /// flowcontrol: see LIBDC_FLOWCONTROL_* in libdc_wrapper.h.
+    private func performConfigure(
+        baudRate: UInt32, dataBits: UInt32, parity: UInt32,
+        stopBits: UInt32, flowControl: UInt32
+    ) -> Int32 {
+        guard fileDescriptor >= 0 else { return Int32(LIBDC_STATUS_IO) }
+
+        var options = termios()
+        if tcgetattr(fileDescriptor, &options) != 0 { return Int32(LIBDC_STATUS_IO) }
+
+        let speed = speed_t(baudRate)
+        cfsetispeed(&options, speed)
+        cfsetospeed(&options, speed)
+
+        // Data bits.
+        options.c_cflag &= ~UInt(CSIZE)
+        switch dataBits {
+        case 5: options.c_cflag |= UInt(CS5)
+        case 6: options.c_cflag |= UInt(CS6)
+        case 7: options.c_cflag |= UInt(CS7)
+        default: options.c_cflag |= UInt(CS8)
+        }
+
+        // Parity.
+        if parity == 0 {
+            options.c_cflag &= ~UInt(PARENB)
+        } else {
+            options.c_cflag |= UInt(PARENB)
+            if parity == 1 {
+                options.c_cflag |= UInt(PARODD)
+            } else {
+                options.c_cflag &= ~UInt(PARODD)
+            }
+        }
+
+        // Stop bits.
+        if stopBits == 2 {
+            options.c_cflag |= UInt(CSTOPB)
+        } else {
+            options.c_cflag &= ~UInt(CSTOPB)
+        }
+
+        // Flow control. See LIBDC_FLOWCONTROL_* in libdc_wrapper.h: hardware is
+        // 1 and software is 2, not the other way round (issue #1155).
+        switch flowControl {
+        case UInt32(LIBDC_FLOWCONTROL_HARDWARE):
+            options.c_cflag |= UInt(CRTSCTS)
+            options.c_iflag &= ~UInt(IXON | IXOFF)
+        case UInt32(LIBDC_FLOWCONTROL_SOFTWARE):
+            options.c_cflag &= ~UInt(CRTSCTS)
+            options.c_iflag |= UInt(IXON | IXOFF)
+        default:
+            // LIBDC_FLOWCONTROL_NONE, and anything libdivecomputer might add.
+            options.c_cflag &= ~UInt(CRTSCTS)
+            options.c_iflag &= ~UInt(IXON | IXOFF)
+        }
+
+        return tcsetattr(fileDescriptor, TCSANOW, &options) == 0
+            ? Int32(LIBDC_STATUS_SUCCESS) : Int32(LIBDC_STATUS_IO)
+    }
+
+    /// Asserts or clears a modem-control line (DTR or RTS) via TIOCMGET/TIOCMSET.
+    /// `bit` is TIOCM_DTR or TIOCM_RTS; `value` non-zero asserts the line.
+    private func performSetModemLine(_ bit: Int32, value: UInt32) -> Int32 {
+        guard fileDescriptor >= 0 else { return Int32(LIBDC_STATUS_IO) }
+
+        var flags: Int32 = 0
+        if ioctl(fileDescriptor, UInt(TIOCMGET), &flags) != 0 {
+            return Int32(LIBDC_STATUS_IO)
+        }
+        if value != 0 {
+            flags |= bit
+        } else {
+            flags &= ~bit
+        }
+        return ioctl(fileDescriptor, UInt(TIOCMSET), &flags) == 0
+            ? Int32(LIBDC_STATUS_SUCCESS) : Int32(LIBDC_STATUS_IO)
     }
 }

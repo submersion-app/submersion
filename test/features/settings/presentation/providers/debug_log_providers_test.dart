@@ -4,13 +4,29 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// English localizations for the share/save helpers, which now take their
+/// subject and dialog title from the app's translations.
+final _l10n = l10nForLocaleTag('en');
+
+/// Fixed environment so the export header is byte-comparable across renders.
+final _environment = LogEnvironment(
+  appVersion: '1.7.6.123',
+  platform: 'ios',
+  osVersion: 'Version 26.6 (Build 23G93)',
+  locale: 'de_DE.UTF-8',
+  buildMode: 'release',
+  capturedAt: DateTime(2026, 8, 25, 20, 25, 19),
+);
 
 LogEntry _entry({
   required String message,
@@ -697,7 +713,7 @@ void main() {
         ),
       ];
 
-      await copyFilteredLogs(entries);
+      await copyFilteredLogs(entries, environment: _environment);
 
       final setDataCall = clipboardCalls.firstWhere(
         (c) => c.method == 'Clipboard.setData',
@@ -707,22 +723,58 @@ void main() {
 
       expect(text, contains(entries[0].toLogLine()));
       expect(text, contains(entries[1].toLogLine()));
-      // Lines joined by newline.
+      // Header, then the lines joined by newline.
       expect(
         text,
-        equals('${entries[0].toLogLine()}\n${entries[1].toLogLine()}'),
+        equals(
+          '${_environment.toExportHeader()}'
+          '${entries[0].toLogLine()}\n${entries[1].toLogLine()}',
+        ),
       );
     });
 
-    test('copies empty string when entries list is empty', () async {
-      await copyFilteredLogs([]);
+    test('prefixes the header naming the build that wrote the logs', () async {
+      // Issue #1246: a pasted log excerpt with no version behind it cost a
+      // full investigation to attribute to a build.
+      await copyFilteredLogs([
+        _entry(message: 'alpha'),
+      ], environment: _environment);
 
       final setDataCall = clipboardCalls.firstWhere(
         (c) => c.method == 'Clipboard.setData',
       );
       final text =
           (setDataCall.arguments as Map<dynamic, dynamic>)['text'] as String;
-      expect(text, isEmpty);
+
+      expect(text, startsWith('=== Submersion debug log ==='));
+      expect(text, contains('1.7.6.123'));
+      expect(text, contains('ios'));
+    });
+
+    test('copies the header alone when entries list is empty', () async {
+      // This is the function's contract, not a UI path: the Copy button
+      // guards on a non-empty list, so DebugLogViewerPage never reaches it.
+      // Pinned so the header stays unconditional if that guard is relaxed.
+      await copyFilteredLogs([], environment: _environment);
+
+      final setDataCall = clipboardCalls.firstWhere(
+        (c) => c.method == 'Clipboard.setData',
+      );
+      final text =
+          (setDataCall.arguments as Map<dynamic, dynamic>)['text'] as String;
+      expect(text, equals(_environment.toExportHeader()));
+    });
+
+    test('captures the environment itself when none is supplied', () async {
+      await copyFilteredLogs([_entry(message: 'alpha')]);
+
+      final setDataCall = clipboardCalls.firstWhere(
+        (c) => c.method == 'Clipboard.setData',
+      );
+      final text =
+          (setDataCall.arguments as Map<dynamic, dynamic>)['text'] as String;
+
+      expect(text, startsWith('=== Submersion debug log ==='));
     });
   });
 
@@ -735,7 +787,7 @@ void main() {
       await service.initialize();
 
       // No entries written, so log file doesn't exist
-      await shareLogFile(service);
+      await shareLogFile(service, _l10n, environment: _environment);
       // Should complete without error
     });
 
@@ -751,7 +803,7 @@ void main() {
       // SharePlus may throw MissingPluginException in test env.
       // The key is that we reach the share call (covering those lines).
       try {
-        await shareLogFile(service);
+        await shareLogFile(service, _l10n, environment: _environment);
       } catch (_) {
         // Expected in test environment
       }
@@ -766,7 +818,11 @@ void main() {
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
 
-      final result = await saveLogFile(service);
+      final result = await saveLogFile(
+        service,
+        _l10n,
+        environment: _environment,
+      );
       expect(result, isNull);
     });
 
@@ -782,7 +838,11 @@ void main() {
       // FilePicker may throw MissingPluginException in test env.
       // The key is that we reach the FilePicker call (covering those lines).
       try {
-        final result = await saveLogFile(service);
+        final result = await saveLogFile(
+          service,
+          _l10n,
+          environment: _environment,
+        );
         // If it somehow succeeds (returns null from picker), that's fine
         expect(result, anything);
       } catch (_) {

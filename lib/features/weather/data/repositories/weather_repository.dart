@@ -50,6 +50,7 @@ class WeatherRepository {
         precipitation: weatherData.precipitation,
         humidity: weatherData.humidity,
         weatherDescription: weatherData.description,
+        weatherCode: weatherData.weatherCode,
         weatherSource: WeatherSource.openMeteo,
         weatherFetchedAt: DateTime.now(),
         // Only populate airTemp/surfacePressure if currently null

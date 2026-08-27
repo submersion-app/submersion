@@ -1,4 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Cloud sync, media upload, and the GitHub update check (#1258).
+        Release builds already carry this permission: the manifest merger
+        unions it in from a library manifest, and apkanalyzer confirms it in
+        the shipped v1.7.5.6772 APK. Declared here so it stops depending on
+        which plugins happen to be in the tree, since the only pub package
+        supplying it is google_sign_in_android, a transitive dependency.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Biometric unlock for App Lock (local_auth) -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Photo library access for attaching dive photos -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -13,8 +24,13 @@
     <!-- Legacy Bluetooth permissions for Android 11 and below -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-    <!-- Location permission required for BLE scanning on Android 6-11 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+    <!-- Location permissions: BLE scanning on Android 6-11, dive site
+         coordinates, and GPS surface track logging (foreground service
+         keeps recording while the screen is locked on a dive boat) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- Declare Bluetooth feature as optional (app works without dive computer) -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
@@ -91,6 +107,19 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <!-- flutter_web_auth_2 OAuth callback for the Lightroom (Adobe IMS)
+             custom-scheme redirect. -->
+        <activity
+            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
+            android:exported="true"
+            android:taskAffinity="">
+            <intent-filter android:label="flutter_web_auth_2">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="adobe+66776bfb6c08aeff345bb6435bf88a06f406d90d" />
+            </intent-filter>
+        </activity>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -101,6 +130,17 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Lets url_launcher resolve browsers for web links on Android 11+
+             (package visibility); without this canLaunchUrl and launchUrl
+             cannot see any app that handles http/https. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
         </intent>
     </queries>
 </manifest>

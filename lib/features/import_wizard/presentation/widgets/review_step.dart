@@ -37,7 +37,6 @@ class ReviewStep extends ConsumerWidget {
     }
 
     final types = bundle.availableTypes;
-    final availableActions = notifier.supportedDuplicateActions;
     final counts = _AggregateCounts.compute(state);
 
     // Compute projected dive numbers for the review list.
@@ -60,7 +59,6 @@ class ReviewStep extends ConsumerWidget {
       bundle: bundle,
       state: state,
       notifier: notifier,
-      availableActions: availableActions,
       counts: counts,
       projectedDiveNumbers: projectedDiveNumbers,
       existingTags: existingTags,
@@ -128,7 +126,6 @@ class _MultiTypeLayout extends StatefulWidget {
   final ImportBundle bundle;
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final Map<int, int>? projectedDiveNumbers;
   final List<Tag> existingTags;
@@ -140,7 +137,6 @@ class _MultiTypeLayout extends StatefulWidget {
     required this.bundle,
     required this.state,
     required this.notifier,
-    required this.availableActions,
     required this.counts,
     this.projectedDiveNumbers,
     required this.existingTags,
@@ -237,7 +233,6 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                     bundle: widget.bundle,
                     state: widget.state,
                     notifier: widget.notifier,
-                    availableActions: widget.availableActions,
                     projectedDiveNumbers: type == ImportEntityType.dives
                         ? widget.projectedDiveNumbers
                         : null,
@@ -271,29 +266,32 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
   }
 
   String _typeDisplayName(ImportEntityType type) {
+    final l10n = context.l10n;
     switch (type) {
       case ImportEntityType.dives:
-        return 'Dives';
+        return l10n.diveImport_uddf_dives;
       case ImportEntityType.sites:
-        return 'Sites';
+        return l10n.diveImport_uddf_sites;
       case ImportEntityType.buddies:
-        return 'Buddies';
+        return l10n.diveImport_uddf_buddies;
       case ImportEntityType.equipment:
-        return 'Equipment';
+        return l10n.diveImport_uddf_equipment;
       case ImportEntityType.trips:
-        return 'Trips';
+        return l10n.diveImport_uddf_trips;
       case ImportEntityType.certifications:
-        return 'Certifications';
+        return l10n.diveImport_uddf_certifications;
       case ImportEntityType.diveCenters:
-        return 'Dive Centers';
+        return l10n.diveImport_uddf_diveCenters;
       case ImportEntityType.tags:
-        return 'Tags';
+        return l10n.diveImport_uddf_tags;
       case ImportEntityType.diveTypes:
-        return 'Dive Types';
+        return l10n.diveImport_uddf_diveTypes;
       case ImportEntityType.equipmentSets:
-        return 'Equipment Sets';
+        return l10n.diveImport_uddf_equipmentSets;
       case ImportEntityType.courses:
-        return 'Courses';
+        return l10n.diveImport_uddf_tabCourses;
+      case ImportEntityType.media:
+        return l10n.diveImport_uddf_media;
     }
   }
 }
@@ -307,7 +305,6 @@ class _EntityTab extends StatelessWidget {
   final ImportBundle bundle;
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
   final Map<int, int>? projectedDiveNumbers;
 
   const _EntityTab({
@@ -315,7 +312,6 @@ class _EntityTab extends StatelessWidget {
     required this.bundle,
     required this.state,
     required this.notifier,
-    required this.availableActions,
     this.projectedDiveNumbers,
   });
 
@@ -324,6 +320,9 @@ class _EntityTab extends StatelessWidget {
     final group = bundle.groups[type]!;
     final selectedIndices = state.selections[type] ?? const <int>{};
     final duplicateActions = state.duplicateActions[type] ?? const {};
+    // Per-tab, not per-adapter: an adapter may implement an action for only
+    // some entity types (e.g. Universal supports replaceSource on sites only).
+    final availableActions = notifier.duplicateActionsFor(type);
 
     return SingleChildScrollView(
       child: EntityReviewList(
@@ -411,21 +410,24 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final parts = <String>[];
     if (counts.importing > 0) {
-      parts.add('${counts.importing} new');
+      parts.add(l10n.universalImport_counts_new(counts.importing));
     }
     if (counts.consolidating > 0) {
-      parts.add('${counts.consolidating} merging');
+      parts.add(l10n.universalImport_counts_merging(counts.consolidating));
     }
     if (counts.replacing > 0) {
-      parts.add('${counts.replacing} replacing');
+      parts.add(l10n.universalImport_counts_replacing(counts.replacing));
     }
     if (counts.skipping > 0) {
-      parts.add('${counts.skipping} skipped');
+      parts.add(l10n.universalImport_counts_skipped(counts.skipping));
     }
 
-    final countsText = parts.isEmpty ? 'Nothing selected' : parts.join(', ');
+    final countsText = parts.isEmpty
+        ? l10n.universalImport_counts_nothingSelected
+        : parts.join(', ');
 
     return SafeArea(
       child: Padding(
@@ -468,7 +470,10 @@ class _BottomBar extends StatelessWidget {
             Row(
               children: [
                 if (onBack != null)
-                  TextButton(onPressed: onBack, child: const Text('Back')),
+                  TextButton(
+                    onPressed: onBack,
+                    child: Text(l10n.common_action_back),
+                  ),
                 Expanded(
                   child: Text(
                     countsText,
@@ -487,7 +492,7 @@ class _BottomBar extends StatelessWidget {
                               0)
                       ? null
                       : onImport,
-                  child: const Text('Import Selected'),
+                  child: Text(l10n.universalImport_action_importSelected),
                 ),
               ],
             ),

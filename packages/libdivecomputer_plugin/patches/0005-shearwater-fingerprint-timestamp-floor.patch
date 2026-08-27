@@ -1,0 +1,80 @@
+diff --git a/src/shearwater_petrel.c b/src/shearwater_petrel.c
+index cdaf43d..ab1eef2 100644
+--- a/src/shearwater_petrel.c
++++ b/src/shearwater_petrel.c
+@@ -245,6 +245,12 @@ shearwater_petrel_device_foreach (dc_device_t *abstract, dc_dive_callback_t call
+ 		return DC_STATUS_NOMEMORY;
+ 	}
+ 
++	// True if the manifest walk found an exact fingerprint match. An
++	// unmatched non-zero fingerprint is treated as a timestamp floor (see
++	// below); an exact match keeps the historical truncate-at-match
++	// behavior untouched, so the floor logic must stay inert.
++	unsigned int found = 0;
++
+ 	// Read the manifest pages
+ 	while (1) {
+ 		// Update the progress state.
+@@ -286,8 +292,10 @@ shearwater_petrel_device_foreach (dc_device_t *abstract, dc_dive_callback_t call
+ 				break;
+ 
+ 			// Check the fingerprint data.
+-			if (memcmp (data + offset + 4, device->fingerprint, sizeof (device->fingerprint)) == 0)
++			if (memcmp (data + offset + 4, device->fingerprint, sizeof (device->fingerprint)) == 0) {
++				found = 1;
+ 				break;
++			}
+ 
+ 			offset += RECORD_SIZE;
+ 			count++;
+@@ -316,15 +324,34 @@ shearwater_petrel_device_foreach (dc_device_t *abstract, dc_dive_callback_t call
+ 			break;
+ 	}
+ 
++	// Cache the buffer pointer and size.
++	unsigned char *data = dc_buffer_get_data (manifests);
++	unsigned int size = dc_buffer_get_size (manifests);
++
++	// A fingerprint that matched no manifest record is treated as a
++	// timestamp floor: the petrel fingerprint is the dive start time
++	// (big-endian ticks, mirrored at record offset 4), so records at or
++	// before the floor are skipped without issuing their download request.
++	// An exact match (found) keeps the historical behavior untouched.
++	unsigned int floor_ticks = 0;
++	if (!found)
++		floor_ticks = array_uint32_be (device->fingerprint);
++	if (floor_ticks) {
++		unsigned int nrecords = size / RECORD_SIZE;
++		for (unsigned int i = 0; i < nrecords; ++i) {
++			unsigned int offset = i * RECORD_SIZE;
++			if (array_uint16_be (data + offset) == 0x5A23)
++				continue;
++			if (array_uint32_be (data + offset + 4) <= floor_ticks)
++				maximum -= 1;
++		}
++	}
++
+ 	// Update and emit a progress event.
+ 	progress.current = NSTEPS * current;
+ 	progress.maximum = NSTEPS * maximum;
+ 	device_event_emit (abstract, DC_EVENT_PROGRESS, &progress);
+ 
+-	// Cache the buffer pointer and size.
+-	unsigned char *data = dc_buffer_get_data (manifests);
+-	unsigned int size = dc_buffer_get_size (manifests);
+-
+ 	// The manifest records are ordered newest to oldest. Walk them in
+ 	// reverse, so the dives are delivered oldest to newest. The download
+ 	// stops at the first failure, so a partial download always leaves a
+@@ -339,6 +366,11 @@ shearwater_petrel_device_foreach (dc_device_t *abstract, dc_dive_callback_t call
+ 		if (array_uint16_be(data + offset) == 0x5A23) {
+ 			continue;
+ 		}
++
++		// Skip dives at or before the timestamp floor.
++		if (floor_ticks && array_uint32_be (data + offset + 4) <= floor_ticks)
++			continue;
++
+ 		// Get the address of the dive.
+ 		unsigned int address = array_uint32_be (data + offset + 20);
+ 

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
 ///
@@ -73,13 +74,18 @@ class EquipmentSetListContent extends ConsumerWidget {
       child: Row(
         children: [
           const SizedBox(width: 8, height: 40),
-          Text(
-            context.l10n.equipment_appBar_title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          // This bar carries no actions, so the Spacer that used to trail the
+          // title had nothing to push and only the title needs to flex.
+          Expanded(
+            child: Text(
+              context.l10n.equipment_appBar_title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
           ),
-          const Spacer(),
         ],
       ),
     );
@@ -168,16 +174,40 @@ class EquipmentSetListContent extends ConsumerWidget {
                     context.push('/equipment/sets/${set.id}');
                   }
                 },
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.folder,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                leading: Builder(
+                  builder: (context) {
+                    final accent = resolveFeatureAccent(
+                      context,
+                      ref,
+                      surface: AccentSurface.list,
+                      featureId: 'equipment',
+                    );
+                    return CircleAvatar(
+                      backgroundColor:
+                          accent?.withValues(alpha: 0.15) ??
+                          Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(
+                        Icons.folder,
+                        color:
+                            accent ??
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    );
+                  },
                 ),
-                title: Text(set.name),
+                title: Row(
+                  children: [
+                    Flexible(child: Text(set.name)),
+                    if (set.isDefault) ...[
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(context.l10n.equipment_sets_defaultBadge),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ],
+                  ],
+                ),
                 subtitle: Text(
                   set.description.isNotEmpty ? set.description : itemCountText,
                   maxLines: 1,

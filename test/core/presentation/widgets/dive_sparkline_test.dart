@@ -91,6 +91,67 @@ void main() {
       expect(sizedBox.width, 80);
       expect(sizedBox.height, 32);
     });
+
+    testWidgets('renders at most the default 40 spots for a dense profile', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: DiveSparkline(profile: _makeProfile(500))),
+        ),
+      );
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(chart.data.lineBarsData.first.spots.length, 40);
+    });
+
+    testWidgets('honors a custom maxPoints for higher-fidelity previews', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DiveSparkline(profile: _makeProfile(500), maxPoints: 200),
+          ),
+        ),
+      );
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(chart.data.lineBarsData.first.spots.length, 200);
+    });
+
+    testWidgets('draws no overlay bar when highlightBands is empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: DiveSparkline(profile: _makeProfile(30))),
+        ),
+      );
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(chart.data.lineBarsData.length, 1);
+    });
+
+    testWidgets('overlays a distinct-coloured bar for each highlight band', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DiveSparkline(
+              profile: _makeProfile(30), // timestamps 0..290
+              highlightBands: const [(startX: 100.0, endX: 200.0)],
+              highlightColor: Colors.orange,
+            ),
+          ),
+        ),
+      );
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      final bars = chart.data.lineBarsData;
+      expect(bars.length, 2); // main line + one surface overlay
+      final overlay = bars.last;
+      expect(overlay.color, Colors.orange);
+      expect(overlay.spots.length, greaterThan(1));
+      expect(overlay.spots.every((s) => s.x >= 100 && s.x <= 200), isTrue);
+    });
   });
 
   group('DiveSparkline.downsample', () {
@@ -125,6 +186,17 @@ void main() {
 
       final two = _makeProfile(2);
       expect(DiveSparkline.downsample(two, maxPoints: 40), same(two));
+    });
+
+    test('clamps maxPoints below 2 instead of dividing by zero', () {
+      final points = _makeProfile(200);
+      // maxPoints 0/1 would make the stride divisor (maxPoints - 1) zero.
+      for (final tiny in [0, 1]) {
+        final result = DiveSparkline.downsample(points, maxPoints: tiny);
+        expect(result.length, 2);
+        expect(result.first, points.first);
+        expect(result.last, points.last);
+      }
     });
   });
 }

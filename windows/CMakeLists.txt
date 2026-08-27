@@ -32,6 +32,11 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Suppress MSVC's hard error for <experimental/coroutine> used in some plugins.
+# VS 18+ treats this as a fatal error; this define silences it until the
+# upstream plugins migrate to the C++20 <coroutine> header.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
@@ -88,14 +93,21 @@ if(PLUGIN_BUNDLED_LIBRARIES)
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.
-# Some builds (e.g., when no native assets are produced) won't create this
-# directory. Guard the install step to avoid failing the install target.
+#
+# OPTIONAL, not `if(EXISTS ...)`: this directory is produced by the
+# flutter_assemble target during the *build*, long after CMake has finished
+# configuring, so a configure-time existence test is always false on a clean
+# tree and silently drops every native asset from the bundle. That is issue
+# #1129: sqlcipher.dll and pdfium.dll never reached the installer, and the app
+# died at startup with "Failed to load dynamic library 'sqlcipher.dll'",
+# error 126.
+# OPTIONAL defers the check to install time, which keeps the install target
+# from failing when a build genuinely produces no native assets.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
-if(EXISTS "${NATIVE_ASSETS_DIR}")
-  install(DIRECTORY "${NATIVE_ASSETS_DIR}"
-    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
-endif()
+install(DIRECTORY "${NATIVE_ASSETS_DIR}"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime
+  OPTIONAL)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

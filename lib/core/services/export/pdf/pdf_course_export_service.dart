@@ -3,6 +3,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -10,8 +12,9 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 
 /// Handles PDF export for training course logs.
 class PdfCourseExportService {
-  final _dateFormat = DateFormat('yyyy-MM-dd');
-  final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
+  /// File names stay ISO no matter what the diver reads in the document, so a
+  /// folder of exports still sorts chronologically (#964).
+  static final _fileNameDate = DateFormat('yyyy-MM-dd');
 
   /// Export a training course log to PDF with instructor signatures.
   ///
@@ -21,8 +24,9 @@ class PdfCourseExportService {
   /// - Instructor signature on each dive entry
   Future<String> exportCourseTrainingLogToPdf(
     Course course,
-    List<Dive> trainingDives,
-  ) async {
+    List<Dive> trainingDives, {
+    required PdfDateFormatter dates,
+  }) async {
     final pdf = pw.Document();
     final signatureService = SignatureStorageService();
 
@@ -36,10 +40,7 @@ class PdfCourseExportService {
     }
 
     // Calculate summary statistics
-    final totalBottomTime = trainingDives.fold<Duration>(
-      Duration.zero,
-      (sum, dive) => sum + (dive.bottomTime ?? Duration.zero),
-    );
+    final totalRuntime = pdfTotalRuntime(trainingDives);
     final maxDepth = trainingDives.fold<double?>(
       null,
       (max, dive) => dive.maxDepth != null
@@ -59,7 +60,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Training Log',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 32,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -68,7 +69,7 @@ class PdfCourseExportService {
               pw.SizedBox(height: 30),
               pw.Text(
                 course.name,
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 28,
                   fontWeight: pw.FontWeight.bold,
                 ),
@@ -97,14 +98,11 @@ class PdfCourseExportService {
                     if (course.location != null)
                       _buildInfoRow('Location', course.location!),
                     pw.SizedBox(height: 10),
-                    _buildInfoRow(
-                      'Start Date',
-                      _dateFormat.format(course.startDate),
-                    ),
+                    _buildInfoRow('Start Date', dates.date(course.startDate)),
                     if (course.completionDate != null)
                       _buildInfoRow(
                         'Completion Date',
-                        _dateFormat.format(course.completionDate!),
+                        dates.date(course.completionDate!),
                       ),
                     _buildInfoRow(
                       'Status',
@@ -119,10 +117,7 @@ class PdfCourseExportService {
                 children: [
                   _buildStatBox('${trainingDives.length}', 'Training Dives'),
                   pw.SizedBox(width: 30),
-                  _buildStatBox(
-                    '${totalBottomTime.inMinutes}',
-                    'Total Minutes',
-                  ),
+                  _buildStatBox('${totalRuntime.inMinutes}', 'Total Minutes'),
                   if (maxDepth != null) ...[
                     pw.SizedBox(width: 30),
                     _buildStatBox(
@@ -151,7 +146,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Training Dives',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -168,7 +163,7 @@ class PdfCourseExportService {
               pw.Divider(color: PdfColors.grey300),
               pw.SizedBox(height: 10),
               ...pageDives.map(
-                (dive) => _buildDiveEntry(dive, diveSignatures[dive.id]),
+                (dive) => _buildDiveEntry(dive, diveSignatures[dive.id], dates),
               ),
             ],
           ),
@@ -186,7 +181,7 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Course Notes',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800,
@@ -203,7 +198,7 @@ class PdfCourseExportService {
 
     final bytes = await pdf.save();
     final fileName =
-        'training_log_${course.name.replaceAll(RegExp(r'[^\w]'), '_')}_${_dateFormat.format(DateTime.now())}.pdf';
+        'training_log_${course.name.replaceAll(RegExp(r'[^\w]'), '_')}_${_fileNameDate.format(DateTime.now())}.pdf';
     return saveAndShareFileBytes(bytes, fileName, 'application/pdf');
   }
 
@@ -221,7 +216,10 @@ class PdfCourseExportService {
           ),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -239,7 +237,7 @@ class PdfCourseExportService {
         children: [
           pw.Text(
             value,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 24,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blue800,
@@ -254,7 +252,11 @@ class PdfCourseExportService {
     );
   }
 
-  pw.Widget _buildDiveEntry(Dive dive, List<Signature>? signatures) {
+  pw.Widget _buildDiveEntry(
+    Dive dive,
+    List<Signature>? signatures,
+    PdfDateFormatter dates,
+  ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
       padding: const pw.EdgeInsets.all(12),
@@ -270,13 +272,13 @@ class PdfCourseExportService {
             children: [
               pw.Text(
                 'Dive ${dive.diveNumber ?? "-"}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.Text(
-                _dateTimeFormat.format(dive.dateTime),
+                dates.dateTime(dive.dateTime),
                 style: const pw.TextStyle(
                   fontSize: 11,
                   color: PdfColors.grey600,
@@ -288,7 +290,10 @@ class PdfCourseExportService {
           if (dive.site != null)
             pw.Text(
               dive.site!.name,
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+              style: const pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
           pw.SizedBox(height: 8),
           pw.Row(
@@ -298,9 +303,12 @@ class PdfCourseExportService {
                   'Max Depth',
                   '${dive.maxDepth!.toStringAsFixed(1)} m',
                 ),
-              if (dive.bottomTime != null) ...[
+              if (dive.effectiveRuntime != null) ...[
                 pw.SizedBox(width: 20),
-                _buildInfoChip('Duration', '${dive.bottomTime!.inMinutes} min'),
+                _buildInfoChip(
+                  'Duration',
+                  '${pdfDiveDurationMinutes(dive)} min',
+                ),
               ],
               if (dive.waterTemp != null) ...[
                 pw.SizedBox(width: 20),
@@ -327,7 +335,7 @@ class PdfCourseExportService {
               children: [
                 pw.Text(
                   'Verified by: ',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
                     color: PdfColors.grey600,
@@ -338,7 +346,7 @@ class PdfCourseExportService {
                     spacing: 8,
                     runSpacing: 4,
                     children: signatures
-                        .map((sig) => _buildSignatureBlock(sig))
+                        .map((sig) => _buildSignatureBlock(sig, dates))
                         .toList(),
                   ),
                 ),
@@ -350,7 +358,7 @@ class PdfCourseExportService {
     );
   }
 
-  pw.Widget _buildSignatureBlock(Signature signature) {
+  pw.Widget _buildSignatureBlock(Signature signature, PdfDateFormatter dates) {
     pw.ImageProvider? signatureImage;
     if (signature.hasImage) {
       try {
@@ -391,7 +399,10 @@ class PdfCourseExportService {
           pw.SizedBox(height: 2),
           pw.Text(
             signature.signerName,
-            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 7,
+              fontWeight: pw.FontWeight.bold,
+            ),
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
@@ -400,7 +411,7 @@ class PdfCourseExportService {
             textAlign: pw.TextAlign.center,
           ),
           pw.Text(
-            _dateFormat.format(signature.signedAt),
+            dates.date(signature.signedAt),
             style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
             textAlign: pw.TextAlign.center,
           ),
@@ -419,7 +430,10 @@ class PdfCourseExportService {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );

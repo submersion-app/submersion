@@ -1,163 +1,172 @@
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
+import 'package:submersion/features/maps/presentation/providers/heat_map_shader_provider.dart';
+import 'package:submersion/features/maps/presentation/widgets/heat_map_density.dart';
 
-/// A flutter_map layer that displays a heat map visualization.
+/// A flutter_map layer that displays a density-colorized heat map.
 ///
-/// Renders weighted points as overlapping radial gradients that blend together
-/// using additive blending. Higher weight points appear more intense and
-/// slightly larger.
-class HeatMapLayer extends StatelessWidget {
+/// Two passes: (1) accumulate every point as a soft radial alpha blob with
+/// additive blending into an offscreen density image; (2) a fragment shader
+/// maps the accumulated density through a blue->red palette. Renders nothing
+/// until the shader program has loaded (or if loading fails).
+class HeatMapLayer extends ConsumerStatefulWidget {
   /// The points to render on the heat map.
   final List<HeatMapPoint> points;
 
-  /// Base radius for heat map points in pixels.
+  /// Cloud radius in logical pixels (uniform for every point).
   final double radius;
 
   /// Overall opacity of the heat map (0.0 to 1.0).
   final double opacity;
 
-  /// Custom color gradient from low to high intensity.
-  /// If null, uses a default blue-cyan-green-yellow-orange-red gradient.
-  final List<Color>? gradient;
-
   const HeatMapLayer({
     super.key,
     required this.points,
-    this.radius = 30.0,
-    this.opacity = 0.6,
-    this.gradient,
+    this.radius = 60.0,
+    this.opacity = 0.7,
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (points.isEmpty) return const SizedBox.shrink();
+  ConsumerState<HeatMapLayer> createState() => _HeatMapLayerState();
+}
 
-    return ExcludeSemantics(
-      child: IgnorePointer(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return CustomPaint(
-              size: Size(constraints.maxWidth, constraints.maxHeight),
-              painter: _HeatMapPainter(
-                points: points,
-                radius: radius,
-                opacity: opacity,
-                gradient: gradient ?? _defaultGradient,
-                camera: MapCamera.of(context),
+class _HeatMapLayerState extends ConsumerState<HeatMapLayer> {
+  ui.FragmentProgram? _program;
+  ui.FragmentShader? _shader;
+
+  @override
+  void dispose() {
+    _shader?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.points.isEmpty) return const SizedBox.shrink();
+
+    return ref
+        .watch(heatMapShaderProgramProvider)
+        .when(
+          loading: () => const SizedBox.shrink(),
+          error: (error, _) {
+            debugPrint('HeatMapLayer: shader failed to load: $error');
+            return const SizedBox.shrink();
+          },
+          data: (program) {
+            // Lazily create (and cache) one shader instance per loaded program.
+            if (!identical(program, _program)) {
+              _shader?.dispose();
+              _shader = program.fragmentShader();
+              _program = program;
+            }
+            return ExcludeSemantics(
+              child: IgnorePointer(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return CustomPaint(
+                      size: Size(constraints.maxWidth, constraints.maxHeight),
+                      painter: _HeatMapPainter(
+                        points: widget.points,
+                        radius: widget.radius,
+                        opacity: widget.opacity,
+                        shader: _shader!,
+                        camera: MapCamera.of(context),
+                      ),
+                    );
+                  },
+                ),
               ),
             );
           },
-        ),
-      ),
-    );
+        );
   }
-
-  static const List<Color> _defaultGradient = [
-    Color(0xFF3B82F6), // Blue (low)
-    Color(0xFF06B6D4), // Cyan
-    Color(0xFF22C55E), // Green
-    Color(0xFFEAB308), // Yellow
-    Color(0xFFF97316), // Orange
-    Color(0xFFEF4444), // Red (high)
-  ];
 }
 
-/// Custom painter that renders the heat map visualization.
+/// Two-pass density heat-map painter.
 class _HeatMapPainter extends CustomPainter {
   final List<HeatMapPoint> points;
   final double radius;
   final double opacity;
-  final List<Color> gradient;
+  final ui.FragmentShader shader;
   final MapCamera camera;
+
+  /// Density value at which the shader's alpha reaches full opacity. Set near
+  /// the per-point intensity floor so an isolated site renders as a smooth
+  /// dome (gradual alpha across its whole radius) rather than a flat disk.
+  static const double _edgeSoftness = 0.35;
 
   _HeatMapPainter({
     required this.points,
     required this.radius,
     required this.opacity,
-    required this.gradient,
+    required this.shader,
     required this.camera,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (points.isEmpty) return;
+    if (points.isEmpty || size.isEmpty) return;
 
-    // Find max weight for normalization
-    final maxWeight = points.map((p) => p.weight).reduce(math.max);
+    final maxWeight = points.fold<double>(
+      0.0,
+      (m, p) => p.weight > m ? p.weight : m,
+    );
     if (maxWeight <= 0) return;
 
-    // Create an offscreen buffer for additive blending
+    // Pass 1: accumulate density into an offscreen image.
+    final densityImage = _buildDensityImage(size, maxWeight);
+
+    // Pass 2: colorize the density field via the fragment shader.
+    shader
+      ..setFloat(0, size.width)
+      ..setFloat(1, size.height)
+      ..setFloat(2, opacity)
+      ..setFloat(3, _edgeSoftness)
+      ..setImageSampler(0, densityImage);
+
+    canvas.drawRect(Offset.zero & size, Paint()..shader = shader);
+
+    // Safe to dispose now: the shader retains a native reference to the bound
+    // sampler image until the next setImageSampler call. Mirrors the existing
+    // drawImage+dispose pattern previously used here.
+    densityImage.dispose();
+  }
+
+  ui.Image _buildDensityImage(Size size, double maxWeight) {
     final recorder = ui.PictureRecorder();
     final bufferCanvas = Canvas(recorder);
 
-    // Draw each point as a radial gradient
     for (final point in points) {
-      // Convert lat/lng to screen position
-      final screenPoint = camera.latLngToScreenOffset(point.location);
+      final screen = camera.latLngToScreenOffset(point.location);
+      if (!isPointVisible(screen, size, radius)) continue;
 
-      // Skip points outside the visible area (with padding)
-      if (screenPoint.dx < -radius ||
-          screenPoint.dx > size.width + radius ||
-          screenPoint.dy < -radius ||
-          screenPoint.dy > size.height + radius) {
-        continue;
-      }
+      final intensity = densityIntensity(point.weight, maxWeight);
+      if (intensity <= 0) continue;
 
-      final normalizedWeight = point.weight / maxWeight;
-      final pointRadius = radius * (0.5 + normalizedWeight * 0.5);
-
-      // Create radial gradient for this point
-      final color = _getColorForWeight(normalizedWeight);
-      final gradientShader =
-          RadialGradient(
-            colors: [
-              color.withValues(alpha: opacity * normalizedWeight),
-              color.withValues(alpha: 0),
-            ],
-            stops: const [0.0, 1.0],
-          ).createShader(
-            Rect.fromCircle(
-              center: Offset(screenPoint.dx, screenPoint.dy),
-              radius: pointRadius,
-            ),
-          );
-
-      final paint = Paint()
-        ..shader = gradientShader
-        ..blendMode = BlendMode.plus;
+      final blob = densityBlobGradient(intensity);
+      final gradient = RadialGradient(
+        colors: blob.colors,
+        stops: blob.stops,
+      ).createShader(Rect.fromCircle(center: screen, radius: radius));
 
       bufferCanvas.drawCircle(
-        Offset(screenPoint.dx, screenPoint.dy),
-        pointRadius,
-        paint,
+        screen,
+        radius,
+        Paint()
+          ..shader = gradient
+          ..blendMode = BlendMode.plus,
       );
     }
 
-    // Draw the buffer to the main canvas
     final picture = recorder.endRecording();
     final image = picture.toImageSync(size.width.ceil(), size.height.ceil());
-
-    canvas.drawImage(image, Offset.zero, Paint());
-    image.dispose();
-  }
-
-  /// Maps a normalized weight (0.0 to 1.0) to a color from the gradient.
-  Color _getColorForWeight(double normalizedWeight) {
-    if (gradient.isEmpty) return Colors.red;
-    if (gradient.length == 1) return gradient.first;
-
-    // Map weight to gradient position
-    final position = normalizedWeight * (gradient.length - 1);
-    final lowerIndex = position.floor().clamp(0, gradient.length - 2);
-    final upperIndex = (lowerIndex + 1).clamp(0, gradient.length - 1);
-    final t = position - lowerIndex;
-
-    return Color.lerp(gradient[lowerIndex], gradient[upperIndex], t)!;
+    picture.dispose();
+    return image;
   }
 
   @override
@@ -165,6 +174,7 @@ class _HeatMapPainter extends CustomPainter {
     return points != oldDelegate.points ||
         radius != oldDelegate.radius ||
         opacity != oldDelegate.opacity ||
+        shader != oldDelegate.shader ||
         camera != oldDelegate.camera;
   }
 }

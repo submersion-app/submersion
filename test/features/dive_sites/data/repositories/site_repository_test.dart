@@ -32,6 +32,159 @@ void main() {
   });
 
   group('SiteRepository', () {
+    test('dive_sites table persists city and island columns', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'site-ci',
+              name: 'Test Site',
+              createdAt: now,
+              updatedAt: now,
+              city: const Value('Cebu City'),
+              island: const Value('Malapascua'),
+              bodyOfWater: const Value('Visayan Sea'),
+            ),
+          );
+      final row = await (database.select(
+        database.diveSites,
+      )..where((t) => t.id.equals('site-ci'))).getSingle();
+      expect(row.city, 'Cebu City');
+      expect(row.island, 'Malapascua');
+      expect(row.bodyOfWater, 'Visayan Sea');
+    });
+
+    test('create then read round-trips city, island, bodyOfWater', () async {
+      const site = DiveSite(
+        id: 'rt-1',
+        name: 'Round Trip',
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
+      );
+      await repository.createSite(site);
+      final loaded = await repository.getSiteById('rt-1');
+      expect(loaded!.city, 'Cebu City');
+      expect(loaded.island, 'Malapascua');
+      expect(loaded.bodyOfWater, 'Visayan Sea');
+    });
+
+    test('create then read round-trips waterType', () async {
+      const site = DiveSite(
+        id: 'wt-1',
+        name: 'Water Type Site',
+        waterType: WaterType.brackish,
+      );
+      await repository.createSite(site);
+      final loaded = await repository.getSiteById('wt-1');
+      expect(loaded!.waterType, WaterType.brackish);
+    });
+
+    test('imported water_type column is read back into the entity', () async {
+      // Importers write the column directly (no entity mapping).
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'wt-ghost',
+              name: 'Imported Site',
+              createdAt: now,
+              updatedAt: now,
+              waterType: const Value('salt'),
+            ),
+          );
+      final loaded = await repository.getSiteById('wt-ghost');
+      expect(loaded!.waterType, WaterType.salt);
+    });
+
+    test('unknown water_type string maps to null (no crash)', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'wt-bad',
+              name: 'Bad Water Type',
+              createdAt: now,
+              updatedAt: now,
+              waterType: const Value('lava'),
+            ),
+          );
+      final loaded = await repository.getSiteById('wt-bad');
+      expect(loaded!.waterType, isNull);
+    });
+
+    test('updateSite persists a changed waterType', () async {
+      const site = DiveSite(
+        id: 'wt-up',
+        name: 'Upd',
+        waterType: WaterType.salt,
+      );
+      await repository.createSite(site);
+      await repository.updateSite(site.copyWith(waterType: WaterType.fresh));
+      final loaded = await repository.getSiteById('wt-up');
+      expect(loaded!.waterType, WaterType.fresh);
+    });
+
+    test(
+      'waterType survives Drift row JSON serialization (sync path)',
+      () async {
+        // Sync serializes each row with row.toJson(); this proves the column
+        // rides that generic path. Key-agnostic: fromJson reads back whatever
+        // key toJson wrote.
+        const site = DiveSite(
+          id: 'wt-json',
+          name: 'JSON Site',
+          waterType: WaterType.fresh,
+        );
+        await repository.createSite(site);
+        final row = await (database.select(
+          database.diveSites,
+        )..where((t) => t.id.equals('wt-json'))).getSingle();
+        final restored = db.DiveSite.fromJson(row.toJson());
+        expect(restored.waterType, 'fresh');
+      },
+    );
+
+    test('imported body_of_water is now read back into the entity', () async {
+      // Simulate an importer writing the column directly (no entity mapping).
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.diveSites)
+          .insert(
+            db.DiveSitesCompanion.insert(
+              id: 'ghost-1',
+              name: 'Ghost Column Site',
+              createdAt: now,
+              updatedAt: now,
+              bodyOfWater: const Value('Coral Sea'),
+            ),
+          );
+      final loaded = await repository.getSiteById('ghost-1');
+      expect(loaded!.bodyOfWater, 'Coral Sea');
+    });
+
+    test('search matches city, island, and bodyOfWater', () async {
+      await repository.createSite(
+        const DiveSite(id: 'q-1', name: 'Alpha', city: 'Naxos Town'),
+      );
+      await repository.createSite(
+        const DiveSite(id: 'q-2', name: 'Beta', island: 'Santorini'),
+      );
+      await repository.createSite(
+        const DiveSite(id: 'q-3', name: 'Gamma', bodyOfWater: 'Aegean Sea'),
+      );
+      expect((await repository.searchSites('Naxos')).map((s) => s.id), ['q-1']);
+      expect((await repository.searchSites('Santorini')).map((s) => s.id), [
+        'q-2',
+      ]);
+      expect((await repository.searchSites('Aegean')).map((s) => s.id), [
+        'q-3',
+      ]);
+    });
+
     group('createSite', () {
       test(
         'should create a new site with generated ID when ID is empty',

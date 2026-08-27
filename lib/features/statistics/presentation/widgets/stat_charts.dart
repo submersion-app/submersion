@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/widgets/chart_axis.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A reusable line chart for trend data
@@ -57,17 +58,9 @@ class TrendLineChart extends StatelessWidget {
     }
 
     final color = lineColor ?? Theme.of(context).colorScheme.primary;
-    final values = data.map((d) => d.value).toList();
-    final rawMinY = values.reduce((a, b) => a < b ? a : b);
-    final rawMaxY = values.reduce((a, b) => a > b ? a : b);
-    // Ensure we have a valid range even when all values are the same
-    final range = rawMaxY - rawMinY;
-    final effectiveRange = range > 0
-        ? range
-        : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
-    final padding = effectiveRange * 0.1;
-    final minY = rawMinY;
-    final maxY = rawMaxY;
+    // One axis drives the bounds, the grid lines and the labels, so the lines
+    // land under the numbers instead of between them (issue #219).
+    final axis = ChartAxis.forTrend(data.map((d) => d.value));
 
     return Semantics(
       label: yAxisLabel != null
@@ -80,10 +73,8 @@ class TrendLineChart extends StatelessWidget {
         height: height,
         child: LineChart(
           LineChartData(
-            minY: minY > 0
-                ? (minY - padding).clamp(0, double.infinity)
-                : minY - padding,
-            maxY: maxY + padding,
+            minY: axis.min,
+            maxY: axis.max,
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
                 getTooltipItems: (touchedSpots) {
@@ -142,6 +133,7 @@ class TrendLineChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 50,
+                  interval: axis.interval,
                   getTitlesWidget: (value, meta) {
                     final formatter = yAxisFormatter ?? valueFormatter;
                     return Text(
@@ -162,7 +154,7 @@ class TrendLineChart extends StatelessWidget {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
-              horizontalInterval: effectiveRange / 4,
+              horizontalInterval: axis.interval,
               getDrawingHorizontalLine: (value) => FlLine(
                 color: Theme.of(context).colorScheme.outlineVariant,
                 strokeWidth: 1,
@@ -442,10 +434,16 @@ class CategoryBarChart extends StatelessWidget {
     required double maxCount,
     required bool useCompactXLabels,
   }) {
+    // Whole-number steps shared by the grid and the labels: the left titles
+    // render nothing for a fractional value, so a 2.5 step would otherwise
+    // leave unlabelled lines (issue #219).
+    final axis = ChartAxis.forCounts(maxCount);
+
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: maxCount + (maxCount * 0.1),
+        minY: axis.min,
+        maxY: axis.max,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -506,6 +504,7 @@ class CategoryBarChart extends StatelessWidget {
               showTitles: true,
               // Room for up to 4-digit right-aligned integers.
               reservedSize: 44,
+              interval: axis.interval,
               getTitlesWidget: (value, meta) {
                 if (value != value.roundToDouble()) {
                   return const Text('');
@@ -532,7 +531,7 @@ class CategoryBarChart extends StatelessWidget {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: maxCount > 0 ? maxCount / 4 : 1,
+          horizontalInterval: axis.interval,
           getDrawingHorizontalLine: (value) => FlLine(
             color: Theme.of(context).colorScheme.outlineVariant,
             strokeWidth: 1,
@@ -633,6 +632,28 @@ class MultiTrendLineChart extends StatelessWidget {
               LineChartData(
                 minY: minY - padding,
                 maxY: maxY + padding,
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final point = dataSeries[spot.barIndex][spot.spotIndex];
+                        final formattedValue =
+                            valueFormatter?.call(point.value) ??
+                            point.value.toStringAsFixed(1);
+                        final isFirst = identical(spot, touchedSpots.first);
+                        return LineTooltipItem(
+                          isFirst
+                              ? '${point.label}\n$formattedValue'
+                              : formattedValue,
+                          TextStyle(
+                            color: colors[spot.barIndex % colors.length],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   show: true,
                   bottomTitles: AxisTitles(

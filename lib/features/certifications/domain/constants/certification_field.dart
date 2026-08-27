@@ -4,7 +4,9 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 
 /// Enumeration of every displayable field for the certification table view.
 enum CertificationField implements EntityField {
@@ -26,7 +28,7 @@ enum CertificationField implements EntityField {
   String get displayName => switch (this) {
     CertificationField.certName => 'Name',
     CertificationField.agency => 'Agency',
-    CertificationField.level => 'Level',
+    CertificationField.level => 'Certification',
     CertificationField.cardNumber => 'Card Number',
     CertificationField.issueDate => 'Issue Date',
     CertificationField.expiryDate => 'Expiry Date',
@@ -40,7 +42,7 @@ enum CertificationField implements EntityField {
   String get shortLabel => switch (this) {
     CertificationField.certName => 'Name',
     CertificationField.agency => 'Agency',
-    CertificationField.level => 'Level',
+    CertificationField.level => 'Certification',
     CertificationField.cardNumber => 'Card #',
     CertificationField.issueDate => 'Issued',
     CertificationField.expiryDate => 'Expires',
@@ -48,6 +50,43 @@ enum CertificationField implements EntityField {
     CertificationField.instructorNumber => 'Instr. #',
     CertificationField.expiryStatus => 'Status',
     CertificationField.notes => 'Notes',
+  };
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    CertificationField.certName => l10n.enum_certificationField_certName,
+    CertificationField.agency => l10n.enum_certificationField_agency,
+    CertificationField.level => l10n.enum_certificationField_level,
+    CertificationField.cardNumber => l10n.enum_certificationField_cardNumber,
+    CertificationField.issueDate => l10n.enum_certificationField_issueDate,
+    CertificationField.expiryDate => l10n.enum_certificationField_expiryDate,
+    CertificationField.instructorName =>
+      l10n.enum_certificationField_instructorName,
+    CertificationField.instructorNumber =>
+      l10n.enum_certificationField_instructorNumber,
+    CertificationField.expiryStatus =>
+      l10n.enum_certificationField_expiryStatus,
+    CertificationField.notes => l10n.enum_certificationField_notes,
+  };
+
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    CertificationField.certName => l10n.enum_certificationField_certName_short,
+    CertificationField.agency => l10n.enum_certificationField_agency_short,
+    CertificationField.level => l10n.enum_certificationField_level_short,
+    CertificationField.cardNumber =>
+      l10n.enum_certificationField_cardNumber_short,
+    CertificationField.issueDate =>
+      l10n.enum_certificationField_issueDate_short,
+    CertificationField.expiryDate =>
+      l10n.enum_certificationField_expiryDate_short,
+    CertificationField.instructorName =>
+      l10n.enum_certificationField_instructorName_short,
+    CertificationField.instructorNumber =>
+      l10n.enum_certificationField_instructorNumber_short,
+    CertificationField.expiryStatus =>
+      l10n.enum_certificationField_expiryStatus_short,
+    CertificationField.notes => l10n.enum_certificationField_notes_short,
   };
 
   @override
@@ -154,7 +193,9 @@ class CertificationFieldAdapter
   @override
   dynamic extractValue(CertificationField field, Certification entity) {
     return switch (field) {
-      CertificationField.certName => entity.name,
+      // Not entity.name: that is empty for certs without a custom name, and
+      // for legacy rows it repeats the Agency and Certification columns.
+      CertificationField.certName => certificationTitle(entity),
       CertificationField.agency => entity.agency,
       CertificationField.level => entity.level,
       CertificationField.cardNumber => entity.cardNumber,
@@ -176,7 +217,9 @@ class CertificationFieldAdapter
     if (value == null) return '--';
     return switch (field) {
       CertificationField.agency => (value as CertificationAgency).name,
-      CertificationField.level => (value as CertificationLevel).name,
+      // displayName, not name: the latter is the enum identifier, so the
+      // column read "openWater" rather than "Open Water".
+      CertificationField.level => (value as CertificationLevel).displayName,
       CertificationField.issueDate => _dateFormat.format(value as DateTime),
       CertificationField.expiryDate => _dateFormat.format(value as DateTime),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),

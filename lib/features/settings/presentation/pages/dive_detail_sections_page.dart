@@ -63,7 +63,7 @@ class DiveDetailSectionsPage extends ConsumerWidget {
             child: ReorderableListView.builder(
               buildDefaultDragHandles: false,
               itemCount: sections.length,
-              onReorder: (oldIndex, newIndex) {
+              onReorderItem: (oldIndex, newIndex) {
                 _onReorder(ref, sections, oldIndex, newIndex);
               },
               itemBuilder: (context, index) {
@@ -90,7 +90,6 @@ class DiveDetailSectionsPage extends ConsumerWidget {
     int oldIndex,
     int newIndex,
   ) {
-    if (newIndex > oldIndex) newIndex--;
     final updated = List.of(sections);
     final item = updated.removeAt(oldIndex);
     updated.insert(newIndex, item);

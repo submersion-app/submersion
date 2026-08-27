@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shown while PreMigrationBackupService copies the live database.
 class BackingUpView extends StatelessWidget {
@@ -13,18 +14,17 @@ class BackingUpView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(semanticsLabel: 'Backing up'),
+          CircularProgressIndicator(
+            semanticsLabel: context.l10n.startup_backup_semanticsLabel,
+          ),
           const SizedBox(height: 24),
           Text(
-            'Backing up your data',
+            context.l10n.startup_backup_title,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          const Text(
-            "We're saving a copy of your dive log before updating your database.",
-            textAlign: TextAlign.center,
-          ),
+          Text(context.l10n.startup_backup_body, textAlign: TextAlign.center),
         ],
       ),
     );
@@ -59,24 +59,30 @@ class BackupFailedView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            "Couldn't back up your data",
+            context.l10n.startup_backupFailed_title,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(error.userMessage, textAlign: TextAlign.center),
           const SizedBox(height: 8),
-          const Text(
-            "Your dive log hasn't changed — we didn't update it. Free up space (or fix the issue) and try again.",
+          Text(
+            context.l10n.startup_backupFailed_body,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text(context.l10n.common_action_retry),
+          ),
           const SizedBox(height: 8),
-          TextButton(onPressed: onQuit, child: const Text('Quit')),
+          TextButton(
+            onPressed: onQuit,
+            child: Text(context.l10n.startup_backupFailed_quit),
+          ),
           const SizedBox(height: 16),
           ExpansionTile(
-            title: const Text('Technical details'),
+            title: Text(context.l10n.startup_backupFailed_technicalDetails),
             children: [
               Padding(
                 padding: const EdgeInsets.all(12),

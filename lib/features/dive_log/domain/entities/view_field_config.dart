@@ -55,7 +55,7 @@ class TableViewConfig extends Equatable {
     this.sortAscending = true,
   });
 
-  /// Default table configuration with 22 standard columns.
+  /// Default table configuration with 23 standard columns.
   factory TableViewConfig.defaultConfig() {
     return TableViewConfig(
       columns: [
@@ -64,6 +64,7 @@ class TableViewConfig extends Equatable {
         TableColumnConfig(field: DiveField.siteName, isPinned: true),
         TableColumnConfig(field: DiveField.dateTime),
         TableColumnConfig(field: DiveField.diveTypeName),
+        TableColumnConfig(field: DiveField.diveMode),
         TableColumnConfig(field: DiveField.maxDepth),
         TableColumnConfig(field: DiveField.avgDepth),
         TableColumnConfig(field: DiveField.runtime),
@@ -290,6 +291,7 @@ class FieldPreset extends Equatable {
         TableColumnConfig(field: DiveField.siteName, isPinned: true),
         TableColumnConfig(field: DiveField.dateTime),
         TableColumnConfig(field: DiveField.diveTypeName),
+        TableColumnConfig(field: DiveField.diveMode),
         TableColumnConfig(field: DiveField.maxDepth),
         TableColumnConfig(field: DiveField.avgDepth),
         TableColumnConfig(field: DiveField.runtime),

@@ -49,10 +49,18 @@ class OceanBackground extends StatefulWidget {
   final Widget child;
   final BorderRadius borderRadius;
 
+  /// Forces the gradient/effect palette to a specific brightness instead of
+  /// following the ambient theme. The startup splash renders bright (its
+  /// throwaway MaterialApp defaults to a light theme), so screens that follow
+  /// it — like the setup wizard — pass [Brightness.light] to stay as bright as
+  /// the splash rather than stepping down to the dark-theme palette.
+  final Brightness? brightness;
+
   const OceanBackground({
     super.key,
     required this.child,
     this.borderRadius = BorderRadius.zero,
+    this.brightness,
   });
 
   @override
@@ -86,13 +94,15 @@ class _OceanBackgroundState extends State<OceanBackground>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        (widget.brightness ?? Theme.of(context).brightness) == Brightness.dark;
 
     final gradientColors = isDark
         ? [
-            const Color(0xFF00838F),
-            const Color(0xFF00838F).withValues(alpha: 0.9),
-            const Color(0xFF00796B).withValues(alpha: 0.85),
+            // Abyss Blue: the deep-ocean dark palette.
+            const Color(0xFF0B2540),
+            const Color(0xFF08243A).withValues(alpha: 0.9),
+            const Color(0xFF041220).withValues(alpha: 0.85),
           ]
         : [
             const Color(0xFF00ACC1),

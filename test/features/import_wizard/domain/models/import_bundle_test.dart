@@ -17,8 +17,8 @@ void main() {
   });
 
   group('ImportEntityType', () {
-    test('has all 11 expected values', () {
-      expect(ImportEntityType.values, hasLength(11));
+    test('has all 12 expected values', () {
+      expect(ImportEntityType.values, hasLength(12));
       expect(ImportEntityType.values, contains(ImportEntityType.dives));
       expect(ImportEntityType.values, contains(ImportEntityType.sites));
       expect(ImportEntityType.values, contains(ImportEntityType.buddies));
@@ -33,6 +33,7 @@ void main() {
       expect(ImportEntityType.values, contains(ImportEntityType.diveTypes));
       expect(ImportEntityType.values, contains(ImportEntityType.equipmentSets));
       expect(ImportEntityType.values, contains(ImportEntityType.courses));
+      expect(ImportEntityType.values, contains(ImportEntityType.media));
     });
   });
 

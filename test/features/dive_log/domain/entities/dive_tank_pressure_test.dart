@@ -33,6 +33,43 @@ void main() {
       expect(copy.endPressure, 50.0);
       expect(copy.workingPressure, 207.0);
     });
+
+    // Task 11: computerId attributes a tank to the dive computer its
+    // readings were imported from, for multi-computer source badges.
+    test('computerId defaults to null', () {
+      const tank = DiveTank(id: 't1');
+      expect(tank.computerId, isNull);
+    });
+
+    test('constructor round-trips computerId', () {
+      const tank = DiveTank(id: 't1', computerId: 'comp-uuid-1');
+      expect(tank.computerId, 'comp-uuid-1');
+    });
+
+    test('copyWith updates computerId while leaving other fields intact', () {
+      const tank = DiveTank(
+        id: 't1',
+        startPressure: 200.0,
+        computerId: 'comp-uuid-1',
+      );
+      final copy = tank.copyWith(computerId: 'comp-uuid-2');
+      expect(copy.computerId, 'comp-uuid-2');
+      expect(copy.startPressure, 200.0);
+    });
+
+    test('copyWith without computerId preserves the existing value', () {
+      const tank = DiveTank(id: 't1', computerId: 'comp-uuid-1');
+      final copy = tank.copyWith(startPressure: 100.0);
+      expect(copy.computerId, 'comp-uuid-1');
+    });
+
+    test('equality and props include computerId', () {
+      const a = DiveTank(id: 't1', computerId: 'comp-uuid-1');
+      const b = DiveTank(id: 't1', computerId: 'comp-uuid-1');
+      const c = DiveTank(id: 't1', computerId: 'comp-uuid-2');
+      expect(a, equals(b));
+      expect(a, isNot(equals(c)));
+    });
   });
 
   group('CylinderSac', () {

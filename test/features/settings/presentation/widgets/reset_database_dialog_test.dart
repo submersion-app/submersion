@@ -218,6 +218,82 @@ void main() {
       expect(resetButton.onPressed, isNull);
     });
 
+    testWidgets('states the local-only scope and the sync disconnect', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => ResetDatabaseDialog.show(context),
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      // The reset is local-only: the cloud library and other devices survive.
+      expect(
+        find.textContaining('cloud library is not deleted'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('other devices keep their data'),
+        findsOneWidget,
+      );
+      // And it signs out of cloud sync, which the user must hear about.
+      expect(
+        find.textContaining('Cloud sync will be disconnected'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('confirmation word is localized, not hardcoded English', (
+      tester,
+    ) async {
+      // Regression guard: comparing against a literal 'Delete' made this
+      // dialog impossible to confirm in the seven locales whose hint quotes a
+      // translated word.
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('fr'),
+          child: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => ResetDatabaseDialog.show(context),
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Delete');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+
+      await tester.enterText(find.byType(TextField), 'Supprimer');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+    });
+
     testWidgets('trims whitespace when checking confirmation text', (
       tester,
     ) async {

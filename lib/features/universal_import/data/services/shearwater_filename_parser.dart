@@ -17,6 +17,7 @@ class ShearwaterFilenameParser {
     'Teric': ('Shearwater', 'Teric'),
     'Perdix': ('Shearwater', 'Perdix'),
     'Perdix 2': ('Shearwater', 'Perdix 2'),
+    'Perdix 3': ('Shearwater', 'Perdix 3'),
     'Perdix AI': ('Shearwater', 'Perdix AI'),
     'Peregrine': ('Shearwater', 'Peregrine'),
     'Petrel': ('Shearwater', 'Petrel'),

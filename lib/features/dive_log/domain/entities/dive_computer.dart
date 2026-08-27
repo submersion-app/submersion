@@ -93,25 +93,6 @@ class DiveComputer extends Equatable {
   bool get hasDeviceInfo =>
       manufacturer != null && model != null && serialNumber != null;
 
-  /// Last download formatted as relative time or date
-  String get lastDownloadFormatted {
-    if (lastDownload == null) return 'Never';
-
-    final now = DateTime.now();
-    final diff = now.difference(lastDownload!);
-
-    if (diff.inDays == 0) {
-      if (diff.inHours == 0) {
-        return '${diff.inMinutes} min ago';
-      }
-      return '${diff.inHours} hours ago';
-    }
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
-
-    return '${lastDownload!.month}/${lastDownload!.day}/${lastDownload!.year}';
-  }
-
   /// Create a new dive computer with minimal info
   factory DiveComputer.create({
     required String id,

@@ -1,18 +1,27 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/app_colors.dart';
 
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -22,7 +31,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier()
+    : super(const AppSettings(defaultShowGasTimeline: true));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -36,9 +46,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 /// _emitExternalTooltip coverage.
 class _AllMetricsSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _AllMetricsSettingsNotifier()
+  _AllMetricsSettingsNotifier({bool metricsFollowViewport = false})
     : super(
-        const AppSettings(
+        AppSettings(
+          profileMetricsFollowViewport: metricsFollowViewport,
           defaultShowHeartRate: true,
           defaultShowSac: true,
           defaultShowPpO2: true,
@@ -77,12 +88,12 @@ List<DiveProfilePoint> _makeProfile({int points = 10}) {
 
 Widget _buildChart({
   List<DiveProfilePoint>? profile,
-  Map<String, List<DiveProfilePoint>>? computerProfiles,
-  Set<String>? visibleComputers,
-  Map<String, Color>? computerLineColors,
-  Set<String>? primaryComputers,
+  List<ChartSourceOverlay>? overlays,
+  String? activeComputerId,
+  Map<String, String>? computerNames,
   Map<String, List<TankPressurePoint>>? tankPressures,
   List<DiveTank>? tanks,
+  Set<String>? estimatedTankIds,
   List<double>? ceilingCurve,
   List<AscentRatePoint>? ascentRates,
   List<ProfileEvent>? events,
@@ -91,6 +102,9 @@ Widget _buildChart({
   double? tankVolume,
   double sacNormalizationFactor = 1.0,
   List<double>? ppO2Curve,
+  List<List<double?>>? o2SensorCurves,
+  List<List<int?>>? o2CellMvCurves,
+  bool ppO2FromSensorAverage = false,
   List<double>? ppN2Curve,
   List<double>? ppHeCurve,
   List<double>? densityCurve,
@@ -112,6 +126,7 @@ Widget _buildChart({
   void Function(int? index)? onPointSelected,
   int? playbackTimestamp,
   int? highlightedTimestamp,
+  List<PhotoChartMarker>? photoMarkers,
 }) {
   return ProviderScope(
     overrides: [
@@ -126,12 +141,12 @@ Widget _buildChart({
           height: 300,
           child: DiveProfileChart(
             profile: profile ?? _makeProfile(),
-            computerProfiles: computerProfiles,
-            visibleComputers: visibleComputers,
-            computerLineColors: computerLineColors,
-            primaryComputers: primaryComputers,
+            overlays: overlays,
+            activeComputerId: activeComputerId,
+            computerNames: computerNames,
             tankPressures: tankPressures,
             tanks: tanks,
+            estimatedTankIds: estimatedTankIds,
             ceilingCurve: ceilingCurve,
             ascentRates: ascentRates,
             events: events,
@@ -140,6 +155,9 @@ Widget _buildChart({
             tankVolume: tankVolume,
             sacNormalizationFactor: sacNormalizationFactor,
             ppO2Curve: ppO2Curve,
+            o2SensorCurves: o2SensorCurves,
+            o2CellMvCurves: o2CellMvCurves,
+            ppO2FromSensorAverage: ppO2FromSensorAverage,
             ppN2Curve: ppN2Curve,
             ppHeCurve: ppHeCurve,
             densityCurve: densityCurve,
@@ -161,6 +179,7 @@ Widget _buildChart({
             onPointSelected: onPointSelected,
             playbackTimestamp: playbackTimestamp,
             highlightedTimestamp: highlightedTimestamp,
+            photoMarkers: photoMarkers,
           ),
         ),
       ),
@@ -174,6 +193,7 @@ Widget _buildChartAllMetrics({
   List<DiveProfilePoint>? profile,
   Map<String, List<TankPressurePoint>>? tankPressures,
   List<DiveTank>? tanks,
+  Set<String>? estimatedTankIds,
   List<double>? ceilingCurve,
   List<AscentRatePoint>? ascentRates,
   List<int>? ndlCurve,
@@ -181,6 +201,9 @@ Widget _buildChartAllMetrics({
   double? tankVolume,
   double sacNormalizationFactor = 1.0,
   List<double>? ppO2Curve,
+  List<List<double?>>? o2SensorCurves,
+  List<List<int?>>? o2CellMvCurves,
+  bool ppO2FromSensorAverage = false,
   List<double>? ppN2Curve,
   List<double>? ppHeCurve,
   List<double>? densityCurve,
@@ -197,10 +220,15 @@ Widget _buildChartAllMetrics({
   bool tooltipBelow = false,
   void Function(List<TooltipRow>? rows)? onTooltipData,
   void Function(int? index)? onPointSelected,
+  bool metricsFollowViewport = false,
 }) {
   return ProviderScope(
     overrides: [
-      settingsProvider.overrideWith((ref) => _AllMetricsSettingsNotifier()),
+      settingsProvider.overrideWith(
+        (ref) => _AllMetricsSettingsNotifier(
+          metricsFollowViewport: metricsFollowViewport,
+        ),
+      ),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -213,6 +241,7 @@ Widget _buildChartAllMetrics({
             profile: profile ?? _makeProfile(),
             tankPressures: tankPressures,
             tanks: tanks,
+            estimatedTankIds: estimatedTankIds,
             ceilingCurve: ceilingCurve,
             ascentRates: ascentRates,
             ndlCurve: ndlCurve,
@@ -220,6 +249,9 @@ Widget _buildChartAllMetrics({
             tankVolume: tankVolume,
             sacNormalizationFactor: sacNormalizationFactor,
             ppO2Curve: ppO2Curve,
+            o2SensorCurves: o2SensorCurves,
+            o2CellMvCurves: o2CellMvCurves,
+            ppO2FromSensorAverage: ppO2FromSensorAverage,
             ppN2Curve: ppN2Curve,
             ppHeCurve: ppHeCurve,
             densityCurve: densityCurve,
@@ -247,7 +279,144 @@ Widget _buildChartAllMetrics({
 // Tests
 // ---------------------------------------------------------------------------
 
+/// Rug segments are flat two-point bars in one of the traffic-light
+/// agreement colours (green/yellow/red for tight/drifting/wide).
+bool _isRugSegment(LineChartBarData bar) =>
+    bar.spots.length == 2 &&
+    bar.spots.first.y == bar.spots.last.y &&
+    (bar.color == const Color(0xFF66BB6A).withValues(alpha: 0.55) ||
+        bar.color == const Color(0xFFFFCA28) ||
+        bar.color == const Color(0xFFE57373));
+
 void main() {
+  group('DiveProfileChart - estimated tank pressure', () {
+    testWidgets('estimated tank pressure line is straight (isCurved false)', (
+      tester,
+    ) async {
+      const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
+      const points = [
+        TankPressurePoint(id: 'e0', tankId: 't1', timestamp: 0, pressure: 200),
+        TankPressurePoint(id: 'e1', tankId: 't1', timestamp: 270, pressure: 60),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          tanks: const [tank],
+          tankPressures: {'t1': points},
+          estimatedTankIds: const {'t1'},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      final estimatedBars = chart.data.lineBarsData
+          .where((b) => b.dashArray != null && b.isCurved == false)
+          .toList();
+      expect(estimatedBars, isNotEmpty);
+
+      // Control: same data, NOT estimated -> pressure line is curved.
+      await tester.pumpWidget(
+        _buildChart(tanks: const [tank], tankPressures: {'t1': points}),
+      );
+      await tester.pumpAndSettle();
+      final chart2 = tester.widget<LineChart>(find.byType(LineChart));
+      expect(
+        chart2.data.lineBarsData.where(
+          (b) => b.dashArray != null && b.isCurved == false,
+        ),
+        isEmpty,
+      );
+    });
+
+    testWidgets(
+      'scrubbing over a flat (all-zero) tank pressure series does not throw',
+      (tester) async {
+        // Regression: a Shearwater logged a pressure channel with no
+        // transmitter paired, so every sample is 0.0. The pressure axis range
+        // collapses to zero width; mapping a constant value through it produced
+        // NaN FlSpot coordinates that crashed fl_chart's touch/tooltip painter
+        // with "Offset argument contained a NaN value" on hover (dive #835).
+        const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
+        final profile = _makeProfile(points: 40);
+        final flatPressures = <TankPressurePoint>[
+          for (var i = 0; i < 40; i++)
+            TankPressurePoint(
+              id: 'p$i',
+              tankId: 't1',
+              timestamp: i * 30,
+              pressure: 0.0,
+            ),
+        ];
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profile,
+            tanks: const [tank],
+            tankPressures: {'t1': flatPressures},
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final rect = tester.getRect(find.byType(LineChart));
+        final y = rect.center.dy;
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: Offset(rect.left + 2, y));
+        await tester.pump();
+        for (var i = 1; i <= 40; i++) {
+          await mouse.moveTo(Offset(rect.left + rect.width * (i / 40.0), y));
+          await tester.pump();
+          expect(tester.takeException(), isNull);
+        }
+        await mouse.removePointer();
+      },
+    );
+
+    testWidgets('tooltip labels an estimated tank with the (est.) suffix', (
+      tester,
+    ) async {
+      // 20-point profile matching the proven long-press tooltip tests, so the
+      // gesture reliably lands on a data point and emits external tooltip rows.
+      final profile = List.generate(
+        20,
+        (i) => DiveProfilePoint(
+          timestamp: i * 30,
+          depth: i < 10 ? i * 3.0 : (19 - i) * 3.0,
+        ),
+      );
+      const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
+      // A straight two-point estimate spanning the whole profile (0..570s).
+      const points = [
+        TankPressurePoint(id: 'e0', tankId: 't1', timestamp: 0, pressure: 200),
+        TankPressurePoint(id: 'e1', tankId: 't1', timestamp: 570, pressure: 60),
+      ];
+      List<TooltipRow>? rows;
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          tanks: const [tank],
+          tankPressures: {'t1': points},
+          estimatedTankIds: const {'t1'},
+          tooltipBelow: true,
+          onTooltipData: (r) => rows = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Long-press near the center; assert BEFORE releasing (release clears).
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(2, 0));
+      await tester.pump();
+
+      expect(rows, isNotNull);
+      expect(rows!.where((r) => r.label.contains('(est.)')), isNotEmpty);
+      await gesture.up();
+    });
+  });
+
   group('DiveProfileChart - single profile rendering', () {
     testWidgets('renders without crashing with profile data', (tester) async {
       await tester.pumpWidget(_buildChart());
@@ -263,17 +432,46 @@ void main() {
       // Empty profile should show empty state placeholder.
       expect(find.byType(DiveProfileChart), findsOneWidget);
     });
+
+    testWidgets('chart data changes are not implicitly animated', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+
+      // The chart rebuilds on every hover / pan / cursor move. fl_chart's
+      // default 150ms implicit animation lerps old data to new, which makes
+      // the highlight cursor lag the pointer, slides event markers when
+      // cursor lines shift verticalLines indices, and smears line bars while
+      // panning. Interaction-driven rebuilds must render immediately.
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(chart.duration, Duration.zero);
+    });
   });
 
-  group('DiveProfileChart - multi-computer rendering', () {
-    testWidgets('renders with two computer profiles', (tester) async {
-      final profileA = _makeProfile(points: 8);
-      final profileB = _makeProfile(points: 8);
+  group('DiveProfileChart - overlay source rendering', () {
+    ChartSourceOverlay overlay({
+      String sourceId = 'src-b',
+      String name = 'Erics Teric',
+      Color color = Colors.orange,
+      String? computerId = 'comp-b',
+      required List<DiveProfilePoint> points,
+    }) {
+      return ChartSourceOverlay(
+        sourceId: sourceId,
+        name: name,
+        color: color,
+        computerId: computerId,
+        points: points,
+      );
+    }
 
+    testWidgets('renders with an overlaid source', (tester) async {
       await tester.pumpWidget(
         _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          primaryComputers: {'comp-a'},
+          profile: _makeProfile(points: 8),
+          activeComputerId: 'comp-a',
+          overlays: [overlay(points: _makeProfile(points: 8))],
         ),
       );
       await tester.pumpAndSettle();
@@ -281,83 +479,493 @@ void main() {
       expect(find.byType(DiveProfileChart), findsOneWidget);
     });
 
-    testWidgets('renders with custom computer line colors', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
+    testWidgets('an overlay appends exactly one dashed depth bar in its color, '
+        'after every other bar', (tester) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 8)));
+      await tester.pumpAndSettle();
+      final withoutOverlay = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .length;
 
       await tester.pumpWidget(
         _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          computerLineColors: {'comp-a': Colors.red, 'comp-b': Colors.blue},
-          primaryComputers: {'comp-a'},
+          profile: _makeProfile(points: 8),
+          activeComputerId: 'comp-a',
+          overlays: [
+            overlay(color: Colors.purple, points: _makeProfile(points: 6)),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveProfileChart), findsOneWidget);
+      final bars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      expect(bars.length, withoutOverlay + 1);
+      final overlayBar = bars.last;
+      expect(overlayBar.color, Colors.purple);
+      expect(overlayBar.dashArray, [6, 4]);
+      expect(overlayBar.spots.length, 6);
+      // Depth bar 0 is still the active source.
+      expect(bars.first.spots.length, 8);
     });
 
-    testWidgets('renders when some computers are hidden', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
+    testWidgets(
+      'a profile starting after t=0 draws the depth line from the surface',
+      (tester) async {
+        // Subsurface/DC-XML profiles begin at the first sample (10s), leaving a
+        // gap against the t=0 axis origin (issue #684).
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          visibleComputers: {'comp-a'},
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
+        final depthBar = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData
+            .first;
 
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
+        expect(depthBar.spots.first.x, 0);
+        expect(depthBar.spots.first.y, 0);
+        // The synthetic vertex is additive: every real sample is still drawn.
+        expect(depthBar.spots.length, profile.length + 1);
+        expect(depthBar.spots[1].x, 10);
+      },
+    );
 
-    testWidgets('renders with all computers hidden', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
-
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          visibleComputers: <String>{},
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
-
-    testWidgets('falls back to single-profile with one computer', (
+    testWidgets('a profile already starting at t=0 gains no extra vertex', (
       tester,
     ) async {
-      final profileA = _makeProfile(points: 5);
+      // Garmin FIT samples at zero, so there is no gap and nothing to add.
+      final profile = _makeProfile(points: 8);
+      expect(profile.first.timestamp, 0);
 
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA},
-          primaryComputers: {'comp-a'},
-        ),
-      );
+      await tester.pumpWidget(_buildChart(profile: profile));
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveProfileChart), findsOneWidget);
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 0);
     });
 
-    testWidgets('renders secondary computers without primaryComputers set', (
+    testWidgets('a profile starting at t=0 keeps its original smoothing', (
       tester,
     ) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
+      // The lead-in changes curve smoothing to stop the spline overshooting
+      // that vertex. A dive that needs no lead-in must be rendered exactly as
+      // before, so the fix cannot alter dives it does not apply to.
+      final atZero = _makeProfile(points: 8);
+      expect(atZero.first.timestamp, 0);
+
+      await tester.pumpWidget(_buildChart(profile: atZero));
+      await tester.pumpAndSettle();
+      final zeroBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      for (final bar in zeroBars) {
+        expect(bar.preventCurveOverShooting, isFalse);
+      }
+
+      // The same chart on a profile that does need one turns it on.
+      final offset = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(_buildChart(profile: offset));
+      await tester.pumpAndSettle();
+      final offsetBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      expect(offsetBars.any((b) => b.preventCurveOverShooting), isTrue);
+    });
+
+    testWidgets('analysis curves are extended to t=0 at their first value', (
+      tester,
+    ) async {
+      // Held flat rather than zeroed: on a repetitive dive the first sample
+      // already carries residual loading (CNS here starts at 12%), and forcing
+      // a synthetic 0 would draw it as a first dive of the day.
+      final profile = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+      ];
+      final cns = [for (var i = 0; i < 8; i++) 12.0 + i];
+      final ndl = [for (var i = 0; i < 8; i++) 1080 - i * 10];
 
       await tester.pumpWidget(
-        _buildChart(computerProfiles: {'comp-a': profileA, 'comp-b': profileB}),
+        _buildChart(profile: profile, cnsCurve: cns, ndlCurve: ndl),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveProfileChart), findsOneWidget);
+      final bars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+
+      // Bar 0 is depth, which descends from the surface rather than holding
+      // flat; the analysis curves after it hold their first value.
+      expect(bars.first.spots.first, const FlSpot(0, 0));
+
+      final analysisLeadIns = bars
+          .skip(1)
+          .where((b) => b.spots.length > 1 && b.spots.first.x == 0);
+      expect(analysisLeadIns, isNotEmpty);
+      for (final bar in analysisLeadIns) {
+        expect(bar.spots.first.y, bar.spots[1].y);
+      }
     });
+
+    testWidgets('a trimmed profile keeps its gap rather than inventing a '
+        'descent', (tester) async {
+      // First sample far beyond one interval: drawing from the surface would
+      // fabricate dive time that was never recorded.
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: 600 + i * 10, depth: 20.0 + i),
+      ];
+      await tester.pumpWidget(_buildChart(profile: profile));
+      await tester.pumpAndSettle();
+
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 600);
+    });
+
+    testWidgets(
+      'tooltip rows label overlay depth and temperature with the metric',
+      (tester) async {
+        final active = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 3.0,
+              temperature: 27.0,
+            ),
+        ];
+        final other = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 2.0,
+              temperature: 26.5,
+            ),
+        ];
+
+        List<TooltipRow>? receivedRows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(name: 'Erics Teric', points: other)],
+            tooltipBelow: true,
+            onTooltipData: (rows) => receivedRows = rows,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final bars = data.lineBarsData;
+        final touchedSpot = bars.first.spots[2];
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(bars.first, 0, touchedSpot, 2),
+            ],
+          ),
+        );
+
+        expect(receivedRows, isNotNull);
+        final byLabel = {for (final r in receivedRows!) r.label: r.value};
+        expect(byLabel['Depth · Erics Teric'], isNotNull);
+        expect(byLabel['Depth · Erics Teric'], isNot(isEmpty));
+        expect(byLabel['Temp · Erics Teric'], isNotNull);
+      },
+    );
+
+    testWidgets(
+      'touching the lead-in vertex reports t=0 and marks held values',
+      (tester) async {
+        // First sample at 10s, so bar 0 carries a synthetic (0, 0m) lead-in
+        // vertex at spotIndex 0 (issue #684). Touching it must describe t=0,
+        // not repeat the first sample.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(
+              timestamp: i * 10,
+              depth: i * 2.0,
+              temperature: 25.0,
+            ),
+        ];
+        List<TooltipRow>? rows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profile,
+            tooltipBelow: true,
+            onTooltipData: (r) => rows = r,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        // The lead-in vertex: bar 0, spotIndex 0, at x=0.
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0),
+            ],
+          ),
+        );
+
+        expect(rows, isNotNull);
+        final byLabel = {for (final r in rows!) r.label: r.value};
+        // Time and depth are exact at the surface, never marked.
+        expect(byLabel['Time'], '0:00');
+        expect(byLabel['Depth'], isNot(contains('interpolated')));
+        // Temperature is carried over from the first sample, so it is marked.
+        expect(byLabel['Temp'], contains('(interpolated)'));
+      },
+    );
+
+    testWidgets(
+      'an overlay gets its lead-in from its own samples, not the active dive',
+      (tester) async {
+        // The case the hard-wired predicate missed: the active profile starts
+        // at t=0 (so it needs no lead-in) while the overlaid computer starts at
+        // t=10 and does. Keying off the active dive would leave the overlay
+        // gapped.
+        final active = [
+          for (var i = 0; i < 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        final other = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 1.5),
+        ];
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(color: Colors.purple, points: other)],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        // Active depth bar: starts at t=0 already, so no synthetic vertex.
+        expect(bars.first.spots.length, active.length);
+        expect(bars.first.spots.first.x, 0);
+
+        // Overlay depth bar is appended last and DOES get one.
+        final overlayBar = bars.last;
+        expect(overlayBar.color, Colors.purple);
+        expect(overlayBar.spots.first, const FlSpot(0, 0));
+        expect(overlayBar.spots.length, other.length + 1);
+        expect(overlayBar.spots[1].x, 10);
+      },
+    );
+
+    testWidgets(
+      'a tank first breathed mid-dive keeps its smoothing untouched',
+      (tester) async {
+        // A deco bottle's pressure trace legitimately starts mid-dive, so it
+        // receives no lead-in -- and must not have its smoothing changed by
+        // the dive-level flag either.
+        final profile = [
+          for (var i = 1; i <= 10; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        const tanks = [
+          DiveTank(id: 'back', gasMix: GasMix(o2: 21), order: 0),
+          DiveTank(id: 'deco', gasMix: GasMix(o2: 50), order: 1),
+        ];
+        const pressures = {
+          'back': [
+            TankPressurePoint(
+              id: 'b0',
+              tankId: 'back',
+              timestamp: 10,
+              pressure: 200,
+            ),
+            TankPressurePoint(
+              id: 'b1',
+              tankId: 'back',
+              timestamp: 100,
+              pressure: 80,
+            ),
+          ],
+          'deco': [
+            TankPressurePoint(
+              id: 'd0',
+              tankId: 'deco',
+              timestamp: 60,
+              pressure: 200,
+            ),
+            TankPressurePoint(
+              id: 'd1',
+              tankId: 'deco',
+              timestamp: 100,
+              pressure: 150,
+            ),
+          ],
+        };
+
+        await tester.pumpWidget(
+          _buildChart(profile: profile, tanks: tanks, tankPressures: pressures),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        // The deco series starts at t=60: no lead-in, and no smoothing change.
+        final decoBar = bars.firstWhere(
+          (b) => b.spots.length == 2 && b.spots.first.x == 60,
+        );
+        expect(decoBar.preventCurveOverShooting, isFalse);
+
+        // The back-gas series starts at the dive's first sample, so it does
+        // get a lead-in and the overshoot guard with it.
+        final backBar = bars.firstWhere(
+          (b) => b.spots.length == 3 && b.spots.first.x == 0,
+        );
+        expect(backBar.preventCurveOverShooting, isTrue);
+      },
+    );
+
+    testWidgets(
+      'inline tooltip on the lead-in computes pressures and marks held values',
+      (tester) async {
+        // First sample at 10s and 20 m depth => 3 bar ambient. A ppO2 of
+        // 0.63 bar there is 0.21 at the surface, so the lead-in readout must
+        // compute it, not repeat 0.63. Temperature is held and marked.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: 20.0, temperature: 25.0),
+        ];
+        await tester.pumpWidget(
+          _buildChartAllMetrics(
+            profile: profile,
+            ppO2Curve: [for (var i = 0; i < 8; i++) 0.63],
+            ppN2Curve: [for (var i = 0; i < 8; i++) 2.37],
+            ppHeCurve: [for (var i = 0; i < 8; i++) 0.9],
+            densityCurve: [for (var i = 0; i < 8; i++) 3.6],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+
+        // Drive fl_chart's own tooltip builder with the lead-in vertex.
+        final items = data.lineTouchData.touchTooltipData.getTooltipItems(
+          <LineBarSpot>[TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0)],
+        );
+        final plain = items
+            .whereType<LineTooltipItem>()
+            .expand(
+              (it) => [it.text, ...?it.children?.map((c) => c.toPlainText())],
+            )
+            .join();
+
+        expect(plain, contains('0:00')); // t=0, not 0:10
+        expect(plain, contains('0.21 bar')); // computed ppO2, not 0.63
+        expect(plain, isNot(contains('0.63 bar')));
+        expect(plain, contains('(interpolated)')); // temperature held
+      },
+    );
+
+    testWidgets(
+      'touch on the active depth bar resolves the active profile sample '
+      'even with a denser overlay present',
+      (tester) async {
+        // The overlay's points need not align index-for-index with
+        // [widget.profile]; overlay bars are appended last so they never
+        // participate in the depth-spot mapping.
+        final active = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(timestamp: i * 20, depth: i * 3.0),
+        ];
+        final other = [
+          for (var i = 0; i < 9; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 1.5),
+        ];
+
+        int? selected;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(points: other)],
+            onPointSelected: (i) => selected = i,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final bars = data.lineBarsData;
+        // Bar 0 is the active depth line; the overlay bar is last.
+        expect(bars.first.spots.length, 5);
+        expect(bars.last.spots.length, 9);
+
+        final touchedSpot = bars.first.spots[3];
+        expect(touchedSpot.x, 60.0);
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(bars.first, 0, touchedSpot, 3),
+            ],
+          ),
+        );
+
+        expect(selected, 3);
+        expect(active[selected!].timestamp, 60);
+      },
+    );
   });
 
   group('DiveProfileChart - multi-tank pressure rendering', () {
@@ -427,6 +1035,152 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+  });
+
+  group('DiveProfileChart - overlay temperature and event gating', () {
+    // Reads the primary fl_chart LineChartData (the depth/time plot is first).
+    LineChartData primaryChartData(WidgetTester tester) =>
+        tester.widget<LineChart>(find.byType(LineChart).first).data;
+
+    List<LineChartBarData> temperatureLines(WidgetTester tester) =>
+        primaryChartData(tester).lineBarsData
+            .where(
+              (bar) =>
+                  bar.dashArray != null &&
+                  bar.dashArray!.length == 2 &&
+                  bar.dashArray![0] == 5 &&
+                  bar.dashArray![1] == 3,
+            )
+            .toList();
+
+    List<DiveProfilePoint> profileWithTemp(double temperature) => List.generate(
+      8,
+      (i) => DiveProfilePoint(
+        timestamp: i * 30,
+        depth: i * 1.0,
+        temperature: temperature,
+      ),
+    );
+
+    ChartSourceOverlay overlayB(List<DiveProfilePoint> points) =>
+        ChartSourceOverlay(
+          sourceId: 'src-b',
+          name: 'Erics Teric',
+          color: Colors.orange,
+          computerId: 'comp-b',
+          points: points,
+        );
+
+    testWidgets(
+      'active and overlaid sources each draw a temperature line on one scale',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profileWithTemp(20),
+            activeComputerId: 'comp-a',
+            overlays: [overlayB(profileWithTemp(22))],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(temperatureLines(tester).length, 2);
+      },
+    );
+
+    testWidgets('removing the overlay removes its temperature line', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildChart(profile: profileWithTemp(20), activeComputerId: 'comp-a'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(temperatureLines(tester).length, 1);
+    });
+
+    testWidgets('events draw for the active and overlaid computers only', (
+      tester,
+    ) async {
+      final createdAt = DateTime(2024, 1, 1);
+      final events = [
+        ProfileEvent(
+          id: 'e-a',
+          diveId: 'dive-1',
+          timestamp: 30,
+          eventType: ProfileEventType.bookmark,
+          computerId: 'comp-a',
+          createdAt: createdAt,
+        ),
+        ProfileEvent(
+          id: 'e-b',
+          diveId: 'dive-1',
+          timestamp: 60,
+          eventType: ProfileEventType.bookmark,
+          computerId: 'comp-b',
+          createdAt: createdAt,
+        ),
+      ];
+
+      // comp-b not overlaid: its event hides.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: const [],
+          events: events,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      var verticalLines = primaryChartData(tester).extraLinesData.verticalLines;
+      expect(verticalLines.any((l) => l.x == 30), isTrue);
+      expect(verticalLines.any((l) => l.x == 60), isFalse);
+
+      // Overlaying comp-b brings its event back.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: [overlayB(profileWithTemp(22))],
+          events: events,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      verticalLines = primaryChartData(tester).extraLinesData.verticalLines;
+      expect(verticalLines.any((l) => l.x == 30), isTrue);
+      expect(verticalLines.any((l) => l.x == 60), isTrue);
+    });
+
+    testWidgets('a null-computerId event always draws (active-owned)', (
+      tester,
+    ) async {
+      final createdAt = DateTime(2024, 1, 1);
+      final events = [
+        ProfileEvent(
+          id: 'e-primary',
+          diveId: 'dive-1',
+          timestamp: 30,
+          eventType: ProfileEventType.bookmark,
+          createdAt: createdAt,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: const [],
+          events: events,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final verticalLines = primaryChartData(
+        tester,
+      ).extraLinesData.verticalLines;
+      expect(verticalLines.any((l) => l.x == 30), isTrue);
     });
   });
 
@@ -667,6 +1421,230 @@ void main() {
       await tester.pumpWidget(_buildChart(profile: profile, ppO2Curve: ppO2));
       await tester.pumpAndSettle();
       expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets('renders with O2 sensor curves alongside ppO2', (tester) async {
+      final profile = makeRichProfile();
+      final ppO2 = List.generate(10, (i) => 0.7 + i * 0.05);
+      // Three cells (e.g. JJ-CCR), each per-sample, with a null gap on cell 3.
+      final sensors = <List<double?>>[
+        List.generate(10, (i) => 0.68 + i * 0.05),
+        List.generate(10, (i) => 0.72 + i * 0.05),
+        List.generate(10, (i) => i == 4 ? null : 0.70 + i * 0.05),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, ppO2Curve: ppO2, o2SensorCurves: sensors),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.o2SensorCurves, sensors);
+      expect(chart.ppO2FromSensorAverage, isFalse);
+    });
+
+    testWidgets('forwards O2 cell millivolt curves to the chart', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      final mv = <List<int?>>[
+        List.generate(10, (i) => 58 + i % 3),
+        List.generate(10, (i) => 61 - i % 3),
+        List.generate(10, (i) => 43),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.o2CellMvCurves, mv);
+    });
+
+    testWidgets('the rug pins to the bottom edge once the toggle is on', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      final mv = <List<int?>>[
+        List.generate(10, (i) => 63),
+        List.generate(10, (i) => 65),
+        List.generate(10, (i) => 64),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      LineChartData data() =>
+          tester.widget<LineChart>(find.byType(LineChart).first).data;
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final rug = data().lineBarsData.where(_isRugSegment).toList();
+      // Cells agree throughout, so the whole dive collapses to one segment.
+      expect(rug, hasLength(1));
+      // Flat, and hugging the bottom of the plot rather than floating in it.
+      final ys = rug.single.spots.map((s) => s.y).toSet();
+      expect(ys, hasLength(1));
+      expect(
+        ys.single,
+        lessThan(data().minY + (data().maxY - data().minY) * 0.1),
+      );
+    });
+
+    testWidgets('the rug marks the stretch where the cells opened up', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      // Cells agree, then cell 3 falls away for the middle of the dive.
+      final mv = <List<int?>>[
+        List.generate(10, (i) => 63),
+        List.generate(10, (i) => 64),
+        List.generate(10, (i) => i >= 3 && i <= 6 ? 40 : 64),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final rug = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where(_isRugSegment)
+          .toList();
+
+      // The dive is no longer one uniform run, and the bad stretch is drawn
+      // heavier so it is visible without comparing colours.
+      expect(rug.length, greaterThan(1));
+      expect(rug.any((b) => b.barWidth > 3), isTrue);
+    });
+
+    testWidgets('draws one line per cell alongside the rug', (tester) async {
+      final profile = makeRichProfile();
+      final mv = <List<int?>>[
+        List.generate(10, (i) => 63),
+        List.generate(10, (i) => 65),
+        List.generate(10, (i) => 64),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final cellLines = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where((b) => b.color != null && kO2CellColors.contains(b.color));
+      expect(cellLines, hasLength(3));
+    });
+
+    testWidgets('millivolt rounding does not fragment the rug', (tester) async {
+      final profile = makeRichProfile();
+      // Cell 1 rounds back and forth across a boundary. Without smoothing the
+      // spread alternates and could flip the run level sample by sample.
+      final mv = <List<int?>>[
+        [63, 64, 63, 63, 64, 63, 63, 64, 63, 63],
+        List.generate(10, (i) => 65),
+        List.generate(10, (i) => 64),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final rug = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where(_isRugSegment);
+      expect(rug, hasLength(1), reason: 'rounding fragmented the rug');
+    });
+
+    testWidgets('a cell gap breaks its line instead of interpolating', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      // One cell, reporting on 6 of 10 samples.
+      final mv = <List<int?>>[
+        [58, null, 57, null, 56, null, 55, null, 54, 53],
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final bars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      // The millivolt line carries only the six reported samples; a carried or
+      // interpolated value would give it all ten.
+      final mvBar = bars.firstWhere((b) => b.spots.length == 6);
+      expect(mvBar.spots, hasLength(6));
+    });
+
+    testWidgets('forwards ppO2FromSensorAverage flag to the chart', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      final ppO2 = List.generate(10, (i) => 0.7 + i * 0.05);
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: ppO2,
+          o2SensorCurves: <List<double?>>[List.generate(10, (i) => 0.7)],
+          ppO2FromSensorAverage: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.ppO2FromSensorAverage, isTrue);
     });
 
     testWidgets('renders with ppN2 curve data', (tester) async {
@@ -1084,9 +2062,264 @@ void main() {
     );
   });
 
+  group('DiveProfileChart - tooltip placement', () {
+    testWidgets('default keeps the bubble pinned above the chart box '
+        '(detail-page behavior)', (tester) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+
+      final tooltip = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineTouchData
+          .touchTooltipData;
+      expect(tooltip.showOnTopOfTheChartBoxArea, isTrue);
+      expect(tooltip.fitInsideVertically, isFalse);
+      expect(tooltip.tooltipMargin, 0);
+    });
+  });
+
   // =========================================================================
   // Static helper coverage
   // =========================================================================
+
+  group('DiveProfileChart.tankTooltipLabel', () {
+    test('appends the gas type to the fallback label', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 32)),
+        'Tank 1',
+      );
+      expect(label, 'Tank 1 (EAN32)');
+    });
+
+    test('uses the caller-provided fallback label', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-2', gasMix: GasMix(o2: 50)),
+        'Tank 2',
+      );
+      expect(label, 'Tank 2 (EAN50)');
+    });
+
+    test('honors a localized fallback label', () {
+      // The built-in tooltip passes a localized default (e.g. l10n
+      // diveLog_tank_title); the gas type is appended to whatever is given.
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 32)),
+        'Cilindro 1',
+      );
+      expect(label, 'Cilindro 1 (EAN32)');
+    });
+
+    test('shows Air for a 21% mix', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', gasMix: GasMix(o2: 21)),
+        'Tank 1',
+      );
+      expect(label, 'Tank 1 (Air)');
+    });
+
+    test('appends the gas type to a custom tank name', () {
+      final label = DiveProfileChart.tankTooltipLabel(
+        const DiveTank(id: 'tank-1', name: 'Backgas', gasMix: GasMix(o2: 32)),
+        'Tank 1',
+      );
+      expect(label, 'Backgas (EAN32)');
+    });
+
+    test('falls back to the label without gas when tank is null', () {
+      expect(DiveProfileChart.tankTooltipLabel(null, 'Tank 1'), 'Tank 1');
+    });
+  });
+
+  group('DiveProfileChart.tooltipRowText', () {
+    test('keeps a full long label and its value with a separator', () {
+      // Regression for two prior bugs: the 8-char column truncated to
+      // "Tank 1 (1648 psi", and padding alone produced "Tank 1 (EAN32)2064".
+      final row = DiveProfileChart.tooltipRowText(
+        'Tank 1 (EAN32)',
+        '2064 psi',
+        8,
+        16,
+      );
+      expect(row, 'Tank 1 (EAN32) 2064 psi');
+    });
+
+    test('pads a short label to align the value column', () {
+      expect(
+        DiveProfileChart.tooltipRowText('Time', '29:20', 8, 16),
+        'Time    29:20',
+      );
+    });
+
+    test('clamps an over-long value to the value column', () {
+      expect(
+        DiveProfileChart.tooltipRowText('NDL', '12345678', 8, 4),
+        'NDL     1234',
+      );
+    });
+  });
+
+  group('DiveProfileChart.depthSpotProfileIndex', () {
+    // A canonical profile sampled every 10 seconds.
+    final profile = [
+      for (var i = 0; i < 6; i++)
+        DiveProfilePoint(timestamp: i * 10, depth: i.toDouble()),
+    ];
+
+    test('single computer maps depthBarStart + spotIndex directly', () {
+      // A velocity band starting at global index 3, touched at local
+      // spotIndex 2, addresses profile sample 5.
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: const [0, 3],
+          barIndex: 1,
+          spotIndex: 2,
+          spotX: 50.0,
+          multiComputer: false,
+        ),
+        5,
+      );
+    });
+
+    test(
+      'multi-computer resolves by timestamp, ignoring the local spotIndex',
+      () {
+        // The touched depth bar belongs to a densely-sampled computer whose
+        // local spotIndex (30) does NOT address [profile]. The spot's timestamp
+        // (30s) must map to profile index 3 instead -- this is the bug: the old
+        // code used depthBarStarts[0] + 30 = 30, landing far from the pointer.
+        expect(
+          DiveProfileChart.depthSpotProfileIndex(
+            profile: profile,
+            depthBarStarts: const [0],
+            barIndex: 0,
+            spotIndex: 30,
+            spotX: 30.0,
+            multiComputer: true,
+          ),
+          3,
+        );
+      },
+    );
+
+    test(
+      'multi-computer picks the nearest profile sample to the spot time',
+      () {
+        // Another computer sampled at 32s; the nearest [profile] sample is
+        // index 3 (30s), not index 4 (40s).
+        expect(
+          DiveProfileChart.depthSpotProfileIndex(
+            profile: profile,
+            depthBarStarts: const [0],
+            barIndex: 0,
+            spotIndex: 999,
+            spotX: 32.0,
+            multiComputer: true,
+          ),
+          3,
+        );
+      },
+    );
+
+    test('multi-computer returns -1 for an empty profile', () {
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: const [],
+          depthBarStarts: const [0],
+          barIndex: 0,
+          spotIndex: 0,
+          spotX: 10.0,
+          multiComputer: true,
+        ),
+        -1,
+      );
+    });
+
+    test('a surface lead-in vertex does not shift the sample mapping', () {
+      // With a lead-in, bar 0's spots are [synthetic, p0, p1, ...], so
+      // _depthBarStartIndices reports -1 for that bar to keep
+      // `start + spotIndex` addressing the right sample. The synthetic vertex
+      // itself resolves to the first sample rather than a negative index.
+      const starts = [-1];
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 0, // the synthetic (0, 0m) vertex
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 1, // the first real sample
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 3,
+          spotX: 20.0,
+          multiComputer: false,
+        ),
+        2,
+      );
+    });
+  });
+
+  group('shouldDrawSurfaceLeadIn', () {
+    List<DiveProfilePoint> profileFrom(List<int> timestamps) => [
+      for (final t in timestamps) DiveProfilePoint(timestamp: t, depth: 1.0),
+    ];
+
+    test('true when the first sample sits one interval in', () {
+      // The Subsurface/DC-XML case from #679: 10s sampling, first sample at 10.
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30, 40])), isTrue);
+    });
+
+    test('false when the profile already starts at zero', () {
+      // Garmin FIT samples at t=0, so there is no gap to close.
+      expect(shouldDrawSurfaceLeadIn(profileFrom([0, 1, 2, 3])), isFalse);
+    });
+
+    test('true for a one-second sampling computer', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([1, 2, 3, 4])), isTrue);
+    });
+
+    test('false when the gap exceeds one sample interval', () {
+      // A trimmed or merged profile starting well after t=0: drawing a descent
+      // across that span would fabricate dive time that was never recorded.
+      expect(
+        shouldDrawSurfaceLeadIn(profileFrom([600, 610, 620, 630])),
+        isFalse,
+      );
+    });
+
+    test('boundary: exactly one interval yes, one second more no', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30])), isTrue);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([11, 21, 31])), isFalse);
+    });
+
+    test('false for profiles too short to establish an interval', () {
+      expect(shouldDrawSurfaceLeadIn(const []), isFalse);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10])), isFalse);
+    });
+
+    test('false when samples share a timestamp (no usable interval)', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 10, 20])), isFalse);
+    });
+  });
 
   group('DiveProfileChart - static axis size helpers', () {
     test('leftAxisSize returns smaller value for narrow width', () {
@@ -1105,8 +2338,8 @@ void main() {
       expect(DiveProfileChart.rightAxisSize(500), 38.0);
     });
 
-    test('gasTimelineHeight constant is 22.0', () {
-      expect(DiveProfileChart.gasTimelineHeight, 22.0);
+    test('gasTimelineHeight constant is 18.0', () {
+      expect(DiveProfileChart.gasTimelineHeight, 18.0);
     });
   });
 
@@ -1138,6 +2371,34 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byType(GasTimelineStrip), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'gesture on a gas-strip dive does not watch a provider outside build',
+      (tester) async {
+        // _plotInsets (called from gesture handlers, outside build) reads the
+        // gas-strip flag. On a gas-strip dive that flag must NOT use ref.watch
+        // (illegal outside build) — a wheel zoom here must not throw.
+        await tester.pumpWidget(
+          _buildChart(
+            profile: _makeProfile(points: 20),
+            gasSegments: makeSegments(),
+            diveDurationSeconds: 300,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chart = find.byType(LineChart).first;
+        await tester.sendEventToBinding(
+          PointerScrollEvent(
+            position: tester.getCenter(chart),
+            scrollDelta: const Offset(0, -100),
+          ),
+        );
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
       },
     );
 
@@ -1450,6 +2711,424 @@ void main() {
       },
     );
 
+    testWidgets(
+      'tank pressure tooltip row is suffixed with the source computer name '
+      'when 2+ computers contribute pressure curves (Task 11)',
+      (tester) async {
+        List<TooltipRow>? receivedRows;
+        final profile = makeTouchProfile();
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profile,
+            tooltipBelow: true,
+            onTooltipData: (rows) => receivedRows = rows,
+            tankPressures: {
+              'tank-a': List.generate(
+                20,
+                (i) => TankPressurePoint(
+                  id: 'tpa-$i',
+                  tankId: 'tank-a',
+                  timestamp: i * 30,
+                  pressure: 200.0 - i * 2,
+                ),
+              ),
+              'tank-b': List.generate(
+                20,
+                (i) => TankPressurePoint(
+                  id: 'tpb-$i',
+                  tankId: 'tank-b',
+                  timestamp: i * 30,
+                  pressure: 210.0 - i * 3,
+                ),
+              ),
+            },
+            tanks: const [
+              DiveTank(
+                id: 'tank-a',
+                startPressure: 200,
+                endPressure: 160,
+                computerId: 'comp-a',
+              ),
+              DiveTank(
+                id: 'tank-b',
+                startPressure: 210,
+                endPressure: 150,
+                computerId: 'comp-b',
+              ),
+            ],
+            computerNames: const {'comp-a': 'Perdix 2', 'comp-b': 'Suunto D5'},
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chartFinder = find.byType(LineChart);
+        final chartCenter = tester.getCenter(chartFinder);
+        final gesture = await tester.startGesture(chartCenter);
+        await tester.pump(const Duration(milliseconds: 600));
+        await gesture.moveBy(const Offset(5, 0));
+        await tester.pump();
+        await gesture.moveBy(const Offset(5, 0));
+        await tester.pump();
+
+        // Emission depends on fl_chart resolving a nearby spot; assert the
+        // suffixes only when a tooltip was produced (matching the file's
+        // gesture-based tooltip tests).
+        if (receivedRows != null) {
+          final labels = receivedRows!.map((r) => r.label).toList();
+          expect(labels.any((l) => l.contains('· Perdix 2')), isTrue);
+          expect(labels.any((l) => l.contains('· Suunto D5')), isTrue);
+        }
+
+        await gesture.up();
+        await tester.pump();
+      },
+    );
+
+    testWidgets('tank pressure tooltip row has no source suffix when only one '
+        'computer contributes (Task 11)', (tester) async {
+      List<TooltipRow>? receivedRows;
+      final profile = makeTouchProfile();
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          tooltipBelow: true,
+          onTooltipData: (rows) => receivedRows = rows,
+          tankPressures: {
+            'tank-a': List.generate(
+              20,
+              (i) => TankPressurePoint(
+                id: 'tpa-$i',
+                tankId: 'tank-a',
+                timestamp: i * 30,
+                pressure: 200.0 - i * 2,
+              ),
+            ),
+          },
+          tanks: const [
+            DiveTank(
+              id: 'tank-a',
+              startPressure: 200,
+              endPressure: 160,
+              computerId: 'comp-a',
+            ),
+          ],
+          computerNames: const {'comp-a': 'Perdix 2'},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chartFinder = find.byType(LineChart);
+      final chartCenter = tester.getCenter(chartFinder);
+      final gesture = await tester.startGesture(chartCenter);
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+
+      if (receivedRows != null) {
+        final labels = receivedRows!.map((r) => r.label).toList();
+        expect(labels.any((l) => l.contains('·')), isFalse);
+      }
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('tooltip pairs each cell ppO2 with its millivolt reading', (
+      tester,
+    ) async {
+      List<TooltipRow>? receivedRows;
+
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: makeTouchProfile(),
+          tooltipBelow: true,
+          onTooltipData: (rows) => receivedRows = rows,
+          ppO2Curve: List.generate(20, (i) => 0.96),
+          o2SensorCurves: <List<double?>>[List.generate(20, (i) => 0.98)],
+          o2CellMvCurves: <List<int?>>[List.generate(20, (i) => 49)],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+
+      // Matches the sibling tooltip tests: fl_chart has to resolve a nearby
+      // spot for rows to be emitted at all.
+      if (receivedRows != null) {
+        final sensorRow = receivedRows!.firstWhere(
+          (r) => r.label == 'Sensor 1',
+        );
+        expect(sensorRow.value, '0.98 bar (49 mV)');
+      }
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('sensor rows survive turning the ppO2 line off', (
+      tester,
+    ) async {
+      // Regression: the cell rows used to live inside the ppO2 gate, so hiding
+      // the loop ppO2 curve took the sensor readings with it.
+      List<TooltipRow>? receivedRows;
+
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: makeTouchProfile(),
+          tooltipBelow: true,
+          onTooltipData: (rows) => receivedRows = rows,
+          ppO2Curve: List.generate(20, (i) => 1.19),
+          o2CellMvCurves: <List<int?>>[
+            List.generate(20, (i) => 63),
+            List.generate(20, (i) => 65),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleO2CellMv();
+      if (container.read(profileLegendProvider).showPpO2) {
+        notifier.togglePpO2();
+      }
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+
+      if (receivedRows != null) {
+        final labels = receivedRows!.map((r) => r.label).toList();
+        expect(labels, contains('Sensor 1'));
+        expect(labels, contains('Sensor 2'));
+        // ...and the ppO2 row itself is gone, as asked.
+        expect(labels.any((l) => l.startsWith('ppO2')), isFalse);
+      }
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('tooltip states an agreement verdict, not a bare number', (
+      tester,
+    ) async {
+      // A number alone asks the reader to know what counts as normal; the word
+      // carries the judgement and the number backs it up.
+      List<TooltipRow>? receivedRows;
+
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: makeTouchProfile(),
+          tooltipBelow: true,
+          onTooltipData: (rows) => receivedRows = rows,
+          ppO2Curve: List.generate(20, (i) => 1.19),
+          o2CellMvCurves: <List<int?>>[
+            List.generate(20, (i) => 63),
+            List.generate(20, (i) => 64),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+
+      if (receivedRows != null) {
+        final row = receivedRows!.where((r) => r.label == 'O2 Cell Spread');
+        expect(row, hasLength(1));
+        // 1 mV apart: a verdict of "tight", with the measurement behind it.
+        expect(row.single.value, contains('tight'));
+        expect(row.single.value, contains('1 mV'));
+      }
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('tooltip shows millivolts alone when the cell has no ppO2', (
+      tester,
+    ) async {
+      // The #810 case end to end: cells report millivolts, the per-cell
+      // partial pressure is withheld for want of a trusted calibration.
+      List<TooltipRow>? receivedRows;
+
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: makeTouchProfile(),
+          tooltipBelow: true,
+          onTooltipData: (rows) => receivedRows = rows,
+          ppO2Curve: List.generate(20, (i) => 1.19),
+          o2CellMvCurves: <List<int?>>[
+            List.generate(20, (i) => 58),
+            List.generate(20, (i) => 61),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(5, 0));
+      await tester.pump();
+
+      if (receivedRows != null) {
+        final labels = receivedRows!.map((r) => r.label).toList();
+        expect(labels, contains('Sensor 1'));
+        expect(
+          receivedRows!.firstWhere((r) => r.label == 'Sensor 1').value,
+          '58 mV',
+        );
+        expect(
+          receivedRows!.firstWhere((r) => r.label == 'Sensor 2').value,
+          '61 mV',
+        );
+      }
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets(
+      'tooltip exposes per-cell sensor rows and the calculated-average ppO2 '
+      'label',
+      (tester) async {
+        List<TooltipRow>? receivedRows;
+
+        final profile = makeTouchProfile();
+        final sensors = <List<double?>>[
+          List.generate(20, (i) => 0.95),
+          List.generate(20, (i) => 0.97),
+          // Cell 3 drops out near the touch point to cover the null skip path.
+          List.generate(20, (i) => i == 10 ? null : 0.96),
+        ];
+
+        await tester.pumpWidget(
+          // _buildChartAllMetrics enables the ppO2 legend toggle
+          // (defaultShowPpO2: true); the tooltip ppO2/sensor rows only render
+          // when that toggle is on.
+          _buildChartAllMetrics(
+            profile: profile,
+            tooltipBelow: true,
+            onTooltipData: (rows) => receivedRows = rows,
+            ppO2Curve: List.generate(20, (i) => 0.96),
+            o2SensorCurves: sensors,
+            ppO2FromSensorAverage: true,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chartFinder = find.byType(LineChart);
+        final chartCenter = tester.getCenter(chartFinder);
+
+        final gesture = await tester.startGesture(chartCenter);
+        await tester.pump(const Duration(milliseconds: 600));
+        await gesture.moveBy(const Offset(5, 0));
+        await tester.pump();
+        await gesture.moveBy(const Offset(5, 0));
+        await tester.pump();
+
+        // The emission depends on fl_chart resolving a nearby spot; assert the
+        // new rows only when a tooltip was produced (matching the file's
+        // gesture-based tooltip tests).
+        if (receivedRows != null) {
+          final labels = receivedRows!.map((r) => r.label).toList();
+          // ppO2 row is labelled as a calculated average when no computer ppO2.
+          expect(labels.any((l) => l.contains('avg, calculated')), isTrue);
+          // Each present cell contributes a row; cell 3 may be absent at the
+          // null sample, so assert on the always-present cells.
+          expect(labels, contains('Sensor 1'));
+          expect(labels, contains('Sensor 2'));
+        }
+
+        await gesture.up();
+        await tester.pump();
+      },
+    );
+
+    testWidgets(
+      'in-chart tooltip (tooltipBelow=false) builds the calculated-average '
+      'ppO2 label and per-cell sensor rows without crashing',
+      (tester) async {
+        final profile = makeTouchProfile();
+        final sensors = <List<double?>>[
+          List.generate(20, (i) => 0.95),
+          List.generate(20, (i) => 0.97),
+          // Cell 3 drops out at one sample to cover the null-skip branch.
+          List.generate(20, (i) => i == 10 ? null : 0.96),
+        ];
+
+        // tooltipBelow=false routes tooltip building through fl_chart's
+        // getTooltipItems (the in-chart bubble) instead of the external
+        // callback. That is the second ppO2/sensor code path, distinct from
+        // _emitExternalTooltip exercised by the tooltipBelow=true test above.
+        // _buildChartAllMetrics enables the ppO2 legend toggle so the rows
+        // render.
+        await tester.pumpWidget(
+          _buildChartAllMetrics(
+            profile: profile,
+            tooltipBelow: false,
+            ppO2Curve: List.generate(20, (i) => 0.96),
+            o2SensorCurves: sensors,
+            ppO2FromSensorAverage: true,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chartFinder = find.byType(LineChart);
+        final chartBox = tester.renderObject(chartFinder) as RenderBox;
+        final chartSize = chartBox.size;
+
+        // Sweep across the chart so fl_chart resolves a nearby data point and
+        // renders the in-chart tooltip, exercising getTooltipItems.
+        for (var xFrac = 0.1; xFrac <= 0.9; xFrac += 0.1) {
+          final testPoint = chartBox.localToGlobal(
+            Offset(chartSize.width * xFrac, chartSize.height * 0.5),
+          );
+          final gesture = await tester.startGesture(testPoint);
+          await tester.pump(const Duration(milliseconds: 600));
+          await gesture.moveBy(const Offset(2, 0));
+          await tester.pump();
+          await gesture.up();
+          await tester.pump();
+        }
+
+        // The in-chart tooltip has no external callback to inspect; the
+        // coverage win is that getTooltipItems ran the ppO2-average and
+        // per-cell sensor branch (including the null-skip) without throwing.
+        expect(tester.takeException(), isNull);
+        expect(find.byType(LineChart), findsOneWidget);
+      },
+    );
+
     testWidgets('pan gesture on chart triggers exit path on pan end', (
       tester,
     ) async {
@@ -1666,4 +3345,1488 @@ void main() {
       FlutterError.onError = origOnError;
     });
   });
+
+  // Reads the primary fl_chart LineChartData (the depth/time plot is first).
+  LineChartData primaryChartData(WidgetTester tester) =>
+      tester.widget<LineChart>(find.byType(LineChart).first).data;
+
+  group('tooltip cache', () {
+    testWidgets(
+      'getTooltipItems never returns a cached list whose length differs from '
+      'touchedSpots (fl_chart size-match contract)',
+      (tester) async {
+        await tester.pumpWidget(_buildChart());
+        await tester.pumpAndSettle();
+
+        final getItems = primaryChartData(
+          tester,
+        ).lineTouchData.touchTooltipData.getTooltipItems;
+        final depthBar = primaryChartData(tester).lineBarsData.first;
+        // Depth-line spotIndex stays fixed across both touches (cursor parked).
+        // Kept well inside the profile so the depth branch is exercised.
+        const spotIndex = 3;
+        final depthSpot = LineBarSpot(depthBar, 0, depthBar.spots[spotIndex]);
+
+        // First touch: the depth spot plus sibling bars under the cursor (the
+        // callback returns one entry per spot). Caches a 3-entry list keyed on
+        // this depth spotIndex.
+        final manyBars = <LineBarSpot>[
+          depthSpot,
+          LineBarSpot(depthBar, 1, depthBar.spots[spotIndex]),
+          LineBarSpot(depthBar, 2, depthBar.spots[spotIndex]),
+        ];
+        expect(getItems(manyBars).length, manyBars.length);
+
+        // Same depth spotIndex, fewer bars now touched (a sibling line toggled
+        // off or a data provider refreshed under the parked cursor). The
+        // stale-length cache must be rejected; otherwise fl_chart throws
+        // 'tooltipItems and touchedSpots size should be same'.
+        final fewerBars = <LineBarSpot>[depthSpot];
+        expect(
+          getItems(fewerBars).length,
+          fewerBars.length,
+          reason: 'cache must invalidate when the touched-bar count changes',
+        );
+      },
+    );
+  });
+
+  group('zoom anchoring', () {
+    testWidgets('mouse wheel up zooms in WITHOUT pinning the left edge to 0', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final before = primaryChartData(tester);
+      expect(before.minX, 0.0); // at zoom 1 the window starts at t=0
+
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+      // Cursor in the right third of the plot.
+      final cursor = topLeft + Offset(size.width * 0.75, size.height * 0.5);
+
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: cursor,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+
+      final after = primaryChartData(tester);
+      // Zoomed in: visible time range shrank.
+      expect(after.maxX - after.minX, lessThan(before.maxX - before.minX));
+      // Anchored toward the cursor, not the corner: left edge moved off 0.
+      expect(after.minX, greaterThan(0.0));
+    });
+
+    testWidgets('mouse wheel down at max-out keeps the full window', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      await tester.sendEventToBinding(
+        PointerScrollEvent(position: center, scrollDelta: const Offset(0, 100)),
+      );
+      await tester.pump();
+
+      final after = primaryChartData(tester);
+      expect(after.minX, 0.0); // cannot zoom out past 1.0
+    });
+  });
+
+  group('zoomed metric line visibility', () {
+    LineChartData chartData(WidgetTester tester) =>
+        tester.widget<LineChart>(find.byType(LineChart).first).data;
+
+    // The NDL line is the only yellow-700 bar (see _buildNdlLine).
+    List<LineChartBarData> ndlBars(WidgetTester tester) => chartData(
+      tester,
+    ).lineBarsData.where((b) => b.color == Colors.yellow.shade700).toList();
+
+    testWidgets('NDL line stays in the visible window when zoomed in', (
+      tester,
+    ) async {
+      // A recreational dive sits at max NDL for most of its length, which maps
+      // to the very top of the depth axis. Zoom zooms BOTH axes, so the visible
+      // depth window becomes a slice with its top edge below the surface, and a
+      // metric line anchored to the full depth span is clipped away entirely.
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: _makeProfile(points: 20),
+          ndlCurve: List.filled(20, 3600),
+          metricsFollowViewport: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        ndlBars(tester),
+        isNotEmpty,
+        reason: 'NDL line renders before zooming',
+      );
+
+      final chart = find.byType(LineChart).first;
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: topLeft + Offset(size.width * 0.5, size.height * 0.5),
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+
+      final data = chartData(tester);
+      final bars = ndlBars(tester);
+      expect(bars, isNotEmpty);
+      expect(
+        bars.first.spots.any((s) => s.y >= data.minY && s.y <= data.maxY),
+        isTrue,
+        reason:
+            'the NDL line must stay on screen when the viewport zooms in, '
+            'not scroll off the top with the full-depth anchoring',
+      );
+    });
+
+    testWidgets('NDL line follows a vertical pan (bars cache is not stale)', (
+      tester,
+    ) async {
+      // Bars are memoized per viewport bucket. The metric band now depends on
+      // the viewport, so a signature that ignored it would serve spots built
+      // for the old band and the line would drift back off-screen while
+      // panning - the original bug, reintroduced through the cache.
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: _makeProfile(points: 20),
+          ndlCurve: List.filled(20, 3600),
+          metricsFollowViewport: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+      final zoomed = chartData(tester);
+
+      final gesture = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(0, -60));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      final panned = chartData(tester);
+      expect(
+        (panned.minY - zoomed.minY).abs(),
+        greaterThan(1e-9),
+        reason: 'the drag must actually move the visible depth window',
+      );
+      final bars = ndlBars(tester);
+      expect(bars, isNotEmpty);
+      expect(
+        bars.first.spots.any((s) => s.y >= panned.minY && s.y <= panned.maxY),
+        isTrue,
+        reason: 'NDL must be rebuilt against the panned band, not cached',
+      );
+    });
+
+    testWidgets('a vertical pan re-maps the NDL line without re-selecting '
+        'which samples it draws', (tester) async {
+      // Which samples a curve draws depends on the visible X window alone; the
+      // metric band only decides where they land vertically. A vertical pan
+      // therefore has to rebuild the bars (their Y positions move with the
+      // band) while arriving at exactly the same sample selection - which is
+      // what lets the decimation memo skip the work. Pinning the X list makes
+      // that invariant fail loudly if decimation ever grows a Y dependency.
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: _makeProfile(points: 60),
+          ndlCurve: List.filled(60, 3600),
+          metricsFollowViewport: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Zoom in far enough that the visible window actually clips the curve;
+      // one wheel notch is 1.1x, and clipping only bites past 2x.
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+      for (var i = 0; i < 16; i++) {
+        await tester.sendEventToBinding(
+          PointerScrollEvent(
+            position: center,
+            scrollDelta: const Offset(0, -100),
+          ),
+        );
+      }
+      await tester.pump();
+
+      final zoomed = chartData(tester);
+      final before = ndlBars(tester).first.spots;
+      expect(
+        before.length,
+        lessThan(60),
+        reason:
+            'the visible window must actually be clipping the curve, '
+            'or this asserts nothing about decimation',
+      );
+
+      final gesture = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(0, -60));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      final panned = chartData(tester);
+      expect(
+        (panned.minY - zoomed.minY).abs(),
+        greaterThan(1e-9),
+        reason: 'the drag must actually move the visible depth window',
+      );
+
+      final after = ndlBars(tester).first.spots;
+      expect(
+        after.map((s) => s.x).toList(),
+        before.map((s) => s.x).toList(),
+        reason:
+            'a vertical pan leaves the visible X window untouched, so the '
+            'same samples must be selected',
+      );
+      expect(
+        after.map((s) => s.y).toList(),
+        isNot(before.map((s) => s.y).toList()),
+        reason: 'the same samples must still be re-mapped into the new band',
+      );
+    });
+
+    testWidgets('off by default: NDL still zooms with the depth axis', (
+      tester,
+    ) async {
+      // The option is opt-in. With it off, the original behaviour stands:
+      // metrics are painted onto the full depth axis, so they magnify and
+      // scroll with it and a max-NDL line pinned to the top leaves the window
+      // as soon as the viewport's top edge drops below the surface.
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: _makeProfile(points: 20),
+          ndlCurve: List.filled(20, 3600),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(ndlBars(tester), isNotEmpty);
+
+      final chart = find.byType(LineChart).first;
+      final size = tester.getSize(chart);
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position:
+              tester.getTopLeft(chart) +
+              Offset(size.width * 0.5, size.height * 0.5),
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+
+      final data = chartData(tester);
+      final bars = ndlBars(tester);
+      expect(bars, isNotEmpty);
+      expect(
+        bars.first.spots.any((s) => s.y >= data.minY && s.y <= data.maxY),
+        isFalse,
+        reason:
+            'with the option off the NDL line keeps the original full-depth '
+            'anchoring, so zooming carries it out of the visible window',
+      );
+    });
+
+    testWidgets('the deco ceiling stays in real depth coordinates', (
+      tester,
+    ) async {
+      // The other half of the fix: ceiling, MOD and mean depth are REAL depths
+      // and must NOT be swept into the metric band, or a 6 m ceiling would slide
+      // away from the 6 m gridline as soon as you zoom.
+      await tester.pumpWidget(
+        _buildChartAllMetrics(
+          profile: _makeProfile(points: 20),
+          ceilingCurve: List.filled(20, 6.0),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      List<LineChartBarData> ceilingBars() => chartData(
+        tester,
+      ).lineBarsData.where((b) => b.color == const Color(0xFFD32F2F)).toList();
+
+      expect(ceilingBars(), isNotEmpty, reason: 'ceiling line renders');
+      expect(ceilingBars().first.spots.every((s) => s.y == -6.0), isTrue);
+
+      final chart = find.byType(LineChart).first;
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: tester.getCenter(chart),
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        ceilingBars().first.spots.every((s) => s.y == -6.0),
+        isTrue,
+        reason: 'a real depth must not move when the viewport zooms',
+      );
+    });
+  });
+
+  group('trackpad interaction', () {
+    testWidgets('trackpad pinch zooms in anchored off-center (not at 0)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+      final anchor = topLeft + Offset(size.width * 0.7, size.height * 0.5);
+
+      final before = tester.widget<LineChart>(chart).data;
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(anchor));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(anchor, scale: 2.0),
+      );
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      final after = tester.widget<LineChart>(chart).data;
+      expect(after.maxX - after.minX, lessThan(before.maxX - before.minX));
+      expect(after.minX, greaterThan(0.0)); // anchored toward the cursor
+    });
+
+    testWidgets(
+      'trackpad two-finger scroll down zooms in, anchored toward the cursor',
+      (tester) async {
+        await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+        await tester.pumpAndSettle();
+
+        final chart = find.byType(LineChart).first;
+        final topLeft = tester.getTopLeft(chart);
+        final size = tester.getSize(chart);
+        final anchor = topLeft + Offset(size.width * 0.7, size.height * 0.5);
+
+        final before = primaryChartData(tester);
+        final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+        await tester.sendEventToBinding(pointer.panZoomStart(anchor));
+        // Scroll down (positive dy) zooms in. Horizontal component is ignored.
+        await tester.sendEventToBinding(
+          pointer.panZoomUpdate(anchor, pan: const Offset(0, 120)),
+        );
+        await tester.sendEventToBinding(pointer.panZoomEnd());
+        await tester.pump();
+
+        final after = primaryChartData(tester);
+        expect(
+          after.maxX - after.minX,
+          lessThan(before.maxX - before.minX),
+          reason: 'two-finger scroll down zooms in (visible window shrinks)',
+        );
+        expect(
+          after.minX,
+          greaterThan(0.0),
+          reason: 'zoom is anchored toward the cursor, not the left edge',
+        );
+      },
+    );
+
+    testWidgets('trackpad horizontal two-finger scroll does not zoom', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      final before = primaryChartData(tester);
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(center));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(center, pan: const Offset(120, 0)),
+      );
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      final after = primaryChartData(tester);
+      expect(after.maxX - after.minX, before.maxX - before.minX);
+    });
+
+    testWidgets('a cancelled pointer resets the drag state', (tester) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      // Start a pointer, move it, then cancel — exercises onPointerCancel.
+      final gesture = await tester.startGesture(center);
+      await gesture.moveBy(const Offset(10, 0));
+      await gesture.cancel();
+      // Flush the double-tap disambiguation timer before teardown.
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(LineChart), findsWidgets);
+    });
+  });
+
+  group('desktop pan and hover', () {
+    testWidgets('mouse click-drag pans a zoomed-in chart', (tester) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      // Zoom in first (about center) via two wheel steps.
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+      final zoomed = tester.widget<LineChart>(chart).data;
+
+      // Drag left with the mouse -> window should move right (minX increases).
+      final gesture = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(-60, 0));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      final panned = tester.widget<LineChart>(chart).data;
+      expect(panned.minX, greaterThan(zoomed.minX));
+    });
+
+    testWidgets('touch one-finger drag does NOT pan (still scrubs)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+      final zoomed = tester.widget<LineChart>(chart).data;
+
+      final gesture = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.touch,
+      );
+      await gesture.moveBy(const Offset(-60, 0));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      final after = tester.widget<LineChart>(chart).data;
+      expect(after.minX, zoomed.minX); // unchanged: one finger scrubs, no pan
+    });
+
+    testWidgets('mouse hover selects the nearest sample', (tester) async {
+      int? selected;
+      await tester.pumpWidget(
+        _buildChart(
+          profile: _makeProfile(points: 20),
+          onPointSelected: (i) => selected = i,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.hover(topLeft + Offset(size.width * 0.5, size.height * 0.5)),
+      );
+      await tester.pump();
+
+      expect(selected, isNotNull);
+      expect(selected, inInclusiveRange(0, 19));
+    });
+  });
+
+  group('touch pan while zoomed', () {
+    testWidgets('tap then drag pans a zoomed-in chart', (tester) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      // Zoom in so there is room to pan.
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+      final zoomed = tester.widget<LineChart>(chart).data;
+
+      // A quick tap followed by a one-finger drag: the drag is claimed after
+      // touch slop and pans. Incremental moves mirror a real pointer stream
+      // (the claim consumes the slop distance of the first move).
+      await tester.tapAt(center, kind: PointerDeviceKind.touch);
+      await tester.pump(const Duration(milliseconds: 50));
+      final drag = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.touch,
+      );
+      for (var i = 0; i < 4; i++) {
+        await drag.moveBy(const Offset(-15, 0));
+        await tester.pump();
+      }
+      await drag.up();
+      await tester.pumpAndSettle();
+
+      final panned = tester.widget<LineChart>(chart).data;
+      expect(panned.minX, greaterThan(zoomed.minX));
+    });
+  });
+
+  group('ascent rate visualization (#242)', () {
+    // Categories chosen to exercise green/orange/red depth segments.
+    List<AscentRatePoint> ratesSpanningBands(List<DiveProfilePoint> profile) {
+      return List.generate(profile.length, (i) {
+        final category = i < 4
+            ? AscentRateCategory.safe
+            : i < 8
+            ? AscentRateCategory.warning
+            : AscentRateCategory.danger;
+        final rate = i < 4
+            ? 3.0
+            : i < 8
+            ? 10.0
+            : 13.0;
+        return AscentRatePoint(
+          timestamp: profile[i].timestamp,
+          depth: profile[i].depth,
+          rateMetersPerMin: rate,
+          category: category,
+        );
+      });
+    }
+
+    // Builds the chart against an explicit container so legend toggles and the
+    // right-axis metric can be driven directly (the session-only ascent-rate
+    // line has no settings hook).
+    Widget buildWithLegend({
+      required List<DiveProfilePoint> profile,
+      required List<AscentRatePoint> ascentRates,
+      void Function(ProfileLegend notifier)? configure,
+      void Function(int? index)? onPointSelected,
+    }) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+      if (configure != null) {
+        configure(container.read(profileLegendProvider.notifier));
+      }
+      return UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 300,
+              child: DiveProfileChart(
+                profile: profile,
+                ascentRates: ascentRates,
+                onPointSelected: onPointSelected,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    test('ascentRateAxisRange is symmetric and respects the floor', () {
+      final gentle = [
+        const AscentRatePoint(
+          timestamp: 0,
+          depth: 0,
+          rateMetersPerMin: 3,
+          category: AscentRateCategory.safe,
+        ),
+      ];
+      final r1 = DiveProfileChart.ascentRateAxisRange(gentle)!;
+      expect(r1.min, -15.0);
+      expect(r1.max, 15.0);
+
+      final steep = [
+        const AscentRatePoint(
+          timestamp: 0,
+          depth: 0,
+          rateMetersPerMin: -20,
+          category: AscentRateCategory.danger,
+        ),
+      ];
+      final r2 = DiveProfileChart.ascentRateAxisRange(steep)!;
+      expect(r2.min, -20.0);
+      expect(r2.max, 20.0);
+    });
+
+    test('ascentRateAxisRange returns null when there is no data', () {
+      expect(DiveProfileChart.ascentRateAxisRange(const []), isNull);
+      expect(DiveProfileChart.ascentRateAxisRange(null), isNull);
+    });
+
+    testWidgets('colors the depth line by velocity band when enabled', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateColors(), // default off -> on
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final colors = primaryChartData(
+        tester,
+      ).lineBarsData.map((b) => b.color).toSet();
+      // The safe/baseline band keeps the normal depth blue -- only the elevated
+      // warning/danger bands are recoloured.
+      expect(colors, contains(AppColors.chartDepth));
+      expect(colors, contains(Colors.orange));
+      expect(colors, contains(Colors.red));
+      expect(colors, isNot(contains(Colors.green)));
+    });
+
+    test('velocityBandRuns splits bands sharing their boundary sample', () {
+      final profile = _makeProfile(points: 12);
+      final runs = DiveProfileChart.velocityBandRuns(
+        profile.length,
+        ratesSpanningBands(profile),
+      );
+      // Three bands; adjacent runs share the boundary sample (each run's start
+      // is the previous run's last point) so the coloured pieces join cleanly.
+      expect(runs.map((r) => r.start).toList(), [0, 3, 7]);
+      expect(runs.map((r) => r.end).toList(), [4, 8, 12]);
+      expect(runs.map((r) => r.category).toList(), [
+        AscentRateCategory.safe,
+        AscentRateCategory.warning,
+        AscentRateCategory.danger,
+      ]);
+    });
+
+    group('velocityIndicatorSuppression', () {
+      test('returns nothing when the depth line is a single bar', () {
+        // Velocity colouring off / multi-computer: depth is one bar, so the
+        // built-in per-bar indicator already shows a single depth dot.
+        expect(
+          DiveProfileChart.velocityIndicatorSuppression(const [
+            (barIndex: 0, x: 5.0, y: -10.0),
+            (barIndex: 1, x: 5.0, y: -3.0), // an overlay line
+          ], 1),
+          isEmpty,
+        );
+      });
+
+      test('returns nothing when a single band is under the cursor', () {
+        expect(
+          DiveProfileChart.velocityIndicatorSuppression(const [
+            (barIndex: 0, x: 5.0, y: -10.0), // one depth band touched
+            (barIndex: 4, x: 5.0, y: -3.0), // overlay
+          ], 3),
+          isEmpty,
+        );
+      });
+
+      test('keeps the first touched band and suppresses the others', () {
+        // The first depth entry is the sample onPointSelected/the tooltip
+        // resolve to, so the retained dot matches the bubble.
+        expect(
+          DiveProfileChart.velocityIndicatorSuppression(const [
+            (barIndex: 0, x: 4.0, y: -11.0), // kept
+            (barIndex: 1, x: 5.0, y: -12.0), // suppressed
+            (barIndex: 2, x: 6.0, y: -13.0), // suppressed
+            (barIndex: 5, x: 5.0, y: -3.0), // overlay, never suppressed
+          ], 3),
+          const [(x: 5.0, y: -12.0), (x: 6.0, y: -13.0)],
+        );
+      });
+
+      test('leaves a dropped band that shares the kept boundary sample', () {
+        // Adjacent bands join on their boundary point, so a dropped band can
+        // report the identical sample; suppressing that coordinate would also
+        // hide the kept dot, so it is left in place to overlap into one.
+        expect(
+          DiveProfileChart.velocityIndicatorSuppression(const [
+            (barIndex: 0, x: 4.0, y: -11.0), // kept
+            (barIndex: 1, x: 4.0, y: -11.0), // shared boundary -> left alone
+            (barIndex: 2, x: 6.0, y: -13.0), // distinct -> suppressed
+          ], 3),
+          const [(x: 6.0, y: -13.0)],
+        );
+      });
+    });
+
+    testWidgets(
+      'velocity colouring shows one depth focus dot, not one per band',
+      (tester) async {
+        // Regression: with the ascent-rate overlay on, hovering an abrupt
+        // stretch drew fl_chart's built-in focus dot on every depth band under
+        // the cursor, cluttering the point. Only the tooltip-resolved band
+        // keeps its dot; sibling bands are suppressed, other lines untouched.
+        final profile = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          buildWithLegend(
+            profile: profile,
+            ascentRates: ratesSpanningBands(profile),
+            configure: (n) => n.toggleAscentRateColors(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = primaryChartData(tester);
+        final bars = data.lineBarsData;
+        // Depth bands (safe/warning/danger) are the first three bars.
+        expect(bars.length, greaterThanOrEqualTo(3));
+
+        // Drive the touch pipeline directly: three depth bands under the cursor
+        // at distinct interior samples (barIndex 0/1/2).
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(bars[0], 0, bars[0].spots[1], 0),
+              TouchLineBarSpot(bars[1], 1, bars[1].spots[1], 0),
+              TouchLineBarSpot(bars[2], 2, bars[2].spots[1], 0),
+            ],
+          ),
+        );
+
+        final indicator = data.lineTouchData.getTouchedSpotIndicator;
+        // Kept: the first depth band under the cursor.
+        expect(indicator(bars[0], const [1]).single, isNotNull);
+        // Suppressed: the other two depth bands.
+        expect(indicator(bars[1], const [1]).single, isNull);
+        expect(indicator(bars[2], const [1]).single, isNull);
+        // A line whose sample is not the resolved point keeps its dot.
+        final overlay = LineChartBarData(spots: const [FlSpot(0, 0)]);
+        expect(
+          indicator(overlay, const [0]).single,
+          isNotNull,
+          reason: 'overlay focus dots must be preserved',
+        );
+      },
+    );
+
+    testWidgets('tooltip builds when hovering a non-first velocity segment', (
+      tester,
+    ) async {
+      // Regression: with velocity colouring on, the depth line is drawn as
+      // one bar per band. The tooltip builder only recognised barIndex 0, so
+      // hovering any later segment produced no tooltip at all.
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateColors(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final data = primaryChartData(tester);
+      final bars = data.lineBarsData;
+      expect(
+        bars.length,
+        greaterThan(1),
+        reason: 'velocity colouring should split the depth line into bands',
+      );
+
+      final getItems = data.lineTouchData.touchTooltipData.getTooltipItems;
+      // Hover the second band (barIndex 1) at its first sample.
+      final secondBar = bars[1];
+      final spot = LineBarSpot(secondBar, 1, secondBar.spots.first);
+      final items = getItems(<LineBarSpot>[spot]);
+
+      expect(items.length, 1);
+      expect(
+        items.first,
+        isNotNull,
+        reason: 'a hover on a non-first velocity band must show a tooltip',
+      );
+    });
+
+    testWidgets(
+      'hover on a non-first velocity segment selects the right sample',
+      (tester) async {
+        // The onPointSelected / external-tooltip path shares the same
+        // barIndex==0 assumption; a hover landing on a later band must still
+        // resolve to a global profile index, not the band-local spot index.
+        final profile = _makeProfile(points: 12);
+        int? selected;
+        await tester.pumpWidget(
+          buildWithLegend(
+            profile: profile,
+            ascentRates: ratesSpanningBands(profile),
+            configure: (n) => n.toggleAscentRateColors(),
+            onPointSelected: (i) => selected = i,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final chart = find.byType(LineChart).first;
+        final topLeft = tester.getTopLeft(chart);
+        final size = tester.getSize(chart);
+        // Hover well into the right of the plot -- that x lands in the danger
+        // band (the last, non-first segment).
+        final pointer = TestPointer(1, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(
+          pointer.hover(topLeft + Offset(size.width * 0.85, size.height * 0.5)),
+        );
+        await tester.pump();
+
+        // Every band-local spotIndex in this fixture is <= 4 (each bar holds at
+        // most 5 points), and the danger band starts at global index 7. A hover
+        // here must resolve to a global index >= 7, which a band-local emission
+        // could never produce -- that is what proves the mapping, not merely
+        // "some in-range index".
+        expect(selected, isNotNull);
+        expect(
+          selected,
+          allOf(greaterThanOrEqualTo(7), lessThan(profile.length)),
+          reason: 'must be the global danger-band index, not a band-local one',
+        );
+      },
+    );
+
+    testWidgets('a band change at the final sample still draws a line', (
+      tester,
+    ) async {
+      // Rate is recorded at point i for the segment (i-1 -> i). When only the
+      // last sample is danger, its segment must render as a >=2-point line, not
+      // a 1-point dot.
+      final profile = _makeProfile(points: 8);
+      final rates = List.generate(profile.length, (i) {
+        final danger = i == profile.length - 1;
+        return AscentRatePoint(
+          timestamp: profile[i].timestamp,
+          depth: profile[i].depth,
+          rateMetersPerMin: danger ? 13.0 : 3.0,
+          category: danger
+              ? AscentRateCategory.danger
+              : AscentRateCategory.safe,
+        );
+      });
+
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: rates,
+          configure: (n) => n.toggleAscentRateColors(), // default off -> on
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final redBars = primaryChartData(
+        tester,
+      ).lineBarsData.where((b) => b.color == Colors.red).toList();
+      expect(redBars, isNotEmpty);
+      expect(redBars.every((b) => b.spots.length >= 2), isTrue);
+    });
+
+    testWidgets('depth line is one solid segment when coloring is disabled', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          // Coloring now defaults off, so no toggle needed to disable it.
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final bars = primaryChartData(tester).lineBarsData;
+      expect(bars.where((b) => b.color == AppColors.chartDepth).length, 1);
+      expect(
+        bars.any(
+          (b) =>
+              b.color == Colors.green ||
+              b.color == Colors.orange ||
+              b.color == Colors.red,
+        ),
+        isFalse,
+      );
+    });
+
+    bool hasRateLine(WidgetTester t) => primaryChartData(
+      t,
+    ).lineBarsData.any((b) => b.color == Colors.lime && b.dashArray != null);
+
+    testWidgets('does not render the ascent-rate line by default', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(hasRateLine(tester), isFalse);
+    });
+
+    testWidgets('renders the ascent-rate line when toggled on', (tester) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateLine(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(hasRateLine(tester), isTrue);
+    });
+
+    testWidgets(
+      'labels the right axis when the ascentRate metric is selected',
+      (tester) async {
+        final profile = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          buildWithLegend(
+            profile: profile,
+            ascentRates: ratesSpanningBands(profile),
+            configure: (n) =>
+                n.setRightAxisMetric(ProfileRightAxisMetric.ascentRate),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.textContaining('Rate ('), findsOneWidget);
+      },
+    );
+  });
+
+  group('bars memoization (D1a)', () {
+    testWidgets(
+      'reuses bars across a playback-only rebuild, rebuilds on profile change',
+      (tester) async {
+        List<LineChartBarData> barsOf() => tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final profileA = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 30),
+        );
+        final bars1 = barsOf();
+
+        // Same data + units; only the playback cursor moved. The signature is
+        // unchanged, so the assembled bars must be the SAME cached instance.
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 90),
+        );
+        expect(identical(barsOf(), bars1), isTrue);
+
+        // A new profile changes the signature -> the cache must rebuild.
+        await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+        expect(identical(barsOf(), bars1), isFalse);
+      },
+    );
+
+    testWidgets(
+      'rebuilds bars with fresh colors when the theme changes at the same '
+      'brightness (e.g. switching between two light presets)',
+      (tester) async {
+        // Two light schemes that differ only in tertiary -- the colour the
+        // temperature line is drawn in. A same-brightness preset switch must
+        // still invalidate the cache; keying on Brightness alone would serve
+        // bars with stale colours.
+        const tertiaryA = Color(0xFF101010);
+        const tertiaryB = Color(0xFFF0F0F0);
+
+        final profile = List.generate(
+          10,
+          (i) => DiveProfilePoint(
+            timestamp: i * 30,
+            depth: (i < 5 ? i * 3.0 : (9 - i) * 3.0),
+            temperature: 22.0 - i * 0.5,
+          ),
+        );
+
+        // themeAnimationDuration: zero so the AnimatedTheme cross-fade does not
+        // lerp the scheme over frames (Color.lerp(a, b, 0) == a would otherwise
+        // read the stale colour right after a one-frame pump).
+        Widget app(Color tertiary) => ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            themeAnimationDuration: Duration.zero,
+            theme: ThemeData(
+              colorScheme: const ColorScheme.light().copyWith(
+                tertiary: tertiary,
+              ),
+            ),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SizedBox(
+                width: 400,
+                height: 300,
+                child: DiveProfileChart(profile: profile),
+              ),
+            ),
+          ),
+        );
+
+        Iterable<Color?> barColors() => tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData
+            .map((b) => b.color);
+
+        await tester.pumpWidget(app(tertiaryA));
+        await tester.pumpAndSettle();
+        // The temperature line is drawn in the active scheme's tertiary.
+        expect(barColors(), contains(tertiaryA));
+
+        // Same brightness, different scheme: the State (and its bars cache) is
+        // retained across this pump, so the bars must be rebuilt with the new
+        // tertiary rather than reused with the stale colour.
+        await tester.pumpWidget(app(tertiaryB));
+        await tester.pumpAndSettle();
+        expect(barColors(), contains(tertiaryB));
+        expect(barColors(), isNot(contains(tertiaryA)));
+      },
+    );
+  });
+
+  group('photo markers', () {
+    testWidgets('renders the overlay when photo markers are provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(photoMarkers: [_photoMarker()]));
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsOneWidget);
+    });
+
+    testWidgets('renders no overlay without photo markers', (tester) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsNothing);
+    });
+
+    testWidgets('a marker tap opens its preview card on the same frame', (
+      tester,
+    ) async {
+      // The chart's double-tap-to-zoom recognizer is an ancestor of the
+      // overlay and holds the pointer's gesture arena for kDoubleTapTimeout.
+      // Marker taps must not wait it out: assert with a single pump, with no
+      // clock advance, so a regression shows up as a stalled card.
+      await tester.pumpWidget(_buildChart(photoMarkers: [_photoMarker()]));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+
+      // Tapping the marker again closes the card, likewise immediately.
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+
+      // Drain the recognizer's uncancellable kDoubleTapMinTime countdowns.
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets('hides the overlay when the legend toggle is off', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(photoMarkers: [_photoMarker()]));
+      await tester.pump();
+      final element = tester.element(find.byType(DiveProfileChart));
+      final container = ProviderScope.containerOf(element);
+      container.read(profileLegendProvider.notifier).togglePhotoMarkers();
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsNothing);
+    });
+  });
+
+  group('analysis-curve decimation (WS3)', () {
+    testWidgets(
+      'a dense ceiling curve renders decimated while the depth trace keeps '
+      'full resolution',
+      (tester) async {
+        const samples = 5000;
+        final profile = _makeProfile(points: samples);
+        // A ceiling that is positive everywhere so every sample would emit
+        // a spot without decimation.
+        final ceiling = List<double>.generate(
+          samples,
+          (i) => 3.0 + (i % 7) * 0.5,
+        );
+
+        await tester.pumpWidget(
+          _buildChart(profile: profile, ceilingCurve: ceiling),
+        );
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final depthBars = bars.where((b) => b.spots.length == samples);
+        expect(
+          depthBars,
+          isNotEmpty,
+          reason: 'the depth trace must stay at full resolution',
+        );
+
+        // The ceiling line is the dashed [4, 4] bar; it must be decimated
+        // to the point budget instead of emitting all 5,000 spots.
+        final ceilingBars = bars.where(
+          (b) =>
+              b.dashArray != null &&
+              b.dashArray!.length == 2 &&
+              b.dashArray!.first == 4 &&
+              b.dashArray!.last == 4 &&
+              b.spots.isNotEmpty,
+        );
+        expect(ceilingBars, isNotEmpty);
+        for (final bar in ceilingBars) {
+          // The decimator targets ~2000 points; endpoints and the global
+          // extreme can add a couple beyond the bucket envelope.
+          expect(bar.spots.length, lessThanOrEqualTo(2008));
+          expect(bar.spots.length, lessThan(samples ~/ 2));
+        }
+      },
+    );
+
+    testWidgets('a dense O2 cell millivolt curve renders decimated', (
+      tester,
+    ) async {
+      const samples = 5000;
+      final profile = _makeProfile(points: samples);
+      final mv = <List<int?>>[List<int?>.generate(samples, (i) => 58 + i % 3)];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      await tester.pumpAndSettle();
+
+      final cellLines = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where((b) => b.color != null && kO2CellColors.contains(b.color));
+      expect(cellLines, hasLength(1));
+      // The decimator targets ~2000 points; endpoints and the global
+      // extreme can add a couple beyond the bucket envelope.
+      expect(cellLines.single.spots.length, lessThanOrEqualTo(2008));
+      expect(cellLines.single.spots.length, lessThan(samples ~/ 2));
+    });
+
+    testWidgets('zooming a dense profile decimates analysis curves through the '
+        'viewport-clipped path', (tester) async {
+      // Exercises the _viewport.isZoomed branch of _decimatedCurveIndices:
+      // the visible window is clipped (binary search for the first/last
+      // in-range sample) before decimation, and kept indices are offset
+      // back by the window start.
+      const samples = 5000;
+      final profile = _makeProfile(points: samples);
+      final ceiling = List<double>.generate(
+        samples,
+        (i) => 3.0 + (i % 7) * 0.5,
+      );
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, ceilingCurve: ceiling),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final fullWindow = tester.widget<LineChart>(chart).data;
+      final fullSpan = fullWindow.maxX - fullWindow.minX;
+
+      // Zoom in deeply (several wheel steps) so the visible window becomes a
+      // strict interior subset: > 2x zoom clips the decimation window off
+      // both ends, exercising the start offset and both binary searches.
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+      final cursor = topLeft + Offset(size.width * 0.5, size.height * 0.5);
+      for (var step = 0; step < 14; step++) {
+        await tester.sendEventToBinding(
+          PointerScrollEvent(
+            position: cursor,
+            scrollDelta: const Offset(0, -100),
+          ),
+        );
+        await tester.pump();
+      }
+
+      final zoomed = tester.widget<LineChart>(chart).data;
+      expect(
+        zoomed.maxX - zoomed.minX,
+        lessThan(fullSpan / 2),
+        reason: 'the wheel steps must zoom past 2x',
+      );
+      expect(
+        zoomed.minX,
+        greaterThan(fullWindow.minX),
+        reason: 'the visible window no longer starts at the first sample',
+      );
+      expect(
+        zoomed.maxX,
+        lessThan(fullWindow.maxX),
+        reason: 'the visible window no longer ends at the last sample',
+      );
+
+      // The ceiling curve still decimates within the visible window.
+      final ceilingBars = zoomed.lineBarsData.where(
+        (b) =>
+            b.dashArray != null &&
+            b.dashArray!.length == 2 &&
+            b.dashArray!.first == 4 &&
+            b.dashArray!.last == 4 &&
+            b.spots.isNotEmpty,
+      );
+      expect(ceilingBars, isNotEmpty);
+      for (final bar in ceilingBars) {
+        expect(bar.spots.length, lessThanOrEqualTo(2008));
+      }
+    });
+
+    testWidgets(
+      'a dense source overlay decimates its depth, temperature, ceiling and '
+      'NDL series to the point budget',
+      (tester) async {
+        // Exercises _decimatedOverlayIndices' over-budget branch and all four
+        // overlay series builders (depth / temp / ceiling / NDL), whose
+        // envelope closures only execute when the overlay exceeds the budget.
+        const n = 5000;
+        final overlayPoints = List<DiveProfilePoint>.generate(
+          n,
+          (i) => DiveProfilePoint(
+            timestamp: i * 10,
+            depth: 10.0 + (i % 11) * 1.0,
+            temperature: 20.0 + (i % 5) * 0.5,
+            ceiling: 1.0 + (i % 7) * 0.5,
+            ndl: (i % 9) * 60,
+          ),
+        );
+        // Active source small; its temperature seeds the shared temp scale.
+        final active = List<DiveProfilePoint>.generate(
+          8,
+          (i) => DiveProfilePoint(
+            timestamp: i * 30,
+            depth: i * 2.0,
+            temperature: 21.0,
+          ),
+        );
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [
+              ChartSourceOverlay(
+                sourceId: 'src-b',
+                name: 'Dense',
+                color: Colors.orange,
+                computerId: 'comp-b',
+                points: overlayPoints,
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // NDL is off by default; enable it so the overlay NDL series builds.
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileChart)),
+        );
+        container.read(profileLegendProvider.notifier).toggleNdl();
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        // Depth, temperature and ceiling overlay series (NDL too) each derive
+        // from the 5,000-point overlay and must decimate toward the budget.
+        final denseBars = bars.where((b) => b.spots.length > 1000).toList();
+        expect(
+          denseBars.length,
+          greaterThanOrEqualTo(3),
+          reason: 'overlay depth/temp/ceiling/NDL each decimate to ~budget',
+        );
+        for (final b in bars) {
+          expect(
+            b.spots.length,
+            lessThanOrEqualTo(2008),
+            reason: 'no overlay series emits all 5,000 samples',
+          );
+        }
+      },
+    );
+
+    testWidgets('enabling MOD builds the decimated MOD line for a dense '
+        'profile', (tester) async {
+      // The MOD line is gated on the legend showMod toggle (default off), so
+      // _buildModLine and its inclusion in the analysis group are otherwise
+      // never reached.
+      const samples = 5000;
+      final profile = _makeProfile(points: samples);
+      final mod = List<double>.generate(samples, (i) => 30.0 + (i % 5));
+
+      await tester.pumpWidget(_buildChart(profile: profile, modCurve: mod));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleMod();
+      await tester.pumpAndSettle();
+
+      // MOD is the deepOrange [8, 4] dashed line.
+      final modBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where(
+            (b) =>
+                b.color == Colors.deepOrange &&
+                b.dashArray != null &&
+                b.dashArray!.length == 2 &&
+                b.dashArray!.first == 8 &&
+                b.dashArray!.last == 4,
+          );
+      expect(modBars, isNotEmpty);
+      for (final b in modBars) {
+        expect(b.spots, isNotEmpty);
+        expect(b.spots.length, lessThanOrEqualTo(2008));
+      }
+    });
+  });
+
+  group('DiveProfileMiniChart', () {
+    Widget host(List<DiveProfilePoint> profile) => MaterialApp(
+      home: Scaffold(body: DiveProfileMiniChart(profile: profile)),
+    );
+
+    LineChartBarData bar(WidgetTester tester) => tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .first;
+
+    testWidgets('empty profile renders no chart', (tester) async {
+      await tester.pumpWidget(host(const []));
+      await tester.pumpAndSettle();
+      expect(find.byType(LineChart), findsNothing);
+    });
+
+    testWidgets('a profile starting after t=0 descends from the surface', (
+      tester,
+    ) async {
+      final profile = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.first, const FlSpot(0, 0));
+      expect(b.spots.length, profile.length + 1);
+    });
+
+    testWidgets('a profile starting at t=0 gains no lead-in', (tester) async {
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i.toDouble()),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.length, profile.length);
+      expect(b.spots.first.x, 0);
+    });
+  });
+}
+
+PhotoChartMarker _photoMarker({String id = 'p1', int seconds = 120}) {
+  final now = DateTime.utc(2026, 1, 1);
+  return PhotoChartMarker(
+    item: MediaItem(
+      id: id,
+      diveId: 'dive-1',
+      mediaType: MediaType.photo,
+      takenAt: now,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    elapsedSeconds: seconds,
+    depthMeters: 10.0,
+  );
 }

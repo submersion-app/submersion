@@ -1,0 +1,932 @@
+name: Build All Platforms
+
+# Reusable build workflow: produces the full signed artifact set for every
+# platform. Called by release.yml (tag-driven stable/prerelease builds) and
+# beta.yml (per-merge beta builds). The optional build-number input rewrites
+# the workspace pubspec.yaml before building so Flutter, the Fastfiles, the
+# Windows installer, and the appcast all see one consistent build number.
+on:
+  workflow_call:
+    inputs:
+      version-tag:
+        description: 'Tag-shaped version string used in artifact filenames (e.g. v1.8.0.5601)'
+        required: true
+        type: string
+      build-number:
+        description: 'Overrides the pubspec build number when non-empty'
+        required: false
+        type: string
+        default: ''
+      ref:
+        description: 'Git ref (SHA or branch) to check out; defaults to the workflow ref'
+        required: false
+        type: string
+        default: ''
+    outputs:
+      eddsa-signature:
+        description: 'Sparkle EdDSA signature of the macOS DMG'
+        value: ${{ jobs.build-macos.outputs.eddsa-signature }}
+      dmg-length:
+        description: 'Byte length of the macOS DMG'
+        value: ${{ jobs.build-macos.outputs.dmg-length }}
+      windows-eddsa-signature:
+        description: 'Sparkle EdDSA signature of the Windows installer'
+        value: ${{ jobs.build-windows.outputs.windows-eddsa-signature }}
+      windows-exe-length:
+        description: 'Byte length of the Windows installer'
+        value: ${{ jobs.build-windows.outputs.windows-exe-length }}
+  workflow_dispatch:
+    inputs:
+      version-tag:
+        description: 'Tag-shaped version string (e.g. v0.0.0-smoke.1)'
+        required: true
+        type: string
+      build-number:
+        description: 'Overrides the pubspec build number when non-empty'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+  # Fastlane's gym/gym-for-mac starts by running `xcodebuild -showBuildSettings`
+  # to learn the bundle id, configuration and product name. On this workspace
+  # that means evaluating every Pods target and xcconfig plus the
+  # libdivecomputer_plugin native target, which is slow. Fastlane defaults the
+  # call to a 3 second base timeout with 3 retries, so it gives up after
+  # 3/6/12/24 seconds and aborts the lane before the archive ever starts. A cold
+  # runner loses that race: run 32680736603 failed exactly this way with the
+  # Flutter build already finished. These only raise a ceiling, so a healthy run
+  # returns as fast as it returns and pays nothing for them.
+  FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: '120'
+  FASTLANE_XCODEBUILD_SETTINGS_RETRIES: '5'
+
+# Cache and ref design (issue #1132, CodeQL actions/cache-poisoning).
+#
+# Every job here runs repo-controlled code before it produces artifacts that
+# ship: build_runner generators, package build hooks (the package:sqlite3 hook
+# downloads and installs SQLCipher), and the scripts/check_*.py guards. Whatever
+# a job restores from a cache is therefore part of the release supply chain, so
+# these two properties are chosen rather than inherited.
+#
+# The ref. The workflow_dispatch path declares no ref input, so checkout falls
+# back to the ref the run was started on, which dispatch already restricts to
+# real refs in this repository. The ref input exists only on workflow_call, and
+# both callers pass one they validated: release.yml passes none, leaving
+# checkout to resolve the tag that triggered it, and beta.yml passes the SHA of
+# a main commit whose CI run concluded successfully. No reachability guard is
+# added here because it would only restate what the callers guarantee.
+#
+# The caches. Two rules, both load-bearing:
+#
+#   1. Cache ~/.pub-cache, never .dart_tool. pubspec.lock records a sha256 for
+#      every hosted package and pub validates cached content against it, so a
+#      tampered pub cache entry is caught. .dart_tool holds build_runner output
+#      and the package config with no integrity check of any kind, and
+#      `dart run build_runner build` consumes it directly. The cost is a cold
+#      codegen pass on release and beta builds; the package downloads, which
+#      dominate the saving, are still cached.
+#   2. Namespace the keys to this workflow. GitHub scopes caches by ref and a
+#      tag run can read the default branch's scope, so a shared key would let a
+#      release build restore an entry written by any job that ran on main.
+#      The build-all prefixes keep that set down to other build-all runs; do not
+#      let them converge with the plain pub-<os> keys ci.yaml uses.
+#
+# Neither rule is carried over to ci.yaml, and that is deliberate. Nothing that
+# workflow produces is distributed, its .dart_tool cache is a real saving across
+# the analyze and test matrix, and narrowing it would buy nothing but slower
+# builds of artifacts that get thrown away.
+#
+# One more thing for whoever revisits this. CodeQL flagged exactly one of the
+# several structurally identical steps in this file. The Android guards use
+# `run: |` with line continuations and the Windows one invokes `python` rather
+# than `python3`, and neither matched the query's pattern for "executes a local
+# script". The discriminator is syntactic, not semantic: the absence of an alert
+# on a step is not evidence that the step is safe.
+
+jobs:
+  # ============================================================================
+  # macOS Build (signed DMG + Mac App Store)
+  # ============================================================================
+  build-macos:
+    name: Build macOS
+    runs-on: macos-15
+    timeout-minutes: 45
+    outputs:
+      eddsa-signature: ${{ steps.sparkle-sign.outputs.eddsa-signature }}
+      dmg-length: ${{ steps.sparkle-sign.outputs.dmg-length }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        id: setup-xcode-macos
+        with:
+          xcode-version: '26'
+
+      - name: Verify selected Xcode (macOS build)
+        run: |
+          echo "setup-xcode selected: ${{ steps.setup-xcode-macos.outputs.version }}"
+          echo "Xcode path: ${{ steps.setup-xcode-macos.outputs.path }}"
+          xcodebuild -version
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      # Flutter 3.44 enables Swift Package Manager by default. This project is
+      # not migrated to SPM (the Xcode projects carry no package references) and
+      # builds via CocoaPods. With SPM on, the full `flutter build macos` for the
+      # DMG adds the generated Swift package to the project, then the Fastlane
+      # App Store archive links google_sign_in_ios via BOTH that Swift package
+      # and CocoaPods -> "ld: duplicate symbols". Force CocoaPods-only to match
+      # local dev and the previously-working Flutter 3.41 behavior.
+      - name: Use CocoaPods (disable Swift Package Manager)
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      - name: Disable automatic signing for CI build
+        run: |
+          echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Release.xcconfig
+          echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Release.xcconfig
+          echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
+
+      - name: Build macOS release
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+
+      # -- Developer ID DMG (for GitHub Release) --
+
+      - name: Import Developer ID certificate
+        env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$MACOS_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo "Certificate .p12 size: $(wc -c < $CERTIFICATE_PATH) bytes"
+          security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$MACOS_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
+
+      - name: Codesign the app
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/Submersion.app"
+          IDENTITY=$(security find-identity -v -p codesigning $RUNNER_TEMP/app-signing.keychain-db | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          if [ -z "$IDENTITY" ]; then
+            echo "Error: No 'Developer ID Application' identity found in keychain."
+            echo "Available identities:"
+            security find-identity -v -p codesigning $RUNNER_TEMP/app-signing.keychain-db
+            exit 1
+          fi
+          echo "Signing with: $IDENTITY"
+          # Pass 1: Sign all nested frameworks/dylibs (no entitlements)
+          codesign --deep --force --options runtime \
+            --sign "$IDENTITY" \
+            "$APP_PATH"
+          # Pass 2: Re-sign only the top-level app with entitlements
+          codesign --force --options runtime \
+            --entitlements "macos/Runner/ReleaseNoSandbox.entitlements" \
+            --sign "$IDENTITY" \
+            "$APP_PATH"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          create-dmg \
+            --volname "Submersion" \
+            --volicon "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Submersion.app" 150 200 \
+            --app-drop-link 450 200 \
+            "Submersion-${TAG_NAME}-macOS.dmg" \
+            "build/macos/Build/Products/Release/Submersion.app" || {
+              if [ -f "Submersion-${TAG_NAME}-macOS.dmg" ]; then
+                echo "Warning: create-dmg returned non-zero but DMG exists (likely missing background image)"
+              else
+                echo "Error: create-dmg failed and DMG was not created"
+                exit 1
+              fi
+            }
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          DMG="Submersion-${TAG_NAME}-macOS.dmg"
+          for attempt in 1 2 3; do
+            if xcrun notarytool submit "$DMG" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Notarization failed after 3 attempts"
+              exit 1
+            fi
+            echo "Notarization attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+          xcrun stapler staple "$DMG"
+
+      - name: Sign DMG with Sparkle EdDSA
+        id: sparkle-sign
+        env:
+          SPARKLE_EDDSA_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          DMG="Submersion-${TAG_NAME}-macOS.dmg"
+
+          if [ -z "$SPARKLE_EDDSA_PRIVATE_KEY" ]; then
+            echo "Error: SPARKLE_EDDSA_PRIVATE_KEY secret is not configured"
+            exit 1
+          fi
+
+          # sign_update is installed by CocoaPods as part of the Sparkle framework
+          # (pulled in by the auto_updater Flutter package during flutter build macos).
+          # Output format: sparkle:edSignature="<sig>" length="<len>"
+          SIGN_OUTPUT=$(echo "$SPARKLE_EDDSA_PRIVATE_KEY" | ./macos/Pods/Sparkle/bin/sign_update --ed-key-file - "$DMG")
+
+          # Parse signature and length from output
+          EDDSA_SIG=$(echo "$SIGN_OUTPUT" | sed -n 's/.*edSignature="\([^"]*\)".*/\1/p')
+
+          if [ -z "$EDDSA_SIG" ]; then
+            echo "Error: Failed to extract EdDSA signature from sign_update output"
+            exit 1
+          fi
+
+          DMG_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
+
+          if [ -z "$DMG_LENGTH" ]; then
+            echo "Error: Failed to extract length from sign_update output"
+            exit 1
+          fi
+
+          echo "DMG length: ${DMG_LENGTH} bytes"
+
+          echo "eddsa-signature=${EDDSA_SIG}" >> "$GITHUB_OUTPUT"
+          echo "dmg-length=${DMG_LENGTH}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-dmg
+          path: Submersion-*.dmg
+          retention-days: 5
+
+      # -- Mac App Store (via Fastlane) --
+
+      - name: Restore Release.xcconfig for App Store build
+        run: git checkout macos/Runner/Configs/Release.xcconfig
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: macos
+
+      - name: Import App Store certificates
+        env:
+          APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
+          APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # Reuse the keychain from the DMG step if it exists, otherwise create it
+          if ! security show-keychain-info "$KEYCHAIN_PATH" 2>/dev/null; then
+            security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          fi
+          security unlock-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          # Import Apple Development certificate (for archive signing)
+          DEV_CERT=$RUNNER_TEMP/apple_development.p12
+          echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$DEV_CERT"
+          security import "$DEV_CERT" -P "$APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DEV_CERT"
+          # Import Apple Distribution certificate (for export signing)
+          DIST_CERT=$RUNNER_TEMP/apple_distribution.p12
+          echo -n "$APPLE_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o "$DIST_CERT"
+          security import "$DIST_CERT" -P "$APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DIST_CERT"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "ci-build" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          mkdir -p macos/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > macos/fastlane/AuthKey.p8
+
+      - name: Build Mac App Store package
+        working-directory: macos
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: bundle exec fastlane build
+
+      - name: Upload Mac App Store pkg artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-pkg
+          path: macos/build/Submersion.pkg
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: rm -f macos/fastlane/AuthKey.p8
+
+  # ============================================================================
+  # Windows Build
+  # ============================================================================
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      windows-eddsa-signature: ${{ steps.sparkle-sign-windows.outputs.windows-eddsa-signature }}
+      windows-exe-length: ${{ steps.sparkle-sign-windows.outputs.windows-exe-length }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        # Windows runners default to PowerShell, where the bash-style
+        # $(...) command substitution and $GITHUB_OUTPUT do not work. Without
+        # this the version output is empty and subosito installs the latest
+        # stable Flutter instead of the pinned version. See flutter-version.txt.
+        shell: bash
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~\.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      - name: Build Windows release
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+
+      - name: Check bundled native assets
+        # Runs before the installer is compiled: the .iss packages whatever is
+        # in the Release directory, so a native asset missing here ships to
+        # every user and takes the app down at startup (issue #1129). Windows
+        # runners expose the interpreter as `python`, not `python3`.
+        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
+
+      - name: Build Windows installer
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          $version = "$env:TAG_NAME" -replace '^v', ''
+          $buildNumber = (Select-String -Path pubspec.yaml -Pattern '^\s*version:.*\+(\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })
+          iscc /DAPP_VERSION="$version" /DAPP_VERSION_CODE="$buildNumber" windows\installer\submersion.iss
+          Move-Item "build\windows\installer\Submersion-*-Windows-Setup.exe" .
+
+      - name: Sign installer with Sparkle EdDSA
+        id: sparkle-sign-windows
+        env:
+          SPARKLE_EDDSA_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+          # Must match the EdDSAPub resource in windows/runner/Runner.rc and
+          # SUPublicEDKey in macos/Runner/Info.plist (one key pair signs both
+          # platforms). Verified below so a key-format or secret mixup fails
+          # the build instead of publishing signatures clients would reject.
+          EXPECTED_PUBLIC_KEY: 'XHQ9oigpC8fdjMcsVJQn5gfgYoWocVOb2G4M6IvexJk='
+        run: |
+          if (-not $env:SPARKLE_EDDSA_PRIVATE_KEY) {
+            Write-Error "SPARKLE_EDDSA_PRIVATE_KEY secret is not configured"
+            exit 1
+          }
+
+          # winsparkle-tool understands Sparkle's private key formats and
+          # produces the same edSignature the macOS sign_update tool would.
+          $tool = "packages\auto_updater_windows\windows\WinSparkle-0.9.4\bin\winsparkle-tool.exe"
+          $exe = Get-Item "Submersion-*-Windows-Setup.exe"
+          $keyFile = Join-Path $env:RUNNER_TEMP "sparkle-eddsa.key"
+          [IO.File]::WriteAllText($keyFile, $env:SPARKLE_EDDSA_PRIVATE_KEY)
+
+          try {
+            $pubOut = (& $tool public-key -f $keyFile) -join "`n"
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "winsparkle-tool public-key failed: $pubOut"
+              exit 1
+            }
+            if (-not $pubOut.Contains($env:EXPECTED_PUBLIC_KEY)) {
+              Write-Error "Private key does not match the public key embedded in Runner.rc"
+              exit 1
+            }
+
+            $sigOut = (& $tool sign -f $keyFile -v $exe.FullName) -join "`n"
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "winsparkle-tool sign failed: $sigOut"
+              exit 1
+            }
+          } finally {
+            Remove-Item $keyFile -Force
+          }
+
+          if ($sigOut -notmatch 'sparkle:edSignature="([^"]+)" length="(\d+)"') {
+            Write-Error "Failed to parse winsparkle-tool output: $sigOut"
+            exit 1
+          }
+          $signature = $Matches[1]
+          $length = $Matches[2]
+
+          Write-Output "Installer length: $length bytes"
+          "windows-eddsa-signature=$signature" >> $env:GITHUB_OUTPUT
+          "windows-exe-length=$length" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-setup
+          path: Submersion-*-Setup.exe
+          retention-days: 5
+
+  # ============================================================================
+  # Linux Build
+  # ============================================================================
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
+            libssl-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      - name: Build Linux release
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+
+      - name: Check bundled native assets
+        # Runs before the tarball is rolled, for the same reason as the Windows
+        # job: a missing native asset is invisible until a user launches the
+        # app (issue #1129).
+        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
+
+      - name: Create tarball
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          cd build/linux/x64/release/bundle
+          tar czf "$GITHUB_WORKSPACE/Submersion-${TAG_NAME}-Linux.tar.gz" .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-tar
+          path: Submersion-*.tar.gz
+          retention-days: 5
+
+  # ============================================================================
+  # Android Build
+  # ============================================================================
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      # flutter_secure_storage 11 hardcodes compileSdk 37 in its own module,
+      # so the app compiles against 37 too (android/app/build.gradle.kts).
+      # Installed explicitly rather than left to Gradle's auto-download: the
+      # runner image only preinstalls a few platforms, and a missing one fails
+      # late with an opaque "failed to find target with hash string" error.
+      - name: Install Android SDK platform 37
+        run: |
+          # sdkmanager is not on PATH on the runner image; it lives under
+          # $ANDROID_HOME/cmdline-tools/<version>/bin. Located rather than
+          # hardcoded so a runner-image reshuffle fails loudly here instead
+          # of surfacing later as a confusing Gradle error.
+          sdkmanager="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools" \
+            -name sdkmanager -type f 2>/dev/null | head -1)"
+          if [ -z "$sdkmanager" ]; then
+            echo "::error::sdkmanager not found under ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+          echo "Using $sdkmanager"
+          "$sdkmanager" --install "platforms;android-37.0" < /dev/null
+
+      - name: Setup Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          cat > android/key.properties <<EOL
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=release.keystore
+          EOL
+          chmod 600 android/key.properties android/app/release.keystore
+
+      - name: Build Android APK
+        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false --dart-define=UPDATE_CHANNEL=playstore
+
+      # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
+      # silently shipped in v1.5.5.107 and crashed the app on Android 15+
+      # 16 KB-page devices. Fail the release before publishing if any 64-bit
+      # native library is not 16 KB-aligned, in either the APK or the AAB.
+      - name: Verify 16 KB native library alignment
+        run: |
+          python3 scripts/check_16kb_alignment.py \
+            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/bundle/release/app-release.aab
+
+      # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
+      # tombstone release) silently dropped libsqlite3.so from the package, so
+      # the app could not open its database on launch. Fail the release before
+      # publishing if a required native library is missing from the APK or AAB.
+      - name: Verify required native libraries are bundled
+        run: |
+          python3 scripts/check_native_libs_present.py \
+            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/bundle/release/app-release.aab
+
+      - name: Rename artifacts
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+            "Submersion-${TAG_NAME}-Android.apk"
+          mv build/app/outputs/bundle/release/app-release.aab \
+            "Submersion-${TAG_NAME}-Android.aab"
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-apk
+          path: Submersion-*.apk
+          retention-days: 5
+
+      - name: Upload Android AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-aab
+          path: Submersion-*.aab
+          retention-days: 5
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f android/app/release.keystore
+          rm -f android/key.properties
+
+  # ============================================================================
+  # iOS Build
+  # ============================================================================
+  build-ios:
+    name: Build iOS
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        id: setup-xcode-ios
+        with:
+          xcode-version: '26'
+
+      - name: Verify Xcode and iOS SDK
+        run: |
+          echo "setup-xcode selected: ${{ steps.setup-xcode-ios.outputs.version }}"
+          echo "Xcode path: ${{ steps.setup-xcode-ios.outputs.path }}"
+          echo "DEVELOPER_DIR: ${DEVELOPER_DIR:-<not set>}"
+          xcode-select -p
+          xcodebuild -version
+          XCODE_VERSION=$(xcodebuild -version | awk '/Xcode/ { print $2 }')
+          XCODE_MAJOR=${XCODE_VERSION%%.*}
+          IOS_SDK=$(xcrun --sdk iphoneos --show-sdk-version)
+          IOS_SDK_MAJOR=${IOS_SDK%%.*}
+          echo "Detected iOS SDK: ${IOS_SDK}"
+
+          if [ -z "$XCODE_MAJOR" ] || [ "$XCODE_MAJOR" -lt 26 ]; then
+            echo "Error: Xcode 26 or later is required for App Store uploads."
+            exit 1
+          fi
+
+          if [ -z "$IOS_SDK_MAJOR" ] || [ "$IOS_SDK_MAJOR" -lt 26 ]; then
+            echo "Error: iOS SDK 26 or later is required for App Store uploads."
+            exit 1
+          fi
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: build-all-${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
+
+      - name: Import App Store certificates
+        env:
+          APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
+          APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          # Import Apple Development certificate (for archive signing)
+          DEV_CERT=$RUNNER_TEMP/apple_development.p12
+          echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$DEV_CERT"
+          security import "$DEV_CERT" -P "$APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DEV_CERT"
+          # Import Apple Distribution certificate (for export signing)
+          DIST_CERT=$RUNNER_TEMP/apple_distribution.p12
+          echo -n "$APPLE_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o "$DIST_CERT"
+          security import "$DIST_CERT" -P "$APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$DIST_CERT"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "ci-build" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      - name: Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+        run: |
+          mkdir -p ios/fastlane
+          echo "$APP_STORE_CONNECT_API_KEY_KEY" | base64 --decode > ios/fastlane/AuthKey.p8
+
+      - name: Build iOS App Store package
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+        run: bundle exec fastlane build
+
+      - name: Rename IPA
+        env:
+          TAG_NAME: ${{ inputs.version-tag }}
+        run: |
+          mv ios/build/Submersion.ipa "Submersion-${TAG_NAME}-iOS.ipa"
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-ipa
+          path: Submersion-*.ipa
+          retention-days: 5
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f ios/fastlane/AuthKey.p8
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db 2>/dev/null || true
+

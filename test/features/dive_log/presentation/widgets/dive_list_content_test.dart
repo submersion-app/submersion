@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -17,6 +20,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -81,7 +85,6 @@ Widget _buildTableModeLayout({
   Set<String> selectedIds = const {},
   void Function(String)? onDiveTap,
   void Function(String)? onDiveDoubleTap,
-  void Function(String)? onDiveLongPress,
 }) {
   final tableConfig =
       config ??
@@ -115,7 +118,6 @@ Widget _buildTableModeLayout({
             dives: dives,
             onDiveTap: onDiveTap ?? (_) {},
             onDiveDoubleTap: onDiveDoubleTap,
-            onDiveLongPress: onDiveLongPress,
             selectedIds: selectedIds,
             isSelectionMode: isSelectionMode,
             highlightedId: highlightedId,
@@ -137,6 +139,13 @@ class _MockPaginatedNotifier
     : super(
         AsyncValue.data(PaginatedDiveListState(dives: dives, hasMore: false)),
       );
+
+  /// Narrow the visible list, standing in for a filter or search change.
+  void showOnly(List<DiveSummary> dives) {
+    state = AsyncValue.data(
+      PaginatedDiveListState(dives: dives, hasMore: false),
+    );
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -325,25 +334,20 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // Long-press fires onDiveLongPress (enters selection mode)
+    // Long-press is not a selection gesture in table mode
     // -----------------------------------------------------------------------
 
-    testWidgets('long-press fires onDiveLongPress callback', (tester) async {
-      String? longPressedId;
+    testWidgets('long-press on a table row does not check it', (tester) async {
       final dives = [_makeDive(id: 'lp-1', diveNumber: 7, maxDepth: 20.0)];
 
-      await tester.pumpWidget(
-        _buildTableModeLayout(
-          dives: dives,
-          onDiveLongPress: (id) => longPressedId = id,
-        ),
-      );
+      await tester.pumpWidget(_buildTableModeLayout(dives: dives));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.text('#7'));
       await tester.pumpAndSettle();
 
-      expect(longPressedId, 'lp-1');
+      // No checkbox column means the table never entered selection mode.
+      expect(find.byType(Checkbox), findsNothing);
     });
 
     // -----------------------------------------------------------------------
@@ -963,8 +967,11 @@ void main() {
         final tileOne = tiles.firstWhere((t) => t.diveId == 'd1');
         final tileTwo = tiles.firstWhere((t) => t.diveId == 'd2');
 
-        expect(tileOne.isSelected, isFalse);
-        expect(tileTwo.isSelected, isTrue);
+        // Highlight and checked are independent channels: a highlighted row
+        // is not in the bulk selection.
+        expect(tileOne.isHighlighted, isFalse);
+        expect(tileTwo.isHighlighted, isTrue);
+        expect(tileTwo.isChecked, isFalse);
       },
     );
 
@@ -1004,9 +1011,470 @@ void main() {
         final one = tiles.firstWhere((t) => t.diveId == 'd1');
         final two = tiles.firstWhere((t) => t.diveId == 'd2');
 
-        expect(one.isSelected, isFalse);
-        expect(two.isSelected, isTrue);
+        expect(one.isHighlighted, isFalse);
+        expect(two.isHighlighted, isTrue);
+        expect(two.isChecked, isFalse);
       },
     );
+  });
+
+  group('phone-mode selection', () {
+    List<Dive> fourDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+      _makeDive(
+        id: 'd3',
+        diveNumber: 3,
+        site: const DiveSite(id: 's3', name: 'Ccc'),
+      ),
+      _makeDive(
+        id: 'd4',
+        diveNumber: 4,
+        site: const DiveSite(id: 's4', name: 'Ddd'),
+      ),
+    ];
+
+    testWidgets(
+      'Select enters selection; shift-tap selects a range; tap toggles',
+      (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          dives: fourDives(),
+          viewMode: ListViewMode.detailed,
+          highlightedDiveId: null,
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const DiveListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        DiveListTile tile(String id) => tester
+            .widgetList<DiveListTile>(find.byType(DiveListTile))
+            .firstWhere((t) => t.diveId == id);
+        Finder tileFinder(String id) =>
+            find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+
+        // Select, then check d1 -> selection mode with d1 as the anchor.
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(tileFinder('d1'));
+        await tester.pumpAndSettle();
+        expect(tile('d1').isSelectionMode, isTrue);
+        expect(tile('d1').isChecked, isTrue);
+
+        // Shift-tap d3 -> the d1..d3 span becomes selected.
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.tap(tileFinder('d3'));
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.pumpAndSettle();
+        expect(tile('d1').isChecked, isTrue);
+        expect(tile('d2').isChecked, isTrue);
+        expect(tile('d3').isChecked, isTrue);
+        expect(tile('d4').isChecked, isFalse);
+
+        // Plain tap d2 -> toggles it back off.
+        await tester.tap(tileFinder('d2'));
+        await tester.pumpAndSettle();
+        expect(tile('d2').isChecked, isFalse);
+      },
+    );
+
+    // Table rows carry an onDoubleTap, so onDiveTap only resolves once the
+    // double-tap timer expires, and the modifier has to stay held across that
+    // wait. The tap-down handler must not move the highlight in the meantime:
+    // that highlight is the anchor the shift-click extends from.
+    testWidgets('table mode: shift-tap extends from the tapped row', (
+      tester,
+    ) async {
+      final dives = fourDives();
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            allDivesForTableProvider.overrideWithValue(AsyncValue.data(dives)),
+            tableViewConfigProvider.overrideWith(
+              (ref) => _TestTableConfigNotifier(
+                TableViewConfig(
+                  columns: [
+                    TableColumnConfig(
+                      field: DiveField.siteName,
+                      isPinned: true,
+                    ),
+                    TableColumnConfig(field: DiveField.maxDepth),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Plain tap highlights the first row. Settle past the double-tap window
+      // so the next tap is not read as a double-tap.
+      await tester.tap(find.text('Aaa'));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.tap(find.text('Ccc'));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pumpAndSettle();
+
+      expect(find.text('3 selected'), findsOneWidget);
+    });
+
+    testWidgets('modifier-tap checks the highlighted dive too', (tester) async {
+      // Cmd on macOS, Control elsewhere -- mirrors
+      // SelectableListScope.isModifierPressed so this passes on the macOS dev
+      // machine and the Linux CI runner alike.
+      final modifierKey = defaultTargetPlatform == TargetPlatform.macOS
+          ? LogicalKeyboardKey.metaLeft
+          : LogicalKeyboardKey.controlLeft;
+
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.compact,
+        highlightedDiveId: 'd2',
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      CompactDiveListTile tile(String id) => tester
+          .widgetList<CompactDiveListTile>(find.byType(CompactDiveListTile))
+          .firstWhere((t) => t.diveId == id);
+      Finder tileFinder(String id) => find.byWidgetPredicate(
+        (w) => w is CompactDiveListTile && w.diveId == id,
+      );
+
+      await tester.sendKeyDownEvent(modifierKey);
+      await tester.tap(tileFinder('d4'));
+      await tester.sendKeyUpEvent(modifierKey);
+      await tester.pumpAndSettle();
+
+      // The highlighted row was the user's on-screen selection, so it joins
+      // the checked set rather than vanishing.
+      expect(tile('d2').isChecked, isTrue);
+      expect(tile('d4').isChecked, isTrue);
+      expect(tile('d1').isChecked, isFalse);
+      expect(tile('d3').isChecked, isFalse);
+    });
+
+    testWidgets('compact view: Select enters selection and tap toggles', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.compact,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      CompactDiveListTile tile(String id) => tester
+          .widgetList<CompactDiveListTile>(find.byType(CompactDiveListTile))
+          .firstWhere((t) => t.diveId == id);
+      Finder tileFinder(String id) => find.byWidgetPredicate(
+        (w) => w is CompactDiveListTile && w.diveId == id,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      expect(tile('d1').isSelectionMode, isTrue);
+
+      await tester.tap(tileFinder('d2'));
+      await tester.pumpAndSettle();
+      expect(tile('d2').isChecked, isTrue);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Selection toolbar: Deselect All button presence and ordering
+  //
+  // Both selection toolbars (the phone full AppBar from _buildSelectionAppBar
+  // and the master-detail compact bar from _buildSelectionBar) must offer a
+  // Deselect All action, positioned immediately after Select All so the two
+  // read as a pair.
+  // -------------------------------------------------------------------------
+
+  group('selection toolbar deselect-all', () {
+    List<Dive> fourDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+      _makeDive(
+        id: 'd3',
+        diveNumber: 3,
+        site: const DiveSite(id: 's3', name: 'Ccc'),
+      ),
+      _makeDive(
+        id: 'd4',
+        diveNumber: 4,
+        site: const DiveSite(id: 's4', name: 'Ddd'),
+      ),
+    ];
+
+    Finder tileFinder(String id) =>
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+
+    /// Enter selection mode (one dive selected, three unselected) and assert
+    /// that the Deselect All button is present and laid out immediately after
+    /// Select All. [showAppBar] picks the phone AppBar (true) vs the
+    /// master-detail compact bar (false).
+    ///
+    /// The two bars diverge on what follows the Select/Deselect pair: the
+    /// full-width AppBar keeps date-range as a top-level icon, while the narrow
+    /// master-pane bar collapses date-range (and the other situational actions)
+    /// into an overflow (...) menu to avoid overflowing the pane.
+    Future<void> expectDeselectAfterSelectAll(
+      WidgetTester tester, {
+      required bool showAppBar,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: DiveListContent(showAppBar: showAppBar),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Enter selection mode and check d1 as the only selection. With 1 of 4
+      // selected, both Select All and Deselect All are visible.
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(tileFinder('d1'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.select_all), findsOneWidget);
+      expect(find.byIcon(Icons.deselect), findsOneWidget);
+
+      final selectAllX = tester.getCenter(find.byIcon(Icons.select_all)).dx;
+      final deselectX = tester.getCenter(find.byIcon(Icons.deselect)).dx;
+
+      // Deselect All sits immediately after Select All so they read as a pair.
+      expect(selectAllX, lessThan(deselectX));
+
+      if (showAppBar) {
+        // Full-width AppBar: date-range is a top-level action to the right.
+        expect(find.byIcon(Icons.date_range), findsOneWidget);
+        final dateRangeX = tester.getCenter(find.byIcon(Icons.date_range)).dx;
+        expect(deselectX, lessThan(dateRangeX));
+      } else {
+        // Master-pane bar: date-range lives in the overflow (...) menu, which
+        // sits to the right of the Select/Deselect pair.
+        expect(find.byIcon(Icons.date_range), findsNothing);
+        expect(find.byIcon(Icons.more_vert), findsOneWidget);
+        final moreX = tester.getCenter(find.byIcon(Icons.more_vert)).dx;
+        expect(deselectX, lessThan(moreX));
+      }
+    }
+
+    testWidgets(
+      'master-detail compact bar shows Deselect All next to Select All',
+      (tester) async {
+        await expectDeselectAfterSelectAll(tester, showAppBar: false);
+      },
+    );
+
+    testWidgets('phone AppBar shows Deselect All next to Select All', (
+      tester,
+    ) async {
+      await expectDeselectAfterSelectAll(tester, showAppBar: true);
+    });
+
+    testWidgets('Compare in 3D action appears only with 2+ selected', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final compare = find.byKey(const ValueKey('selection_action_compare3d'));
+
+      // One dive checked -> Compare is visible but disabled. Actions below
+      // their minCount render disabled rather than hidden, so the action set
+      // stays stable and users can see what an action needs.
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(tileFinder('d1'));
+      await tester.pumpAndSettle();
+      expect(compare, findsOneWidget);
+      expect(tester.widget<IconButton>(compare).onPressed, isNull);
+
+      // Check a second dive -> Compare in 3D enables.
+      await tester.tap(tileFinder('d2'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<IconButton>(compare).onPressed, isNotNull);
+    });
+
+    testWidgets('satisfies the shared selection contract', (tester) async {
+      final all = fourDives().map(DiveSummary.fromDive).toList();
+      final notifier = _MockPaginatedNotifier(all);
+      final base = await getBaseOverrides();
+      final overrides = [
+        ...base,
+        diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+        highlightedDiveIdProvider.overrideWith((ref) => null),
+        paginatedDiveListProvider.overrideWith((ref) => notifier),
+      ];
+
+      await verifySelectionContract(
+        tester,
+        build: () => testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: true),
+        ),
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        rowRoot: find.byType(DiveListTile).first,
+        firstRow: find.byWidgetPredicate(
+          (w) => w is DiveListTile && w.diveId == 'd1',
+        ),
+        applyFilter: (tester) async {
+          // Narrowing to a single dive stands in for a filter or search
+          // change; the selection must prune to what remains visible.
+          notifier.showOnly([all.first]);
+        },
+        visibleAfterFilter: 1,
+      );
+    });
+  });
+
+  group('navigation pushes sub-pages', () {
+    // Sub-pages must push, not go: go() replaces the shell's stack and leaves
+    // the Android system back button with nothing to pop (#647).
+    Future<GoRouter> pumpList(
+      WidgetTester tester, {
+      required List<Override> overrides,
+      required bool showAppBar,
+    }) async {
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (_, _) =>
+                Scaffold(body: DiveListContent(showAppBar: showAppBar)),
+            routes: [
+              // Declared before ':diveId' so the static segment wins.
+              GoRoute(
+                path: 'search',
+                builder: (_, _) => const Text('search page'),
+              ),
+              GoRoute(
+                path: ':diveId',
+                builder: (context, state) =>
+                    Text('detail:${state.pathParameters['diveId']}'),
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          overrides: overrides,
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    Future<List<Override>> detailedOverrides() => _buildPhoneOverrides(
+      dives: [
+        _makeDive(
+          id: 'd1',
+          diveNumber: 1,
+          site: const DiveSite(id: 's1', name: 'Site One'),
+        ),
+      ],
+      viewMode: ListViewMode.detailed,
+      highlightedDiveId: null,
+    );
+
+    testWidgets('standalone tile tap pushes the dive detail', (tester) async {
+      final router = await pumpList(
+        tester,
+        overrides: await detailedOverrides(),
+        showAppBar: false,
+      );
+
+      // No onItemSelected callback, so this is standalone mode: the tile
+      // navigates rather than driving a master-detail pane.
+      await tester.tap(find.byType(DiveListTile).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('detail:d1'), findsOneWidget);
+      expect(router.routerDelegate.canPop(), isTrue);
+    });
+
+    for (final showAppBar in const [true, false]) {
+      final bar = showAppBar ? 'app bar' : 'compact bar';
+      testWidgets('$bar advanced search pushes the search page', (
+        tester,
+      ) async {
+        final router = await pumpList(
+          tester,
+          overrides: await detailedOverrides(),
+          showAppBar: showAppBar,
+        );
+
+        await tester.tap(find.byIcon(Icons.more_vert).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Advanced Search').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('search page'), findsOneWidget);
+        expect(router.routerDelegate.canPop(), isTrue);
+      });
+    }
   });
 }

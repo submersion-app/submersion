@@ -10,6 +10,7 @@ import 'package:submersion/features/media/presentation/widgets/credentials_host_
 import 'package:submersion/features/media/presentation/widgets/manifest_subscription_card.dart';
 import 'package:submersion/features/media/presentation/widgets/network_cache_card.dart';
 import 'package:submersion/features/media/presentation/widgets/network_scan_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings -> Data -> Media Sources -> Network Sources page.
 ///
@@ -24,8 +25,9 @@ class NetworkSourcesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      // TODO(media): l10n
-      appBar: AppBar(title: const Text('Network Sources')),
+      appBar: AppBar(
+        title: Text(context.l10n.settings_photosMedia_networkSources_title),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -37,8 +39,7 @@ class NetworkSourcesPage extends ConsumerWidget {
           const SizedBox(height: 24),
           FilledButton.tonalIcon(
             icon: const Icon(Icons.travel_explore_outlined),
-            // TODO(media): l10n
-            label: const Text('Scan all network media'),
+            label: Text(context.l10n.media_scan_title),
             onPressed: () => showDialog<void>(
               context: context,
               barrierDismissible: false,
@@ -46,11 +47,8 @@ class NetworkSourcesPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // TODO(media): l10n
           Text(
-            'Re-checks every URL- or manifest-imported photo against its '
-            'host. Marks unreachable items so they show "missing" in your '
-            'library and can be cleaned up.',
+            context.l10n.settings_networkSources_scanDescription,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

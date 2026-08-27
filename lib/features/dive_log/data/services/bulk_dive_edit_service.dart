@@ -1,0 +1,391 @@
+import 'package:drift/drift.dart';
+import 'package:submersion/core/constants/enums.dart' as en;
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart' as de;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
+    as dw;
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as se;
+
+/// Orchestrates a bulk edit across repositories in a single transaction.
+///
+/// `DiveTank`, `DiveWeight`, `Sighting` referenced unprefixed here are the Drift
+/// row classes (from database.dart); the `de`/`dw`/`en`/`se` prefixes are the
+/// domain entities/enums.
+class BulkDiveEditService {
+  BulkDiveEditService(this._diveRepo, this._buddyRepo, this._speciesRepo);
+
+  final DiveRepository _diveRepo;
+  final BuddyRepository _buddyRepo;
+  final SpeciesRepository _speciesRepo;
+  final _sync = SyncRepository();
+
+  AppDatabase get _db => DatabaseService.instance.database;
+
+  /// Apply [req] to every dive in [req.diveIds] inside one transaction,
+  /// capturing the prior state first. Fires a single local-change notification.
+  Future<BulkEditSnapshot> apply(BulkEditRequest req) async {
+    final ids = req.diveIds;
+    if (ids.isEmpty) {
+      return const BulkEditSnapshot(priorDiveRows: []);
+    }
+
+    // Capture prior state before mutating (reads outside the transaction).
+    final priorDiveRows = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.isIn(ids))).get();
+
+    Map<String, List<String>>? priorTagIds;
+    Map<String, List<String>>? priorDiveTypeIds;
+    Map<String, List<String>>? priorEquipmentIds;
+    Map<String, List<BuddyWithRole>>? priorBuddies;
+    Map<String, List<DiveTank>>? priorTanks;
+    List<DiveTank>? priorTankSpecRows;
+    Map<String, List<DiveWeight>>? priorWeights;
+    Map<String, List<Sighting>>? priorSightings;
+
+    for (final op in req.ops) {
+      switch (op) {
+        case TagsOp():
+          final rows = await (_db.select(
+            _db.diveTags,
+          )..where((t) => t.diveId.isIn(ids))).get();
+          priorTagIds = {for (final id in ids) id: <String>[]};
+          for (final r in rows) {
+            priorTagIds[r.diveId]!.add(r.tagId);
+          }
+        case DiveTypesOp():
+          // Order by createdAt so undo restores the original representative
+          // (the first type), matching _diveTypesForDives.
+          final rows =
+              await (_db.select(_db.diveDiveTypes)
+                    ..where((t) => t.diveId.isIn(ids))
+                    ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+                  .get();
+          priorDiveTypeIds = {for (final id in ids) id: <String>[]};
+          for (final r in rows) {
+            priorDiveTypeIds[r.diveId]!.add(r.diveTypeId);
+          }
+          // Legacy dives with no junction rows: seed from the representative
+          // column so undo restores their type instead of recreational.
+          for (final row in priorDiveRows) {
+            if (priorDiveTypeIds[row.id]!.isEmpty) {
+              priorDiveTypeIds[row.id]!.add(row.diveType);
+            }
+          }
+        case EquipmentOp():
+          final rows = await (_db.select(
+            _db.diveEquipment,
+          )..where((t) => t.diveId.isIn(ids))).get();
+          priorEquipmentIds = {for (final id in ids) id: <String>[]};
+          for (final r in rows) {
+            priorEquipmentIds[r.diveId]!.add(r.equipmentId);
+          }
+        case BuddiesOp():
+          priorBuddies = {
+            for (final id in ids) id: await _buddyRepo.getBuddiesForDive(id),
+          };
+        case TanksOp():
+          final rows = await (_db.select(
+            _db.diveTanks,
+          )..where((t) => t.diveId.isIn(ids))).get();
+          priorTanks = {for (final id in ids) id: <DiveTank>[]};
+          for (final r in rows) {
+            priorTanks[r.diveId]!.add(r);
+          }
+        case TankSpecsOp():
+          // Flat list, not keyed by dive: the restore matches on row id.
+          priorTankSpecRows = await (_db.select(
+            _db.diveTanks,
+          )..where((t) => t.diveId.isIn(ids))).get();
+        case WeightsOp():
+          final rows = await (_db.select(
+            _db.diveWeights,
+          )..where((t) => t.diveId.isIn(ids))).get();
+          priorWeights = {for (final id in ids) id: <DiveWeight>[]};
+          for (final r in rows) {
+            priorWeights[r.diveId]!.add(r);
+          }
+        case SightingsOp():
+          final rows = await (_db.select(
+            _db.sightings,
+          )..where((t) => t.diveId.isIn(ids))).get();
+          priorSightings = {for (final id in ids) id: <Sighting>[]};
+          for (final r in rows) {
+            priorSightings[r.diveId]!.add(r);
+          }
+      }
+    }
+
+    await _db.transaction(() async {
+      if (req.hasScalarChanges) {
+        await _diveRepo.bulkUpdateFields(ids, req.scalars);
+      }
+      if (req.notesAppend != null && req.notesAppend!.isNotEmpty) {
+        await _diveRepo.bulkAppendNotes(ids, req.notesAppend!);
+      }
+      for (final op in req.ops) {
+        await _applyOp(ids, op);
+      }
+    });
+
+    SyncEventBus.notifyLocalChange();
+
+    return BulkEditSnapshot(
+      priorDiveRows: priorDiveRows,
+      priorTagIds: priorTagIds,
+      priorDiveTypeIds: priorDiveTypeIds,
+      priorEquipmentIds: priorEquipmentIds,
+      priorBuddies: priorBuddies,
+      priorTanks: priorTanks,
+      priorTankSpecRows: priorTankSpecRows,
+      priorWeights: priorWeights,
+      priorSightings: priorSightings,
+    );
+  }
+
+  /// Reverse a prior [apply]: restore each dive's prior scalar columns and the
+  /// prior membership of every touched collection. One transaction, one notify.
+  Future<void> undo(BulkEditSnapshot snapshot) async {
+    if (snapshot.priorDiveRows.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ids = snapshot.priorDiveRows.map((r) => r.id).toList();
+
+    await _db.transaction(() async {
+      // Restore scalar columns from the full prior row (nullToAbsent: false so
+      // prior NULLs are restored), with a fresh updatedAt so the undo wins LWW.
+      for (final row in snapshot.priorDiveRows) {
+        await (_db.update(_db.dives)..where((t) => t.id.equals(row.id))).write(
+          row.toCompanion(false).copyWith(updatedAt: Value(now)),
+        );
+        await _sync.markRecordPending(
+          entityType: 'dives',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+
+      final tags = snapshot.priorTagIds;
+      if (tags != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceTags([id], tags[id] ?? const []);
+        }
+      }
+      final diveTypes = snapshot.priorDiveTypeIds;
+      if (diveTypes != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceDiveTypes([id], diveTypes[id] ?? const []);
+        }
+      }
+      final equip = snapshot.priorEquipmentIds;
+      if (equip != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceEquipment([id], equip[id] ?? const []);
+        }
+      }
+      final buddies = snapshot.priorBuddies;
+      if (buddies != null) {
+        for (final id in ids) {
+          await _buddyRepo.bulkReplaceBuddies([id], buddies[id] ?? const []);
+        }
+      }
+      final tanks = snapshot.priorTanks;
+      if (tanks != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceTanks([
+            id,
+          ], _tanksFromRows(tanks[id] ?? const []));
+        }
+      }
+      final tankSpecRows = snapshot.priorTankSpecRows;
+      if (tankSpecRows != null) {
+        await _diveRepo.bulkRestoreTankRows(tankSpecRows);
+      }
+      final weights = snapshot.priorWeights;
+      if (weights != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceWeights([
+            id,
+          ], _weightsFromRows(weights[id] ?? const []));
+        }
+      }
+      final sightings = snapshot.priorSightings;
+      if (sightings != null) {
+        for (final id in ids) {
+          await _speciesRepo.bulkReplaceSightings([
+            id,
+          ], _sightingsFromRows(sightings[id] ?? const []));
+        }
+      }
+    });
+
+    SyncEventBus.notifyLocalChange();
+  }
+
+  Future<void> _applyOp(List<String> ids, BulkCollectionOp op) async {
+    switch (op) {
+      case TagsOp(:final mode, :final tagIds):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddTags(ids, tagIds);
+          case BulkCollectionMode.remove:
+            await _diveRepo.bulkRemoveTags(ids, tagIds);
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceTags(ids, tagIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Tags have no in-place update');
+        }
+      case DiveTypesOp(:final mode, :final diveTypeIds):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddDiveTypes(ids, diveTypeIds);
+          case BulkCollectionMode.remove:
+            await _diveRepo.bulkRemoveDiveTypes(ids, diveTypeIds);
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceDiveTypes(ids, diveTypeIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Dive types have no in-place update');
+        }
+      case EquipmentOp(:final mode, :final equipmentIds):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddEquipment(ids, equipmentIds);
+          case BulkCollectionMode.remove:
+            await _diveRepo.bulkRemoveEquipment(ids, equipmentIds);
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceEquipment(ids, equipmentIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Equipment has no in-place update');
+        }
+      case BuddiesOp(:final mode, :final buddies, :final overwriteRole):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _buddyRepo.bulkAddBuddies(
+              ids,
+              buddies,
+              overwriteRole: overwriteRole,
+            );
+          case BulkCollectionMode.remove:
+            await _buddyRepo.bulkRemoveBuddies(
+              ids,
+              buddies.map((b) => b.buddy.id).toList(),
+            );
+          case BulkCollectionMode.replace:
+            await _buddyRepo.bulkReplaceBuddies(ids, buddies);
+          case BulkCollectionMode.update:
+            // Role-only: rewrite the links each dive already has and insert
+            // nothing, so changing the role of a buddy who is on some of the
+            // selection cannot add them to the rest (#1220). A role change
+            // that SHOULD travel with membership still rides
+            // add + overwriteRole (#893).
+            await _buddyRepo.bulkUpdateBuddyRoles(ids, buddies);
+        }
+      // Owned collections never support remove; reject it explicitly so a
+      // misconstructed op fails fast instead of silently doing an add. Tanks
+      // additionally support an in-place update, carried by TankSpecsOp.
+      case TanksOp(:final mode, :final tanks, :final onlyIfEmpty):
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceTanks(ids, tanks);
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddTanks(ids, tanks, onlyIfEmpty: onlyIfEmpty);
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Tanks support only add/replace, not remove',
+            );
+          case BulkCollectionMode.update:
+            // In-place spec edits arrive as TankSpecsOp, which carries the
+            // field mask a plain tank list cannot express.
+            throw UnsupportedError('Use TankSpecsOp to update tanks in place');
+        }
+      case TankSpecsOp(:final specs, :final fields):
+        await _diveRepo.bulkUpdateTankSpecs(ids, specs, fields);
+      case WeightsOp(:final mode, :final weights):
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceWeights(ids, weights);
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddWeights(ids, weights);
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Weights support only add/replace, not remove',
+            );
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Weights have no in-place update');
+        }
+      case SightingsOp(:final mode, :final sightings):
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _speciesRepo.bulkReplaceSightings(ids, sightings);
+          case BulkCollectionMode.add:
+            await _speciesRepo.bulkAddSightings(ids, sightings);
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Sightings support only add/replace, not remove',
+            );
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Sightings have no in-place update');
+        }
+    }
+  }
+
+  // Map Drift rows back to the domain objects the bulk-replace methods consume.
+  List<de.DiveTank> _tanksFromRows(List<DiveTank> rows) => [
+    for (final r in rows)
+      de.DiveTank(
+        id: '',
+        name: r.tankName,
+        volume: r.volume,
+        workingPressure: r.workingPressure,
+        startPressure: r.startPressure,
+        endPressure: r.endPressure,
+        gasMix: de.GasMix(o2: r.o2Percent, he: r.hePercent),
+        role: en.TankRole.values.firstWhere(
+          (e) => e.name == r.tankRole,
+          orElse: () => en.TankRole.backGas,
+        ),
+        material: r.tankMaterial == null
+            ? null
+            : en.TankMaterial.values.firstWhere(
+                (e) => e.name == r.tankMaterial,
+                orElse: () => en.TankMaterial.aluminum,
+              ),
+        presetName: r.presetName,
+      ),
+  ];
+
+  List<dw.DiveWeight> _weightsFromRows(List<DiveWeight> rows) => [
+    for (final r in rows)
+      dw.DiveWeight(
+        id: '',
+        diveId: '',
+        weightType: en.WeightType.values.firstWhere(
+          (e) => e.name == r.weightType,
+          orElse: () => en.WeightType.values.first,
+        ),
+        amountKg: r.amountKg,
+        notes: r.notes,
+      ),
+  ];
+
+  List<se.Sighting> _sightingsFromRows(List<Sighting> rows) => [
+    for (final r in rows)
+      se.Sighting(
+        id: '',
+        diveId: '',
+        speciesId: r.speciesId,
+        speciesName: '',
+        count: r.count,
+        notes: r.notes,
+      ),
+  ];
+}

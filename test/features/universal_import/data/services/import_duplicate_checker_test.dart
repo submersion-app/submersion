@@ -30,6 +30,7 @@ void main() {
     List<Tag> tags = const [],
     List<DiveTypeEntity> diveTypes = const [],
     Map<String, String> existingSourceUuidByDiveId = const {},
+    bool checkIntraBatch = false,
   }) {
     return checker.check(
       payload: payload ?? const ImportPayload(entities: {}),
@@ -43,6 +44,7 @@ void main() {
       existingTags: tags,
       existingDiveTypes: diveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
+      checkIntraBatch: checkIntraBatch,
     );
   }
 
@@ -452,6 +454,65 @@ void main() {
 
       expect(result.diveMatches, contains(0));
     });
+
+    test('content (fuzzy) match leaves matchedExistingSource false', () {
+      final diveTime = DateTime(2024, 1, 15, 10, 0);
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': diveTime,
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: diveTime.add(const Duration(minutes: 2)),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+      );
+
+      final match = result.diveMatchFor(0);
+      expect(match, isNotNull);
+      expect(match!.matchedExistingSource, isFalse);
+    });
+
+    test('does not match a dive far apart in time even with identical '
+        'depth and duration', () {
+      // ScubaBoard regression at the checker level: months apart, same depth,
+      // same duration. Only the DiveMatcher time-gate keeps this from being
+      // flagged as a possible duplicate.
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2024, 3, 15, 10, 0),
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 47),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: DateTime(2024, 6, 20, 14, 0),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 47),
+          ),
+        ],
+      );
+
+      expect(result.diveMatches, isEmpty);
+    });
   });
 
   group('Dive duplicates (source_uuid)', () {
@@ -619,6 +680,37 @@ void main() {
       // No UUID match (both empty), and content doesn't match either.
       expect(result.diveMatches, isEmpty);
     });
+
+    test('source_uuid match flags matchedExistingSource so it defaults '
+        'to skip', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'sourceUuid': 'XYZ',
+                'dateTime': DateTime(2024, 1, 15, 10, 0),
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: DateTime(2024, 1, 15, 10, 0),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        existingSourceUuidByDiveId: const {'existing-1': 'XYZ'},
+      );
+
+      final match = result.diveMatchFor(0);
+      expect(match, isNotNull);
+      expect(match!.matchedExistingSource, isTrue);
+    });
   });
 
   group('Empty payload', () {
@@ -689,6 +781,151 @@ void main() {
       expect(result.duplicates[ImportEntityType.trips], {0});
       expect(result.duplicates[ImportEntityType.buddies], {0});
       expect(result.diveMatches, contains(0));
+    });
+  });
+
+  group('Intra-batch dive duplicates', () {
+    test('flags the later of two in-batch dives matching by sourceUuid', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 1, 1, 9),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+                'sourceUuid': 'uuid-1',
+                '_sourceFile': 'a.fit',
+              },
+              {
+                'dateTime': DateTime(2026, 1, 1, 9),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+                'sourceUuid': 'uuid-1',
+                '_sourceFile': 'b.uddf',
+              },
+            ],
+          },
+        ),
+        checkIntraBatch: true,
+      );
+
+      expect(result.diveMatches, hasLength(1));
+      final match = result.diveMatches[1]!;
+      expect(match.inBatchIndex, 0);
+      expect(match.diveId, '');
+      expect(match.score, 1.0);
+      expect(match.siteName, 'a.fit');
+    });
+
+    test('flags the later of two in-batch dives matching fuzzily', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 1, 1, 9, 0),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+              {
+                'dateTime': DateTime(2026, 1, 1, 9, 1), // 1 min apart
+                'maxDepth': 18.2,
+                'duration': const Duration(minutes: 44),
+              },
+            ],
+          },
+        ),
+        checkIntraBatch: true,
+      );
+
+      expect(result.diveMatches.keys, [1]);
+      expect(result.diveMatches[1]!.inBatchIndex, 0);
+    });
+
+    test('does not flag far-apart in-batch dives (time gate respected)', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 1, 1, 9),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+              {
+                'dateTime': DateTime(2026, 3, 1, 9), // months apart
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        checkIntraBatch: true,
+      );
+
+      expect(result.diveMatches, isEmpty);
+    });
+
+    test('checkIntraBatch=false (default) preserves existing behavior', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 1, 1, 9),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+              {
+                'dateTime': DateTime(2026, 1, 1, 9),
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+      );
+
+      expect(result.diveMatches, isEmpty);
+    });
+
+    test('in-batch duplicate is not double-reported against the database', () {
+      final diveTime = DateTime(2026, 1, 1, 9);
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': diveTime,
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+              {
+                'dateTime': diveTime,
+                'maxDepth': 18.0,
+                'duration': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: diveTime,
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        checkIntraBatch: true,
+      );
+
+      // Dive 1 is an in-batch duplicate of dive 0; dive 0 matches the DB.
+      expect(result.diveMatches, hasLength(2));
+      expect(result.diveMatches[1]!.inBatchIndex, 0);
+      expect(result.diveMatches[1]!.diveId, '');
+      expect(result.diveMatches[0]!.inBatchIndex, isNull);
+      expect(result.diveMatches[0]!.diveId, 'existing-1');
     });
   });
 }

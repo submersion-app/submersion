@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -29,6 +28,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
           _buildBottomTimeSection(context, ref),
           const SizedBox(height: 16),
           _buildDivesPerYearSection(context, ref),
+          const SizedBox(height: 16),
+          _buildDivesBySuitThicknessSection(context, ref),
           const SizedBox(height: 16),
           _buildCumulativeSection(context, ref),
         ],
@@ -85,7 +86,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
         data: (data) => TrendLineChart(
           data: data,
           lineColor: Colors.teal,
-          valueFormatter: (value) => '${value.toStringAsFixed(0)} min',
+          valueFormatter: (value) => context.l10n
+              .surfaceInterval_format_minutes(value.toStringAsFixed(0)),
         ),
         loading: () => const SizedBox(
           height: 200,
@@ -117,13 +119,17 @@ class StatisticsProgressionPage extends ConsumerWidget {
               .map((d) => (label: '${d.year}', count: d.count))
               .toList();
           final description = data
-              .map((d) => '${d.count} dives in ${d.year}')
+              .map(
+                (d) => context.l10n
+                    .statistics_progression_divesPerYear_countInYear(
+                      d.count,
+                      '${d.year}',
+                    ),
+              )
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: description,
-            ),
+            label: context.l10n
+                .statistics_progression_divesPerYear_semanticLabel(description),
             child: CategoryBarChart(
               data: chartData,
               barColor: Theme.of(context).colorScheme.primary,
@@ -141,6 +147,63 @@ class StatisticsProgressionPage extends ConsumerWidget {
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.statistics_progression_divesPerYear_error,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivesBySuitThicknessSection(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final thicknessAsync = ref.watch(divesBySuitThicknessProvider);
+
+    // Space before the unit ("5 mm"), matching the attribute formatter and
+    // the rest of the app's thickness rendering.
+    String label(double mm) =>
+        mm == mm.roundToDouble() ? '${mm.toStringAsFixed(0)} mm' : '$mm mm';
+
+    return StatSectionCard(
+      title: context.l10n.statistics_progression_divesBySuitThickness_title,
+      subtitle:
+          context.l10n.statistics_progression_divesBySuitThickness_subtitle,
+      child: thicknessAsync.when(
+        data: (data) {
+          if (data.isEmpty) {
+            return StatEmptyState(
+              icon: Icons.bar_chart,
+              message: context
+                  .l10n
+                  .statistics_progression_divesBySuitThickness_empty,
+            );
+          }
+          final chartData = data
+              .map((d) => (label: label(d.mm), count: d.count))
+              .toList();
+          // Locale-neutral label:count pairs so the screen-reader summary
+          // matches the app locale rather than hard-coded English prose.
+          final description = data
+              .map((d) => '${label(d.mm)}: ${d.count}')
+              .join(', ');
+          return Semantics(
+            label: context.l10n
+                .statistics_progression_divesBySuitThickness_semanticLabel(
+                  description,
+                ),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Theme.of(context).colorScheme.tertiary,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message:
+              context.l10n.statistics_progression_divesBySuitThickness_error,
         ),
       ),
     );

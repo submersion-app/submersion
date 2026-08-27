@@ -7,14 +7,23 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
+import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
+import 'package:submersion/core/presentation/startup_failure.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
+import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -107,6 +116,12 @@ Widget _buildStartupWrapper({
     required BackupPreferences preferences,
   })?
   preMigrationBackupFactory,
+  void Function()? enginePreflightOverride,
+  Future<void> Function(
+    String backupPath,
+    void Function(int currentStep, int totalSteps) onMigrationProgress,
+  )?
+  restoreOverride,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -116,6 +131,10 @@ Widget _buildStartupWrapper({
     schemaVersionProbeOverride: schemaVersionProbeOverride,
     closeAppOverride: closeAppOverride,
     preMigrationBackupFactory: preMigrationBackupFactory,
+    // Default to a no-op so widget tests never depend on the host runner's
+    // linked SQLite. Tests that WANT an engine failure pass their own.
+    enginePreflightOverride: enginePreflightOverride ?? () {},
+    restoreOverride: restoreOverride,
   );
 }
 
@@ -133,6 +152,9 @@ Widget _buildSplashContent({
   ),
 }) {
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('en'),
     home: Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -184,52 +206,25 @@ Widget _buildVersionMismatchError({
   required int dbVersion,
   required int appVersion,
   VoidCallback? onClose,
+  VoidCallback? onDownloadLatest,
 }) {
-  const textColor = Colors.black87;
-  const subtitleColor = Colors.black54;
-
+  // Renders the real production widget so these tests cannot drift from the
+  // screen users actually see (the previous inline replica did exactly that).
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('en'),
     home: Scaffold(
       key: const ValueKey('error'),
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.update, size: 64, color: Colors.orange),
-                const SizedBox(height: 24),
-                const Text(
-                  'Update Required',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Your dive data was saved by a newer version of '
-                  'Submersion (schema v$dbVersion). This version '
-                  'only supports up to schema v$appVersion.',
-                  style: const TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Please update Submersion to the latest version. '
-                  'Your data is safe and has not been modified.',
-                  style: TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: onClose ?? () {},
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
+          child: VersionMismatchView(
+            databaseVersion: dbVersion,
+            appVersion: appVersion,
+            textColor: Colors.black87,
+            subtitleColor: Colors.black54,
+            onDownloadLatest: onDownloadLatest ?? () {},
+            onClose: onClose ?? () {},
           ),
         ),
       ),
@@ -237,53 +232,27 @@ Widget _buildVersionMismatchError({
   );
 }
 
+/// Hosts the REAL terminal failure widget rather than a copy of its layout,
+/// so these tests cannot drift from what StartupWrapper actually renders.
 Widget _buildGenericError({
   required String errorMessage,
   VoidCallback? onClose,
+  StartupFailureKind kind = StartupFailureKind.unknown,
 }) {
-  const textColor = Colors.black87;
-  const subtitleColor = Colors.black54;
-
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('en'),
     home: Scaffold(
       key: const ValueKey('error'),
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 24),
-                const Text(
-                  'Database upgrade failed',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  errorMessage,
-                  style: const TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Try restarting the app. If this persists, '
-                  'reinstall or contact support.',
-                  style: TextStyle(fontSize: 14, color: subtitleColor),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: onClose ?? () {},
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
+          child: StartupFailureView(
+            kind: kind,
+            details: errorMessage,
+            textColor: Colors.black87,
+            subtitleColor: Colors.black54,
+            onClose: onClose ?? () {},
           ),
         ),
       ),
@@ -416,6 +385,50 @@ void main() {
 
       expect(find.byKey(const ValueKey('error')), findsOneWidget);
     });
+
+    testWidgets('offers a download link for the latest version', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Download Latest Version'), findsOneWidget);
+    });
+
+    testWidgets('mentions the pre-upgrade backup conditionally', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      // A newer-on-disk database means no pre-migration backup ran on this
+      // launch (PreMigrationBackupService returns early when stored >= target),
+      // and the database may have arrived from another device entirely. The
+      // copy must not promise a backup this device might never have taken.
+      expect(
+        find.textContaining('If a backup was taken before the upgrade'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows the release URL as a manual fallback', (tester) async {
+      await tester.pumpWidget(
+        _buildVersionMismatchError(dbVersion: 137, appVersion: 136),
+      );
+      await tester.pumpAndSettle();
+
+      // launchUrl can fail (headless Linux, sandboxed or kiosk builds); the
+      // visible URL is what keeps the button's failure path recoverable.
+      expect(
+        find.textContaining(VersionMismatchView.latestReleaseUrl),
+        findsOneWidget,
+      );
+      expect(find.textContaining('does not open a browser'), findsOneWidget);
+    });
   });
 
   group('Error UI - generic error', () {
@@ -425,9 +438,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Database upgrade failed'), findsOneWidget);
+      expect(find.text('Submersion could not start'), findsOneWidget);
       expect(find.text('Migration step 42 failed'), findsOneWidget);
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    });
+
+    testWidgets('an unclassified failure does not claim the upgrade failed', (
+      tester,
+    ) async {
+      // Issue #1134: the fixed title told divers their upgrade failed on
+      // every terminal failure, including ones where nothing was upgraded.
+      await tester.pumpWidget(_buildGenericError(errorMessage: 'Disk is full'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsNothing);
+    });
+
+    testWidgets('a genuine migration failure still says so', (tester) async {
+      await tester.pumpWidget(
+        _buildGenericError(
+          errorMessage: 'Migration step 42 failed',
+          kind: StartupFailureKind.migrationFailed,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsOneWidget);
     });
 
     testWidgets('shows restart guidance', (tester) async {
@@ -462,7 +498,7 @@ void main() {
       await tester.pumpWidget(_buildGenericError(errorMessage: ''));
       await tester.pumpAndSettle();
 
-      expect(find.text('Database upgrade failed'), findsOneWidget);
+      expect(find.text('Submersion could not start'), findsOneWidget);
       expect(find.text('Close'), findsOneWidget);
     });
   });
@@ -475,6 +511,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
           home: Scaffold(
             body: ValueListenableBuilder<MigrationProgress>(
               valueListenable: progressNotifier,
@@ -518,6 +557,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
           home: Scaffold(
             body: LinearProgressIndicator(value: progress.fraction),
           ),
@@ -603,6 +645,61 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
 
+    testWidgets('splash renders dark when cached theme mode is dark', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({cachedThemeModeKey: 'dark'});
+      prefs = await SharedPreferences.getInstance();
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
+      // Drain the 1-second splash delay timer to avoid pending timer errors.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash follows platform brightness when cache is absent', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
     testWidgets('shows migration progress when migration is needed', (
       tester,
     ) async {
@@ -661,8 +758,8 @@ void main() {
               (needsMigration: false, totalSteps: 0),
           initializerOverride: (_) async {
             throw const DatabaseVersionMismatchException(
-              databaseVersion: 99,
-              appVersion: 63,
+              storedSchemaVersion: 99,
+              supportedSchemaVersion: 63,
             );
           },
         ),
@@ -701,7 +798,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show generic error UI
-      expect(find.text('Database upgrade failed'), findsOneWidget);
+      // No migration was pending, so the failure must NOT be reported as one.
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.text('Database upgrade failed'), findsNothing);
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
       expect(find.textContaining('Disk is full'), findsOneWidget);
       expect(find.byKey(const ValueKey('error')), findsOneWidget);
@@ -750,8 +849,8 @@ void main() {
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
               throw const DatabaseVersionMismatchException(
-                databaseVersion: 70,
-                appVersion: 63,
+                storedSchemaVersion: 70,
+                supportedSchemaVersion: 63,
               );
             },
             closeAppOverride: () => closeCalled = true,
@@ -939,8 +1038,8 @@ void main() {
               (needsMigration: false, totalSteps: 0),
           initializerOverride: (_) async {
             throw const DatabaseVersionMismatchException(
-              databaseVersion: 100,
-              appVersion: 50,
+              storedSchemaVersion: 100,
+              supportedSchemaVersion: 50,
             );
           },
         ),
@@ -1269,8 +1368,8 @@ void main() {
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
               throw sqlite3.SqliteException(
-                776,
-                'attempt to write a readonly database',
+                extendedResultCode: 776,
+                message: 'attempt to write a readonly database',
               );
             },
           ),
@@ -1306,7 +1405,10 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
-              throw sqlite3.SqliteException(776, 'readonly');
+              throw sqlite3.SqliteException(
+                extendedResultCode: 776,
+                message: 'readonly',
+              );
             },
           ),
         );
@@ -1318,31 +1420,37 @@ void main() {
       },
     );
 
-    testWidgets(
-      'non-readonly SqliteException (e.g. SQLITE_BUSY) still shows generic error',
-      (tester) async {
-        await tester.pumpWidget(
-          _buildStartupWrapper(
-            prefs: prefs,
-            logFileService: logFileService,
-            locationService: locationService,
-            schemaVersionProbeOverride: (_) =>
-                (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
-              // SQLITE_BUSY — primary code 5; not in the READONLY family.
-              throw sqlite3.SqliteException(5, 'database is locked');
-            },
-          ),
-        );
+    testWidgets('SQLITE_BUSY shows the lock screen, not the recovery flow', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            // SQLITE_BUSY — primary code 5; not in the READONLY family.
+            throw sqlite3.SqliteException(
+              extendedResultCode: 5,
+              message: 'database is locked',
+            );
+          },
+        ),
+      );
 
-        await tester.pump(const Duration(seconds: 2));
-        await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Database upgrade failed'), findsOneWidget);
-        expect(find.byIcon(Icons.error_outline), findsOneWidget);
-        expect(find.text('Database needs recovery'), findsNothing);
-      },
-    );
+      // A lock is not corruption: it must not offer recovery, and it must
+      // not be reported as the generic unclassified failure either -- the
+      // database was never written to, so the diver can be told so.
+      expect(find.textContaining('was busy'), findsOneWidget);
+      expect(find.byIcon(Icons.lock_clock), findsOneWidget);
+      expect(find.text('Submersion could not start'), findsNothing);
+      expect(find.text('Database needs recovery'), findsNothing);
+    });
 
     testWidgets(
       'Close without recovering invokes closeAppOverride exactly once',
@@ -1356,7 +1464,10 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
-              throw sqlite3.SqliteException(776, 'readonly');
+              throw sqlite3.SqliteException(
+                extendedResultCode: 776,
+                message: 'readonly',
+              );
             },
             closeAppOverride: () => closeCalled++,
           ),
@@ -1395,7 +1506,10 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
-              throw sqlite3.SqliteException(776, 'readonly');
+              throw sqlite3.SqliteException(
+                extendedResultCode: 776,
+                message: 'readonly',
+              );
             },
           ),
         );
@@ -1439,7 +1553,10 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
             initializerOverride: (_) async {
-              throw sqlite3.SqliteException(776, 'readonly');
+              throw sqlite3.SqliteException(
+                extendedResultCode: 776,
+                message: 'readonly',
+              );
             },
           ),
         );
@@ -1486,7 +1603,10 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
           initializerOverride: (_) async {
-            throw sqlite3.SqliteException(776, 'readonly');
+            throw sqlite3.SqliteException(
+              extendedResultCode: 776,
+              message: 'readonly',
+            );
           },
         ),
       );
@@ -1530,7 +1650,10 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
           initializerOverride: (_) async {
-            throw sqlite3.SqliteException(776, 'readonly');
+            throw sqlite3.SqliteException(
+              extendedResultCode: 776,
+              message: 'readonly',
+            );
           },
           closeAppOverride: () => closeCalled++,
         ),
@@ -1568,7 +1691,10 @@ void main() {
           initializerOverride: (_) async {
             calls++;
             if (calls == 1) {
-              throw sqlite3.SqliteException(776, 'readonly');
+              throw sqlite3.SqliteException(
+                extendedResultCode: 776,
+                message: 'readonly',
+              );
             }
             await Completer<void>().future;
           },
@@ -1596,6 +1722,324 @@ void main() {
 
       // Drain the 1-second splash-delay timer started by _runInitialization.
       await tester.pump(const Duration(seconds: 2));
+    });
+  });
+
+  // =========================================================================
+  // Startup failure classification (issue #1134)
+  // =========================================================================
+
+  group('startup failure classification', () {
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late DatabaseLocationService locationService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      locationService = _FakeLocationService(prefs);
+    });
+
+    testWidgets('a failed engine preflight aborts before anything opens the '
+        'database', (tester) async {
+      var initializerCalls = 0;
+      var probeCalls = 0;
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          enginePreflightOverride: () {
+            throw const DatabaseEngineUnavailableException(
+              'The SQLite native library could not be loaded.',
+            );
+          },
+          schemaVersionProbeOverride: (_) {
+            probeCalls++;
+            return (needsMigration: false, totalSteps: 0);
+          },
+          initializerOverride: (_) async => initializerCalls++,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(probeCalls, 0, reason: 'the schema probe must not run');
+      expect(initializerCalls, 0, reason: 'services must not start');
+      expect(find.textContaining("build can't open"), findsOneWidget);
+      expect(find.text('Database upgrade failed'), findsNothing);
+    });
+
+    testWidgets('an engine failure offers no restore, even with a backup '
+        'sitting on disk', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('startup-engine-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final backupFile = File(p.join(dir.path, 'backup.db'))
+        ..writeAsStringSync('not really a database');
+      await BackupPreferences(prefs).addRecord(
+        BackupRecord(
+          id: 'b1',
+          filename: 'backup.db',
+          timestamp: DateTime.utc(2026, 8, 17),
+          sizeBytes: 21,
+          location: BackupLocation.local,
+          localPath: backupFile.path,
+          type: BackupType.preMigration,
+          fromSchemaVersion: 141,
+          toSchemaVersion: 142,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          enginePreflightOverride: () {
+            throw const DatabaseEngineUnavailableException('no library');
+          },
+          initializerOverride: (_) async {},
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Restore this backup'), findsNothing);
+      expect(find.textContaining('no data is at risk'), findsOneWidget);
+    });
+
+    testWidgets('a failure during the upgrade ladder IS reported as a failed '
+        'upgrade', (tester) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
+          initializerOverride: (_) async {
+            throw Exception('migration step 2 blew up');
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsOneWidget);
+      // Item 4: the guided-downgrade route, offered only for this class.
+      expect(find.text('View previous releases'), findsOneWidget);
+    });
+
+    testWidgets('a service failure AFTER a successful upgrade is not '
+        'reported as a failed upgrade', (tester) async {
+      // The ladder reports after each completed step, so onProgress(3, 3)
+      // means the upgrade finished. Everything thrown past that point is
+      // ordinary service startup (notifications, tile cache, ...) and must
+      // not inherit the migration title, or #1134 is only half fixed.
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
+          initializerOverride: (onProgress) async {
+            onProgress(1, 3);
+            onProgress(2, 3);
+            onProgress(3, 3);
+            throw Exception('notifications blew up');
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsNothing);
+      expect(find.text('Submersion could not start'), findsOneWidget);
+      expect(find.textContaining('notifications blew up'), findsOneWidget);
+      // The guided-downgrade route belongs to a failed upgrade only.
+      expect(find.text('View previous releases'), findsNothing);
+    });
+
+    testWidgets('a failure part way through the ladder still counts as a '
+        'failed upgrade', (tester) async {
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
+          initializerOverride: (onProgress) async {
+            onProgress(1, 3);
+            onProgress(2, 3);
+            throw Exception('migration step 3 blew up');
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsOneWidget);
+    });
+
+    testWidgets('a pre-migration backup on disk is surfaced with a restore '
+        'route, and restoring resumes startup', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('startup-restore-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final backupFile = File(
+        p.join(dir.path, '20260817-120000000-v141-v142.db'),
+      )..writeAsStringSync('backup bytes');
+      await BackupPreferences(prefs).addRecord(
+        BackupRecord(
+          id: 'b1',
+          filename: p.basename(backupFile.path),
+          timestamp: DateTime.utc(2026, 8, 17, 12),
+          sizeBytes: 12,
+          location: BackupLocation.local,
+          localPath: backupFile.path,
+          isAutomatic: true,
+          type: BackupType.preMigration,
+          fromSchemaVersion: 141,
+          toSchemaVersion: 142,
+        ),
+      );
+
+      var initializerCalls = 0;
+      String? restoredFrom;
+      // The second attempt is left pending on purpose: letting startup reach
+      // `ready` would mount the real app against an uninitialized
+      // DatabaseService, which is not what this test is about.
+      final secondAttempt = Completer<void>();
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
+          initializerOverride: (_) async {
+            initializerCalls++;
+            if (initializerCalls == 1) throw Exception('ladder blew up');
+            await secondAttempt.future;
+          },
+          restoreOverride: (path, _) async => restoredFrom = path,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Database upgrade failed'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsOneWidget);
+      expect(find.textContaining('v141'), findsOneWidget);
+      // The folder holding the backup, offered because backup SETTINGS are
+      // unreachable before the router and database exist.
+      expect(find.textContaining(dir.path), findsOneWidget);
+
+      await tester.tap(find.text('Restore this backup'));
+      // Drive the restore microtasks: setState(running), restoreOverride,
+      // setState(initializing), _runInitialization re-entry, probe, backup,
+      // second initializer call (pends).
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(restoredFrom, backupFile.path);
+      expect(initializerCalls, 2, reason: 'startup must resume after restore');
+      expect(find.text('Database upgrade failed'), findsNothing);
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+
+      // Drain the splash-delay timer started by the second _runInitialization.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('a failed restore leaves the diver on the screen with a '
+        'retry', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('startup-restore-x-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final backupFile = File(p.join(dir.path, 'backup.db'))
+        ..writeAsStringSync('backup bytes');
+      await BackupPreferences(prefs).addRecord(
+        BackupRecord(
+          id: 'b1',
+          filename: 'backup.db',
+          timestamp: DateTime.utc(2026, 8, 17, 12),
+          sizeBytes: 12,
+          location: BackupLocation.local,
+          localPath: backupFile.path,
+          type: BackupType.preMigration,
+          fromSchemaVersion: 141,
+          toSchemaVersion: 142,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: true, totalSteps: 3),
+          preMigrationBackupFactory: _noOpBackupFactory,
+          initializerOverride: (_) async {
+            throw Exception('ladder blew up');
+          },
+          restoreOverride: (_, _) async => throw Exception('swap failed'),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Restore this backup'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('left exactly as it was'), findsOneWidget);
+      expect(find.textContaining('swap failed'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsOneWidget);
+    });
+
+    testWidgets('a cloud-only backup record is not offered as a restore', (
+      tester,
+    ) async {
+      // DatabaseService.restore performs a plain file copy, so a record with
+      // no reachable local file cannot be swapped in.
+      await BackupPreferences(prefs).addRecord(
+        BackupRecord(
+          id: 'b1',
+          filename: 'cloud.db',
+          timestamp: DateTime.utc(2026, 8, 17),
+          sizeBytes: 12,
+          location: BackupLocation.cloud,
+          cloudFileId: 'abc123',
+          type: BackupType.preMigration,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Disk is full');
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Restore this backup'), findsNothing);
     });
   });
 }

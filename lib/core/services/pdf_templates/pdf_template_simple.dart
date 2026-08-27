@@ -2,8 +2,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -23,6 +23,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -35,7 +36,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     final divesPerPage = pageSize == PdfPageSize.a4 ? 20 : 18;
 
     // Header row for the table
-    final headerStyle = pw.TextStyle(
+    const headerStyle = pw.TextStyle(
       fontSize: 9,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey800,
@@ -66,7 +67,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                   children: [
                     pw.Text(
                       title,
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
                       ),
@@ -94,7 +95,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                     ),
                     if (dives.isNotEmpty)
                       pw.Text(
-                        '${PdfSharedComponents.formatDate(dives.last.dateTime)} - ${PdfSharedComponents.formatDate(dives.first.dateTime)}',
+                        '${dates.date(dives.last.dateTime)} - ${dates.date(dives.first.dateTime)}',
                         style: const pw.TextStyle(
                           fontSize: 10,
                           color: PdfColors.grey600,
@@ -140,10 +141,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                     (dive) => pw.TableRow(
                       children: [
                         _buildCell('${dive.diveNumber ?? '-'}', cellStyle),
-                        _buildCell(
-                          PdfSharedComponents.formatDate(dive.dateTime),
-                          cellStyle,
-                        ),
+                        _buildCell(dates.date(dive.dateTime), cellStyle),
                         _buildCell(
                           dive.site?.name ?? '-',
                           cellStyle,
@@ -156,8 +154,8 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                           cellStyle,
                         ),
                         _buildCell(
-                          dive.bottomTime != null
-                              ? '${dive.bottomTime!.inMinutes}min'
+                          dive.effectiveRuntime != null
+                              ? '${dive.effectiveRuntime!.inMinutes}min'
                               : '-',
                           cellStyle,
                         ),
@@ -178,7 +176,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Generated ${PdfSharedComponents.formatDate(DateTime.now())}',
+                    'Generated ${dates.date(DateTime.now())}',
                     style: const pw.TextStyle(
                       fontSize: 8,
                       color: PdfColors.grey500,

@@ -19,6 +19,7 @@ ProfileEvent mapDiveProfileEventToProfileEvent(DiveProfileEvent dbEvent) {
     value: dbEvent.value,
     tankId: dbEvent.tankId,
     source: _parseSource(dbEvent.source),
+    computerId: dbEvent.computerId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(dbEvent.createdAt),
   );
 }

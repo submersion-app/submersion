@@ -14,6 +14,8 @@ import 'package:submersion/features/media/data/services/cached_network_image_dia
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/network_cache_card.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
+
 class _StubDiag implements CachedNetworkImageDiagnostics {
   _StubDiag({required this.initialSize});
   int initialSize;
@@ -32,7 +34,10 @@ class _StubDiag implements CachedNetworkImageDiagnostics {
 
 Widget _wrap(_StubDiag diag) => ProviderScope(
   overrides: [cachedNetworkImageDiagnosticsProvider.overrideWithValue(diag)],
-  child: const MaterialApp(home: Scaffold(body: NetworkCacheCard())),
+  child: localizedMaterialApp(
+    locale: const Locale('en'),
+    home: const Scaffold(body: NetworkCacheCard()),
+  ),
 );
 
 void main() {

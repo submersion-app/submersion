@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
@@ -55,14 +56,28 @@ class StatisticsConditionsPage extends ConsumerWidget {
       title: context.l10n.statistics_conditions_visibility_title,
       subtitle: context.l10n.statistics_conditions_visibility_subtitle,
       child: visibilityAsync.when(
-        data: (data) {
+        data: (raw) {
+          // The repository returns stable keys; localization happens here.
+          final units = UnitFormatter(ref.watch(settingsProvider));
+          final data = raw
+              .map(
+                (d) => DistributionSegment(
+                  label: visibilityDistributionLabel(
+                    d.label,
+                    context.l10n,
+                    units,
+                  ),
+                  count: d.count,
+                  percentage: d.percentage,
+                ),
+              )
+              .toList();
           final description = data
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Pie',
-              description: 'Visibility distribution. $description',
+            label: context.l10n.statistics_conditions_visibility_semanticLabel(
+              description,
             ),
             child: DistributionPieChart(
               data: data,
@@ -94,14 +109,19 @@ class StatisticsConditionsPage extends ConsumerWidget {
       title: context.l10n.statistics_conditions_waterType_title,
       subtitle: context.l10n.statistics_conditions_waterType_subtitle,
       child: waterTypeAsync.when(
-        data: (data) {
+        data: (raw) {
+          // The repository emits stable WaterType enum names; localization
+          // happens here, matching the visibility section above.
+          final data = localizeDistribution(
+            raw,
+            (key) => waterTypeDistributionLabel(key, context.l10n),
+          );
           final description = data
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Pie',
-              description: 'Water type distribution. $description',
+            label: context.l10n.statistics_conditions_waterType_semanticLabel(
+              description,
             ),
             child: DistributionPieChart(
               data: data,
@@ -135,16 +155,25 @@ class StatisticsConditionsPage extends ConsumerWidget {
               message: context.l10n.statistics_conditions_entryMethod_empty,
             );
           }
+          final l10n = context.l10n;
+          // The repository emits stable EntryMethod enum names.
           final chartData = data
-              .map((d) => (label: d.label, count: d.count))
+              .map(
+                (d) => (
+                  label: entryMethodDistributionLabel(d.label, l10n),
+                  count: d.count,
+                ),
+              )
               .toList();
-          final description = data
-              .map((d) => '${d.label}: ${d.count} dives')
+          final description = chartData
+              .map(
+                (d) =>
+                    '${d.label}: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
+              )
               .join(', ');
           return Semantics(
-            label: chartSummaryLabel(
-              chartType: 'Bar',
-              description: 'Entry methods. $description',
+            label: l10n.statistics_conditions_entryMethod_semanticLabel(
+              description,
             ),
             child: CategoryBarChart(data: chartData, barColor: Colors.teal),
           );

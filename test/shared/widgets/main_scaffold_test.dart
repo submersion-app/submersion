@@ -4,15 +4,27 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
-Future<Widget> _buildTestApp({String initialLocation = '/dashboard'}) async {
+Future<Widget> _buildTestApp({
+  String initialLocation = '/dashboard',
+  // Riverpod's sealed Override type is not re-exported; see test_app.dart.
+  List<dynamic> extraOverrides = const [],
+  ThemeData? theme,
+  // MainScaffold reads the color-accent toggles, so settings must be stubbed
+  // here -- the real SettingsNotifier reaches for the database.
+  AppSettings settings = const AppSettings(),
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
@@ -47,6 +59,10 @@ Future<Widget> _buildTestApp({String initialLocation = '/dashboard'}) async {
             builder: (context, state) => const Text('Transfer'),
           ),
           GoRoute(
+            path: '/gps-log',
+            builder: (context, state) => const Text('GPS Log Page'),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (context, state) => const Text('Settings'),
           ),
@@ -61,9 +77,15 @@ Future<Widget> _buildTestApp({String initialLocation = '/dashboard'}) async {
       updateServiceProvider.overrideWith((ref) async => null),
       updateStatusProvider.overrideWith((ref) => _StubUpdateStatusNotifier()),
       downloadNotifierProvider.overrideWith((ref) => _StubDownloadNotifier()),
+      settingsProvider.overrideWith((ref) => _StubSettingsNotifier(settings)),
+      ...extraOverrides.cast(),
     ],
     child: MaterialApp.router(
       routerConfig: router,
+      theme: theme,
+      // Pin the locale: these tests find widgets by English label, and
+      // flutter_test forwards the host platform locales.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),
@@ -88,9 +110,24 @@ class _StubDownloadNotifier extends StateNotifier<DownloadState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Stub settings notifier so the accent tests can drive the toggles without
+/// touching the database.
+class _StubSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _StubSettingsNotifier(super.initial);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Fake AppSettingsRepository used by the nav customization tests.
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
+
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
   @override
   Future<List<String>?> getNavPrimaryIdsRaw() async => stored;
   @override
@@ -102,6 +139,14 @@ class _FakeRepo implements AppSettingsRepository {
   Future<bool> getShareByDefault() async => false;
   @override
   Future<void> setShareByDefault(bool value) async {}
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {
@@ -159,6 +204,64 @@ void main() {
 
       // "Dives" appears both in rail label and route content.
       expect(find.text('Dives'), findsWidgets);
+    });
+
+    testWidgets('desktop rail navigates to the GPS Log destination', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+
+      // GPS Log is rail index 13 (after Transfer, before Settings).
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      rail.onDestinationSelected!(13);
+      await tester.pumpAndSettle();
+
+      expect(find.text('GPS Log Page'), findsOneWidget);
+      // Re-reading recomputes the selected index from the /gps-log route.
+      final selected = tester
+          .widget<NavigationRail>(find.byType(NavigationRail))
+          .selectedIndex;
+      expect(selected, 13);
+    });
+
+    testWidgets('recording strip appears while a GPS session is active', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        await _buildTestApp(
+          extraOverrides: [
+            gpsRecorderStateProvider.overrideWith(
+              (ref) => Stream.value(
+                const GpsRecorderState(
+                  status: GpsRecorderStatus.recording,
+                  trackId: 't1',
+                  pointCount: 3,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Recording GPS track · 3 points'), findsOneWidget);
+    });
+
+    testWidgets('recording strip is absent while idle', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Recording GPS track'), findsNothing);
     });
 
     testWidgets('mobile layout shows NavigationBar', (tester) async {
@@ -255,9 +358,13 @@ void main() {
           downloadNotifierProvider.overrideWith(
             (ref) => _StubDownloadNotifier(),
           ),
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),
@@ -342,7 +449,7 @@ void main() {
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 13 default destinations', (
+    testWidgets('wide-screen rail still shows all 15 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -356,11 +463,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // The wide-screen rail is NOT customized, so it keeps the default
-      // 13-entry order regardless of stored primary-ids customization.
+      // 15-entry order regardless of stored primary-ids customization.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(13));
+      expect(rail.destinations, hasLength(15));
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
@@ -374,6 +481,7 @@ void main() {
         'Dives',
         'Sites',
         'Trips',
+        'Media',
         'Equipment',
         'Buddies',
         'Dive Centers',
@@ -382,6 +490,7 @@ void main() {
         'Statistics',
         'Planning',
         'Transfer',
+        'GPS Log',
         'Settings',
       ]);
     });
@@ -441,6 +550,157 @@ void main() {
       expect(find.widgetWithText(ListTile, 'Equipment'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Buddies'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Statistics'), findsNothing);
+    });
+  });
+
+  group('MainScaffold nav accent icons', () {
+    ThemeData accentTheme() => ThemeData(
+      brightness: Brightness.light,
+      extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
+    );
+
+    AppSettings accentSettings({required bool on}) =>
+        AppSettings(accentNavIcons: on);
+
+    testWidgets('mobile nav icons are tinted when the toggle is on', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.scuba_diving_outlined),
+        ),
+      );
+      expect(icon.color, FeatureAccentColors.light.of('dives'));
+    });
+
+    testWidgets('mobile nav icons are untinted when the toggle is off', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: false),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.scuba_diving_outlined),
+        ),
+      );
+      expect(icon.color, isNull);
+    });
+
+    testWidgets('the More sentinel is never tinted', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 'more' has no palette entry, so it stays on the theme default even
+      // with accents enabled.
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.more_horiz_outlined),
+        ),
+      );
+      expect(icon.color, isNull);
+    });
+
+    testWidgets('rail icons are tinted when the toggle is on', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // NavigationRailDestination is a descriptor, so read the icons from the
+      // rail's destination list rather than the widget tree.
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      final sitesIcon = rail.destinations[2].icon as Icon;
+      expect(sitesIcon.color, FeatureAccentColors.light.of('sites'));
+
+      final selectedSitesIcon = rail.destinations[2].selectedIcon as Icon;
+      expect(selectedSitesIcon.color, FeatureAccentColors.light.of('sites'));
+    });
+
+    testWidgets('rail icons are untinted when the toggle is off', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: false),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect((rail.destinations[2].icon as Icon).color, isNull);
+    });
+
+    testWidgets('overflow sheet icons are tinted when the toggle is on', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
+      await tester.pumpAndSettle();
+
+      final tile = tester.widget<ListTile>(
+        find.widgetWithText(ListTile, 'Equipment'),
+      );
+      expect(
+        (tile.leading as Icon).color,
+        FeatureAccentColors.light.of('equipment'),
+      );
     });
   });
 }

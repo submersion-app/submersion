@@ -1,0 +1,402 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
+
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/providers/surface_day_weather_provider.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+const double _wideBreakpoint = 900;
+const double _mapHeaderMaxExtent = 260;
+const Duration _scrollThrottle = Duration(milliseconds: 100);
+
+/// The assembled trip story: pinned map + hero + day chapters.
+class TripStoryView extends ConsumerStatefulWidget {
+  final TripStory story;
+  final TripWithStats stats;
+  final VoidCallback? onScanForDives;
+
+  const TripStoryView({
+    super.key,
+    required this.story,
+    required this.stats,
+    this.onScanForDives,
+  });
+
+  @override
+  ConsumerState<TripStoryView> createState() => _TripStoryViewState();
+}
+
+class _TripStoryViewState extends ConsumerState<TripStoryView>
+    with TickerProviderStateMixin {
+  final MapController _mapController = MapController();
+  late MapCameraAnimator _cameraAnimator;
+  late List<GlobalKey> _dayKeys;
+  int _activeDayIndex = 0;
+  // Throttle keyed off the scheduler's frame timestamp (not DateTime.now) so it
+  // advances with rendered frames -- real time on device, fake time in tests --
+  // rather than wall-clock, which widget tests never advance.
+  Duration _lastResolve = const Duration(days: -1);
+
+  @override
+  void initState() {
+    super.initState();
+    _cameraAnimator = MapCameraAnimator(
+      vsync: this,
+      controller: _mapController,
+    );
+    _buildKeys();
+  }
+
+  @override
+  void didUpdateWidget(TripStoryView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.story.days.length != widget.story.days.length) {
+      _buildKeys();
+      // A refresh can shorten the story (e.g. a day's dives were reassigned).
+      // Clamp the active index so the header still highlights a real day and
+      // pointsForDay doesn't return empty until the next scroll resolves.
+      final lastIndex = widget.story.days.length - 1;
+      _activeDayIndex = _activeDayIndex.clamp(0, lastIndex < 0 ? 0 : lastIndex);
+    }
+  }
+
+  void _buildKeys() {
+    _dayKeys = List.generate(widget.story.days.length, (_) => GlobalKey());
+  }
+
+  @override
+  void dispose() {
+    _cameraAnimator.dispose();
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  void _selectDay(int index, {bool animateMap = true}) {
+    if (index == _activeDayIndex) return;
+    setState(() => _activeDayIndex = index);
+    if (!animateMap) return;
+    final points = widget.story.mapGeometry.pointsForDay(index);
+    if (points.isEmpty) return;
+    _cameraAnimator.animateTo(
+      center: LatLng(points.first.latitude, points.first.longitude),
+      zoom: _mapController.camera.zoom,
+    );
+  }
+
+  // A named method (not an inline closure) so the delegate's onDaySelected has
+  // a stable identity across builds; otherwise shouldRebuild always sees a new
+  // closure and rebuilds the pinned FlutterMap on every parent rebuild.
+  // Selects the day (easing the camera to its points) and scrolls the story to
+  // that chapter, the reverse linkage the design spec calls for so tapping a
+  // pin for an off-screen day brings both the map and the chapter into view.
+  void _onPinSelected(int index) {
+    _selectDay(index);
+    _scrollToDay(index);
+  }
+
+  void _scrollToDay(int index) {
+    if (index < 0 || index >= _dayKeys.length) return;
+    final keyContext = _dayKeys[index].currentContext;
+    if (keyContext == null) return;
+    Scrollable.ensureVisible(
+      keyContext,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
+  }
+
+  bool _onScroll(ScrollUpdateNotification notification) {
+    // Horizontal photo strips inside the chapters bubble up their own scroll
+    // notifications; ignore them so swiping photos doesn't move the map/active
+    // day or consume the throttle window meant for the vertical story scroll.
+    if (notification.metrics.axis != Axis.vertical) return false;
+    final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
+    if (now - _lastResolve < _scrollThrottle) return false;
+    _lastResolve = now;
+
+    final viewportHeight = notification.metrics.viewportDimension;
+    // Day positions come from localToGlobal (screen coordinates), so anchor the
+    // threshold to the scrollable's global top rather than 0 — the story may sit
+    // below the top of the screen (e.g. under an app bar).
+    final scrollBox = notification.context?.findRenderObject() as RenderBox?;
+    final viewportTop = (scrollBox != null && scrollBox.attached)
+        ? scrollBox.localToGlobal(Offset.zero).dy
+        : 0.0;
+    final threshold = viewportTop + viewportHeight / 3;
+    for (var i = _dayKeys.length - 1; i >= 0; i--) {
+      final keyContext = _dayKeys[i].currentContext;
+      if (keyContext == null) continue;
+      final box = keyContext.findRenderObject() as RenderBox?;
+      if (box == null || !box.attached) continue;
+      final top = box.localToGlobal(Offset.zero).dy;
+      if (top <= threshold) {
+        _selectDay(i);
+        return false;
+      }
+    }
+    // Scrolled above the first chapter's threshold (near the top): fall back to
+    // day 0 so the map doesn't stay stuck on a later day.
+    if (_dayKeys.isNotEmpty) _selectDay(0);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= _wideBreakpoint;
+        if (!wide) {
+          return NotificationListener<ScrollUpdateNotification>(
+            onNotification: _onScroll,
+            child: CustomScrollView(
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _mapHeaderDelegate(),
+                ),
+                SliverToBoxAdapter(
+                  child: TripStatStrip(
+                    stats: widget.stats,
+                    siteCount: _siteCount,
+                  ),
+                ),
+                ..._contentSlivers(),
+              ],
+            ),
+          );
+        }
+        return Row(
+          key: const Key('trip-story-wide-layout'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 380,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _mapHeaderDelegate().build(context, 0, false),
+                  ),
+                  TripStatStrip(stats: widget.stats, siteCount: _siteCount),
+                ],
+              ),
+            ),
+            Expanded(
+              child: NotificationListener<ScrollUpdateNotification>(
+                onNotification: _onScroll,
+                child: CustomScrollView(slivers: _contentSlivers()),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Distinct dive sites visited across the whole trip (for the stat strip).
+  int get _siteCount {
+    final ids = <String>{};
+    for (final day in widget.story.days) {
+      for (final dive in day.dives) {
+        final id = dive.site?.id;
+        if (id != null) ids.add(id);
+      }
+    }
+    return ids.length;
+  }
+
+  TripStoryMapHeaderDelegate _mapHeaderDelegate() {
+    return TripStoryMapHeaderDelegate(
+      geometry: widget.story.mapGeometry,
+      activeDayIndex: _activeDayIndex,
+      mapController: _mapController,
+      onDaySelected: _onPinSelected,
+      maxExtentValue: _mapHeaderMaxExtent,
+    );
+  }
+
+  /// One day chapter: a SliverMainAxisGroup whose pinned header sticks below
+  /// the map until the next day's group pushes it out. Every day gets the same
+  /// header, surface days included - theirs simply has no body under it.
+  Widget _daySliver(TripStory story, int index, int? todayIndex) {
+    final day = story.days[index];
+    final weatherPoint = day.isSurface
+        ? story.mapGeometry.nearestPointForDay(index)
+        : null;
+    final surfaceWeatherRequest = weatherPoint == null
+        ? null
+        : SurfaceDayWeatherRequest(
+            date: day.date,
+            latitude: weatherPoint.latitude,
+            longitude: weatherPoint.longitude,
+          );
+    final showTodayDivider = todayIndex != null && index == todayIndex;
+    const divider = SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverToBoxAdapter(child: _TodayDivider()),
+    );
+    // Unconditional, even for the days whose card renders nothing (surface
+    // days, content-less planned days). It looks like dead weight there but is
+    // not: it carries _dayKeys[index], which _onScroll and _scrollToDay read
+    // positions from, and they skip days whose key context is unmounted -- so
+    // dropping it would quietly take those days out of active-day resolution.
+    // Its 8px bottom inset is also the gap between consecutive chapters; the
+    // headers carry a surfaceContainer tint, so the page-surface gap reads as
+    // air between one chapter's card and the next chapter's tinted band.
+    final body = SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          key: _dayKeys[index],
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [TripStoryDayCard(day: day, tripId: story.trip.id)],
+        ),
+      ),
+    );
+
+    return SliverMainAxisGroup(
+      slivers: [
+        if (showTodayDivider) divider,
+        // PinnedHeaderSliver (not SliverPersistentHeader) so the header sizes
+        // itself: scaled accessibility text grows the band instead of being
+        // clipped by a fixed extent we would have to predict.
+        PinnedHeaderSliver(
+          child: TripStoryDayHeader(
+            day: day,
+            surfaceWeatherRequest: surfaceWeatherRequest,
+          ),
+        ),
+        body,
+      ],
+    );
+  }
+
+  List<Widget> _contentSlivers() {
+    final story = widget.story;
+    final trip = story.trip;
+    final todayIndex = story.todayIndex;
+    final showChecklistAtEnd =
+        !trip.isUpcoming && !trip.isLiveaboard && !story.checklist.isEmpty;
+
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.all(16),
+        sliver: SliverToBoxAdapter(
+          child: TripStoryHero(
+            story: story,
+            onScanForDives: widget.onScanForDives,
+          ),
+        ),
+      ),
+      // Return-flight dive-window countdown, shown while the trip is
+      // underway. The card hides itself once the flight departs.
+      if (trip.returnFlightAt != null && trip.isInProgress)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          sliver: SliverToBoxAdapter(
+            child: TripFlightCountdownCard(tripId: trip.id),
+          ),
+        ),
+      if (trip.isLiveaboard)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          sliver: SliverToBoxAdapter(child: TripVesselSection(tripId: trip.id)),
+        ),
+      for (var index = 0; index < story.days.length; index++)
+        _daySliver(story, index, todayIndex),
+      if (trip.notes.isNotEmpty)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          sliver: SliverToBoxAdapter(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.trips_detail_sectionTitle_notes,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(trip.notes),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      if (showChecklistAtEnd)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          sliver: SliverToBoxAdapter(
+            child: Card(
+              clipBehavior: Clip.antiAlias,
+              child: ExpansionTile(
+                title: Text(
+                  context.l10n.trips_story_checklistProgress(
+                    story.checklist.done,
+                    story.checklist.total,
+                  ),
+                  // Match the notes card's section title so the two closers
+                  // read as one family (ListTile would otherwise swap in its
+                  // own font role).
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TripChecklistSection(trip: trip),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      const SliverToBoxAdapter(child: SizedBox(height: 32)),
+    ];
+  }
+}
+
+class _TodayDivider extends StatelessWidget {
+  const _TodayDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: colorScheme.primary)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              context.l10n.trips_story_today,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: colorScheme.primary)),
+        ],
+      ),
+    );
+  }
+}

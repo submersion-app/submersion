@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
 
 /// Two-line compact card tile for the dive list.
 ///
@@ -20,9 +24,13 @@ class CompactDiveListTile extends ConsumerWidget {
   final double? maxDepth;
   final Duration? duration;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
-  final bool isSelected;
+
+  /// In the current bulk selection. Renders as a fill tint plus the leading
+  /// checkbox. Independent of [isHighlighted]: a row can be both.
+  final bool isChecked;
+
+  /// Currently open in the detail pane. Renders as a leading edge stripe.
   final bool isHighlighted;
   final VoidCallback? onDoubleTap;
 
@@ -42,6 +50,14 @@ class CompactDiveListTile extends ConsumerWidget {
   final DiveField stat1Field;
   final DiveField stat2Field;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Built once per list by [watchDiveTypeLabelResolver] and threaded down, so
+  /// the tile neither watches `diveTypesProvider` nor rebuilds a lookup map per
+  /// row. When omitted, a Dive Type slot falls back to the English slug
+  /// capitalization, matching the locale-independent export path.
+  final DiveTypeLabelResolver? diveTypeLabelResolver;
+
   const CompactDiveListTile({
     super.key,
     required this.diveId,
@@ -51,9 +67,8 @@ class CompactDiveListTile extends ConsumerWidget {
     this.maxDepth,
     this.duration,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
-    this.isSelected = false,
+    this.isChecked = false,
     this.isHighlighted = false,
     this.onDoubleTap,
     this.colorValue,
@@ -66,6 +81,7 @@ class CompactDiveListTile extends ConsumerWidget {
     this.dateField = DiveField.dateTime,
     this.stat1Field = DiveField.maxDepth,
     this.stat2Field = DiveField.bottomTime,
+    this.diveTypeLabelResolver,
   });
 
   Color? _getAttributeBackgroundColor() {
@@ -85,7 +101,10 @@ class CompactDiveListTile extends ConsumerWidget {
   /// Returns the display string for the title slot.
   String _buildTitleText(UnitFormatter units, BuildContext context) {
     if (summary != null && titleField != DiveField.siteName) {
-      final value = titleField.extractFromSummary(summary!);
+      final value = titleField.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return titleField.formatValue(value, units);
     }
     return siteName ?? context.l10n.diveLog_listPage_unknownSite;
@@ -94,7 +113,10 @@ class CompactDiveListTile extends ConsumerWidget {
   /// Returns the display string for the date slot.
   String _buildDateText(UnitFormatter units) {
     if (summary != null && dateField != DiveField.dateTime) {
-      final value = dateField.extractFromSummary(summary!);
+      final value = dateField.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return dateField.formatValue(value, units);
     }
     return units.formatDateTime(dateTime, l10n: null);
@@ -107,7 +129,10 @@ class CompactDiveListTile extends ConsumerWidget {
     UnitFormatter units,
   ) {
     if (summary != null && field != defaultField) {
-      final value = field.extractFromSummary(summary!);
+      final value = field.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return field.formatValue(value, units);
     }
     // Use legacy parameters for default fields
@@ -118,12 +143,18 @@ class CompactDiveListTile extends ConsumerWidget {
       return duration != null ? '${duration!.inMinutes} min' : '--';
     }
     // Fallback for any other field value
-    final value = summary != null ? field.extractFromSummary(summary!) : null;
+    final value = summary != null
+        ? field.extractFromSummary(
+            summary!,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
+        : null;
     return field.formatValue(value, units);
   }
 
   /// Builds the icon+value or label:value widget for a stat slot.
   Widget _buildStatSlot(
+    BuildContext context,
     DiveField field,
     String formatted,
     TextStyle style,
@@ -148,7 +179,7 @@ class CompactDiveListTile extends ConsumerWidget {
       );
     }
     return Text(
-      '${field.shortLabel}: $formatted',
+      '${field.localizedShortLabel(context.l10n)}: $formatted',
       style: style,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
@@ -167,10 +198,13 @@ class CompactDiveListTile extends ConsumerWidget {
     final attributeColor = showCardColors
         ? _getAttributeBackgroundColor()
         : null;
-    final cardColor = isSelected
+    // The active row carries a fill tint: checked in the bulk selection, or --
+    // outside selection mode -- open in the detail pane. Inside selection mode
+    // the fill belongs to the checked channel alone, so a highlighted but
+    // unchecked row stays plain instead of reading as selected.
+    final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
+    final cardColor = showsSelectionFill
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : isHighlighted
-        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
         : attributeColor;
 
     final effectiveBackground =
@@ -182,7 +216,9 @@ class CompactDiveListTile extends ConsumerWidget {
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
 
-    // Resolve slot text values
+    // Resolve slot text values. The dive-type resolver arrives as a parameter
+    // so a Dive Type slot honors the active locale (issue #643) and keeps a
+    // custom type's own name, without this tile subscribing to the type list.
     final titleText = _buildTitleText(units, context);
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
@@ -209,16 +245,11 @@ class CompactDiveListTile extends ConsumerWidget {
               ? duration != null
               : maxDepth != null);
 
+    // The highlight is the fill above, not an edge stripe -- the key marks the
+    // row for tests without decorating it.
     return Container(
+      key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      decoration: isHighlighted
-          ? BoxDecoration(
-              border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            )
-          : null,
       child: Card(
         margin: EdgeInsets.zero,
         color: cardColor,
@@ -228,7 +259,6 @@ class CompactDiveListTile extends ConsumerWidget {
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(10),
@@ -240,32 +270,26 @@ class CompactDiveListTile extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 36,
-                        child: Stack(
+                        child: Align(
                           alignment: Alignment.centerLeft,
-                          children: [
-                            Visibility(
-                              visible: isSelectionMode,
-                              maintainSize: true,
-                              maintainAnimation: true,
-                              maintainState: true,
-                              child: Checkbox(
-                                value: isSelected,
-                                onChanged: (_) => onTap?.call(),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                            if (!isSelectionMode)
-                              Text(
+                          child: SelectionLeading(
+                            isSelectionMode: isSelectionMode,
+                            isChecked: isChecked,
+                            onChanged: (_) => onTap?.call(),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
                                 '#$diveNumber',
+                                maxLines: 1,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                   color: accentColor,
                                 ),
                               ),
-                          ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -280,12 +304,34 @@ class CompactDiveListTile extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        dateText,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: secondaryTextColor,
+                      if ((summary?.safetyFindingCount ?? 0) > 0 &&
+                          ref.watch(safetyReviewEnabledProvider)) ...[
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: context.l10n.safetyReview_findingCount(
+                            summary!.safetyFindingCount,
+                          ),
+                          child: Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: secondaryTextColor,
+                          ),
                         ),
+                      ],
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          dateText,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: secondaryTextColor),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      DiveModeBadge(
+                        mode: summary?.diveMode ?? DiveMode.oc,
+                        dense: true,
                       ),
                       ExcludeSemantics(
                         child: Icon(
@@ -303,6 +349,7 @@ class CompactDiveListTile extends ConsumerWidget {
                       children: [
                         ExcludeSemantics(
                           child: _buildStatSlot(
+                            context,
                             stat1Field,
                             stat1Text,
                             stat1HasValue ? statStyle! : statStyleDim!,
@@ -312,6 +359,7 @@ class CompactDiveListTile extends ConsumerWidget {
                         const SizedBox(width: 14),
                         ExcludeSemantics(
                           child: _buildStatSlot(
+                            context,
                             stat2Field,
                             stat2Text,
                             stat2HasValue ? statStyle! : statStyleDim!,

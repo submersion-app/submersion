@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
@@ -9,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -115,6 +115,7 @@ class CsvExportService {
 
     final headers = [
       'Dive Number',
+      'Name',
       'Date',
       'Time',
       'Site',
@@ -125,7 +126,10 @@ class CsvExportService {
       'Runtime (min)',
       'Water Temp (°C)',
       'Air Temp (°C)',
-      'Visibility',
+      // Split at v144: the measured distance is machine-readable, the rating
+      // column carries a pre-v144 dive's bucket label.
+      'Visibility (m)',
+      'Visibility Rating',
       'Dive Type',
       'Buddy',
       'Dive Master',
@@ -153,6 +157,7 @@ class CsvExportService {
       final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
       rows.add([
         dive.diveNumber ?? '',
+        dive.effectiveName?.replaceAll('\n', ' ') ?? '',
         _dateFormat.format(dive.dateTime),
         _timeFormat.format(dive.dateTime),
         dive.site?.name ?? '',
@@ -163,8 +168,9 @@ class CsvExportService {
         dive.runtime?.inMinutes ?? '',
         dive.waterTemp?.toStringAsFixed(0) ?? '',
         dive.airTemp?.toStringAsFixed(0) ?? '',
+        dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeName,
+        dive.diveTypeNames.join('; '),
         dive.buddy ?? '',
         dive.diveMaster ?? '',
         dive.rating ?? '',
@@ -221,9 +227,11 @@ class CsvExportService {
         site.location?.latitude.toStringAsFixed(6) ?? '',
         site.location?.longitude.toStringAsFixed(6) ?? '',
         site.maxDepth?.toStringAsFixed(1) ?? '',
-        site.conditions?.waterType ?? '',
-        site.conditions?.typicalCurrent ?? '',
-        site.conditions?.entryType ?? '',
+        site.waterType?.displayName ?? '',
+        // Typical current has no backing column; the header position is kept
+        // so existing consumers of this CSV keep their column offsets.
+        '',
+        site.entryMethod?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
         site.description.replaceAll('\n', ' '),
         site.notes.replaceAll('\n', ' '),
@@ -241,12 +249,29 @@ class CsvExportService {
       'Brand',
       'Model',
       'Serial Number',
+      'Size',
+      'Thickness',
       'Purchase Date',
       'Last Service',
       'Next Service Due',
+      'Buoyancy (kg)',
+      'Dry Weight (kg)',
+      'Attributes',
       'Active',
       'Notes',
     ];
+
+    // Curated keys already covered by dedicated columns; excluded from the
+    // combined Attributes column to avoid duplication. Custom fields are never
+    // excluded even if their key collides with one of these, because the
+    // dedicated columns read curated attributes only -- so a custom "size"
+    // would otherwise be dropped from the export entirely.
+    const dedicatedAttrKeys = {
+      EquipmentAttrKeys.size,
+      EquipmentAttrKeys.thicknessMm,
+      EquipmentAttrKeys.buoyancyKg,
+      EquipmentAttrKeys.dryWeightKg,
+    };
 
     final rows = <List<dynamic>>[headers];
 
@@ -257,6 +282,8 @@ class CsvExportService {
         item.brand ?? '',
         item.model ?? '',
         item.serialNumber ?? '',
+        item.size ?? '',
+        item.thickness ?? '',
         item.purchaseDate != null ? _dateFormat.format(item.purchaseDate!) : '',
         item.lastServiceDate != null
             ? _dateFormat.format(item.lastServiceDate!)
@@ -264,6 +291,16 @@ class CsvExportService {
         item.nextServiceDue != null
             ? _dateFormat.format(item.nextServiceDue!)
             : '',
+        item.buoyancyKg?.toString() ?? '',
+        item.weightKg?.toString() ?? '',
+        item.attributes
+            .where(
+              (a) =>
+                  a.hasValue &&
+                  (a.isCustom || !dedicatedAttrKeys.contains(a.key)),
+            )
+            .map((a) => '${a.key}=${a.valueText ?? a.valueNum}')
+            .join('; '),
         item.isActive ? 'Yes' : 'No',
         item.notes.replaceAll('\n', ' '),
       ]);
@@ -284,18 +321,12 @@ class CsvExportService {
       dialogTitle: 'Save Dives CSV',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['csv'],
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
     );
 
     if (result == null) return null;
-
-    if (!Platform.isAndroid) {
-      final file = File(result);
-      await file.writeAsString(csvContent);
-    }
-
-    return result;
+    return savedFileLocation(result);
   }
 
   /// Save sites CSV to a user-selected location.
@@ -308,18 +339,12 @@ class CsvExportService {
       dialogTitle: 'Save Sites CSV',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['csv'],
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
     );
 
     if (result == null) return null;
-
-    if (!Platform.isAndroid) {
-      final file = File(result);
-      await file.writeAsString(csvContent);
-    }
-
-    return result;
+    return savedFileLocation(result);
   }
 
   /// Save equipment CSV to a user-selected location.
@@ -332,17 +357,11 @@ class CsvExportService {
       dialogTitle: 'Save Equipment CSV',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['csv'],
       bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
     );
 
     if (result == null) return null;
-
-    if (!Platform.isAndroid) {
-      final file = File(result);
-      await file.writeAsString(csvContent);
-    }
-
-    return result;
+    return savedFileLocation(result);
   }
 }

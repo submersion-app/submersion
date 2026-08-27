@@ -4,9 +4,14 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
+
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
 
   @override
   Future<List<String>?> getNavPrimaryIdsRaw() async => stored;
@@ -22,6 +27,16 @@ class _FakeRepo implements AppSettingsRepository {
 
   @override
   Future<void> setShareByDefault(bool value) async {}
+
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 ProviderContainer _container(AppSettingsRepository repo) {
@@ -147,11 +162,13 @@ void main() {
           'dives',
           'sites',
           'trips',
+          'media',
           'dive-centers',
           'certifications',
           'courses',
           'planning',
           'transfer',
+          'gps-log',
           'settings',
         ]);
       },

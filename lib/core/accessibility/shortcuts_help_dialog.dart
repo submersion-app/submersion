@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/accessibility/shortcut_display.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shows the keyboard shortcuts help dialog.
 void showShortcutsHelpDialog(BuildContext context) {
@@ -38,14 +40,14 @@ class ShortcutsHelpDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   Flexible(
                     child: Text(
-                      'Keyboard Shortcuts',
+                      context.l10n.accessibility_dialog_keyboardShortcutsTitle,
                       style: theme.textTheme.headlineSmall,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.common_action_close,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -98,7 +100,7 @@ class _CategorySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            category,
+            shortcutCategoryLabel(context.l10n, category),
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -113,13 +115,16 @@ class _CategorySection extends StatelessWidget {
                   SizedBox(
                     width: 140,
                     child: _ShortcutKeyChip(
-                      label: shortcut.displayKey(platform),
+                      label: shortcut.localizedDisplayKey(
+                        context.l10n,
+                        platform,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      shortcut.label,
+                      shortcutEntryLabel(context.l10n, shortcut.label),
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),

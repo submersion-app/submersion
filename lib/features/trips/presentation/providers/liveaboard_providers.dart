@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
@@ -20,6 +20,7 @@ final itineraryDayRepositoryProvider = Provider<ItineraryDayRepository>((ref) {
 final liveaboardDetailsProvider =
     FutureProvider.family<LiveaboardDetails?, String>((ref, tripId) async {
       final repository = ref.watch(liveaboardDetailsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchLiveaboardChanges());
       return repository.getByTripId(tripId);
     });
 
@@ -27,6 +28,7 @@ final liveaboardDetailsProvider =
 final itineraryDaysProvider = FutureProvider.family<List<ItineraryDay>, String>(
   (ref, tripId) async {
     final repository = ref.watch(itineraryDayRepositoryProvider);
+    ref.invalidateSelfWhen(repository.watchItineraryChanges());
     return repository.getByTripId(tripId);
   },
 );

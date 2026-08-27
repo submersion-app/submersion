@@ -10,7 +10,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/services/network_import_targets.dart';
 import 'package:submersion/features/media/data/utils/url_validator.dart';
+import 'package:submersion/features/media/domain/entities/import_candidate.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
@@ -18,18 +22,25 @@ import 'package:submersion/features/media/presentation/widgets/url_review_pane.d
 
 /// URL tab in the photo picker.
 ///
-/// Phase 3a / Task 15: bulk paste-and-add flow. The user pastes a
-/// newline-separated list of URLs (or types one at a time into the
-/// "Add URL" single-line field), each line is validated against
-/// [UrlValidator], and the "Add" button is enabled once at least one
-/// line is valid and no lines are invalid. Tapping "Add" forwards the
-/// staged set to [NetworkFetchPipeline.ingest] via
-/// [UrlTabNotifier.commit] and shows an Undo snackbar.
+/// Bulk paste-and-add flow. The user pastes a newline-separated list of
+/// URLs (or types one at a time into the "Add URL" single-line field), each
+/// line is validated against [UrlValidator], and the "Add" button is
+/// enabled once at least one line is valid and no lines are invalid.
+/// Tapping "Add" resolves the staged set through
+/// [UrlTabNotifier.resolveDraft], gives every URL its dive or site, inserts
+/// through [UrlTabNotifier.commitRequests], and shows an Undo snackbar.
 ///
-/// The Manifest mode segment renders [ManifestModePanel] (Phase 3b,
-/// Task 13).
+/// The Manifest mode segment renders [ManifestModePanel].
 class UrlTab extends ConsumerStatefulWidget {
-  const UrlTab({super.key});
+  const UrlTab({super.key, this.target});
+
+  /// What this picker session attaches its rows to, when it has an owner.
+  ///
+  /// A [DiveAttachTarget] attaches every added URL to that dive and a
+  /// [SiteAttachTarget] to that site. With no target, the resolved URLs go
+  /// through [MediaImportReviewPage] so each one is given a dive or a site
+  /// before it is inserted.
+  final MediaAttachTarget? target;
 
   @override
   ConsumerState<UrlTab> createState() => _UrlTabState();
@@ -58,12 +69,54 @@ class _UrlTabState extends ConsumerState<UrlTab> {
   Future<void> _commit() async {
     final notifier = ref.read(urlTabNotifierProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
-    final ids = await notifier.commit();
+    final navigator = Navigator.of(context);
+    final resolved = await notifier.resolveDraft();
     if (!mounted) return;
-    if (!context.mounted) return;
-    // Sync the multi-line controller with the cleared draft state so
-    // the textarea visibly empties after a successful commit.
+
+    final target = widget.target;
+    if (target != null) {
+      final ids = await notifier.commitRequests(
+        requestsForTarget(resolved, target),
+      );
+      if (!mounted) return;
+      _draftBecameRows();
+      _showUndo(messenger, notifier, ids);
+      return;
+    }
+
+    // No owner: every URL needs a dive or a site before it may land. The
+    // draft stays in the field until Confirm, so backing out of the review
+    // leaves the pasted URLs where they were.
+    await navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => MediaImportReviewPage(
+          candidates: candidatesFor(resolved),
+          onConfirm: (targets) async {
+            final requests = requestsFromReview(resolved, targets);
+            final ids = await notifier.commitRequests(requests);
+            if (mounted) _draftBecameRows();
+            _showUndo(messenger, notifier, ids);
+            return ImportReviewResult(
+              linked: ids.length,
+              skipped: resolved.length - requests.length,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Syncs the multi-line controller with the draft the notifier just
+  /// cleared, so the textarea visibly empties once rows exist.
+  void _draftBecameRows() {
     _multiLine.text = '';
+  }
+
+  void _showUndo(
+    ScaffoldMessengerState messenger,
+    UrlTabNotifier notifier,
+    List<String> ids,
+  ) {
     messenger.showSnackBar(
       SnackBar(
         // TODO(media): l10n, pluralization
@@ -173,30 +226,21 @@ class _UrlTabState extends ConsumerState<UrlTab> {
           _singleLine.clear();
         },
       ),
-      const SizedBox(height: 12),
-      Row(
-        children: [
-          Checkbox(
-            value: state.autoMatchByDate,
-            onChanged: (value) => ref
-                .read(urlTabNotifierProvider.notifier)
-                .setAutoMatchByDate(value ?? true),
-          ),
-          const Expanded(
-            // TODO(media): l10n
-            child: Text('Auto-match URLs to dives by date'),
-          ),
-        ],
-      ),
       const SizedBox(height: 16),
       Expanded(child: UrlReviewPane(state: state)),
       const SizedBox(height: 12),
       SizedBox(
         width: double.infinity,
         child: FilledButton(
-          onPressed: canCommit ? _commit : null,
-          // TODO(media): l10n
-          child: const Text('Add'),
+          onPressed: canCommit && !state.resolving ? _commit : null,
+          child: state.resolving
+              ? const SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              // TODO(media): l10n
+              : const Text('Add'),
         ),
       ),
     ];

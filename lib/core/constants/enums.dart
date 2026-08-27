@@ -1,26 +1,5 @@
 import 'dart:ui' show Color;
 
-/// Types of dives
-enum DiveType {
-  recreational('Recreational'),
-  technical('Technical'),
-  freedive('Freedive'),
-  training('Training'),
-  wreck('Wreck'),
-  cave('Cave'),
-  ice('Ice'),
-  night('Night'),
-  drift('Drift'),
-  deep('Deep'),
-  altitude('Altitude'),
-  shore('Shore'),
-  boat('Boat'),
-  liveaboard('Liveaboard');
-
-  final String displayName;
-  const DiveType(this.displayName);
-}
-
 /// Types of diving equipment
 enum EquipmentType {
   regulator('Regulator'),
@@ -30,7 +9,9 @@ enum EquipmentType {
   fins('Fins'),
   mask('Mask'),
   computer('Dive Computer'),
+  transmitter('Transmitter'),
   tank('Tank'),
+  rebreather('Rebreather'),
   weights('Weights'),
   light('Light'),
   camera('Camera'),
@@ -40,22 +21,46 @@ enum EquipmentType {
   hood('Hood'),
   gloves('Gloves'),
   boots('Boots'),
+  dpv('DPV'),
   other('Other');
 
   final String displayName;
   const EquipmentType(this.displayName);
 }
 
-/// Visibility conditions
+/// Visibility conditions.
+///
+/// Legacy from v144: dives logged before measured visibility store one of
+/// these buckets instead of a distance. New dives store
+/// `dives.visibility_meters` and derive their adjective from the diver's
+/// calibration, so the same distance can read "Good" for a cold-water diver
+/// and "Moderate" for a tropical one.
+///
+/// [bandMinM] and [bandMaxM] record what a bucket actually means, so the UI
+/// can show a legacy dive's honest range rather than guessing a point value.
+///
+/// [displayName] stays English on purpose: it feeds data interchange
+/// (CSV/Excel export, the field extractor) where a stable, locale-independent
+/// value is wanted. On-screen text goes through the formatters in
+/// `dive_log/presentation/formatters/visibility_display.dart`.
 enum Visibility {
-  excellent('Excellent (>30m / >100ft)'),
-  good('Good (15-30m / 50-100ft)'),
-  moderate('Moderate (5-15m / 15-50ft)'),
-  poor('Poor (<5m / <15ft)'),
-  unknown('Unknown');
+  excellent('Excellent (>30m / >100ft)', 30, null),
+  good('Good (15-30m / 50-100ft)', 15, 30),
+  moderate('Moderate (5-15m / 15-50ft)', 5, 15),
+  poor('Poor (<5m / <15ft)', null, 5),
+  unknown('Unknown', null, null);
 
   final String displayName;
-  const Visibility(this.displayName);
+
+  /// Inclusive lower bound of the band in meters, or null when unbounded
+  /// below.
+  final double? bandMinM;
+
+  /// Exclusive upper bound of the band in meters, or null when unbounded
+  /// above.
+  final double? bandMaxM;
+
+  const Visibility(this.displayName, this.bandMinM, this.bandMaxM);
 }
 
 /// Current strength
@@ -93,19 +98,6 @@ enum SpeciesCategory {
 
   final String displayName;
   const SpeciesCategory(this.displayName);
-}
-
-/// Buddy role on a dive
-enum BuddyRole {
-  buddy('Buddy'),
-  diveGuide('Dive Guide'),
-  instructor('Instructor'),
-  student('Student'),
-  diveMaster('Divemaster'),
-  solo('Solo');
-
-  final String displayName;
-  const BuddyRole(this.displayName);
 }
 
 /// Certification agencies
@@ -160,10 +152,19 @@ enum CertificationAgency {
 }
 
 /// Common certification levels
+/// A certification a diver holds. Presented in the UI as "Certification" --
+/// the values are course and rating names (Open Water, Nitrox, Tech 1), not
+/// a level scale, and the UI groups them into progression vs specialties via
+/// CertificationLevelCatalog.
+///
+/// The type keeps the historical `Level` name deliberately: values are
+/// persisted as enum-name text and round-trip through UDDF import/export and
+/// the sync field maps, so renaming buys nothing a user can see.
 enum CertificationLevel {
   openWater('Open Water'),
   advancedOpenWater('Advanced Open Water'),
   rescue('Rescue Diver'),
+  diveGuide('Dive Guide'),
   diveMaster('Divemaster'),
   instructor('Instructor'),
   masterInstructor('Master Instructor'),
@@ -178,14 +179,68 @@ enum CertificationLevel {
   sidemount('Sidemount'),
   rebreather('Rebreather'),
   techDiver('Tech Diver'),
+  // Generic ladder additions (issue #546)
+  masterDiver('Master Diver'),
+  assistantInstructor('Assistant Instructor'),
+  // Technical ladder additions
+  extendedRange('Extended Range'),
+  advancedTrimix('Advanced Trimix'),
+  // CMAS star grades
+  cmas1StarDiver('1★ Diver'),
+  cmas2StarDiver('2★ Diver'),
+  cmas3StarDiver('3★ Diver'),
+  cmas4StarDiver('4★ Diver'),
+  cmas3StarDiverAssistantInstructor('3★ Diver - Assistant Instructor'),
+  cmas4StarDiverAssistantInstructor('4★ Diver - Assistant Instructor'),
+  cmas1StarInstructor('1★ Instructor'),
+  cmas2StarInstructor('2★ Instructor'),
+  cmas3StarInstructor('3★ Instructor'),
+  // BSAC grades
+  bsacOceanDiver('Ocean Diver'),
+  bsacSportsDiver('Sports Diver'),
+  bsacDiveLeader('Dive Leader'),
+  bsacAdvancedDiver('Advanced Diver'),
+  bsacFirstClassDiver('First Class Diver'),
+  bsacOpenWaterInstructor('Open Water Instructor'),
+  bsacAdvancedInstructor('Advanced Instructor'),
+  bsacNationalInstructor('National Instructor'),
+  // GUE ratings
+  gueFundamentals('Fundamentals'),
+  gueRec1('Rec 1'),
+  gueRec2('Rec 2'),
+  gueRec3('Rec 3'),
+  gueTech1('Tech 1'),
+  gueTech2('Tech 2'),
+  gueCave1('Cave 1'),
+  gueCave2('Cave 2'),
+  gueDpv('DPV'),
   other('Other');
 
   final String displayName;
   const CertificationLevel(this.displayName);
+
+  /// Grades that can independently certify students — drives the
+  /// instructor picker (spec 2026-08-08 buddy-professional-roles-fold).
+  /// Assistant-instructor grades are deliberately excluded.
+  bool get isInstructorLevel => switch (this) {
+    CertificationLevel.instructor ||
+    CertificationLevel.masterInstructor ||
+    CertificationLevel.courseDirector ||
+    CertificationLevel.cmas1StarInstructor ||
+    CertificationLevel.cmas2StarInstructor ||
+    CertificationLevel.cmas3StarInstructor ||
+    CertificationLevel.bsacOpenWaterInstructor ||
+    CertificationLevel.bsacAdvancedInstructor ||
+    CertificationLevel.bsacNationalInstructor => true,
+    _ => false,
+  };
 }
 
-/// Service type for equipment maintenance
-enum ServiceType {
+/// The category of work a maintenance record represents (what kind of job it
+/// was), as distinct from the service type it fulfills, which is the
+/// user-extensible ServiceKind catalog. Renamed from ServiceType in v160:
+/// the catalog owns the words "service type" in the UI.
+enum ServiceCategory {
   annual('Annual Service'),
   repair('Repair'),
   inspection('Inspection'),
@@ -198,7 +253,7 @@ enum ServiceType {
   other('Other');
 
   final String displayName;
-  const ServiceType(this.displayName);
+  const ServiceCategory(this.displayName);
 }
 
 /// Current direction
@@ -260,6 +315,19 @@ enum WeightType {
   const WeightType(this.displayName);
 }
 
+/// Post-dive weighting feedback: was the carried weight right? (v104)
+///
+/// Turns raw weight history into corrected training data for the weight
+/// prediction engine.
+enum WeightingFeedback {
+  correct('Felt right'),
+  overweighted('Overweighted'),
+  underweighted('Underweighted');
+
+  final String displayName;
+  const WeightingFeedback(this.displayName);
+}
+
 /// Tank role/purpose during a dive
 enum TankRole {
   backGas('Back Gas'),
@@ -290,7 +358,8 @@ enum TankMaterial {
 enum DiveMode {
   oc('Open Circuit'),
   ccr('Closed Circuit Rebreather'),
-  scr('Semi-Closed Rebreather');
+  scr('Semi-Closed Rebreather'),
+  gauge('Gauge');
 
   final String displayName;
   const DiveMode(this.displayName);

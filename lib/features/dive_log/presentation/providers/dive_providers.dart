@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
@@ -7,17 +8,29 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
 export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+// Re-export diveRepositoryProvider (declared in its own dependency-only module
+// to avoid import cycles) so existing consumers can keep importing it from here.
+export 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 
 /// Dive filter state provider
 final diveFilterProvider = StateProvider<DiveFilterState>(
@@ -32,12 +45,62 @@ final diveSortProvider = StateProvider<SortState<DiveSortField>>(
   ),
 );
 
+/// The ids of every dive matching one polarity of the decompression filter.
+///
+/// The deco axis cannot be evaluated in memory: [DiveRepository.getAllDives]
+/// deliberately skips profile hydration for list views, and deco-stop events
+/// never reach the [domain.Dive] entity at all, so
+/// [DiveFilterState.apply] has nothing to classify from. Resolving the ids in
+/// SQL instead keeps the entity-backed surfaces (table view, activity and heat
+/// maps) in exact agreement with the paginated list, which reads the same
+/// `decoSignalCondition`.
+///
+/// Keyed on the wanted polarity so flipping Yes/No lands on a fresh instance
+/// rather than briefly reusing the other polarity's cached ids.
+final decoFilteredDiveIdsProvider = FutureProvider.family<Set<String>, bool>((
+  ref,
+  wantDeco,
+) async {
+  final diverId = ref.watch(currentDiverIdProvider);
+  final repository = ref.watch(diveRepositoryProvider);
+  // Profile rows and deco-stop events both feed the classification, so the
+  // dives tick alone is not enough to keep this fresh.
+  ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+  return repository.getDiveIdsWithDecoSignal(
+    wantDeco: wantDeco,
+    diverId: diverId,
+  );
+});
+
 /// Filtered dives provider - applies current filter to dive list
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
 
-  return divesAsync.whenData((dives) => filter.apply(dives));
+  final decoOnly = filter.decoOnly;
+  if (decoOnly == null) {
+    return divesAsync.whenData((dives) => filter.apply(dives));
+  }
+
+  final decoAsync = ref.watch(decoFilteredDiveIdsProvider(decoOnly));
+  // Built-in AsyncValue.value, not the repo's valueOrNull polyfill: it retains
+  // the previous ids across a reload, so a profile write does not blank the
+  // list. Null means first load (or a failure), never a stale answer.
+  final decoIds = decoAsync.value;
+  if (decoIds == null) {
+    if (decoAsync.hasError) {
+      return AsyncValue.error(
+        decoAsync.error!,
+        decoAsync.stackTrace ?? StackTrace.empty,
+      );
+    }
+    return const AsyncValue.loading();
+  }
+
+  return divesAsync.whenData(
+    (dives) =>
+        filter.apply(dives).where((d) => decoIds.contains(d.id)).toList(),
+  );
 });
 
 /// Sorted and filtered dives provider - applies sort after filter
@@ -48,6 +111,47 @@ final sortedFilteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((
   final sort = ref.watch(diveSortProvider);
 
   return divesAsync.whenData((dives) => _applySorting(dives, sort));
+});
+
+/// A dive's adjacent ids in the current filter+sort order.
+typedef DiveNeighbors = ({String? previousId, String? nextId});
+
+/// All dive ids in the active filter+sort order -- the source for previous/next
+/// navigation from the detail page. IDs only (not full dives), so it stays
+/// cheap even on large libraries. Recomputes when filter/sort/diver change.
+///
+/// Also self-invalidates on the dives tick. Nothing in the app invalidated this
+/// chain, so after merging from the detail page the id list still contained the
+/// merged-away dive and "next" navigated to a dive that no longer existed;
+/// autoDispose only rescued it once the page closed (issue #974).
+final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final diverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(diveFilterProvider);
+  final sort = ref.watch(diveSortProvider);
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getOrderedDiveIds(
+    diverId: diverId,
+    filter: filter,
+    sort: sort,
+  );
+});
+
+/// The previous/next dive ids adjacent to [diveId] in the current list order.
+/// Both are null when the dive is not in the current filtered list.
+final diveNeighborsProvider = Provider.family<DiveNeighbors, String>((
+  ref,
+  diveId,
+) {
+  final ids = ref.watch(orderedDiveIdsProvider).valueOrNull ?? const <String>[];
+  final index = ids.indexOf(diveId);
+  if (index < 0) return (previousId: null, nextId: null);
+  return (
+    previousId: index > 0 ? ids[index - 1] : null,
+    nextId: index < ids.length - 1 ? ids[index + 1] : null,
+  );
 });
 
 /// Apply sorting to a list of dives
@@ -94,11 +198,6 @@ List<domain.Dive> _applySorting(
   });
 }
 
-/// Repository provider
-final diveRepositoryProvider = Provider<DiveRepository>((ref) {
-  return DiveRepository();
-});
-
 /// Custom field repository singleton
 final diveCustomFieldRepositoryProvider = Provider<DiveCustomFieldRepository>((
   ref,
@@ -106,26 +205,60 @@ final diveCustomFieldRepositoryProvider = Provider<DiveCustomFieldRepository>((
   return DiveCustomFieldRepository(DatabaseService.instance.database);
 });
 
+/// Sequential dive-combine service singleton (#449).
+final diveMergeServiceProvider = Provider<DiveMergeService>((ref) {
+  return DiveMergeService(ref.watch(diveRepositoryProvider));
+});
+
+/// Multi-computer consolidation service singleton.
+final diveConsolidationServiceProvider = Provider<DiveConsolidationService>((
+  ref,
+) {
+  return DiveConsolidationService(ref.watch(diveRepositoryProvider));
+});
+
+/// Split-a-source-into-its-own-dive service singleton (inverse of
+/// consolidation).
+final diveSplitServiceProvider = Provider<DiveSplitService>((ref) {
+  return DiveSplitService(ref.watch(diveRepositoryProvider));
+});
+
 /// Autocomplete suggestions: distinct keys this diver has used
 final customFieldKeySuggestionsProvider =
     FutureProvider.family<List<String>, String>((ref, diverId) async {
       final repository = ref.watch(diveCustomFieldRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCustomFieldsChanges());
       return repository.getDistinctKeysForDiver(diverId);
     });
 
-/// All dives list provider (filtered by current diver)
+/// All dives list provider (filtered by current diver).
+///
+/// A [FutureProvider] that self-invalidates whenever the `dives` table is
+/// written (e.g. after a sync applies remote changes), so the list refreshes
+/// while imperative `ref.read(divesProvider.future)` reads still resolve.
 final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getAllDives(diverId: currentDiverId);
 });
 
-/// Single dive provider
+/// Single dive provider.
+///
+/// Self-invalidates whenever any table feeding the dive detail page is written
+/// (see [DiveRepository.watchDiveDetailChanges]), so the detail refreshes when a
+/// sync applies a remote edit. Sync writes the DB directly, bypassing the
+/// notifier/edit paths that invalidate this provider on local edits -- without
+/// this the detail would keep showing the pre-sync value while the list (which
+/// self-invalidates on dives-table writes) already shows the new one. The
+/// hydrated [domain.Dive] embeds tanks, tank pressures, profile, and equipment,
+/// so this must watch more than just the `dives` table.
 final diveProvider = FutureProvider.family<domain.Dive?, String>((
   ref,
   id,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getDiveById(id);
 });
 
@@ -136,18 +269,24 @@ final diveProfileProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getDiveProfile(diveId);
     });
 
-/// Profiles grouped by source (computer ID / 'user-edited' / 'original').
-/// Used for multi-computer toggle rendering in the dive profile chart.
-final profilesBySourceProvider =
-    FutureProvider.family<Map<String?, List<domain.DiveProfilePoint>>, String>((
+/// Profiles grouped by owning data source (active-source model). Keys are
+/// dive_data_sources ids, primary source first; null-computerId rows are
+/// attributed to the primary source so no source ever renders as unknown.
+final sourceProfilesProvider =
+    FutureProvider.family<Map<String, domain.SourceProfile>, String>((
       ref,
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
-      return repository.getProfilesBySource(diveId);
+      // Analysis-input tick: this hydration feeds sourceProfileAnalysisProvider
+      // and reads only profile/source tables, so the broad detail tick (which
+      // includes media) re-ran the per-source analysis after viewing a photo.
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+      return repository.getProfilesByDataSource(diveId);
     });
 
 /// Batch profile cache for mini charts in the dive list.
@@ -157,46 +296,72 @@ final profilesBySourceProvider =
 final batchProfileCacheProvider =
     StateProvider<Map<String, List<domain.DiveProfilePoint>>>((ref) => {});
 
-/// Version counter for statistics cache invalidation.
+/// Statistics provider (filtered by current diver).
 ///
-/// All statistics providers watch this. Bumping the version causes all of them
-/// to re-fetch, while keepAlive prevents disposal between navigations.
-final statisticsVersionProvider = StateProvider<int>((ref) => 0);
-
-/// Statistics provider (filtered by current diver)
+/// Feeds the dashboard HeroHeader headline totals (total dives, etc.).
+/// Self-invalidates whenever the `dives` table is written -- e.g. a dive
+/// computer import or an iCloud sync applying remote changes directly to the DB
+/// -- so those totals refresh without an app restart, using the same
+/// dives-table tick the dive list and [divesProvider] already use. The
+/// dashboard's recent-dives section was already reactive (its providers read
+/// [divesProvider], which self-invalidates on the same tick); these headline
+/// totals were the remaining gap (issue #217).
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getStatistics(diverId: currentDiverId);
 });
 
-/// Dive records (superlatives) provider (filtered by current diver)
+/// Dive records (superlatives) provider (filtered by current diver).
+///
+/// Takes the same dives tick as [diveStatisticsProvider] directly above, for
+/// the same reason it cites (issue #217): a merge, a bulk delete, or a sync
+/// pull rewrites the superlatives without going through any notifier. Until
+/// #974 this was rescued only by the refresh buttons on the records page.
 final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getRecords(diverId: currentDiverId);
 });
 
-/// Next dive number provider (filtered by current diver)
+/// Next dive number provider (filtered by current diver).
+///
+/// Not autoDispose, and the import wizard's review step watches it, so without
+/// the tick a stale number rendered for the rest of the app's life -- long
+/// enough to number two dives the same after an import or sync added dives.
 final nextDiveNumberProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getNextDiveNumber(diverId: currentDiverId);
 });
 
-/// Search results provider
-final diveSearchProvider = FutureProvider.family<List<domain.Dive>, String>((
+/// Search results provider.
+///
+/// Returns lightweight [DiveSummary] rows for display. Fetches one more than
+/// [kDiveSearchResultLimit] so the UI can distinguish a truncated result
+/// (more matches exist) from an exact one and render the "showing first N"
+/// notice only when results were actually cut.
+final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   ref,
   query,
 ) async {
+  // Trim so a whitespace-only query short-circuits here instead of
+  // debouncing and hitting the repository on a hot UI path.
+  if (query.trim().isEmpty) return const [];
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  if (query.isEmpty) {
-    return ref.watch(divesProvider).value ?? [];
-  }
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.searchDives(query, diverId: validatedDiverId);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.searchDiveSummaries(
+    query,
+    diverId: validatedDiverId,
+    limit: kDiveSearchResultLimit + 1,
+    disabledSafetyRules: ref.watch(safetyReviewDisabledRulesProvider),
+  );
 });
 
 /// Dive list notifier for mutations
@@ -216,6 +381,14 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       }
     });
     _loadDives();
+
+    // Reload silently when the `dives` table is written directly (e.g. a sync
+    // applies remote changes) without going through this notifier's mutation
+    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
+    final divesChangeSub = _repository.watchDivesChanges().listen(
+      (_) => _silentReload(),
+    );
+    _ref.onDispose(divesChangeSub.cancel);
   }
 
   Future<void> _loadDives() async {
@@ -228,6 +401,18 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       _ref.invalidate(divesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Reload the list without flashing a loading spinner. Mirrors [_loadDives]
+  /// but never sets `state = AsyncValue.loading()`, so table-change ticks from
+  /// a sync update the data in place instead of flickering the UI.
+  Future<void> _silentReload() async {
+    try {
+      final dives = await _repository.getAllDives(diverId: _currentDiverId);
+      if (mounted) state = AsyncValue.data(dives);
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
@@ -431,7 +616,26 @@ class PaginatedDiveListNotifier
         loadFirstPage();
       }
     });
+    // The per-page safety-finding count excludes disabled rules, so a rule
+    // toggle changes the badge counts. Reload silently (no spinner) to keep the
+    // list badges aligned with SafetyReviewSection without a visible flicker.
+    _ref.listen<Set<String>>(safetyReviewDisabledRulesProvider, (
+      previous,
+      next,
+    ) {
+      if (previous != next) {
+        _silentReloadFirstPage();
+      }
+    });
     loadFirstPage();
+
+    // Reload silently when the `dives` table is written directly (e.g. a sync
+    // applies remote changes) without going through this notifier's mutation
+    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
+    final divesChangeSub = _repository.watchDivesChanges().listen(
+      (_) => _silentReloadFirstPage(),
+    );
+    _ref.onDispose(divesChangeSub.cancel);
   }
 
   bool get _isDateSort {
@@ -451,6 +655,7 @@ class PaginatedDiveListNotifier
           filter: filter,
           sort: sort,
           limit: _pageSize,
+          disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
       ]);
@@ -488,6 +693,7 @@ class PaginatedDiveListNotifier
         cursor: _isDateSort ? current.nextCursor : null,
         offset: _isDateSort ? null : _currentOffset,
         limit: _pageSize,
+        disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
       );
       _currentOffset += newDives.length;
 
@@ -526,6 +732,46 @@ class PaginatedDiveListNotifier
     await loadFirstPage();
   }
 
+  /// Reload the first page without flashing a loading spinner. Mirrors
+  /// [loadFirstPage] (resetting to page 1 with the same diver/filter/sort
+  /// params) but never sets `state = AsyncValue.loading()`, so table-change
+  /// ticks from a sync update the data in place instead of flickering the UI.
+  Future<void> _silentReloadFirstPage() async {
+    _currentOffset = 0;
+    try {
+      final filter = _ref.read(diveFilterProvider);
+      final sort = _ref.read(diveSortProvider);
+      final results = await Future.wait([
+        _repository.getDiveSummaries(
+          diverId: _currentDiverId,
+          filter: filter,
+          sort: sort,
+          limit: _pageSize,
+          disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
+        ),
+        _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
+      ]);
+      final dives = results[0] as List<DiveSummary>;
+      final totalCount = results[1] as int;
+      _currentOffset = dives.length;
+
+      if (mounted) {
+        state = AsyncValue.data(
+          PaginatedDiveListState(
+            dives: dives,
+            hasMore: dives.length >= _pageSize,
+            nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
+            totalCount: totalCount,
+          ),
+        );
+      }
+      // Pre-load downsampled profiles for mini charts (fire and forget)
+      _loadBatchProfiles(dives.map((d) => d.id).toList());
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
+    }
+  }
+
   DiveSummaryCursor? _cursorFromLastDive(List<DiveSummary> dives) {
     if (dives.isEmpty) return null;
     final last = dives.last;
@@ -560,11 +806,13 @@ class PaginatedDiveListNotifier
     _ref.invalidate(diveListNotifierProvider);
   }
 
-  /// Bump the statistics version to invalidate all cached stats providers,
-  /// and also invalidate the dive-level stats provider.
+  /// Invalidate the dive-level stats provider.
+  ///
+  /// Every other statistics provider now self-invalidates on
+  /// [StatisticsRepository.watchStatisticsChanges], so there is no version
+  /// counter to bump (issue #974).
   void _invalidateStatistics() {
     _ref.invalidate(diveStatisticsProvider);
-    _ref.read(statisticsVersionProvider.notifier).state++;
   }
 
   Future<domain.Dive> addDive(domain.Dive dive) async {
@@ -804,6 +1052,7 @@ final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getSurfaceInterval(diveId);
 });
 
@@ -815,6 +1064,7 @@ final diveNumberingInfoProvider = FutureProvider<DiveNumberingInfo>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getDiveNumberingInfo(diverId: validatedDiverId);
 });
 
@@ -834,7 +1084,60 @@ final tankPressuresProvider =
       diveId,
     ) async {
       final repository = ref.watch(tankPressureRepositoryProvider);
+      // Analysis-input tick covers tank_pressure_profiles (and the dives
+      // cascade); the broad detail tick made every pressure curve re-query
+      // on unrelated writes such as media.
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+      );
       return repository.getTankPressuresForDive(diveId);
+    });
+
+/// Real per-tank pressures augmented with in-memory linear estimates for tanks
+/// that have start/end pressures but no transmitter data. Chart-only; the
+/// estimates are never persisted, so SAC analysis and exports (which read the
+/// repository directly) still see real measured data only.
+final estimatedTankPressuresProvider =
+    FutureProvider.family<EstimatedTankPressures, String>((ref, diveId) async {
+      // Start the independent fetches concurrently to avoid a request waterfall
+      // on the chart load path.
+      final realFuture = ref.watch(tankPressuresProvider(diveId).future);
+      final diveFuture = ref.watch(diveProvider(diveId).future);
+      final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      // Read synchronously, before the first await, so the dependency is
+      // registered while the provider is certainly still alive.
+      final showEstimates = ref.watch(
+        settingsProvider.select((s) => s.defaultShowEstimatedTankPressure),
+      );
+      final real = await realFuture;
+      final dive = await diveFuture;
+      if (dive == null) {
+        return EstimatedTankPressures(real, const <String>{});
+      }
+      // A gauge (bottom-timer) dive models no gas at all, so a synthesized
+      // pressure trace would be fabricated rather than measured (issue #731).
+      // Real transmitter samples, if the dive has any, still pass through.
+      if (dive.isGauge) {
+        return EstimatedTankPressures(real, const <String>{});
+      }
+      // The diver can switch estimates off entirely (issue #731). Gating here
+      // rather than at the chart means the series never exists, so no legend
+      // chip, tooltip row, or "(est.)" label survives anywhere.
+      if (!showEstimates) {
+        return EstimatedTankPressures(real, const <String>{});
+      }
+      final switches = await switchesFuture;
+      return synthesizeEstimatedTankPressures(
+        existing: real,
+        tanks: dive.tanks,
+        gasSwitches: switches,
+        diveDurationSeconds: dive.profile.isEmpty
+            ? 0
+            : dive.profile.last.timestamp,
+        firstSampleSeconds: dive.profile.isEmpty
+            ? 0
+            : dive.profile.first.timestamp,
+      );
     });
 
 /// Provider to load data sources for a dive.
@@ -842,6 +1145,10 @@ final tankPressuresProvider =
 final diveDataSourcesProvider =
     FutureProvider.family<List<DiveDataSource>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
+      // Analysis-input tick: reads dive_data_sources/dive_computers only, and
+      // sourceProfileAnalysisProvider watches this, so the broad detail tick
+      // re-ran the per-source analysis on unrelated writes such as media.
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
       return repository.getDataSources(diveId);
     });
 
@@ -851,5 +1158,6 @@ final isMultiDataSourceDiveProvider = FutureProvider.family<bool, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.hasMultipleDataSources(diveId);
 });

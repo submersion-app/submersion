@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -14,8 +15,14 @@ const int _maxVisibleThumbnails = 5;
 class TripPhotoSection extends ConsumerWidget {
   final String tripId;
   final VoidCallback? onScanPressed;
+  final VoidCallback? onLightroomScanPressed;
 
-  const TripPhotoSection({super.key, required this.tripId, this.onScanPressed});
+  const TripPhotoSection({
+    super.key,
+    required this.tripId,
+    this.onScanPressed,
+    this.onLightroomScanPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,6 +79,18 @@ class TripPhotoSection extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     tooltip: context.l10n.trips_photos_tooltip_scan,
                     onPressed: onScanPressed,
+                  ),
+                // Lightroom scan hidden pending Adobe review
+                // (lightroomUiEnabled).
+                if (lightroomUiEnabled && onLightroomScanPressed != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.cloud_sync_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: context.l10n.settings_lightroom_scanNow,
+                    onPressed: onLightroomScanPressed,
                   ),
               ],
             ),
@@ -213,11 +232,13 @@ class _PhotoThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaType = item.isVideo ? 'Video' : 'Photo';
+    final semanticsLabel = item.isVideo
+        ? context.l10n.trips_photos_thumbnail_video
+        : context.l10n.trips_photos_thumbnail_photo;
 
     return Semantics(
       button: true,
-      label: '$mediaType thumbnail. Tap to open gallery',
+      label: semanticsLabel,
       child: GestureDetector(
         onTap: () => context.push('/trips/$tripId/gallery'),
         child: ClipRRect(

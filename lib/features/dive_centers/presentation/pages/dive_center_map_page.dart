@@ -14,6 +14,9 @@ import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 
 class DiveCenterMapPage extends ConsumerStatefulWidget {
@@ -202,67 +205,83 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onTap: (_, _) {
-              ref
-                  .read(mapListSelectionProvider('dive-centers').notifier)
-                  .deselect();
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+        TrackpadZoomMap(
+          controller: _mapController,
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
+              onTap: (_, _) {
+                ref
+                    .read(mapListSelectionProvider('dive-centers').notifier)
+                    .deselect();
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
               ),
             ),
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: centersWithLocation.map((diveCenter) {
+                    final isSelected =
+                        selectionState.selectedId == diveCenter.id;
+                    return Marker(
+                      point: LatLng(
+                        diveCenter.latitude!,
+                        diveCenter.longitude!,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: context.l10n
+                            .diveCenters_accessibility_markerLabel(
+                              diveCenter.name,
+                            ),
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(diveCenter),
+                          child: _buildMarker(context, diveCenter, isSelected),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    return _buildClusterMarker(context, markers.length);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    _animateToCluster(node.bounds);
+                  },
+                ),
+              ),
+              const MapAttribution(),
+            ],
           ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: centersWithLocation.map((diveCenter) {
-                  final isSelected = selectionState.selectedId == diveCenter.id;
-                  return Marker(
-                    point: LatLng(diveCenter.latitude!, diveCenter.longitude!),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n.diveCenters_accessibility_markerLabel(
-                        diveCenter.name,
-                      ),
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(diveCenter),
-                        child: _buildMarker(context, diveCenter, isSelected),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            const MapAttribution(),
-          ],
+        ),
+
+        // Reset-to-north compass (hidden until the map is rotated)
+        Positioned(
+          top: 16,
+          right: 16,
+          child: MapCompassButton(controller: _mapController),
         ),
 
         // Empty state overlay

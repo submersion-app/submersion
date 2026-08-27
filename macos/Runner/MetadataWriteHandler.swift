@@ -97,6 +97,18 @@ class MetadataWriteHandler: NSObject {
 
         if isVideo {
             writeVideoMetadata(asset: asset, metadata: metadata, description: description, keepOriginal: keepOriginal, result: result)
+        } else if asset.mediaSubtypes.contains(.photoLive) {
+            // A Live Photo is a still paired with a short video. Photos' content
+            // editing session expects the output to represent both resources, so
+            // the plain-image round-trip in writePhotoMetadata is rejected with
+            // PHPhotosErrorDomain error 3302. Refuse up front with a code the
+            // Dart layer can translate rather than surfacing that raw error.
+            NSLog("[MetadataWriteHandler] Asset is a Live Photo; metadata writing is not supported")
+            result(FlutterError(
+                code: "LIVE_PHOTO_UNSUPPORTED",
+                message: "Live Photos cannot be edited in place without breaking the paired video.",
+                details: nil
+            ))
         } else {
             writePhotoMetadata(asset: asset, metadata: metadata, description: description, result: result)
         }

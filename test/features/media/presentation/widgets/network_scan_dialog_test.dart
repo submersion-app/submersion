@@ -15,6 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/services/network_scan_service.dart';
 import 'package:submersion/features/media/domain/value_objects/network_scan_progress.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+
+import '../../../../helpers/l10n_test_helpers.dart';
 import 'package:submersion/features/media/presentation/widgets/network_scan_dialog.dart';
 
 class _FakeScan implements NetworkScanService {
@@ -66,7 +68,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [networkScanServiceProvider.overrideWithValue(fake)],
-        child: const MaterialApp(home: Scaffold(body: _Launcher())),
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(body: _Launcher()),
+        ),
       ),
     );
 
@@ -93,7 +98,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [networkScanServiceProvider.overrideWithValue(fake)],
-        child: MaterialApp(
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
           home: Scaffold(
             body: Builder(
               builder: (context) {

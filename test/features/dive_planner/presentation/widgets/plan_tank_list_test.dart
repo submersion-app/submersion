@@ -140,4 +140,70 @@ void main() {
       expect(double.parse(volumeController.text), closeTo(0.4, 0.1));
     });
   });
+
+  group('PlanTankList travel gas checkbox', () {
+    testWidgets('saves isTravelGas when the checkbox is checked', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+      expect(addedTank.isTravelGas, isTrue);
+    });
+
+    testWidgets('shows the existing value when editing a travel-gas tank', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+
+      await tester.tap(
+        find.widgetWithText(InputChip, addedTank.gasMix.name).last,
+      );
+      await tester.pumpAndSettle();
+
+      final checkbox = tester.widget<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      );
+      expect(checkbox.value, isTrue);
+    });
+  });
 }

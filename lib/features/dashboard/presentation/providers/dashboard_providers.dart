@@ -4,43 +4,77 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 /// Dashboard alerts data class
 class DashboardAlerts {
-  final List<EquipmentItem> equipmentServiceDue;
+  /// Per-clock service alerts from the service ledger (overdue/due-soon).
+  final List<DueClock> serviceClocksDue;
   final bool insuranceExpiringSoon;
   final bool insuranceExpired;
   final DateTime? insuranceExpiryDate;
   final String? insuranceProvider;
 
+  /// Active flying-after-diving restriction (null when clear).
+  final NoFlyStatus? noFlyStatus;
+
   const DashboardAlerts({
-    required this.equipmentServiceDue,
+    this.serviceClocksDue = const [],
     required this.insuranceExpiringSoon,
     required this.insuranceExpired,
     this.insuranceExpiryDate,
     this.insuranceProvider,
+    this.noFlyStatus,
   });
 
+  /// Whether an unexpired flying-after-diving restriction is in effect right
+  /// now. [noFlyStatus] is a cached snapshot that can elapse while the
+  /// dashboard stays mounted, so every consumer must re-check it against the
+  /// clock instead of treating a non-null value as active.
+  bool get hasActiveNoFly =>
+      noFlyStatus != null && noFlyStatus!.isActiveAt(DateTime.now().toUtc());
+
   bool get hasAlerts =>
-      equipmentServiceDue.isNotEmpty ||
+      serviceClocksDue.isNotEmpty ||
       insuranceExpiringSoon ||
-      insuranceExpired;
+      insuranceExpired ||
+      hasActiveNoFly;
 
   int get alertCount {
-    int count = equipmentServiceDue.length;
+    int count = serviceClocksDue.length;
     if (insuranceExpiringSoon || insuranceExpired) count++;
+    if (hasActiveNoFly) count++;
     return count;
   }
 }
 
-/// Recent dives provider (last 5)
+/// Recent dives shown on the home tab (newest 3).
+///
+/// Self-invalidates on any `dives`-table write -- a dive computer import or an
+/// iCloud sync applying remote changes directly to the DB -- so the home tab
+/// reflects new dives without an app restart (issue #217).
+///
+/// Discovery is SQL-bounded (`getDiveSummaries(limit: 3)`); only the three
+/// winners hydrate as full [Dive]s. The dashboard no longer forces
+/// `getAllDives()` on the first home frame (WS4, large-DB performance).
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
-  // Dives are already sorted by date descending in the repository
-  final recent = allDives.take(3).toList();
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final summaries = await repository.getDiveSummaries(
+    diverId: currentDiverId,
+    limit: 3,
+  );
+  final recent = <Dive>[];
+  for (final summary in summaries) {
+    final dive = await repository.getDiveById(summary.id);
+    if (dive != null) recent.add(dive);
+  }
 
   // Pre-load downsampled profiles so DiveListTile mini charts render
   // immediately (the batch cache is shared with the paginated dive list).
@@ -51,7 +85,6 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
         .where((id) => !cache.containsKey(id))
         .toList();
     if (uncached.isNotEmpty) {
-      final repository = ref.read(diveRepositoryProvider);
       final profiles = await repository.getBatchProfileSummaries(uncached);
       ref.read(batchProfileCacheProvider.notifier).state = {
         ...cache,
@@ -63,17 +96,48 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   return recent;
 });
 
+/// Depth profile of the newest dive, for the recent-dives preview chart.
+///
+/// [recentDivesProvider] hydrates its dives through `getDiveById`, which reads
+/// the `dives` row only and leaves `Dive.profile` empty -- the list path
+/// deliberately avoids dragging thousands of sample rows into a summary view.
+/// The batch cache it does populate holds ~20-point sparkline summaries, which
+/// is enough for a tile-sized mini chart but too coarse for a preview several
+/// hundred pixels wide. So this fetches the real samples, for the newest dive
+/// only, and only when a caller actually watches it.
+///
+/// Null when there are no dives, or when the newest dive has no profile
+/// (manually logged dives usually do not).
+final latestDiveProfileProvider = FutureProvider<List<DiveProfilePoint>?>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  // The dive-detail tick, not the dives tick: this reads dive_profiles, and
+  // samples change without the dives row changing (a reparse or a sync pull
+  // rewrites the profile in place). watchDivesChanges would leave the chart
+  // showing the pre-reparse shape.
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+
+  final recent = await ref.watch(recentDivesProvider.future);
+  if (recent.isEmpty) return null;
+
+  final profile = await repository.getDiveProfile(recent.first.id);
+  return profile.isEmpty ? null : profile;
+});
+
 /// Dashboard alerts provider - combines equipment and insurance alerts
 final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
-  final serviceDue = await ref.watch(serviceDueEquipmentProvider.future);
+  final clocksDue = await ref.watch(dueClocksProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
+  final noFlyStatus = await ref.watch(noFlyStatusProvider.future);
 
   return DashboardAlerts(
-    equipmentServiceDue: serviceDue,
+    serviceClocksDue: clocksDue,
     insuranceExpiringSoon: diver?.insurance.isExpiringSoon ?? false,
     insuranceExpired: diver?.insurance.isExpired ?? false,
     insuranceExpiryDate: diver?.insurance.expiryDate,
     insuranceProvider: diver?.insurance.provider,
+    noFlyStatus: noFlyStatus,
   );
 });
 
@@ -87,137 +151,100 @@ final daysSinceLastDiveProvider = FutureProvider<int?>((ref) async {
   final recentDives = await ref.watch(recentDivesProvider.future);
   if (recentDives.isEmpty) return null;
 
-  final lastDiveDate = recentDives.first.dateTime;
+  final lastDive = recentDives.first.effectiveEntryTime;
   final now = DateTime.now();
-  return now.difference(lastDiveDate).inDays;
+  final diveDay = DateTime(lastDive.year, lastDive.month, lastDive.day);
+  final today = DateTime(now.year, now.month, now.day);
+  return today.difference(diveDay).inDays;
 });
 
-/// Monthly dive count provider (dives in current month)
-final monthlyDiveCountProvider = FutureProvider<int>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
-  final now = DateTime.now();
-  final startOfMonth = DateTime(now.year, now.month, 1);
+/// A GPS pin for the recent-sites mini map.
+class RecentSitePin {
+  final String? siteName;
+  final double latitude;
+  final double longitude;
 
-  return allDives.where((dive) => dive.dateTime.isAfter(startOfMonth)).length;
-});
-
-/// Year-to-date dive count provider
-final yearToDateDiveCountProvider = FutureProvider<int>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
-  final now = DateTime.now();
-  final startOfYear = DateTime(now.year, 1, 1);
-
-  return allDives.where((dive) => dive.dateTime.isAfter(startOfYear)).length;
-});
-
-/// Personal records data class
-class PersonalRecords {
-  final Dive? deepestDive;
-  final Dive? longestDive;
-  final Dive? coldestDive;
-  final Dive? warmestDive;
-  final String? mostVisitedSiteId;
-  final String? mostVisitedSiteName;
-  final int? mostVisitedSiteCount;
-
-  const PersonalRecords({
-    this.deepestDive,
-    this.longestDive,
-    this.coldestDive,
-    this.warmestDive,
-    this.mostVisitedSiteId,
-    this.mostVisitedSiteName,
-    this.mostVisitedSiteCount,
+  const RecentSitePin({
+    required this.siteName,
+    required this.latitude,
+    required this.longitude,
   });
-
-  bool get hasRecords =>
-      deepestDive != null ||
-      longestDive != null ||
-      coldestDive != null ||
-      warmestDive != null ||
-      mostVisitedSiteName != null;
 }
 
-/// Personal records provider
-final personalRecordsProvider = FutureProvider<PersonalRecords>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
-  if (allDives.isEmpty) return const PersonalRecords();
-
-  // Find deepest dive
-  Dive? deepestDive;
-  double maxDepth = 0;
-  for (final dive in allDives) {
-    if (dive.maxDepth != null && dive.maxDepth! > maxDepth) {
-      maxDepth = dive.maxDepth!;
-      deepestDive = dive;
-    }
-  }
-
-  // Find longest dive (by total runtime, including descent/ascent)
-  Dive? longestDive;
-  int maxDuration = 0;
-  for (final dive in allDives) {
-    final runtime = dive.effectiveRuntime;
-    if (runtime != null && runtime.inSeconds > maxDuration) {
-      maxDuration = runtime.inSeconds;
-      longestDive = dive;
-    }
-  }
-
-  // Find coldest dive
-  Dive? coldestDive;
-  double? minTemp;
-  for (final dive in allDives) {
-    if (dive.waterTemp != null) {
-      if (minTemp == null || dive.waterTemp! < minTemp) {
-        minTemp = dive.waterTemp;
-        coldestDive = dive;
-      }
-    }
-  }
-
-  // Find warmest dive
-  Dive? warmestDive;
-  double? maxTemp;
-  for (final dive in allDives) {
-    if (dive.waterTemp != null) {
-      if (maxTemp == null || dive.waterTemp! > maxTemp) {
-        maxTemp = dive.waterTemp;
-        warmestDive = dive;
-      }
-    }
-  }
-
-  // Find most visited site
-  final siteCounts = <String, int>{};
-  final siteNames = <String, String>{};
-  for (final dive in allDives) {
-    if (dive.site != null) {
-      siteCounts[dive.site!.id] = (siteCounts[dive.site!.id] ?? 0) + 1;
-      siteNames[dive.site!.id] = dive.site!.name;
-    }
-  }
-
-  String? mostVisitedSiteId;
-  String? mostVisitedSiteName;
-  int mostVisitedCount = 0;
-  for (final entry in siteCounts.entries) {
-    if (entry.value > mostVisitedCount) {
-      mostVisitedCount = entry.value;
-      mostVisitedSiteId = entry.key;
-      mostVisitedSiteName = siteNames[entry.key];
-    }
-  }
-
-  return PersonalRecords(
-    deepestDive: deepestDive,
-    longestDive: longestDive,
-    coldestDive: coldestDive,
-    warmestDive: warmestDive,
-    mostVisitedSiteId: mostVisitedSiteId,
-    mostVisitedSiteName: mostVisitedSiteName,
-    mostVisitedSiteCount: mostVisitedCount > 0 ? mostVisitedCount : null,
+/// Distinct GPS-bearing sites among the last 10 dives.
+final recentSitesProvider = FutureProvider<List<RecentSitePin>>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final summaries = await repository.getDiveSummaries(
+    diverId: currentDiverId,
+    limit: 10,
   );
+  final seen = <String>{};
+  final pins = <RecentSitePin>[];
+  for (final summary in summaries) {
+    final lat = summary.siteLatitude;
+    final lng = summary.siteLongitude;
+    if (lat == null || lng == null) continue;
+    // Dedupe on name + coordinates rather than coordinates alone, so two
+    // distinct sites that happen to share a GPS fix (nearby or renamed
+    // sites) both keep a pin. DiveSummary carries no site id to key on.
+    if (seen.add('${summary.siteName}|$lat,$lng')) {
+      pins.add(
+        RecentSitePin(
+          siteName: summary.siteName,
+          latitude: lat,
+          longitude: lng,
+        ),
+      );
+    }
+  }
+  return pins;
+});
+
+/// This year vs last year, for the year-in-review card.
+class YearInReview {
+  final int year;
+  final YearStats current;
+  final YearStats previous;
+
+  const YearInReview({
+    required this.year,
+    required this.current,
+    required this.previous,
+  });
+}
+
+/// This year vs last year. Null when both years are empty.
+final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
+  final repository = ref.watch(statisticsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final diverId = ref.watch(currentDiverIdProvider);
+  final year = DateTime.now().year;
+  final current = await repository.getYearStats(year, diverId: diverId);
+  final previous = await repository.getYearStats(year - 1, diverId: diverId);
+  if (current.diveCount == 0 && previous.diveCount == 0) return null;
+  return YearInReview(year: year, current: current, previous: previous);
+});
+
+/// Dives from this month/day in prior years ("on this day").
+final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final now = DateTime.now();
+  final ids = await repository.getOnThisDayDiveIds(
+    month: now.month,
+    day: now.day,
+    excludeYear: now.year,
+    diverId: currentDiverId,
+  );
+  final dives = <Dive>[];
+  for (final id in ids) {
+    final dive = await repository.getDiveById(id);
+    if (dive != null) dives.add(dive);
+  }
+  return dives;
 });
 
 /// Quick stats data class for dashboard
@@ -235,19 +262,33 @@ class DashboardQuickStats {
   });
 }
 
-/// Quick stats provider for dashboard
+/// Quick stats provider for dashboard.
+///
+/// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
+/// not inherit whatever filter is active on the (unrelated) Statistics tab.
+/// [topBuddiesProvider], [countriesVisitedProvider], and
+/// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
+/// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
+/// the shared repository directly instead of watching those providers, and
+/// re-implements their diver scoping (but not their filter scoping).
+/// The statistics change tick preserves the dive-mutation reactivity that used
+/// to arrive transitively through those three providers.
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
+  final repository = ref.watch(statisticsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final diverId = ref.watch(currentDiverIdProvider);
+
   // Get top buddy
-  final topBuddies = await ref.watch(topBuddiesProvider.future);
+  final topBuddies = await repository.getTopBuddies(diverId: diverId);
   final topBuddy = topBuddies.isNotEmpty ? topBuddies.first : null;
 
   // Get countries visited
-  final countries = await ref.watch(countriesVisitedProvider.future);
+  final countries = await repository.getCountriesVisited(diverId: diverId);
 
   // Get species count
-  final speciesCount = await ref.watch(uniqueSpeciesCountProvider.future);
+  final speciesCount = await repository.getUniqueSpeciesCount(diverId: diverId);
 
   return DashboardQuickStats(
     topBuddyName: topBuddy?.name,

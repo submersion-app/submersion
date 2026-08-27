@@ -1,0 +1,54 @@
+/// Verified Garmin FIT message/field numbers and scales (see design spec
+/// `docs/superpowers/specs/2026-06-22-garmin-fit-import-design.md`, Appendix A).
+///
+/// fit_tool 1.0.5 has no named classes for the tank messages, so they are read
+/// by global id + field number off a [GenericMessage] (which carries no profile
+/// scale — callers apply the scales below manually).
+class FitConstants {
+  const FitConstants._();
+
+  // Global message numbers.
+  static const int tankUpdateMsg = 319;
+  static const int tankSummaryMsg = 323;
+
+  // tank_update (msg 319) field numbers.
+  static const int tuTimestamp = 253;
+  static const int tuSensor = 0;
+  static const int tuPressure = 1;
+
+  // tank_summary (msg 323) field numbers.
+  static const int tsSensor = 0;
+  static const int tsStartPressure = 1;
+  static const int tsEndPressure = 2;
+  static const int tsVolumeUsed = 3;
+
+  // event (msg 21) field numbers. Read raw because fit_tool's typed
+  // EventMessage getters throw on event values missing from its outdated
+  // Event enum (gas_switched among them).
+  static const int evTimestamp = 253;
+  static const int evEvent = 0;
+  static const int evData = 3;
+
+  /// FIT SDK `event` value for a gas switch; `data` carries the dive_gas
+  /// message index of the gas switched to.
+  static const int gasSwitchedEvent = 57;
+
+  // Scales: raw integer -> physical unit.
+  static const double pressureScaleBar = 100.0; // raw / 100 = bar
+  static const double volumeScaleLiters = 100.0; // raw / 100 = liters
+  static const double semicircleToDegrees = 180.0 / 2147483648.0;
+
+  /// Cylinder-volume derivation (`size = volume_used / pressure_drop`). Garmin
+  /// does not transmit cylinder size; it stores volume_used computed from the
+  /// user's configured size, so the size is recovered by reversing that. Below
+  /// this pressure drop the quotient is noise; reject it.
+  static const double minDeriveDropBar = 5.0;
+
+  /// Reject an implausibly large derived cylinder volume (liters) as garbage.
+  static const double maxPlausibleVolumeLiters = 60.0;
+
+  /// Seconds between the Unix epoch (1970-01-01) and the FIT epoch
+  /// (1989-12-31). A GenericMessage timestamp field is raw FIT-epoch seconds;
+  /// add this and multiply by 1000 to get Unix milliseconds.
+  static const int fitEpochToUnixSeconds = 631065600;
+}

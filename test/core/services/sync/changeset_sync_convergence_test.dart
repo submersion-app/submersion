@@ -1,0 +1,102 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+
+import '../../../helpers/test_database.dart';
+import '../../../helpers/mock_providers.dart';
+import '../../../support/fake_cloud_storage_provider.dart';
+
+/// End-to-end proof that the changeset-log transport converges two devices
+/// through the real merge. One in-memory database stands in for each device in
+/// turn (the singleton is swapped), sharing one fake "cloud".
+void main() {
+  test('two devices converge via performSync', () async {
+    final cloud = FakeCloudStorageProvider();
+
+    // --- Device A: create a dive, then sync (publishes a base) ---
+    await setUpTestDatabase();
+    var svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'a1', diveNumber: 1),
+    );
+    final ra = await svc.performSync();
+    expect(ra.status, SyncResultStatus.success);
+    await tearDownTestDatabase();
+
+    // --- Device B: fresh DB, same cloud; sync should pull A's dive in ---
+    await setUpTestDatabase();
+    svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    final rb = await svc.performSync();
+    expect(rb.status, SyncResultStatus.success);
+
+    final row = await DatabaseService.instance.database
+        .customSelect("SELECT id FROM dives WHERE id = 'a1'")
+        .getSingleOrNull();
+    expect(
+      row,
+      isNotNull,
+      reason: "device B must receive device A's dive via changeset sync",
+    );
+    await tearDownTestDatabase();
+  });
+
+  test('cold-start adopts a multi-entity base via the streaming path', () async {
+    final cloud = FakeCloudStorageProvider();
+
+    // --- Device A: a small library across several tables, then publish ---
+    await setUpTestDatabase();
+    var svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    final serializerA = SyncDataSerializer();
+    for (var i = 1; i <= 3; i++) {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'm$i', diveNumber: i),
+      );
+    }
+    await serializerA.upsertRecord('diveSites', {
+      'id': 'site-m',
+      'name': 'Manta Point',
+      'description': '',
+      'notes': '',
+      'isShared': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    await tearDownTestDatabase();
+
+    // --- Device B: fresh DB, adopts A's base through _applyRemoteBaseFile ---
+    await setUpTestDatabase();
+    svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+
+    final db = DatabaseService.instance.database;
+    final diveCount = await db
+        .customSelect("SELECT COUNT(*) AS c FROM dives")
+        .getSingle();
+    expect(diveCount.data['c'], 3, reason: 'all three dives must converge');
+    final site = await db
+        .customSelect("SELECT name FROM dive_sites WHERE id = 'site-m'")
+        .getSingleOrNull();
+    expect(site, isNotNull, reason: 'the dive site must converge');
+    await tearDownTestDatabase();
+  });
+}

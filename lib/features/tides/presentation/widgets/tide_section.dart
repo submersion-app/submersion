@@ -4,12 +4,14 @@ import 'package:intl/intl.dart' show DateFormat;
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/current_tide_indicator.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_source_badge.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_times_table.dart';
 
 /// A complete tide information section for a dive site.
@@ -196,6 +198,9 @@ class _TideSectionContent extends ConsumerWidget {
                 ),
               ],
             ),
+
+            // Data provenance (NOAA station vs ocean-model estimate)
+            TideSourceBadge(location: location),
             const SizedBox(height: 12),
 
             // Current Status
@@ -237,6 +242,7 @@ class _TideSectionContent extends ConsumerWidget {
                       context,
                       extremes,
                       settings.timeFormat,
+                      settings.dateFormat,
                     ),
                     loading: () => const SizedBox.shrink(),
                     error: (_, _) => const SizedBox.shrink(),
@@ -256,18 +262,21 @@ class _TideSectionContent extends ConsumerWidget {
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
+                      dateFormat: settings.dateFormat,
                     ),
                     loading: () => TideChart(
                       predictions: predictions,
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
+                      dateFormat: settings.dateFormat,
                     ),
                     error: (_, _) => TideChart(
                       predictions: predictions,
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
+                      dateFormat: settings.dateFormat,
                     ),
                   );
                 },
@@ -317,6 +326,7 @@ class _TideSectionContent extends ConsumerWidget {
                     compact: true,
                     depthUnit: settings.depthUnit,
                     timeFormat: settings.timeFormat,
+                    dateFormat: settings.dateFormat,
                   );
                 },
                 loading: () => const SizedBox(
@@ -337,6 +347,7 @@ class _TideSectionContent extends ConsumerWidget {
     BuildContext context,
     List<TideExtreme> extremes,
     TimeFormat timeFormat,
+    DateFormatPreference dateFormat,
   ) {
     if (extremes.isEmpty) return const SizedBox.shrink();
 
@@ -366,17 +377,22 @@ class _TideSectionContent extends ConsumerWidget {
       windowEnd = now.add(const Duration(hours: 12));
     }
 
-    final startLocal = windowStart.toLocal();
-    final endLocal = windowEnd.toLocal();
-    final dateStr = DateFormat('EEE, MMM d').format(startLocal);
-    final startTimeStr = DateFormat(timeFormat.pattern).format(startLocal);
-    final endTimeStr = DateFormat(timeFormat.pattern).format(endLocal);
+    // Window bounds are stored wall-clock instants, not device-local times:
+    // format them verbatim without any timezone conversion.
+    final dateStr = DateFormat(
+      UnitFormatter.weekdayMonthDayPattern(dateFormat),
+    ).format(windowStart);
+    final startTimeStr = DateFormat(timeFormat.pattern).format(windowStart);
+    final endTimeStr = DateFormat(timeFormat.pattern).format(windowEnd);
     final spansNewDay =
-        startLocal.year != endLocal.year ||
-        startLocal.month != endLocal.month ||
-        startLocal.day != endLocal.day;
+        windowStart.year != windowEnd.year ||
+        windowStart.month != windowEnd.month ||
+        windowStart.day != windowEnd.day;
+    final endDateStr = DateFormat(
+      UnitFormatter.monthDayPattern(dateFormat),
+    ).format(windowEnd);
     final timeRange = spansNewDay
-        ? '$startTimeStr - $endTimeStr (${DateFormat('MMM d').format(endLocal)})'
+        ? '$startTimeStr - $endTimeStr ($endDateStr)'
         : '$startTimeStr - $endTimeStr';
 
     return Text(

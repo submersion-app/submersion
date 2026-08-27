@@ -83,7 +83,9 @@ class _TripPickerState extends ConsumerState<TripPicker> {
           padding: const EdgeInsetsDirectional.only(start: 56, top: 4),
           child: Semantics(
             button: true,
-            label: 'Suggested trip: ${suggestedTrip.name}. Tap to use',
+            label: context.l10n.trips_picker_suggestedSemantics(
+              suggestedTrip.name,
+            ),
             child: InkWell(
               onTap: () => widget.onTripSelected(suggestedTrip),
               child: Row(
@@ -248,8 +250,17 @@ class TripPickerSheet extends ConsumerWidget {
                   final isSelected = selectedTrip?.id == trip.id;
                   final dateFormat = DateFormat.yMMMd();
 
-                  final tripLabel =
-                      '${trip.name}, ${dateFormat.format(trip.startDate)} to ${dateFormat.format(trip.endDate)}${isSelected ? ', selected' : ''}';
+                  final tripLabel = isSelected
+                      ? context.l10n.trips_picker_tileSemanticsSelected(
+                          trip.name,
+                          dateFormat.format(trip.startDate),
+                          dateFormat.format(trip.endDate),
+                        )
+                      : context.l10n.trips_picker_tileSemantics(
+                          trip.name,
+                          dateFormat.format(trip.startDate),
+                          dateFormat.format(trip.endDate),
+                        );
 
                   return Semantics(
                     label: tripLabel,

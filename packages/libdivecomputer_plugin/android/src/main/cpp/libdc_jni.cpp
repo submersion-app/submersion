@@ -3,6 +3,7 @@
 
 #include <jni.h>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <android/log.h>
 
@@ -211,6 +212,15 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionFree(
     libdc_download_session_free(session);
 }
 
+// Debug-only: deliberately raise SIGSEGV in the current process to prove the
+// :dc download-service process isolation (issue #318). Reached only via
+// DiveDownloadService's __crash_test__ path; never in normal operation.
+extern "C" JNIEXPORT void JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDebugCrash(JNIEnv *, jclass) {
+    volatile int *p = nullptr;
+    *p = 42;
+}
+
 // Structs for passing callback context through JNI.
 struct JniDownloadContext {
     JavaVM *jvm;
@@ -228,9 +238,12 @@ static void jni_on_progress(unsigned int current, unsigned int maximum, void *us
 
     jclass cls = env->GetObjectClass(ctx->callback);
     jmethodID method = env->GetMethodID(cls, "onProgress", "(II)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->callback, method,
             static_cast<jint>(current), static_cast<jint>(maximum));
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -247,10 +260,13 @@ static void jni_on_dive(const libdc_parsed_dive_t *dive, void *userdata) {
 
     jclass cls = env->GetObjectClass(ctx->callback);
     jmethodID method = env->GetMethodID(cls, "onDive", "(J)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         // Pass the dive pointer so Kotlin can read fields via additional JNI calls.
         env->CallVoidMethod(ctx->callback, method,
             reinterpret_cast<jlong>(dive));
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -281,7 +297,9 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "read", "(II)[B");
+    env->DeleteLocalRef(cls);
     if (!method) {
+        env->ExceptionClear();
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
     }
@@ -289,6 +307,21 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
     auto result = static_cast<jbyteArray>(
         env->CallObjectMethod(ctx->ioHandler, method,
             static_cast<jint>(size), static_cast<jint>(ctx->timeout_ms)));
+
+    // A pending Java exception (e.g. an IOException from a serial read on an
+    // unplugged device or after a revoked USB permission) is a real I/O
+    // failure: report LIBDC_STATUS_IO so the driver fails fast instead of
+    // retrying a dead port. Clearing it is also mandatory -- a left-pending
+    // exception would corrupt the next JNI call. (BLE reads don't throw in
+    // normal operation, so this path is serial-specific in practice while the
+    // partial-read SUCCESS semantics below stay intact for BLE.)
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        *actual = 0;
+        if (attached) ctx->jvm->DetachCurrentThread();
+        return LIBDC_STATUS_IO;
+    }
 
     if (!result) {
         *actual = 0;
@@ -298,6 +331,7 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
 
     jsize len = env->GetArrayLength(result);
     env->GetByteArrayRegion(result, 0, len, static_cast<jbyte *>(data));
+    env->DeleteLocalRef(result);
     *actual = static_cast<size_t>(len);
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -315,7 +349,9 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "write", "([BI)I");
+    env->DeleteLocalRef(cls);
     if (!method) {
+        env->ExceptionClear();
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
     }
@@ -326,6 +362,7 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
 
     jint result = env->CallIntMethod(ctx->ioHandler, method, arr,
         static_cast<jint>(ctx->timeout_ms));
+    env->DeleteLocalRef(arr);
 
     if (result < 0) {
         *actual = 0;
@@ -336,6 +373,71 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
     *actual = size;
     if (attached) ctx->jvm->DetachCurrentThread();
     return LIBDC_STATUS_SUCCESS;
+}
+
+// Serial line-control callbacks. These bridge to the Kotlin SerialIoHandler
+// (configure/setDtr/setRts) and are only wired in nativeDownloadRun when the
+// handler implements them, so BLE handlers are unaffected. The Kotlin methods
+// return 0 on success and non-zero on failure.
+static int jni_io_configure(void *userdata, unsigned int baudrate,
+                            unsigned int databits, unsigned int parity,
+                            unsigned int stopbits, unsigned int flowcontrol) {
+    auto *ctx = static_cast<JniIoContext *>(userdata);
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, "configure", "(IIIII)I");
+    env->DeleteLocalRef(cls);
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method,
+            static_cast<jint>(baudrate), static_cast<jint>(databits),
+            static_cast<jint>(parity), static_cast<jint>(stopbits),
+            static_cast<jint>(flowcontrol));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_modem_line(JniIoContext *ctx, const char *methodName,
+                                 unsigned int value) {
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, methodName, "(I)I");
+    env->DeleteLocalRef(cls);
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method, static_cast<jint>(value));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_dtr(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setDtr", value);
+}
+
+static int jni_io_set_rts(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setRts", value);
 }
 
 // BLE ioctl constants matching libdivecomputer's encoding.
@@ -390,6 +492,12 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         jclass cls = env->GetObjectClass(ctx->ioHandler);
         jmethodID method = env->GetMethodID(cls, "onPinCodeRequired",
             "(Ljava/lang/String;)Ljava/lang/String;");
+        if (method == nullptr) {
+            env->ExceptionClear();
+            env->DeleteLocalRef(cls);
+            if (attached) ctx->jvm->DetachCurrentThread();
+            return LIBDC_STATUS_UNSUPPORTED;
+        }
 
         jstring jAddress = env->NewStringUTF(ctx->ble_name);
         jstring jPin = (jstring)env->CallObjectMethod(ctx->ioHandler, method, jAddress);
@@ -410,6 +518,7 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         }
 
         if (jPin != nullptr) env->DeleteLocalRef(jPin);
+        env->DeleteLocalRef(cls);
         if (attached) ctx->jvm->DetachCurrentThread();
         return status;
     }
@@ -437,6 +546,13 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
             // GET access code
             jmethodID method = env->GetMethodID(cls, "getAccessCode",
                 "(Ljava/lang/String;)[B");
+            if (method == nullptr) {
+                env->ExceptionClear();
+                env->DeleteLocalRef(jAddress);
+                env->DeleteLocalRef(cls);
+                if (attached) ctx->jvm->DetachCurrentThread();
+                return LIBDC_STATUS_UNSUPPORTED;
+            }
             jbyteArray jCode = (jbyteArray)env->CallObjectMethod(
                 ctx->ioHandler, method, jAddress);
 
@@ -456,12 +572,18 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
             }
         } else {
             // SET access code
+            jmethodID method = env->GetMethodID(cls, "setAccessCode",
+                "(Ljava/lang/String;[B)V");
+            if (method == nullptr) {
+                env->ExceptionClear();
+                env->DeleteLocalRef(jAddress);
+                env->DeleteLocalRef(cls);
+                if (attached) ctx->jvm->DetachCurrentThread();
+                return LIBDC_STATUS_UNSUPPORTED;
+            }
             jbyteArray jCode = env->NewByteArray((jsize)size);
             env->SetByteArrayRegion(jCode, 0, (jsize)size,
                 reinterpret_cast<const jbyte *>(data));
-
-            jmethodID method = env->GetMethodID(cls, "setAccessCode",
-                "(Ljava/lang/String;[B)V");
             env->CallVoidMethod(ctx->ioHandler, method, jAddress, jCode);
             env->DeleteLocalRef(jCode);
             status = LIBDC_STATUS_SUCCESS;
@@ -470,6 +592,7 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         }
 
         env->DeleteLocalRef(jAddress);
+        env->DeleteLocalRef(cls);
         if (attached) ctx->jvm->DetachCurrentThread();
         return status;
     }
@@ -488,8 +611,17 @@ static int jni_io_purge(void *userdata, unsigned int direction) {
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "purge", "(I)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method, static_cast<jint>(direction));
+    } else {
+        // A failed GetMethodID leaves a pending NoSuchMethodError; every
+        // JNI call made while an exception is pending is undefined behavior,
+        // so it MUST be cleared before this callback returns. Leaving it
+        // pending here crashed the whole download process when R8 stripped
+        // the handler methods (#318). Same rule applies to every failed
+        // GetMethodID in this file.
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -507,13 +639,27 @@ static int jni_io_close(void *userdata) {
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "close", "()V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method);
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
     return LIBDC_STATUS_SUCCESS;
 }
+
+// Context for the libdivecomputer log callback: WARNING/ERROR messages are
+// forwarded to NativeTrace.writeLibdc so they land in the user-exportable
+// debug log, not only logcat. Cached once per process; the global ref and
+// jmethodID stay valid for the app's lifetime.
+struct LogForwardContext {
+    JavaVM *jvm;
+    jobject traceInstance;  // global ref to NativeTrace.INSTANCE
+    jmethodID writeLibdc;   // writeLibdc(String, String)
+};
+static LogForwardContext g_log_forward = {nullptr, nullptr, nullptr};
 
 extern "C" JNIEXPORT jint JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
@@ -559,6 +705,26 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
     io_callbacks.purge = jni_io_purge;
     io_callbacks.userdata = &ioCtx;
 
+    // Wire serial line-control callbacks only if the handler implements them
+    // (SerialIoHandler does, BleIoHandler does not). A missing method makes
+    // GetMethodID raise NoSuchMethodError, which we clear silently; leaving the
+    // callback NULL makes the C bridge treat it as a no-op.
+    {
+        jclass handlerCls = env->GetObjectClass(ioHandler);
+        if (env->GetMethodID(handlerCls, "configure", "(IIIII)I") != nullptr) {
+            io_callbacks.configure = jni_io_configure;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setDtr", "(I)I") != nullptr) {
+            io_callbacks.set_dtr = jni_io_set_dtr;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setRts", "(I)I") != nullptr) {
+            io_callbacks.set_rts = jni_io_set_rts;
+        }
+        env->ExceptionClear();
+    }
+
     // Set up download callbacks.
     JniDownloadContext dlCtx;
     dlCtx.jvm = jvm;
@@ -582,11 +748,37 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         }
     }
 
+    // Resolve NativeTrace once so the libdivecomputer log callback can
+    // forward WARNING/ERROR diagnostics into the user-exportable debug log.
+    // Issue #766 took three rounds of user logs to localize because the
+    // protocol-level messages only ever reached logcat.
+    if (g_log_forward.traceInstance == nullptr) {
+        jclass traceCls =
+            env->FindClass("com/submersion/libdivecomputer/NativeTrace");
+        if (traceCls != nullptr) {
+            jfieldID instField = env->GetStaticFieldID(traceCls, "INSTANCE",
+                "Lcom/submersion/libdivecomputer/NativeTrace;");
+            jmethodID writeMethod = env->GetMethodID(traceCls, "writeLibdc",
+                "(Ljava/lang/String;Ljava/lang/String;)V");
+            if (instField != nullptr && writeMethod != nullptr) {
+                jobject inst = env->GetStaticObjectField(traceCls, instField);
+                if (inst != nullptr) {
+                    g_log_forward.jvm = jvm;
+                    g_log_forward.writeLibdc = writeMethod;
+                    g_log_forward.traceInstance = env->NewGlobalRef(inst);
+                    env->DeleteLocalRef(inst);
+                }
+            }
+            env->DeleteLocalRef(traceCls);
+        }
+        env->ExceptionClear();
+    }
+
     // Register libdivecomputer log callback so internal diagnostic messages
     // appear in logcat. Android's NativeLogger already wraps Log.d(), so
     // logcat output is captured by the platform-level logging infrastructure.
     libdc_set_log_callback(
-        [](int level, const char *message, void *) {
+        [](int level, const char *message, void *userdata) {
             // Map dc_loglevel_t: ERROR=1, WARNING=2, INFO=3, DEBUG=4+
             android_LogPriority priority;
             switch (level) {
@@ -604,8 +796,30 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
                 break;
             }
             __android_log_print(priority, "libdc", "%s", message);
+
+            // Forward WARNING/ERROR into the crash-survivable debug log so
+            // protocol-level failures reach user-exported logs.
+            auto *fwd = static_cast<LogForwardContext *>(userdata);
+            if (fwd == nullptr || fwd->traceInstance == nullptr || level > 2)
+                return;
+            JNIEnv *cbEnv;
+            if (fwd->jvm->GetEnv(reinterpret_cast<void **>(&cbEnv),
+                                 JNI_VERSION_1_6) != JNI_OK) {
+                // Only forward from already-attached threads (the download
+                // thread entered through JNI); logging must stay passive.
+                return;
+            }
+            jstring jlevel = cbEnv->NewStringUTF(level == 1 ? "ERROR" : "WARN");
+            jstring jmessage = cbEnv->NewStringUTF(message);
+            if (jlevel != nullptr && jmessage != nullptr) {
+                cbEnv->CallVoidMethod(fwd->traceInstance, fwd->writeLibdc,
+                                      jlevel, jmessage);
+            }
+            cbEnv->ExceptionClear();
+            if (jlevel != nullptr) cbEnv->DeleteLocalRef(jlevel);
+            if (jmessage != nullptr) cbEnv->DeleteLocalRef(jmessage);
         },
-        nullptr
+        &g_log_forward
     );
 
     // Run the download.
@@ -730,6 +944,34 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMaxTemp(
     return dive->max_temp;
 }
 
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveEntryLatitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->entry_latitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveEntryLongitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->entry_longitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveExitLatitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->exit_latitude;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveExitLongitude(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->exit_longitude;
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMode(
     JNIEnv *, jclass, jlong divePtr) {
@@ -756,6 +998,13 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSampleCount(
     return static_cast<jint>(dive->sample_count);
 }
 
+// Must match SAMPLE_FIELD_COUNT in SampleDecoder.kt.
+#define LIBDC_SAMPLE_FIELD_COUNT (28 + LIBDC_MAX_TANKS)
+
+// Index of the first per-tank pressure slot; must match TANK_PRESSURE_OFFSET in
+// SampleDecoder.kt.
+#define LIBDC_TANK_PRESSURE_OFFSET 28
+
 extern "C" JNIEXPORT jdoubleArray JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     JNIEnv *env, jclass, jlong divePtr, jint index) {
@@ -763,8 +1012,12 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->sample_count) return nullptr;
 
     const libdc_sample_t *s = &dive->samples[index];
-    // All 14 fields. Integer sentinels (UINT32_MAX) are cast to double.
-    jdouble values[14] = {
+    // 28 scalar fields (14 base + 6 O2 cells + gas mix + heading + 6 cell mV),
+    // then one slot per tank for the per-transmitter pressures (issue #1223).
+    // Integer sentinels (UINT32_MAX) are cast to double; NAN doubles pass
+    // through and become null on the Kotlin side. Kotlin indexes this array
+    // positionally (see SampleDecoder.kt): append only, never insert.
+    jdouble values[LIBDC_SAMPLE_FIELD_COUNT] = {
         static_cast<jdouble>(s->time_ms),
         s->depth,
         s->temperature,
@@ -778,10 +1031,27 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
         static_cast<jdouble>(s->deco_type),
         static_cast<jdouble>(s->deco_time),
         s->deco_depth,
-        static_cast<jdouble>(s->deco_tts)
+        static_cast<jdouble>(s->deco_tts),
+        s->o2_sensor[0],
+        s->o2_sensor[1],
+        s->o2_sensor[2],
+        s->o2_sensor[3],
+        s->o2_sensor[4],
+        s->o2_sensor[5],
+        static_cast<jdouble>(s->gasmix),
+        static_cast<jdouble>(s->heading),
+        static_cast<jdouble>(s->o2_sensor_mv[0]),
+        static_cast<jdouble>(s->o2_sensor_mv[1]),
+        static_cast<jdouble>(s->o2_sensor_mv[2]),
+        static_cast<jdouble>(s->o2_sensor_mv[3]),
+        static_cast<jdouble>(s->o2_sensor_mv[4]),
+        static_cast<jdouble>(s->o2_sensor_mv[5])
     };
-    jdoubleArray result = env->NewDoubleArray(14);
-    env->SetDoubleArrayRegion(result, 0, 14, values);
+    for (unsigned int t = 0; t < LIBDC_MAX_TANKS; t++) {
+        values[LIBDC_TANK_PRESSURE_OFFSET + t] = s->tank_pressure[t];
+    }
+    jdoubleArray result = env->NewDoubleArray(LIBDC_SAMPLE_FIELD_COUNT);
+    env->SetDoubleArrayRegion(result, 0, LIBDC_SAMPLE_FIELD_COUNT, values);
     return result;
 }
 
@@ -819,16 +1089,17 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveTank(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->tank_count) return nullptr;
 
     const libdc_tank_t *tk = &dive->tanks[index];
-    // Return [gasmix, volume, workpressure, beginpressure, endpressure]
-    jdouble values[5] = {
+    // Return [gasmix, volume, workpressure, beginpressure, endpressure, usage]
+    jdouble values[6] = {
         static_cast<jdouble>(tk->gasmix),
         tk->volume,
         tk->workpressure,
         tk->beginpressure,
-        tk->endpressure
+        tk->endpressure,
+        static_cast<jdouble>(tk->usage)
     };
-    jdoubleArray result = env->NewDoubleArray(5);
-    env->SetDoubleArrayRegion(result, 0, 5, values);
+    jdoubleArray result = env->NewDoubleArray(6);
+    env->SetDoubleArrayRegion(result, 0, 6, values);
     return result;
 }
 
@@ -906,4 +1177,71 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveRawFingerprint(
     env->SetByteArrayRegion(arr, 0, static_cast<jint>(dive->raw_fingerprint_size),
         reinterpret_cast<const jbyte *>(dive->raw_fingerprint));
     return arr;
+}
+
+// ============================================================
+// Standalone Raw Dive Parsing
+// ============================================================
+
+// Releases a dive allocated by nativeParseRawDive. Inside libdc_parsed_dive_t
+// only `samples` and `events` are heap-allocated; `gasmixes`, `tanks` and
+// `fingerprint` are inline arrays and must not be freed. This is the only
+// place that rule is expressed.
+static void free_parsed_dive(libdc_parsed_dive_t *dive) {
+    if (dive == nullptr) return;
+    free(dive->samples);
+    free(dive->events);
+    free(dive);
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeParseRawDive(
+    JNIEnv *env, jclass,
+    jstring vendor, jstring product, jint model,
+    jbyteArray data, jbyteArray errorBuf) {
+
+    // Heap-allocated because Kotlin reads the fields afterwards through the
+    // nativeGetDiveXxx accessors, which need the struct to outlive this call.
+    auto *dive = static_cast<libdc_parsed_dive_t *>(
+        calloc(1, sizeof(libdc_parsed_dive_t)));
+    if (dive == nullptr) return 0;
+
+    const char *vendorStr = env->GetStringUTFChars(vendor, nullptr);
+    const char *productStr = env->GetStringUTFChars(product, nullptr);
+    jsize dataLen = env->GetArrayLength(data);
+    jbyte *dataPtr = env->GetByteArrayElements(data, nullptr);
+
+    char error_buf[256] = {0};
+
+    // model was range-checked in Kotlin against UINT32_MAX before narrowing to
+    // jint, so this reinterprets the bit pattern rather than losing a value.
+    int rc = libdc_parse_raw_dive(
+        vendorStr, productStr, static_cast<unsigned int>(model),
+        reinterpret_cast<const unsigned char *>(dataPtr),
+        static_cast<unsigned int>(dataLen),
+        dive, error_buf, sizeof(error_buf));
+
+    env->ReleaseByteArrayElements(data, dataPtr, JNI_ABORT);
+    env->ReleaseStringUTFChars(vendor, vendorStr);
+    env->ReleaseStringUTFChars(product, productStr);
+
+    if (rc != 0) {
+        if (errorBuf != nullptr && error_buf[0]) {
+            jsize len = env->GetArrayLength(errorBuf);
+            jsize msgLen = static_cast<jsize>(strlen(error_buf));
+            if (msgLen > len) msgLen = len;
+            env->SetByteArrayRegion(errorBuf, 0, msgLen,
+                reinterpret_cast<const jbyte *>(error_buf));
+        }
+        free_parsed_dive(dive);
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(dive);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeParsedDiveFree(
+    JNIEnv *, jclass, jlong divePtr) {
+    free_parsed_dive(reinterpret_cast<libdc_parsed_dive_t *>(divePtr));
 }

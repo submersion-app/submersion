@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -57,8 +60,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
 
-  CertificationLevel? _certLevel;
-  CertificationAgency? _certAgency;
+  List<Certification> _certifications = [];
+  // True only when the user added/edited/removed a cert on this screen. The
+  // commit is gated on this so saving unrelated edits (name/notes) never
+  // calls replaceBuddyCertifications with a stale snapshot -- which would
+  // delete certs added concurrently (e.g. by sync) since _loadBuddy, and would
+  // clobber the merge-time cert union (issue #553 review).
+  bool _certificationsDirty = false;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
@@ -78,15 +86,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     if (widget.isMerging) {
       _mergeCtrl = BuddyMergeFormController();
       _originalBuddy = widget.mergeBuddies!.first;
-      final (:certLevel, :certAgency) = _mergeCtrl!.initialize(
+      _mergeCtrl!.initialize(
         buddies: widget.mergeBuddies!,
         nameController: _nameController,
         emailController: _emailController,
         phoneController: _phoneController,
         notesController: _notesController,
       );
-      _certLevel = certLevel;
-      _certAgency = certAgency;
     } else if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
@@ -116,16 +122,20 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           .read(buddyRepositoryProvider)
           .getBuddyById(widget.buddyId!);
       if (buddy != null && mounted) {
+        final certs = await ref
+            .read(certificationRepositoryProvider)
+            .getCertificationsByBuddy(widget.buddyId!);
+        if (!mounted) return;
         _originalBuddy = buddy;
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
         _notesController.text = buddy.notes;
         setState(() {
-          _certLevel = buddy.certificationLevel;
-          _certAgency = buddy.certificationAgency;
+          _certifications = certs;
           _isLoading = false;
           _hasChanges = false;
+          _certificationsDirty = false;
         });
       }
     } catch (e) {
@@ -405,140 +415,52 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             ),
             const SizedBox(height: 24),
 
-            // Certification section header
-            Text(
-              context.l10n.buddies_section_certification,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // Certification level dropdown
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<CertificationLevel>(
-                    key: ValueKey(_certLevel),
-                    initialValue: _certLevel,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.buddies_field_certificationLevel,
-                      prefixIcon: const Icon(Icons.card_membership),
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(context.l10n.buddies_label_notSpecified),
+            // Certifications (issue #553): staged in memory, committed on
+            // Save. Hidden in merge mode -- the survivor inherits the union of
+            // certs at the repository level (no per-field cycling).
+            if (!widget.isMerging) ...[
+              Text(
+                context.l10n.buddies_section_certifications,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              for (final (index, cert) in _certifications.indexed)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.card_membership),
+                  title: Text(certificationTitle(cert)),
+                  subtitle: Text(certificationAgencyAndLevel(cert)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _openCertEditor(index),
                       ),
-                      ...CertificationLevel.values.map((level) {
-                        return DropdownMenuItem(
-                          value: level,
-                          child: Text(level.displayName),
-                        );
-                      }),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => setState(() {
+                          _certifications = [..._certifications]
+                            ..removeAt(index);
+                          _hasChanges = true;
+                          _certificationsDirty = true;
+                        }),
+                      ),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _certLevel = value;
-                        _hasChanges = true;
-                      });
-                    },
                   ),
                 ),
-                if (widget.isMerging &&
-                    _mergeCtrl != null &&
-                    _mergeCtrl!.certLevelCandidates.length > 1) ...[
-                  const SizedBox(width: 8),
-                  _buildMergeCycleButton(() {
-                    setState(() {
-                      _certLevel = _mergeCtrl!.cycleCertLevel();
-                      _hasChanges = true;
-                    });
-                  }),
-                ],
-              ],
-            ),
-            if (widget.isMerging &&
-                _mergeCtrl != null &&
-                _mergeCtrl!.certLevelCandidates.length > 1) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.buddies_edit_merge_fieldSourceLabel(
-                  _mergeCtrl!
-                      .certLevelCandidates[_mergeCtrl!
-                              .fieldIndices['certLevel'] ??
-                          0]
-                      .buddyName,
-                  (_mergeCtrl!.fieldIndices['certLevel'] ?? 0) + 1,
-                  _mergeCtrl!.certLevelCandidates.length,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.buddies_action_addCertification),
+                  onPressed: () => _openCertEditor(null),
                 ),
-                style: Theme.of(context).textTheme.bodySmall,
               ),
+              const SizedBox(height: 24),
             ],
-            const SizedBox(height: 16),
-
-            // Certification agency dropdown
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<CertificationAgency>(
-                    key: ValueKey(_certAgency),
-                    initialValue: _certAgency,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.buddies_field_certificationAgency,
-                      prefixIcon: const Icon(Icons.business),
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(context.l10n.buddies_label_notSpecified),
-                      ),
-                      ...CertificationAgency.values.map((agency) {
-                        return DropdownMenuItem(
-                          value: agency,
-                          child: Text(agency.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _certAgency = value;
-                        _hasChanges = true;
-                      });
-                    },
-                  ),
-                ),
-                if (widget.isMerging &&
-                    _mergeCtrl != null &&
-                    _mergeCtrl!.certAgencyCandidates.length > 1) ...[
-                  const SizedBox(width: 8),
-                  _buildMergeCycleButton(() {
-                    setState(() {
-                      _certAgency = _mergeCtrl!.cycleCertAgency();
-                      _hasChanges = true;
-                    });
-                  }),
-                ],
-              ],
-            ),
-            if (widget.isMerging &&
-                _mergeCtrl != null &&
-                _mergeCtrl!.certAgencyCandidates.length > 1) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.buddies_edit_merge_fieldSourceLabel(
-                  _mergeCtrl!
-                      .certAgencyCandidates[_mergeCtrl!
-                              .fieldIndices['certAgency'] ??
-                          0]
-                      .buddyName,
-                  (_mergeCtrl!.fieldIndices['certAgency'] ?? 0) + 1,
-                  _mergeCtrl!.certAgencyCandidates.length,
-                ),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 24),
 
             // Notes section header
             Text(
@@ -718,6 +640,42 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     return confirmed == true;
   }
 
+  /// Open the certification editor (staging mode) in a dialog to add or edit a
+  /// staged cert; the buddy's cert list commits on Save (issue #553).
+  Future<void> _openCertEditor(int? index) async {
+    final existing = index == null ? null : _certifications[index];
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        child: SizedBox(
+          width: 480,
+          height: 600,
+          child: CertificationEditPage(
+            embedded: true,
+            initialCertification:
+                existing ??
+                Certification.empty().copyWith(buddyId: widget.buddyId),
+            onStaged: (result) {
+              setState(() {
+                final next = [..._certifications];
+                if (index == null) {
+                  next.add(result);
+                } else {
+                  next[index] = result;
+                }
+                _certifications = next;
+                _hasChanges = true;
+                _certificationsDirty = true;
+              });
+            },
+            onSaved: (_) => Navigator.of(ctx).pop(),
+            onCancel: () => Navigator.of(ctx).pop(),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveBuddy() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -740,12 +698,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
-        certificationLevel: _certLevel,
-        certificationAgency: _certAgency,
         photoPath: widget.isMerging
             ? _mergeCtrl?.mergedPhotoPath
             : _originalBuddy?.photoPath,
         notes: _notesController.text.trim(),
+        // Preserve favorite status (issue #638): this form has no favorite
+        // control, so a full-constructor rebuild would otherwise silently
+        // reset it to false on every save.
+        isFavorite: _originalBuddy?.isFavorite ?? false,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
       );
@@ -781,6 +741,15 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         savedBuddy = await ref
             .read(buddyListNotifierProvider.notifier)
             .addBuddy(buddy);
+      }
+
+      // issue #553: commit the staged certifications onto the saved buddy --
+      // only when the user actually changed them here, so an unrelated save
+      // doesn't clobber certs added concurrently (sync) or the merge-time union.
+      if (_certificationsDirty) {
+        await ref
+            .read(certificationRepositoryProvider)
+            .replaceBuddyCertifications(savedBuddy.id, _certifications);
       }
 
       if (mounted) {

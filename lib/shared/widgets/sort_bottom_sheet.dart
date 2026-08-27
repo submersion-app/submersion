@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A reusable bottom sheet for selecting sort field and direction.
@@ -83,12 +84,16 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
                       ButtonSegment(
                         value: SortDirection.ascending,
                         icon: Icon(SortDirection.ascending.icon, size: 18),
-                        tooltip: SortDirection.ascending.displayName,
+                        tooltip: SortDirection.ascending.localizedName(
+                          context.l10n,
+                        ),
                       ),
                       ButtonSegment(
                         value: SortDirection.descending,
                         icon: Icon(SortDirection.descending.icon, size: 18),
-                        tooltip: SortDirection.descending.displayName,
+                        tooltip: SortDirection.descending.localizedName(
+                          context.l10n,
+                        ),
                       ),
                     ],
                     selected: {_selectedDirection},

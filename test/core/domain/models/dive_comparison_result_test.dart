@@ -33,7 +33,7 @@ Dive _makeDive({
     notes: '',
     photoIds: const [],
     sightings: const [],
-    diveTypeId: '',
+    diveTypeIds: [''],
     weights: const [],
     tags: const [],
     customFields: const [],

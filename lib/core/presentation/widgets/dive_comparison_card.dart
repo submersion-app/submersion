@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared comparison card for dive duplicate resolution.
@@ -31,8 +32,11 @@ class DiveComparisonCard extends ConsumerWidget {
   final IncomingDiveData incoming;
   final String existingDiveId;
   final double matchScore;
-  final String existingLabel;
-  final String incomingLabel;
+
+  /// Column headers for the diff table. Null resolves to the localized
+  /// defaults at build time; a const constructor cannot reach l10n.
+  final String? existingLabel;
+  final String? incomingLabel;
 
   // --- Immediate-action mode callbacks (backwards compatible) ---
   final VoidCallback? onSkip;
@@ -70,8 +74,8 @@ class DiveComparisonCard extends ConsumerWidget {
     required this.incoming,
     required this.existingDiveId,
     required this.matchScore,
-    this.existingLabel = 'Existing',
-    this.incomingLabel = 'Downloaded',
+    this.existingLabel,
+    this.incomingLabel,
     this.onSkip,
     this.onImportAsNew,
     this.onConsolidate,
@@ -86,6 +90,38 @@ class DiveComparisonCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final resolvedExistingLabel =
+        existingLabel ?? context.l10n.universalImport_compare_existing;
+    final resolvedIncomingLabel =
+        incomingLabel ?? context.l10n.universalImport_compare_downloaded;
+
+    // An empty id means the duplicate is another dive within the SAME import
+    // batch (DiveMatchResult.inBatchIndex) — there is no existing database
+    // dive to load or compare against, but the action selector must still
+    // render so the user can flip the default skip to import-as-new.
+    if (existingDiveId.isEmpty) {
+      final content = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              context.l10n.universalImport_review_inBatchDuplicate,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          _buildActionButtons(context, ref),
+        ],
+      );
+      if (embedded) return content;
+      return Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
 
     final existingAsync = ref.watch(diveProvider(existingDiveId));
     final profileAsync = ref.watch(diveProfileProvider(existingDiveId));
@@ -95,15 +131,15 @@ class DiveComparisonCard extends ConsumerWidget {
         padding: EdgeInsets.all(24),
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (_, _) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text('Error loading dive data'),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(context.l10n.universalImport_compare_errorLoading),
       ),
       data: (existingDive) {
         if (existingDive == null) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('Existing dive not found'),
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.universalImport_compare_diveNotFound),
           );
         }
 
@@ -132,8 +168,8 @@ class DiveComparisonCard extends ConsumerWidget {
         final existingProfile = profileAsync.valueOrNull ?? [];
         final diveNum = existingDive.diveNumber;
         final effectiveExistingLabel = diveNum != null
-            ? '$existingLabel (#$diveNum)'
-            : existingLabel;
+            ? '$resolvedExistingLabel (#$diveNum)'
+            : resolvedExistingLabel;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,11 +181,13 @@ class DiveComparisonCard extends ConsumerWidget {
                 existingProfile: existingProfile,
                 incomingProfile: incoming.profile,
                 existingLabel: _computerLabel(
+                  context.l10n,
                   null,
                   existingDive.diveComputerModel,
                   existingDive.diveComputerSerial,
                 ),
                 incomingLabel: _computerLabel(
+                  context.l10n,
                   incoming.computerName,
                   incoming.computerModel,
                   incoming.computerSerial,
@@ -168,6 +206,7 @@ class DiveComparisonCard extends ConsumerWidget {
                 context,
                 comparison,
                 effectiveExistingLabel,
+                resolvedIncomingLabel,
                 units,
               ),
 
@@ -210,7 +249,7 @@ class DiveComparisonCard extends ConsumerWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Same: $summary',
+              context.l10n.universalImport_compare_sameFields(summary),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -225,6 +264,7 @@ class DiveComparisonCard extends ConsumerWidget {
     BuildContext context,
     DiveComparisonResult comparison,
     String existingLabel,
+    String incomingLabel,
     UnitFormatter units,
   ) {
     final theme = Theme.of(context);
@@ -236,7 +276,7 @@ class DiveComparisonCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'DIFFERENCES',
+            context.l10n.universalImport_compare_differences,
             style: theme.textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -290,20 +330,22 @@ class DiveComparisonCard extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
     // Format values using UnitFormatter for unit-aware display.
     final existingStr =
         field.existingText ??
         (field.existingRaw != null
-            ? _formatFieldValue(field.type, field.existingRaw, units)
+            ? _formatFieldValue(l10n, field.type, field.existingRaw, units)
             : null);
     final incomingStr =
         field.incomingText ??
         (field.incomingRaw != null
-            ? _formatFieldValue(field.type, field.incomingRaw, units)
+            ? _formatFieldValue(l10n, field.type, field.incomingRaw, units)
             : null);
 
-    String formatValue(String? value) => value ?? 'not recorded';
+    String formatValue(String? value) =>
+        value ?? l10n.universalImport_compare_notRecorded;
     final hasExisting = existingStr != null;
     final hasIncoming = incomingStr != null;
     final isChanged = hasExisting && hasIncoming && field.name != 'computer';
@@ -406,8 +448,8 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showAction(DuplicateAction.skip)) {
       buttons.add(
         _ActionButton(
-          label: 'Skip',
-          subtitle: 'Discard this download',
+          label: context.l10n.universalImport_label_skip,
+          subtitle: context.l10n.universalImport_compare_skipSubtitle,
           onPressed: callbackFor(DuplicateAction.skip, onSkip),
           style: styleFor(DuplicateAction.skip, _ActionButtonStyle.text),
           color: colorFor(DuplicateAction.skip),
@@ -418,8 +460,8 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showAction(DuplicateAction.importAsNew)) {
       buttons.add(
         _ActionButton(
-          label: 'Import as New',
-          subtitle: 'Save as separate dive',
+          label: context.l10n.universalImport_label_importAsNew,
+          subtitle: context.l10n.universalImport_compare_importAsNewSubtitle,
           onPressed: callbackFor(DuplicateAction.importAsNew, onImportAsNew),
           style: styleFor(
             DuplicateAction.importAsNew,
@@ -448,9 +490,9 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showAction(DuplicateAction.consolidate)) {
       buttons.add(
         _ActionButton(
-          label: 'Consolidate',
-          subtitle: 'Add as 2nd computer reading',
-          onPressed: null, // Disabled — consolidation is under development.
+          label: context.l10n.universalImport_label_consolidate,
+          subtitle: context.l10n.universalImport_compare_consolidateSubtitle,
+          onPressed: callbackFor(DuplicateAction.consolidate, onConsolidate),
           style: styleFor(
             DuplicateAction.consolidate,
             _ActionButtonStyle.outlined,
@@ -495,30 +537,42 @@ class DiveComparisonCard extends ConsumerWidget {
 
   /// Format a raw field value using UnitFormatter for unit-aware display.
   static String _formatFieldValue(
+    AppLocalizations l10n,
     ComparisonFieldType type,
     double? rawValue,
     UnitFormatter units,
   ) {
-    if (rawValue == null) return '--';
+    if (rawValue == null) return l10n.common_placeholder_noValue;
     switch (type) {
       case ComparisonFieldType.depth:
         return units.formatDepth(rawValue);
       case ComparisonFieldType.temperature:
         return units.formatTemperature(rawValue);
       case ComparisonFieldType.duration:
-        return '${(rawValue / 60).round()} min';
+        return l10n.diveComputer_download_durationMin(
+          '${(rawValue / 60).round()}',
+        );
       case ComparisonFieldType.dateTime:
       case ComparisonFieldType.text:
         return rawValue.toString();
     }
   }
 
-  String _computerLabel(String? name, String? model, String? serial) {
+  String _computerLabel(
+    AppLocalizations l10n,
+    String? name,
+    String? model,
+    String? serial,
+  ) {
     final parts = <String>[];
     if (name != null && name.isNotEmpty) parts.add(name);
     if (model != null && model != name) parts.add(model);
-    if (serial != null) parts.add('S/N: $serial');
-    return parts.isEmpty ? 'Unknown' : parts.join(' \u00b7 ');
+    if (serial != null) {
+      parts.add(l10n.universalImport_compare_serial(serial));
+    }
+    return parts.isEmpty
+        ? l10n.diveComputer_detail_unknown
+        : parts.join(' \u00b7 ');
   }
 }
 

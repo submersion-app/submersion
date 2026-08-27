@@ -15,6 +15,11 @@ class DiveCenterRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveCenterRepository);
 
+  /// Emits whenever the `dive_centers` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchDiveCentersChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.diveCenters));
+
   /// Get all dive centers
   Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
     try {

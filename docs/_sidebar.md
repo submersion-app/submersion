@@ -13,6 +13,8 @@
   * [Import & Export](guide/import-export.md)
   * [Dive Computers](guide/dive-computer.md)
   * [Settings](guide/settings.md)
+  * [Multi-Device Sync](guide/multi-device-sync.md)
+  * [Debug Mode](guide/debug-mode.md)
 
 * **Features**
   * [Overview](features/)
@@ -33,6 +35,7 @@
   * [Navigation](developer/navigation.md)
   * [Testing](developer/testing.md)
   * [Building](developer/building.md)
+  * [Release Process](developer/release-process.md)
 
 * **Contributing**
   * [How to Contribute](contributing/)

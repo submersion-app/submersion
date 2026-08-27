@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,10 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/gpx/gpx_track_builder.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
 /// Handles KML export for Google Earth visualization.
 class KmlExportService {
@@ -83,18 +84,12 @@ class KmlExportService {
       dialogTitle: 'Save KML File',
       fileName: fileName,
       type: FileType.custom,
-      allowedExtensions: ['kml'],
       bytes: Uint8List.fromList(utf8.encode(kmlContent)),
+      mimeType: 'application/vnd.google-earth.kml+xml',
     );
 
     if (result == null) return (null, skippedCount);
-
-    if (!Platform.isAndroid) {
-      final file = File(result);
-      await file.writeAsString(kmlContent);
-    }
-
-    return (result, skippedCount);
+    return (savedFileLocation(result), skippedCount);
   }
 
   // ==================== Internal Helpers ====================
@@ -138,7 +133,9 @@ class KmlExportService {
             builder.element(
               'description',
               nest:
-                  'Exported from Submersion on ${_dateFormat.format(DateTime.now())}',
+                  // Shown to the reader in Google Earth, so it follows the
+                  // diver's preference; _dateFormat stays ISO for filenames.
+                  'Exported from Submersion on ${formatDateForExport(DateTime.now(), dateFormat)}',
             );
 
             for (final site in sitesWithCoords) {
@@ -227,23 +224,20 @@ class KmlExportService {
       );
     }
 
-    if (site.conditions != null) {
-      final conditions = site.conditions!;
-      if (conditions.waterType != null) {
-        buffer.writeln(
-          '<p><b>Water Type:</b> ${_escapeHtml(conditions.waterType!)}</p>',
-        );
-      }
-      if (conditions.typicalCurrent != null) {
-        buffer.writeln(
-          '<p><b>Typical Current:</b> ${_escapeHtml(conditions.typicalCurrent!)}</p>',
-        );
-      }
-      if (conditions.entryType != null) {
-        buffer.writeln(
-          '<p><b>Entry:</b> ${_escapeHtml(conditions.entryType!)}</p>',
-        );
-      }
+    if (site.waterType != null) {
+      buffer.writeln(
+        '<p><b>Water Type:</b> ${_escapeHtml(site.waterType!.displayName)}</p>',
+      );
+    }
+    if (site.entryMethod != null) {
+      buffer.writeln(
+        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethod!.displayName)}</p>',
+      );
+    }
+    if (site.exitMethod != null && site.exitMethod != site.entryMethod) {
+      buffer.writeln(
+        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethod!.displayName)}</p>',
+      );
     }
 
     if (site.hazards != null && site.hazards!.isNotEmpty) {
@@ -285,5 +279,79 @@ class KmlExportService {
 
   String _escapeHtml(String text) {
     return const HtmlEscape().convert(text);
+  }
+
+  // ==========================================================================
+  // GPS surface tracks
+  // ==========================================================================
+
+  String _trackFileName(GpsTrack track) {
+    final date = DateTime.fromMillisecondsSinceEpoch(
+      track.startTime,
+      isUtc: true,
+    );
+    return 'submersion_track_${_dateFormat.format(date)}.kml';
+  }
+
+  /// Builds a KML document containing [track] as a timestamped gx:Track.
+  ///
+  /// Note the axis order: gx:coord is "lon lat alt", the REVERSE of GPX's
+  /// lat/lon attributes. Getting it backwards silently relocates a Cozumel
+  /// track to the Indian Ocean.
+  ///
+  /// Reuses realUtcFrom from the GPX builder rather than duplicating the
+  /// conversion: one implementation, one place for the sign to be wrong.
+  Future<String> generateTrackKml(GpsTrack track) async {
+    final points = track.effectivePoints;
+    final buffer = StringBuffer()
+      ..writeln('<?xml version="1.0" encoding="UTF-8"?>')
+      ..writeln(
+        '<kml xmlns="http://www.opengis.net/kml/2.2" '
+        'xmlns:gx="http://www.google.com/kml/ext/2.2">',
+      )
+      ..writeln('  <Document>')
+      ..writeln('    <Placemark>');
+
+    final name = track.name;
+    if (name != null && name.isNotEmpty) {
+      buffer.writeln('      <name>${_escapeHtml(name)}</name>');
+    }
+
+    buffer.writeln('      <gx:Track>');
+    for (final point in points) {
+      final utc = realUtcFrom(point.timestamp, track.tzOffsetMinutes);
+      buffer.writeln('        <when>${formatIso8601Utc(utc)}</when>');
+    }
+    for (final point in points) {
+      buffer.writeln(
+        '        <gx:coord>${point.longitude} ${point.latitude} 0</gx:coord>',
+      );
+    }
+    buffer
+      ..writeln('      </gx:Track>')
+      ..writeln('    </Placemark>')
+      ..writeln('  </Document>')
+      ..writeln('</kml>');
+    return buffer.toString();
+  }
+
+  /// Writes the track as KML and opens the system share sheet.
+  Future<String> shareTrackKml(GpsTrack track) async {
+    return saveAndShareFile(
+      await generateTrackKml(track),
+      _trackFileName(track),
+      'application/vnd.google-earth.kml+xml',
+    );
+  }
+
+  /// Prompts for a location and writes the track there as KML.
+  /// Returns null if the user cancelled.
+  Future<String?> saveTrackKmlToFile(GpsTrack track) async {
+    return saveTextToFile(
+      await generateTrackKml(track),
+      _trackFileName(track),
+      dialogTitle: 'Save KML',
+      mimeType: 'application/vnd.google-earth.kml+xml',
+    );
   }
 }

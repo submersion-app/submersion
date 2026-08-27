@@ -28,6 +28,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings -> Network Sources -> Saved hosts card.
 ///
@@ -45,24 +47,20 @@ class CredentialsHostCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child:
-                // TODO(media): l10n
-                Text(
-                  'Saved hosts',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              context.l10n.media_credentials_savedHostsTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           asyncHosts.when(
             data: (hosts) => hosts.isEmpty
-                ? const ListTile(
-                    leading: Icon(Icons.lock_outline),
-                    // TODO(media): l10n
-                    title: Text('No saved credentials'),
+                ? ListTile(
+                    leading: const Icon(Icons.lock_outline),
+                    title: Text(context.l10n.media_credentials_emptyTitle),
                     subtitle: Text(
-                      'Per-host credentials added during URL or manifest '
-                      'imports show up here.',
+                      context.l10n.media_credentials_emptySubtitle,
                     ),
                   )
                 : Column(
@@ -73,14 +71,11 @@ class CredentialsHostCard extends ConsumerWidget {
                       ],
                     ],
                   ),
-            loading: () => const ListTile(
-              // TODO(media): l10n
-              title: Text('Loading saved hosts...'),
-            ),
+            loading: () =>
+                ListTile(title: Text(context.l10n.media_credentials_loading)),
             error: (e, _) => ListTile(
               leading: const Icon(Icons.error_outline),
-              // TODO(media): l10n
-              title: const Text('Could not load saved hosts'),
+              title: Text(context.l10n.media_credentials_loadError),
               subtitle: Text('$e'),
             ),
           ),
@@ -99,34 +94,40 @@ class _HostTile extends ConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.lock_outline),
       title: Text(host.hostname),
-      subtitle: Text(_subtitle()),
+      subtitle: Text(_subtitle(context.l10n)),
       trailing: PopupMenuButton<_HostAction>(
-        // TODO(media): l10n
-        tooltip: 'More',
+        tooltip: context.l10n.common_action_more,
         onSelected: (action) => _handle(context, ref, action),
-        itemBuilder: (_) => const [
-          // TODO(media): l10n
+        itemBuilder: (_) => [
           PopupMenuItem(
             value: _HostAction.test,
-            child: Text('Test credentials'),
+            child: Text(context.l10n.media_credentials_actionTest),
           ),
-          // TODO(media): l10n
-          PopupMenuItem(value: _HostAction.edit, child: Text('Edit')),
-          // TODO(media): l10n
-          PopupMenuItem(value: _HostAction.delete, child: Text('Delete')),
+          PopupMenuItem(
+            value: _HostAction.edit,
+            child: Text(context.l10n.common_action_edit),
+          ),
+          PopupMenuItem(
+            value: _HostAction.delete,
+            child: Text(context.l10n.common_action_delete),
+          ),
         ],
       ),
     );
   }
 
-  String _subtitle() {
+  String _subtitle(AppLocalizations l10n) {
     final parts = <String>[];
-    parts.add('Auth: ${host.authType}');
+    parts.add(l10n.media_credentials_authLabel(host.authType));
     if (host.displayName != null && host.displayName!.isNotEmpty) {
       parts.add(host.displayName!);
     }
     if (host.lastUsedAt != null) {
-      parts.add('Last used ${_relativeFromMillis(host.lastUsedAt!)}');
+      parts.add(
+        l10n.media_credentials_lastUsed(
+          _relativeFromMillis(l10n, host.lastUsedAt!),
+        ),
+      );
     }
     return parts.join('  -  ');
   }
@@ -159,18 +160,15 @@ class _HostTile extends ConsumerWidget {
         SnackBar(
           content: Text(
             ok
-                // TODO(media): l10n
-                ? 'Credentials OK for ${host.hostname}'
-                // TODO(media): l10n
-                : 'Credentials failed for ${host.hostname}',
+                ? context.l10n.media_credentials_testOk(host.hostname)
+                : context.l10n.media_credentials_testFailed(host.hostname),
           ),
         ),
       );
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Test failed: $e')),
+        SnackBar(content: Text(context.l10n.media_credentials_testError('$e'))),
       );
     }
   }
@@ -181,23 +179,18 @@ class _HostTile extends ConsumerWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        // TODO(media): l10n
-        title: Text('Delete ${host.hostname}?'),
-        // TODO(media): l10n
-        content: const Text(
-          'Removes the saved credentials. Items linked through this host '
-          'will start showing "Sign in required" until you re-add them.',
+        title: Text(
+          dialogContext.l10n.media_credentials_deleteTitle(host.hostname),
         ),
+        content: Text(dialogContext.l10n.media_credentials_deleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            // TODO(media): l10n
-            child: const Text('Delete'),
+            child: Text(dialogContext.l10n.common_action_delete),
           ),
         ],
       ),
@@ -209,14 +202,16 @@ class _HostTile extends ConsumerWidget {
       if (!context.mounted) return;
       ref.invalidate(savedHostsProvider);
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Deleted ${host.hostname}')),
+        SnackBar(
+          content: Text(context.l10n.media_credentials_deleted(host.hostname)),
+        ),
       );
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Delete failed: $e')),
+        SnackBar(
+          content: Text(context.l10n.media_credentials_deleteError('$e')),
+        ),
       );
     }
   }
@@ -226,26 +221,24 @@ class _HostTile extends ConsumerWidget {
     final updated = await showDialog<String?>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        // TODO(media): l10n
-        title: Text('Edit ${host.hostname}'),
+        title: Text(
+          dialogContext.l10n.media_credentials_editTitle(host.hostname),
+        ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            // TODO(media): l10n
-            labelText: 'Display name',
+          decoration: InputDecoration(
+            labelText: dialogContext.l10n.common_label_displayName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(null),
-            // TODO(media): l10n
-            child: const Text('Cancel'),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-            // TODO(media): l10n
-            child: const Text('Save'),
+            child: Text(dialogContext.l10n.common_action_save),
           ),
         ],
       ),
@@ -262,8 +255,7 @@ class _HostTile extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(
-        // TODO(media): l10n
-        SnackBar(content: Text('Save failed: $e')),
+        SnackBar(content: Text(context.l10n.media_credentials_saveError('$e'))),
       );
     }
   }
@@ -273,12 +265,18 @@ enum _HostAction { test, edit, delete }
 
 /// Converts an epoch-millis timestamp to a short relative string. Mirrors
 /// the format produced by the plan's original `_relative(DateTime)` helper.
-String _relativeFromMillis(int millis) {
+String _relativeFromMillis(AppLocalizations l10n, int millis) {
   final when = DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
   final diff = DateTime.now().toUtc().difference(when);
-  if (diff.inMinutes < 1) return 'just now';
-  if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-  if (diff.inDays < 1) return '${diff.inHours}h ago';
-  if (diff.inDays < 30) return '${diff.inDays}d ago';
-  return '${(diff.inDays / 30).floor()}mo ago';
+  if (diff.inMinutes < 1) return l10n.common_relativeTime_justNow;
+  if (diff.inHours < 1) {
+    return l10n.common_relativeTime_minutesAgo(diff.inMinutes);
+  }
+  if (diff.inDays < 1) {
+    return l10n.common_relativeTime_hoursAgo(diff.inHours);
+  }
+  if (diff.inDays < 30) {
+    return l10n.common_relativeTime_daysAgo(diff.inDays);
+  }
+  return l10n.common_relativeTime_monthsAgo((diff.inDays / 30).floor());
 }

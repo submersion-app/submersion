@@ -8,6 +8,12 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 
 class TagManagePage extends ConsumerStatefulWidget {
   const TagManagePage({super.key});
@@ -18,51 +24,86 @@ class TagManagePage extends ConsumerStatefulWidget {
 
 class _TagManagePageState extends ConsumerState<TagManagePage> {
   String _searchQuery = '';
-  bool _isSelectionMode = false;
-  final Set<String> _selectedIds = {};
   final TextEditingController _searchController = TextEditingController();
+
+  /// Owns the bulk-selection state machine for this page.
+  final SelectionController _selection = SelectionController();
+
+  /// Convenience mirrors of the controller, so the widget tree reads clearly.
+  bool get _isSelectionMode => _selection.value.isActive;
+  Set<String> get _selectedIds => _selection.value.checkedIds;
 
   static const _uuid = Uuid();
 
   @override
   void dispose() {
     _searchController.dispose();
+    _selection.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(tagStatisticsProvider);
+    final visibleIds = _visibleStats(
+      statsAsync.valueOrNull ?? const [],
+    ).map((s) => s.tag.id).toList();
 
-    return Scaffold(
-      appBar: _isSelectionMode
-          ? _buildSelectionAppBar()
-          : AppBar(
-              title: Text(context.l10n.tags_manage_title),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.of(context).pop(),
+    // Drop checked tags that the search query hid, so a bulk delete can never
+    // reach a tag that is not on screen. pruneTo is a no-op when nothing
+    // changed, which keeps this off a rebuild loop.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) => Scaffold(
+          appBar: selection.isActive
+              ? _buildSelectionAppBar(statsAsync.valueOrNull ?? const [])
+              : AppBar(
+                  title: Text(context.l10n.tags_manage_title),
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  actions: [
+                    IconButton(
+                      key: const ValueKey('enter_selection'),
+                      icon: const Icon(Icons.checklist),
+                      tooltip: context.l10n.common_selection_enterTooltip,
+                      onPressed: _selection.enterExplicit,
+                    ),
+                  ],
+                ),
+          floatingActionButton: selection.isActive
+              ? null
+              : FloatingActionButton.extended(
+                  onPressed: () => _showCreateDialog(),
+                  tooltip: context.l10n.tags_manage_createTitle,
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.tags_manage_createTitle),
+                ),
+          body: Column(
+            children: [
+              // Search stays visible during selection: narrowing the list
+              // mid-selection is a supported move, and the selection prunes
+              // to whatever remains.
+              _buildSearchBar(),
+              Expanded(
+                child: statsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, st) => Center(child: Text('Error: $e')),
+                  data: (stats) => _buildTagList(stats),
+                ),
               ),
-            ),
-      floatingActionButton: _isSelectionMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _showCreateDialog(),
-              tooltip: context.l10n.tags_manage_createTitle,
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.tags_manage_createTitle),
-            ),
-      body: Column(
-        children: [
-          if (!_isSelectionMode) _buildSearchBar(),
-          Expanded(
-            child: statsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => Center(child: Text('Error: $e')),
-              data: (stats) => _buildTagList(stats),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -92,13 +133,20 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
+  /// Tags matching the current search query.
+  ///
+  /// Shared by the list and by the pruning in [build], so the selection can
+  /// never hold a tag the query has hidden.
+  List<TagStatistic> _visibleStats(List<TagStatistic> stats) {
+    if (_searchQuery.isEmpty) return stats;
+    final query = _searchQuery.toLowerCase();
+    return stats
+        .where((stat) => stat.tag.name.toLowerCase().contains(query))
+        .toList();
+  }
+
   Widget _buildTagList(List<TagStatistic> stats) {
-    final filtered = _searchQuery.isEmpty
-        ? stats
-        : stats.where((stat) {
-            final query = _searchQuery.toLowerCase();
-            return stat.tag.name.toLowerCase().contains(query);
-          }).toList();
+    final filtered = _visibleStats(stats);
 
     if (filtered.isEmpty) {
       return Center(
@@ -125,12 +173,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     final isSelected = _selectedIds.contains(tag.id);
 
     return ListTile(
-      leading: _isSelectionMode
-          ? Checkbox(
-              value: isSelected,
-              onChanged: (_) => _toggleSelection(tag.id),
-            )
-          : CircleAvatar(radius: 16, backgroundColor: tag.color),
+      leading: SelectionLeading(
+        isSelectionMode: _isSelectionMode,
+        isChecked: isSelected,
+        onChanged: (_) => _toggleSelection(tag.id),
+        child: CircleAvatar(radius: 16, backgroundColor: tag.color),
+      ),
       title: Text(tag.name),
       trailing: Text(
         context.l10n.tags_manage_diveCount(stat.diveCount),
@@ -142,7 +190,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       onTap: _isSelectionMode
           ? () => _toggleSelection(tag.id)
           : () => _showEditDialog(tag),
-      onLongPress: _isSelectionMode ? null : () => _enterSelectionMode(tag.id),
     );
   }
 
@@ -265,29 +312,30 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
 
   // -- Selection mode --
 
-  AppBar _buildSelectionAppBar() {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.close),
-        onPressed: _exitSelectionMode,
+  /// Tag-specific extras. Select-all, deselect-all and delete are supplied by
+  /// SelectionAppBar -- this page had neither select-all nor deselect-all
+  /// before, and gains both from the shared bar.
+  List<BulkAction> _bulkActions(List<TagStatistic> stats) {
+    return [
+      BulkAction(
+        id: 'merge',
+        // Canonical merge glyph. This page used Icons.merge while sites and
+        // buddies used Icons.merge_type for the same concept.
+        icon: Icons.merge_type,
+        label: context.l10n.tags_manage_mergeAction,
+        minCount: 2,
+        onInvoke: () => _showMergeSheet(context),
       ),
-      title: Text(context.l10n.tags_manage_selectedCount(_selectedIds.length)),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.merge),
-          onPressed: _selectedIds.length >= 2
-              ? () => _showMergeSheet(context)
-              : null,
-          tooltip: context.l10n.tags_manage_mergeAction,
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: _selectedIds.isNotEmpty
-              ? () => _confirmDelete(context)
-              : null,
-          tooltip: context.l10n.common_action_delete,
-        ),
-      ],
+    ];
+  }
+
+  SelectionAppBar _buildSelectionAppBar(List<TagStatistic> stats) {
+    return SelectionAppBar(
+      controller: _selection,
+      selectableIds: _visibleStats(stats).map((s) => s.tag.id).toList(),
+      actions: _bulkActions(stats),
+      shell: SelectionBarShell.appBar,
+      onDelete: () => _confirmDelete(context),
     );
   }
 
@@ -382,33 +430,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     }
   }
 
-  void _enterSelectionMode(String? initialId) {
-    setState(() {
-      _isSelectionMode = true;
-      _selectedIds.clear();
-      if (initialId != null) {
-        _selectedIds.add(initialId);
-      }
-    });
-  }
+  void _exitSelectionMode() => _selection.exit();
 
-  void _exitSelectionMode() {
-    setState(() {
-      _isSelectionMode = false;
-      _selectedIds.clear();
-    });
-  }
-
-  void _toggleSelection(String id) {
-    setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
-        if (_selectedIds.isEmpty) {
-          _isSelectionMode = false;
-        }
-      } else {
-        _selectedIds.add(id);
-      }
-    });
-  }
+  void _toggleSelection(String id) => _selection.toggle(id);
 }

@@ -23,7 +23,7 @@
 //   does not actually create a `subscriptionPollerProvider` (that lives in
 //   `media_resolver_providers.dart` already). Dropped to avoid an unused
 //   import.
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
@@ -71,10 +71,11 @@ final savedHostsProvider = FutureProvider<List<NetworkCredentialHost>>(
 /// Manifest subscriptions displayed in the Manifest subscriptions card.
 /// Surfaces every active subscription regardless of `nextPollAt`.
 final manifestSubscriptionsProvider =
-    FutureProvider<List<ManifestSubscription>>(
-      (ref) =>
-          ref.watch(manifestSubscriptionRepositoryProvider).listAllActive(),
-    );
+    FutureProvider<List<ManifestSubscription>>((ref) {
+      final repository = ref.watch(manifestSubscriptionRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSubscriptionsChanges());
+      return repository.listAllActive();
+    });
 
 /// Current cache size in bytes. Refresh by invalidating after Clear cache.
 final cacheSizeProvider = FutureProvider<int>(

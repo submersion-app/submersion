@@ -2,14 +2,25 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
+
+/// A gradient factor pair as a percentage (0-100). The two halves are only
+/// meaningful together, so they travel as one value.
+typedef PlanGradientFactors = ({int low, int high});
 
 // ============================================================================
 // Service Providers
@@ -29,7 +40,15 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
     ppO2Warning: ppO2MaxWorking,
     ppO2Critical: ppO2MaxDeco,
     cnsWarningThreshold: cnsWarningThreshold,
+    cnsMethod: ref.watch(cnsCalculationMethodProvider),
+    gasModel: ref.watch(gasModelProvider),
   );
+});
+
+/// The diver's configured gradient factors as one value, so a listener fires
+/// once when either half changes and not at all for unrelated settings.
+final planGradientFactorSettingsProvider = Provider<PlanGradientFactors>((ref) {
+  return (low: ref.watch(gfLowProvider), high: ref.watch(gfHighProvider));
 });
 
 // ============================================================================
@@ -38,26 +57,84 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
 
 /// StateNotifier for managing dive plan editing state.
 class DivePlanNotifier extends StateNotifier<DivePlanState> {
+  /// Snapshot taken at construction, deliberately not kept in sync with the
+  /// diver's settings -- see [divePlanNotifierProvider] for why this notifier
+  /// cannot subscribe to them. Only safe for calls that read no setting, which
+  /// today means [PlanCalculatorService.generateProfilePoints] (pure geometry).
+  /// Deco math belongs in [planOutcomeProvider], which recomputes on every
+  /// settings change.
   final PlanCalculatorService _calculator;
   final double Function() _getDefaultReservePressure;
+  final PlanGradientFactors Function() _getDefaultGradientFactors;
+  final DivePlanRepository? _repository;
 
-  DivePlanNotifier(
-    this._calculator, {
+  /// The persisted aggregate this state was loaded from (or last saved as);
+  /// preserves fields the legacy state does not carry across a save cycle.
+  domain.DivePlan? _loaded;
+
+  /// Whether this plan already exists in the database.
+  ///
+  /// [_loaded] is set by [save] and [loadPlanById] and cleared by [newPlan], so
+  /// this is an accurate "has been persisted" signal. The plan canvas uses it
+  /// to prompt for a name on the first save only.
+  ///
+  /// Note that [loadPlan] deliberately does not set [_loaded] and therefore
+  /// reports `false`. That method has no production call sites today; a future
+  /// production caller must set [_loaded] as [loadPlanById] does.
+  bool get isPersisted => _loaded != null;
+
+  /// Resolves each defaulted source once, so the initial plan and every later
+  /// [newPlan] are provably built from the same one. Dart forbids reading a
+  /// field in an initializer list, so without this hop the private constructor
+  /// would have to repeat each `??` in its `super` call.
+  factory DivePlanNotifier(
+    PlanCalculatorService calculator, {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
     double Function()? getDefaultReservePressure,
-  }) : _getDefaultReservePressure =
-           getDefaultReservePressure ?? (() => reservePressure),
-       super(_createInitialState(reservePressure: reservePressure));
+    PlanGradientFactors Function()? getDefaultGradientFactors,
+    DivePlanRepository? repository,
+  }) {
+    return DivePlanNotifier._(
+      calculator,
+      getDefaultReservePressure:
+          getDefaultReservePressure ?? (() => reservePressure),
+      getDefaultGradientFactors:
+          getDefaultGradientFactors ?? _fallbackGradientFactors,
+      repository: repository,
+    );
+  }
+
+  DivePlanNotifier._(
+    this._calculator, {
+    required double Function() getDefaultReservePressure,
+    required PlanGradientFactors Function() getDefaultGradientFactors,
+    DivePlanRepository? repository,
+  }) : _getDefaultReservePressure = getDefaultReservePressure,
+       _getDefaultGradientFactors = getDefaultGradientFactors,
+       _repository = repository,
+       super(
+         _createInitialState(
+           reservePressure: getDefaultReservePressure(),
+           getGradientFactors: getDefaultGradientFactors,
+         ),
+       );
+
+  static PlanGradientFactors _fallbackGradientFactors() =>
+      (low: DivePlanState.kFallbackGfLow, high: DivePlanState.kFallbackGfHigh);
 
   static DivePlanState _createInitialState({
-    double reservePressure = DivePlanState.kDefaultReservePressureBar,
+    required double reservePressure,
+    required PlanGradientFactors Function() getGradientFactors,
   }) {
     final now = DateTime.now();
+    final gradientFactors = getGradientFactors();
     return DivePlanState(
       id: _uuid.v4(),
       name: 'New Dive Plan',
       segments: [],
       tanks: [_createDefaultTank()],
+      gfLow: gradientFactors.low,
+      gfHigh: gradientFactors.high,
       reservePressure: reservePressure,
       createdAt: now,
       updatedAt: now,
@@ -83,12 +160,48 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Reset to a new empty plan.
   void newPlan() {
-    state = _createInitialState(reservePressure: _getDefaultReservePressure());
+    _loaded = null;
+    state = _createInitialState(
+      reservePressure: _getDefaultReservePressure(),
+      getGradientFactors: _getDefaultGradientFactors,
+    );
+  }
+
+  /// Move an untouched plan onto the diver's current gradient factors.
+  ///
+  /// Settings hydrate from the database after this notifier is built, and the
+  /// diver may change them with the planner open; either way a plan they have
+  /// not started yet should show the factors they actually dive. A plan with
+  /// segments, unsaved edits, or a persisted record is their work and is left
+  /// alone -- including a hand-tuned GF, which marks the plan dirty.
+  ///
+  /// Adopting a setting is not a diver edit, so this does not set `isDirty`.
+  void adoptGradientFactorsIfPristine(PlanGradientFactors gradientFactors) {
+    if (isPersisted || state.isDirty || state.segments.isNotEmpty) return;
+    if (state.gfLow == gradientFactors.low &&
+        state.gfHigh == gradientFactors.high) {
+      return;
+    }
+    state = state.copyWith(
+      gfLow: gradientFactors.low,
+      gfHigh: gradientFactors.high,
+    );
   }
 
   /// Load an existing plan for editing.
   void loadPlan(DivePlanState plan) {
     state = plan;
+  }
+
+  /// Load a persisted plan by id. Returns false when it does not exist.
+  Future<bool> loadPlanById(String planId) async {
+    final repository = _repository;
+    if (repository == null) return false;
+    final plan = await repository.getPlan(planId);
+    if (plan == null || !mounted) return false;
+    _loaded = plan;
+    state = stateFromDivePlan(plan);
+    return true;
   }
 
   /// Update plan name.
@@ -136,6 +249,23 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Replace one segment with one or more segments in place (used by the
+  /// chart's split gesture). Orders are renumbered.
+  void replaceSegment(String id, List<PlanSegment> replacements) {
+    final segments = List<PlanSegment>.from(state.segments);
+    final index = segments.indexWhere((s) => s.id == id);
+    if (index < 0) return;
+    segments
+      ..removeAt(index)
+      ..insertAll(index, replacements);
+    _updateSegmentOrders(segments);
+    state = state.copyWith(
+      segments: segments,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Remove a segment from the plan.
   void removeSegment(String id) {
     final segments = state.segments.where((s) => s.id != id).toList();
@@ -150,9 +280,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Reorder segments (drag-and-drop).
   void reorderSegments(int oldIndex, int newIndex) {
     final segments = [...state.segments];
-    if (newIndex > oldIndex) newIndex--;
     final segment = segments.removeAt(oldIndex);
-    segments.insert(newIndex, segment);
+    segments.insert(newIndex.clamp(0, segments.length), segment);
     _updateSegmentOrders(segments);
     state = state.copyWith(
       segments: segments,
@@ -169,7 +298,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     }
   }
 
-  /// Add a simple dive profile (descent + bottom + ascent).
+  /// Add a simple dive profile as the bottom portion only: a descent and a
+  /// bottom segment. The ascent and any decompression are always computed by
+  /// the PlanEngine from the deepest segment, so authoring a fixed ascent
+  /// here would suppress real deco stops.
   void addSimplePlan({
     required double maxDepth,
     required int bottomTimeMinutes,
@@ -177,11 +309,23 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (state.tanks.isEmpty) return;
 
     final tank = state.tanks.first;
-    final segments = _calculator.createSimplePlan(
-      maxDepth: maxDepth,
-      bottomTimeMinutes: bottomTimeMinutes,
-      tank: tank,
-    );
+    final segments = <PlanSegment>[
+      PlanSegment.descent(
+        id: _uuid.v4(),
+        targetDepth: maxDepth,
+        tankId: tank.id,
+        gasMix: tank.gasMix,
+        order: 0,
+      ),
+      PlanSegment.bottom(
+        id: _uuid.v4(),
+        depth: maxDepth,
+        durationMinutes: bottomTimeMinutes,
+        tankId: tank.id,
+        gasMix: tank.gasMix,
+        order: 1,
+      ),
+    ];
 
     state = state.copyWith(
       segments: segments,
@@ -199,6 +343,26 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final tanks = [...state.tanks, tank];
     state = state.copyWith(
       tanks: tanks,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Replace the equipment attached to the plan (Gear & Weights, v104).
+  void setEquipmentIds(List<String> ids) {
+    state = state.copyWith(
+      equipmentIds: ids,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Accept (or clear, with both null) a weight prediction snapshot.
+  void setPlannedWeight(double? totalKg, Map<String, double>? placement) {
+    state = state.copyWith(
+      plannedWeightKg: totalKg,
+      plannedWeightPlacement: placement,
+      clearPlannedWeight: totalKg == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -273,6 +437,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Update ascent and/or descent rate in meters per minute.
+  void updateRates({double? ascent, double? descent}) {
+    state = state.copyWith(
+      ascentRate: ascent,
+      descentRate: descent,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update dive site.
   void updateSite(String? siteId) {
     state = state.copyWith(
@@ -302,6 +476,45 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Switch between open circuit and CCR.
+  void updateMode(domain.PlanMode mode) {
+    state = state.copyWith(
+      mode: mode,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Update CCR setpoints; only supplied values change.
+  void updateSetpoints({double? low, double? high, double? switchDepth}) {
+    state = state.copyWith(
+      setpointLow: low,
+      setpointHigh: high,
+      setpointSwitchDepth: switchDepth,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Update contingency configuration; only supplied values change.
+  void updateContingencies({
+    double? depthDelta,
+    int? timeMinutes,
+    domain.TurnPressureRule? turnRule,
+    double? turnFraction,
+    bool clearTurnRule = false,
+  }) {
+    state = state.copyWith(
+      deviationDepthDelta: depthDelta,
+      deviationTimeMinutes: timeMinutes,
+      turnPressureRule: turnRule,
+      turnPressureFraction: turnFraction,
+      clearTurnPressureRule: clearTurnRule,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   // --------------------------------------------------------------------------
   // Repetitive Dive Support
   // --------------------------------------------------------------------------
@@ -316,14 +529,42 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Load tissue state from a previous dive (for repetitive planning).
-  void loadTissueFromDive(Dive previousDive) {
-    // This would require accessing the profile analysis to get end tissue state
-    // For now, we'll just set the surface interval
-    if (previousDive.dateTime.isBefore(DateTime.now())) {
-      final interval = DateTime.now().difference(previousDive.dateTime);
-      setSurfaceInterval(interval);
-    }
+  /// Follow a logged dive: seed tissues from its end-of-dive compartments
+  /// and set the surface interval separating it from this plan.
+  void setFollowedDive({
+    required String diveId,
+    List<TissueCompartment>? compartments,
+    required Duration surfaceInterval,
+  }) {
+    state = state.copyWith(
+      sourceDiveId: diveId,
+      initialTissueState: compartments,
+      clearInitialTissueState: compartments == null,
+      surfaceInterval: surfaceInterval,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Stop following a dive: drop the seed tissues and surface interval.
+  void clearFollowedDive() {
+    state = state.copyWith(
+      clearSourceDiveId: true,
+      clearSurfaceInterval: true,
+      clearInitialTissueState: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Record (or clear) the dive created from this plan via convert-to-dive.
+  void setLinkedDive(String? diveId) {
+    state = state.copyWith(
+      linkedDiveId: diveId,
+      clearLinkedDiveId: diveId == null,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
   }
 
   /// Clear repetitive dive settings.
@@ -340,12 +581,30 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // Persistence
   // --------------------------------------------------------------------------
 
-  /// Mark the plan as saved.
+  /// Persist the current plan (and its summary numbers for the list view).
+  Future<void> save({PlanSummaryData? summary}) async {
+    final repository = _repository;
+    if (repository == null) {
+      state = state.copyWith(isDirty: false);
+      return;
+    }
+    final plan = divePlanFromState(state, existing: _loaded);
+    await repository.savePlan(plan, summary: summary);
+    _loaded = plan;
+    if (mounted) {
+      state = state.copyWith(isDirty: false);
+    }
+  }
+
+  /// Mark the plan as saved without persisting (legacy path; prefer [save]).
   void markSaved() {
     state = state.copyWith(isDirty: false);
   }
 
   /// Convert the plan to a Dive entity for saving.
+  ///
+  /// The dive gets a fresh id (converting twice yields two dives) and its
+  /// tanks shed their plan-side ids so the repository generates new rows.
   Dive toDive() {
     // Generate profile points from segments
     final profilePoints = _calculator.generateProfilePoints(state.segments);
@@ -365,12 +624,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final avgDepth = totalTime > 0 ? totalDepthTime / totalTime : 0.0;
 
     return Dive(
-      id: state.id,
+      id: _uuid.v4(),
+      name: state.name,
       dateTime: DateTime.now(),
       runtime: Duration(seconds: totalTime),
       maxDepth: maxDepth,
       avgDepth: avgDepth,
-      tanks: state.tanks,
+      tanks: [for (final tank in state.tanks) tank.copyWith(id: '')],
       profile: profilePoints,
       notes: state.notes,
       altitude: state.altitude,
@@ -382,11 +642,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 }
 
 /// Provider for the dive plan notifier.
+///
+/// This provider must never rebuild: rebuilding a StateNotifierProvider
+/// constructs a new notifier, which throws away the plan the diver is editing.
+/// Everything it needs is therefore resolved with `read` rather than `watch` --
+/// settings through closures evaluated when a new plan is created, and
+/// [planCalculatorServiceProvider] once at construction. Watching the latter
+/// rebound the notifier on every deco settings change, silently discarding an
+/// in-progress plan.
 final divePlanNotifierProvider =
     StateNotifierProvider<DivePlanNotifier, DivePlanState>((ref) {
-      final calculator = ref.watch(planCalculatorServiceProvider);
-      // Default reserve: 50 bar for metric, 500 psi (~34.47 bar) for imperial
       final read = ref.read;
+      final calculator = read(planCalculatorServiceProvider);
+      // Default reserve: 50 bar for metric, 500 psi (~34.47 bar) for imperial
       double defaultReserve() {
         final unit = read(pressureUnitProvider);
         return unit == PressureUnit.psi
@@ -394,11 +662,28 @@ final divePlanNotifierProvider =
             : DivePlanState.kDefaultReservePressureBar;
       }
 
-      return DivePlanNotifier(
+      // A new plan starts on the diver's own deco settings. Once they have
+      // touched or saved it, it is theirs: see adoptGradientFactorsIfPristine.
+      PlanGradientFactors defaultGradientFactors() =>
+          read(planGradientFactorSettingsProvider);
+
+      final notifier = DivePlanNotifier(
         calculator,
         reservePressure: defaultReserve(),
         getDefaultReservePressure: defaultReserve,
+        getDefaultGradientFactors: defaultGradientFactors,
+        repository: read(divePlanRepositoryProvider),
       );
+
+      // `listen`, never `watch`: this reacts to settings without rebuilding,
+      // which is what lets an untouched plan track the diver's gradient
+      // factors while an in-progress one survives the same change.
+      ref.listen<PlanGradientFactors>(
+        planGradientFactorSettingsProvider,
+        (_, next) => notifier.adoptGradientFactorsIfPristine(next),
+      );
+
+      return notifier;
     });
 
 // ============================================================================
@@ -408,9 +693,17 @@ final divePlanNotifierProvider =
 /// Provider for auto-calculated plan results.
 ///
 /// This automatically recalculates whenever the plan state changes.
+///
+/// The gradient factors come from the plan, not the settings: the plan is
+/// seeded from the diver's settings but is editable per plan, and
+/// [planIsValidProvider] gates convert-to-dive off these results. Computing
+/// them on the settings pair would judge a plan by factors it is not using,
+/// and diverge from [planOutcomeProvider], which the canvas displays.
 final planResultsProvider = Provider<PlanResult>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
-  final calculator = ref.watch(planCalculatorServiceProvider);
+  final calculator = ref
+      .watch(planCalculatorServiceProvider)
+      .withGradientFactors(state.gfLow, state.gfHigh);
 
   if (state.segments.isEmpty) {
     return PlanResult.empty();
@@ -422,6 +715,11 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     sacRate: state.sacRate,
     reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,
+    // Altitude finally reaches the deco math; 0 keeps the legacy sea-level
+    // surface pressure. Water type comes to the planner in Phase 2.
+    environment: DiveEnvironment.forConditions(
+      altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
+    ),
   );
 });
 
@@ -461,9 +759,6 @@ final planIsValidProvider = Provider<bool>((ref) {
 
 /// Currently selected segment for editing.
 final selectedSegmentIdProvider = StateProvider<String?>((ref) => null);
-
-/// Currently selected tab index in planner page.
-final plannerTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Whether the simple plan dialog is shown.
 final showSimplePlanDialogProvider = StateProvider<bool>((ref) => false);

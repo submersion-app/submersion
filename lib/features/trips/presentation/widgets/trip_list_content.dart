@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -15,11 +17,19 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_entry_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
+import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 class TripListContent extends ConsumerStatefulWidget {
@@ -41,6 +51,13 @@ class TripListContent extends ConsumerStatefulWidget {
 }
 
 class _TripListContentState extends ConsumerState<TripListContent> {
+  /// Owns the bulk-selection state machine for this list.
+  final SelectionController _selection = SelectionController();
+
+  /// Convenience mirrors of the controller, so the widget tree reads clearly.
+  bool get _isSelectionMode => _selection.value.isActive;
+  Set<String> get _selectedIds => _selection.value.checkedIds;
+
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
   bool _selectionFromList = false;
@@ -58,6 +75,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _selection.dispose();
     super.dispose();
   }
 
@@ -123,7 +141,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       currentField: sort.field,
       currentDirection: sort.direction,
       fields: TripSortField.values,
-      getFieldDisplayName: (field) => field.displayName,
+      getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
         ref.read(tripSortProvider.notifier).state = SortState(
@@ -145,68 +163,116 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       return _buildTableModeScaffold(context, tripsAsync, filter);
     }
 
-    final content = tripsAsync.when(
-      data: (trips) => trips.isEmpty
-          ? _buildEmptyState(context, filter.hasActiveFilters)
-          : _buildTripList(context, ref, trips, filter.hasActiveFilters),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => _buildErrorState(context, error),
-    );
-
-    if (!widget.showAppBar) {
-      return Column(
-        children: [
-          _buildCompactAppBar(context),
-          Expanded(child: content),
-        ],
+    // Built inside the selection listener below so rows re-render as checks
+    // change; computing it here would leave the list frozen mid-selection.
+    Widget buildContent() {
+      return tripsAsync.when(
+        data: (trips) => trips.isEmpty
+            ? _buildEmptyState(context, filter.hasActiveFilters)
+            : _buildTripList(context, ref, trips, filter.hasActiveFilters),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => _buildErrorState(context, error),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.trips_appBar_title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: context.l10n.trips_list_tooltip_search,
-            onPressed: () {
-              showSearch(context: context, delegate: TripSearchDelegate());
-            },
+    final loadedTrips = tripsAsync.value ?? const <TripWithStats>[];
+    final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
+
+    // Drop checked trips that fell out of the filtered list, so a bulk action
+    // can never reach a trip that is not on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    if (!widget.showAppBar) {
+      return SelectableListScope(
+        controller: _selection,
+        selectableIds: visibleIds,
+        child: ValueListenableBuilder<SelectionState>(
+          valueListenable: _selection,
+          builder: (context, selection, _) => Column(
+            children: [
+              selection.isActive
+                  ? _buildSelectionBar(loadedTrips, SelectionBarShell.pane)
+                  : _buildCompactAppBar(context),
+              Expanded(child: buildContent()),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.sort),
-            tooltip: context.l10n.trips_list_tooltip_sort,
-            onPressed: () => _showSortSheet(context),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(tripListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(tripListViewModeProvider);
-              return [
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
+        ),
+      );
+    }
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) => Scaffold(
+          appBar: selection.isActive
+              ? _buildSelectionBar(loadedTrips, SelectionBarShell.appBar)
+              : AppBar(
+                  title: FeatureAppBarTitle(
+                    featureId: 'trips',
+                    title: context.l10n.trips_appBar_title,
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      tooltip: context.l10n.trips_list_tooltip_search,
+                      onPressed: () {
+                        showSearch(
+                          context: context,
+                          delegate: TripSearchDelegate(context.l10n),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.sort),
+                      tooltip: context.l10n.trips_list_tooltip_sort,
+                      onPressed: () => _showSortSheet(context),
+                    ),
+                    // The only way into bulk actions: entry by long-press was removed,
+                    // so nothing but this control opens selection mode on touch.
+                    IconButton(
+                      key: const ValueKey('enter_selection'),
+                      icon: const Icon(Icons.checklist),
+                      tooltip: context.l10n.common_selection_enterTooltip,
+                      onPressed: _selection.enterExplicit,
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: (value) {
+                        if (value.startsWith('view_')) {
+                          final mode = ListViewMode.fromName(
+                            value.replaceFirst('view_', ''),
+                          );
+                          ref.read(tripListViewModeProvider.notifier).state =
+                              mode;
+                        }
+                      },
+                      itemBuilder: (context) {
+                        final currentMode = ref.read(tripListViewModeProvider);
+                        return [
+                          ...ListViewModeToggle.menuItems(
+                            context,
+                            currentMode: currentMode,
+                            modes: const [
+                              ListViewMode.detailed,
+                              ListViewMode.compact,
+                              ListViewMode.table,
+                            ],
+                          ),
+                        ];
+                      },
+                    ),
                   ],
                 ),
-              ];
-            },
-          ),
-        ],
+          body: buildContent(),
+          floatingActionButton: selection.isActive
+              ? null
+              : widget.floatingActionButton,
+        ),
       ),
-      body: content,
-      floatingActionButton: widget.floatingActionButton,
     );
   }
 
@@ -214,14 +280,122 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   ///
   /// When embedded inside [TableModeLayout], provides only the table content.
   /// The app bar, map, and column settings are managed by [TableModeLayout].
+  /// Trips offer no extras beyond the baseline.
+  ///
+  /// The per-trip export menu item is a stub -- both its CSV and PDF entries
+  /// only show a "coming soon" snackbar (trip_detail_page.dart:573) -- so
+  /// there is no working single-item action to lift into a bulk one.
+  SelectionAppBar _buildSelectionBar(
+    List<TripWithStats> trips,
+    SelectionBarShell shell,
+  ) {
+    return SelectionAppBar(
+      controller: _selection,
+      selectableIds: trips.map((t) => t.trip.id).toList(),
+      actions: const [],
+      shell: shell,
+      onDelete: _confirmAndDelete,
+    );
+  }
+
+  Future<void> _confirmAndDelete() async {
+    final ids = _selectedIds.toList();
+    if (ids.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
+        content: Text(ctx.l10n.common_bulkDelete_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(ctx.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(tripListNotifierProvider.notifier);
+    _selection.exit();
+
+    for (final id in ids) {
+      await notifier.deleteTrip(id);
+    }
+
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+      ),
+    );
+  }
+
+  /// One tap policy for every trip row.
+  ///
+  /// A held modifier turns a tap into an implicit entry -- the one path
+  /// that still evaporates at zero checked, since touch has no gesture
+  /// entry left.
+  void _handleRowTap(Trip trip) {
+    if (SelectableListScope.isModifierPressed()) {
+      _selection.enterImplicit(trip.id);
+      return;
+    }
+    if (_isSelectionMode) {
+      _selection.toggle(trip.id);
+      return;
+    }
+    _handleItemTap(trip);
+  }
+
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<TripWithStats>> tripsAsync,
     TripFilterState filter,
   ) {
-    final tableContent = _buildTableView(context, tripsAsync, filter);
+    final loadedTrips = tripsAsync.value ?? const <TripWithStats>[];
+    final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
 
-    return tableContent;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selection.pruneTo(visibleIds);
+    });
+
+    return SelectableListScope(
+      controller: _selection,
+      selectableIds: visibleIds,
+      child: ValueListenableBuilder<SelectionState>(
+        valueListenable: _selection,
+        builder: (context, selection, _) {
+          // Built inside the builder so the table's own rows re-render as
+          // checks change; building it outside left them on a stale
+          // selectedIds while only the bar updated.
+          final tableContent = _buildTableView(context, tripsAsync, filter);
+
+          // Table mode has no app bar of its own, so both bars live here: the
+          // contextual one while selecting, and the Select affordance while
+          // not. They share a slot and a height, so the table does not shift
+          // as the mode opens.
+          return Column(
+            children: [
+              if (selection.isActive)
+                _buildSelectionBar(loadedTrips, SelectionBarShell.pane)
+              else
+                SelectionEntryBar(controller: _selection),
+              Expanded(child: tableContent),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// Build the [EntityTableView] for trip table mode.
@@ -257,7 +431,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 onEntityTapDown: (id) {
                   ref.read(highlightedTripIdProvider.notifier).state = id;
                 },
-                onEntityTap: (id) {},
+                onEntityTap: (id) {
+                  if (_isSelectionMode) _selection.toggle(id);
+                },
+                selectedIds: _selectedIds,
+                isSelectionMode: _isSelectionMode,
                 onEntityDoubleTap: (id) {
                   context.push('/trips/$id');
                 },
@@ -285,24 +463,43 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.trips_appBar_title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          // Expanded, and no Spacer: the title must be the row's only flexible
+          // child. Pairing Flexible with Spacer gave each flex: 1, so the
+          // Spacer took exactly half the free space instead of the remainder
+          // and the leftover half fell after the last icon, left-shifting the
+          // whole action row. The title still yields before the row overflows,
+          // because FeatureAppBarTitle ellipsises.
+          Expanded(
+            child: FeatureAppBarTitle(
+              featureId: 'trips',
+              title: context.l10n.trips_appBar_title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
           ),
-          const Spacer(),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.trips_list_tooltip_search,
             onPressed: () {
-              showSearch(context: context, delegate: TripSearchDelegate());
+              showSearch(
+                context: context,
+                delegate: TripSearchDelegate(context.l10n),
+              );
             },
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
+          ),
+          // The only way into bulk actions: entry by long-press was removed,
+          // so nothing but this control opens selection mode on touch.
+          IconButton(
+            key: const ValueKey('enter_selection'),
+            icon: const Icon(Icons.checklist, size: 20),
+            tooltip: context.l10n.common_selection_enterTooltip,
+            onPressed: _selection.enterExplicit,
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -341,7 +538,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     if (filter.equipmentId != null) {
       final equipmentName =
           ref.watch(equipmentItemProvider(filter.equipmentId!)).value?.name ??
-          'Equipment';
+          context.l10n.equipment_appBar_title;
       chips.add(
         InputChip(
           label: Text(equipmentName),
@@ -396,6 +593,18 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         .watch(allDiversProvider)
         .when(data: (d) => d.length, loading: () => 0, error: (_, _) => 0);
 
+    final upcoming = trips.where((t) => t.trip.isUpcoming).toList()
+      ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
+    final past = trips.where((t) => !t.trip.isUpcoming).toList();
+    // Flatten into one item list: header sentinels + trips, so the
+    // existing ListView.builder/itemBuilder structure is preserved.
+    final rows = <Object>[
+      if (upcoming.isNotEmpty) _SectionHeader.upcoming,
+      ...upcoming,
+      if (upcoming.isNotEmpty && past.isNotEmpty) _SectionHeader.past,
+      ...past,
+    ];
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tripListNotifierProvider.notifier).refresh();
@@ -407,9 +616,24 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.only(bottom: 80),
-              itemCount: trips.length,
+              itemCount: rows.length,
               itemBuilder: (context, index) {
-                final tripWithStats = trips[index];
+                final row = rows[index];
+                if (row is _SectionHeader) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      row == _SectionHeader.upcoming
+                          ? context.l10n.trips_list_upcomingSection
+                          : context.l10n.trips_list_pastSection,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+                final tripWithStats = row as TripWithStats;
                 final isSelected =
                     widget.selectedId == tripWithStats.trip.id ||
                     ref.watch(highlightedTripIdProvider) ==
@@ -417,26 +641,49 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 final viewMode = ref.watch(tripListViewModeProvider);
                 final showSharedBadge =
                     tripWithStats.trip.isShared && diversCount >= 2;
-                return switch (viewMode) {
+                final isChecked = _selectedIds.contains(tripWithStats.trip.id);
+                void onCheckChanged(bool _) =>
+                    _selection.toggle(tripWithStats.trip.id);
+                final selectableTile = switch (viewMode) {
                   ListViewMode.detailed => TripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
-                    onTap: () => _handleItemTap(tripWithStats.trip),
+                    onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                   ListViewMode.compact => CompactTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
-                    onTap: () => _handleItemTap(tripWithStats.trip),
+                    onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                   ListViewMode.dense || ListViewMode.table => DenseTripListTile(
                     tripWithStats: tripWithStats,
                     isSelected: isSelected,
-                    onTap: () => _handleItemTap(tripWithStats.trip),
+                    onTap: () => _handleRowTap(tripWithStats.trip),
                     showSharedBadge: showSharedBadge,
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: isChecked,
+                    onCheckChanged: onCheckChanged,
                   ),
                 };
+                if (!tripWithStats.trip.isUpcoming) return selectableTile;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                      child: UpcomingTripBanner(trip: tripWithStats.trip),
+                    ),
+                    selectableTile,
+                  ],
+                );
               },
             ),
           ),
@@ -542,6 +789,9 @@ class TripListTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final bool showSharedBadge;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const TripListTile({
     super.key,
@@ -549,6 +799,9 @@ class TripListTile extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -558,14 +811,24 @@ class TripListTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     final subtitleStr = trip.subtitle != null ? ', ${trip.subtitle}' : '';
-    final diveCountStr = '${tripWithStats.diveCount} dives';
-    final bottomTimeStr = tripWithStats.totalBottomTime > 0
-        ? ', ${tripWithStats.formattedBottomTime}'
+    final diveCountStr = context.l10n.trips_list_tile_diveCount(
+      tripWithStats.diveCount,
+    );
+    final runtimeStr = tripWithStats.totalRuntime > 0
+        ? ', ${tripWithStats.formattedRuntime}'
         : '';
+    // The two dates are joined with a dash rather than a connector word, both
+    // to match the compact tile and because a translated "to" would need an
+    // ARB key per locale to read correctly.
+    final dateRangeStr =
+        '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}';
     final tripLabel =
-        '${trip.name}, ${dateFormat.format(trip.startDate)} to ${dateFormat.format(trip.endDate)}$subtitleStr, $diveCountStr$bottomTimeStr${isSelected ? ', selected' : ''}';
+        '${trip.name}, $dateRangeStr$subtitleStr, $diveCountStr$runtimeStr';
 
     return Semantics(
+      // Selection is a semantics flag, not label prose: assistive tech
+      // announces it in the user's own language and can filter on it.
+      selected: isSelected,
       label: tripLabel,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -574,11 +837,43 @@ class TripListTile extends StatelessWidget {
             : null,
         child: ListTile(
           onTap: onTap,
-          leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(
-              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-              color: theme.colorScheme.onPrimaryContainer,
+          // ListTile's Material 3 defaults resolve the title to bodyLarge and
+          // the subtitle to bodyMedium. The detailed dive and site cards are
+          // hand-rolled and ask for titleMedium/bodyMedium explicitly, so the
+          // roles are restated here to keep all three lists on the same text
+          // theme roles. Theme presets differ between the title and body roles
+          // (console uses a monospace family for title roles only, minimalist
+          // uses w500 for title roles and w300 for body roles), so inheriting
+          // the default renders trip titles in a different font from the rest
+          // of the app's lists.
+          titleTextStyle: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          subtitleTextStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          leading: SelectionLeading(
+            isSelectionMode: isSelectionMode,
+            isChecked: isChecked,
+            onChanged: onCheckChanged,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final accent = resolveFeatureAccent(
+                  context,
+                  ref,
+                  surface: AccentSurface.list,
+                  featureId: 'trips',
+                );
+                return CircleAvatar(
+                  backgroundColor:
+                      accent?.withValues(alpha: 0.15) ??
+                      theme.colorScheme.primaryContainer,
+                  child: Icon(
+                    trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                    color: accent ?? theme.colorScheme.onPrimaryContainer,
+                  ),
+                );
+              },
             ),
           ),
           title: Row(
@@ -601,9 +896,10 @@ class TripListTile extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Date range takes the subtitle role from the ListTile above,
+              // matching the dive card's date line.
               Text(
                 '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-                style: theme.textTheme.bodySmall,
               ),
               if (trip.subtitle != null)
                 Text(
@@ -629,7 +925,7 @@ class TripListTile extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  if (tripWithStats.totalBottomTime > 0) ...[
+                  if (tripWithStats.totalRuntime > 0) ...[
                     const SizedBox(width: 12),
                     Icon(
                       Icons.timer,
@@ -638,7 +934,7 @@ class TripListTile extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      tripWithStats.formattedBottomTime,
+                      tripWithStats.formattedRuntime,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                       ),
@@ -658,10 +954,12 @@ class TripListTile extends StatelessWidget {
 
 /// Search delegate for trips
 class TripSearchDelegate extends SearchDelegate<Trip?> {
-  TripSearchDelegate();
+  TripSearchDelegate(this._l10n);
+
+  final AppLocalizations _l10n;
 
   @override
-  String get searchFieldLabel => 'Search trips...';
+  String get searchFieldLabel => _l10n.trips_search_fieldLabel;
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -754,14 +1052,36 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                 final trip = trips[index];
                 final dateFormat = DateFormat.yMMMd();
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(
-                      trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                  // Same text theme roles as TripListTile so search results do
+                  // not fall back to ListTile's bodyLarge title default.
+                  titleTextStyle: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                  subtitleTextStyle: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  leading: Builder(
+                    builder: (context) {
+                      final accent = resolveFeatureAccent(
+                        context,
+                        ref,
+                        surface: AccentSurface.list,
+                        featureId: 'trips',
+                      );
+                      return CircleAvatar(
+                        backgroundColor:
+                            accent?.withValues(alpha: 0.15) ??
+                            Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(
+                          trip.isLiveaboard
+                              ? Icons.sailing
+                              : Icons.flight_takeoff,
+                          color:
+                              accent ??
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      );
+                    },
                   ),
                   title: Text(trip.name),
                   subtitle: Text(
@@ -783,3 +1103,5 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
     );
   }
 }
+
+enum _SectionHeader { upcoming, past }

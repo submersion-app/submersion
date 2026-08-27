@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
@@ -8,6 +9,8 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 // ---------------------------------------------------------------------------
 // Stub PhotoPickerService (abstract — must be implemented for tests)
@@ -40,6 +43,8 @@ class _StubPhotoPickerService implements PhotoPickerService {
 
   @override
   Future<String?> getFilePath(String assetId) async => null;
+  @override
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async => null;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +71,13 @@ class _FakeAssetResolutionService extends AssetResolutionService {
 
 AssetResolutionService _unavailableService() => _FakeAssetResolutionService(
   const ResolutionResult(status: ResolutionStatus.unavailable),
+);
+
+/// The gallery refused to answer, which is what a revoked or not-yet-granted
+/// photo permission produces. Distinct from [_unavailableService], which is
+/// the gallery answering "no such asset".
+AssetResolutionService _accessDeniedService() => _FakeAssetResolutionService(
+  const ResolutionResult(status: ResolutionStatus.accessDenied),
 );
 
 MediaItem _gallery({String? assetId, String? originDeviceId}) => MediaItem(
@@ -102,6 +114,56 @@ void main() {
     final data = await r.resolve(_gallery(assetId: ''));
     expect(data, isA<UnavailableData>());
     expect((data as UnavailableData).kind, UnavailableKind.notFound);
+  });
+
+  // The three tests below pin the distinction the orphan-reconciliation path
+  // depends on. A denied photo library makes EVERY gallery row fail, so if
+  // these reported notFound, one revoked permission would orphan the whole
+  // library and sync that claim to every other device.
+  group('denied gallery access is not reported as a missing asset', () {
+    test('resolve reports accessDenied', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _accessDeniedService(),
+      );
+      final data = await r.resolve(_gallery(assetId: 'A'));
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
+    });
+
+    // Grid tiles take this path, not resolve, so this is the one that
+    // actually protects a scrolling library.
+    test('resolveThumbnail reports accessDenied', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _accessDeniedService(),
+      );
+      final data = await r.resolveThumbnail(
+        _gallery(assetId: 'A'),
+        target: const Size(200, 200),
+      );
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
+    });
+
+    test('verify reports accessDenied', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _accessDeniedService(),
+      );
+      expect(await r.verify(_gallery(assetId: 'A')), VerifyResult.accessDenied);
+    });
+
+    // The negative half: a gallery that answered "no such asset" must still
+    // report notFound, or the reconciler could never orphan anything.
+    test('a genuine miss still reports notFound', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _unavailableService(),
+      );
+      final data = await r.resolveThumbnail(
+        _gallery(assetId: 'A'),
+        target: const Size(200, 200),
+      );
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+      expect(await r.verify(_gallery(assetId: 'A')), VerifyResult.notFound);
+    });
   });
 
   test('extractMetadata returns null when assetId missing', () async {

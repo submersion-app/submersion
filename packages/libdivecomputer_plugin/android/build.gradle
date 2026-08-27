@@ -26,6 +26,11 @@ android {
     namespace = "com.submersion.libdivecomputer"
     compileSdk = 34
 
+    // AIDL for the :dc download-service IPC contract (issue #318).
+    buildFeatures {
+        aidl true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -37,7 +42,18 @@ android {
 
     defaultConfig {
         minSdk = 21
+        // Without an explicit targetSdk, AGP targets the androidTest APK at
+        // minSdk (21). Anything below 23 runs in permission review mode, where
+        // the system refuses to start a component until the user dismisses a
+        // permission-review dialog -- this manifest declares dangerous
+        // permissions (ACCESS_FINE_LOCATION, BLUETOOTH_CONNECT). That made
+        // DownloadIsolationTest's bindService return true while the :dc process
+        // was never created, so the test timed out waiting for a crash that
+        // could not happen. Does not affect consumers: the host app sets its own
+        // targetSdk.
+        targetSdk = 34
         consumerProguardFiles "consumer-rules.pro"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
@@ -52,6 +68,8 @@ android {
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
+        androidTest.java.srcDirs += "src/androidTest/kotlin"
+        test.java.srcDirs += "src/test/kotlin"
     }
 
     externalNativeBuild {
@@ -63,4 +81,17 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+    // Compile-time annotations used by the vendored usb-serial-for-android
+    // sources (android/third_party/usb-serial-for-android). Annotations-only
+    // artifact; no runtime footprint of consequence.
+    implementation "androidx.annotation:annotation:1.9.1"
+
+    // JVM unit tests for pure-Kotlin logic (e.g. SerialReadBuffer chunk
+    // reassembly); run via :libdivecomputer_plugin:testDebugUnitTest.
+    testImplementation "junit:junit:4.13.2"
+
+    // Instrumented tests for the :dc IPC (marshaling round-trip, crash isolation).
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test:core:1.5.0"
 }

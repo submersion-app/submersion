@@ -107,7 +107,8 @@ void main() {
       containsAll([
         'media_subscriptions',
         'media_subscription_state',
-        'connector_accounts',
+        // connector_accounts (v72) was adopted into connected_accounts and
+        // dropped at v107.
         'network_credential_hosts',
         'media_fetch_diagnostics',
       ]),

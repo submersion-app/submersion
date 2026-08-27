@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/app_snack_bar_theme.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
 import 'package:submersion/core/theme/full_themes/console_theme.dart';
 import 'package:submersion/core/theme/full_themes/deep_theme.dart';
@@ -10,37 +11,56 @@ class AppThemeRegistry {
   AppThemeRegistry._();
 
   static final List<AppThemePreset> presets = List.unmodifiable([
-    AppThemePreset(
+    _preset(
       id: 'submersion',
       nameKey: 'theme_submersion',
-      lightTheme: submersionLight,
-      darkTheme: submersionDark,
+      light: submersionLight,
+      dark: submersionDark,
     ),
-    AppThemePreset(
+    _preset(
       id: 'console',
       nameKey: 'theme_console',
-      lightTheme: consoleLight,
-      darkTheme: consoleDark,
+      light: consoleLight,
+      dark: consoleDark,
     ),
-    AppThemePreset(
+    _preset(
       id: 'tropical',
       nameKey: 'theme_tropical',
-      lightTheme: tropicalLight,
-      darkTheme: tropicalDark,
+      light: tropicalLight,
+      dark: tropicalDark,
     ),
-    AppThemePreset(
+    _preset(
       id: 'minimalist',
       nameKey: 'theme_minimalist',
-      lightTheme: minimalistLight,
-      darkTheme: minimalistDark,
+      light: minimalistLight,
+      dark: minimalistDark,
     ),
-    AppThemePreset(
+    _preset(
       id: 'deep',
       nameKey: 'theme_deep',
-      lightTheme: deepLight,
-      darkTheme: deepDark,
+      light: deepLight,
+      dark: deepDark,
     ),
   ]);
+
+  /// Builds a preset with the cross-preset component defaults folded in.
+  ///
+  /// Applied once, at registry initialisation, rather than in [resolveTheme]:
+  /// that runs on every app rebuild and would allocate a fresh [ThemeData]
+  /// each time.
+  static AppThemePreset _preset({
+    required String id,
+    required String nameKey,
+    required ThemeData light,
+    required ThemeData dark,
+  }) {
+    return AppThemePreset(
+      id: id,
+      nameKey: nameKey,
+      lightTheme: withAppSnackBarDefaults(light),
+      darkTheme: withAppSnackBarDefaults(dark),
+    );
+  }
 
   /// Find a preset by ID, falling back to Submersion if not found.
   static AppThemePreset findById(String id) {

@@ -30,11 +30,9 @@ List<String> applyReorderPreservingDivider({
 
   final oldMovable = flatToMovable(oldIndex);
 
-  // Flutter convention: when newIndex > oldIndex, the caller expects the item
-  // to land at newIndex - 1 after removal. We mirror that here post-translation.
-  int targetFlat = newIndex;
-  if (newIndex > oldIndex) targetFlat -= 1;
-  int newMovable = flatToMovable(targetFlat);
+  // onReorderItem already adjusts newIndex for the removed item, so translate
+  // it straight into movable-index space.
+  int newMovable = flatToMovable(newIndex);
 
   if (newMovable < 0) newMovable = 0;
   if (newMovable > movable.length) newMovable = movable.length;
@@ -135,7 +133,7 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
                   destination: destination,
                 );
               },
-              onReorder: _commitReorder,
+              onReorderItem: _commitReorder,
             ),
           ),
           const Divider(height: 1),
@@ -240,8 +238,10 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
   }
 
   void _moveDown(int index) {
-    // When stepping across the divider, skip over it to the slot below.
-    final target = index == _dividerIndex - 1 ? _dividerIndex + 2 : index + 2;
+    // applyReorderPreservingDivider expects onReorderItem-style indices (already
+    // adjusted for the removed item), so the slot below is index + 1; stepping
+    // across the divider lands at _dividerIndex + 1.
+    final target = index == _dividerIndex - 1 ? _dividerIndex + 1 : index + 1;
     _commitReorder(index, target);
   }
 

@@ -1,13 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+
+/// A junction participant with the given display [name] and dive_roles [roleId].
+BuddyWithRole _person(String name, String roleId) => BuddyWithRole(
+  buddy: Buddy(
+    id: name,
+    name: name,
+    createdAt: DateTime(2024, 1, 1),
+    updatedAt: DateTime(2024, 1, 1),
+  ),
+  role: DiveRole.synthetic(roleId),
+);
+
+/// A minimal dive carrying junction [buddies] plus optional legacy scalars.
+Dive _diveWithBuddies(
+  List<BuddyWithRole> buddies, {
+  String? buddy,
+  String? diveMaster,
+}) => Dive(
+  id: 'dive-b',
+  dateTime: DateTime(2024, 1, 1),
+  buddy: buddy,
+  diveMaster: diveMaster,
+  buddies: buddies,
+);
 
 void main() {
   final now = DateTime(2024, 6, 15, 10, 30);
@@ -307,6 +334,104 @@ void main() {
       expect(DiveField.diveMaster.extractFromDive(testDive), 'Jane Smith');
     });
 
+    // Issue #626: modern dives store people in the dive_buddies junction, so
+    // the Buddy / Dive Master columns must read the hydrated Dive.buddies, not
+    // just the legacy scalar text fields.
+    group('junction-hydrated buddies (#626)', () {
+      test('buddy column shows junction buddy names', () {
+        final dive = _diveWithBuddies([_person('Alice', DiveRole.buddyId)]);
+        expect(DiveField.buddy.extractFromDive(dive), 'Alice');
+      });
+
+      test('buddy column comma-joins multiple buddies', () {
+        final dive = _diveWithBuddies([
+          _person('Alice', DiveRole.buddyId),
+          _person('Bob', DiveRole.buddyId),
+        ]);
+        expect(DiveField.buddy.extractFromDive(dive), 'Alice, Bob');
+      });
+
+      test('diveMaster column shows dive master role names', () {
+        final dive = _diveWithBuddies([
+          _person('Guido', DiveRole.diveMasterId),
+        ]);
+        expect(DiveField.diveMaster.extractFromDive(dive), 'Guido');
+      });
+
+      test('diveMaster column also includes dive guide role', () {
+        final dive = _diveWithBuddies([_person('Gaia', DiveRole.diveGuideId)]);
+        expect(DiveField.diveMaster.extractFromDive(dive), 'Gaia');
+      });
+
+      test('guides are excluded from the buddy column', () {
+        final dive = _diveWithBuddies([
+          _person('Alice', DiveRole.buddyId),
+          _person('Guido', DiveRole.diveMasterId),
+        ]);
+        expect(DiveField.buddy.extractFromDive(dive), 'Alice');
+        expect(DiveField.diveMaster.extractFromDive(dive), 'Guido');
+      });
+
+      test(
+        'non-guide roles (student, instructor) fall in the buddy column',
+        () {
+          // Names are joined in list order (the repository query pre-sorts by
+          // name; the extractor does not re-sort).
+          final dive = _diveWithBuddies([
+            _person('Sam', DiveRole.studentId),
+            _person('Ines', DiveRole.instructorId),
+          ]);
+          expect(DiveField.buddy.extractFromDive(dive), 'Sam, Ines');
+          expect(DiveField.diveMaster.extractFromDive(dive), isNull);
+        },
+      );
+
+      test('a populated junction is authoritative over both scalars', () {
+        // Modern dive: buddy present in junction, DM only in the legacy scalar.
+        // The buddy column shows the junction name; the DM column must NOT leak
+        // the stale scalar just because the junction has no guide role.
+        final dive = _diveWithBuddies(
+          [_person('Alice', DiveRole.buddyId)],
+          buddy: 'Legacy Name',
+          diveMaster: 'Legacy DM',
+        );
+        expect(DiveField.buddy.extractFromDive(dive), 'Alice');
+        expect(DiveField.diveMaster.extractFromDive(dive), isNull);
+      });
+
+      test('falls back to the legacy scalar when no junction buddies', () {
+        final dive = _diveWithBuddies(
+          const [],
+          buddy: 'Legacy Buddy',
+          diveMaster: 'Legacy DM',
+        );
+        expect(DiveField.buddy.extractFromDive(dive), 'Legacy Buddy');
+        expect(DiveField.diveMaster.extractFromDive(dive), 'Legacy DM');
+      });
+
+      test(
+        'buddy column is null (no scalar leak) when junction has only a DM',
+        () {
+          // Junction is populated, so the dive is junction-authoritative: the
+          // frozen legacy scalar must not resurface in the buddy column.
+          final dive = _diveWithBuddies([
+            _person('Guido', DiveRole.diveMasterId),
+          ], buddy: 'Legacy Buddy');
+          expect(DiveField.buddy.extractFromDive(dive), isNull);
+          expect(DiveField.diveMaster.extractFromDive(dive), 'Guido');
+        },
+      );
+
+      test('blank junction names do not fall back to the scalar', () {
+        // Junction populated (even if only with blank names) -> authoritative,
+        // so the buddy column is null rather than the stale scalar.
+        final dive = _diveWithBuddies([
+          _person('   ', DiveRole.buddyId),
+        ], buddy: 'Legacy Buddy');
+        expect(DiveField.buddy.extractFromDive(dive), isNull);
+      });
+    });
+
     test('siteLocation returns site location string', () {
       expect(
         DiveField.siteLocation.extractFromDive(testDive),
@@ -364,14 +489,15 @@ void main() {
   });
 
   group('DiveFieldExtractor - SAC rate and gas consumed', () {
-    test('sacRate computes correctly with valid tank data', () {
+    test('sacRate defaults to pressurePerMin to match AppSettings default', () {
+      // No sacUnit passed -> uses the default. The default matches the
+      // AppSettings default (pressurePerMin), so an omitted argument stays
+      // consistent with default settings instead of silently producing an
+      // L/min value that a default UnitFormatter would mislabel as bar/min.
       final result = DiveField.sacRate.extractFromDive(testDive);
       expect(result, isA<double>());
-      // Calculation: gasLiters = 12.0 * (200.0 - 50.0) = 1800
-      // minutes = 52 * 60 / 60 = 52.0
-      // avgPressureAtm = (18.2 / 10.0) + 1.0 = 2.82
-      // sacRate = 1800 / 52.0 / 2.82 = ~12.28
-      expect((result as double), closeTo(12.28, 0.1));
+      // Pressure-based: 150 bar / 52 / 2.82 ≈ 1.02 bar/min
+      expect((result as double), closeTo(1.02, 0.05));
     });
 
     test('gasConsumed computes correctly with valid tank data', () {
@@ -404,7 +530,12 @@ void main() {
         avgDepth: 18.0,
         tanks: [noVolumeTank],
       );
-      expect(DiveField.sacRate.extractFromDive(dive), isNull);
+      // Volume mode requires tank volume; pressure mode would still produce a
+      // value here, so this null check is specific to litersPerMin.
+      expect(
+        DiveField.sacRate.extractFromDive(dive, sacUnit: SacUnit.litersPerMin),
+        isNull,
+      );
     });
 
     test('sacRate returns null when no avgDepth', () {
@@ -436,6 +567,113 @@ void main() {
       );
       final dive = Dive(id: 'dive-z', dateTime: now, tanks: [zeroPressureTank]);
       expect(DiveField.gasConsumed.extractFromDive(dive), isNull);
+    });
+
+    test('sacRate sums all tanks on multi-tank dive', () {
+      const tank1 = DiveTank(
+        id: 't1',
+        volume: 12.0,
+        startPressure: 200.0,
+        endPressure: 100.0,
+      );
+      const tank2 = DiveTank(
+        id: 't2',
+        volume: 7.0,
+        startPressure: 200.0,
+        endPressure: 150.0,
+      );
+      final dive = Dive(
+        id: 'dive-multi-sac',
+        dateTime: now,
+        runtime: const Duration(minutes: 52),
+        avgDepth: 18.2,
+        tanks: [tank1, tank2],
+      );
+      final result = DiveField.sacRate.extractFromDive(
+        dive,
+        sacUnit: SacUnit.litersPerMin,
+      );
+      expect(result, isA<double>());
+      // Tank 1: gasVol(12.0, 200, air) - gasVol(12.0, 100, air)
+      // Tank 2: gasVol(7.0, 200, air) - gasVol(7.0, 150, air)
+      // With Z-factor correction against the 1 bar reference (issue #828):
+      // ≈ 9.70. It reads 1.3% above the old value because gas volume and the
+      // ambient pressure ratio now share a reference.
+      expect(result as double, closeTo(9.70, 0.1));
+    });
+
+    test('sacRate volume mode returns L/min from Dive.sacFor', () {
+      final result = DiveField.sacRate.extractFromDive(
+        testDive,
+        sacUnit: SacUnit.litersPerMin,
+      );
+      // With Z-factor correction against the 1 bar reference (issue #828).
+      expect(result as double, closeTo(11.83, 0.1));
+    });
+
+    test('sacRate pressure mode returns bar/min from dive.sacPressure', () {
+      final result = DiveField.sacRate.extractFromDive(
+        testDive,
+        sacUnit: SacUnit.pressurePerMin,
+      );
+      // 150 bar / 52 / 2.82 ≈ 1.02 bar/min
+      expect(result as double, closeTo(1.02, 0.05));
+    });
+
+    test('sacRate pressure mode works without tank volume', () {
+      // A tank with pressures but no volume: volume-based SAC is impossible,
+      // but pressure-based SAC only needs the pressure drop.
+      const noVolumeTank = DiveTank(
+        id: 'tank-nv',
+        startPressure: 200.0,
+        endPressure: 50.0,
+        role: TankRole.backGas,
+      );
+      final dive = Dive(
+        id: 'dive-nv-prs',
+        dateTime: now,
+        runtime: const Duration(minutes: 45),
+        avgDepth: 18.0,
+        tanks: [noVolumeTank],
+      );
+
+      expect(
+        DiveField.sacRate.extractFromDive(dive, sacUnit: SacUnit.litersPerMin),
+        isNull,
+      );
+      expect(
+        DiveField.sacRate.extractFromDive(
+          dive,
+          sacUnit: SacUnit.pressurePerMin,
+        ),
+        isA<double>(),
+      );
+    });
+
+    test('gasConsumed sums all tanks on multi-tank dive', () {
+      const tank1 = DiveTank(
+        id: 't1',
+        volume: 12.0,
+        startPressure: 200.0,
+        endPressure: 100.0,
+      );
+      const tank2 = DiveTank(
+        id: 't2',
+        volume: 7.0,
+        startPressure: 200.0,
+        endPressure: 150.0,
+      );
+      final dive = Dive(
+        id: 'dive-multi-gas',
+        dateTime: now,
+        tanks: [tank1, tank2],
+      );
+      final result = DiveField.gasConsumed.extractFromDive(dive);
+      expect(result, isA<double>());
+      // Tank 1: 12.0 * (200 - 100) = 1200L
+      // Tank 2: 7.0  * (200 - 150) = 350L
+      // Total: 1550L
+      expect(result, 1550.0);
     });
   });
 
@@ -532,7 +770,7 @@ void main() {
       waterTemp: 24.0,
       rating: 4,
       isFavorite: true,
-      diveTypeId: 'technical',
+      diveTypeIds: ['technical'],
       tags: [testTag1, testTag2],
       siteName: 'Blue Hole',
       siteCountry: 'Belize',
@@ -650,7 +888,7 @@ void main() {
       final summaryEmpty = DiveSummary(
         id: 'sum-3',
         dateTime: now,
-        diveTypeId: '',
+        diveTypeIds: [''],
         sortTimestamp: now.millisecondsSinceEpoch,
       );
       expect(
@@ -663,7 +901,7 @@ void main() {
       final summaryUnderscore = DiveSummary(
         id: 'sum-4',
         dateTime: now,
-        diveTypeId: 'deep_wreck',
+        diveTypeIds: ['deep_wreck'],
         sortTimestamp: now.millisecondsSinceEpoch,
       );
       expect(
@@ -717,6 +955,85 @@ void main() {
           reason: '${field.name} should not throw in extractFromSummary',
         );
       }
+    });
+  });
+
+  group('DiveField.diveName', () {
+    test('extractFromSummary returns the name when set', () {
+      final summary = DiveSummary(
+        id: 'd1',
+        dateTime: now,
+        name: 'Wreck penetration dive',
+        siteName: 'Blue Hole',
+        sortTimestamp: 0,
+      );
+      expect(
+        DiveField.diveName.extractFromSummary(summary),
+        'Wreck penetration dive',
+      );
+    });
+
+    test('extractFromSummary falls back to the site name when unnamed', () {
+      final summary = DiveSummary(
+        id: 'd1',
+        dateTime: now,
+        siteName: 'Blue Hole',
+        sortTimestamp: 0,
+      );
+      expect(DiveField.diveName.extractFromSummary(summary), 'Blue Hole');
+    });
+
+    test('extractFromSummary returns null when name and site are absent', () {
+      final summary = DiveSummary(id: 'd1', dateTime: now, sortTimestamp: 0);
+      expect(DiveField.diveName.extractFromSummary(summary), isNull);
+    });
+
+    test('extractFromDive falls back to site name', () {
+      final named = Dive(id: 'd1', dateTime: now, name: 'Training 1');
+      final unnamed = Dive(id: 'd2', dateTime: now, site: testSite);
+      expect(DiveField.diveName.extractFromDive(named), 'Training 1');
+      expect(DiveField.diveName.extractFromDive(unnamed), 'Blue Hole');
+    });
+
+    test('extractFromDive returns null when name and site are absent', () {
+      final bare = Dive(id: 'd1', dateTime: now);
+      expect(DiveField.diveName.extractFromDive(bare), isNull);
+    });
+
+    test('whitespace-only name behaves as unset (falls back to site)', () {
+      // In-app writes trim to null, but synced rows from other writers can
+      // carry empty/whitespace names; the display fallback must not show a
+      // blank title.
+      final wsDive = Dive(id: 'd1', dateTime: now, name: '   ', site: testSite);
+      expect(DiveField.diveName.extractFromDive(wsDive), 'Blue Hole');
+
+      final wsSummary = DiveSummary(
+        id: 'd1',
+        dateTime: now,
+        name: '   ',
+        siteName: 'Blue Hole',
+        sortTimestamp: 0,
+      );
+      expect(DiveField.diveName.extractFromSummary(wsSummary), 'Blue Hole');
+
+      final emptySummary = DiveSummary(
+        id: 'd2',
+        dateTime: now,
+        name: '',
+        sortTimestamp: 0,
+      );
+      expect(DiveField.diveName.extractFromSummary(emptySummary), isNull);
+    });
+
+    test('name with surrounding whitespace is trimmed for display', () {
+      final padded = Dive(id: 'd1', dateTime: now, name: '  Night dive  ');
+      expect(DiveField.diveName.extractFromDive(padded), 'Night dive');
+    });
+
+    test('diveName is a summary field in the core category', () {
+      expect(DiveField.summaryFields, contains(DiveField.diveName));
+      expect(DiveField.diveName.category, DiveFieldCategory.core);
+      expect(DiveField.diveName.displayName, 'Dive Name');
     });
   });
 }

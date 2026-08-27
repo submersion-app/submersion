@@ -11,6 +11,8 @@ extension DiveFieldColumnSizing on DiveField {
         return 160;
       case DiveField.siteName:
         return 160;
+      case DiveField.diveName:
+        return 160;
       case DiveField.maxDepth:
         return 80;
       case DiveField.avgDepth:
@@ -130,6 +132,8 @@ extension DiveFieldColumnSizing on DiveField {
       case DiveField.dateTime:
         return 80;
       case DiveField.siteName:
+        return 60;
+      case DiveField.diveName:
         return 60;
       case DiveField.maxDepth:
         return 60;

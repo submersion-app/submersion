@@ -5,23 +5,45 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
+import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle_button.dart';
+import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
+import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_sites_toggle_button.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 
 class SiteMapPage extends ConsumerStatefulWidget {
-  const SiteMapPage({super.key});
+  /// Deep-link seed: preselect this site on entry (`/sites/map?site=<id>`).
+  final String? initialSiteId;
+
+  /// Deep-link seed: start morphed to 3D (`&scape=3d`).
+  final bool initialScape3d;
+
+  const SiteMapPage({
+    super.key,
+    this.initialSiteId,
+    this.initialScape3d = false,
+  });
 
   @override
   ConsumerState<SiteMapPage> createState() => _SiteMapPageState();
@@ -31,6 +53,28 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
 
+  SiteScapeMode _scapeMode = SiteScapeMode.map2d;
+  bool _seedZoomPending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialScape3d) _scapeMode = SiteScapeMode.terrain3d;
+    final seed = widget.initialSiteId;
+    if (seed != null) {
+      _seedZoomPending = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(mapListSelectionProvider('sites').notifier).select(seed);
+      });
+    }
+  }
+
+  /// Externally-keyed selection for a tapped built-in (bundled) site. Held
+  /// locally rather than in the shared mapListSelectionProvider, which is keyed
+  /// to the user's own sites and shared across map sections.
+  String? _selectedBuiltInId;
+
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
@@ -39,6 +83,15 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesWithCountsProvider);
     final selectionState = ref.watch(mapListSelectionProvider('sites'));
+
+    // Clear a built-in selection when built-in sites are hidden, so the info
+    // card cannot outlive its markers. Uses listen (not watch) to avoid
+    // rebuilding the map on toggle, which would recreate the FlutterMap.
+    ref.listen<bool>(showBuiltInSitesProvider, (prev, next) {
+      if (!next && _selectedBuiltInId != null) {
+        setState(() => _selectedBuiltInId = null);
+      }
+    });
 
     // Find selected site from sitesAsync using selectionState.selectedId
     final selectedSite = sitesAsync.whenOrNull(
@@ -50,6 +103,24 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         return match.isNotEmpty ? match.first.site : null;
       },
     );
+
+    // Center the 2D map on the DEEP-LINKED site once the data lands. The
+    // seed resolves exactly once, against the seeded id (never the live
+    // selection), so an unknown or coordinate-less seed cannot leave the
+    // flag armed to zoom on a later unrelated user selection.
+    if (_seedZoomPending && sitesAsync.hasValue) {
+      _seedZoomPending = false;
+      final seeded = sitesAsync.value!
+          .where((s) => s.site.id == widget.initialSiteId)
+          .firstOrNull
+          ?.site;
+      if (seeded?.hasCoordinates == true) {
+        final loc = seeded!.location!;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _animateToLocation(loc.latitude, loc.longitude),
+        );
+      }
+    }
 
     return MapListScaffold(
       sectionKey: 'sites',
@@ -76,7 +147,14 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         },
       ),
       mapPane: sitesAsync.when(
-        data: (sitesWithCounts) => _buildMap(context, sitesWithCounts),
+        data: (sitesWithCounts) => SiteScapeView(
+          mode: _scapeMode,
+          onModeChanged: (m) => setState(() => _scapeMode = m),
+          selectedSiteId: selectedSite?.id,
+          selectedSiteLocation: selectedSite?.location,
+          mapController: _mapController,
+          mapBuilder: (context) => _buildMap(context, sitesWithCounts),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Column(
@@ -96,16 +174,25 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
         ),
       ),
-      infoCard: selectedSite != null
-          ? _buildMapInfoCard(context, selectedSite)
-          : null,
+      // The info card overlays the pane area; in 3D it would collide with
+      // the terrain pane's own chrome, and the toggle is the way back.
+      infoCard: _scapeMode == SiteScapeMode.terrain3d
+          ? null
+          : _selectedBuiltInId != null
+          ? _buildBuiltInInfoCard(context)
+          : (selectedSite != null
+                ? _buildMapInfoCard(context, selectedSite)
+                : null),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/sites/new'),
         icon: const Icon(Icons.add_location),
         label: Text(context.l10n.diveSites_fab_label),
       ),
       actions: [
+        const BuiltInSitesToggleButton(),
         const HeatMapToggleButton(),
+        if (selectedSite != null)
+          DepthOverlayToggleButton(siteLocation: selectedSite.location),
         IconButton(
           icon: const Icon(Icons.list),
           tooltip: context.l10n.diveSites_map_tooltip_listView,
@@ -148,6 +235,15 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         backgroundColor: colorScheme.primaryContainer,
         child: Icon(Icons.location_on, color: colorScheme.primary),
       ),
+      // Same seascape entry point as the master-detail map's info card.
+      trailing: site.hasCoordinates
+          ? IconButton(
+              icon: const Icon(Icons.terrain),
+              tooltip: context.l10n.dive3d_seascape_siteTitle,
+              onPressed: () =>
+                  setState(() => _scapeMode = SiteScapeMode.terrain3d),
+            )
+          : null,
       onDetailsTap: () => context.push('/sites/${site.id}'),
     );
   }
@@ -188,6 +284,10 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     List<SiteWithDiveCount> sitesWithCounts,
   ) {
     final selectionState = ref.watch(mapListSelectionProvider('sites'));
+    final selectedSite = sitesWithCounts
+        .where((s) => s.site.id == selectionState.selectedId)
+        .firstOrNull
+        ?.site;
 
     // Filter sites with valid coordinates (lat: -90 to 90, lng: -180 to 180)
     final sitesWithLocation = sitesWithCounts.where((s) {
@@ -218,93 +318,153 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onTap: (_, _) {
-              ref.read(mapListSelectionProvider('sites').notifier).deselect();
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+        TrackpadZoomMap(
+          controller: _mapController,
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              interactionOptions: rotatableMapInteraction,
+              onTap: (_, _) {
+                ref.read(mapListSelectionProvider('sites').notifier).deselect();
+                setState(() => _selectedBuiltInId = null);
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              // Depth overlay for the selected site: same layer the
+              // master-detail map and site detail render, so the app-bar
+              // toggle actually shows something on this page too.
+              BathymetryDepthOverlayLayer(location: selectedSite?.location),
+              SiteFeatureMarkerLayer(siteId: selectionState.selectedId),
+              // Built-in (bundled) sites layer - below the user markers so the
+              // user's own sites always draw on top. Shown only when toggled.
+              Consumer(
+                builder: (context, ref, _) {
+                  final show = ref.watch(showBuiltInSitesProvider);
+                  if (!show) return const SizedBox.shrink();
+                  final builtInAsync = ref.watch(visibleBuiltInSitesProvider);
+                  return builtInAsync.maybeWhen(
+                    data: (builtIn) => BuiltInSiteMarkerLayer(
+                      sites: builtIn,
+                      selectedExternalId: _selectedBuiltInId,
+                      onTap: (site) {
+                        ref
+                            .read(mapListSelectionProvider('sites').notifier)
+                            .deselect();
+                        setState(() => _selectedBuiltInId = site.externalId);
+                        _animateToLocation(site.latitude!, site.longitude!);
+                      },
+                    ),
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
+              ),
+              // Markers layer - always shown
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: sitesWithLocation.map((siteWithCount) {
+                    final site = siteWithCount.site;
+                    final diveCount = siteWithCount.diveCount;
+                    final isSelected = selectionState.selectedId == site.id;
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: context.l10n
+                            .diveSites_map_semantics_diveSiteMarker(site.name),
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(site),
+                          child: _buildMarker(
+                            context,
+                            site,
+                            diveCount,
+                            isSelected,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    return _buildClusterMarker(context, markers.length);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    // Animate to cluster bounds with generous padding
+                    _animateToCluster(node.bounds);
+                  },
+                ),
+              ),
+              // Heat map layer - rendered on top of markers when visible
+              if (settings.isVisible)
+                Consumer(
+                  builder: (context, ref, child) {
+                    final heatMapAsync = ref.watch(siteCoverageHeatMapProvider);
+
+                    return heatMapAsync.when(
+                      data: (points) => HeatMapLayer(
+                        points: points,
+                        radius: settings.radius,
+                        opacity: settings.opacity,
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+              const MapAttribution(),
+            ],
+          ),
+        ),
+
+        // Pane mode controls. Docked top-right so the 2D/3D pair sits where
+        // the terrain pane's own actions sit in 3D, rather than jumping
+        // corners with the mode.
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: SiteScapeModeToggle(
+                mode: _scapeMode,
+                onModeChanged: (m) => setState(() => _scapeMode = m),
+                selectedSiteId: selectedSite?.id,
+                selectedSiteLocation: selectedSite?.location,
               ),
             ),
           ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            // Markers layer - always shown
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: sitesWithLocation.map((siteWithCount) {
-                  final site = siteWithCount.site;
-                  final diveCount = siteWithCount.diveCount;
-                  final isSelected = selectionState.selectedId == site.id;
-                  return Marker(
-                    point: LatLng(
-                      site.location!.latitude,
-                      site.location!.longitude,
-                    ),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n
-                          .diveSites_map_semantics_diveSiteMarker(site.name),
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(site),
-                        child: _buildMarker(
-                          context,
-                          site,
-                          diveCount,
-                          isSelected,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  // Animate to cluster bounds with generous padding
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            // Heat map layer - rendered on top of markers when visible
-            if (settings.isVisible)
-              Consumer(
-                builder: (context, ref, child) {
-                  final heatMapAsync = ref.watch(siteCoverageHeatMapProvider);
+        ),
 
-                  return heatMapAsync.when(
-                    data: (points) => HeatMapLayer(
-                      points: points,
-                      radius: settings.radius,
-                      opacity: settings.opacity,
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
-                  );
-                },
-              ),
-            const MapAttribution(),
-          ],
+        // Reset-to-north compass (hidden until the map is rotated), tucked
+        // under the controls card as on the master-detail map.
+        Positioned(
+          top: 64,
+          right: 8,
+          child: MapCompassButton(controller: _mapController),
         ),
 
         // Empty state overlay
@@ -431,6 +591,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   }
 
   void _onMarkerTapped(DiveSite site) {
+    setState(() => _selectedBuiltInId = null);
     final currentId = ref.read(mapListSelectionProvider('sites')).selectedId;
     if (currentId == site.id) {
       ref.read(mapListSelectionProvider('sites').notifier).deselect();
@@ -439,6 +600,42 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       // Smooth animate to the tapped marker location
       _animateToLocation(site.location!.latitude, site.location!.longitude);
     }
+  }
+
+  Widget? _buildBuiltInInfoCard(BuildContext context) {
+    final async = ref.watch(visibleBuiltInSitesProvider);
+    final site = async.maybeWhen(
+      data: (list) =>
+          list.where((s) => s.externalId == _selectedBuiltInId).firstOrNull,
+      orElse: () => null,
+    );
+    if (site == null) return null;
+    return BuiltInSiteInfoCard(site: site, onAdd: () => _addBuiltInSite(site));
+  }
+
+  Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+    try {
+      await ref
+          .read(siteListNotifierProvider.notifier)
+          .addSite(site.toDiveSite());
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.diveSites_map_builtInSites_addError),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+    // addSite reloads the notifier but not the map's FutureProvider; invalidate
+    // so the new site appears and the built-in duplicate is deduped out.
+    ref.invalidate(sitesWithCountsProvider);
+    if (!mounted) return;
+    setState(() => _selectedBuiltInId = null);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
+    );
   }
 
   Future<void> _animateToCluster(LatLngBounds bounds) async {

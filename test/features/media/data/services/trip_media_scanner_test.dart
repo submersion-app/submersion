@@ -2,8 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 /// Helper to create an AssetInfo for testing.
 AssetInfo _testAsset(
@@ -63,6 +65,9 @@ class _StubPhotoPicker implements PhotoPickerService {
 
   @override
   Future<String?> getFilePath(String assetId) async => null;
+
+  @override
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async => null;
 
   @override
   bool get supportsGalleryBrowsing => true;
@@ -548,6 +553,7 @@ void main() {
             dateTime: DateTime.utc(2024, 1, 15, 10, 0),
             entryTime: DateTime.utc(2024, 1, 15, 10, 0),
             exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+            entryLocation: const GeoPoint(11, 120),
           );
 
           final result = await TripMediaScanner.scanGalleryForDive(
@@ -641,6 +647,169 @@ void main() {
         expect(result.unmatched, hasLength(1));
         expect(result.unmatched.first.id, 'a2');
       });
+
+      test(
+        'queries through the full trip end day with timezone slack',
+        () async {
+          final picker = _StubPhotoPicker();
+
+          final result = await TripMediaScanner.scanGalleryForTrip(
+            dives: const [],
+            tripStartDate: DateTime.utc(2024, 1, 15),
+            tripEndDate: DateTime.utc(2024, 1, 17),
+            existingAssetIds: const {},
+            photoPickerService: picker,
+          );
+
+          expect(result, isNotNull);
+          expect(picker.lastStart, DateTime(2024, 1, 14));
+          expect(picker.lastEnd, DateTime(2024, 1, 18, 23, 59, 59, 999, 999));
+        },
+      );
+
+      test('matches shifted Photos asset using EXIF fallback time', () async {
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+        final picker = _StubPhotoPicker(
+          assets: [
+            _testAsset('shifted', createdAt: DateTime(2024, 1, 14, 19, 49, 11)),
+          ],
+        );
+
+        final result = await TripMediaScanner.scanGalleryForTrip(
+          dives: [dive],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 15),
+          existingAssetIds: const {},
+          photoPickerService: picker,
+          assetMetadataResolver: (asset) async {
+            expect(asset.id, 'shifted');
+            return MediaSourceMetadata(
+              takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+              mimeType: 'image/jpeg',
+            );
+          },
+        );
+
+        expect(result, isNotNull);
+        expect(result!.matchedByDive[dive], hasLength(1));
+        expect(result.matchedByDive[dive]!.single.id, 'shifted');
+        expect(result.unmatched, isEmpty);
+      });
+
+      test(
+        'matches in-trip shifted Photos asset using EXIF fallback time',
+        () async {
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+            exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+            entryLocation: const GeoPoint(18, -60),
+          );
+          final picker = _StubPhotoPicker(
+            assets: [
+              _testAsset('shifted', createdAt: DateTime(2024, 1, 15, 7, 30)),
+            ],
+          );
+
+          final result = await TripMediaScanner.scanGalleryForTrip(
+            dives: [dive],
+            tripStartDate: DateTime.utc(2024, 1, 15),
+            tripEndDate: DateTime.utc(2024, 1, 15),
+            existingAssetIds: const {},
+            photoPickerService: picker,
+            assetMetadataResolver: (asset) async {
+              expect(asset.id, 'shifted');
+              return MediaSourceMetadata(
+                takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+                mimeType: 'image/jpeg',
+              );
+            },
+          );
+
+          expect(result, isNotNull);
+          expect(result!.matchedByDive[dive], hasLength(1));
+          expect(result.matchedByDive[dive]!.single.id, 'shifted');
+          expect(result.unmatched, isEmpty);
+        },
+      );
+
+      test(
+        'matches shifted Photos asset with no loaded dive location',
+        () async {
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+            exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+          );
+          final picker = _StubPhotoPicker(
+            assets: [
+              _testAsset('shifted', createdAt: DateTime(2024, 1, 14, 19, 30)),
+            ],
+          );
+
+          final result = await TripMediaScanner.scanGalleryForTrip(
+            dives: [dive],
+            tripStartDate: DateTime.utc(2024, 1, 15),
+            tripEndDate: DateTime.utc(2024, 1, 15),
+            existingAssetIds: const {},
+            photoPickerService: picker,
+            assetMetadataResolver: (asset) async {
+              expect(asset.id, 'shifted');
+              return MediaSourceMetadata(
+                takenAt: DateTime.utc(2024, 1, 15, 10, 30),
+                mimeType: 'image/jpeg',
+              );
+            },
+          );
+
+          expect(result, isNotNull);
+          expect(result!.matchedByDive[dive], hasLength(1));
+          expect(result.matchedByDive[dive]!.single.id, 'shifted');
+          expect(result.unmatched, isEmpty);
+        },
+      );
+
+      test(
+        'does not load metadata for unrelated slack-window assets',
+        () async {
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+            exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+            entryLocation: const GeoPoint(18, -60),
+          );
+          final picker = _StubPhotoPicker(
+            assets: [
+              _testAsset('unrelated', createdAt: DateTime(2024, 1, 14, 3, 30)),
+              _testAsset('candidate', createdAt: DateTime(2024, 1, 15, 7, 30)),
+            ],
+          );
+          final metadataRequests = <String>[];
+
+          final result = await TripMediaScanner.scanGalleryForTrip(
+            dives: [dive],
+            tripStartDate: DateTime.utc(2024, 1, 15),
+            tripEndDate: DateTime.utc(2024, 1, 15),
+            existingAssetIds: const {},
+            photoPickerService: picker,
+            assetMetadataResolver: (asset) async {
+              metadataRequests.add(asset.id);
+              return null;
+            },
+          );
+
+          expect(result, isNotNull);
+          expect(metadataRequests, ['candidate']);
+        },
+      );
 
       test('handles permission limited (still scans)', () async {
         final picker = _StubPhotoPicker(

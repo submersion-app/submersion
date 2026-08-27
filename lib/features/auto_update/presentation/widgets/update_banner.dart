@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 class UpdateBanner extends ConsumerStatefulWidget {
   const UpdateBanner({super.key});
@@ -39,18 +40,18 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: Icon(Icons.system_update, color: theme.colorScheme.primary),
       content: Text(
-        'Version $version is available.',
+        context.l10n.settings_updates_versionAvailable(version),
         style: theme.textTheme.bodyMedium,
       ),
       actions: [
         if (downloadUrl != null)
           TextButton(
             onPressed: () => _openDownload(downloadUrl),
-            child: const Text('Download'),
+            child: Text(context.l10n.autoUpdate_banner_download),
           ),
         IconButton(
           icon: const Icon(Icons.close, size: 18),
-          tooltip: 'Dismiss',
+          tooltip: context.l10n.common_action_dismiss,
           onPressed: () => setState(() => _dismissed = true),
         ),
       ],

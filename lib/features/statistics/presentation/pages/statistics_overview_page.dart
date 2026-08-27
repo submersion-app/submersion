@@ -5,9 +5,13 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/domain/career_totals.dart';
+import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -17,12 +21,13 @@ class StatisticsOverviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(diveStatisticsProvider);
+    final statsAsync = ref.watch(filteredDiveStatisticsProvider);
 
     final body = statsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) =>
-          _ErrorCard(onRetry: () => ref.invalidate(diveStatisticsProvider)),
+      error: (e, _) => _ErrorCard(
+        onRetry: () => ref.invalidate(filteredDiveStatisticsProvider),
+      ),
       data: (stats) => _OverviewBody(stats: stats),
     );
 
@@ -42,25 +47,66 @@ class _OverviewBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (stats.totalDives == 0) {
+    final diverAsync = ref.watch(currentDiverProvider);
+    // The prior-dive offset is a single lifetime scalar -- no date, site or
+    // buddy behind it -- so it cannot be narrowed to a filtered subset. While a
+    // filter is active the totals stay logged-only, rather than adding an
+    // entire pre-app career on top of (say) one year's dives.
+    final filtered = ref.watch(
+      statisticsFilterProvider.select((f) => f.hasActiveFilters),
+    );
+    // With no logged dives, whether to show the empty state depends on prior
+    // experience -- so wait for the diver to resolve rather than briefly
+    // flashing the empty state (currentDiverProvider is a FutureProvider).
+    // Irrelevant under a filter, where prior experience is excluded anyway.
+    if (stats.totalDives == 0 && !filtered && diverAsync.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final diver = filtered ? null : diverAsync.valueOrNull;
+    final career = CareerTotals.from(
+      loggedDives: stats.totalDives,
+      loggedTimeSeconds: stats.totalTimeSeconds,
+      firstLoggedDive: stats.firstDiveDate,
+      priorDives: diver?.priorDiveCount,
+      priorTimeSeconds: diver?.priorDiveTimeSeconds,
+      divingSince: diver?.divingSince,
+    );
+    // Show the career view when the diver has prior experience even if nothing
+    // is logged in-app yet -- otherwise the feature's target user (a long
+    // pre-app career, no logged dives) would only ever see the empty state.
+    if (stats.totalDives == 0 && !career.hasPriorExperience) {
       return const _EmptyState();
     }
 
     final settings = ref.watch(settingsProvider);
     final fmt = UnitFormatter(settings);
-    final recordsAsync = ref.watch(diveRecordsProvider);
+    final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _AggregateGrid(stats: stats, fmt: fmt),
+          _AggregateGrid(stats: stats, fmt: fmt, career: career),
+          if (career.divingSinceResolved != null) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                context.l10n.statistics_divingSince(
+                  career.divingSinceResolved!.year,
+                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           recordsAsync.when(
             loading: () => const SizedBox.shrink(),
-            error: (e, st) =>
-                const _InlineError(message: 'Records unavailable'),
+            error: (e, st) => _InlineError(
+              message: context.l10n.statistics_records_unavailable,
+            ),
             data: (records) => _RecordsSection(records: records, fmt: fmt),
           ),
           const SizedBox(height: 16),
@@ -79,31 +125,36 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.water_drop_outlined, size: 48),
-            const SizedBox(height: 12),
-            const Text('No dives logged yet'),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () => context.push('/dives/new'),
-                  child: const Text('Log a Dive'),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: () => context.push('/transfer/import-wizard'),
-                  child: const Text('Import Dives'),
-                ),
-              ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.waves,
+            size: 80,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.l10n.diveLog_empty_title,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.l10n.diveLog_empty_subtitle,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: () => showAddDiveBottomSheet(
+              context: context,
+              onLogManually: () => context.push('/dives/new'),
+            ),
+            icon: const Icon(Icons.add),
+            label: Text(context.l10n.diveLog_empty_logFirstDive),
+          ),
+        ],
       ),
     );
   }
@@ -112,7 +163,12 @@ class _EmptyState extends StatelessWidget {
 class _AggregateGrid extends StatelessWidget {
   final DiveStatistics stats;
   final UnitFormatter fmt;
-  const _AggregateGrid({required this.stats, required this.fmt});
+  final CareerTotals career;
+  const _AggregateGrid({
+    required this.stats,
+    required this.fmt,
+    required this.career,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,52 +177,64 @@ class _AggregateGrid extends StatelessWidget {
     final cards = <_StatCard>[
       _StatCard(
         icon: Icons.waves,
-        label: 'Total Dives',
-        value: '${stats.totalDives}',
+        label: context.l10n.statistics_summary_totalDives,
+        value: '${career.combinedDives}',
+        subtitle: career.hasPriorDives
+            ? context.l10n.statistics_priorBreakdown(
+                '${career.loggedDives}',
+                '${career.priorDives}',
+              )
+            : null,
         color: Colors.blue,
       ),
       _StatCard(
         icon: Icons.timer,
-        label: 'Total Time',
-        value: stats.totalTimeFormatted,
+        label: context.l10n.statistics_summary_totalTime,
+        value: career.combinedTimeFormatted,
+        subtitle: career.hasPriorTime
+            ? context.l10n.statistics_priorBreakdown(
+                career.loggedTimeFormatted,
+                career.priorTimeFormatted,
+              )
+            : null,
         color: Colors.teal,
       ),
       _StatCard(
         icon: Icons.arrow_downward,
-        label: 'Max Depth',
+        label: context.l10n.statistics_summary_maxDepth,
         value: fmt.formatDepth(stats.maxDepth),
         color: Colors.indigo,
       ),
       _StatCard(
         icon: Icons.straighten,
-        label: 'Avg Depth',
+        label: context.l10n.statistics_summary_avgDepth,
         value: fmt.formatDepth(stats.avgMaxDepth),
         color: Colors.purple,
       ),
       if (stats.divesPerMonth != null)
         _StatCard(
           icon: Icons.calendar_month,
-          label: 'Dives / Month',
+          label: context.l10n.statistics_summary_divesPerMonth,
           value: stats.divesPerMonth!.toStringAsFixed(1),
           color: Colors.green,
         ),
       if (stats.divesPerYear != null)
         _StatCard(
           icon: Icons.date_range,
-          label: 'Dives / Year',
+          label: context.l10n.statistics_summary_divesPerYear,
           value: stats.divesPerYear!.toStringAsFixed(1),
           color: Colors.green.shade700,
         ),
       _StatCard(
         icon: Icons.location_on,
-        label: 'Sites Visited',
+        label: context.l10n.statistics_summary_sitesVisited,
         value: '${stats.totalSites}',
         color: Colors.orange,
       ),
       if (stats.avgTemperature != null)
         _StatCard(
           icon: Icons.thermostat,
-          label: 'Avg Water Temp',
+          label: context.l10n.diveLog_summary_stat_avgWaterTemp,
           value: fmt.formatTemperature(stats.avgTemperature!),
           color: Colors.cyan,
         ),
@@ -188,11 +256,13 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String? subtitle;
   final Color color;
   const _StatCard({
     required this.icon,
     required this.label,
     required this.value,
+    this.subtitle,
     required this.color,
   });
 
@@ -224,15 +294,34 @@ class _StatCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            ],
+            const SizedBox(height: 2),
+            // The card is a fixed square (childAspectRatio 1.0), so a single
+            // ellipsized line truncates longer localized labels
+            // ("Durchschnittliche Wassertemperatur") down to an unreadable
+            // stub. Flexible lets the label use whatever height is left and
+            // take a second line when the translation needs one.
+            Flexible(
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -296,7 +385,7 @@ class _RecordsSection extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: Text(
-                  'Personal Records',
+                  context.l10n.diveLog_summary_section_records,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -304,7 +393,7 @@ class _RecordsSection extends StatelessWidget {
               ),
               _RecordTile(
                 icon: Icons.flag,
-                label: 'First Dive',
+                label: context.l10n.statistics_records_firstDive,
                 value: fmt.formatDepth(record.maxDepth),
                 subtitle: fmt.formatDate(record.dateTime),
                 color: Colors.blue,
@@ -321,7 +410,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.arrow_downward,
-          label: 'Deepest Dive',
+          label: context.l10n.statistics_records_deepestDive,
           value: fmt.formatDepth(records.deepestDive!.maxDepth),
           subtitle: fmt.formatDate(records.deepestDive!.dateTime),
           color: Colors.indigo,
@@ -334,7 +423,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.timer,
-          label: 'Longest Dive',
+          label: context.l10n.statistics_records_longestDive,
           value: context.l10n.statistics_records_longestDiveValue(minutes),
           subtitle: fmt.formatDate(records.longestDive!.dateTime),
           color: Colors.teal,
@@ -346,7 +435,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.ac_unit,
-          label: 'Coldest Dive',
+          label: context.l10n.statistics_records_coldestDive,
           value: fmt.formatTemperature(records.coldestDive!.waterTemp),
           subtitle: fmt.formatDate(records.coldestDive!.dateTime),
           color: Colors.blue,
@@ -358,7 +447,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.whatshot,
-          label: 'Warmest Dive',
+          label: context.l10n.statistics_records_warmestDive,
           value: fmt.formatTemperature(records.warmestDive!.waterTemp),
           subtitle: fmt.formatDate(records.warmestDive!.dateTime),
           color: Colors.orange,
@@ -377,7 +466,7 @@ class _RecordsSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Text(
-                'Personal Records',
+                context.l10n.diveLog_summary_section_records,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -464,7 +553,7 @@ class _TopSitesSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Text(
-                'Most Visited Sites',
+                context.l10n.diveLog_summary_section_mostVisited,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -475,7 +564,11 @@ class _TopSitesSection extends StatelessWidget {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 title: Text(site.siteName),
-                subtitle: Text('${site.diveCount} dives'),
+                subtitle: Text(
+                  context.l10n.statistics_summary_tagUsage_diveCount(
+                    site.diveCount,
+                  ),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/sites/${site.siteId}'),
               ),
@@ -524,9 +617,17 @@ class _DistributionsSection extends ConsumerWidget {
         height: 160,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, _) =>
-          const _InlineError(message: 'Unable to load dive type data'),
-      data: (diveTypes) => _TypePieCard(diveTypes: diveTypes),
+      error: (_, _) => _InlineError(
+        message: context.l10n.statistics_summary_diveTypes_error,
+      ),
+      // The repository emits dive-type ids as stable keys, so built-in
+      // types are translated here instead of rendering a capitalized slug.
+      data: (diveTypes) => _TypePieCard(
+        diveTypes: localizeDistribution(
+          diveTypes,
+          (key) => diveTypeDistributionLabel(key, context.l10n),
+        ),
+      ),
     );
 
     final wide = MediaQuery.of(context).size.width >= 600;
@@ -540,7 +641,7 @@ class _DistributionsSection extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Text(
-                'Distributions',
+                context.l10n.statistics_summary_distributions_title,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -574,6 +675,7 @@ class _DepthPieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final nonEmpty = depthDistribution.where((d) => d.count > 0).toList();
     final hasData = nonEmpty.isNotEmpty;
 
@@ -646,8 +748,15 @@ class _DepthPieCard extends StatelessWidget {
                                 .convertDepth(data.maxDepth.toDouble())
                                 .round();
                             final label = data.maxDepth >= 100
-                                ? '$minDisplay${fmt.depthSymbol}+'
-                                : '$minDisplay-$maxDisplay${fmt.depthSymbol}';
+                                ? l10n.statistics_summary_depthBucket_over(
+                                    '$minDisplay',
+                                    fmt.depthSymbol,
+                                  )
+                                : l10n.statistics_summary_depthBucket_range(
+                                    '$minDisplay',
+                                    '$maxDisplay',
+                                    fmt.depthSymbol,
+                                  );
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 2),
                               child: Row(

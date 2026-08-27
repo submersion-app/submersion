@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 
 /// Types of segments in a dive plan.
 ///
@@ -58,6 +60,14 @@ class PlanSegment extends Equatable {
   /// For gas switch segments, the new tank to switch to.
   final String? switchToTankId;
 
+  /// Per-segment CCR setpoint override in bar; null = the plan's depth-based
+  /// setpoint (Subsurface per-segment setpoint, v120).
+  final double? setpointBar;
+
+  /// Per-segment dive-mode override; null = the plan's mode. Models mid-plan
+  /// bailout (e.g. a CCR plan with an OC segment), v120.
+  final PlanMode? diveModeOverride;
+
   /// Order of this segment in the plan (0-indexed).
   final int order;
 
@@ -71,6 +81,8 @@ class PlanSegment extends Equatable {
     required this.gasMix,
     this.rate,
     this.switchToTankId,
+    this.setpointBar,
+    this.diveModeOverride,
     this.order = 0,
   });
 
@@ -142,8 +154,12 @@ class PlanSegment extends Equatable {
     GasMix? gasMix,
     double? rate,
     String? switchToTankId,
+    double? setpointBar,
+    PlanMode? diveModeOverride,
     int? order,
     bool clearSwitchToTankId = false,
+    bool clearSetpointBar = false,
+    bool clearDiveModeOverride = false,
   }) {
     return PlanSegment(
       id: id ?? this.id,
@@ -157,6 +173,10 @@ class PlanSegment extends Equatable {
       switchToTankId: clearSwitchToTankId
           ? null
           : (switchToTankId ?? this.switchToTankId),
+      setpointBar: clearSetpointBar ? null : (setpointBar ?? this.setpointBar),
+      diveModeOverride: clearDiveModeOverride
+          ? null
+          : (diveModeOverride ?? this.diveModeOverride),
       order: order ?? this.order,
     );
   }
@@ -305,6 +325,8 @@ class PlanSegment extends Equatable {
     gasMix,
     rate,
     switchToTankId,
+    setpointBar,
+    diveModeOverride,
     order,
   ];
 }

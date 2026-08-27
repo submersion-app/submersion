@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
 /// Wraps a [DiveField] enum value as an [EntityField] for use with the generic
@@ -21,6 +22,12 @@ class DiveEntityField implements EntityField {
   String get displayName => field.displayName;
   @override
   String get shortLabel => field.shortLabel;
+  @override
+  String localizedDisplayName(AppLocalizations l10n) =>
+      field.localizedDisplayName(l10n);
+  @override
+  String localizedShortLabel(AppLocalizations l10n) =>
+      field.localizedShortLabel(l10n);
   @override
   IconData? get icon => field.icon;
   @override

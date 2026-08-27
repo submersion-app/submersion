@@ -188,16 +188,80 @@ void main() {
       expect(normalizeAngle(-90), 270);
       expect(normalizeAngle(-450), 270);
     });
+
+    test('every Doodson entry differentiates to its published speed', () {
+      // d(V0)/dt must equal the constituent's angular speed. Computed
+      // numerically over one hour (06:00->07:00 UTC avoids the hour-of-day
+      // wrap at midnight). Catches wrong Doodson integers and wrong speeds.
+      final t1 = DateTime.utc(2026, 3, 10, 6, 0, 0);
+      final t2 = DateTime.utc(2026, 3, 10, 7, 0, 0);
+      final a1 = AstronomicalArguments.forDateTime(t1);
+      final a2 = AstronomicalArguments.forDateTime(t2);
+
+      double v0(AstronomicalArguments a, List<int> d) {
+        final tau = a.hourOfDay * 15.0 + a.h - a.s;
+        return d[0] * tau +
+            d[1] * a.s +
+            d[2] * a.h +
+            d[3] * a.p +
+            d[4] * (-a.n) +
+            d[5] * a.ps;
+      }
+
+      for (final entry in doodsonNumbers.entries) {
+        final speed = constituentSpeeds[entry.key];
+        expect(speed, isNotNull, reason: 'missing speed for ${entry.key}');
+        var rate = v0(a2, entry.value) - v0(a1, entry.value);
+        rate = rate % 360.0;
+        if (rate > 180.0) rate -= 360.0;
+        expect(
+          rate,
+          closeTo(speed!, 0.001),
+          reason: 'Doodson numbers for ${entry.key} disagree with its speed',
+        );
+      }
+    });
+
+    test('phase constants exist for every diurnal plus L2 and R2', () {
+      const minusNinety = ['O1', 'Q1', '2Q1', 'Rho1', 'Sig1', 'P1', 'Pi1'];
+      const plusNinety = ['K1', 'J1', 'OO1', 'The1', 'Chi1', 'Phi1', 'M1'];
+      for (final name in minusNinety) {
+        expect(doodsonPhaseConstants[name], -90.0, reason: name);
+      }
+      for (final name in plusNinety) {
+        expect(doodsonPhaseConstants[name], 90.0, reason: name);
+      }
+      expect(doodsonPhaseConstants['L2'], 180.0);
+      expect(doodsonPhaseConstants['R2'], 180.0);
+      expect(doodsonPhaseConstants.containsKey('M2'), false);
+    });
   });
 
   group('AstronomicalArguments', () {
     test('calculates arguments for J2000 epoch', () {
-      // At J2000.0 epoch (Jan 1, 2000, 12:00 TT), T should be 0
+      // At J2000.0 epoch (Jan 1, 2000, 12:00 TT), T should be 0.
+      // The 1e-7 tolerance catches a half-day Julian date error
+      // (0.5/36525 = 1.37e-5), which the old 0.001 tolerance missed.
       final time = DateTime.utc(2000, 1, 1, 12, 0, 0);
       final args = AstronomicalArguments.forDateTime(time);
 
-      // T should be very close to 0 at J2000
-      expect(args.T, closeTo(0.0, 0.001));
+      expect(args.T, closeTo(0.0, 1e-7));
+    });
+
+    test('lunar mean longitude matches Meeus worked example 47.a', () {
+      // Meeus, Astronomical Algorithms: 1992 April 12.0 TD, L' = 134.290182
+      // deg. TD-UT difference (~59 s) moves the Moon ~0.009 deg.
+      final args = AstronomicalArguments.forDateTime(DateTime.utc(1992, 4, 12));
+      expect(args.s, closeTo(134.290182, 0.02));
+    });
+
+    test('solar mean longitude matches Meeus worked example 25.a', () {
+      // Meeus: 1992 October 13.0 TD, L0 = 201.80720 deg. Catches the
+      // millennia-vs-century coefficient bug (h advanced 10x too fast).
+      final args = AstronomicalArguments.forDateTime(
+        DateTime.utc(1992, 10, 13),
+      );
+      expect(args.h, closeTo(201.80720, 0.01));
     });
 
     test('calculates arguments for known date', () {

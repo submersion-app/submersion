@@ -1,20 +1,93 @@
-<div>
-  <img src="assets/icon/icon.png" alt="Submersion Logo" width="80" align="left">
-  <h3>Submersion</h3>
-  <p><i>A comprehensive, open-source, cross-platform dive logging application.</i></p>
-</div>
-<br clear="all"/>
+<h1>
+<img src="assets/icon/icon.png" alt="Submersion logo" width="72" align="left" hspace="14">
+Submersion<br>
+<sub><sub><sup><em>Own your dive log. Free and open-source, forever.</em></sup></sub></sub><br>&nbsp;
+</h1>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Build macOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=macOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Windows](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Windows&logo=windows)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Linux](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Linux&logo=linux)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build Android](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=Android&logo=android)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
-[![Build iOS](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=iOS&logo=apple)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
+[![CI](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 
-[![Download macOS](https://img.shields.io/badge/Download-macOS-2ea44f?logo=apple)](https://github.com/submersion-app/submersion/releases) [![Download Windows](https://img.shields.io/badge/Download-Windows-2ea44f?logo=windows)](https://github.com/submersion-app/submersion/releases) [![Download Linux](https://img.shields.io/badge/Download-Linux-2ea44f?logo=linux)](https://github.com/submersion-app/submersion/releases) [![Download Android](https://img.shields.io/badge/Download-Android-2ea44f?logo=android)](https://github.com/submersion-app/submersion/releases) [![Download iOS](https://img.shields.io/badge/Download-iOS-2ea44f?logo=apple)](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
+<img src="docs/assets/screenshots/readme/hero.png" alt="Submersion on macOS and iOS" width="900">
 
 Submersion gives scuba divers full ownership of their logbooks — no proprietary formats, no cloud lock-in, no subscription fees. Track analytics, stats, records, and trends across your dives, all stored locally and exportable to open standards. Free and open-source, forever.
+
+<table>
+<tr>
+<td width="58%"><img src="docs/assets/screenshots/readme/01-dive-logging.jpg" alt="Dive logging"></td>
+<td width="42%">
+<h3>Comprehensive Dive Logging</h3>
+<p>Every dive, fully detailed and in your control.</p>
+<ul>
+<li>Depth, duration, temperatures, conditions</li>
+<li>Multi-tank gas mixes: air, nitrox, trimix</li>
+<li>Buddies, trips, tags, and ratings</li>
+<li>Sortable table or card views</li>
+</ul>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="42%">
+<h3>Profile &amp; Decompression Analysis</h3>
+<p>Serious technical-diving instrumentation.</p>
+<ul>
+<li>Interactive depth / temperature / pressure profile</li>
+<li>16-compartment tissue loading visualization</li>
+<li>Bühlmann ZH-L16C with gradient factors</li>
+<li>CNS%, OTU, and ppO₂ tracking</li>
+</ul>
+</td>
+<td width="58%"><img src="docs/assets/screenshots/readme/02-profile-deco.jpg" alt="Profile and decompression analysis"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="58%"><img src="docs/assets/screenshots/readme/03-dive-computers.jpg" alt="Dive computer integration"></td>
+<td width="42%">
+<h3>300+ Dive Computers</h3>
+<p>Download dives directly from your computer.</p>
+<ul>
+<li>USB and Bluetooth LE connectivity</li>
+<li>Shearwater, Suunto, Mares, Aqualung, and more</li>
+<li>Incremental downloads with duplicate detection</li>
+<li>Powered by libdivecomputer</li>
+</ul>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="42%">
+<h3>Sites, GPS &amp; Conditions</h3>
+<p>Location and environment for every dive.</p>
+<ul>
+<li>GPS entry/exit with interactive maps</li>
+<li>Tide and weather integration</li>
+<li>Reverse-geocoded country and region</li>
+</ul>
+</td>
+<td width="58%"><img src="docs/assets/screenshots/readme/04-sites-gps.jpg" alt="Dive sites, GPS and conditions"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="58%"><img src="docs/assets/screenshots/readme/05-statistics.jpg" alt="Statistics and records"></td>
+<td width="42%">
+<h3>Statistics &amp; Records</h3>
+<p>See your diving life at a glance.</p>
+<ul>
+<li>Totals, averages, and personal records</li>
+<li>Breakdowns by year, country, and site</li>
+<li>SAC trends and depth distribution</li>
+</ul>
+</td>
+</tr>
+</table>
 
 ## Why Submersion?
 
@@ -27,6 +100,26 @@ Most dive logging software falls into two categories: desktop applications stuck
 - **Technical Diving Ready** — Bühlmann ZH-L16C decompression, multi-gas support, CNS/OTU tracking, trimix blending, CCR/SCR rebreather support.
 - **Sync Across Devices** — Optional cloud sync via iCloud or Google Drive. No account required — sync is opt-in and your data stays yours.
 - **Free Forever** — Open source under GPL-3.0. No premium tiers for core features. No ads.
+
+## Download
+
+- **macOS / Windows / Linux / Android** — [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+- **iOS** — [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
+
+### Beta channel
+
+Want fixes and features weeks early? Every change merged into Submersion is
+published as a beta build. Betas may upgrade your dive log's database ahead
+of the stable release; downgrading is not supported, and devices that sync
+together should all use the same channel. A backup is taken automatically
+before any database upgrade.
+
+- **Desktop** — Settings > About > Update channel > Beta (updates then arrive
+  through the normal auto-updater), or download directly from
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
+- **Android** — [join the open test](https://play.google.com/apps/testing/app.submersion),
+  then Play delivers beta updates automatically
+- **iOS / Mac App Store** — [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
 
 ## Data Philosophy
 
@@ -147,7 +240,10 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run -d macos    # or: windows, linux, ios, android
 ```
 
-### Build for Release
+## Building from Source
+
+<details>
+<summary><b>Build for release (iOS, Android, macOS, Windows, Linux)</b></summary>
 
 ```bash
 # iOS
@@ -166,7 +262,10 @@ flutter build windows
 flutter build linux
 ```
 
-### macOS: Building Without a Developer Certificate
+</details>
+
+<details>
+<summary><b>macOS: building without a developer certificate</b></summary>
 
 If you don't have an Apple Developer certificate, you can still build and run the app locally using ad-hoc signing. This creates a non-sandboxed build that works on any Mac.
 
@@ -193,7 +292,10 @@ You only need to do this once — subsequent launches will work normally.
 
 > **Note:** This build cannot be distributed via the Mac App Store (which requires sandboxing). It's intended for local testing and direct distribution.
 
-### Windows: Building from Source
+</details>
+
+<details>
+<summary><b>Windows: building from source</b></summary>
 
 Windows builds require no code signing for local use. You need [Visual Studio](https://visualstudio.microsoft.com/) with the **Desktop development with C++** workload installed (the free Community edition works).
 
@@ -206,7 +308,10 @@ The built app will be at `build\windows\x64\runner\Release\`.
 
 > **Note:** Windows SmartScreen may show an "unrecognized app" warning for unsigned executables. Click "More info" then "Run anyway" to proceed.
 
-### Linux: Building from Source
+</details>
+
+<details>
+<summary><b>Linux: building from source (distro dependencies)</b></summary>
 
 Linux builds require GTK3 and several native development libraries. Install them first:
 
@@ -245,7 +350,10 @@ flutter build linux --release
 
 The built app will be at `build/linux/x64/release/bundle/`.
 
-## Architecture
+</details>
+
+<details>
+<summary><b>Architecture &amp; tech stack</b></summary>
 
 Submersion follows clean architecture principles with clear separation of concerns:
 
@@ -277,7 +385,9 @@ lib/
 - **flutter_map** — OpenStreetMap integration
 - **libdivecomputer** — FFI bindings for dive computer communication
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+
+</details>
 
 ## Roadmap
 

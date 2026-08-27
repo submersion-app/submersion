@@ -92,9 +92,17 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             int64_t* tank_index =
                 (s->tank == UINT32_MAX) ? NULL : &tank_val;
 
+            int64_t gmi_val = (int64_t)s->gasmix;
+            int64_t* gas_mix_index =
+                (s->gasmix == UINT32_MAX) ? NULL : &gmi_val;
+
             int64_t hr_val = (int64_t)s->heartbeat;
             int64_t* heart_rate =
                 (s->heartbeat == UINT32_MAX) ? NULL : &hr_val;
+
+            double heading_val = (double)s->heading;
+            double* heading =
+                (s->heading == UINT32_MAX) ? NULL : &heading_val;
 
             int64_t rbt_val = (int64_t)s->rbt;
             int64_t* rbt = (s->rbt == UINT32_MAX) ? NULL : &rbt_val;
@@ -114,11 +122,63 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
                     ? NULL
                     : &tts_val;
 
+            // Per-cell O2 ppO2: NaN -> NULL. cell_vals must outlive the
+            // constructor call (it copies each value).
+            double cell_vals[6];
+            double* o2_sensor[6];
+            for (int c = 0; c < 6; c++) {
+                cell_vals[c] = s->o2_sensor[c];
+                o2_sensor[c] = isnan(cell_vals[c]) ? NULL : &cell_vals[c];
+            }
+
+            // Per-cell raw O2 output: UINT32_MAX -> NULL. mv_vals must outlive
+            // the constructor call for the same reason as cell_vals.
+            int64_t mv_vals[6];
+            int64_t* o2_sensor_mv[6];
+            for (int c = 0; c < 6; c++) {
+                mv_vals[c] = (int64_t)s->o2_sensor_mv[c];
+                o2_sensor_mv[c] =
+                    (s->o2_sensor_mv[c] == UINT32_MAX) ? NULL : &mv_vals[c];
+            }
+
+            // Every tank's pressure at this sample (issue #1223): a sample can
+            // carry one reading per air-integrated transmitter, and `pressure`
+            // above holds only the last of them. NaN -> null, trailing nulls
+            // trimmed, all-NaN -> NULL so the field stays absent. The
+            // constructor takes its own reference, so unref ours afterwards.
+            int last_tank = -1;
+            for (int t = LIBDC_MAX_TANKS - 1; t >= 0; t--) {
+                if (!isnan(s->tank_pressure[t])) {
+                    last_tank = t;
+                    break;
+                }
+            }
+            FlValue* tank_pressures = NULL;
+            if (last_tank >= 0) {
+                tank_pressures = fl_value_new_list();
+                for (int t = 0; t <= last_tank; t++) {
+                    fl_value_append_take(
+                        tank_pressures,
+                        isnan(s->tank_pressure[t])
+                            ? fl_value_new_null()
+                            : fl_value_new_float(s->tank_pressure[t]));
+                }
+            }
+
             LibdivecomputerPluginProfileSample* sample =
                 libdivecomputer_plugin_profile_sample_new(
                     time_seconds, s->depth, temp_c, pressure, tank_index,
-                    heart_rate, setpoint, ppo2, cns, rbt, deco_type,
-                    deco_time, deco_depth, tts);
+                    tank_pressures,
+                    heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type,
+                    deco_time, deco_depth, tts, o2_sensor[0], o2_sensor[1],
+                    o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5],
+                    o2_sensor_mv[0], o2_sensor_mv[1], o2_sensor_mv[2],
+                    o2_sensor_mv[3], o2_sensor_mv[4], o2_sensor_mv[5],
+                    gas_mix_index);
+
+            if (tank_pressures != NULL) {
+                fl_value_unref(tank_pressures);
+            }
 
             fl_value_append_take(
                 samples,
@@ -155,9 +215,12 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
         double ep_val = tk->endpressure;
         double* end_p = (ep_val == 0.0) ? NULL : &ep_val;
 
+        int64_t usage_val = (int64_t)tk->usage;
+        int64_t* usage = (tk->usage == 0) ? NULL : &usage_val;
+
         LibdivecomputerPluginTankInfo* tank =
             libdivecomputer_plugin_tank_info_new(
-                (int64_t)i, (int64_t)tk->gasmix, volume, begin_p, end_p);
+                (int64_t)i, (int64_t)tk->gasmix, volume, begin_p, end_p, usage);
         fl_value_append_take(
             tanks,
             fl_value_new_custom_object(134, G_OBJECT(tank)));
@@ -221,6 +284,16 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
     double max_t_val = dive->max_temp;
     double* max_temp = isnan(max_t_val) ? NULL : &max_t_val;
 
+    // GPS entry/exit (Shearwater Swift): NULL when unavailable.
+    double entry_lat_val = dive->entry_latitude;
+    double* entry_lat = isnan(entry_lat_val) ? NULL : &entry_lat_val;
+    double entry_lon_val = dive->entry_longitude;
+    double* entry_lon = isnan(entry_lon_val) ? NULL : &entry_lon_val;
+    double exit_lat_val = dive->exit_latitude;
+    double* exit_lat = isnan(exit_lat_val) ? NULL : &exit_lat_val;
+    double exit_lon_val = dive->exit_longitude;
+    double* exit_lon = isnan(exit_lon_val) ? NULL : &exit_lon_val;
+
     // GF/conservatism: 0 means unknown -> NULL.
     int64_t gf_low_val = (int64_t)dive->gf_low;
     int64_t* gf_low = (dive->gf_low == 0) ? NULL : &gf_low_val;
@@ -251,7 +324,8 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             tz_offset, dive->max_depth, dive->avg_depth,
             (int64_t)dive->duration, min_temp, max_temp, samples, tanks,
             gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high,
-            conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length);
+            conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length,
+            entry_lat, entry_lon, exit_lat, exit_lon);
 
     fl_value_unref(samples);
     fl_value_unref(gas_mixes);

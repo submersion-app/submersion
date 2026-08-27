@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Statistics about the tile cache.
 class CacheStats {
@@ -86,6 +87,8 @@ class TileCacheService {
 
   static const String _defaultStoreName = 'submersion_tiles';
 
+  static final LoggerService _log = LoggerService.forClass(TileCacheService);
+
   bool _initialized = false;
   FMTCStore? _store;
   StreamSubscription<DownloadProgress>? _activeDownloadSubscription;
@@ -162,14 +165,60 @@ class TileCacheService {
     return FMTCTileProvider(
       stores: {_defaultStoreName: BrowseStoreStrategy.readUpdateCreate},
       loadingStrategy: loadingStrategy,
-      errorHandler: (error) {
-        // Silently handle tile loading errors - these are expected when
-        // offline or during network issues. The map will show blank tiles
-        // which is acceptable behavior.
-        debugPrint('Tile loading error (silently handled): ${error.type}');
-        return null; // Return null to show blank tile instead of throwing
-      },
+      errorHandler: handleTileError,
     );
+  }
+
+  /// Handles a tile fetch failure: logs it (offline misses at info, real
+  /// transport/HTTP errors at warning) and returns null so the map shows a
+  /// blank tile rather than throwing.
+  ///
+  /// Tile failures are non-fatal and most are simply offline cache misses,
+  /// but provider- or transport-level errors (TLS, HTTP rejections, DNS) are
+  /// otherwise invisible -- so the full error is captured for the in-app
+  /// Debug Log Viewer instead of being silently swallowed. Static and
+  /// [visibleForTesting] so the formatting and log-level policy can be
+  /// exercised directly, without initialising the cache backend; used as the
+  /// [FMTCTileProvider.errorHandler] in [getTileProvider].
+  @visibleForTesting
+  static Uint8List? handleTileError(FMTCBrowsingError error) {
+    final response = error.response;
+    final original = error.originalError;
+    final details = StringBuffer()
+      ..write('Tile load failed [${error.type.name}]')
+      ..write(' url=${error.networkUrl}');
+    if (response != null) {
+      details
+        ..write(' httpStatus=${response.statusCode}')
+        ..write(' reason=${response.reasonPhrase}')
+        ..write(' contentType=${response.headers['content-type']}')
+        ..write(' bodyBytes=${response.bodyBytes.length}');
+    }
+    if (original != null) {
+      details.write(
+        ' cause=${original.runtimeType}: ${_describeError(original)}',
+      );
+    }
+    // An offline miss is expected; anything else is a real problem.
+    if (error.type == FMTCBrowsingErrorType.noConnectionDuringFetch) {
+      _log.info(details.toString());
+    } else {
+      _log.warning(details.toString());
+    }
+    return null;
+  }
+
+  /// The error's own `toString` (which carries the actionable detail, e.g.
+  /// `CERTIFICATE_VERIFY_FAILED`), falling back to [Error.safeToString] if
+  /// that throws. Guards the [handleTileError] log line so a pathological
+  /// `toString` can never throw back out of the error handler and surface as
+  /// a map-render exception. Mirrors `CloudStorageException`'s cause handling.
+  static String _describeError(Object error) {
+    try {
+      return error.toString();
+    } catch (_) {
+      return Error.safeToString(error);
+    }
   }
 
   /// Get a tile provider configured for offline-only usage.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Two-line compact card tile for the dive center list.
 ///
@@ -11,6 +12,9 @@ class CompactDiveCenterListTile extends StatelessWidget {
   final int diveCount;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const CompactDiveCenterListTile({
     super.key,
@@ -18,6 +22,9 @@ class CompactDiveCenterListTile extends StatelessWidget {
     required this.diveCount,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -39,48 +46,58 @@ class CompactDiveCenterListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                // Line 1: center name, dive count, chevron
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        center.name,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$diveCount dives',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: secondaryTextColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
+                // The checkbox sits beside the whole two-line block rather
+                // than on line 1, so it stays vertically centred against it.
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
                 ),
-                // Line 2: location
-                if (center.fullLocationString != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    center.fullLocationString!,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
-                    overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Line 1: center name, dive count, chevron
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              center.name,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$diveCount dives',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: secondaryTextColor),
+                          ),
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.chevron_right,
+                              color: secondaryTextColor,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Line 2: location
+                      if (center.fullLocationString != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          center.fullLocationString!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: secondaryTextColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ],
             ),
           ),

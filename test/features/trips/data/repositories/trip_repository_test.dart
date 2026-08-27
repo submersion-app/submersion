@@ -28,6 +28,7 @@ void main() {
     String? resortName,
     String? liveaboardName,
     String notes = '',
+    DateTime? returnFlightAt,
   }) {
     final now = DateTime.now();
     final start = startDate ?? now;
@@ -41,6 +42,7 @@ void main() {
       resortName: resortName,
       liveaboardName: liveaboardName,
       notes: notes,
+      returnFlightAt: returnFlightAt,
       createdAt: now,
       updatedAt: now,
     );
@@ -385,7 +387,7 @@ void main() {
 
           expect(stats.trip.id, equals(trip.id));
           expect(stats.diveCount, equals(0));
-          expect(stats.totalBottomTime, equals(0));
+          expect(stats.totalRuntime, equals(0));
           expect(stats.maxDepth, isNull);
           expect(stats.avgDepth, isNull);
         },
@@ -396,6 +398,86 @@ void main() {
           () => repository.getTripWithStats('non-existent-id'),
           throwsException,
         );
+      });
+    });
+
+    group('trip time totals (issue #889)', () {
+      const ts = 1700000000000;
+
+      Future<void> insertDive({
+        required String tripId,
+        required String diveId,
+        int? bottomTime,
+        int? runtime,
+      }) async {
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: diveId,
+                diveDateTime: ts,
+                tripId: Value(tripId),
+                bottomTime: Value(bottomTime),
+                runtime: Value(runtime),
+                createdAt: ts,
+                updatedAt: ts,
+              ),
+            );
+      }
+
+      test('getTripWithStats totals runtime rather than bottom time', () async {
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'Runtime Trip'),
+        );
+        // Two dives whose ascent adds 10 minutes each on top of bottom time.
+        await insertDive(
+          tripId: trip.id,
+          diveId: 'r1',
+          bottomTime: 2400,
+          runtime: 3000,
+        );
+        await insertDive(
+          tripId: trip.id,
+          diveId: 'r2',
+          bottomTime: 1800,
+          runtime: 2400,
+        );
+
+        final stats = await repository.getTripWithStats(trip.id);
+
+        expect(stats.totalRuntime, equals(5400));
+      });
+
+      test('getTripWithStats falls back to bottom time when runtime is '
+          'missing', () async {
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'Mixed Trip'),
+        );
+        await insertDive(tripId: trip.id, diveId: 'm1', bottomTime: 2400);
+        await insertDive(tripId: trip.id, diveId: 'm2', runtime: 3000);
+
+        final stats = await repository.getTripWithStats(trip.id);
+
+        expect(stats.totalRuntime, equals(5400));
+      });
+
+      test('getAllTripsWithStats totals runtime rather than bottom '
+          'time', () async {
+        final trip = await repository.createTrip(
+          createTestTrip(name: 'Listed Trip'),
+        );
+        await insertDive(
+          tripId: trip.id,
+          diveId: 'l1',
+          bottomTime: 2400,
+          runtime: 3000,
+        );
+
+        final results = await repository.getAllTripsWithStats();
+        final row = results.firstWhere((r) => r.trip.id == trip.id);
+
+        expect(row.totalRuntime, equals(3000));
       });
     });
 
@@ -602,6 +684,70 @@ void main() {
         final readBack = await repository.getTripById(created.id);
         expect(readBack!.isShared, isTrue);
       });
+    });
+
+    group('returnFlightAt persistence', () {
+      test('createTrip and getTripById round-trip the flight time', () async {
+        final created = await repository.createTrip(
+          createTestTrip(
+            name: 'Flight trip',
+            startDate: DateTime.utc(2026, 8, 1),
+            endDate: DateTime.utc(2026, 8, 10),
+            returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30),
+          ),
+        );
+
+        final loaded = await repository.getTripById(created.id);
+
+        expect(
+          loaded!.returnFlightAt!.millisecondsSinceEpoch,
+          DateTime.utc(2026, 8, 10, 14, 30).millisecondsSinceEpoch,
+        );
+        // Wall-clock-as-UTC round-trip: components must survive on any
+        // device timezone, so the decode has to be isUtc.
+        expect(loaded.returnFlightAt!.isUtc, isTrue);
+        expect(loaded.returnFlightAt!.hour, 14);
+        expect(loaded.returnFlightAt!.minute, 30);
+      });
+
+      test(
+        'updateTrip with null clears a previously set flight time',
+        () async {
+          final created = await repository.createTrip(
+            createTestTrip(
+              name: 'Cleared trip',
+              startDate: DateTime.utc(2026, 8, 1),
+              endDate: DateTime.utc(2026, 8, 10),
+              returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30),
+            ),
+          );
+
+          await repository.updateTrip(created.copyWith(returnFlightAt: null));
+
+          final loaded = await repository.getTripById(created.id);
+          expect(loaded!.returnFlightAt, isNull);
+        },
+      );
+
+      test(
+        'findTripForDate surfaces returnFlightAt (raw-SQL mapper)',
+        () async {
+          await repository.createTrip(
+            createTestTrip(
+              name: 'Raw mapper trip',
+              startDate: DateTime.utc(2026, 8, 1),
+              endDate: DateTime.utc(2026, 8, 10),
+              returnFlightAt: DateTime.utc(2026, 8, 10, 14, 30),
+            ),
+          );
+
+          final found = await repository.findTripForDate(
+            DateTime.utc(2026, 8, 5),
+          );
+
+          expect(found!.returnFlightAt, isNotNull);
+        },
+      );
     });
 
     group('sharing actions', () {

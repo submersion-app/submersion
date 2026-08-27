@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the dive center list (maximum density).
 ///
@@ -10,6 +11,9 @@ class DenseDiveCenterListTile extends StatelessWidget {
   final int diveCount;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const DenseDiveCenterListTile({
     super.key,
@@ -17,6 +21,9 @@ class DenseDiveCenterListTile extends StatelessWidget {
     required this.diveCount,
     this.isSelected = false,
     this.onTap,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -47,6 +54,12 @@ class DenseDiveCenterListTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
+                  gap: 8,
+                ),
                 // Center name (expanded)
                 Expanded(
                   child: Text(

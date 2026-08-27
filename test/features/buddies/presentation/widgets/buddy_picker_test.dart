@@ -4,12 +4,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
+    show BuddyWithDiveCount;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 final _now = DateTime(2024, 1, 1);
+
+final _testRoles = [
+  for (final (i, id) in DiveRole.builtInIds.indexed)
+    DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      sortOrder: i,
+      createdAt: _now,
+      updatedAt: _now,
+    ),
+];
 
 final _testBuddies = [
   Buddy(id: '1', name: 'Alice Smith', createdAt: _now, updatedAt: _now),
@@ -23,13 +39,26 @@ final _testBuddies = [
   Buddy(id: '3', name: 'Charlie Brown', createdAt: _now, updatedAt: _now),
 ];
 
+/// [_testBuddies] wrapped with a dive count of 0, matching what the picker
+/// sheet's providers return (it sorts by dive count -- see issue #638).
+final _testBuddiesWithCount = [
+  for (final b in _testBuddies) BuddyWithDiveCount(buddy: b, diveCount: 0),
+];
+
+List<BuddyWithDiveCount> _withCount(Iterable<Buddy> buddies) => [
+  for (final b in buddies) BuddyWithDiveCount(buddy: b, diveCount: 0),
+];
+
 Widget _buildPicker({
   List<BuddyWithRole> selectedBuddies = const [],
   ValueChanged<List<BuddyWithRole>>? onChanged,
   List<dynamic>? overrides,
 }) {
   return ProviderScope(
-    overrides: overrides?.cast() ?? [],
+    overrides: [
+      allDiveRolesProvider.overrideWith((ref) async => _testRoles),
+      ...?overrides?.cast(),
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -66,8 +95,10 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, q) async => []),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith((ref, q) async => []),
           ],
         ),
       );
@@ -83,7 +114,9 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -98,13 +131,15 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, query) async {
-              return _testBuddies
-                  .where(
-                    (b) => b.name.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith((ref, query) async {
+              return _withCount(
+                _testBuddies.where(
+                  (b) => b.name.toLowerCase().contains(query.toLowerCase()),
+                ),
+              );
             }),
           ],
         ),
@@ -134,13 +169,15 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, query) async {
-              return _testBuddies
-                  .where(
-                    (b) => b.name.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith((ref, query) async {
+              return _withCount(
+                _testBuddies.where(
+                  (b) => b.name.toLowerCase().contains(query.toLowerCase()),
+                ),
+              );
             }),
           ],
         ),
@@ -170,13 +207,15 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, query) async {
-              return _testBuddies
-                  .where(
-                    (b) => b.name.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith((ref, query) async {
+              return _withCount(
+                _testBuddies.where(
+                  (b) => b.name.toLowerCase().contains(query.toLowerCase()),
+                ),
+              );
             }),
           ],
         ),
@@ -204,14 +243,16 @@ void main() {
     ) async {
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: BuddyRole.buddy,
+        role: DiveRole.builtInBuddy(),
       );
 
       await tester.pumpWidget(
         _buildPicker(
           selectedBuddies: [selectedBuddy],
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -227,7 +268,9 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -249,7 +292,9 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -272,14 +317,16 @@ void main() {
       _useTallScreen(tester);
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: BuddyRole.buddy,
+        role: DiveRole.builtInBuddy(),
       );
 
       await tester.pumpWidget(
         _buildPicker(
           selectedBuddies: [selectedBuddy],
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -305,7 +352,9 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => <Buddy>[]),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => <BuddyWithDiveCount>[],
+            ),
           ],
         ),
       );
@@ -320,8 +369,12 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, query) async => <Buddy>[]),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith(
+              (ref, query) async => <BuddyWithDiveCount>[],
+            ),
           ],
         ),
       );
@@ -340,7 +393,7 @@ void main() {
     testWidgets('shows loading spinner when provider is loading', (
       tester,
     ) async {
-      final completer = Completer<List<Buddy>>();
+      final completer = Completer<List<BuddyWithDiveCount>>();
       addTearDown(() {
         if (!completer.isCompleted) completer.complete([]);
       });
@@ -348,7 +401,9 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) => completer.future),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) => completer.future,
+            ),
           ],
         ),
       );
@@ -367,7 +422,7 @@ void main() {
     testWidgets('caches search results and shows LinearProgressIndicator '
         'during subsequent loading', (tester) async {
       var callCount = 0;
-      final secondSearchCompleter = Completer<List<Buddy>>();
+      final secondSearchCompleter = Completer<List<BuddyWithDiveCount>>();
       addTearDown(() {
         if (!secondSearchCompleter.isCompleted) {
           secondSearchCompleter.complete([]);
@@ -377,18 +432,19 @@ void main() {
       await tester.pumpWidget(
         _buildPicker(
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
-            buddySearchProvider.overrideWith((ref, query) {
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
+            buddySearchWithDiveCountProvider.overrideWith((ref, query) {
               callCount++;
               if (callCount <= 1) {
                 // First search completes immediately
                 return Future.value(
-                  _testBuddies
-                      .where(
-                        (b) =>
-                            b.name.toLowerCase().contains(query.toLowerCase()),
-                      )
-                      .toList(),
+                  _withCount(
+                    _testBuddies.where(
+                      (b) => b.name.toLowerCase().contains(query.toLowerCase()),
+                    ),
+                  ),
                 );
               }
               // Second search hangs in loading
@@ -427,7 +483,9 @@ void main() {
         _buildPicker(
           onChanged: (buddies) => result = buddies,
           overrides: [
-            allBuddiesProvider.overrideWith((ref) async => _testBuddies),
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _testBuddiesWithCount,
+            ),
           ],
         ),
       );
@@ -440,12 +498,12 @@ void main() {
       await tester.tap(find.text('Instructor'));
       await tester.pumpAndSettle();
 
-      // Tap "Done" -- it's a TextButton in the sheet header
-      // Find all TextButtons and tap the one inside the bottom sheet
-      // The "Done" button is rendered by the _BuddySelectionSheet header
+      // Tap "Done" -- it's the TextButton in the sheet header. The sheet
+      // also has a sort-toggle TextButton (issue #638), so disambiguate by
+      // label rather than by type alone.
       final doneButton = find.descendant(
         of: find.byType(DraggableScrollableSheet),
-        matching: find.byType(TextButton),
+        matching: find.widgetWithText(TextButton, 'Done'),
       );
       await tester.tap(doneButton);
       await tester.pumpAndSettle();
@@ -453,7 +511,77 @@ void main() {
       expect(result, isNotNull);
       expect(result!.length, equals(1));
       expect(result![0].buddy.name, equals('Alice Smith'));
-      expect(result![0].role, equals(BuddyRole.instructor));
+      expect(result![0].role.id, equals(DiveRole.instructorId));
+    });
+  });
+
+  group('BuddyPicker - sort toggle (issue #638)', () {
+    // Dive counts deliberately disagree with alphabetical order so the two
+    // sorts are distinguishable: by count it reads Charlie, Bob, Alice.
+    final rankedBuddies = [
+      BuddyWithDiveCount(buddy: _testBuddies[0], diveCount: 1), // Alice
+      BuddyWithDiveCount(buddy: _testBuddies[1], diveCount: 5), // Bob
+      BuddyWithDiveCount(buddy: _testBuddies[2], diveCount: 9), // Charlie
+    ];
+
+    /// The buddy names as the sheet actually renders them, top to bottom.
+    List<String> renderedNames(WidgetTester tester) => [
+      for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
+        (tile.title! as Text).data!,
+    ];
+
+    Future<void> pumpSheet(WidgetTester tester) async {
+      _useTallScreen(tester);
+      await tester.pumpWidget(
+        _buildPicker(
+          overrides: [
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => rankedBuddies,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _openSheet(tester);
+    }
+
+    testWidgets('defaults to dive count, most dives first', (tester) async {
+      await pumpSheet(tester);
+
+      expect(renderedNames(tester), [
+        'Charlie Brown',
+        'Bob Jones',
+        'Alice Smith',
+      ]);
+    });
+
+    testWidgets('toggling to name sorts A to Z, not Z to A', (tester) async {
+      await pumpSheet(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Sort: Dive Count'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextButton, 'Sort: Name'), findsOneWidget);
+      expect(renderedNames(tester), [
+        'Alice Smith',
+        'Bob Jones',
+        'Charlie Brown',
+      ]);
+    });
+
+    testWidgets('toggling back restores the dive count order', (tester) async {
+      await pumpSheet(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Sort: Dive Count'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Sort: Name'));
+      await tester.pumpAndSettle();
+
+      expect(renderedNames(tester), [
+        'Charlie Brown',
+        'Bob Jones',
+        'Alice Smith',
+      ]);
     });
   });
 }

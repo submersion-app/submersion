@@ -2,6 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Wraps a header's trailing widget so it yields space instead of starving the
+/// title.
+///
+/// Laid out plainly, a trailing widget is inflexible: [Row] gives it its full
+/// natural width first and leaves the title whatever remains, which can be
+/// nothing at all once a card is only half a pane wide (the side-by-side
+/// section pairs on the dive detail page). Making it [Flexible] caps it at
+/// half the free space; the [Align] keeps it flush right whenever it fits
+/// inside that cap, so nothing moves on a full-width card.
+Widget _flexibleTrailing(Widget trailing) {
+  return Flexible(
+    child: Align(alignment: Alignment.centerRight, child: trailing),
+  );
+}
+
 /// A collapsible section widget that wraps content with an expandable header.
 ///
 /// When collapsed, shows only the header bar. When expanded, shows the
@@ -94,7 +109,7 @@ class CollapsibleSection extends StatelessWidget {
                       ),
                     ),
                     if (trailing != null && !isExpanded) ...[
-                      trailing!,
+                      _flexibleTrailing(trailing!),
                       const SizedBox(width: 8),
                     ],
                     AnimatedRotation(
@@ -226,7 +241,7 @@ class CollapsibleCardSection extends StatelessWidget {
                     ],
                     // Always show the trailing widget
                     if (trailing != null) ...[
-                      trailing!,
+                      _flexibleTrailing(trailing!),
                       const SizedBox(width: 8),
                     ],
                     AnimatedRotation(

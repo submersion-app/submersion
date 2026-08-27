@@ -12,6 +12,9 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -123,7 +126,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
     // Only trigger when all address fields have lost focus
     if (!anyAddressFieldHasFocus) {
-      _onAddressFieldBlur();
+      logFailure(
+        _onAddressFieldBlur(),
+        _DiveCenterEditPageState,
+        'on address field blur',
+      );
     }
   }
 
@@ -131,6 +138,26 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     if (_isInitialized && !_hasChanges) {
       setState(() => _hasChanges = true);
     }
+  }
+
+  /// The coordinate group covers both axes, so a single message carries
+  /// whichever one is out of range.
+  String? _coordinateError(BuildContext context) {
+    final latText = _latitudeController.text.trim();
+    if (latText.isNotEmpty) {
+      final lat = double.tryParse(latText);
+      if (lat == null || lat < -90 || lat > 90) {
+        return context.l10n.diveCenters_validation_invalidLatitude;
+      }
+    }
+    final lonText = _longitudeController.text.trim();
+    if (lonText.isNotEmpty) {
+      final lon = double.tryParse(lonText);
+      if (lon == null || lon < -180 || lon > 180) {
+        return context.l10n.diveCenters_validation_invalidLongitude;
+      }
+    }
+    return null;
   }
 
   @override
@@ -566,7 +593,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         canPop: !_hasChanges,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop && _hasChanges) {
-            _showDiscardDialog();
+            logFailure(
+              _showDiscardDialog(),
+              _DiveCenterEditPageState,
+              'show discard dialog',
+            );
           }
         },
         child: Column(
@@ -760,60 +791,15 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _latitudeController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveCenters_field_latitude,
-                      hintText: context.l10n.diveCenters_hint_latitude,
-                      border: const OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final lat = double.tryParse(value);
-                        if (lat == null || lat < -90 || lat > 90) {
-                          return context
-                              .l10n
-                              .diveCenters_validation_invalidLatitude;
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _longitudeController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveCenters_field_longitude,
-                      hintText: context.l10n.diveCenters_hint_longitude,
-                      border: const OutlineInputBorder(),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final lng = double.tryParse(value);
-                        if (lng == null || lng < -180 || lng > 180) {
-                          return context
-                              .l10n
-                              .diveCenters_validation_invalidLongitude;
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            CoordinateFieldGroup(
+              latitudeController: _latitudeController,
+              longitudeController: _longitudeController,
+              format: ref.watch(coordinateFormatProvider),
+              latitudeLabel: context.l10n.diveCenters_field_latitude,
+              longitudeLabel: context.l10n.diveCenters_field_longitude,
+              errorText: _coordinateError(context),
+              invalidMessage:
+                  context.l10n.diveCenters_validation_invalidLatitude,
             ),
           ],
         ),
