@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -11,12 +10,14 @@ class DiveCenterPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final DiveCenter? selectedCenter;
   final ValueChanged<DiveCenter> onCenterSelected;
+  final VoidCallback onCreateNewCenter;
 
   const DiveCenterPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedCenter,
     required this.onCenterSelected,
+    required this.onCreateNewCenter,
   });
 
   @override
@@ -51,10 +52,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push('/dive-centers/new');
-                },
+                onPressed: onCreateNewCenter,
                 icon: const Icon(Icons.add),
                 label: Text(context.l10n.diveCenters_picker_newCenter),
               ),
@@ -86,10 +84,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       TextButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.push('/dive-centers/new');
-                        },
+                        onPressed: onCreateNewCenter,
                         icon: const Icon(Icons.add),
                         label: Text(context.l10n.diveCenters_title_add),
                       ),

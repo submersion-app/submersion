@@ -9,9 +9,11 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
 /// dive. Tooltip floats as an Overlay on top of all content below.
@@ -49,7 +51,7 @@ class DiveProfilePanel extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Select a dive to view its profile',
+              context.l10n.diveLog_profilePanel_selectDive,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
@@ -226,7 +228,7 @@ class _DiveProfilePanelContentState
         height: 100,
         child: Center(
           child: Text(
-            'No profile data for this dive',
+            context.l10n.diveLog_profilePanel_noProfileData,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
@@ -246,6 +248,10 @@ class _DiveProfilePanelContentState
         .valueOrNull;
     final tankPressures = ref
         .watch(tankPressuresProvider(widget.diveId))
+        .valueOrNull;
+    // Chart-only: real pressures augmented with linear estimates (#197).
+    final estimatedTankPressures = ref
+        .watch(estimatedTankPressuresProvider(widget.diveId))
         .valueOrNull;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -365,11 +371,16 @@ class _DiveProfilePanelContentState
                   diveDuration: dive.effectiveRuntime,
                   maxDepth: dive.maxDepth,
                   ceilingCurve: analysis?.ceilingCurve,
+                  decoStopCurve: analysis?.decoStopCurve,
                   ascentRates: analysis?.ascentRates,
                   events: analysis?.events,
                   ndlCurve: analysis?.ndlCurve,
                   sacCurve: analysis?.smoothedSacCurve,
                   ppO2Curve: analysis?.ppO2Curve,
+                  o2SensorCurves: analysis?.o2SensorCurves,
+                  o2CellMvCurves: analysis?.o2CellMvCurves,
+                  ppO2FromSensorAverage:
+                      analysis?.ppO2FromSensorAverage ?? false,
                   ppN2Curve: analysis?.ppN2Curve,
                   ppHeCurve: analysis?.ppHeCurve,
                   modCurve: analysis?.modCurve,
@@ -384,8 +395,21 @@ class _DiveProfilePanelContentState
                   showMaxDepthMarker: showMaxDepthMarker,
                   showPressureThresholdMarkers: showPressureThresholdMarkers,
                   tanks: dive.tanks,
-                  tankPressures: tankPressures,
+                  tankPressures:
+                      estimatedTankPressures?.pressures ?? tankPressures,
+                  estimatedTankIds: estimatedTankPressures?.estimatedTankIds,
                   gasSwitches: gasSwitches,
+                  gasSegments: (dive.tanks.isEmpty || dive.profile.isEmpty)
+                      ? null
+                      : buildGasUsageSegments(
+                          tanks: dive.tanks,
+                          gasSwitches: gasSwitches ?? const [],
+                          diveDurationSeconds: dive.profile.last.timestamp,
+                          firstSampleSeconds: dive.profile.first.timestamp,
+                        ),
+                  diveDurationSeconds: dive.profile.isEmpty
+                      ? null
+                      : dive.profile.last.timestamp,
                   tooltipBelow: true,
                   highlightedTimestamp:
                       trackingIndex != null &&

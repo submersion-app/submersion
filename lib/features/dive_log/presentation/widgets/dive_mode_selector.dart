@@ -18,15 +18,61 @@ class DiveModeSelector extends StatelessWidget {
   /// Whether the selector is enabled.
   final bool enabled;
 
+  /// Renders only the segmented button (no title, no description) so the
+  /// selector can sit on the trailing side of a form row.
+  final bool dense;
+
   const DiveModeSelector({
     super.key,
     required this.selectedMode,
     required this.onChanged,
     this.enabled = true,
+    this.dense = false,
   });
+
+  /// Localized one-line description of [mode], for captions outside this
+  /// widget (e.g. under a dense mode row).
+  static String descriptionFor(BuildContext context, DiveMode mode) {
+    switch (mode) {
+      case DiveMode.oc:
+        return context.l10n.diveLog_diveMode_ocDescription;
+      case DiveMode.ccr:
+        return context.l10n.diveLog_diveMode_ccrDescription;
+      case DiveMode.scr:
+        return context.l10n.diveLog_diveMode_scrDescription;
+      case DiveMode.gauge:
+        return context.l10n.diveLog_diveMode_gaugeDescription;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final selector = SegmentedButton<DiveMode>(
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      segments: DiveMode.values.map((mode) {
+        // Text-only: an icon plus a label (up to "GAUGE") does not fit four
+        // segments on a phone and wraps the label mid-word. The caption below
+        // and the tooltip already convey what each mode is.
+        return ButtonSegment<DiveMode>(
+          value: mode,
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(mode.name.toUpperCase(), maxLines: 1),
+          ),
+          tooltip: mode.displayName,
+        );
+      }).toList(),
+      selected: {selectedMode},
+      onSelectionChanged: enabled
+          ? (selection) {
+              if (selection.isNotEmpty) {
+                onChanged(selection.first);
+              }
+            }
+          : null,
+      showSelectedIcon: false,
+    );
+    if (dense) return selector;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,31 +81,13 @@ class DiveModeSelector extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
-        SegmentedButton<DiveMode>(
-          segments: DiveMode.values.map((mode) {
-            return ButtonSegment<DiveMode>(
-              value: mode,
-              label: Text(mode.name.toUpperCase()),
-              tooltip: mode.displayName,
-              icon: Icon(_getIconForMode(mode), size: 18),
-            );
-          }).toList(),
-          selected: {selectedMode},
-          onSelectionChanged: enabled
-              ? (selection) {
-                  if (selection.isNotEmpty) {
-                    onChanged(selection.first);
-                  }
-                }
-              : null,
-          showSelectedIcon: false,
-        ),
+        selector,
         const SizedBox(height: 4),
         Semantics(
           label:
-              'Selected mode: ${selectedMode.name.toUpperCase()}, ${_getDescriptionForMode(context, selectedMode)}',
+              'Selected mode: ${selectedMode.name.toUpperCase()}, ${descriptionFor(context, selectedMode)}',
           child: Text(
-            _getDescriptionForMode(context, selectedMode),
+            descriptionFor(context, selectedMode),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -67,27 +95,5 @@ class DiveModeSelector extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  IconData _getIconForMode(DiveMode mode) {
-    switch (mode) {
-      case DiveMode.oc:
-        return Icons.air; // Open circuit - breathing from tanks
-      case DiveMode.ccr:
-        return Icons.loop; // Closed circuit - loop symbol
-      case DiveMode.scr:
-        return Icons.sync_alt; // Semi-closed - partial loop
-    }
-  }
-
-  String _getDescriptionForMode(BuildContext context, DiveMode mode) {
-    switch (mode) {
-      case DiveMode.oc:
-        return context.l10n.diveLog_diveMode_ocDescription;
-      case DiveMode.ccr:
-        return context.l10n.diveLog_diveMode_ccrDescription;
-      case DiveMode.scr:
-        return context.l10n.diveLog_diveMode_scrDescription;
-    }
   }
 }

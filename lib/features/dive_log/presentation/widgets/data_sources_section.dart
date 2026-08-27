@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Localized fallback labels for [resolveSourceName], shared by the
+/// comparison grid header and the source card title.
+SourceNameLabels _labelsOf(BuildContext context) {
+  final l10n = context.l10n;
+  return SourceNameLabels(
+    unknownComputer: l10n.diveLog_sources_unknownComputer,
+    manualEntry: l10n.diveLog_sources_manualEntry,
+    importedFile: l10n.diveLog_sources_importedFile,
+    editedSuffix: l10n.diveLog_sources_editedSuffix,
+  );
+}
 
 /// A collapsible section showing data source provenance for a dive.
 ///
@@ -28,11 +41,16 @@ class DataSourcesSection extends StatefulWidget {
   /// Called with the reading ID when the user confirms "Set as primary".
   final void Function(String readingId)? onSetPrimary;
 
-  /// Called with the reading ID when the user confirms "Unlink".
-  final void Function(String readingId)? onUnlink;
+  /// Called with the reading ID when the user chooses "Split into
+  /// separate dive" (confirmation happens in the caller).
+  final void Function(String readingId)? onSplit;
 
   /// Called when the user taps a source card to temporarily view it.
   final void Function(String sourceId)? onTapSource;
+
+  /// Called when the user taps "Compare in 3D" (shown only for multi-source
+  /// dives). Null hides the button.
+  final VoidCallback? onCompareIn3d;
 
   const DataSourcesSection({
     super.key,
@@ -42,8 +60,9 @@ class DataSourcesSection extends StatefulWidget {
     required this.units,
     this.viewedSourceId,
     this.onSetPrimary,
-    this.onUnlink,
+    this.onSplit,
     this.onTapSource,
+    this.onCompareIn3d,
   });
 
   @override
@@ -57,7 +76,7 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
   Widget build(BuildContext context) {
     final count = widget.dataSources.length;
     final isMultiSource = count >= 2;
-    final title = isMultiSource ? 'Data Sources' : 'Data Source';
+    final title = context.l10n.diveLog_sources_sectionTitle(count);
 
     return CollapsibleSection(
       title: title,
@@ -73,10 +92,34 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
 
   List<Widget> _buildCards(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
-      return [_ManualEntryCard(diveCreatedAt: widget.diveCreatedAt)];
+      return [
+        _ManualEntryCard(
+          diveCreatedAt: widget.diveCreatedAt,
+          units: widget.units,
+        ),
+      ];
     }
 
     final children = <Widget>[];
+    if (isMultiSource) {
+      children.add(
+        _SourceComparisonGrid(sources: widget.dataSources, units: widget.units),
+      );
+      children.add(const SizedBox(height: 8));
+      if (widget.onCompareIn3d != null) {
+        children.add(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.view_in_ar, size: 18),
+              label: Text(context.l10n.diveLog_sources_compareIn3d),
+              onPressed: widget.onCompareIn3d,
+            ),
+          ),
+        );
+        children.add(const SizedBox(height: 8));
+      }
+    }
     for (var i = 0; i < widget.dataSources.length; i++) {
       final source = widget.dataSources[i];
       final isViewing = widget.viewedSourceId == source.id;
@@ -92,8 +135,8 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
           onSetPrimary: widget.onSetPrimary != null
               ? () => widget.onSetPrimary!(source.id)
               : null,
-          onUnlink: widget.onUnlink != null
-              ? () => widget.onUnlink!(source.id)
+          onSplit: widget.onSplit != null && isMultiSource
+              ? () => widget.onSplit!(source.id)
               : null,
           onTap: widget.onTapSource != null
               ? () => widget.onTapSource!(source.id)
@@ -107,14 +150,99 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
 }
 
 // ---------------------------------------------------------------------------
+// Source Comparison Grid
+// ---------------------------------------------------------------------------
+
+/// A compact table comparing key metrics across all data sources for a dive,
+/// e.g. "Perdix says 30.1 m / Teric says 30.4 m" at a glance.
+///
+/// Only rendered when there are 2+ sources; rows where every source has a
+/// null value are omitted entirely.
+class _SourceComparisonGrid extends StatelessWidget {
+  const _SourceComparisonGrid({required this.sources, required this.units});
+  final List<DiveDataSource> sources;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final rows = <(String, String? Function(DiveDataSource))>[
+      (
+        l10n.diveLog_sources_row_maxDepth,
+        (s) => s.maxDepth != null ? units.formatDepth(s.maxDepth!) : null,
+      ),
+      (
+        l10n.diveLog_sources_row_avgDepth,
+        (s) => s.avgDepth != null ? units.formatDepth(s.avgDepth!) : null,
+      ),
+      (
+        l10n.diveLog_sources_row_duration,
+        (s) => s.duration != null
+            ? l10n.diveLog_sources_minutes(s.duration! ~/ 60)
+            : null,
+      ),
+      (
+        l10n.diveLog_sources_row_waterTemp,
+        (s) => s.waterTemp != null
+            ? units.formatTemperature(s.waterTemp!, decimals: 1)
+            : null,
+      ),
+      (
+        l10n.diveLog_sources_row_cns,
+        (s) => s.cns != null ? '${s.cns!.toStringAsFixed(0)}%' : null,
+      ),
+      (l10n.diveLog_sources_row_otu, (s) => s.otu?.toStringAsFixed(0)),
+      (l10n.diveLog_sources_row_decoAlgorithm, (s) => s.decoAlgorithm),
+      (
+        l10n.diveLog_sources_row_gf,
+        (s) => s.gradientFactorLow != null && s.gradientFactorHigh != null
+            ? '${s.gradientFactorLow}/${s.gradientFactorHigh}'
+            : null,
+      ),
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowHeight: 36,
+        dataRowMinHeight: 30,
+        dataRowMaxHeight: 34,
+        columns: [
+          DataColumn(label: Text(l10n.diveLog_sources_row_metric)),
+          for (final s in sources)
+            DataColumn(
+              label: Text(
+                resolveSourceName(s, _labelsOf(context)),
+                style: s.isPrimary
+                    ? const TextStyle(fontWeight: FontWeight.bold)
+                    : null,
+              ),
+            ),
+        ],
+        rows: [
+          for (final (label, pick) in rows)
+            if (sources.any((s) => pick(s) != null))
+              DataRow(
+                cells: [
+                  DataCell(Text(label)),
+                  for (final s in sources) DataCell(Text(pick(s) ?? '—')),
+                ],
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Manual Entry Card
 // ---------------------------------------------------------------------------
 
 /// Card shown when a dive has no imported data sources (manual entry).
 class _ManualEntryCard extends StatelessWidget {
   final DateTime diveCreatedAt;
+  final UnitFormatter units;
 
-  const _ManualEntryCard({required this.diveCreatedAt});
+  const _ManualEntryCard({required this.diveCreatedAt, required this.units});
 
   @override
   Widget build(BuildContext context) {
@@ -135,14 +263,14 @@ class _ManualEntryCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Text(
-                      'Manual Entry',
+                      context.l10n.diveLog_sources_manualEntry,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 6),
                     _Badge(
-                      label: 'Manual',
+                      label: context.l10n.diveLog_sources_badge_manual,
                       color: colorScheme.surfaceContainerHighest,
                     ),
                   ],
@@ -153,7 +281,9 @@ class _ManualEntryCard extends StatelessWidget {
           const SizedBox(height: 8),
           // Creation date
           Text(
-            'Created ${_formatDate(diveCreatedAt)}',
+            context.l10n.diveLog_sources_created(
+              units.formatDate(diveCreatedAt),
+            ),
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -161,10 +291,6 @@ class _ManualEntryCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
   }
 }
 
@@ -179,7 +305,7 @@ class _DataSourceCard extends StatelessWidget {
   final bool showBadges;
   final bool isViewing;
   final VoidCallback? onSetPrimary;
-  final VoidCallback? onUnlink;
+  final VoidCallback? onSplit;
   final VoidCallback? onTap;
 
   const _DataSourceCard({
@@ -188,24 +314,21 @@ class _DataSourceCard extends StatelessWidget {
     required this.showBadges,
     required this.isViewing,
     this.onSetPrimary,
-    this.onUnlink,
+    this.onSplit,
     this.onTap,
   });
 
-  String _formatDuration(int? seconds) {
+  String _formatDuration(BuildContext context, int? seconds) {
     if (seconds == null) return '--';
     final minutes = seconds ~/ 60;
-    return '$minutes min';
+    return context.l10n.diveLog_sources_minutes(minutes);
   }
 
-  String _formatTime(DateTime? dateTime) {
-    if (dateTime == null) return '--';
-    return DateFormat('h:mm a').format(dateTime);
-  }
+  // Passed to _DetailsGrid as tear-offs, so they stay methods rather than
+  // inlined calls.
+  String _formatTime(DateTime? dateTime) => units.formatTime(dateTime);
 
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
-  }
+  String _formatDate(DateTime date) => units.formatDate(date);
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +339,17 @@ class _DataSourceCard extends StatelessWidget {
       color: colorScheme.onSurfaceVariant,
     );
     final valueStyle = textTheme.bodyMedium;
+
+    // When the header shows the computer's friendly name, surface the model
+    // beneath it -- but only when it adds information (i.e. the friendly name
+    // was customized away from the model). Un-renamed computers, whose name
+    // defaults to the model, get no redundant subtitle.
+    final modelSubtitle =
+        source.computerName != null &&
+            source.computerModel != null &&
+            source.computerModel != source.computerName
+        ? source.computerModel
+        : null;
 
     // Primary card gets a green-tinted left border when in multi-source mode.
     // Viewing card gets a blue highlight.
@@ -231,7 +365,7 @@ class _DataSourceCard extends StatelessWidget {
       );
     }
 
-    final hasOverflowMenu = onSetPrimary != null || onUnlink != null;
+    final hasOverflowMenu = onSetPrimary != null || onSplit != null;
 
     return GestureDetector(
       onTap: onTap,
@@ -248,35 +382,54 @@ class _DataSourceCard extends StatelessWidget {
                   Icon(Icons.watch, size: 18, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            source.displayName,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                resolveSourceName(source, _labelsOf(context)),
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (showBadges) ...[
+                              const SizedBox(width: 6),
+                              if (isViewing)
+                                _Badge(
+                                  label: context
+                                      .l10n
+                                      .diveLog_sources_badge_viewing,
+                                  color: colorScheme.tertiaryContainer,
+                                )
+                              else if (source.isPrimary)
+                                _Badge(
+                                  label: context
+                                      .l10n
+                                      .diveLog_computerSource_badge_primary,
+                                  color: colorScheme.primaryContainer,
+                                )
+                              else
+                                _Badge(
+                                  label: context
+                                      .l10n
+                                      .diveLog_sources_badge_secondary,
+                                  color: colorScheme.surfaceContainerHighest,
+                                ),
+                            ],
+                          ],
+                        ),
+                        if (modelSubtitle != null)
+                          Text(
+                            modelSubtitle,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        if (showBadges) ...[
-                          const SizedBox(width: 6),
-                          if (isViewing)
-                            _Badge(
-                              label: 'Viewing',
-                              color: colorScheme.tertiaryContainer,
-                            )
-                          else if (source.isPrimary)
-                            _Badge(
-                              label: 'Primary',
-                              color: colorScheme.primaryContainer,
-                            )
-                          else
-                            _Badge(
-                              label: 'Secondary',
-                              color: colorScheme.surfaceContainerHighest,
-                            ),
-                        ],
                       ],
                     ),
                   ),
@@ -288,26 +441,30 @@ class _DataSourceCard extends StatelessWidget {
                         switch (action) {
                           case _SourceMenuAction.setPrimary:
                             onSetPrimary?.call();
-                          case _SourceMenuAction.unlink:
-                            onUnlink?.call();
+                          case _SourceMenuAction.split:
+                            onSplit?.call();
                         }
                       },
                       itemBuilder: (context) => [
                         if (!source.isPrimary && onSetPrimary != null)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: _SourceMenuAction.setPrimary,
                             child: ListTile(
-                              leading: Icon(Icons.star_outline),
-                              title: Text('Set as primary'),
+                              leading: const Icon(Icons.star_outline),
+                              title: Text(
+                                context.l10n.diveLog_sources_menu_setPrimary,
+                              ),
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
-                        if (onUnlink != null)
-                          const PopupMenuItem(
-                            value: _SourceMenuAction.unlink,
+                        if (onSplit != null)
+                          PopupMenuItem(
+                            value: _SourceMenuAction.split,
                             child: ListTile(
-                              leading: Icon(Icons.link_off),
-                              title: Text('Unlink'),
+                              leading: const Icon(Icons.call_split),
+                              title: Text(
+                                context.l10n.diveLog_sources_menu_split,
+                              ),
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
@@ -330,7 +487,7 @@ class _DataSourceCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _MetricCell(
-                      label: 'Max depth',
+                      label: context.l10n.diveLog_sources_row_maxDepth,
                       value: units.formatDepth(source.maxDepth),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
@@ -338,15 +495,15 @@ class _DataSourceCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'Duration',
-                      value: _formatDuration(source.duration),
+                      label: context.l10n.diveLog_sources_row_duration,
+                      value: _formatDuration(context, source.duration),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
                     ),
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'Water temp',
+                      label: context.l10n.diveLog_sources_row_waterTemp,
                       value: units.formatTemperature(source.waterTemp),
                       labelStyle: labelStyle,
                       valueStyle: valueStyle,
@@ -354,7 +511,7 @@ class _DataSourceCard extends StatelessWidget {
                   ),
                   Expanded(
                     child: _MetricCell(
-                      label: 'CNS%',
+                      label: context.l10n.diveLog_legend_label_cns,
                       value: source.cns != null
                           ? '${source.cns!.toStringAsFixed(1)}%'
                           : '--',
@@ -412,7 +569,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.computerSerial != null) {
       items.add(
         _MetricCell(
-          label: 'Serial',
+          label: context.l10n.diveLog_sources_detail_serial,
           value: source.computerSerial!,
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -423,7 +580,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.sourceFormat != null) {
       items.add(
         _MetricCell(
-          label: 'Format',
+          label: context.l10n.diveLog_sources_detail_format,
           value: source.sourceFormat!,
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -434,7 +591,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.entryTime != null) {
       items.add(
         _MetricCell(
-          label: 'Entry',
+          label: context.l10n.diveLog_edit_row_entry,
           value: formatTime(source.entryTime),
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -445,7 +602,7 @@ class _DetailsGrid extends StatelessWidget {
     if (source.exitTime != null) {
       items.add(
         _MetricCell(
-          label: 'Exit',
+          label: context.l10n.diveLog_edit_row_exit,
           value: formatTime(source.exitTime),
           labelStyle: labelStyle,
           valueStyle: valueStyle,
@@ -455,7 +612,7 @@ class _DetailsGrid extends StatelessWidget {
 
     items.add(
       _MetricCell(
-        label: 'Imported',
+        label: context.l10n.diveLog_sources_detail_imported,
         value: formatDate(source.importedAt),
         labelStyle: labelStyle,
         valueStyle: valueStyle,
@@ -492,7 +649,7 @@ class _DetailsGrid extends StatelessWidget {
 // Shared Widgets
 // ---------------------------------------------------------------------------
 
-enum _SourceMenuAction { setPrimary, unlink }
+enum _SourceMenuAction { setPrimary, split }
 
 /// A small badge chip with customizable background color.
 class _Badge extends StatelessWidget {

@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -26,6 +27,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -41,6 +43,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         build: (context) => _buildCoverPage(
           title: title,
           diveCount: dives.length,
+          dates: dates,
           diver: diver,
           dives: dives,
         ),
@@ -55,6 +58,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           margin: const pw.EdgeInsets.all(32),
           build: (context) => PdfSharedComponents.buildCertificationCardsPage(
             certifications: certifications,
+            dates: dates,
             diver: diver,
             highlightAgency: 'naui',
             accentColor: _nauiGreen,
@@ -83,6 +87,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                 (dive) => [
                   _buildNauiDiveEntry(
                     dive,
+                    dates: dates,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 8),
@@ -100,13 +105,12 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
   pw.Widget _buildCoverPage({
     required String title,
     required int diveCount,
+    required PdfDateFormatter dates,
     Diver? diver,
     required List<Dive> dives,
   }) {
     // Calculate summary stats
-    final totalBottomTime = dives
-        .where((d) => d.bottomTime != null)
-        .fold<Duration>(Duration.zero, (sum, d) => sum + d.bottomTime!);
+    final totalRuntime = pdfTotalRuntime(dives);
     final maxDepth = dives
         .where((d) => d.maxDepth != null)
         .map((d) => d.maxDepth!)
@@ -128,7 +132,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'NAUI',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
                     letterSpacing: 6,
@@ -138,7 +142,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                 pw.SizedBox(height: 8),
                 pw.Text(
                   'DIVE LOG',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 32,
                     fontWeight: pw.FontWeight.bold,
                     color: _nauiGreen,
@@ -162,7 +166,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               _buildStatBox('$diveCount', 'Dives'),
               pw.SizedBox(width: 20),
               _buildStatBox(
-                '${totalBottomTime.inHours}:${(totalBottomTime.inMinutes % 60).toString().padLeft(2, '0')}',
+                '${totalRuntime.inHours}:${(totalRuntime.inMinutes % 60).toString().padLeft(2, '0')}',
                 'Hours',
               ),
               pw.SizedBox(width: 20),
@@ -171,7 +175,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
           ),
           pw.Spacer(),
           pw.Text(
-            'Generated ${PdfSharedComponents.formatDateTime(DateTime.now())}',
+            'Generated ${dates.dateTime(DateTime.now())}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
           pw.SizedBox(height: 20),
@@ -192,7 +196,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         children: [
           pw.Text(
             value,
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 18,
               fontWeight: pw.FontWeight.bold,
               color: _nauiGreen,
@@ -217,7 +221,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
         children: [
           pw.Text(
             'NAUI DIVE LOG',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white,
@@ -233,7 +237,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
     );
   }
 
-  pw.Widget _buildNauiDiveEntry(Dive dive, {List<Signature>? signatures}) {
+  pw.Widget _buildNauiDiveEntry(
+    Dive dive, {
+    required PdfDateFormatter dates,
+    List<Signature>? signatures,
+  }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
 
     return pw.Container(
@@ -254,14 +262,14 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'DIVE #${dive.diveNumber ?? '-'}',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
                     color: _nauiGreen,
                   ),
                 ),
                 pw.Text(
-                  PdfSharedComponents.formatDateTime(dive.dateTime),
+                  dates.dateTime(dive.dateTime),
                   style: const pw.TextStyle(fontSize: 9),
                 ),
               ],
@@ -282,7 +290,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                       // Site
                       pw.Text(
                         dive.site?.name ?? 'Unknown Site',
-                        style: pw.TextStyle(
+                        style: const pw.TextStyle(
                           fontSize: 10,
                           fontWeight: pw.FontWeight.bold,
                         ),
@@ -300,7 +308,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           children: [
                             pw.Text(
                               'DIVE DATA',
-                              style: pw.TextStyle(
+                              style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
                                 color: _nauiGreen,
@@ -319,7 +327,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                                 ),
                                 _buildNauiField(
                                   'Time',
-                                  '${dive.bottomTime?.inMinutes ?? '-'}min',
+                                  '${pdfDiveDurationMinutes(dive)}min',
                                 ),
                               ],
                             ),
@@ -352,7 +360,11 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           ),
                           _buildNauiField(
                             'Vis',
-                            dive.visibility?.displayName ?? '-',
+                            // Measured distance from v144; pre-v144 dives fall
+                            // back to their bucket label.
+                            dive.visibilityMeters != null
+                                ? '${dive.visibilityMeters!.toStringAsFixed(0)}m'
+                                : (dive.visibility?.displayName ?? '-'),
                           ),
                           if (dive.currentStrength != null)
                             _buildNauiField(
@@ -394,7 +406,7 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           children: [
                             pw.Text(
                               'VERIFICATION',
-                              style: pw.TextStyle(
+                              style: const pw.TextStyle(
                                 fontSize: 7,
                                 fontWeight: pw.FontWeight.bold,
                                 color: _nauiGreen,

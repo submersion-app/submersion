@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -8,12 +9,24 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 class FileSelectionStep extends ConsumerWidget {
   const FileSelectionStep({super.key});
 
+  static bool get _isDesktop {
+    if (kIsWeb) return false;
+    final platform = defaultTargetPlatform;
+    return platform == TargetPlatform.windows ||
+        platform == TargetPlatform.macOS ||
+        platform == TargetPlatform.linux;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(universalImportNotifierProvider);
     final theme = Theme.of(context);
 
-    final hasFile = state.fileName != null;
+    final hasFile = state.files.isNotEmpty;
+    // Only offer the Garmin option when a device is actually mounted, so the
+    // import dialog stays clean for everyone who doesn't own one.
+    final hasGarminDevice =
+        ref.watch(garminDevicesProvider).valueOrNull?.isNotEmpty ?? false;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -34,15 +47,47 @@ class FileSelectionStep extends ConsumerWidget {
                     ? context.l10n.universalImport_label_detecting
                     : hasFile
                     ? context.l10n.universalImport_action_changeFile
-                    : context.l10n.universalImport_action_selectFile,
+                    : context.l10n.universalImport_action_selectFiles,
               ),
               onPressed: state.isLoading
                   ? null
                   : () => ref
                         .read(universalImportNotifierProvider.notifier)
-                        .pickFile(),
+                        .pickFiles(),
             ),
           ),
+          if (_isDesktop) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.folder_open),
+                label: Text(context.l10n.universalImport_action_chooseFolder),
+                onPressed: state.isLoading
+                    ? null
+                    : () => ref
+                          .read(universalImportNotifierProvider.notifier)
+                          .pickFolder(),
+              ),
+            ),
+            if (hasGarminDevice) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.watch),
+                  label: Text(
+                    context.l10n.universalImport_action_importFromGarmin,
+                  ),
+                  onPressed: state.isLoading
+                      ? null
+                      : () => ref
+                            .read(universalImportNotifierProvider.notifier)
+                            .importFromGarminDevice(),
+                ),
+              ),
+            ],
+          ],
           if (state.error != null) ...[
             const SizedBox(height: 16),
             _ErrorBanner(message: state.error!),
@@ -61,7 +106,11 @@ class FileSelectionStep extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        state.fileName!,
+                        state.isBatch
+                            ? context.l10n.universalImport_label_filesSelected(
+                                state.selectedFileCount,
+                              )
+                            : state.fileName ?? '',
                         style: theme.textTheme.bodyMedium,
                         overflow: TextOverflow.ellipsis,
                       ),

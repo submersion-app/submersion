@@ -406,4 +406,81 @@ void main() {
       expect(profile.first.depth, 10.0);
     });
   });
+
+  group('trimEndZeros', () {
+    test('removes multiple trailing zero-depth points, keeps exactly one', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 60, depth: 20.0),
+        const DiveProfilePoint(timestamp: 120, depth: 0.0),
+        const DiveProfilePoint(timestamp: 180, depth: 0.0),
+        const DiveProfilePoint(timestamp: 240, depth: 0.0),
+      ];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, 3);
+      expect(trimmed.last.depth, 0.0);
+      expect(trimmed.last.timestamp, 120);
+    });
+
+    test('does not modify profile with no trailing zeros', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 60, depth: 20.0),
+        const DiveProfilePoint(timestamp: 120, depth: 5.0),
+      ];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, profile.length);
+      expect(trimmed.last.timestamp, 120);
+      expect(trimmed.last.depth, 5.0);
+    });
+
+    test('does not remove the single trailing zero', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 60, depth: 18.0),
+        const DiveProfilePoint(timestamp: 120, depth: 0.0),
+      ];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, profile.length);
+    });
+
+    test('returns only last point when all depths are zero', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 10, depth: 0.0),
+        const DiveProfilePoint(timestamp: 20, depth: 0.0),
+      ];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, 1);
+      expect(trimmed.first.timestamp, 20);
+    });
+
+    test('returns original profile for empty input', () {
+      final trimmed = service.trimEndZeros([]);
+      expect(trimmed, isEmpty);
+    });
+
+    test('returns original profile for single point', () {
+      final profile = [const DiveProfilePoint(timestamp: 0, depth: 0.0)];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, 1);
+    });
+
+    test('preserves all non-trailing content unchanged', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 0.0),
+        const DiveProfilePoint(timestamp: 30, depth: 10.0),
+        const DiveProfilePoint(timestamp: 60, depth: 30.0),
+        const DiveProfilePoint(timestamp: 90, depth: 0.0),
+        const DiveProfilePoint(timestamp: 120, depth: 0.0),
+        const DiveProfilePoint(timestamp: 150, depth: 0.0),
+      ];
+      final trimmed = service.trimEndZeros(profile);
+      expect(trimmed.length, 4);
+      expect(trimmed[0].timestamp, 0);
+      expect(trimmed[1].timestamp, 30);
+      expect(trimmed[2].timestamp, 60);
+      expect(trimmed[3].timestamp, 90);
+    });
+  });
 }

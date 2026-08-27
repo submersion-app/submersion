@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/parsed_dive_profile_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_filename_parser.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_value_mapper.dart';
@@ -370,58 +371,12 @@ class ShearwaterDiveMapper {
     }
 
     // Build profile samples with all available sensor data.
-    merged['profile'] = parsed.samples.map((s) {
-      final sampleMap = <String, dynamic>{
-        'timestamp': s.timeSeconds,
-        'depth': s.depthMeters,
-      };
-      if (s.temperatureCelsius != null) {
-        sampleMap['temperature'] = s.temperatureCelsius;
-      }
-      if (s.pressureBar != null) {
-        sampleMap['allTankPressures'] = <Map<String, dynamic>>[
-          {'pressure': s.pressureBar, 'tankIndex': s.tankIndex ?? 0},
-        ];
-      }
-      if (s.setpoint != null) {
-        sampleMap['setpoint'] = s.setpoint;
-      }
-      if (s.ppo2 != null) {
-        sampleMap['ppO2'] = s.ppo2;
-      }
-      if (s.heartRate != null) {
-        sampleMap['heartRate'] = s.heartRate;
-      }
-      if (s.cns != null) {
-        sampleMap['cns'] = s.cns;
-      }
-      if (s.rbt != null) {
-        sampleMap['rbt'] = s.rbt;
-      }
-      if (s.tts != null) {
-        sampleMap['tts'] = s.tts;
-      }
-      if (s.decoType != null) {
-        sampleMap['decoType'] = s.decoType;
-      }
-      if (s.decoDepth != null && s.decoType != null && s.decoType != 0) {
-        sampleMap['ceiling'] = s.decoDepth;
-      }
-      if (s.decoType == 0 && s.decoTime != null) {
-        sampleMap['ndl'] = s.decoTime;
-      }
-      return sampleMap;
-    }).toList();
+    merged['profile'] = ParsedDiveProfileMapper.samples(parsed);
 
     // Extract water temperature from profile samples if not already set
     if (merged['waterTemp'] == null) {
-      final temps = parsed.samples
-          .map((s) => s.temperatureCelsius)
-          .whereType<double>()
-          .toList();
-      if (temps.isNotEmpty) {
-        merged['waterTemp'] = temps.reduce((a, b) => a < b ? a : b);
-      }
+      final coldest = ParsedDiveProfileMapper.minSampleTemperature(parsed);
+      if (coldest != null) merged['waterTemp'] = coldest;
     }
 
     return merged;

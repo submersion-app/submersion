@@ -13,7 +13,7 @@ void main() {
       equipment: const [],
       photoIds: const [],
       sightings: const [],
-      diveTypeId: '',
+      diveTypeIds: [''],
     );
 
     test('isUnassigned returns true when currentTripId is null', () {

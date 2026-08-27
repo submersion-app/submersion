@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/debug_mode_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_entry_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_filter_bar.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   late Directory tempDir;
@@ -40,7 +42,12 @@ void main() {
         logFileServiceProvider.overrideWithValue(service),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const MaterialApp(home: DebugLogViewerPage()),
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('en'),
+        home: DebugLogViewerPage(),
+      ),
     );
   }
 
@@ -96,7 +103,12 @@ void main() {
               const AsyncValue.loading(),
             ),
           ],
-          child: const MaterialApp(home: DebugLogViewerPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: DebugLogViewerPage(),
+          ),
         ),
       );
       await tester.pump();
@@ -130,7 +142,12 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             logEntriesProvider.overrideWith((ref) async => entries),
           ],
-          child: const MaterialApp(home: DebugLogViewerPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: DebugLogViewerPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -206,7 +223,12 @@ void main() {
               (ref) async => cleared ? <LogEntry>[] : entries,
             ),
           ],
-          child: const MaterialApp(home: DebugLogViewerPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: DebugLogViewerPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -270,7 +292,12 @@ void main() {
               AsyncValue.error('Test error', StackTrace.current),
             ),
           ],
-          child: const MaterialApp(home: DebugLogViewerPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: DebugLogViewerPage(),
+          ),
         ),
       );
       await tester.pump();
@@ -334,10 +361,28 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             logEntriesProvider.overrideWith((ref) async => entries),
           ],
-          child: const MaterialApp(home: DebugLogViewerPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: DebugLogViewerPage(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
+
+      // copyFilteredLogs prefixes the export header, which reads the app
+      // version (issue #1246). PackageInfo.fromPlatform NEVER completes under
+      // testWidgets, so without this mock the handler stays suspended and the
+      // snackbar is never scheduled. Production is covered by the timeout in
+      // LogEnvironment.capture; here the normal path is what we want to test.
+      PackageInfo.setMockInitialValues(
+        appName: 'Submersion',
+        packageName: 'app.submersion',
+        version: '1.7.6',
+        buildNumber: '123',
+        buildSignature: '',
+      );
 
       // Tap the Copy button
       await tester.tap(find.text('Copy'));

@@ -1,0 +1,173 @@
+import 'package:submersion/core/providers/provider.dart';
+
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
+import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
+import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
+import 'package:submersion/core/services/lightroom/lightroom_redirect_capture.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/data/resolvers/connector_media_resolver.dart';
+import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
+import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart'
+    as domain;
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// Connect-time IMS auth manager on the legacy single-connection key: the
+/// OAuth dance runs before any account row exists, so its tokens land here
+/// and are copied to the per-account key once the account is created.
+final lightroomAuthManagerProvider = Provider<AdobeImsAuthManager>(
+  (ref) => AdobeImsAuthManager(),
+);
+
+/// The redirect capturer for the embedded connect flow. Overridden with a
+/// fake in tests.
+final lightroomRedirectCaptureProvider = Provider<LightroomRedirectCapture>(
+  (ref) => const FlutterWebAuthRedirectCapture(),
+);
+
+/// The library's Lightroom account (synced roster row), or null when none
+/// exists. Invalidate after connect/disconnect.
+final lightroomAccountProvider = FutureProvider<domain.ConnectedAccount?>((
+  ref,
+) {
+  final repository = ref.watch(connectedAccountsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchAccountsChanges());
+  return repository.getByKind(AccountKind.adobeLightroom);
+});
+
+/// This device's Lightroom connection state. The roster row syncs but
+/// credentials are per-device, so a device that received the synced
+/// account without a local keychain blob is [needsSignIn] (must run the
+/// connect flow to attach credentials), NOT [connected].
+enum LightroomDeviceStatus { notConnected, needsSignIn, connected }
+
+final lightroomDeviceStatusProvider = FutureProvider<LightroomDeviceStatus>((
+  ref,
+) async {
+  final account = await ref.watch(lightroomAccountProvider.future);
+  if (account == null) return LightroomDeviceStatus.notConnected;
+  final status = await ref
+      .watch(lightroomAccountAdapterProvider)
+      .status(account);
+  return status == AccountStatus.signedIn
+      ? LightroomDeviceStatus.connected
+      : LightroomDeviceStatus.needsSignIn;
+});
+
+/// The Lightroom adapter, checked. A non-Lightroom adapter registered for
+/// AccountKind.adobeLightroom (only reachable via a test override or a
+/// future refactor) fails with a diagnosable message rather than an opaque
+/// TypeError from an `as` cast.
+final lightroomAccountAdapterProvider = Provider<LightroomAccountAdapter>((
+  ref,
+) {
+  final adapter = ref
+      .watch(accountProviderRegistryProvider)
+      .adapterFor(AccountKind.adobeLightroom);
+  if (adapter is! LightroomAccountAdapter) {
+    throw StateError(
+      'Expected a LightroomAccountAdapter for AccountKind.adobeLightroom, '
+      'got ${adapter.runtimeType}',
+    );
+  }
+  return adapter;
+});
+
+/// API client on the account's own auth manager once an account exists;
+/// the legacy connect-time manager before that (the connect flow fetches
+/// identity/catalog before the account row is created).
+final lightroomApiClientProvider = Provider<LightroomApiClient>((ref) {
+  final account = ref.watch(lightroomAccountProvider).value;
+  final auth = account == null
+      ? ref.watch(lightroomAuthManagerProvider)
+      : ref.watch(lightroomAccountAdapterProvider).authManagerFor(account);
+  return LightroomApiClient(auth: auth);
+});
+
+/// Per-account scan state (poll cursor, album filter, auto-poll, last
+/// error), keyed by connector account id.
+final lightroomConnectorStateProvider =
+    Provider.family<LightroomConnectorState, String>(
+      (ref, accountId) => LightroomConnectorState(
+        prefs: ref.watch(sharedPreferencesProvider),
+        accountId: accountId,
+      ),
+    );
+
+final lightroomScanServiceProvider = Provider<LightroomScanService>(
+  (ref) => LightroomScanService(
+    api: ref.watch(lightroomApiClientProvider),
+    mediaRepository: ref.watch(mediaRepositoryProvider),
+    diveRepository: ref.watch(diveRepositoryProvider),
+    enrichmentService: ref.watch(enrichmentServiceProvider),
+    enqueueUpload: ref.watch(mediaStoreEnqueueProvider),
+  ),
+);
+
+/// The `serviceConnector` slot of the resolver registry.
+///
+/// Watches the account's loaded value on purpose: the registry (and with
+/// it this resolver) rebuilds when the account future resolves, flipping
+/// `hasLightroomAccount` from its initial false. Devices without an
+/// account keep a declining resolver, which routes their display through
+/// the media store fallback and keeps the upload pipeline from
+/// enqueueing work it cannot materialize.
+final connectorMediaResolverProvider = Provider<ConnectorMediaResolver>((ref) {
+  final account = ref.watch(lightroomAccountProvider).value;
+  return ConnectorMediaResolver(
+    hasLightroomAccount: account != null,
+    apiClient: () async =>
+        account == null ? null : ref.read(lightroomApiClientProvider),
+    catalogId: () async => account?.accountIdentifier,
+    cache: () => ref
+        .read(mediaStoreRuntimeProvider.future)
+        .then((runtime) => runtime?.cache),
+  );
+});
+
+/// Live pending suggestions for a dive (gallery and connector alike).
+final pendingSuggestionsForDiveProvider =
+    FutureProvider.family<List<domain.PendingPhotoSuggestion>, String>((
+      ref,
+      diveId,
+    ) {
+      final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
+      return repository.getPendingSuggestionsForDive(diveId);
+    });
+
+/// Fire-and-forget startup poll. Runs at most once per 6 hours per
+/// device, only when an account exists and auto-poll is enabled. Errors
+/// are recorded on the connector state and logged, never surfaced.
+final lightroomAutoPollProvider = FutureProvider<void>((ref) async {
+  final account = await ref.watch(lightroomAccountProvider.future);
+  if (account == null) return;
+  final state = ref.read(lightroomConnectorStateProvider(account.id));
+  if (!await state.autoPollEnabled()) return;
+  final last = await state.lastPollAt();
+  if (last != null &&
+      DateTime.now().difference(last) < const Duration(hours: 6)) {
+    return;
+  }
+  try {
+    await ref
+        .read(lightroomScanServiceProvider)
+        .poll(account: account, state: state);
+    await state.setLastError(null);
+  } on Exception catch (e, st) {
+    await state.setLastError(e.toString());
+    LoggerService.forClass(
+      LightroomScanService,
+    ).warning('Lightroom auto-poll failed: $e', stackTrace: st);
+  }
+});

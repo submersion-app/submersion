@@ -15,6 +15,12 @@ class LiveaboardDetailsRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(LiveaboardDetailsRepository);
 
+  /// Emits whenever the `liveaboard_detail_records` table changes so the trip
+  /// detail providers refresh after a sync or any other write that bypasses
+  /// the notifiers.
+  Stream<void> watchLiveaboardChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.liveaboardDetailRecords));
+
   /// Get liveaboard details for a trip, or null if none exist.
   Future<domain.LiveaboardDetails?> getByTripId(String tripId) async {
     try {

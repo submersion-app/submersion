@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// A widget for selecting a training course for a dive.
 class CoursePicker extends ConsumerWidget {
@@ -184,10 +185,11 @@ class CoursePickerSheet extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final course = sortedCourses[index];
                   final isSelected = selectedCourse?.id == course.id;
-                  final dateFormat = DateFormat.yMMMd();
+                  final formatter = UnitFormatter(ref.watch(settingsProvider));
+                  final startDateStr = formatter.formatDate(course.startDate);
 
                   final courseLabel =
-                      '${course.agency.displayName} ${course.name}, ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
+                      '${course.agency.displayName} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
 
                   return Semantics(
                     label: courseLabel,
@@ -211,7 +213,7 @@ class CoursePickerSheet extends ConsumerWidget {
                       ),
                       title: Text(course.name),
                       subtitle: Text(
-                        '${course.agency.displayName} - ${context.l10n.courses_card_started(dateFormat.format(course.startDate))}',
+                        '${course.agency.displayName} - ${context.l10n.courses_card_started(startDateStr)}',
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)

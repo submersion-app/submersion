@@ -71,6 +71,18 @@
 				<string>org.sqlite.v3</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>DAN DL7 Dive Log</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.submersion.dl7</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
@@ -96,6 +108,16 @@
 				<string>com.googleusercontent.apps.433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.submersion.lightroom</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>adobe+66776bfb6c08aeff345bb6435bf88a06f406d90d</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
@@ -113,12 +135,14 @@
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Submersion uses the camera to take photos of dive sites and marine life.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Submersion uses Face ID to unlock your dive log.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app uses your contacts to import dive buddies.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
+	<string>Submersion uses your location to record dive site coordinates, find nearby dive sites, and record a GPS surface track during dive days so imported dives can be matched to positions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Submersion uses your location to record dive site coordinates and find nearby dive sites.</string>
+	<string>Submersion uses your location to record dive site coordinates, find nearby dive sites, and record a GPS surface track during dive days so imported dives can be matched to positions.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Submersion saves dive photos to your photo library.</string>
 	<key>NSHealthShareUsageDescription</key>
@@ -150,6 +174,7 @@
 	<array>
 		<string>bluetooth-central</string>
 		<string>fetch</string>
+		<string>location</string>
 		<string>processing</string>
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
@@ -176,6 +201,24 @@
 				</array>
 				<key>public.mime-type</key>
 				<string>application/x-uddf</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>DAN DL7 Dive Log</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.submersion.dl7</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>zxu</string>
+					<string>zxl</string>
+				</array>
 			</dict>
 		</dict>
 		<dict>

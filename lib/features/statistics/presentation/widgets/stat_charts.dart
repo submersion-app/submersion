@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/widgets/chart_axis.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A reusable line chart for trend data
@@ -57,17 +58,9 @@ class TrendLineChart extends StatelessWidget {
     }
 
     final color = lineColor ?? Theme.of(context).colorScheme.primary;
-    final values = data.map((d) => d.value).toList();
-    final rawMinY = values.reduce((a, b) => a < b ? a : b);
-    final rawMaxY = values.reduce((a, b) => a > b ? a : b);
-    // Ensure we have a valid range even when all values are the same
-    final range = rawMaxY - rawMinY;
-    final effectiveRange = range > 0
-        ? range
-        : (rawMaxY.abs() > 0 ? rawMaxY.abs() * 0.2 : 1.0);
-    final padding = effectiveRange * 0.1;
-    final minY = rawMinY;
-    final maxY = rawMaxY;
+    // One axis drives the bounds, the grid lines and the labels, so the lines
+    // land under the numbers instead of between them (issue #219).
+    final axis = ChartAxis.forTrend(data.map((d) => d.value));
 
     return Semantics(
       label: yAxisLabel != null
@@ -80,10 +73,8 @@ class TrendLineChart extends StatelessWidget {
         height: height,
         child: LineChart(
           LineChartData(
-            minY: minY > 0
-                ? (minY - padding).clamp(0, double.infinity)
-                : minY - padding,
-            maxY: maxY + padding,
+            minY: axis.min,
+            maxY: axis.max,
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
                 getTooltipItems: (touchedSpots) {
@@ -142,6 +133,7 @@ class TrendLineChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 50,
+                  interval: axis.interval,
                   getTitlesWidget: (value, meta) {
                     final formatter = yAxisFormatter ?? valueFormatter;
                     return Text(
@@ -162,7 +154,7 @@ class TrendLineChart extends StatelessWidget {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
-              horizontalInterval: effectiveRange / 4,
+              horizontalInterval: axis.interval,
               getDrawingHorizontalLine: (value) => FlLine(
                 color: Theme.of(context).colorScheme.outlineVariant,
                 strokeWidth: 1,
@@ -343,12 +335,31 @@ class CategoryBarChart extends StatelessWidget {
   final double height;
   final String Function(int)? valueFormatter;
 
+  /// Optional unit label rendered once at the top of the y-axis (e.g. "min").
+  final String? yAxisLabel;
+
+  /// Optional unit label rendered once below the x-axis (e.g. "m").
+  final String? xAxisLabel;
+
+  /// Optional callback to shorten x-axis labels when bars are crowded
+  /// (per-bar width below [_compactXThreshold]). Typical use: render a year
+  /// like "2024" as "'24" when there isn't room for all four digits.
+  final String Function(String)? compactXLabelFormatter;
+
+  /// Per-bar width (in logical pixels) below which [compactXLabelFormatter]
+  /// is applied. 50 px comfortably fits 4-digit labels in bodySmall text
+  /// with normal inter-bar spacing.
+  static const double _compactXThreshold = 50;
+
   const CategoryBarChart({
     super.key,
     required this.data,
     this.barColor,
     this.height = 200,
     this.valueFormatter,
+    this.yAxisLabel,
+    this.xAxisLabel,
+    this.compactXLabelFormatter,
   });
 
   @override
@@ -390,95 +401,156 @@ class CategoryBarChart extends StatelessWidget {
       label: context.l10n.statistics_chart_barSemanticLabel(data.length),
       child: SizedBox(
         height: height,
-        child: BarChart(
-          BarChartData(
-            alignment: BarChartAlignment.spaceAround,
-            maxY: maxCount + (maxCount * 0.1),
-            barTouchData: BarTouchData(
-              touchTooltipData: BarTouchTooltipData(
-                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  final item = data[groupIndex];
-                  final formattedValue =
-                      valueFormatter?.call(item.count) ?? '${item.count}';
-                  return BarTooltipItem(
-                    '${item.label}\n$formattedValue',
-                    TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                },
-              ),
-            ),
-            titlesData: FlTitlesData(
-              show: true,
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    final index = value.toInt();
-                    if (index >= 0 && index < data.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          data[index].label,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      );
-                    }
-                    return const Text('');
-                  },
-                  reservedSize: 30,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Subtract left-axis reserved width from available width before
+            // dividing across bars, so the crowding heuristic tracks the
+            // actual space each bar receives.
+            final chartBodyWidth = (constraints.maxWidth - 44).clamp(
+              0.0,
+              double.infinity,
+            );
+            final perBarWidth = data.isEmpty
+                ? double.infinity
+                : chartBodyWidth / data.length;
+            final useCompactXLabels =
+                compactXLabelFormatter != null &&
+                perBarWidth < _compactXThreshold;
+            return _buildBarChart(
+              context,
+              color: color,
+              maxCount: maxCount,
+              useCompactXLabels: useCompactXLabels,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  BarChart _buildBarChart(
+    BuildContext context, {
+    required Color color,
+    required double maxCount,
+    required bool useCompactXLabels,
+  }) {
+    // Whole-number steps shared by the grid and the labels: the left titles
+    // render nothing for a fractional value, so a 2.5 step would otherwise
+    // leave unlabelled lines (issue #219).
+    final axis = ChartAxis.forCounts(maxCount);
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        minY: axis.min,
+        maxY: axis.max,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final item = data[groupIndex];
+              final formattedValue =
+                  valueFormatter?.call(item.count) ?? '${item.count}';
+              return BarTooltipItem(
+                '${item.label}\n$formattedValue',
+                TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 30,
-                  getTitlesWidget: (value, meta) {
-                    if (value == value.roundToDouble()) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      );
-                    }
-                    return const Text('');
-                  },
-                ),
-              ),
-              topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-            ),
-            borderData: FlBorderData(show: false),
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              horizontalInterval: maxCount > 0 ? maxCount / 4 : 1,
-              getDrawingHorizontalLine: (value) => FlLine(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                strokeWidth: 1,
-              ),
-            ),
-            barGroups: List.generate(
-              data.length,
-              (index) => BarChartGroupData(
-                x: index,
-                barRods: [
-                  BarChartRodData(
-                    toY: data[index].count.toDouble(),
-                    color: color,
-                    width: data.length > 12 ? 12 : 20,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(4),
-                    ),
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            axisNameWidget: xAxisLabel != null
+                ? Text(
+                    xAxisLabel!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
+                : null,
+            axisNameSize: xAxisLabel != null ? 18 : 0,
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index < 0 || index >= data.length) {
+                  return const Text('');
+                }
+                final rawLabel = data[index].label;
+                final label = useCompactXLabels
+                    ? compactXLabelFormatter!(rawLabel)
+                    : rawLabel;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ],
-              ),
+                );
+              },
+              reservedSize: 30,
             ),
+          ),
+          leftTitles: AxisTitles(
+            axisNameWidget: yAxisLabel != null
+                ? Text(
+                    yAxisLabel!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
+                : null,
+            axisNameSize: yAxisLabel != null ? 18 : 0,
+            sideTitles: SideTitles(
+              showTitles: true,
+              // Room for up to 4-digit right-aligned integers.
+              reservedSize: 44,
+              interval: axis.interval,
+              getTitlesWidget: (value, meta) {
+                if (value != value.roundToDouble()) {
+                  return const Text('');
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text(
+                    value.toInt().toString(),
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                );
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: axis.interval,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            strokeWidth: 1,
+          ),
+        ),
+        barGroups: List.generate(
+          data.length,
+          (index) => BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: data[index].count.toDouble(),
+                color: color,
+                width: data.length > 12 ? 12 : 20,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(4),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -560,6 +632,28 @@ class MultiTrendLineChart extends StatelessWidget {
               LineChartData(
                 minY: minY - padding,
                 maxY: maxY + padding,
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final point = dataSeries[spot.barIndex][spot.spotIndex];
+                        final formattedValue =
+                            valueFormatter?.call(point.value) ??
+                            point.value.toStringAsFixed(1);
+                        final isFirst = identical(spot, touchedSpots.first);
+                        return LineTooltipItem(
+                          isFirst
+                              ? '${point.label}\n$formattedValue'
+                              : formattedValue,
+                          TextStyle(
+                            color: colors[spot.barIndex % colors.length],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   show: true,
                   bottomTitles: AxisTitles(

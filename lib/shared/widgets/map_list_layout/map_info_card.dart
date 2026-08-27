@@ -10,6 +10,11 @@ class MapInfoCard extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? leading;
+
+  /// Optional action rendered between the text and the details chevron.
+  /// The caller supplies any tooltip/semantics so this shared widget stays
+  /// free of feature-specific localization.
+  final Widget? trailing;
   final VoidCallback? onTap;
   final VoidCallback? onDetailsTap;
 
@@ -18,6 +23,7 @@ class MapInfoCard extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.leading,
+    this.trailing,
     this.onTap,
     this.onDetailsTap,
   });
@@ -71,6 +77,7 @@ class MapInfoCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                ?trailing,
                 if (onDetailsTap != null)
                   IconButton(
                     icon: Icon(

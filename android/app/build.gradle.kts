@@ -14,7 +14,12 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "app.submersion"
-    compileSdk = flutter.compileSdkVersion
+    // Pinned above Flutter 3.47's default (36) because flutter_secure_storage
+    // 11 hardcodes `compileSdk = 37` in its own module, and Gradle refuses to
+    // build an app compiled against an older API than a library it consumes.
+    // Bumping here rather than waiting on flutter.compileSdkVersion also
+    // unblocks permission_handler 13, which demands the same.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -66,6 +71,7 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 }

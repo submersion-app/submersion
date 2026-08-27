@@ -9,6 +9,7 @@ void main() {
     ValueChanged<Set<int>>? onSelectionChanged,
     ValueChanged<bool>? onSelectionModeChanged,
     bool startInSelectionMode = false,
+    bool exitOnEmptySelection = true,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -16,6 +17,7 @@ void main() {
           items: List.generate(itemCount, (i) => i),
           initialSelection: initialSelection,
           startInSelectionMode: startInSelectionMode,
+          exitOnEmptySelection: exitOnEmptySelection,
           onSelectionChanged: onSelectionChanged ?? (_) {},
           onSelectionModeChanged: onSelectionModeChanged ?? (_) {},
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -62,28 +64,41 @@ void main() {
       expect(item1.color, Colors.grey);
     });
 
-    testWidgets('long press enters selection mode', (tester) async {
-      bool selectionModeActive = false;
+    testWidgets('long press does not enter selection mode', (tester) async {
+      bool? selectionModeChangedTo;
+      Set<int> selection = {};
       await tester.pumpWidget(
         buildTestGrid(
-          onSelectionModeChanged: (active) => selectionModeActive = active,
+          onSelectionModeChanged: (active) => selectionModeChangedTo = active,
+          onSelectionChanged: (s) => selection = s,
         ),
       );
 
       await tester.longPress(find.text('0'));
       await tester.pumpAndSettle();
-      expect(selectionModeActive, isTrue);
+
+      expect(selectionModeChangedTo, isNull);
+      expect(selection, isEmpty);
     });
 
-    testWidgets('long press selects the pressed item', (tester) async {
+    testWidgets('long press inside selection mode checks the anchor', (
+      tester,
+    ) async {
       Set<int> selection = {};
       await tester.pumpWidget(
-        buildTestGrid(onSelectionChanged: (s) => selection = s),
+        buildTestGrid(
+          initialSelection: {1},
+          startInSelectionMode: true,
+          onSelectionChanged: (s) => selection = s,
+        ),
       );
 
       await tester.longPress(find.text('3'));
       await tester.pumpAndSettle();
-      expect(selection, contains(3));
+
+      // The drag anchor joins the selection rather than replacing it, so an
+      // accidental hold cannot wipe out what the user already checked.
+      expect(selection, containsAll(<int>[1, 3]));
     });
 
     testWidgets('tap toggles selection when in selection mode', (tester) async {
@@ -157,6 +172,40 @@ void main() {
       await tester.tap(find.text('0'));
       await tester.pumpAndSettle();
       expect(selectionModeActive, isFalse);
+    });
+
+    testWidgets('stays in selection mode at empty when told not to exit', (
+      tester,
+    ) async {
+      // Surfaces that hand mode ownership to a SelectionController need the
+      // grid to stop deciding on its own: an explicitly entered mode has to
+      // survive at zero checked, and the grid cannot know how it was entered.
+      bool? reportedMode;
+      Set<int> selection = {0};
+      await tester.pumpWidget(
+        buildTestGrid(
+          initialSelection: {0},
+          startInSelectionMode: true,
+          exitOnEmptySelection: false,
+          onSelectionModeChanged: (active) => reportedMode = active,
+          onSelectionChanged: (s) => selection = s,
+        ),
+      );
+
+      await tester.tap(find.text('0'));
+      await tester.pumpAndSettle();
+
+      expect(selection, isEmpty, reason: 'the item must still be unchecked');
+      expect(
+        reportedMode,
+        isNull,
+        reason: 'the grid must not announce an exit it was told not to make',
+      );
+
+      // Still in selection mode, so a tap toggles rather than passing through.
+      await tester.tap(find.text('1'));
+      await tester.pumpAndSettle();
+      expect(selection, {1});
     });
   });
 }

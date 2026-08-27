@@ -1,0 +1,397 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
+import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('exif_test_');
+  });
+
+  tearDown(() async {
+    if (tempDir.existsSync()) {
+      await tempDir.delete(recursive: true);
+    }
+  });
+
+  test('returns metadata with mtime fallback when file has no EXIF', () async {
+    final f = File('${tempDir.path}/no_exif.bin')
+      ..writeAsBytesSync([0, 1, 2, 3]);
+    final extractor = ExifExtractor();
+    final meta = await extractor.extract(f);
+    expect(meta, isNotNull);
+    expect(meta!.takenAt, isNotNull); // file mtime fallback
+    // Wall-clock-UTC convention: mtime's local-clock digits are reinterpreted
+    // as UTC so the matcher can compare against dive times directly.
+    expect(meta.takenAt!.isUtc, isTrue);
+    // Compare against a UTC projection of "now" — the wall-clock digits
+    // should match within a few minutes regardless of test-runner timezone.
+    final now = DateTime.now();
+    final nowAsWallUtc = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+    expect(
+      meta.takenAt!.difference(nowAsWallUtc).abs(),
+      lessThan(const Duration(minutes: 5)),
+    );
+    expect(meta.mimeType, isNotEmpty);
+  });
+
+  test('returns null on missing file', () async {
+    final extractor = ExifExtractor();
+    final meta = await extractor.extract(File('${tempDir.path}/missing'));
+    expect(meta, isNull);
+  });
+
+  test('mimeType reflects file extension', () async {
+    final extractor = ExifExtractor();
+    final jpg = File('${tempDir.path}/x.jpg')..writeAsBytesSync([0]);
+    final png = File('${tempDir.path}/x.png')..writeAsBytesSync([0]);
+    final mp4 = File('${tempDir.path}/x.mp4')..writeAsBytesSync([0]);
+    final mov = File('${tempDir.path}/x.mov')..writeAsBytesSync([0]);
+    expect((await extractor.extract(jpg))!.mimeType, 'image/jpeg');
+    expect((await extractor.extract(png))!.mimeType, 'image/png');
+    expect((await extractor.extract(mp4))!.mimeType, 'video/mp4');
+    expect((await extractor.extract(mov))!.mimeType, 'video/quicktime');
+  });
+
+  test('mimeType inference covers heic/heif/webp/gif/m4v + fallback', () async {
+    final extractor = ExifExtractor();
+    final heic = File('${tempDir.path}/x.heic')..writeAsBytesSync([0]);
+    final heif = File('${tempDir.path}/x.heif')..writeAsBytesSync([0]);
+    final webp = File('${tempDir.path}/x.webp')..writeAsBytesSync([0]);
+    final gif = File('${tempDir.path}/x.gif')..writeAsBytesSync([0]);
+    final m4v = File('${tempDir.path}/x.m4v')..writeAsBytesSync([0]);
+    final unknown = File('${tempDir.path}/x.unknownext')..writeAsBytesSync([0]);
+    expect((await extractor.extract(heic))!.mimeType, 'image/heic');
+    expect((await extractor.extract(heif))!.mimeType, 'image/heif');
+    expect((await extractor.extract(webp))!.mimeType, 'image/webp');
+    expect((await extractor.extract(gif))!.mimeType, 'image/gif');
+    expect((await extractor.extract(m4v))!.mimeType, 'video/x-m4v');
+    expect(
+      (await extractor.extract(unknown))!.mimeType,
+      'application/octet-stream',
+    );
+  });
+
+  group('with mocked native_exif channel', () {
+    const channel = MethodChannel('native_exif');
+
+    Map<String, Object?>? mockedAttributes;
+    bool throwOnGetAttributes = false;
+
+    setUp(() {
+      mockedAttributes = null;
+      throwOnGetAttributes = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case 'initPath':
+                return 1; // Exif handle id
+              case 'getAttributes':
+                if (throwOnGetAttributes) {
+                  throw PlatformException(code: 'parse-fail');
+                }
+                return mockedAttributes;
+              case 'close':
+                return null;
+              default:
+                return null;
+            }
+          });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    test(
+      'reports nativeExif when the platform channel dates the file',
+      () async {
+        mockedAttributes = {'DateTimeOriginal': '2024:06:01 12:30:45'};
+        final f = File('${tempDir.path}/native.jpg')
+          ..writeAsBytesSync([0, 1, 2]);
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta!.takenAtSource, TakenAtSource.nativeExif);
+        expect(meta.takenAt, DateTime.utc(2024, 6, 1, 12, 30, 45));
+      },
+    );
+
+    test(
+      'parses DateTimeOriginal, GPS, and dimensions from EXIF attrs',
+      () async {
+        mockedAttributes = {
+          'DateTimeOriginal': '2024:06:01 12:30:45',
+          'GPSLatitude': 30.5,
+          'GPSLatitudeRef': 'N',
+          'GPSLongitude': 85.3,
+          'GPSLongitudeRef': 'W',
+          'PixelXDimension': 4032,
+          'PixelYDimension': 3024,
+        };
+        final f = File('${tempDir.path}/photo.jpg')
+          ..writeAsBytesSync([0, 1, 2]);
+        final extractor = ExifExtractor();
+        final meta = await extractor.extract(f);
+
+        expect(meta, isNotNull);
+        expect(meta!.takenAt, DateTime.utc(2024, 6, 1, 12, 30, 45));
+        // Wall-clock-UTC convention: DateTimeOriginal digits land on a UTC
+        // DateTime so the matcher can compare against dive times directly.
+        expect(meta.takenAt!.isUtc, isTrue);
+        expect(meta.latitude, 30.5);
+        // GPSLongitudeRef='W' should negate the longitude.
+        expect(meta.longitude, -85.3);
+        expect(meta.width, 4032);
+        expect(meta.height, 3024);
+        expect(meta.mimeType, 'image/jpeg');
+      },
+    );
+
+    test('south latitude flips sign via GPSLatitudeRef=S', () async {
+      mockedAttributes = {
+        'GPSLatitude': 12.0,
+        'GPSLatitudeRef': 'S',
+        'GPSLongitude': 45.0,
+        'GPSLongitudeRef': 'E',
+      };
+      final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+      final meta = await ExifExtractor().extract(f);
+      expect(meta!.latitude, -12.0);
+      expect(meta.longitude, 45.0);
+    });
+
+    test(
+      'fallback dimension keys ImageWidth/ImageLength when PixelX/Y missing',
+      () async {
+        mockedAttributes = {
+          'ImageWidth': '1920', // string variant
+          'ImageLength': 1080, // int variant
+        };
+        final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+        final meta = await ExifExtractor().extract(f);
+        // _parseInt should handle both string and int.
+        expect(meta!.width, 1920);
+        expect(meta.height, 1080);
+      },
+    );
+
+    test('returns mtime fallback when getAttributes throws', () async {
+      throwOnGetAttributes = true;
+      final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+      final meta = await ExifExtractor().extract(f);
+      // Plugin parse fails — `takenAt` falls back to mtime, but we still
+      // return a non-null metadata so the caller can advance.
+      expect(meta, isNotNull);
+      expect(meta!.takenAt, isNotNull);
+      expect(meta.latitude, isNull);
+      expect(meta.longitude, isNull);
+      expect(meta.mimeType, 'image/jpeg');
+    });
+
+    test('returns mtime fallback when DateTimeOriginal is malformed', () async {
+      mockedAttributes = {'DateTimeOriginal': 'not-a-date'};
+      final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+      final meta = await ExifExtractor().extract(f);
+      expect(meta!.takenAt, isNotNull); // mtime fallback
+    });
+
+    test('handles null attributes from getAttributes', () async {
+      mockedAttributes = null; // platform returns null
+      final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+      final meta = await ExifExtractor().extract(f);
+      // No EXIF data at all → mtime fallback for takenAt, no GPS, no dims.
+      expect(meta, isNotNull);
+      expect(meta!.takenAt, isNotNull);
+      expect(meta.latitude, isNull);
+      expect(meta.longitude, isNull);
+      expect(meta.width, isNull);
+      expect(meta.height, isNull);
+    });
+
+    test(
+      'malformed date with too few parts is rejected (mtime fallback)',
+      () async {
+        mockedAttributes = {
+          'DateTimeOriginal': '2024:06:01', // missing time portion
+        };
+        final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+        final meta = await ExifExtractor().extract(f);
+        expect(meta, isNotNull);
+        // Falls through to mtime fallback.
+        expect(meta!.takenAt, isNotNull);
+        // mtime fallback is wall-clock-UTC (see _extract).
+        expect(meta.takenAt!.isUtc, isTrue);
+        // The mtime digits should be close to "now" (file was just written),
+        // compared in the same wall-clock-UTC frame.
+        final now = DateTime.now();
+        final nowAsWallUtc = DateTime.utc(
+          now.year,
+          now.month,
+          now.day,
+          now.hour,
+          now.minute,
+          now.second,
+        );
+        expect(
+          meta.takenAt!.difference(nowAsWallUtc).abs(),
+          lessThan(const Duration(minutes: 5)),
+        );
+      },
+    );
+
+    test(
+      'malformed date with bad date components is rejected (mtime fallback)',
+      () async {
+        mockedAttributes = {
+          'DateTimeOriginal': '2024-06-01 12:30:45', // dashes instead of colons
+        };
+        final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+        final meta = await ExifExtractor().extract(f);
+        expect(meta!.takenAt, isNotNull);
+        // mtime fallback rather than the EXIF value.
+        expect(meta.takenAt!.year, isNot(2024));
+      },
+    );
+
+    test(
+      'date with non-numeric components triggers FormatException catch',
+      () async {
+        // Hits the `on FormatException` branch in _parseExifDate, where
+        // int.parse on a non-numeric date component throws.
+        mockedAttributes = {
+          'DateTimeOriginal':
+              'YYYY:MM:DD HH:MM:SS', // format-correct, parse-broken
+        };
+        final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
+        final meta = await ExifExtractor().extract(f);
+        expect(meta!.takenAt, isNotNull); // mtime fallback
+      },
+    );
+  });
+
+  group('pure-Dart image fallback (native_exif unavailable)', () {
+    // No mocked native_exif channel in this group: Exif.fromPath throws
+    // MissingPluginException, exactly as it does on macOS/Windows/Linux where
+    // native_exif has no platform implementation. The extractor must then
+    // recover the shutter time from the JPEG's own EXIF bytes via the pure-Dart
+    // `image` package instead of silently falling back to the file mtime (which
+    // is the copy-to-disk time and never matches the dive window).
+    Uint8List jpegWithDateTimeOriginal(String exifDate) {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.exifIfd['DateTimeOriginal'] = exifDate;
+      return img.encodeJpg(image);
+    }
+
+    test(
+      'reads DateTimeOriginal from JPEG bytes when native_exif is absent',
+      () async {
+        final f = File('${tempDir.path}/gopro.jpg')
+          ..writeAsBytesSync(jpegWithDateTimeOriginal('2025:12:27 12:08:19'));
+        final meta = await ExifExtractor().extract(f);
+        expect(meta, isNotNull);
+        // The real shutter time from EXIF, not the file's copy-to-disk mtime.
+        expect(meta!.takenAt, DateTime.utc(2025, 12, 27, 12, 8, 19));
+        // Wall-clock-UTC convention so the matcher compares against dive times.
+        expect(meta.takenAt!.isUtc, isTrue);
+      },
+    );
+
+    test('falls back to DateTime when DateTimeOriginal is absent', () async {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.imageIfd['DateTime'] = '2025:12:27 12:08:19';
+      final f = File('${tempDir.path}/only_datetime.jpg')
+        ..writeAsBytesSync(img.encodeJpg(image));
+      final meta = await ExifExtractor().extract(f);
+      expect(meta!.takenAt, DateTime.utc(2025, 12, 27, 12, 8, 19));
+    });
+
+    test('non-JPEG with no EXIF still falls back to mtime', () async {
+      // A .png (or any non-JPEG) has no readable EXIF via decodeJpgExif; the
+      // extractor must not crash and should return the mtime fallback.
+      final f = File('${tempDir.path}/plain.png')
+        ..writeAsBytesSync([0x89, 0x50, 0x4e, 0x47, 0, 1, 2, 3]);
+      final meta = await ExifExtractor().extract(f);
+      expect(meta, isNotNull);
+      expect(meta!.takenAt, isNotNull); // mtime fallback, close to now
+      final now = DateTime.now();
+      final nowAsWallUtc = DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
+        now.minute,
+        now.second,
+      );
+      expect(
+        meta.takenAt!.difference(nowAsWallUtc).abs(),
+        lessThan(const Duration(minutes: 5)),
+      );
+    });
+  });
+
+  group('takenAtSource provenance', () {
+    Uint8List jpegWithDateTimeOriginal(String exifDate) {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.exifIfd['DateTimeOriginal'] = exifDate;
+      return img.encodeJpg(image);
+    }
+
+    test(
+      'reports fileModifiedTime when nothing else can date the file',
+      () async {
+        final f = File('${tempDir.path}/undated.png')
+          ..writeAsBytesSync([0x89, 0x50, 0x4e, 0x47]);
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta, isNotNull);
+        expect(meta!.takenAtSource, TakenAtSource.fileModifiedTime);
+        expect(meta.takenAt, isNotNull);
+      },
+    );
+
+    test(
+      'reports containerMetadata when the pure-Dart reader dates a JPEG',
+      () async {
+        final f = File('${tempDir.path}/dated.jpg')
+          ..writeAsBytesSync(jpegWithDateTimeOriginal('2025:12:27 11:47:00'));
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta!.takenAtSource, TakenAtSource.containerMetadata);
+        expect(meta.takenAt, DateTime.utc(2025, 12, 27, 11, 47));
+      },
+    );
+  });
+
+  test('large files (>5 MB) take the compute() isolate path', () async {
+    // Write a 5.1 MB file. The threshold in ExifExtractor is 5 MB; anything
+    // larger is dispatched to a background isolate via compute(). We don't
+    // assert anything specific about the isolate behaviour — only that the
+    // path executes without error and returns a non-null metadata.
+    final big = File('${tempDir.path}/big.jpg');
+    final bytes = List<int>.filled(5 * 1024 * 1024 + 1024, 0); // 5 MB + 1 KB
+    big.writeAsBytesSync(bytes);
+    final meta = await ExifExtractor().extract(big);
+    // The isolate path uses _extract internally — without a mocked channel
+    // (this test is outside the `with mocked native_exif channel` group)
+    // the EXIF parse fails and we fall back to mtime.
+    expect(meta, isNotNull);
+    expect(meta!.takenAt, isNotNull);
+    expect(meta.mimeType, 'image/jpeg');
+  });
+}

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -102,17 +103,23 @@ class UddfExportBuilders {
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
-    // Separate buddies by role for UDDF export
+    // Separate buddies by role for UDDF export. Leaders map to UDDF leader
+    // elements; every other role (including custom roles) exports as a plain
+    // buddy. Solo exports as neither.
+    const leaderRoleIds = {
+      DiveRole.diveGuideId,
+      DiveRole.diveMasterId,
+      DiveRole.instructorId,
+    };
     final regularBuddies = diveBuddyList
-        .where((b) => b.role == BuddyRole.buddy || b.role == BuddyRole.student)
-        .toList();
-    final guidesAndDivemasters = diveBuddyList
         .where(
           (b) =>
-              b.role == BuddyRole.diveGuide ||
-              b.role == BuddyRole.diveMaster ||
-              b.role == BuddyRole.instructor,
+              !leaderRoleIds.contains(b.role.id) &&
+              b.role.id != DiveRole.soloId,
         )
+        .toList();
+    final guidesAndDivemasters = diveBuddyList
+        .where((b) => leaderRoleIds.contains(b.role.id))
         .toList();
 
     // Find the trip this dive belongs to
@@ -135,6 +142,11 @@ class UddfExportBuilders {
             builder.element('datetime', nest: dive.dateTime.toIso8601String());
             if (dive.diveNumber != null) {
               builder.element('divenumber', nest: dive.diveNumber.toString());
+            }
+            if (dive.effectiveName != null) {
+              // Custom dive-name extension (not UDDF standard, consistent
+              // with the existing custom elements in informationbeforedive).
+              builder.element('divename', nest: dive.effectiveName);
             }
             if (dive.entryTime != null) {
               builder.element(
@@ -240,7 +252,9 @@ class UddfExportBuilders {
                 attributes: {'ref': 'center_${dive.diveCenter!.id}'},
               );
             }
-            builder.element('divetype', nest: dive.diveTypeId);
+            for (final typeId in dive.diveTypeIds) {
+              builder.element('divetype', nest: typeId);
+            }
             // Dive mode (oc, ccr, scr)
             if (dive.diveMode != DiveMode.oc) {
               builder.element('divemode', nest: dive.diveMode.name);
@@ -414,9 +428,24 @@ class UddfExportBuilders {
                 if (tank.name != null && tank.name!.isNotEmpty) {
                   builder.element('tankname', nest: tank.name);
                 }
-                // Volume in liters
+                // Volume: UDDF tankvolume is CUBIC METERS per spec (#158).
+                // Stored volume is liters, so divide by 1000 on the way out.
+                // Re-importing is exact at any volume because the file
+                // carries the <applicationdata><submersion> marker, which
+                // switches the importer to strict m3 instead of the
+                // exporter-quirk plausibility ladder.
                 if (tank.volume != null) {
-                  builder.element('tankvolume', nest: tank.volume.toString());
+                  // The unit attribute is what makes re-import exact. It is
+                  // not UDDF-standard (other readers ignore it), but our own
+                  // exports before this change wrote LITERS into the same
+                  // element, and nothing else in the file distinguishes the
+                  // two conventions -- inferring from the Submersion marker
+                  // would silently scale those old files by 1000.
+                  builder.element(
+                    'tankvolume',
+                    attributes: {'unit': 'm3'},
+                    nest: (tank.volume! / 1000).toString(),
+                  );
                 }
                 // Working pressure in Pascal (UDDF standard)
                 if (tank.workingPressure != null) {
@@ -577,11 +606,8 @@ class UddfExportBuilders {
                 nest: (dive.waterTemp! + 273.15).toString(),
               );
             }
-            if (dive.visibility != null) {
-              builder.element(
-                'visibility',
-                nest: _visibilityToUddf(dive.visibility!),
-              );
+            if (visibilityForUddf(dive) case final vis?) {
+              builder.element('visibility', nest: vis);
             }
             if (dive.rating != null) {
               builder.element(
@@ -832,6 +858,7 @@ class UddfExportBuilders {
     Diver? owner,
     List<Tag>? tags,
     List<DiveTypeEntity>? customDiveTypes,
+    List<DiveRole>? customDiveRoles,
     List<DiveComputer>? diveComputers,
     List<EquipmentSet>? equipmentSets,
     List<Trip>? trips,
@@ -847,6 +874,7 @@ class UddfExportBuilders {
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
         (customDiveTypes?.isNotEmpty ?? false) ||
+        (customDiveRoles?.isNotEmpty ?? false) ||
         (diveComputers?.isNotEmpty ?? false) ||
         (equipmentSets?.isNotEmpty ?? false) ||
         (trips?.isNotEmpty ?? false) ||
@@ -1103,8 +1131,8 @@ class UddfExportBuilders {
                           nest: 'equip_${record.equipmentId}',
                         );
                         builder.element(
-                          'servicetype',
-                          nest: record.serviceType.name,
+                          'servicecategory',
+                          nest: record.serviceCategory.name,
                         );
                         builder.element(
                           'servicedate',
@@ -1188,6 +1216,34 @@ class UddfExportBuilders {
                         builder.element(
                           'isbuiltin',
                           nest: diveType.isBuiltIn.toString(),
+                        );
+                      },
+                    );
+                  }
+                },
+              );
+            }
+
+            // Custom Dive Roles (no UDDF equivalent; #551). Ids are
+            // preserved so dive_buddies.role / dives.diver_role references
+            // resolve after restore.
+            if (customDiveRoles != null && customDiveRoles.isNotEmpty) {
+              builder.element(
+                'diveroles',
+                nest: () {
+                  for (final diveRole in customDiveRoles) {
+                    builder.element(
+                      'diverole',
+                      attributes: {'id': diveRole.id},
+                      nest: () {
+                        builder.element('name', nest: diveRole.name);
+                        builder.element(
+                          'sortorder',
+                          nest: diveRole.sortOrder.toString(),
+                        );
+                        builder.element(
+                          'isbuiltin',
+                          nest: diveRole.isBuiltIn.toString(),
                         );
                       },
                     );
@@ -1546,6 +1602,21 @@ class UddfExportBuilders {
     }
 
     return closest?.pressure;
+  }
+
+  /// UDDF carries visibility as a distance in meters.
+  ///
+  /// Dives logged from v144 export their real measurement; pre-v144 dives
+  /// still export the representative midpoint of their bucket. Null when the
+  /// dive has no visibility at all.
+  static String? visibilityForUddf(Dive dive) {
+    final meters = dive.visibilityMeters;
+    // Unrounded: toStringAsFixed(1) would turn a stored 6.44 into 6.4, which
+    // is precision loss on the way out and defeats a true round trip.
+    if (meters != null) return meters.toString();
+    final legacy = dive.visibility;
+    if (legacy == null || legacy == enums.Visibility.unknown) return null;
+    return _visibilityToUddf(legacy);
   }
 
   static String _visibilityToUddf(enums.Visibility visibility) {

@@ -5,7 +5,167 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <gio/gio.h>
+#include <unistd.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+
 #include "flutter/generated_plugin_registrant.h"
+
+// Returns PNG bytes for a video poster using ffmpegthumbnailer, or empty on
+// failure / when the tool is not installed. No hard dependency: absence just
+// yields the placeholder on the Dart side.
+//
+// Spawns the tool directly via g_spawn_sync with an argv vector rather than
+// going through a shell. The file path is attacker-influenced (it is whatever
+// the user imported), so building a shell command string would allow a name
+// containing a quote or semicolon to alter the command line. With no shell in
+// the picture there is nothing to escape and no injection surface.
+static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
+                                                 int max_dim) {
+  std::vector<uint8_t> bytes;
+  // Write into a private 0700 directory rather than handing the tool a bare
+  // /tmp path. mkstemps would create the file, but we then close it and let an
+  // external process re-open that name - a window in which the path could be
+  // swapped (a symlink, say) and the write redirected. /tmp's sticky bit
+  // normally prevents that, but a directory only we can traverse does not
+  // depend on it.
+  char dir_tmpl[] = "/tmp/subm_vthumbXXXXXX";
+  if (mkdtemp(dir_tmpl) == nullptr) return bytes;
+  const std::string out_path = std::string(dir_tmpl) + "/poster.png";
+
+  // -c png writes PNG to the output path; -s sets the size; -t 10% seeks.
+  std::string size_arg = std::to_string(max_dim);
+  gchar* argv[] = {const_cast<gchar*>("ffmpegthumbnailer"),
+                   const_cast<gchar*>("-i"),
+                   const_cast<gchar*>(path.c_str()),
+                   const_cast<gchar*>("-o"),
+                   const_cast<gchar*>(out_path.c_str()),
+                   const_cast<gchar*>("-s"),
+                   const_cast<gchar*>(size_arg.c_str()),
+                   const_cast<gchar*>("-c"),
+                   const_cast<gchar*>("png"),
+                   const_cast<gchar*>("-t"),
+                   const_cast<gchar*>("10%"),
+                   nullptr};
+
+  gint exit_status = 0;
+  g_autoptr(GError) error = nullptr;
+  // G_SPAWN_SEARCH_PATH finds the tool on PATH; a missing tool simply fails
+  // here and yields the placeholder.
+  gboolean spawned = g_spawn_sync(
+      nullptr, argv, nullptr,
+      static_cast<GSpawnFlags>(G_SPAWN_SEARCH_PATH |
+                               G_SPAWN_STDOUT_TO_DEV_NULL |
+                               G_SPAWN_STDERR_TO_DEV_NULL),
+      nullptr, nullptr, nullptr, nullptr, &exit_status, &error);
+
+  if (spawned && exit_status == 0) {
+    if (FILE* f = std::fopen(out_path.c_str(), "rb")) {
+      std::fseek(f, 0, SEEK_END);
+      long n = std::ftell(f);
+      std::fseek(f, 0, SEEK_SET);
+      if (n > 0) {
+        bytes.resize(static_cast<size_t>(n));
+        if (std::fread(bytes.data(), 1, bytes.size(), f) != bytes.size()) {
+          bytes.clear();
+        }
+      }
+      std::fclose(f);
+    }
+  }
+  // Clean up both the file and the private directory.
+  std::remove(out_path.c_str());
+  rmdir(dir_tmpl);
+  return bytes;
+}
+
+// Work item for one thumbnail request. Generation runs on a worker thread, so
+// the request outlives the method-call callback and owns its own copies.
+struct ThumbRequest {
+  std::string path;
+  int max_dim = 512;
+  std::vector<uint8_t> png;
+};
+
+static void thumb_request_free(gpointer p) {
+  delete static_cast<ThumbRequest*>(p);
+}
+
+// Worker thread: does the blocking spawn + file read.
+static void generate_thumbnail_thread(GTask* task, gpointer source_object,
+                                      gpointer task_data,
+                                      GCancellable* cancellable) {
+  ThumbRequest* req = static_cast<ThumbRequest*>(task_data);
+  req->png = GenerateThumbnailPng(req->path, req->max_dim);
+  g_task_return_boolean(task, TRUE);
+}
+
+// Runs back on the main context: responds to the pending method call.
+static void generate_thumbnail_done(GObject* source, GAsyncResult* result,
+                                    gpointer user_data) {
+  g_autoptr(FlMethodCall) method_call = FL_METHOD_CALL(user_data);
+  ThumbRequest* req =
+      static_cast<ThumbRequest*>(g_task_get_task_data(G_TASK(result)));
+
+  g_autoptr(FlMethodResponse) response = nullptr;
+  if (req == nullptr || req->png.empty()) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else {
+    g_autoptr(FlValue) v =
+        fl_value_new_uint8_list(req->png.data(), req->png.size());
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(v));
+  }
+  fl_method_call_respond(method_call, response, nullptr);
+}
+
+static void local_media_method_call_cb(FlMethodChannel* channel,
+                                       FlMethodCall* method_call,
+                                       gpointer user_data) {
+  if (g_strcmp0(fl_method_call_get_name(method_call),
+                "generateVideoThumbnail") != 0) {
+    fl_method_call_respond_not_implemented(method_call, nullptr);
+    return;
+  }
+  FlValue* args = fl_method_call_get_args(method_call);
+  std::string path;
+  int max_dim = 512;
+  if (fl_value_get_type(args) == FL_VALUE_TYPE_MAP) {
+    FlValue* p = fl_value_lookup_string(args, "path");
+    if (p && fl_value_get_type(p) == FL_VALUE_TYPE_STRING) {
+      path = fl_value_get_string(p);
+    }
+    FlValue* m = fl_value_lookup_string(args, "maxDimension");
+    if (m && fl_value_get_type(m) == FL_VALUE_TYPE_INT) {
+      max_dim = static_cast<int>(fl_value_get_int(m));
+    }
+  }
+  // Clamp at the channel boundary (mirrors the Dart caller's 1..4096).
+  if (max_dim < 1) max_dim = 1;
+  if (max_dim > 4096) max_dim = 4096;
+
+  if (path.empty()) {
+    g_autoptr(FlMethodResponse) response =
+        FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    fl_method_call_respond(method_call, response, nullptr);
+    return;
+  }
+
+  // ffmpegthumbnailer can take hundreds of ms (seconds on a large file) to
+  // seek and decode. This callback runs on the GTK main thread, so doing that
+  // work inline would freeze input and painting for the duration - and the
+  // grid requests a poster per visible video tile. Hand it to a worker thread
+  // and respond when it finishes; the method call is kept alive by a ref.
+  ThumbRequest* req = new ThumbRequest{path, max_dim, {}};
+  GTask* task = g_task_new(nullptr, nullptr, generate_thumbnail_done,
+                           g_object_ref(method_call));
+  g_task_set_task_data(task, req, thumb_request_free);
+  g_task_run_in_thread(task, generate_thumbnail_thread);
+  g_object_unref(task);
+}
 
 struct _MyApplication {
   GtkApplication parent_instance;
@@ -74,6 +234,17 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+
+  // Local media channel: OS-generated video poster thumbnails. Kept alive for
+  // the app lifetime by tying it to the view's object lifetime.
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  FlMethodChannel* local_media_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "com.submersion.app/local_media", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(
+      local_media_channel, local_media_method_call_cb, nullptr, nullptr);
+  g_object_set_data_full(G_OBJECT(view), "local_media_channel",
+                         local_media_channel, g_object_unref);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }

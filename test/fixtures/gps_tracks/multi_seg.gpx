@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Garmin" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Two Segments</name>
+    <trkseg>
+      <trkpt lat="20.500000" lon="-87.250000">
+        <time>2026-05-22T13:00:00Z</time>
+      </trkpt>
+      <trkpt lat="20.510000" lon="-87.260000">
+        <time>2026-05-22T13:01:00Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="20.520000" lon="-87.270000">
+        <time>2026-05-22T13:10:00Z</time>
+      </trkpt>
+      <trkpt lat="20.530000" lon="-87.280000">
+        <time>2026-05-22T13:11:00Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -18,7 +18,7 @@ class ScheduledNotificationRepository {
     try {
       final query = _db.select(_db.scheduledNotifications)
         ..where((t) => t.equipmentId.equals(equipmentId));
-      return query.get();
+      return await query.get();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get scheduled notifications for equipment: $equipmentId',
@@ -29,11 +29,13 @@ class ScheduledNotificationRepository {
     }
   }
 
-  /// Check if a notification is already scheduled
+  /// Check if a notification is already scheduled. When [scheduleId] is
+  /// given, the match is per service clock (v122 multi-clock ledger).
   Future<bool> isScheduled({
     required String equipmentId,
     required int reminderDaysBefore,
     required DateTime scheduledDate,
+    String? scheduleId,
   }) async {
     try {
       final query = _db.select(_db.scheduledNotifications)
@@ -42,6 +44,9 @@ class ScheduledNotificationRepository {
         ..where(
           (t) => t.scheduledDate.equals(scheduledDate.millisecondsSinceEpoch),
         );
+      if (scheduleId != null) {
+        query.where((t) => t.scheduleId.equals(scheduleId));
+      }
       final result = await query.getSingleOrNull();
       return result != null;
     } catch (e, stackTrace) {
@@ -60,6 +65,7 @@ class ScheduledNotificationRepository {
     required DateTime scheduledDate,
     required int reminderDaysBefore,
     required int notificationId,
+    String? scheduleId,
   }) async {
     try {
       final id = _uuid.v4();
@@ -71,6 +77,7 @@ class ScheduledNotificationRepository {
             ScheduledNotificationsCompanion(
               id: Value(id),
               equipmentId: Value(equipmentId),
+              scheduleId: Value(scheduleId),
               scheduledDate: Value(scheduledDate.millisecondsSinceEpoch),
               reminderDaysBefore: Value(reminderDaysBefore),
               notificationId: Value(notificationId),
@@ -127,7 +134,7 @@ class ScheduledNotificationRepository {
   /// Get all scheduled notifications
   Future<List<ScheduledNotification>> getAll() async {
     try {
-      return _db.select(_db.scheduledNotifications).get();
+      return await _db.select(_db.scheduledNotifications).get();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all scheduled notifications',

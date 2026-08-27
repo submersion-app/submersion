@@ -403,5 +403,56 @@ void main() {
       final volume = tanks[0]['volume'] as double;
       expect(volume, closeTo(11.1, 0.01));
     });
+
+    // #158: the parse site must run raw <tankvolume> through the
+    // normalizer. Liter-valued fixtures pass through unchanged, so only
+    // non-literal inputs prove the call is still wired up.
+    Future<double?> volumeFor(String tankVolume) async {
+      final uddfContent =
+          '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2026-01-15T09:00:00</datetime>
+          <divenumber>100</divenumber>
+        </informationbeforedive>
+        <tankdata id="tank-1">
+          <tankvolume>$tankVolume</tankvolume>
+          <tankpressurebegin>20684300</tankpressurebegin>
+          <tankpressureend>5000000</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+      final result = await UddfImportService().importDivesFromUddf(uddfContent);
+      final tanks =
+          result['dives']!.first['tanks'] as List<Map<String, dynamic>>;
+      return tanks[0]['volume'] as double?;
+    }
+
+    test('converts spec cubic-meter tankvolume to liters (#158)', () async {
+      expect(await volumeFor('0.0111'), closeTo(11.1, 0.001));
+    });
+
+    test(
+      'converts the Diving Log 10x-off tankvolume to liters (#158)',
+      () async {
+        expect(await volumeFor('0.111'), closeTo(11.1, 0.001));
+      },
+    );
+
+    test('leaves legacy liter-valued tankvolume unchanged (#158)', () async {
+      expect(await volumeFor('11.1'), closeTo(11.1, 0.001));
+    });
   });
 }

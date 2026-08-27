@@ -18,6 +18,7 @@ final tileCacheServiceProvider = Provider<TileCacheService>((ref) {
 /// Provider for all cached regions.
 final cachedRegionsProvider = FutureProvider<List<CachedRegion>>((ref) async {
   final repository = ref.watch(offlineMapRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchRegionsChanges());
   return repository.getAllRegions();
 });
 
@@ -203,6 +204,7 @@ final cachedRegionByIdProvider = FutureProvider.family<CachedRegion?, String>((
   id,
 ) async {
   final repository = ref.watch(offlineMapRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchRegionsChanges());
   return repository.getRegionById(id);
 });
 

@@ -57,6 +57,18 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// WinSparkle EdDSA public key
+//
+// WinSparkle reads this resource to verify the EdDSA signature of downloaded
+// updates before running them. It is the same Ed25519 key pair as macOS
+// Sparkle (SUPublicEDKey in macos/Runner/Info.plist); release CI signs the
+// Windows installer with the matching private key.
+
+EdDSAPub EDDSA {"XHQ9oigpC8fdjMcsVJQn5gfgYoWocVOb2G4M6IvexJk="}
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Version
 //
 

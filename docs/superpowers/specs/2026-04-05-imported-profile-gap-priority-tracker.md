@@ -22,6 +22,7 @@ This document is intended to guide implementation sequencing, with a bias toward
 | `Yes` | Supported end-to-end in the current import path |
 | `No` | Representable in our app model, but not fully supported end-to-end in the current import path |
 | `N/A` | No direct field/concept support here, so importing it would require inference or a different model |
+| `Partial` | The format carries the relevant data and some of the import path is implemented, but the end-to-end mapping is incomplete — the gap is not fully closed |
 
 ### Priority Values
 
@@ -53,15 +54,15 @@ Use the `Fixed` column as a working checkbox:
 | Sample heart rate | [x] | High | Yes | Yes | Yes |
 | Dive mode (`oc` / `ccr` / `scr`) | [x] | High | Yes | Yes | Yes |
 | Rebreather dive fields (`setpointLow/High/Deco`, `SCR` config, diluent gas, loop O2, scrubber, loop volume) | [ ] | High | Yes | Yes | No |
-| Tank role / material metadata | [ ] | High | Yes | No | No |
+| Tank role / material metadata | [ ] | High | Yes | Yes | No[^1] |
 | Dive-level `cns` / `otu` | [x] | Medium | Yes | Yes | Yes |
-| Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | No |
-| Profile events / markers | [ ] | Medium | Yes | No | No |
-| Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | No |
-| Surface pressure / altitude / surface interval | [ ] | Medium | Yes | No | No |
-| Sample `setpoint` | [ ] | Medium | Yes | Yes | No |
+| Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Yes | No | Partial |
+| Profile events / markers | [ ] | Medium | Yes | Yes | Partial |
+| Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | Yes | No | Yes |
+| Surface pressure / altitude / surface interval | [ ] | Medium | Yes | No | Partial |
+| Sample `setpoint` | [x] | Medium | Yes | Yes | Yes |
 | Sample `ppO2` | [x] | Medium | Yes | Yes | Yes |
-| Multi-tank definitions | [ ] | Medium | Yes | Yes | No |
+| Multi-tank definitions | [ ] | Medium | Yes | Yes | Partial |
 | Per-tank pressure time series |  | Low | Yes | Yes | Yes |
 | Gas switches |  | Low | Yes | Yes | Yes |
 | Sample ascent rate |  | Low | Yes | N/A | N/A |
@@ -78,7 +79,7 @@ Use the `Fixed` column as a working checkbox:
 | Sample next stop | [ ] | Medium | UDDF exposes stop/deco-stop style data, but our backend does not currently have a dedicated sample next-stop field |
 | Sample deco state (`decoType`) | [x] | High | UDDF `decostop@kind` now maps `safetystop` directly and treats any other decostop kind as the app's `deco` bucket |
 | Sample heart rate | [x] | High | Already parsed in the UDDF path, but currently dropped during persistence |
-| Tank role / material metadata | [ ] | High | Backend supports richer tank semantics and UDDF already carries some of it |
+| Tank role / material metadata | [x] | High | Already supported end-to-end — role via `<tankrole>` to `TankRole`, material via `<tankmaterial>` to `TankMaterial` |
 | Dive-level `cns` / `otu` | [x] | Medium | Useful summary metadata for imported technical dives |
 | Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Important provenance/context, but less critical than sample deco fields |
 | Profile events / markers | [ ] | Medium | Parser can produce them, but importer does not persist them |
@@ -100,15 +101,15 @@ Use the `Fixed` column as a working checkbox:
 | Sample next stop | [ ] | Medium | SSRF exposes stop-depth-style data, but our backend does not currently have a dedicated sample next-stop field |
 | Sample deco state (`decoType`) | [x] | High | `in_deco=1` now maps directly to the app's `deco` bucket, while non-deco samples remain `null` |
 | Sample heart rate | [x] | High | Real `.ssrf` uses `heartbeat`; parser now preserves it directly into profile samples |
-| Tank role / material metadata | [x] | High | Real `.ssrf` has `use='diluent'`; direct role mapping is now preserved, while richer material metadata remains open |
+| Tank role / material metadata | [x] | High | Tank role mapping via `use` is preserved. SSRF cylinder elements expose no direct material field; description-based inference (e.g., `AL80 -> aluminum`) is intentionally deferred as a separate preset-matcher feature |
 | Dive-level `cns` / `otu` | [x] | Medium | Real dive attributes exist and now persist through the shared import snapshot path |
-| Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Often available via `extradata`, but not mapped |
-| Sample `setpoint` | [ ] | Medium | Real SSRF exports can imply it indirectly, but the parser does not currently map sample setpoint directly |
+| Dive-level deco metadata (`decoAlgorithm`, `GF low/high`, conservatism) | [ ] | Medium | Slice D parses `<extradata key='Deco model' value='GF X/Y'/>` into `Dives.decoAlgorithm='buhlmann'` + `gradientFactorLow` + `gradientFactorHigh`; mirrors to `DiveDataSources`. Non-GF algo strings stored as raw lowercased value. `decoConservatism` remains null (Subsurface doesn't commonly emit this). |
+| Sample `setpoint` | [x] | Medium | Direct `<sample setpoint=...>` attribute is parsed into `DiveProfiles.setpoint`. `SP change` events are persisted in `DiveProfileEvents` with `source='imported'`, and `SetpointSegment` + `setpointAt(...)` derives per-sample setpoint on read, matching PR #137's `ProfileGasSegment` pattern. Note: the derivation helper exists but downstream consumers (e.g., `profile_analysis_service` CCR ppO2 calculation) have not yet migrated from the dive-level `setpointHigh`/`setpointLow` fields — consumer migration is a future slice |
 | Sample `ppO2` | [x] | Medium | Real SSRF `po2` now maps directly into sample `ppO2` |
-| Profile events / markers | [ ] | Medium | Gas changes are imported, but bookmarks and other events are dropped |
-| Source provenance snapshot (`DiveDataSources`) | [ ] | Medium | SSRF provenance is much thinner than backend support |
-| Surface pressure / altitude / surface interval | [ ] | Medium | Real surface pressure exists in the corpus, but parser does not import it |
-| Multi-tank definitions | [ ] | Medium | Multi-cylinder and `pressureN` are present, but richer semantics are incomplete |
+| Profile events / markers | [ ] | Medium | Partially fixed: `setpointChange`, `bookmark`, `safetyStopStart`, `decoStopStart`, `decoViolation` (from `ceiling` / `violation`), `ascentRateWarning` (from `ascent`), `ppO2High` and `ppO2Low` (from `po2`, threshold-split at 1.4 / 0.18 bar) are now persisted via `DiveProfileEvents` (Slice C + C.2). Row stays unchecked because DC-internal alarms (`low battery`, `heading`, `rbt`) remain intentionally unmapped and UDDF parity is still pending in Slice C.3. |
+| Source provenance snapshot (`DiveDataSources`) | [x] | Medium | Slice D parses `<divecomputer model>`, `<extradata key='Serial'>`, `<extradata key='FW Version'>`, `<extradata key='Deco model'>` into `Dives.diveComputerModel/Serial/Firmware` and mirrors model/serial/algo/GFs into `DiveDataSources`. Library-descriptor fields (`descriptorVendor`, `descriptorProduct`, `libdivecomputerVersion`) remain populated only for native DC downloads. |
+| Surface pressure / altitude / surface interval | [ ] | Medium | Slice D parses `<surface pressure='X bar'/>` into `Dives.surfacePressure`. Altitude (derivation from barometric pressure) and surface interval (cross-dive computation) remain deferred to separate slices. |
+| Multi-tank definitions | [ ] | Medium | Partial cylinders (gas-only / role-only) are now preserved. `Active-tank-per-sample` is deferred to Slice A.2 (a follow-up task scoped in the Slice A design doc) because it requires a new `DiveProfiles` column |
 | Sample ascent rate |  | Low | Lower value than the deco/CCR gaps |
 | Per-tank pressure time series |  | Low | Already supported well enough |
 | Gas switches |  | Low | Already supported well enough |
@@ -150,6 +151,8 @@ These are still high-priority, but likely require interpretation rules, broader 
 
 ## Suggested First Implementation Slice
 
+**Status (2026-04-17):** This planning section is historical. All items listed below were completed as part of PR #170 (the initial Slice) and Slice A (2026-04-17, see `2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`). Row-level `Fixed` status in the tables above is authoritative. Kept here for context on how the import-gap work was sequenced.
+
 If we start with the safest, most direct wins, the first slice should be:
 
 | Order | Format | Gap / Field Area |
@@ -173,3 +176,10 @@ If we start with the safest, most direct wins, the first slice should be:
 - Current SSRF `decoType` uses a narrow direct mapping: `in_deco=1 -> 2`, while `in_deco=0` remains `null` instead of forcing an explicit non-deco enum value.
 - In the combined table, `Fixed` means the gap is effectively closed across the compared import paths, not merely improved for one format.
 - This tracker is intended to evolve as fixes land. Update the `Fixed` column in place rather than duplicating rows elsewhere.
+- Slice A (2026-04-17) closes SSRF partial cylinder preservation and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Direct `<sample setpoint=...>` attribute parsing was added too. `SP change` event-based setpoint handling is intentionally deferred to Slice C (rationale: avoid the denormalization stopgap of forward-filling events into `DiveProfiles.setpoint` at import time; Slice C will persist events and derive per-sample setpoint at read time, consistent with PR #137's `ProfileGasSegment` pattern). `Active-tank-per-sample`, which requires a new `DiveProfiles.activeTankIndex` column, is split out as Slice A.2 — a follow-up task scoped in the [Slice A design doc](2026-04-17-ssrf-direct-field-mappings-slice-a-design.md).
+- Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
+- Slice C.2 (2026-04-17) extends SSRF `_parseProfileEvents` with 6 additional event names (`bookmark`, `safety stop`, `deco stop`, `ceiling`, `violation`, `ascent`, `po2`), mostly flat one-to-one mapping to existing `ProfileEventType` values. Deliberate exception: `po2` is threshold-split at 1.4 / 0.18 bar into `ppO2High` / `ppO2Low` for CCR safety correctness. Four new factory constructors on `ProfileEvent` (`decoStop`, `decoViolation`, `ppO2High`, `ppO2Low`). One synthetic compound fixture `profile-events-variety.ssrf`. No schema change. Mapping is based on Subsurface's documented event vocabulary — not verified against real-world exports. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`.
+- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch — the UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`. Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides, while keeping the SSRF path unchanged. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. Third-party UDDF event parsing remains a separate future slice. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
+- Slice D (2026-04-17) adds dive-level metadata parsing from SSRF: dive computer identity (model, serial, firmware from `<divecomputer model>` attribute + `Serial` / `FW Version` extradata), deco metadata (algo + gradient factors parsed from `Deco model` extradata via regex), and surface pressure (from `<surface pressure>` child). Populates matching columns on both `Dives` and `DiveDataSources`. No schema work — all target columns exist. Altitude (barometric derivation) and surface interval (cross-dive computation) remain deferred as separate work. See `docs/superpowers/specs/2026-04-17-ssrf-slice-d-dive-level-metadata-design.md`.
+
+[^1]: SSRF tank role mapping via the `use` attribute is supported, but no direct material field exists in the SSRF cylinder element. Description-based inference (e.g., `AL80` -> aluminum) is intentionally deferred as a separate preset-matcher feature. For context: UDDF already supports both tank role and tank material end-to-end via `<tankrole>` -> `TankRole` and `<tankmaterial>` -> `TankMaterial`.

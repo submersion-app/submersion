@@ -4,3 +4,7 @@ tags:
     # Run explicitly: flutter test --run-skipped --tags performance
     # Or: flutter test --run-skipped test/performance/
     skip: "Slow performance tests; run with --run-skipped --tags performance"
+  real-data:
+    # Real-data tests use actual user exports and may take time to run.
+    # Run explicitly: flutter test --run-skipped --tags real-data
+    skip: "Real-data regression tests; run with --run-skipped --tags real-data"

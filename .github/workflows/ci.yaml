@@ -20,11 +20,107 @@ env:
   DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
 
 jobs:
-  analyze:
-    name: Analyze & Format
+  # Cheap gate: does this push/PR touch anything that can change a Flutter
+  # analyze/test/build outcome? Pure docs / CI-meta changes (markdown, images,
+  # .github/ workflow edits, LICENSE, git-hooks, etc.) set code=false, which
+  # lets codegen - and every job that hangs off it - skip. The ci-success gate
+  # still runs and reports green because skipped jobs are acceptable there.
+  # Bias is FAIL-SAFE: any path not explicitly recognized as inert, and any
+  # inability to compute the diff, yields code=true (run the full pipeline).
+  # Escape hatch: put [full-ci] in the PR title or a commit message to force the
+  # full pipeline even for a docs/CI-only change (e.g. to validate a ci.yaml edit).
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect build/test-affecting changes
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$PR_BASE"; head="$PR_HEAD"
+          else
+            base="$PUSH_BEFORE"; head="$PUSH_AFTER"
+          fi
+          # Fail-safe: if the base commit is missing/unknown (first push, force
+          # push, shallow clone), run the full pipeline rather than guess.
+          if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+            echo "Base commit unavailable ('$base'); running the full pipeline."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Two ranges with different semantics:
+          #   diff_range - three-dot on PRs so `git diff` compares merge-base vs
+          #     head (only the PR's own file changes); plain endpoint diff on push.
+          #   log_range  - always two-dot (base..head) = ONLY the commits this
+          #     push/PR adds. NOT three-dot: `git log base...head` is a symmetric
+          #     difference that would also scan base-branch commits main gained
+          #     since the branch forked, so a [full-ci] in an unrelated main
+          #     commit could falsely force a full run.
+          if [ "$EVENT" = "pull_request" ]; then
+            diff_range="${base}...${head}"
+          else
+            diff_range="${base}..${head}"
+          fi
+          log_range="${base}..${head}"
+          # Escape hatch: a [full-ci] marker in the PR title or any commit
+          # message in log_range forces the full pipeline. Lets CI/meta-only
+          # changes (e.g. editing this very workflow), which otherwise skip the
+          # heavy jobs, opt in to exercising the whole DAG. Only ever forces
+          # MORE work, so it cannot cause a false skip.
+          if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$log_range")" \
+               | grep -qiF '[full-ci]'; then
+            echo "[full-ci] override found; running the full pipeline."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files="$(git diff --name-only "$diff_range")"
+          echo "Changed files:"
+          printf '%s\n' "$files"
+          # code=true unless EVERY changed file matches an inert pattern below.
+          # NB: these are `case` globs, not filesystem globs - in `case`, `*`
+          # matches `/` too, so `docs/*` and `.github/*` DO match nested paths
+          # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
+          code=false
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              .github/flutter-version.txt) code=true ;;   # SDK bump affects all
+              .github/*) ;;                                # other CI/meta: inert
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
+              *) code=true ;;
+            esac
+          done <<< "$files"
+          echo "Result: code=$code"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+  # Producer job: runs build_runner ONCE and publishes the generated sources as
+  # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
+  # job instead of the full analyze job, so flutter analyze + format run in
+  # PARALLEL with the test shards and builds rather than as a serial prefix.
+  # Gated on `changes`: when no build/test-affecting file changed, codegen skips
+  # and the whole downstream DAG (analyze, test, builds) skips with it.
+  codegen:
+    name: Code Generation
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -39,13 +135,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -54,11 +150,84 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
+
+      # Share the generated sources (Drift/json_serializable/riverpod/freezed
+      # outputs) so downstream jobs can skip the ~3 min build_runner bootstrap.
+      # All generated kinds (*.g.dart / *.freezed.dart / *.mocks.dart) are now
+      # gitignored, so they all need to travel. We tar from the workspace root so
+      # the lib/ and test/ path prefixes are preserved exactly (upload-artifact
+      # would otherwise collapse paths to their least-common-ancestor dir).
+      - name: Package generated code
+        run: |
+          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' -o -name '*.mocks.dart' \) -print0)
+          echo "Packaging ${#files[@]} generated files"
+          if [ "${#files[@]}" -eq 0 ]; then echo "::error::no generated files to package"; exit 1; fi
+          printf '%s\0' "${files[@]}" | tar --null -T - -czf generated-code.tar.gz
+
+      - name: Upload generated code
+        uses: actions/upload-artifact@v7
+        with:
+          name: generated-code
+          path: generated-code.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  analyze:
+    name: Analyze & Format
+    needs: codegen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Analyze code
         run: flutter analyze --fatal-infos
@@ -67,11 +236,27 @@ jobs:
         run: dart format --set-exit-if-changed .
 
   test:
-    name: Test
-    needs: analyze
+    name: Test (shard ${{ matrix.shard }})
+    needs: codegen
     runs-on: ubuntu-latest
+    strategy:
+      # Don't cancel the other shards when one fails - we want the full picture.
+      fail-fast: false
+      matrix:
+        # 0-based shard indices; keep TOTAL_SHARDS below in sync with the count.
+        # NOTE: the shard count is coupled to codecov.yml `after_n_builds`, which
+        # must equal (shard count + 1) for the scripts job -- Codecov holds the
+        # patch/project status until every partial lcov arrives (see codecov.yml).
+        # It is also bounded by the account-wide concurrent-job cap: this workflow
+        # already fans out ~9-10 non-test jobs (analyze + 5 builds + scripts +
+        # integration) that share the pool AND gate ci-success, so oversharding
+        # queues the builds and makes total CI slower, not faster. 8 keeps us
+        # under the cap while roughly halving test wall-clock.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      TOTAL_SHARDS: 8
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -86,13 +271,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -101,30 +286,182 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Run tests
-        run: flutter test --coverage --exclude-tags performance
+        # flutter test's built-in --total-shards shards by test CASE, so every
+        # shard still LOADS ~all test files and pays the dominant per-file cost
+        # (isolate + Flutter binding + Drift setup, and ~3.6x amplified by
+        # --coverage, which dumps the VM hit-map per suite). That barely divides
+        # wall-clock. We instead shard by FILE so each job loads a disjoint
+        # subset, which divides the per-file cost. Codecov merges the partial
+        # coverage reports via the per-shard flag below.
+        run: |
+          total=$(find test -name '*_test.dart' | wc -l)
+          # (NR-1) so the modulus is 0-based like matrix.shard: shard i owns
+          # file indices i, i+N, i+2N, ... (shard 0 -> first file). Plain NR
+          # (1-based) would map shard 0 to every Nth file and leave it empty
+          # for suites smaller than N.
+          mapfile -t files < <(find test -name '*_test.dart' | sort \
+            | awk "(NR-1) % ${TOTAL_SHARDS} == ${{ matrix.shard }}")
+          echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#files[@]} of ${total} test files"
+          # Guard: with no paths, `flutter test` runs the ENTIRE suite. An empty
+          # shard (more shards than files) would silently re-run everything and
+          # defeat sharding, so skip it and emit an empty lcov so the Codecov
+          # step still has a file to upload.
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No test files assigned to this shard; skipping."
+            mkdir -p coverage && : > coverage/lcov.info
+            exit 0
+          fi
+          flutter test --coverage --exclude-tags performance "${files[@]}"
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
+          # Per-shard flag so Codecov merges the partial reports for this commit.
+          flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
+
+  # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
+  # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
+  # parallel and gives the guard logic its own coverage, scoped to the script.
+  script-tests:
+    name: Script Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Install coverage.py
+        run: python3 -m pip install coverage
+
+      - name: Check JNI local-reference hygiene (source)
+        # Source-level guard: no build artifact needed (unlike the APK/mapping
+        # guards), so it runs here. Fails if a libdivecomputer JNI callback
+        # leaks a local ref -> local reference table overflow on a long download
+        # (Mares Puck Pro) -> silent SIGABRT. See issue #318.
+        run: python3 scripts/check_jni_local_refs.py
+
+      - name: Check dive-download process isolation (manifest)
+        # Fails if the serial download service loses android:process=":dc" -- a
+        # native download crash would then kill the app again (issue #318).
+        run: python3 scripts/check_dc_process_isolation.py
+
+      - name: Run Python guard tests with coverage
+        run: |
+          mkdir -p coverage
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
+          python3 -m coverage run --include="$guards" \
+            scripts/check_proguard_serial_keep_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_native_libs_present_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_bundled_native_assets_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_jni_local_refs_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_dc_process_isolation_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/fix_macho_symbol_order_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/release/sanitize_apple_store_notes_test.py
+          python3 -m coverage report -m --include="$guards"
+          python3 -m coverage xml --include="$guards" \
+            -o coverage/scripts.xml
+
+      - name: Run chamber directory pipeline tests
+        # The harvester generates a safety-critical dataset: its validation
+        # gates are what stop a broken parser shipping blank phone numbers or
+        # duplicate ids. Kept out of the guards coverage set above so it does
+        # not perturb that report; pypdf is installed here because the FFESSM
+        # registry is a PDF (the test skips itself without it).
+        run: |
+          python3 -m pip install pypdf
+          python3 scripts/chamber_harvester_test.py
+          python3 scripts/chamber_sources_test.py
+
+      - name: Run appcast beta feed test
+        run: ./scripts/generate_appcast_beta_test.sh
+
+      - name: Run release notes HTML test
+        run: ./scripts/generate_release_notes_html_test.sh
+
+      - name: Run beta release notes test
+        run: ./scripts/release/beta_release_notes_test.sh
+
+      - name: Run changelog generator test
+        run: ./scripts/release/generate_changelog_test.sh
+
+      - name: Run release contributors test
+        # Stubs the GitHub API, so no token or network is needed here. Guards
+        # the two properties the credits depend on: PR numbers resolve from
+        # git alone, and no API failure can abort a release.
+        run: ./scripts/release/contributors_test.sh
+
+      - name: Run fastlane beta changelog test
+        run: ruby scripts/release/fastlane_beta_changelog_test.rb
+
+      - name: Run fastlane submit guard test
+        # Guards the App Review submission guard against the defect behind
+        # promotion run 31903095751: submitting while a DIFFERENT version was
+        # still in review, which renamed the in-review version instead of
+        # creating a new one and left it carrying the wrong build.
+        run: ruby scripts/release/fastlane_submit_guard_test.rb
+
+      - name: Run App Review notes test
+        # Guards the committed App Review notes deliver uploads with every
+        # submission: present on both platforms, identical, within Apple's
+        # length limit, and free of other-platform names (2.3.10). iOS 1.7.4
+        # and 1.7.5 were rejected under 5.1.1(v) because nothing told the
+        # reviewer the app has no accounts.
+        run: ./scripts/release/app_review_notes_test.sh
+
+      - name: Run pre-push hook test
+        # Guards two hook bugs that both rejected pushes for reasons unrelated
+        # to the change being pushed: running the checks against the main
+        # checkout rather than the worktree, and a set -e abort that produced
+        # no error message. Stubs dart/flutter, so no toolchain is needed here.
+        run: ./scripts/pre_push_hook_test.sh
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/scripts.xml
+          flags: scripts
+          fail_ci_if_error: false
 
   integration-test:
     name: Integration Test (macOS)
-    needs: analyze
-    runs-on: macos-14
+    needs: codegen
+    runs-on: macos-26
+    # This job normally finishes in ~10 min; without a bound a hung UI test
+    # (perpetual pumpAndSettle, window focus, platform-channel wait) would hold
+    # a macOS runner for GitHub's 6-hour default. Fail fast instead.
+    timeout-minutes: 25
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -144,13 +481,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -165,24 +502,44 @@ jobs:
           echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Run integration tests
         run: |
-          flutter test integration_test/ \
-            -d macos \
-            --dart-define=SCREENSHOT_MODE=false
+          # Run each file in its own `flutter test` process: a single
+          # `flutter test integration_test/` invocation relaunches the macOS
+          # app once per file, and the second sequential desktop relaunch
+          # deterministically fails to attach ("log reader stopped
+          # unexpectedly"). One launch per invocation avoids that.
+          # nullglob: if the dir has no *_test.dart the loop runs zero times
+          # (matching the old "No tests ran" success) instead of passing the
+          # literal glob to `flutter test`.
+          shopt -s nullglob
+          for test in integration_test/*_test.dart; do
+            echo "== Running $test =="
+            flutter test "$test" \
+              -d macos \
+              --dart-define=SCREENSHOT_MODE=false
+          done
 
   build-ios:
     name: Build iOS
-    needs: test
-    runs-on: macos-14
+    needs: codegen
+    runs-on: macos-26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -202,13 +559,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -218,7 +575,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ios/Pods
@@ -227,14 +584,27 @@ jobs:
           restore-keys: |
             pods-ios-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Update CocoaPods repo
         run: pod repo update
+
+      - name: Clean native asset build state
+        run: |
+          rm -rf build/native_assets
+          rm -rf .dart_tool/flutter_build
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign "${{ env.DART_DEFINES }}" -v
@@ -249,10 +619,10 @@ jobs:
 
   build-macos:
     name: Build macOS
-    needs: test
-    runs-on: macos-14
+    needs: codegen
+    runs-on: macos-26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -272,13 +642,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -288,7 +658,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             macos/Pods
@@ -298,7 +668,7 @@ jobs:
             pods-macos-${{ runner.os }}-
 
       - name: Cache Xcode DerivedData
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -306,14 +676,27 @@ jobs:
           restore-keys: |
             deriveddata-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Update CocoaPods repo
         run: pod repo update
+
+      - name: Clean native asset build state
+        run: |
+          rm -rf build/native_assets
+          rm -rf .dart_tool/flutter_build
 
       - name: Build macOS (no-sandbox for distribution)
         run: |
@@ -327,27 +710,51 @@ jobs:
             macos/Runner.xcodeproj/project.pbxproj
 
           # Build with Flutter
-          flutter build macos --release "${{ env.DART_DEFINES }}"
+          flutter build macos --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}"
 
           # Re-sign with ad-hoc signature and no-sandbox entitlements
           codesign --force --deep --sign - \
             --entitlements macos/Runner/ReleaseNoSandbox.entitlements \
             build/macos/Build/Products/Release/submersion.app
 
+      # gen_snapshot emits App.framework's exported symbols in address order, which
+      # macOS 11's dyld cannot resolve by binary search -- the app then segfaults on
+      # launch before its window appears (issue #996). A build phase sorts them; this
+      # asserts the phase actually ran, since the failure is invisible on macOS 12+.
+      - name: Verify App.framework symbol order
+        run: |
+          python3 scripts/fix_macho_symbol_order.py --check \
+            build/macos/Build/Products/Release/submersion.app/Contents/Frameworks/App.framework/Versions/A/App
+
+      # Zip with ditto before upload: upload-artifact would otherwise root the
+      # archive inside the .app bundle (losing the submersion.app wrapper) and
+      # strip the symlinks, permission bits, and codesign seal the bundle
+      # needs to be runnable.
+      - name: Zip macOS app bundle
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
+        run: |
+          ditto -c -k --keepParent \
+            build/macos/Build/Products/Release/submersion.app \
+            build/macos/Build/Products/Release/submersion-macos.zip
+
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v7
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
         with:
           name: macos-build
-          path: build/macos/Build/Products/Release/submersion.app
+          path: build/macos/Build/Products/Release/submersion-macos.zip
           retention-days: 7
 
   build-android:
     name: Build Android
-    needs: test
+    needs: codegen
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -368,13 +775,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -384,7 +791,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -393,18 +800,79 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      # flutter_secure_storage 11 hardcodes compileSdk 37 in its own module,
+      # so the app compiles against 37 too (android/app/build.gradle.kts).
+      # Installed explicitly rather than left to Gradle's auto-download: the
+      # runner image only preinstalls a few platforms, and a missing one fails
+      # late with an opaque "failed to find target with hash string" error.
+      - name: Install Android SDK platform 37
+        run: |
+          # sdkmanager is not on PATH on the runner image; it lives under
+          # $ANDROID_HOME/cmdline-tools/<version>/bin. Located rather than
+          # hardcoded so a runner-image reshuffle fails loudly here instead
+          # of surfacing later as a confusing Gradle error.
+          sdkmanager="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/cmdline-tools" \
+            -name sdkmanager -type f 2>/dev/null | head -1)"
+          if [ -z "$sdkmanager" ]; then
+            echo "::error::sdkmanager not found under ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+          echo "Using $sdkmanager"
+          "$sdkmanager" --install "platforms;android-37.0" < /dev/null
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Android APK
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
 
+      # The plugin's Kotlin JVM tests (BondPolicy, BondDiagnostics,
+      # BleScanDiagnostics, SerialReadBuffer) cover decision logic that no
+      # Dart test can reach. They run here rather than in their own job
+      # because android/gradlew is gitignored: the Gradle wrapper only
+      # exists once a Flutter Android build has injected it, which the APK
+      # step above has just done.
+      - name: Run libdivecomputer_plugin Kotlin unit tests
+        working-directory: android
+        run: ./gradlew :libdivecomputer_plugin:testDebugUnitTest
+
+      # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
+      # silently shipped and crashed the app on Android 15+ 16 KB-page devices.
+      # Fails the build if any 64-bit native library is not 16 KB-aligned.
+      - name: Verify 16 KB native library alignment
+        run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against issue #433: a dependency bump (sqlite3_flutter_libs ->
+      # 0.6.0+eol, an empty tombstone release) silently dropped libsqlite3.so
+      # from the APK, so the app could not open its database on launch. The
+      # alignment guard above does not catch this -- a missing lib is not a
+      # misaligned one. Fails the build if a required native library is absent.
+      - name: Verify required native libraries are bundled
+        run: python3 scripts/check_native_libs_present.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against the second half of issue #318: R8 release minification
+      # renamed the reflectively-probed usb-serial-for-android driver methods
+      # (e.g. getSupportedDevices), so every serial-USB download crashed with a
+      # NoSuchMethodException. Fails the build if a driver method was obfuscated.
+      - name: Verify serial driver ProGuard keep rules
+        run: python3 scripts/check_proguard_serial_keep.py build/app/outputs/mapping/release/mapping.txt
+
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -412,10 +880,10 @@ jobs:
 
   build-linux:
     name: Build Linux
-    needs: test
+    needs: codegen
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -430,13 +898,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -445,6 +913,10 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      # libssl-dev is required by sqlcipher_flutter_libs: the Linux build
+      # compiles SQLCipher from source and links it against OpenSSL. The
+      # hosted runner image happens to ship the headers today, so declaring
+      # it keeps a future image change from silently breaking the build.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -456,20 +928,38 @@ jobs:
             libgtk-3-dev \
             liblzma-dev \
             libstdc++-12-dev \
-            libsecret-1-dev
+            libsecret-1-dev \
+            libwebkit2gtk-4.1-dev \
+            libssl-dev
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Linux
-        run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build linux --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}" -v
+
+      - name: Check bundled native assets
+        # Same guard as the Windows job. Linux uses the stock Flutter install
+        # rule and has always bundled its libraries, so this doubles as the
+        # positive control that the check is not vacuously passing.
+        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v7
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
         with:
           name: linux-build
           path: build/linux/x64/release/bundle
@@ -477,15 +967,20 @@ jobs:
 
   build-windows:
     name: Build Windows
-    needs: test
+    needs: codegen
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
       - name: Read Flutter version
         id: flutter-ver
+        # Windows runners default to PowerShell, where the bash-style
+        # $(...) command substitution and $GITHUB_OUTPUT do not work. Without
+        # this the version output is empty and subosito installs the latest
+        # stable Flutter instead of the pinned version. See flutter-version.txt.
+        shell: bash
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - uses: subosito/flutter-action@v2
@@ -495,13 +990,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~\.pub-cache
@@ -511,7 +1006,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             C:\Users\runneradmin\.nuget\packages
@@ -519,19 +1014,90 @@ jobs:
           restore-keys: |
             nuget-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Windows
-        run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
+        run: flutter build windows --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}" -v
+
+      - name: Check bundled native assets
+        # A Windows build that never bundles sqlcipher.dll still compiles,
+        # packages and ships; it only fails when a user launches it (issue
+        # #1129). CI builds but never launches, so this is the step that has to
+        # notice. Windows runners expose the interpreter as `python`, not the
+        # `python3` the Linux guard steps use.
+        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v7
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && github.event_name == 'push')
         with:
           name: windows-build
           path: build\windows\x64\runner\Release
           retention-days: 7
+
+  pr-number:
+    name: Record PR number
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write PR number to file
+        run: echo "${{ github.event.number }}" > pr-number.txt
+      - name: Upload PR number artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-number
+          path: pr-number.txt
+          retention-days: 1
+
+  # Single aggregation gate. Because the build jobs now run in parallel with the
+  # test shards (needs: codegen, not needs: test), a green build no longer
+  # implies tests passed. This job is the one to mark "required" in branch
+  # protection - it fails if ANY needed job failed or was cancelled. Skipped
+  # jobs (e.g. integration-test on push) are treated as acceptable.
+  # NOTE: codegen MUST be listed here - if it fails, every downstream job is
+  # SKIPPED, and skipped is treated as acceptable below, so without codegen in
+  # the needs list a codegen failure would report a false green.
+  # `changes` is likewise listed: on a docs/CI-only change it reports code=false
+  # and the whole pipeline SKIPS (an accepted green), but if the detector itself
+  # FAILS we must not silently skip-then-green, so its failure must reach here.
+  ci-success:
+    name: CI Success
+    if: always()
+    needs:
+      - changes
+      - codegen
+      - analyze
+      - test
+      - integration-test
+      - build-ios
+      - build-macos
+      - build-android
+      - build-linux
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all required jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "Upstream job results: $results"
+          for r in $results; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "::error::A required job did not succeed (result=$r)"
+              exit 1
+            fi
+          done
+          echo "All required jobs passed."

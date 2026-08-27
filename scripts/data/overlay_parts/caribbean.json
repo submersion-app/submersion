@@ -1,0 +1,198 @@
+{
+  "chambers": [
+    {
+      "id": "mx-cozumel",
+      "name": "Costamed Hospital Cozumel (Hyperbaric Chamber)",
+      "country": "MX",
+      "city": "Cozumel",
+      "phone": "+52-987-872-9400",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.costamed.com.mx/en/servicios/hyperbaric-chamber"}
+    },
+    {
+      "id": "mx-cozumel-intl",
+      "name": "SSS Hyperbaric Chamber (International Hospital Cozumel)",
+      "country": "MX",
+      "city": "Cozumel",
+      "phone": "+52-987-872-1430",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://thisiscozumel.com/tourist-info/99-important-telephone-numbers/1662-sss-hyperbaric-chamber"}
+    },
+    {
+      "id": "mx-playa-carmen",
+      "name": "SSS Hyperbaric Chamber Network Playa del Carmen (Buceo Medico Mexicano)",
+      "country": "MX",
+      "city": "Playa del Carmen",
+      "phone": "+52-984-873-1365",
+      "emergencyPhone": "+52-984-873-1365",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.sssnetwork.com/pages/playahome.html"}
+    },
+    {
+      "id": "mx-cabo",
+      "name": "BMM Hyperbaric Chamber Cabo San Lucas (SSS Network)",
+      "country": "MX",
+      "city": "Cabo San Lucas",
+      "phone": "+52-624-143-3666",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.sssnetwork.com/mexico/cabo.htm"}
+    },
+    {
+      "id": "mx-la-paz",
+      "name": "AMCARE Camara Hiperbarica La Paz",
+      "country": "MX",
+      "city": "La Paz",
+      "phone": "+52-612-122-5743",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://medicos.enlapaz.com.mx/camara-hiperbarica/"}
+    },
+    {
+      "id": "bz-san-pedro",
+      "name": "Belize Hyperbaric Chamber, San Pedro (SSS Network)",
+      "country": "BZ",
+      "city": "San Pedro, Ambergris Caye",
+      "phone": "+501-226-2851",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.sanpedrosun.com/health/2017/05/04/58057/"}
+    },
+    {
+      "id": "hn-roatan",
+      "name": "Cornerstone Medical Services Hyperbaric Chamber (Anthony's Key Resort)",
+      "country": "HN",
+      "city": "Roatan",
+      "phone": "+504-9450-3253",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://anthonyskey.com/hyperbaric-chamber-medical-clinic/"}
+    },
+    {
+      "id": "hn-utila",
+      "name": "Utila Hyperbaric Chamber and Trauma Center",
+      "country": "HN",
+      "city": "Utila",
+      "phone": "+1-855-846-3483",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.utilalodge.com/utila-hyperbaric-chamber"}
+    },
+    {
+      "id": "ky-george-town",
+      "name": "Cayman Islands Hyperbaric Services (Health Services Authority)",
+      "country": "KY",
+      "city": "George Town",
+      "phone": "+1-345-949-2989",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.hsa.ky/medical-services/diving-hyperbaric-medicine"}
+    },
+    {
+      "id": "bs-nassau",
+      "name": "Princess Margaret Hospital (Hyperbaric Chamber)",
+      "country": "BS",
+      "city": "Nassau",
+      "phone": "+1-242-322-2861",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://bahamas.yabsta.com/listing/view/95494/princess-margaret-hospital-the"}
+    },
+    {
+      "id": "tc-provo",
+      "name": "Associated Medical Practices Hyperbaric Chamber",
+      "country": "TC",
+      "city": "Providenciales",
+      "phone": "+1-649-946-4222",
+      "emergencyPhone": "+1-649-432-2111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.visittci.com/providenciales/associated-medical-practices"}
+    },
+    {
+      "id": "vi-st-thomas",
+      "name": "Schneider Regional Medical Center Hyperbaric Chamber (Roy Lester Schneider Hospital)",
+      "country": "VI",
+      "city": "St. Thomas",
+      "phone": "+1-340-776-8311",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.visitusvi.com/travel-information/health-information/"}
+    },
+    {
+      "id": "pr-san-juan",
+      "name": "Puerto Rico Medical Center Hyperbaric Chamber",
+      "country": "PR",
+      "city": "San Juan",
+      "phone": "+1-787-777-3535",
+      "emergencyPhone": "+1-787-390-3243",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"}
+    },
+    {
+      "id": "pr-isabela",
+      "name": "Canii Institute Hyperbaric Chamber",
+      "country": "PR",
+      "city": "Isabela",
+      "phone": "+1-787-872-8365",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"}
+    },
+    {
+      "id": "bq-bonaire",
+      "name": "Recompression Chamber Bonaire (Hospital San Francisco)",
+      "country": "BQ",
+      "city": "Kralendijk",
+      "phone": "+599-715-8900",
+      "emergencyPhone": "+599-717-8187",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://o2bonaire.com/about/"}
+    },
+    {
+      "id": "jm-discovery-bay",
+      "name": "UWI Discovery Bay Marine Lab Hyperbaric Chamber",
+      "country": "JM",
+      "city": "Discovery Bay, St. Ann",
+      "phone": "+1-876-973-2241",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"}
+    },
+    {
+      "id": "tt-tobago",
+      "name": "Roxborough Hyperbaric Chamber Facility (Tobago Regional Health Authority)",
+      "country": "TT",
+      "city": "Roxborough, Tobago",
+      "phone": "+1-868-493-4973",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://health.gov.tt/regional-health-authorities/tobago-regional-health-authority"}
+    },
+    {
+      "id": "do-puerto-plata",
+      "name": "Hospital Ricardo Limardo Hyperbaric Chamber",
+      "country": "DO",
+      "city": "Puerto Plata",
+      "phone": "+1-809-586-2210",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.caribbean-adventures-and-dive-vacations.com/hyperbaric-chamber.html"}
+    },
+    {
+      "id": "gd-st-pauls",
+      "name": "St. Augustine's Medical Services Hyperbaric Chamber",
+      "country": "GD",
+      "city": "St. Paul's",
+      "phone": "+1-473-440-6173",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://samsgrenada.com/services-facilities/"}
+    }
+  ]
+}

@@ -34,6 +34,10 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
+# WIC PNG encoding for local-file video posters (see flutter_window.cpp).
+# IShellItemImageFactory / CoCreateInstance come from libraries the default
+# Flutter Windows runner already links.
+target_link_libraries(${BINARY_NAME} PRIVATE "Windowscodecs.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

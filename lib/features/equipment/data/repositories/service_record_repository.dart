@@ -14,6 +14,12 @@ class ServiceRecordRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
+  /// Emits whenever the `service_records` table changes so the service-history
+  /// providers can refresh after a sync or any other write that bypasses the
+  /// notifiers.
+  Stream<void> watchServiceRecordsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.serviceRecords));
+
   /// Get all service records for an equipment item
   Future<List<domain.ServiceRecord>> getRecordsForEquipment(
     String equipmentId,
@@ -56,7 +62,8 @@ class ServiceRecordRepository {
           ServiceRecordsCompanion(
             id: Value(id),
             equipmentId: Value(record.equipmentId),
-            serviceType: Value(record.serviceType.name),
+            serviceCategory: Value(record.serviceCategory.name),
+            serviceKindId: Value(record.serviceKindId),
             serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
             provider: Value(record.provider),
             cost: Value(record.cost),
@@ -94,7 +101,8 @@ class ServiceRecordRepository {
       _db.serviceRecords,
     )..where((t) => t.id.equals(record.id))).write(
       ServiceRecordsCompanion(
-        serviceType: Value(record.serviceType.name),
+        serviceCategory: Value(record.serviceCategory.name),
+        serviceKindId: Value(record.serviceKindId),
         serviceDate: Value(record.serviceDate.millisecondsSinceEpoch),
         provider: Value(record.provider),
         cost: Value(record.cost),
@@ -193,20 +201,32 @@ class ServiceRecordRepository {
     return results.map(_mapCustomRowToServiceRecord).toList();
   }
 
-  /// Get total cost of services for an equipment item
-  Future<double> getTotalServiceCost(String equipmentId) async {
-    final result = await _db
+  /// Total service cost for an equipment item, keyed by the currency each
+  /// record was priced in.
+  ///
+  /// Grouped rather than summed into one figure: records can carry different
+  /// currencies, and adding them together would produce a number that is not
+  /// a real amount in any of them.
+  Future<Map<String, double>> getTotalServiceCostByCurrency(
+    String equipmentId,
+  ) async {
+    final results = await _db
         .customSelect(
           '''
-      SELECT COALESCE(SUM(cost), 0) as total
+      SELECT currency, COALESCE(SUM(cost), 0) as total
       FROM service_records
-      WHERE equipment_id = ?
+      WHERE equipment_id = ? AND cost IS NOT NULL
+      GROUP BY currency
     ''',
           variables: [Variable.withString(equipmentId)],
         )
-        .getSingle();
+        .get();
 
-    return (result.data['total'] as num?)?.toDouble() ?? 0.0;
+    return {
+      for (final row in results)
+        (row.data['currency'] as String?) ?? '':
+            (row.data['total'] as num?)?.toDouble() ?? 0.0,
+    };
   }
 
   /// Get service record count for an equipment item
@@ -270,7 +290,8 @@ class ServiceRecordRepository {
     return domain.ServiceRecord(
       id: row.id,
       equipmentId: row.equipmentId,
-      serviceType: _parseServiceType(row.serviceType),
+      serviceCategory: _parseServiceCategory(row.serviceCategory),
+      serviceKindId: row.serviceKindId,
       serviceDate: DateTime.fromMillisecondsSinceEpoch(row.serviceDate),
       provider: row.provider,
       cost: row.cost,
@@ -288,7 +309,10 @@ class ServiceRecordRepository {
     return domain.ServiceRecord(
       id: row.data['id'] as String,
       equipmentId: row.data['equipment_id'] as String,
-      serviceType: _parseServiceType(row.data['service_type'] as String),
+      serviceCategory: _parseServiceCategory(
+        row.data['service_category'] as String,
+      ),
+      serviceKindId: row.data['service_kind_id'] as String?,
       serviceDate: DateTime.fromMillisecondsSinceEpoch(
         row.data['service_date'] as int,
       ),
@@ -310,10 +334,10 @@ class ServiceRecordRepository {
     );
   }
 
-  ServiceType _parseServiceType(String value) {
-    return ServiceType.values.firstWhere(
+  ServiceCategory _parseServiceCategory(String value) {
+    return ServiceCategory.values.firstWhere(
       (t) => t.name == value,
-      orElse: () => ServiceType.other,
+      orElse: () => ServiceCategory.other,
     );
   }
 }

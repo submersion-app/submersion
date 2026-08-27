@@ -92,6 +92,13 @@ class DiveSiteApiService {
   /// Cached bundled dive sites to avoid reloading.
   List<ExternalDiveSite>? _bundledSites;
 
+  /// All bundled dive sites that have valid coordinates, for map display.
+  /// Reuses the [_loadBundledSites] cache so the asset is parsed once.
+  Future<List<ExternalDiveSite>> allSitesWithCoordinates() async {
+    final sites = await _loadBundledSites();
+    return sites.where((s) => s.hasCoordinates).toList();
+  }
+
   /// Search for dive sites by query string.
   Future<DiveSiteSearchResult> searchSites(String query) async {
     if (query.trim().isEmpty) {

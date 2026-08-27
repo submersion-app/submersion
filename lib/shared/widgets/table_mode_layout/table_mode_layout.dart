@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -279,7 +280,7 @@ class TableModeLayout extends ConsumerWidget {
             Icons.area_chart,
             color: showProfilePanel ? colorScheme.primary : null,
           ),
-          tooltip: 'Toggle profile panel',
+          tooltip: context.l10n.tableMode_tooltip_toggleProfilePanel,
           onPressed: () {
             onProfileToggled?.call();
             // When details pane is active, profile and map are mutually
@@ -302,7 +303,7 @@ class TableModeLayout extends ConsumerWidget {
             Icons.vertical_split,
             color: isDetailsActive ? colorScheme.primary : null,
           ),
-          tooltip: 'Toggle detail pane',
+          tooltip: context.l10n.tableMode_tooltip_toggleDetailPane,
           onPressed: () {
             final newValue = !ref.read(tableDetailsPaneProvider(sectionKey));
             ref.read(tableDetailsPaneProvider(sectionKey).notifier).state =

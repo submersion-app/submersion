@@ -8,9 +8,15 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
 
   s.source_files     = 'Classes/**/*.{swift,c,h}'
-  s.public_header_files = 'Classes/libdc_wrapper.h'
+  # Both headers must be public: CocoaPods builds the umbrella header from this
+  # list, and Swift can only see a C declaration that the umbrella exposes.
+  # ftdi_usb_darwin.h is what FtdiUsbIoStream.swift calls into (issue #732).
+  s.public_header_files = 'Classes/{libdc_wrapper,ftdi_usb_darwin}.h'
+  # IOKit is named explicitly because ftdi_usb_darwin.c is C: unlike a Swift
+  # `import IOKit`, a C translation unit emits no autolink directive.
+  s.frameworks       = 'IOKit'
   s.dependency 'FlutterMacOS'
-  s.platform         = :osx, '11.0'
+  s.platform         = :osx, '12.0'
   s.swift_version    = '5.9'
 
   # Preserve libdivecomputer source and config for build script
@@ -27,11 +33,15 @@ Pod::Spec.new do |s|
     'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES',
   }
 
-  # Build libdivecomputer from source before compiling Swift
+  # Build libdivecomputer from source before compiling Swift.
+  # No :output_files on purpose: with an output declared and no inputs, Xcode
+  # skips this phase whenever build/libdivecomputer.a already exists, so a
+  # patched source (e.g. the Swift GPS exit fix) would never be recompiled.
+  # build_libdc.sh does its own source-freshness check, so always running it is
+  # cheap when nothing changed.
   s.script_phase = {
     :name => 'Build libdivecomputer',
     :script => '"${PODS_TARGET_SRCROOT}/build_libdc.sh"',
     :execution_position => :before_compile,
-    :output_files => ['$(PODS_TARGET_SRCROOT)/build/libdivecomputer.a'],
   }
 end

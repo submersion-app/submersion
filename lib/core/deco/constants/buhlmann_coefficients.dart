@@ -146,7 +146,7 @@ const double surfacePressureBar = 1.0;
 const double waterPressureGradient = 1.0;
 
 /// Nitrogen fraction in air.
-const double airN2Fraction = 0.79;
+const double airN2Fraction = 0.7902;
 
 /// Oxygen fraction in air.
 const double airO2Fraction = 0.21;
@@ -168,6 +168,10 @@ const double minDecoStopDepth = 3.0;
 
 /// Deco stop depth increment in meters.
 const double decoStopIncrement = 3.0;
+
+/// Inspired surface N2 pressure in bar, accounting for water vapor.
+const double inspiredSurfaceN2Bar =
+    (surfacePressureBar - waterVaporPressure) * airN2Fraction;
 
 /// Calculate inspired N2 pressure at a given ambient pressure.
 ///

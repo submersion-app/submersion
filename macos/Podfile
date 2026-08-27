@@ -1,4 +1,4 @@
-platform :osx, '11.0'
+platform :osx, '12.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -52,7 +52,7 @@ post_install do |installer|
     end
 
     target.build_configurations.each do |config|
-      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
       # Suppress warnings from sqlite3 C source code (third-party dependency)
       if target.name == 'sqlite3'
         config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'

@@ -5,7 +5,163 @@
 #include <flutter/method_channel.h>
 #include <flutter/standard_method_codec.h>
 
+#include <shlobj.h>
+#include <wincodec.h>
+#include <threadpoolapiset.h>
+#include <wrl/client.h>
+
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "flutter/generated_plugin_registrant.h"
+
+namespace {
+using Microsoft::WRL::ComPtr;
+
+// Posted when a poster is ready to be returned to Dart.
+//
+// WM_APP + 3: the application-private range is shared across everything that
+// hangs off the runner's top-level window, and the lower offsets are taken -
+// auto_updater_windows uses WM_APP + 1 (WM_APP_SPARKLE_EVENT) and
+// submersion_transcoder uses WM_APP + 2 (WM_APP_TRANSCODE_PROGRESS). A
+// collision would not fail loudly: whichever handler runs first consumes the
+// message, so either a Sparkle event is swallowed or - worse - completions are
+// never drained and their MethodResults never complete, stranding the Dart
+// futures and leaving those grid tiles on the loading shimmer forever.
+constexpr UINT kThumbnailReadyMsg = WM_APP + 3;
+
+// Returns an empty string when the input is empty or cannot be converted:
+// MultiByteToWideChar returns 0 on failure, and writing through &w[0] on a
+// zero-length wstring would be undefined behaviour.
+std::wstring Widen(const std::string& utf8) {
+  if (utf8.empty()) return std::wstring();
+  int len = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
+  if (len <= 0) return std::wstring();
+  std::wstring w(len, L'\0');
+  if (MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &w[0], len) <= 0) {
+    return std::wstring();
+  }
+  if (!w.empty() && w.back() == L'\0') w.pop_back();
+  return w;
+}
+
+// Encodes an HBITMAP to PNG bytes via WIC.
+bool HBitmapToPng(HBITMAP hbmp, std::vector<uint8_t>* out) {
+  ComPtr<IWICImagingFactory> factory;
+  if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr,
+                              CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory)))) {
+    return false;
+  }
+  ComPtr<IWICBitmap> bmp;
+  if (FAILED(factory->CreateBitmapFromHBITMAP(
+          hbmp, nullptr, WICBitmapUsePremultipliedAlpha, &bmp))) {
+    return false;
+  }
+  ComPtr<IStream> stream;
+  if (FAILED(CreateStreamOnHGlobal(nullptr, TRUE, &stream))) return false;
+  ComPtr<IWICBitmapEncoder> encoder;
+  if (FAILED(factory->CreateEncoder(GUID_ContainerFormatPng, nullptr,
+                                    &encoder))) {
+    return false;
+  }
+  if (FAILED(encoder->Initialize(stream.Get(), WICBitmapEncoderNoCache)))
+    return false;
+  ComPtr<IWICBitmapFrameEncode> frame;
+  ComPtr<IPropertyBag2> props;
+  if (FAILED(encoder->CreateNewFrame(&frame, &props))) return false;
+  if (FAILED(frame->Initialize(props.Get()))) return false;
+  // Check these like every other call in this function. Letting a failed
+  // GetSize through would configure the frame as 0x0 and push the error into
+  // WriteSource/Commit, where the cause is far less obvious.
+  UINT w = 0, h = 0;
+  if (FAILED(bmp->GetSize(&w, &h)) || w == 0 || h == 0) return false;
+  if (FAILED(frame->SetSize(w, h))) return false;
+  // SetPixelFormat is in/out: WIC may hand back a different format than asked
+  // for, which WriteSource then converts to, so only a hard failure matters.
+  WICPixelFormatGUID fmt = GUID_WICPixelFormat32bppBGRA;
+  if (FAILED(frame->SetPixelFormat(&fmt))) return false;
+  if (FAILED(frame->WriteSource(bmp.Get(), nullptr))) return false;
+  if (FAILED(frame->Commit())) return false;
+  if (FAILED(encoder->Commit())) return false;
+
+  // Use the stream's LOGICAL size, not GlobalSize(). CreateStreamOnHGlobal
+  // grows its HGLOBAL in chunks, so the allocation is normally larger than the
+  // encoded PNG; copying GlobalSize bytes would append allocated-but-unwritten
+  // padding to the payload. STATFLAG_NONAME skips the name field, so there is
+  // nothing to CoTaskMemFree.
+  STATSTG stat = {};
+  if (FAILED(stream->Stat(&stat, STATFLAG_NONAME))) return false;
+  const ULONGLONG written = stat.cbSize.QuadPart;
+  if (written == 0) return false;
+
+  HGLOBAL hg = nullptr;
+  if (FAILED(GetHGlobalFromStream(stream.Get(), &hg))) return false;
+  // Defensive: never read past the actual allocation.
+  if (written > GlobalSize(hg)) return false;
+  void* data = GlobalLock(hg);
+  if (!data) return false;
+  out->assign(static_cast<uint8_t*>(data),
+              static_cast<uint8_t*>(data) + static_cast<size_t>(written));
+  GlobalUnlock(hg);
+  return !out->empty();
+}
+
+// One queued poster request. Owns everything the pool callback needs, since
+// the originating method-call handler has long returned by the time it runs.
+struct ThumbWork {
+  std::shared_ptr<ThumbnailBridge> bridge;
+  std::string path;
+  int max_dim = 512;
+  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result;
+};
+
+bool GenerateShellThumbnailPng(const std::string& path, int max_dim,
+                               std::vector<uint8_t>* out) {
+  ComPtr<IShellItemImageFactory> factory;
+  if (FAILED(SHCreateItemFromParsingName(
+          Widen(path).c_str(), nullptr, IID_PPV_ARGS(&factory)))) {
+    return false;
+  }
+  SIZE size{max_dim, max_dim};
+  HBITMAP hbmp = nullptr;
+  if (FAILED(factory->GetImage(size, SIIGBF_THUMBNAILONLY, &hbmp))) {
+    // Retry allowing the shell to synthesize (icon-or-thumbnail).
+    if (FAILED(factory->GetImage(size, SIIGBF_BIGGERSIZEOK, &hbmp))) {
+      return false;
+    }
+  }
+  bool ok = HBitmapToPng(hbmp, out);
+  DeleteObject(hbmp);
+  return ok;
+}
+
+// Runs on an OS thread-pool thread. Takes ownership of the ThumbWork.
+VOID CALLBACK ThumbnailWorkCallback(PTP_CALLBACK_INSTANCE, PVOID context) {
+  std::unique_ptr<ThumbWork> work(static_cast<ThumbWork*>(context));
+
+  // The shell and WIC APIs are COM and a pool thread has no apartment, so
+  // CoCreateInstance would fail with CO_E_NOTINITIALIZED without this. Shell
+  // thumbnail handlers expect an STA.
+  const HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  std::vector<uint8_t> png;
+  GenerateShellThumbnailPng(work->path, work->max_dim, &png);
+  if (SUCCEEDED(hr)) CoUninitialize();
+
+  {
+    std::lock_guard<std::mutex> lock(work->bridge->mutex);
+    work->bridge->completed.emplace_back(std::move(work->result),
+                                         std::move(png));
+  }
+  // If the window is gone the result is simply never completed; the process is
+  // shutting down. PostMessage to a stale HWND fails harmlessly.
+  if (work->bridge->alive.load()) {
+    PostMessage(work->bridge->hwnd, kThumbnailReadyMsg, 0, 0);
+  }
+}
+}  // namespace
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -30,6 +186,72 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+  thumb_bridge_ = std::make_shared<ThumbnailBridge>();
+  thumb_bridge_->hwnd = GetHandle();
+
+  local_media_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(),
+          "com.submersion.app/local_media",
+          &flutter::StandardMethodCodec::GetInstance());
+  local_media_channel_->SetMethodCallHandler(
+      [bridge = thumb_bridge_](
+          const flutter::MethodCall<flutter::EncodableValue>& call,
+          std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> res) {
+        if (call.method_name() != "generateVideoThumbnail") {
+          res->NotImplemented();
+          return;
+        }
+        const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
+        if (!args) {
+          res->Success();
+          return;
+        }
+        std::string path;
+        int max_dim = 512;
+        auto pit = args->find(flutter::EncodableValue("path"));
+        if (pit != args->end() &&
+            std::holds_alternative<std::string>(pit->second)) {
+          path = std::get<std::string>(pit->second);
+        }
+        auto mit = args->find(flutter::EncodableValue("maxDimension"));
+        if (mit != args->end() &&
+            std::holds_alternative<int32_t>(mit->second)) {
+          max_dim = std::get<int32_t>(mit->second);
+        }
+        // Clamp at the channel boundary (mirrors the Dart caller's 1..4096):
+        // a negative or absurd value would otherwise reach IShellItemImageFactory
+        // as an invalid SIZE or provoke a large allocation.
+        if (max_dim < 1) max_dim = 1;
+        if (max_dim > 4096) max_dim = 4096;
+        if (path.empty()) {
+          res->Success();  // null
+          return;
+        }
+        // Shell extraction + WIC encoding is synchronous and can take a while
+        // for an uncached codec or a large file. This handler runs on the
+        // platform/UI thread and the grid asks for a poster per visible tile,
+        // so doing it inline would stall the message loop (input, painting).
+        //
+        // Submitted to the OS thread pool rather than a detached thread per
+        // call: fast scrolling can queue a poster for every tile that passes
+        // through the viewport, and one thread each would mean unbounded
+        // thread creation plus a COM apartment apiece. The pool caps
+        // concurrency and reuses threads.
+        auto work = std::make_unique<ThumbWork>();
+        work->bridge = bridge;
+        work->path = path;
+        work->max_dim = max_dim;
+        work->result = std::move(res);
+        if (!TrySubmitThreadpoolCallback(ThumbnailWorkCallback, work.get(),
+                                         nullptr)) {
+          // Submission failed: complete now so the Dart future cannot hang.
+          work->result->Success();
+          return;
+        }
+        work.release();  // ownership passed to the callback
+      });
+
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
     this->Show();
   });
@@ -51,6 +273,13 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  // Stop in-flight thumbnail workers from posting to a window that is going
+  // away. Any result still parked in the bridge is simply never completed,
+  // which is correct at shutdown.
+  if (thumb_bridge_) {
+    thumb_bridge_->alive = false;
+  }
+
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -73,6 +302,25 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   }
 
   switch (message) {
+    case kThumbnailReadyMsg: {
+      // Runs on the platform thread, which is the only place a MethodResult
+      // may be completed. Drain under the lock, then respond outside it.
+      decltype(ThumbnailBridge::completed) ready;
+      if (thumb_bridge_) {
+        std::lock_guard<std::mutex> lock(thumb_bridge_->mutex);
+        ready.swap(thumb_bridge_->completed);
+      }
+      for (auto& entry : ready) {
+        if (entry.second.empty()) {
+          entry.first->Success();  // null -> Dart falls back to placeholder
+        } else {
+          // Move: the bytes are not needed after the result is completed, and
+          // a poster is tens to hundreds of KB per tile.
+          entry.first->Success(flutter::EncodableValue(std::move(entry.second)));
+        }
+      }
+      return 0;
+    }
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;

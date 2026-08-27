@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
@@ -101,14 +103,14 @@ void main() {
     group('calculateEnd', () {
       test('should calculate END for air dive', () {
         // Air at 30m: END should equal actual depth (no advantage)
-        final end = O2ToxicityCalculator.calculateEnd(30, 0.79);
+        final end = O2ToxicityCalculator.calculateEnd(30, airN2Fraction);
         expect(end, closeTo(30, 0.5));
       });
 
       test('should calculate reduced END for trimix', () {
         // Trimix 18/45 at 60m (45% He, 37% N2)
         // N2 pressure at 60m = 7.0 * 0.37 = 2.59 bar
-        // END = (2.59 / 0.79 - 1) * 10 = 22.8m
+        // END = (2.59 / air N2 fraction - 1) * 10 = 22.8m
         final end = O2ToxicityCalculator.calculateEnd(60, 0.37);
         expect(end, closeTo(22.8, 1.0));
       });
@@ -499,18 +501,53 @@ void main() {
 
   group('CnsTable', () {
     test('should have valid rates for all ppO2 ranges', () {
-      // Test each bracket from NOAA table
-      expect(CnsTable.cnsPerMinute(0.55), closeTo(100.0 / 720.0, 0.01));
-      expect(CnsTable.cnsPerMinute(0.65), closeTo(100.0 / 570.0, 0.01));
-      expect(CnsTable.cnsPerMinute(0.75), closeTo(100.0 / 450.0, 0.01));
-      expect(CnsTable.cnsPerMinute(0.85), closeTo(100.0 / 360.0, 0.01));
-      expect(CnsTable.cnsPerMinute(0.95), closeTo(100.0 / 300.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.05), closeTo(100.0 / 240.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.15), closeTo(100.0 / 210.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.25), closeTo(100.0 / 180.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.35), closeTo(100.0 / 150.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.45), closeTo(100.0 / 120.0, 0.01));
-      expect(CnsTable.cnsPerMinute(1.55), closeTo(100.0 / 45.0, 0.01));
+      // Test each bracket from NOAA table. These verify the classic step-table
+      // band semantics, so opt into the classic method explicitly.
+      const m = CnsCalculationMethod.classic;
+      expect(
+        CnsTable.cnsPerMinute(0.55, method: m),
+        closeTo(100.0 / 720.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(0.65, method: m),
+        closeTo(100.0 / 570.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(0.75, method: m),
+        closeTo(100.0 / 450.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(0.85, method: m),
+        closeTo(100.0 / 360.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(0.95, method: m),
+        closeTo(100.0 / 300.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.05, method: m),
+        closeTo(100.0 / 240.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.15, method: m),
+        closeTo(100.0 / 210.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.25, method: m),
+        closeTo(100.0 / 180.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.35, method: m),
+        closeTo(100.0 / 150.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.45, method: m),
+        closeTo(100.0 / 120.0, 0.01),
+      );
+      expect(
+        CnsTable.cnsPerMinute(1.55, method: m),
+        closeTo(100.0 / 45.0, 0.01),
+      );
     });
 
     test('should calculate CNS for segment correctly', () {
@@ -594,6 +631,25 @@ void main() {
       expect(CnsStatus.safe.displayName, equals('Safe'));
       expect(CnsStatus.warning.displayName, equals('Warning'));
       expect(CnsStatus.critical.displayName, equals('Critical'));
+    });
+  });
+
+  group('CNS method selection', () {
+    test('default method is Shearwater-style interpolation', () {
+      const calc = O2ToxicityCalculator();
+      expect(calc.getCnsPerMinute(1.25), closeTo(100 / 195, 1e-9));
+    });
+    test('classic method reproduces the step table', () {
+      const calc = O2ToxicityCalculator(
+        cnsMethod: CnsCalculationMethod.classic,
+      );
+      expect(calc.getCnsPerMinute(1.25), closeTo(100 / 180, 1e-9));
+    });
+    test('subsurface method uses the exponential fit', () {
+      const calc = O2ToxicityCalculator(
+        cnsMethod: CnsCalculationMethod.subsurface,
+      );
+      expect(calc.getCnsPerMinute(1.25), closeTo(0.51563, 5e-4));
     });
   });
 }

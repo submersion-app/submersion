@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Converts an [ImportedDive] into a [Dive] entity for database storage.
 ///
@@ -17,11 +18,23 @@ class ImportedDiveConverter {
   /// - A new UUID as its [Dive.id]
   /// - [ImportedDive.startTime] mapped to both [Dive.dateTime] and [Dive.entryTime]
   /// - [ImportedDive.endTime] mapped to [Dive.exitTime]
+  /// - [ImportedDive.latitude]/[ImportedDive.longitude] and
+  ///   [ImportedDive.exitLatitude]/[ImportedDive.exitLongitude] mapped to
+  ///   [Dive.entryLocation]/[Dive.exitLocation] when present (used by
+  ///   geofenced equipment defaulting and site matching)
   /// - Profile samples converted to [DiveProfilePoint] list
   /// - [importSource] and [importId] set for dedup tracking
   Dive convert(ImportedDive importedDive, {String? diverId, int? diveNumber}) {
     final profile = _convertProfile(importedDive);
     final sourceName = _sourceToString(importedDive.source);
+    final entryLocation =
+        importedDive.latitude != null && importedDive.longitude != null
+        ? GeoPoint(importedDive.latitude!, importedDive.longitude!)
+        : null;
+    final exitLocation =
+        importedDive.exitLatitude != null && importedDive.exitLongitude != null
+        ? GeoPoint(importedDive.exitLatitude!, importedDive.exitLongitude!)
+        : null;
 
     // importedDive.duration is endTime - startTime (total runtime),
     // not bottom time. Store it as runtime and auto-calculate bottom time.
@@ -36,6 +49,8 @@ class ImportedDiveConverter {
       maxDepth: importedDive.maxDepth,
       avgDepth: importedDive.avgDepth,
       waterTemp: importedDive.minTemperature,
+      entryLocation: entryLocation,
+      exitLocation: exitLocation,
       profile: profile,
       importSource: sourceName,
       importId: importedDive.sourceId,

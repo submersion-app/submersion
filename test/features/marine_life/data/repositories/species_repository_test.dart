@@ -39,6 +39,28 @@ void main() {
   });
 
   group('SpeciesRepository', () {
+    test(
+      'watchSpeciesChanges emits when the species table is written',
+      () async {
+        // Subscribe first, then write: the tick must fire so the species list
+        // providers (allSpeciesProvider / SpeciesListNotifier) refresh after a
+        // sync writes species rows directly.
+        final firstTick = repository.watchSpeciesChanges().first.timeout(
+          const Duration(seconds: 5),
+        );
+        await repository.createSpecies(
+          commonName: 'Synced Species',
+          scientificName: 'Synced sp',
+          category: SpeciesCategory.fish,
+          taxonomyClass: 'Test',
+          description: 'x',
+        );
+        await firstTick; // throws on timeout if the tick never fired
+        final all = await repository.getAllSpecies();
+        expect(all.any((s) => s.commonName == 'Synced Species'), isTrue);
+      },
+    );
+
     group('CRUD operations', () {
       test(
         'createSpecies creates a custom species with generated ID',

@@ -1,14 +1,13 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
@@ -19,13 +18,15 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 
 // ---------------------------------------------------------------------------
@@ -45,6 +46,26 @@ final dcAdapterDownloadCanAdvanceProvider = StateProvider<bool>((ref) => false);
 // DiveComputerAdapter
 // ---------------------------------------------------------------------------
 
+/// Outcome of a single `DiveComputerAdapter._consolidateDive` call.
+///
+/// Used by `DiveComputerAdapter.performImport` to keep the import summary
+/// accurate when a consolidation cannot complete, instead of throwing and
+/// aborting the rest of the import loop.
+enum _ConsolidateOutcome {
+  /// The download was imported and successfully folded into the target.
+  consolidated,
+
+  /// Skipped without importing: the target dive already has data from the
+  /// same computer, which [DiveConsolidationService.apply] would always
+  /// reject with `ArgumentError('sameComputer...')`.
+  skippedSameComputer,
+
+  /// The download was imported as a standalone dive, but folding it into
+  /// the target failed unexpectedly. The orphaned standalone dive was
+  /// deleted to avoid stranding it.
+  failed,
+}
+
 /// Import source adapter for dive computer downloads.
 ///
 /// Implements [ImportSourceAdapter] for the unified import wizard. Supports
@@ -60,34 +81,56 @@ final dcAdapterDownloadCanAdvanceProvider = StateProvider<bool>((ref) => false);
 /// **Quick download (known computer)** -- [knownComputer] is provided.
 /// One acquisition step: Download (auto-scans for the known device).
 class DiveComputerAdapter implements ImportSourceAdapter {
+  static final _log = LoggerService.forClass(DiveComputerAdapter);
+
   DiveComputerAdapter({
     required DiveImportService importService,
     required DiveComputerRepository computerRepository,
     required DiveRepository diveRepository,
+    required DiveConsolidationService consolidationService,
     required String diverId,
     DiveComputer? knownComputer,
     String? displayName,
     WidgetRef? ref,
+    bool forceFullDownload = false,
   }) : _importService = importService,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
+       _consolidationService = consolidationService,
        _diverId = diverId,
        _knownComputer = knownComputer,
        _ref = ref,
+       _forceFullDownload = forceFullDownload,
        _displayName =
            displayName ?? knownComputer?.displayName ?? 'Dive Computer';
 
   final DiveImportService _importService;
   final DiveComputerRepository _computerRepository;
   final DiveRepository _diveRepository;
+  final DiveConsolidationService _consolidationService;
   final String _diverId;
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
+  final bool _forceFullDownload;
   final String _displayName;
+
+  /// Whether this import session should bypass the fingerprint and download
+  /// every dive on the device.
+  ///
+  /// Set by the route builder when the user triggers "Re-import all dives"
+  /// from the DC detail page (via `?forceFull=true` query parameter).
+  bool get forceFullDownload => _forceFullDownload;
 
   List<DownloadedDive> _downloadedDives = [];
   DiveComputer? _computer;
   String? _customDeviceName;
+  DateTime? _sinceCutoff;
+
+  // Session-level descriptor fields captured from the discovered device.
+  String? _descriptorVendor;
+  String? _descriptorProduct;
+  int? _descriptorModel;
+  String? _libdivecomputerVersion;
 
   /// Set by the wizard so the confirm step can navigate back to scan.
   VoidCallback? goBackFromConfirm;
@@ -111,6 +154,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     _downloadedDives = List.unmodifiable(dives);
   }
 
+  /// Set the first-sync cutoff captured from the download state.
+  ///
+  /// Dives at or before it default to skip in the review step (tier-1
+  /// filter for backends that transferred them anyway). Pass null to clear
+  /// it -- also done by [resetState].
+  void setSinceCutoff(DateTime? cutoff) {
+    _sinceCutoff = cutoff;
+  }
+
   /// Set the computer after discovery completes.
   void setComputer(DiveComputer computer) {
     _computer = computer;
@@ -119,15 +171,18 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// Look up an existing computer by the discovered device's address.
   ///
   /// Called before the download starts in discovery mode. If a matching
-  /// computer is found, its [lastDiveFingerprint] enables incremental
-  /// download (only new dives). Does NOT create a new computer record —
-  /// that happens in [ensureComputer] after the download completes.
+  /// computer is found for the current diver, its [lastDiveFingerprint]
+  /// enables incremental download (only new dives). Does NOT create a new
+  /// computer record -- that happens in [ensureComputer] after the download
+  /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
+      if (_diverId.isEmpty) return;
       final existing = await _computerRepository.findByBluetoothAddress(
         device.address,
+        diverId: _diverId,
       );
       if (existing != null) {
         _computer = existing;
@@ -139,20 +194,74 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   ///
   /// Called by the download step after a successful download in discovery mode.
   /// In known-computer mode this is a no-op.
+  ///
+  /// Also captures the session-level descriptor fields (vendor, product, model,
+  /// and libdivecomputer version) so they can be passed to the import service
+  /// before dives are written to the database.
   Future<void> ensureComputer({
     required DiscoveredDevice device,
     String? serialNumber,
     String? firmwareVersion,
   }) async {
-    if (computer != null) return;
+    // Capture descriptor fields regardless of whether a computer record already
+    // exists — these are always needed for the import service.
+    final model = device.recognizedModel;
+    if (model != null) {
+      _descriptorVendor = model.manufacturer;
+      _descriptorProduct = model.model;
+      _descriptorModel = model.dcModel;
+    }
 
-    // Create a new computer record from the discovered device.
+    // Fetch the libdivecomputer version string once per session.
+    if (_libdivecomputerVersion == null) {
+      final dcService = _ref?.read(diveComputerServiceProvider);
+      if (dcService != null) {
+        try {
+          _libdivecomputerVersion = await dcService.getVersion();
+        } catch (_) {
+          // Non-fatal — version metadata is best-effort.
+        }
+      }
+    }
+
     final connectionTypeStr = switch (device.connectionType) {
       DeviceConnectionType.ble => 'bluetooth',
       DeviceConnectionType.bluetoothClassic => 'bluetooth',
       DeviceConnectionType.usb => 'usb',
       DeviceConnectionType.infrared => 'infrared',
     };
+
+    if (computer != null) return;
+
+    // A BLE identifier is local to the host running this app. After a fresh
+    // discovery, use the stable hardware identity to rebind this host's
+    // identifier instead of creating a duplicate synced computer record.
+    final normalizedSerial = serialNumber?.trim();
+    final normalizedManufacturer = device.manufacturer?.trim();
+    final normalizedModel = device.model?.trim();
+    if (normalizedSerial?.isNotEmpty == true &&
+        normalizedManufacturer?.isNotEmpty == true &&
+        normalizedModel?.isNotEmpty == true) {
+      final existing = await _computerRepository.findByHardwareIdentity(
+        manufacturer: normalizedManufacturer!,
+        model: normalizedModel!,
+        serialNumber: normalizedSerial!,
+        diverId: _diverId,
+      );
+      if (existing != null) {
+        final rebound = existing.copyWith(
+          serialNumber: normalizedSerial,
+          firmwareVersion: firmwareVersion,
+          connectionType: connectionTypeStr,
+          bluetoothAddress: device.address,
+        );
+        await _computerRepository.updateComputer(rebound);
+        _computer = rebound;
+        return;
+      }
+    }
+
+    // Create a new computer record when the stable hardware identity is new.
 
     final newComputer =
         DiveComputer.create(
@@ -177,6 +286,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   @override
   void resetState() {
+    _sinceCutoff = null;
     final ref = _ref;
     if (ref == null) return;
     ref.invalidate(dcAdapterScanCanAdvanceProvider);
@@ -214,7 +324,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
     DuplicateAction.consolidate,
+    DuplicateAction.replaceSource,
   };
+
+  /// A dive computer download only ever produces dives, so there is no
+  /// entity type that needs a narrower set than the adapter-wide one.
+  @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
 
   @override
   List<WizardStepDef> get acquisitionSteps {
@@ -264,12 +381,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   Future<ImportBundle> buildBundle() async {
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
+    final cutoff = _sinceCutoff;
+    final autoSkip = <int>{
+      if (cutoff != null)
+        for (var i = 0; i < _downloadedDives.length; i++)
+          if (!_downloadedDives[i].startTime.isAfter(cutoff)) i,
+    };
+
     return ImportBundle(
       source: ImportSourceInfo(
         type: ImportSourceType.diveComputer,
         displayName: _displayName,
+        currentComputerId: computer?.id,
       ),
-      groups: {ImportEntityType.dives: EntityGroup(items: items)},
+      groups: {
+        ImportEntityType.dives: EntityGroup(
+          items: items,
+          autoSkipIndices: autoSkip.isEmpty ? null : autoSkip,
+        ),
+      },
     );
   }
 
@@ -281,18 +411,33 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final duplicateIndices = <int>{};
     final matchResults = <int, DiveMatchResult>{};
 
+    // Prefetch the source-key map once for the whole download; the
+    // fingerprint pass in detectDuplicate scans it per dive.
+    final sourceKeysCache = await _diveRepository.getSourceKeysByDiveId(
+      diverId: _diverId,
+    );
+
     for (var i = 0; i < _downloadedDives.length; i++) {
       final dive = _downloadedDives[i];
-      final result = await _importService.detectDuplicate(dive);
+      final result = await _importService.detectDuplicate(
+        dive,
+        diverId: _diverId,
+        sourceKeysCache: sourceKeysCache,
+      );
 
       if (result.isDuplicate && result.score >= 0.5) {
         duplicateIndices.add(i);
+        final matchedComputerId = await _diveRepository.getComputerIdForDive(
+          result.matchingDiveId!,
+        );
         matchResults[i] = DiveMatchResult(
           diveId: result.matchingDiveId!,
           score: result.score,
           timeDifferenceMs: (result.timeDifferenceSeconds ?? 0) * 1000,
           depthDifferenceMeters: result.depthDifferenceMeters,
           durationDifferenceSeconds: null,
+          matchedComputerId: matchedComputerId,
+          matchedExistingSource: result.matchedExistingSource,
         );
       }
     }
@@ -305,6 +450,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           items: diveGroup.items,
           duplicateIndices: duplicateIndices,
           matchResults: matchResults,
+          autoSkipIndices: diveGroup.autoSkipIndices,
         ),
       },
     );
@@ -317,6 +463,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final comp = computer;
     if (comp == null) {
@@ -336,6 +483,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Build the final set of indices and track actions.
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
+    final indicesToReplaceSource = <int>{};
     var skipped = 0;
 
     for (final index in baseSelections) {
@@ -344,6 +492,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         skipped++;
       } else if (action == DuplicateAction.consolidate) {
         indicesToConsolidate.add(index);
+      } else if (action == DuplicateAction.replaceSource) {
+        indicesToReplaceSource.add(index);
       } else {
         indicesToImport.add(index);
       }
@@ -355,6 +505,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       } else if (entry.value == DuplicateAction.consolidate &&
           !baseSelections.contains(entry.key)) {
         indicesToConsolidate.add(entry.key);
+      } else if (entry.value == DuplicateAction.replaceSource &&
+          !baseSelections.contains(entry.key)) {
+        indicesToReplaceSource.add(entry.key);
       } else if (entry.value == DuplicateAction.skip &&
           !baseSelections.contains(entry.key)) {
         skipped++;
@@ -363,19 +516,26 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
     // Merge and sort indices by startTime (oldest first) so sequential
     // dive number assignment produces correct chronological numbering.
-    final allIndices = {...indicesToImport, ...indicesToConsolidate}.toList()
-      ..sort((a, b) {
-        final aTime = _downloadedDives[a].startTime;
-        final bTime = _downloadedDives[b].startTime;
-        return aTime.compareTo(bTime);
-      });
+    final allIndices =
+        {
+          ...indicesToImport,
+          ...indicesToConsolidate,
+          ...indicesToReplaceSource,
+        }.toList()..sort((a, b) {
+          final aTime = _downloadedDives[a].startTime;
+          final bTime = _downloadedDives[b].startTime;
+          return aTime.compareTo(bTime);
+        });
     final total = allIndices.length;
     var imported = 0;
     var consolidated = 0;
-    final importedDives = <DownloadedDive>[];
+    var updated = 0;
+    final processedDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final index = allIndices[i];
       if (index >= _downloadedDives.length) continue;
 
@@ -386,8 +546,45 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
         if (matchResult != null) {
-          await _consolidateDive(dive, matchResult.diveId, comp);
-          consolidated++;
+          final outcome = await _consolidateDive(
+            dive,
+            matchResult.diveId,
+            comp,
+          );
+          switch (outcome) {
+            case _ConsolidateOutcome.consolidated:
+              consolidated++;
+            case _ConsolidateOutcome.skippedSameComputer:
+            case _ConsolidateOutcome.failed:
+              skipped++;
+          }
+        }
+      } else if (indicesToReplaceSource.contains(index)) {
+        // Replace source: update the matched dive's source data with the
+        // freshly downloaded version.
+        final diveGroup = bundle.groups[ImportEntityType.dives];
+        final matchResult = diveGroup?.matchResults?[index];
+        if (matchResult != null) {
+          final conflict = ImportConflict(
+            downloaded: dive,
+            existingDiveId: matchResult.diveId,
+            duplicateResult: DuplicateResult(
+              matchingDiveId: matchResult.diveId,
+              confidence: DuplicateConfidence.exact,
+              score: matchResult.score,
+            ),
+          );
+          await _importService.resolveConflict(
+            conflict,
+            ConflictResolution.replaceSource,
+            comp.id,
+            diverId: _diverId,
+            descriptorVendor: _descriptorVendor,
+            descriptorProduct: _descriptorProduct,
+            descriptorModel: _descriptorModel,
+            libdivecomputerVersion: _libdivecomputerVersion,
+          );
+          updated++;
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -397,22 +594,39 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           dive,
           computerId: comp.id,
           diverId: _diverId,
+          descriptorVendor: _descriptorVendor,
+          descriptorProduct: _descriptorProduct,
+          descriptorModel: _descriptorModel,
+          libdivecomputerVersion: _libdivecomputerVersion,
         );
         imported++;
-        importedDives.add(dive);
         importedDiveIds.add(diveId);
       }
 
+      processedDives.add(dive);
       onProgress?.call(ImportPhase.dives, i + 1, total);
     }
 
-    // Update computer metadata. Use ALL downloaded dives for the fingerprint
-    // so skipped/consolidated dives aren't re-downloaded next session.
-    await _updateComputerAfterImport(comp, imported, _downloadedDives);
+    // Update computer metadata.
+    //
+    // Normal completion uses ALL downloaded dives so skipped/consolidated
+    // dives aren't re-downloaded next session. On cancellation we only advance
+    // the fingerprint for the dives we actually processed, so the user can
+    // re-import the remainder next time.
+    final wasCancelled = cancelToken?.isCancelled ?? false;
+    await _updateComputerAfterImport(
+      comp,
+      imported,
+      wasCancelled ? processedDives : _downloadedDives,
+    );
+
+    // Queue a data-quality scan of the imported dives (fire-and-forget).
+    scheduleQualityScan(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
+      updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
     );
@@ -447,54 +661,82 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// Consolidate a downloaded dive as a secondary computer reading on an
   /// existing dive.
-  Future<void> _consolidateDive(
+  ///
+  /// Imports the download as a standalone new dive first -- persisting every
+  /// sample column, tanks, pressures, events, and the raw-data
+  /// `dive_data_sources` row via [DiveImportService.importSingleDiveAsNew] /
+  /// `importProfile` -- then folds it into [targetDiveId] via
+  /// [DiveConsolidationService.apply]. This gives full-fidelity
+  /// consolidation instead of a hand-rolled copy that would drop heart
+  /// rate, O2 sensors, CNS/TTS samples, tanks, and events.
+  ///
+  /// The import and the fold are NOT atomic (there is no cross-table
+  /// transaction spanning both repository calls), so this method guards
+  /// both failure modes rather than letting either strand a dangling dive:
+  ///
+  /// - **Predictable failure (pre-validated, nothing imported):**
+  ///   [DiveConsolidationService.apply] always throws `ArgumentError`
+  ///   ("sameComputer...") when the secondary shares [targetDiveId]'s
+  ///   `computerId`. Checking that up front avoids importing a dive that is
+  ///   guaranteed to fail the fold.
+  /// - **Unexpected failure (compensated):** if the import succeeds but
+  ///   `apply` throws for any other reason, the freshly-imported dive is
+  ///   deleted via [DiveRepository.bulkDeleteDives] (tombstone-honoring)
+  ///   instead of being left as a bare, unconsolidated duplicate.
+  ///
+  /// Returns a [_ConsolidateOutcome] describing what happened so the caller
+  /// can adjust the import summary's counters instead of aborting the loop.
+  Future<_ConsolidateOutcome> _consolidateDive(
     DownloadedDive dive,
     String targetDiveId,
     DiveComputer comp,
   ) async {
-    const uuid = Uuid();
-    final now = DateTime.now();
-
-    final secondaryReading = DiveDataSourcesCompanion.insert(
-      id: uuid.v4(),
-      diveId: targetDiveId,
-      isPrimary: const Value(false),
-      computerId: Value(comp.id),
-      computerModel: Value(comp.model),
-      computerSerial: Value(comp.serialNumber),
-      sourceFormat: const Value('dive_computer'),
-      maxDepth: Value(dive.maxDepth),
-      avgDepth: Value(dive.avgDepth),
-      duration: Value(dive.durationSeconds),
-      waterTemp: Value(dive.minTemperature),
-      entryTime: Value(dive.startTime),
-      exitTime: Value(dive.endTime),
-      importedAt: now,
-      createdAt: now,
+    final targetComputerId = await _diveRepository.getComputerIdForDive(
+      targetDiveId,
     );
+    if (targetComputerId != null && targetComputerId == comp.id) {
+      return _ConsolidateOutcome.skippedSameComputer;
+    }
 
-    final secondaryProfile = dive.profile
-        .map(
-          (p) => DiveProfilesCompanion.insert(
-            id: uuid.v4(),
-            diveId: targetDiveId,
-            computerId: Value(comp.id),
-            isPrimary: const Value(false),
-            timestamp: p.timeSeconds,
-            depth: p.depth,
-            temperature: Value(p.temperature),
-            pressure: const Value(null),
-            setpoint: Value(p.setpoint),
-            ppO2: Value(p.ppo2),
-          ),
-        )
-        .toList();
-
-    await _diveRepository.consolidateComputer(
-      targetDiveId: targetDiveId,
-      secondaryReading: secondaryReading,
-      secondaryProfile: secondaryProfile,
-    );
+    String? newDiveId;
+    try {
+      newDiveId = await _importService.importSingleDiveAsNew(
+        dive,
+        computerId: comp.id,
+        diverId: _diverId,
+        descriptorVendor: _descriptorVendor,
+        descriptorProduct: _descriptorProduct,
+        descriptorModel: _descriptorModel,
+        libdivecomputerVersion: _libdivecomputerVersion,
+      );
+      await _consolidationService.apply(
+        targetDiveId: targetDiveId,
+        secondaryDiveIds: [newDiveId],
+      );
+      return _ConsolidateOutcome.consolidated;
+    } catch (e, st) {
+      _log.error(
+        'Consolidation fold failed for dive into $targetDiveId',
+        error: e,
+        stackTrace: st,
+      );
+      if (newDiveId != null) {
+        try {
+          await _diveRepository.bulkDeleteDives([newDiveId]);
+        } catch (deleteError, deleteStack) {
+          // The compensating delete failed too -- log it and fall through
+          // rather than rethrow, so the import loop still processes the
+          // remaining dives instead of aborting on a stranded standalone
+          // dive.
+          _log.error(
+            'Compensating delete failed for orphaned dive $newDiveId',
+            error: deleteError,
+            stackTrace: deleteStack,
+          );
+        }
+      }
+      return _ConsolidateOutcome.failed;
+    }
   }
 
   /// Update computer dive count, last download, and fingerprint after import.

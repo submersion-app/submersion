@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/gas_mix_input.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/widgets/si_slider_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Input card for the second (planned) dive parameters.
-/// Allows setting depth and time for the planned repetitive dive.
+/// Allows setting depth, time, and gas mix (O2/He percentages).
 class NextDiveInput extends ConsumerWidget {
   const NextDiveInput({super.key});
 
@@ -54,20 +56,12 @@ class NextDiveInput extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  context.l10n.surfaceInterval_secondDive_gasAir,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 20),
 
             // Depth Slider
-            _buildSliderRow(
-              context: context,
+            SiSliderRow(
               label: context.l10n.surfaceInterval_field_depth,
               icon: Icons.arrow_downward,
               value: '${displayDepth.toStringAsFixed(0)} $depthSymbol',
@@ -93,8 +87,7 @@ class NextDiveInput extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // Time Slider
-            _buildSliderRow(
-              context: context,
+            SiSliderRow(
               label: context.l10n.surfaceInterval_field_time,
               icon: Icons.timer,
               value: context.l10n.surfaceInterval_format_minutes(time),
@@ -116,70 +109,21 @@ class NextDiveInput extends ConsumerWidget {
               minLabel: context.l10n.surfaceInterval_format_minutes(5),
               maxLabel: context.l10n.surfaceInterval_format_minutes(120),
             ),
+            const SizedBox(height: 16),
+
+            // Gas Mix Section
+            GasMixInput(
+              o2Provider: siSecondDiveO2Provider,
+              heProvider: siSecondDiveHeProvider,
+              gasSafetyProvider: siSecondDiveGasSafetyProvider,
+              o2SemanticsBuilder: (percent) =>
+                  context.l10n.surfaceInterval_secondDive_o2Semantics(percent),
+              heSemanticsBuilder: (percent) =>
+                  context.l10n.surfaceInterval_secondDive_heSemantics(percent),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSliderRow({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required String value,
-    required Widget slider,
-    required String minLabel,
-    required String maxLabel,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                ExcludeSemantics(
-                  child: Icon(
-                    icon,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(label, style: theme.textTheme.bodyMedium),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        slider,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(minLabel, style: theme.textTheme.bodySmall),
-              Text(maxLabel, style: theme.textTheme.bodySmall),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

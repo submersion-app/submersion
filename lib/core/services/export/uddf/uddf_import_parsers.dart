@@ -3,12 +3,111 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+/// Normalizes a raw UDDF `<tankvolume>` value to liters (#158).
+///
+/// UDDF 3.2.3 defines tankvolume in CUBIC METERS, but exporters disagree:
+/// spec-conformant tools write 0.0111 for an 11.1 L tank, Diving Log 6.x
+/// writes 0.111 (10x off), and legacy Submersion exports wrote plain liters.
+/// A plausibility ladder keyed to real tank sizes (roughly 1-45 L water
+/// capacity) disambiguates the three conventions; implausible values are
+/// stored unchanged rather than guessed at.
+///
+/// The ladder cannot be exact for every input: 0.045 < raw <= 0.45 is
+/// genuinely ambiguous between a Diving Log 4.5-45 L tank and a
+/// spec-conformant 45-450 L one, and it resolves toward Diving Log because
+/// small cylinders are far more common than 45 L+ single-tank records.
+/// Exports that declare their unit never hit that ambiguity: they set
+/// [strictCubicMeters] and are converted exactly. Submersion exports made
+/// BEFORE the unit was declared wrote liters, carry no declaration, and so
+/// fall through to the ladder, which reads them correctly.
+double normalizeUddfTankVolumeToLiters(
+  double raw, {
+  bool strictCubicMeters = false,
+}) {
+  if (raw <= 0) return raw;
+  // A file that DECLARES its unit needs no guessing, so any volume
+  // round-trips exactly -- including tanks above the ladder's range. The
+  // >= 1 guard is a backstop against a mislabelled file: 1 m3 is 1000 L,
+  // which is not a tank, so such a value is liters whatever the label says.
+  if (strictCubicMeters && raw < 1.0) return raw * 1000;
+  if (raw <= 0.045) return raw * 1000; // spec cubic meters
+  if (raw <= 0.45) return raw * 100; // Diving Log 10x-off quirk
+  if (raw <= 45) return raw; // legacy liter exports
+  return raw;
+}
+
 /// Static parser methods for UDDF entity elements.
 ///
 /// Used by [UddfFullImportService] to parse individual entity types
 /// from UDDF XML elements into maps.
 class UddfImportParsers {
   UddfImportParsers._();
+
+  // An integer followed by a fractional part of nothing but zeros, e.g.
+  // "15.0" or "15.000". Captures the integer so it can be parsed exactly.
+  static final RegExp _zeroFractionPattern = RegExp(r'^([+-]?\d+)\.0*$');
+
+  /// Parses a UDDF integer-semantics value, tolerating the float
+  /// serialization several exporters emit.
+  ///
+  /// UDDF types fields like `<divetime>` and `<diveduration>` as integers,
+  /// but exporters built on JavaScript runtimes write them as floats
+  /// (Oceanic Plus emits `<divetime>15.0</divetime>`; MacDive emits
+  /// `<diveduration>60.00</diveduration>`), because 15 and 15.0 are the
+  /// same value there. [int.tryParse] rejects any decimal point, so those
+  /// fields silently fell back to 0 or were dropped entirely -- a profile
+  /// imported from Oceanic Plus had every waypoint stamped at t=0.
+  ///
+  /// Parsing leniently here fixes the whole class of defect without
+  /// requiring the file to be attributed to a known vendor first, which
+  /// matters because vendor fingerprints fail silently: Oceanic Plus omits
+  /// `<generator><name>`, leaving only a locale-dependent homepage URL to
+  /// match on.
+  ///
+  /// Returns null when [text] is null, blank, non-numeric, or non-finite.
+  /// Genuinely fractional input is rounded to nearest.
+  static int? parseUddfInt(String? text) {
+    if (text == null) return null;
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+
+    final asInt = int.tryParse(trimmed);
+    if (asInt != null) return asInt;
+
+    // Strip a fractional part that is nothing but zeros, so the value keeps
+    // exact integer semantics. Going through a double would lose precision
+    // above 2^53 ("9007199254740993.0" comes back as ...992) for values Dart
+    // ints represent exactly. Anything with a real fraction, an exponent or
+    // stray characters falls through to the double path below.
+    final zeroFraction = _zeroFractionPattern.firstMatch(trimmed);
+    if (zeroFraction != null) {
+      final exact = int.tryParse(zeroFraction.group(1)!);
+      if (exact != null) return exact;
+    }
+
+    final asDouble = double.tryParse(trimmed);
+    // double.tryParse succeeds on "NaN" and "Infinity", and calling round()
+    // on either throws UnsupportedError. Guarding here keeps one malformed
+    // element from aborting the entire import.
+    if (asDouble == null || !asDouble.isFinite) return null;
+    return asDouble.round();
+  }
+
+  /// Parses a UDDF decimal value, rejecting non-finite input.
+  ///
+  /// [double.tryParse] succeeds on "NaN", "Infinity" and "-Infinity", so a
+  /// value that is only null-checked reaches the database intact. NaN is the
+  /// dangerous one: it compares false against everything including itself,
+  /// so it silently poisons totals, averages and range checks downstream
+  /// rather than failing where it was introduced.
+  ///
+  /// Returns null when [text] is null, blank, non-numeric or non-finite.
+  static double? parseUddfDouble(String? text) {
+    if (text == null) return null;
+    final value = double.tryParse(text.trim());
+    if (value == null || !value.isFinite) return null;
+    return value;
+  }
 
   static void assignGasMixToTankIfMissing({
     required List<Map<String, dynamic>> tanks,
@@ -37,6 +136,140 @@ class UddfImportParsers {
     return element?.innerText.trim().isEmpty == true
         ? null
         : element?.innerText.trim();
+  }
+
+  /// Reads a dive computer's vendor from a `<divecomputer>` element.
+  ///
+  /// UDDF nests the vendor as `<manufacturer><name>`, alongside optional
+  /// address and contact children, so the nested `<name>` is read first.
+  ///
+  /// The bare-text fallback keeps exporters that write
+  /// `<manufacturer>Shearwater</manufacturer>` working, but applies only when
+  /// the element has no child elements at all: `innerText` walks the whole
+  /// subtree, so a `<manufacturer>` carrying only an address would otherwise
+  /// yield a vendor of "VancouverCanada".
+  static String? getManufacturerName(XmlElement computerElement) {
+    final manufacturer = computerElement
+        .findElements('manufacturer')
+        .firstOrNull;
+    if (manufacturer == null) return null;
+    final named = getElementText(manufacturer, 'name');
+    if (named != null) return named;
+    if (manufacturer.childElements.isNotEmpty) return null;
+    final text = manufacturer.innerText.trim();
+    return text.isEmpty ? null : text;
+  }
+
+  /// Maximum O2 cells the profile schema can hold (o2Sensor1..o2Sensor6).
+  static const int maxO2Sensors = 6;
+
+  /// Reads the dive mode from a `<divemode>` child of [parent].
+  ///
+  /// UDDF's own form is an empty element carrying the circuit in a `type`
+  /// attribute (`<divemode type="closedcircuit" />`), while our exporter
+  /// writes the enum name as inner text. Both appear at dive level, on
+  /// `<rebreather>` and on waypoints, so both are read wherever the element
+  /// occurs.
+  static enums.DiveMode? parseDiveModeIn(XmlElement parent) {
+    final element = parent.findElements('divemode').firstOrNull;
+    if (element == null) return null;
+
+    return parseUddfDiveMode(element.innerText) ??
+        parseUddfDiveMode(element.getAttribute('type'));
+  }
+
+  /// Resolves a UDDF circuit name to a dive mode.
+  ///
+  /// UDDF spells the circuit out (`closedcircuit`), while our own exporter
+  /// writes the enum name (`ccr`), so both are accepted. Apnea has no
+  /// equivalent mode and stays unresolved rather than being forced to gauge.
+  static enums.DiveMode? parseUddfDiveMode(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+
+    return switch (normalized) {
+      'closedcircuit' => enums.DiveMode.ccr,
+      'semiclosedcircuit' => enums.DiveMode.scr,
+      'opencircuit' => enums.DiveMode.oc,
+      _ => parseEnumValue(normalized, enums.DiveMode.values),
+    };
+  }
+
+  /// Parses a UDDF partial pressure into bar.
+  ///
+  /// The spec mandates Pascal (`1.27e5` for 1.27 bar), but exporters are
+  /// inconsistent: Shearwater Cloud writes plain bar (`0.849999964`), and our
+  /// own exporter has always written bar. The two differ by 10^5, so the
+  /// magnitude decides the unit. No breathable partial pressure reaches 100
+  /// bar, and 100 Pa (0.001 bar) is not a plausible reading either, so
+  /// anything above the threshold is Pascal.
+  static double? parsePartialPressureBar(String? text) {
+    if (text == null) return null;
+    final value = double.tryParse(text.trim());
+    if (value == null || value <= 0) return null;
+    return value > 100 ? value / 100000 : value;
+  }
+
+  /// Ordered O2 cell ids declared in the document.
+  ///
+  /// AP Diving declares them under `diver/owner/equipment/rebreather`, but the
+  /// lookup is document-wide so an exporter that puts them elsewhere still
+  /// resolves. Per-waypoint cell readings reference these ids, so declaration
+  /// order — not the order the readings appear in a waypoint — determines
+  /// which cell a reading belongs to.
+  static List<String> parseO2SensorOrder(XmlDocument document) {
+    return document
+        .findAllElements('o2sensor')
+        .map((sensor) => sensor.getAttribute('id')?.trim())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toList();
+  }
+
+  /// Reads per-cell O2 readings from a waypoint, in bar, indexed by cell.
+  ///
+  /// Handles both the published `<measuredpo2 ref="...">` form and the
+  /// unpublished 3.3.0 draft `<ppo2 ref="...">` rename that AP Diving's
+  /// DiveSight emits. Readings whose `ref` matches no declared sensor fall
+  /// back to the order they appear in the waypoint, so an export that omits
+  /// the `<rebreather>` block still yields usable curves.
+  static Map<int, double> parseO2SensorReadings(
+    XmlElement waypoint,
+    List<String> sensorOrder,
+  ) {
+    final readings = <int, double>{};
+    final unresolved = <double>[];
+
+    for (final element in [
+      ...waypoint.findElements('measuredpo2'),
+      ...waypoint.findElements('ppo2'),
+    ]) {
+      final ref = element.getAttribute('ref')?.trim();
+      // A bare <ppo2> with no ref is our own exporter's aggregate value,
+      // not a cell reading.
+      if (ref == null || ref.isEmpty) continue;
+
+      final value = parsePartialPressureBar(element.innerText);
+      if (value == null) continue;
+
+      final index = sensorOrder.indexOf(ref);
+      if (index >= 0) {
+        if (index < maxO2Sensors) readings[index] = value;
+      } else {
+        unresolved.add(value);
+      }
+    }
+
+    for (final value in unresolved) {
+      var slot = 0;
+      while (readings.containsKey(slot)) {
+        slot++;
+      }
+      if (slot >= maxO2Sensors) break;
+      readings[slot] = value;
+    }
+
+    return readings;
   }
 
   static GasMix parseGasMix(XmlElement mixElement) {
@@ -238,13 +471,33 @@ class UddfImportParsers {
 
     final sortOrder = getElementText(typeElement, 'sortorder');
     if (sortOrder != null) {
-      diveType['sortOrder'] = int.tryParse(sortOrder) ?? 0;
+      diveType['sortOrder'] = parseUddfInt(sortOrder) ?? 0;
     }
 
     final isBuiltIn = getElementText(typeElement, 'isbuiltin');
     diveType['isBuiltIn'] = isBuiltIn?.toLowerCase() == 'true';
 
     return diveType;
+  }
+
+  static Map<String, dynamic> parseDiveRoleElement(XmlElement roleElement) {
+    final diveRole = <String, dynamic>{};
+    final roleId = roleElement.getAttribute('id');
+    if (roleId != null) {
+      diveRole['id'] = roleId;
+    }
+
+    diveRole['name'] = getElementText(roleElement, 'name') ?? '';
+
+    final sortOrder = getElementText(roleElement, 'sortorder');
+    if (sortOrder != null) {
+      diveRole['sortOrder'] = parseUddfInt(sortOrder) ?? 0;
+    }
+
+    final isBuiltIn = getElementText(roleElement, 'isbuiltin');
+    diveRole['isBuiltIn'] = isBuiltIn?.toLowerCase() == 'true';
+
+    return diveRole;
   }
 
   static Map<String, dynamic> parseDiveComputer(XmlElement computerElement) {
@@ -469,7 +722,7 @@ class UddfImportParsers {
 
     final serviceInterval = getElementText(itemElement, 'serviceintervaldays');
     if (serviceInterval != null) {
-      item['serviceIntervalDays'] = int.tryParse(serviceInterval);
+      item['serviceIntervalDays'] = parseUddfInt(serviceInterval);
     }
 
     final isActive = getElementText(itemElement, 'isactive');
@@ -601,11 +854,16 @@ class UddfImportParsers {
 
     record['equipmentRef'] = getElementText(recordElement, 'equipmentref');
 
-    final serviceType = getElementText(recordElement, 'servicetype');
-    if (serviceType != null) {
-      record['serviceType'] = parseEnumValue(
-        serviceType,
-        enums.ServiceType.values,
+    // Files exported before v160 spell this 'servicetype'. UDDF files have no
+    // version handshake and live on disk indefinitely, so both spellings are
+    // read forever rather than behind a version gate.
+    final serviceCategory =
+        getElementText(recordElement, 'servicecategory') ??
+        getElementText(recordElement, 'servicetype');
+    if (serviceCategory != null) {
+      record['serviceCategory'] = parseEnumValue(
+        serviceCategory,
+        enums.ServiceCategory.values,
       );
     }
 

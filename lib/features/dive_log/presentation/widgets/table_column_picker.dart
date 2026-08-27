@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
 
 /// Shows the [TableColumnPicker] as a modal bottom sheet.
 void showTableColumnPicker(BuildContext context) {
@@ -96,7 +97,7 @@ class TableColumnPicker extends ConsumerWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     buildDefaultDragHandles: false,
                     itemCount: config.columns.length,
-                    onReorder: notifier.reorderColumn,
+                    onReorderItem: notifier.reorderColumn,
                     itemBuilder: (context, index) {
                       final col = config.columns[index];
                       return ListTile(
@@ -106,7 +107,9 @@ class TableColumnPicker extends ConsumerWidget {
                           index: index,
                           child: const Icon(Icons.drag_handle),
                         ),
-                        title: Text(col.field.displayName),
+                        title: Text(
+                          col.field.localizedDisplayName(context.l10n),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -118,7 +121,9 @@ class TableColumnPicker extends ConsumerWidget {
                                 size: 18,
                               ),
                               visualDensity: VisualDensity.compact,
-                              tooltip: col.isPinned ? 'Unpin' : 'Pin',
+                              tooltip: col.isPinned
+                                  ? context.l10n.common_action_unpin
+                                  : context.l10n.common_action_pin,
                               onPressed: () => notifier.togglePin(col.field),
                             ),
                             if (!col.isPinned)
@@ -128,7 +133,7 @@ class TableColumnPicker extends ConsumerWidget {
                                   size: 18,
                                 ),
                                 visualDensity: VisualDensity.compact,
-                                tooltip: 'Remove',
+                                tooltip: context.l10n.common_action_remove,
                                 onPressed: () =>
                                     notifier.toggleColumn(col.field),
                               ),
@@ -197,7 +202,7 @@ class _AvailableCategorySection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
-            category.name.toUpperCase(),
+            localizedFieldCategory(context.l10n, category.name).toUpperCase(),
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               letterSpacing: 0.8,
@@ -208,11 +213,11 @@ class _AvailableCategorySection extends StatelessWidget {
           ListTile(
             dense: true,
             leading: field.icon != null ? Icon(field.icon, size: 18) : null,
-            title: Text(field.displayName),
+            title: Text(field.localizedDisplayName(context.l10n)),
             trailing: IconButton(
               icon: const Icon(Icons.add_circle_outline, size: 18),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Add',
+              tooltip: context.l10n.common_action_add,
               onPressed: () => onAdd(field),
             ),
           ),

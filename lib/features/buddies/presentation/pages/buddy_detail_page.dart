@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -117,6 +121,7 @@ class _BuddyDetailContent extends ConsumerWidget {
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
 
     final body = SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,11 +136,10 @@ class _BuddyDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
 
-          // Certification info
-          if (buddy.hasCertificationInfo) ...[
-            _buildCertificationSection(context),
-            const SizedBox(height: 24),
-          ],
+          // Certifications (issue #553): full list from the certifications
+          // table, with an empty state.
+          _buildCertificationSection(context, ref),
+          const SizedBox(height: 24),
 
           // Statistics
           _buildStatsSection(context, statsAsync),
@@ -329,6 +333,12 @@ class _BuddyDetailContent extends ConsumerWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 
+    final destination = await showExportDestinationSheet(
+      context,
+      title: l10n.buddies_action_shareDives,
+    );
+    if (destination == null) return;
+
     // Show preparing message
     scaffoldMessenger.showSnackBar(
       SnackBar(
@@ -376,12 +386,16 @@ class _BuddyDetailContent extends ConsumerWidget {
 
       scaffoldMessenger.hideCurrentSnackBar();
 
-      // Export to UDDF (this opens the share sheet)
+      // Hand the UDDF to the share sheet, or to a save panel on the user's
+      // request. Either way no success snackbar follows: the share sheet and
+      // the save panel each provide their own feedback.
       final exportService = ref.read(exportServiceProvider);
-      await exportService.exportDivesToUddf(dives, sites: sites);
-
-      // Note: Success snackbar may not show if share sheet is still active
-      // That's fine - the share sheet itself provides feedback
+      switch (destination) {
+        case ExportDestination.share:
+          await exportService.exportDivesToUddf(dives, sites: sites);
+        case ExportDestination.saveToFile:
+          await exportService.saveDivesToUddfFile(dives, sites: sites);
+      }
     } catch (e) {
       scaffoldMessenger.hideCurrentSnackBar();
       scaffoldMessenger.showSnackBar(
@@ -456,7 +470,8 @@ class _BuddyDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildCertificationSection(BuildContext context) {
+  Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
+    final certsAsync = ref.watch(buddyCertificationsProvider(buddy.id));
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -464,26 +479,37 @@ class _BuddyDetailContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.buddies_section_certification,
+              context.l10n.buddies_section_certifications,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            if (buddy.certificationLevel != null)
-              ListTile(
-                leading: const Icon(Icons.card_membership),
-                title: Text(context.l10n.buddies_label_level),
-                subtitle: Text(buddy.certificationLevel!.displayName),
-                contentPadding: EdgeInsets.zero,
+            certsAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(child: CircularProgressIndicator()),
               ),
-            if (buddy.certificationAgency != null)
-              ListTile(
-                leading: const Icon(Icons.business),
-                title: Text(context.l10n.buddies_label_agency),
-                subtitle: Text(buddy.certificationAgency!.displayName),
-                contentPadding: EdgeInsets.zero,
-              ),
+              error: (error, _) =>
+                  Text('${context.l10n.common_label_error}: $error'),
+              data: (certs) => certs.isEmpty
+                  ? Text(
+                      context.l10n.buddies_certifications_empty,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final cert in certs)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.card_membership),
+                            title: Text(certificationTitle(cert)),
+                            subtitle: Text(certificationAgencyAndLevel(cert)),
+                          ),
+                      ],
+                    ),
+            ),
           ],
         ),
       ),
@@ -571,7 +597,9 @@ class _BuddyDetailContent extends ConsumerWidget {
     final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddy.id));
     final divesAsync = ref.watch(divesForBuddyProvider(buddy.id));
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMd();
+    // Includes the year: shared dives routinely span several years, so a bare
+    // "Mar 28" is ambiguous (#982). Matches the stats card above.
+    final dateFormat = DateFormat.yMMMd();
 
     return Card(
       child: Padding(

@@ -129,7 +129,22 @@ data class ProfileSample (
   val temperatureCelsius: Double? = null,
   val pressureBar: Double? = null,
   val tankIndex: Long? = null,
+  /**
+   * Every tank's pressure in bar at this sample, indexed by tank index, with
+   * null where that tank reported nothing. libdivecomputer fires one pressure
+   * reading per air-integrated transmitter, so a single sample can carry
+   * several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+   * rest (issue #1223). Null when the sample carries no pressure at all, and
+   * trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+   * short list per sample.
+   */
+  val tankPressuresBar: List<Double?>? = null,
   val heartRate: Long? = null,
+  /**
+   * Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
+   * computer does not report bearing samples.
+   */
+  val heading: Double? = null,
   val setpoint: Double? = null,
   val ppo2: Double? = null,
   val cns: Double? = null,
@@ -137,7 +152,34 @@ data class ProfileSample (
   val decoType: Long? = null,
   val decoTime: Long? = null,
   val decoDepth: Double? = null,
-  val tts: Long? = null
+  val tts: Long? = null,
+  /**
+   * Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+   * cell has no reading. libdivecomputer reports these per-sensor via
+   * DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+   */
+  val o2Sensor1: Double? = null,
+  val o2Sensor2: Double? = null,
+  val o2Sensor3: Double? = null,
+  val o2Sensor4: Double? = null,
+  val o2Sensor5: Double? = null,
+  val o2Sensor6: Double? = null,
+  /**
+   * Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+   * reports none. Present even when the cell's ppO2 is unavailable because the
+   * logged calibration could not be trusted (issue #810).
+   */
+  val o2SensorMv1: Long? = null,
+  val o2SensorMv2: Long? = null,
+  val o2SensorMv3: Long? = null,
+  val o2SensorMv4: Long? = null,
+  val o2SensorMv5: Long? = null,
+  val o2SensorMv6: Long? = null,
+  /**
+   * Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+   * from the most recent gas switch; null if the computer reported no gas.
+   */
+  val gasMixIndex: Long? = null
 )
  {
   companion object {
@@ -147,16 +189,31 @@ data class ProfileSample (
       val temperatureCelsius = pigeonVar_list[2] as Double?
       val pressureBar = pigeonVar_list[3] as Double?
       val tankIndex = pigeonVar_list[4] as Long?
-      val heartRate = pigeonVar_list[5] as Long?
-      val setpoint = pigeonVar_list[6] as Double?
-      val ppo2 = pigeonVar_list[7] as Double?
-      val cns = pigeonVar_list[8] as Double?
-      val rbt = pigeonVar_list[9] as Long?
-      val decoType = pigeonVar_list[10] as Long?
-      val decoTime = pigeonVar_list[11] as Long?
-      val decoDepth = pigeonVar_list[12] as Double?
-      val tts = pigeonVar_list[13] as Long?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts)
+      val tankPressuresBar = pigeonVar_list[5] as List<Double?>?
+      val heartRate = pigeonVar_list[6] as Long?
+      val heading = pigeonVar_list[7] as Double?
+      val setpoint = pigeonVar_list[8] as Double?
+      val ppo2 = pigeonVar_list[9] as Double?
+      val cns = pigeonVar_list[10] as Double?
+      val rbt = pigeonVar_list[11] as Long?
+      val decoType = pigeonVar_list[12] as Long?
+      val decoTime = pigeonVar_list[13] as Long?
+      val decoDepth = pigeonVar_list[14] as Double?
+      val tts = pigeonVar_list[15] as Long?
+      val o2Sensor1 = pigeonVar_list[16] as Double?
+      val o2Sensor2 = pigeonVar_list[17] as Double?
+      val o2Sensor3 = pigeonVar_list[18] as Double?
+      val o2Sensor4 = pigeonVar_list[19] as Double?
+      val o2Sensor5 = pigeonVar_list[20] as Double?
+      val o2Sensor6 = pigeonVar_list[21] as Double?
+      val o2SensorMv1 = pigeonVar_list[22] as Long?
+      val o2SensorMv2 = pigeonVar_list[23] as Long?
+      val o2SensorMv3 = pigeonVar_list[24] as Long?
+      val o2SensorMv4 = pigeonVar_list[25] as Long?
+      val o2SensorMv5 = pigeonVar_list[26] as Long?
+      val o2SensorMv6 = pigeonVar_list[27] as Long?
+      val gasMixIndex = pigeonVar_list[28] as Long?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, tankPressuresBar, heartRate, heading, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, o2SensorMv1, o2SensorMv2, o2SensorMv3, o2SensorMv4, o2SensorMv5, o2SensorMv6, gasMixIndex)
     }
   }
   fun toList(): List<Any?> {
@@ -166,7 +223,9 @@ data class ProfileSample (
       temperatureCelsius,
       pressureBar,
       tankIndex,
+      tankPressuresBar,
       heartRate,
+      heading,
       setpoint,
       ppo2,
       cns,
@@ -175,6 +234,19 @@ data class ProfileSample (
       decoTime,
       decoDepth,
       tts,
+      o2Sensor1,
+      o2Sensor2,
+      o2Sensor3,
+      o2Sensor4,
+      o2Sensor5,
+      o2Sensor6,
+      o2SensorMv1,
+      o2SensorMv2,
+      o2SensorMv3,
+      o2SensorMv4,
+      o2SensorMv5,
+      o2SensorMv6,
+      gasMixIndex,
     )
   }
 }
@@ -209,7 +281,12 @@ data class TankInfo (
   val gasMixIndex: Long,
   val volumeLiters: Double? = null,
   val startPressureBar: Double? = null,
-  val endPressureBar: Double? = null
+  val endPressureBar: Double? = null,
+  /**
+   * Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+   * 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+   */
+  val usage: Long? = null
 )
  {
   companion object {
@@ -219,7 +296,8 @@ data class TankInfo (
       val volumeLiters = pigeonVar_list[2] as Double?
       val startPressureBar = pigeonVar_list[3] as Double?
       val endPressureBar = pigeonVar_list[4] as Double?
-      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar)
+      val usage = pigeonVar_list[5] as Long?
+      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar, usage)
     }
   }
   fun toList(): List<Any?> {
@@ -229,6 +307,7 @@ data class TankInfo (
       volumeLiters,
       startPressureBar,
       endPressureBar,
+      usage,
     )
   }
 }
@@ -280,7 +359,13 @@ data class ParsedDive (
   val decoAlgorithm: String? = null,
   val gfLow: Long? = null,
   val gfHigh: Long? = null,
-  val decoConservatism: Long? = null
+  val decoConservatism: Long? = null,
+  val rawData: ByteArray? = null,
+  val rawFingerprint: ByteArray? = null,
+  val entryLatitude: Double? = null,
+  val entryLongitude: Double? = null,
+  val exitLatitude: Double? = null,
+  val exitLongitude: Double? = null
 )
  {
   companion object {
@@ -307,7 +392,13 @@ data class ParsedDive (
       val gfLow = pigeonVar_list[19] as Long?
       val gfHigh = pigeonVar_list[20] as Long?
       val decoConservatism = pigeonVar_list[21] as Long?
-      return ParsedDive(fingerprint, dateTimeYear, dateTimeMonth, dateTimeDay, dateTimeHour, dateTimeMinute, dateTimeSecond, dateTimeTimezoneOffset, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism)
+      val rawData = pigeonVar_list[22] as ByteArray?
+      val rawFingerprint = pigeonVar_list[23] as ByteArray?
+      val entryLatitude = pigeonVar_list[24] as Double?
+      val entryLongitude = pigeonVar_list[25] as Double?
+      val exitLatitude = pigeonVar_list[26] as Double?
+      val exitLongitude = pigeonVar_list[27] as Double?
+      return ParsedDive(fingerprint, dateTimeYear, dateTimeMonth, dateTimeDay, dateTimeHour, dateTimeMinute, dateTimeSecond, dateTimeTimezoneOffset, maxDepthMeters, avgDepthMeters, durationSeconds, minTemperatureCelsius, maxTemperatureCelsius, samples, tanks, gasMixes, events, diveMode, decoAlgorithm, gfLow, gfHigh, decoConservatism, rawData, rawFingerprint, entryLatitude, entryLongitude, exitLatitude, exitLongitude)
     }
   }
   fun toList(): List<Any?> {
@@ -334,6 +425,12 @@ data class ParsedDive (
       gfLow,
       gfHigh,
       decoConservatism,
+      rawData,
+      rawFingerprint,
+      entryLatitude,
+      entryLongitude,
+      exitLatitude,
+      exitLongitude,
     )
   }
 }

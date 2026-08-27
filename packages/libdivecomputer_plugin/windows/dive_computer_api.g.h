@@ -173,7 +173,9 @@ class ProfileSample {
     const double* temperature_celsius,
     const double* pressure_bar,
     const int64_t* tank_index,
+    const flutter::EncodableList* tank_pressures_bar,
     const int64_t* heart_rate,
+    const double* heading,
     const double* setpoint,
     const double* ppo2,
     const double* cns,
@@ -181,7 +183,20 @@ class ProfileSample {
     const int64_t* deco_type,
     const int64_t* deco_time,
     const double* deco_depth,
-    const int64_t* tts);
+    const int64_t* tts,
+    const double* o2_sensor1,
+    const double* o2_sensor2,
+    const double* o2_sensor3,
+    const double* o2_sensor4,
+    const double* o2_sensor5,
+    const double* o2_sensor6,
+    const int64_t* o2_sensor_mv1,
+    const int64_t* o2_sensor_mv2,
+    const int64_t* o2_sensor_mv3,
+    const int64_t* o2_sensor_mv4,
+    const int64_t* o2_sensor_mv5,
+    const int64_t* o2_sensor_mv6,
+    const int64_t* gas_mix_index);
 
   int64_t time_seconds() const;
   void set_time_seconds(int64_t value_arg);
@@ -201,9 +216,26 @@ class ProfileSample {
   void set_tank_index(const int64_t* value_arg);
   void set_tank_index(int64_t value_arg);
 
+  // Every tank's pressure in bar at this sample, indexed by tank index, with
+  // null where that tank reported nothing. libdivecomputer fires one pressure
+  // reading per air-integrated transmitter, so a single sample can carry
+  // several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  // rest (issue #1223). Null when the sample carries no pressure at all, and
+  // trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  // short list per sample.
+  const flutter::EncodableList* tank_pressures_bar() const;
+  void set_tank_pressures_bar(const flutter::EncodableList* value_arg);
+  void set_tank_pressures_bar(const flutter::EncodableList& value_arg);
+
   const int64_t* heart_rate() const;
   void set_heart_rate(const int64_t* value_arg);
   void set_heart_rate(int64_t value_arg);
+
+  // Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
+  // computer does not report bearing samples.
+  const double* heading() const;
+  void set_heading(const double* value_arg);
+  void set_heading(double value_arg);
 
   const double* setpoint() const;
   void set_setpoint(const double* value_arg);
@@ -237,6 +269,66 @@ class ProfileSample {
   void set_tts(const int64_t* value_arg);
   void set_tts(int64_t value_arg);
 
+  // Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  // cell has no reading. libdivecomputer reports these per-sensor via
+  // DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+  const double* o2_sensor1() const;
+  void set_o2_sensor1(const double* value_arg);
+  void set_o2_sensor1(double value_arg);
+
+  const double* o2_sensor2() const;
+  void set_o2_sensor2(const double* value_arg);
+  void set_o2_sensor2(double value_arg);
+
+  const double* o2_sensor3() const;
+  void set_o2_sensor3(const double* value_arg);
+  void set_o2_sensor3(double value_arg);
+
+  const double* o2_sensor4() const;
+  void set_o2_sensor4(const double* value_arg);
+  void set_o2_sensor4(double value_arg);
+
+  const double* o2_sensor5() const;
+  void set_o2_sensor5(const double* value_arg);
+  void set_o2_sensor5(double value_arg);
+
+  const double* o2_sensor6() const;
+  void set_o2_sensor6(const double* value_arg);
+  void set_o2_sensor6(double value_arg);
+
+  // Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  // reports none. Present even when the cell's ppO2 is unavailable because the
+  // logged calibration could not be trusted (issue #810).
+  const int64_t* o2_sensor_mv1() const;
+  void set_o2_sensor_mv1(const int64_t* value_arg);
+  void set_o2_sensor_mv1(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv2() const;
+  void set_o2_sensor_mv2(const int64_t* value_arg);
+  void set_o2_sensor_mv2(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv3() const;
+  void set_o2_sensor_mv3(const int64_t* value_arg);
+  void set_o2_sensor_mv3(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv4() const;
+  void set_o2_sensor_mv4(const int64_t* value_arg);
+  void set_o2_sensor_mv4(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv5() const;
+  void set_o2_sensor_mv5(const int64_t* value_arg);
+  void set_o2_sensor_mv5(int64_t value_arg);
+
+  const int64_t* o2_sensor_mv6() const;
+  void set_o2_sensor_mv6(const int64_t* value_arg);
+  void set_o2_sensor_mv6(int64_t value_arg);
+
+  // Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  // from the most recent gas switch; null if the computer reported no gas.
+  const int64_t* gas_mix_index() const;
+  void set_gas_mix_index(const int64_t* value_arg);
+  void set_gas_mix_index(int64_t value_arg);
+
 
  private:
   static ProfileSample FromEncodableList(const flutter::EncodableList& list);
@@ -249,7 +341,9 @@ class ProfileSample {
   std::optional<double> temperature_celsius_;
   std::optional<double> pressure_bar_;
   std::optional<int64_t> tank_index_;
+  std::optional<flutter::EncodableList> tank_pressures_bar_;
   std::optional<int64_t> heart_rate_;
+  std::optional<double> heading_;
   std::optional<double> setpoint_;
   std::optional<double> ppo2_;
   std::optional<double> cns_;
@@ -258,6 +352,19 @@ class ProfileSample {
   std::optional<int64_t> deco_time_;
   std::optional<double> deco_depth_;
   std::optional<int64_t> tts_;
+  std::optional<double> o2_sensor1_;
+  std::optional<double> o2_sensor2_;
+  std::optional<double> o2_sensor3_;
+  std::optional<double> o2_sensor4_;
+  std::optional<double> o2_sensor5_;
+  std::optional<double> o2_sensor6_;
+  std::optional<int64_t> o2_sensor_mv1_;
+  std::optional<int64_t> o2_sensor_mv2_;
+  std::optional<int64_t> o2_sensor_mv3_;
+  std::optional<int64_t> o2_sensor_mv4_;
+  std::optional<int64_t> o2_sensor_mv5_;
+  std::optional<int64_t> o2_sensor_mv6_;
+  std::optional<int64_t> gas_mix_index_;
 
 };
 
@@ -308,7 +415,8 @@ class TankInfo {
     int64_t gas_mix_index,
     const double* volume_liters,
     const double* start_pressure_bar,
-    const double* end_pressure_bar);
+    const double* end_pressure_bar,
+    const int64_t* usage);
 
   int64_t index() const;
   void set_index(int64_t value_arg);
@@ -328,6 +436,12 @@ class TankInfo {
   void set_end_pressure_bar(const double* value_arg);
   void set_end_pressure_bar(double value_arg);
 
+  // Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
+  // 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  const int64_t* usage() const;
+  void set_usage(const int64_t* value_arg);
+  void set_usage(int64_t value_arg);
+
 
  private:
   static TankInfo FromEncodableList(const flutter::EncodableList& list);
@@ -340,6 +454,7 @@ class TankInfo {
   std::optional<double> volume_liters_;
   std::optional<double> start_pressure_bar_;
   std::optional<double> end_pressure_bar_;
+  std::optional<int64_t> usage_;
 
 };
 
@@ -425,7 +540,13 @@ class ParsedDive {
     const std::string* deco_algorithm,
     const int64_t* gf_low,
     const int64_t* gf_high,
-    const int64_t* deco_conservatism);
+    const int64_t* deco_conservatism,
+    const std::vector<uint8_t>* raw_data,
+    const std::vector<uint8_t>* raw_fingerprint,
+    const double* entry_latitude,
+    const double* entry_longitude,
+    const double* exit_latitude,
+    const double* exit_longitude);
 
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
@@ -501,6 +622,30 @@ class ParsedDive {
   void set_deco_conservatism(const int64_t* value_arg);
   void set_deco_conservatism(int64_t value_arg);
 
+  const std::vector<uint8_t>* raw_data() const;
+  void set_raw_data(const std::vector<uint8_t>* value_arg);
+  void set_raw_data(const std::vector<uint8_t>& value_arg);
+
+  const std::vector<uint8_t>* raw_fingerprint() const;
+  void set_raw_fingerprint(const std::vector<uint8_t>* value_arg);
+  void set_raw_fingerprint(const std::vector<uint8_t>& value_arg);
+
+  const double* entry_latitude() const;
+  void set_entry_latitude(const double* value_arg);
+  void set_entry_latitude(double value_arg);
+
+  const double* entry_longitude() const;
+  void set_entry_longitude(const double* value_arg);
+  void set_entry_longitude(double value_arg);
+
+  const double* exit_latitude() const;
+  void set_exit_latitude(const double* value_arg);
+  void set_exit_latitude(double value_arg);
+
+  const double* exit_longitude() const;
+  void set_exit_longitude(const double* value_arg);
+  void set_exit_longitude(double value_arg);
+
 
  private:
   static ParsedDive FromEncodableList(const flutter::EncodableList& list);
@@ -530,6 +675,12 @@ class ParsedDive {
   std::optional<int64_t> gf_low_;
   std::optional<int64_t> gf_high_;
   std::optional<int64_t> deco_conservatism_;
+  std::optional<std::vector<uint8_t>> raw_data_;
+  std::optional<std::vector<uint8_t>> raw_fingerprint_;
+  std::optional<double> entry_latitude_;
+  std::optional<double> entry_longitude_;
+  std::optional<double> exit_latitude_;
+  std::optional<double> exit_longitude_;
 
 };
 

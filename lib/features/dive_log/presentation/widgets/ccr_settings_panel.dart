@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -79,32 +80,44 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   @override
   void initState() {
     super.initState();
+    // Every seed goes through formatDecimalForInput so the diver's locale
+    // decides the separator, matching what parseUserDecimal reads back in
+    // _notifyChange. The defaults are formatted too: a literal '0.70' would be
+    // unreadable in a comma-decimal locale and silently become null (#1091).
     _setpointLowController = TextEditingController(
-      text: widget.setpointLow?.toStringAsFixed(2) ?? '0.70',
+      text: formatDecimalForInput(widget.setpointLow ?? 0.70),
     );
     _setpointHighController = TextEditingController(
-      text: widget.setpointHigh?.toStringAsFixed(2) ?? '1.30',
+      text: formatDecimalForInput(widget.setpointHigh ?? 1.30),
     );
     _setpointDecoController = TextEditingController(
-      text: widget.setpointDeco?.toStringAsFixed(2) ?? '',
+      text: widget.setpointDeco != null
+          ? formatDecimalForInput(widget.setpointDeco!)
+          : '',
     );
     _diluentO2Controller = TextEditingController(
-      text: widget.diluentGas?.o2.toString() ?? '21',
+      text: formatDecimalForInput(widget.diluentGas?.o2 ?? 21),
     );
     _diluentHeController = TextEditingController(
-      text: widget.diluentGas?.he.toString() ?? '0',
+      text: formatDecimalForInput(widget.diluentGas?.he ?? 0),
     );
     _scrubberTypeController = TextEditingController(
       text: widget.scrubberType ?? '',
     );
     _scrubberDurationController = TextEditingController(
-      text: widget.scrubberDurationMinutes?.toString() ?? '',
+      text: widget.scrubberDurationMinutes != null
+          ? formatDecimalForInput(widget.scrubberDurationMinutes!.toDouble())
+          : '',
     );
     _scrubberRemainingController = TextEditingController(
-      text: widget.scrubberRemainingMinutes?.toString() ?? '',
+      text: widget.scrubberRemainingMinutes != null
+          ? formatDecimalForInput(widget.scrubberRemainingMinutes!.toDouble())
+          : '',
     );
     _loopVolumeController = TextEditingController(
-      text: widget.loopVolume?.toStringAsFixed(1) ?? '',
+      text: widget.loopVolume != null
+          ? formatDecimalForInput(widget.loopVolume!)
+          : '',
     );
   }
 
@@ -123,22 +136,22 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   }
 
   void _notifyChange() {
-    final diluentO2 = double.tryParse(_diluentO2Controller.text);
-    final diluentHe = double.tryParse(_diluentHeController.text);
+    final diluentO2 = parseUserDecimal(_diluentO2Controller.text);
+    final diluentHe = parseUserDecimal(_diluentHeController.text);
 
     widget.onChanged(
-      setpointLow: double.tryParse(_setpointLowController.text),
-      setpointHigh: double.tryParse(_setpointHighController.text),
-      setpointDeco: double.tryParse(_setpointDecoController.text),
+      setpointLow: parseUserDecimal(_setpointLowController.text),
+      setpointHigh: parseUserDecimal(_setpointHighController.text),
+      setpointDeco: parseUserDecimal(_setpointDecoController.text),
       diluentGas: diluentO2 != null
           ? GasMix(o2: diluentO2, he: diluentHe ?? 0)
           : null,
       scrubberType: _scrubberTypeController.text.isNotEmpty
           ? _scrubberTypeController.text
           : null,
-      scrubberDurationMinutes: int.tryParse(_scrubberDurationController.text),
-      scrubberRemainingMinutes: int.tryParse(_scrubberRemainingController.text),
-      loopVolume: double.tryParse(_loopVolumeController.text),
+      scrubberDurationMinutes: parseUserInt(_scrubberDurationController.text),
+      scrubberRemainingMinutes: parseUserInt(_scrubberRemainingController.text),
+      loopVolume: parseUserDecimal(_loopVolumeController.text),
     );
   }
 
@@ -380,8 +393,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
       (l10n.gas_diluentTx1070_displayName, 10.0, 70.0),
     ];
 
-    final currentO2 = double.tryParse(_diluentO2Controller.text) ?? 21.0;
-    final currentHe = double.tryParse(_diluentHeController.text) ?? 0.0;
+    final currentO2 = parseUserDecimal(_diluentO2Controller.text) ?? 21.0;
+    final currentHe = parseUserDecimal(_diluentHeController.text) ?? 0.0;
 
     return Wrap(
       spacing: 8,
@@ -395,8 +408,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
           selected: isSelected,
           onSelected: (_) {
             setState(() {
-              _diluentO2Controller.text = o2.toString();
-              _diluentHeController.text = he.toString();
+              _diluentO2Controller.text = formatDecimalForInput(o2);
+              _diluentHeController.text = formatDecimalForInput(he);
             });
             _notifyChange();
           },
@@ -406,8 +419,8 @@ class _CcrSettingsPanelState extends State<CcrSettingsPanel> {
   }
 
   String _calculateN2() {
-    final o2 = double.tryParse(_diluentO2Controller.text) ?? 21.0;
-    final he = double.tryParse(_diluentHeController.text) ?? 0.0;
+    final o2 = parseUserDecimal(_diluentO2Controller.text) ?? 21.0;
+    final he = parseUserDecimal(_diluentHeController.text) ?? 0.0;
     final n2 = 100.0 - o2 - he;
     return n2.clamp(0.0, 100.0).toStringAsFixed(0);
   }

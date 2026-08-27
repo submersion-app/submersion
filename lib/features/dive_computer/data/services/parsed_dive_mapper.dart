@@ -1,4 +1,7 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
@@ -35,11 +38,16 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
     avgDepth: parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
     minTemperature: minTemp,
     maxTemperature: maxTemp,
+    entryLatitude: _validCoord(parsed.entryLatitude, parsed.entryLongitude),
+    entryLongitude: _validCoord(parsed.entryLongitude, parsed.entryLatitude),
+    exitLatitude: _validCoord(parsed.exitLatitude, parsed.exitLongitude),
+    exitLongitude: _validCoord(parsed.exitLongitude, parsed.exitLatitude),
     fingerprint: parsed.fingerprint,
     decoAlgorithm: parsed.decoAlgorithm,
     gfLow: parsed.gfLow,
     gfHigh: parsed.gfHigh,
     decoConservatism: parsed.decoConservatism,
+    diveMode: DiveMode.fromCode(mapLibdcDiveModeCode(parsed.diveMode)),
     profile: parsed.samples
         .map(
           (s) => ProfileSample(
@@ -48,7 +56,9 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
             temperature: s.temperatureCelsius,
             pressure: s.pressureBar,
             tankIndex: s.tankIndex,
+            tankPressures: s.tankPressuresBar,
             heartRate: s.heartRate,
+            heading: s.heading,
             setpoint: s.setpoint,
             ppo2: s.ppo2,
             cns: s.cns,
@@ -59,23 +69,25 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
             tts: s.tts,
             ndl: s.decoType == 0 ? s.decoTime : null,
             ceiling: s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
+            o2Sensor1: s.o2Sensor1,
+            o2Sensor2: s.o2Sensor2,
+            o2Sensor3: s.o2Sensor3,
+            o2Sensor4: s.o2Sensor4,
+            o2Sensor5: s.o2Sensor5,
+            o2Sensor6: s.o2Sensor6,
+            o2SensorMv1: s.o2SensorMv1,
+            o2SensorMv2: s.o2SensorMv2,
+            o2SensorMv3: s.o2SensorMv3,
+            o2SensorMv4: s.o2SensorMv4,
+            o2SensorMv5: s.o2SensorMv5,
+            o2SensorMv6: s.o2SensorMv6,
           ),
         )
         .toList(),
-    tanks: parsed.tanks.map((t) {
-      final gasMix = parsed.gasMixes.firstWhere(
-        (g) => g.index == t.gasMixIndex,
-        orElse: () => pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
-      );
-      return DownloadedTank(
-        index: t.index,
-        o2Percent: gasMix.o2Percent,
-        hePercent: gasMix.hePercent,
-        startPressure: t.startPressureBar,
-        endPressure: t.endPressureBar,
-        volumeLiters: t.volumeLiters,
-      );
-    }).toList(),
+    // Gas-mix linking, tankless synthesis, and gas-switch derivation live in
+    // the shared resolver so the download and reparse paths cannot drift apart.
+    tanks: resolveParsedTanks(parsed),
+    gasSwitches: resolveGasSwitches(parsed),
     events: parsed.events
         .map(
           (e) => DownloadedEvent(
@@ -86,5 +98,16 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
           ),
         )
         .toList(),
+    rawData: parsed.rawData,
+    rawFingerprint: parsed.rawFingerprint,
   );
+}
+
+/// Returns [value] unless it is null or part of a libdivecomputer sentinel
+/// invalid-fix pair: (0,0) or (-1,-1). [other] is the paired coordinate.
+double? _validCoord(double? value, double? other) {
+  if (value == null || other == null) return null;
+  if (value == 0.0 && other == 0.0) return null;
+  if (value == -1.0 && other == -1.0) return null;
+  return value;
 }

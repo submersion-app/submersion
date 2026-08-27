@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -17,7 +18,8 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -25,37 +27,64 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/wizard_step_indicator.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 /// The unified import wizard shell.
 ///
 /// Accepts an [ImportSourceAdapter] and orchestrates the full import flow:
 /// acquisition steps (source-specific), review, import progress, and summary.
 class UnifiedImportWizard extends StatelessWidget {
-  const UnifiedImportWizard({super.key, required this.adapter});
+  const UnifiedImportWizard({
+    super.key,
+    required this.adapter,
+    this.initialPageOverride,
+    this.notifierFactoryOverride,
+  });
 
   final ImportSourceAdapter adapter;
+
+  /// Optional starting page for widget tests that need to exercise behavior
+  /// on pages past the acquisition/review flow (e.g. the cancel dialog on
+  /// the import-progress page) without driving the full adapter through
+  /// [ImportSourceAdapter.buildBundle] and [performImport].
+  @visibleForTesting
+  final int? initialPageOverride;
+
+  /// Optional notifier factory for tests that need to inject a pre-configured
+  /// [ImportWizardNotifier] (e.g. one whose state already has
+  /// `isCancellationRequested: true` so the "already cancelling" dialog
+  /// branch can be exercised).
+  @visibleForTesting
+  final ImportWizardNotifier Function(Ref ref)? notifierFactoryOverride;
 
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
         importWizardNotifierProvider.overrideWith(
-          (ref) => ImportWizardNotifier(
-            adapter,
-            tagRepository: ref.read(tagRepositoryProvider),
-          ),
+          notifierFactoryOverride ??
+              (ref) => ImportWizardNotifier(
+                adapter,
+                tagRepository: ref.read(tagRepositoryProvider),
+              ),
         ),
       ],
-      child: _UnifiedImportWizardBody(adapter: adapter),
+      child: _UnifiedImportWizardBody(
+        adapter: adapter,
+        initialPageOverride: initialPageOverride,
+      ),
     );
   }
 }
 
 class _UnifiedImportWizardBody extends ConsumerStatefulWidget {
-  const _UnifiedImportWizardBody({required this.adapter});
+  const _UnifiedImportWizardBody({
+    required this.adapter,
+    this.initialPageOverride,
+  });
 
   final ImportSourceAdapter adapter;
+  final int? initialPageOverride;
 
   @override
   ConsumerState<_UnifiedImportWizardBody> createState() =>
@@ -110,7 +139,16 @@ class _UnifiedImportWizardBodyState
         widget.adapter.resetState();
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _resetComplete = true);
+        if (!mounted) return;
+        setState(() {
+          _resetComplete = true;
+          if (widget.initialPageOverride != null) {
+            _currentPage = widget.initialPageOverride!;
+          }
+        });
+        if (widget.initialPageOverride != null && _pageController.hasClients) {
+          _pageController.jumpToPage(widget.initialPageOverride!);
+        }
       });
     });
   }
@@ -122,10 +160,11 @@ class _UnifiedImportWizardBodyState
   }
 
   List<String> _buildStepLabels() {
+    final l10n = context.l10n;
     final labels = _acquisitionSteps.map((s) => s.label).toList();
-    labels.add('Review');
-    labels.add('Import');
-    labels.add('Done');
+    labels.add(l10n.universalImport_step_review);
+    labels.add(l10n.universalImport_step_import);
+    labels.add(l10n.universalImport_step_done);
     return labels;
   }
 
@@ -251,6 +290,11 @@ class _UnifiedImportWizardBodyState
           ref.invalidate(tagsProvider);
         case ImportEntityType.diveTypes:
           ref.invalidate(diveTypesProvider);
+        case ImportEntityType.media:
+          // Photos land on dives that may already be on screen.
+          ref.invalidate(mediaForDiveProvider);
+          ref.invalidate(mediaCountForDiveProvider);
+          ref.invalidate(mediaListNotifierProvider);
       }
     }
   }
@@ -276,27 +320,56 @@ class _UnifiedImportWizardBodyState
     }
 
     if (_currentPage >= _importIndex) {
-      await showDialog<void>(
+      final notifier = ref.read(importWizardNotifierProvider.notifier);
+      final state = ref.read(importWizardNotifierProvider);
+
+      // Already cancelling — show a waiting notice.
+      if (state.isCancellationRequested) {
+        await showDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(context.l10n.universalImport_cancel_inProgressTitle),
+            content: Text(context.l10n.universalImport_cancel_inProgressBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(context.l10n.common_action_ok),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Import in progress'),
-          content: const Text('Import is in progress and cannot be cancelled.'),
+          title: Text(context.l10n.universalImport_cancel_confirmTitle),
+          content: Text(context.l10n.universalImport_cancel_confirmBody),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(context.l10n.universalImport_cancel_keepImporting),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(context.l10n.universalImport_cancel_confirmAction),
             ),
           ],
         ),
       );
+
+      if (confirmed == true) {
+        notifier.cancelImport();
+      }
       return;
     }
 
     final String message;
     if (_currentPage == _reviewIndex) {
-      message = 'Discard selections and cancel?';
+      message = context.l10n.universalImport_cancel_discardSelections;
     } else {
-      message = 'Cancel import?';
+      message = context.l10n.universalImport_cancel_confirmTitle;
     }
 
     final confirmed = await showDialog<bool>(
@@ -306,11 +379,11 @@ class _UnifiedImportWizardBodyState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('No'),
+            child: Text(context.l10n.common_action_no),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Yes'),
+            child: Text(context.l10n.common_action_yes),
           ),
         ],
       ),
@@ -396,7 +469,7 @@ class _UnifiedImportWizardBodyState
                   _navigatingForward = false;
                   _animateToPage(_currentPage - 1);
                 },
-                child: const Text('Back'),
+                child: Text(context.l10n.common_action_back),
               ),
             const Spacer(),
             if (_currentPage < _reviewIndex)
@@ -409,7 +482,7 @@ class _UnifiedImportWizardBodyState
               FilledButton(
                 style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
                 onPressed: _startImport,
-                child: const Text('Import Selected'),
+                child: Text(context.l10n.universalImport_action_importSelected),
               ),
           ],
         ),
@@ -487,7 +560,7 @@ class _AcquisitionNextButton extends ConsumerWidget {
     return FilledButton(
       style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
       onPressed: canAdvance ? onNext : null,
-      child: const Text('Next'),
+      child: Text(context.l10n.universalImport_action_next),
     );
   }
 }

@@ -37,9 +37,6 @@ class TideDataService {
   /// Cached metadata
   Map<String, dynamic>? _metadata;
 
-  /// Cached site constituent data
-  Map<String, dynamic>? _siteData;
-
   /// Cached grid data (loaded on demand due to size)
   Map<String, dynamic>? _gridData;
 
@@ -49,9 +46,6 @@ class TideDataService {
   /// Whether grid data is available
   bool _hasGridData = false;
 
-  /// Tolerance for matching site coordinates (approximately 1 km)
-  static const double _coordinateTolerance = 0.01;
-
   /// Initialize the service by loading bundled data.
   ///
   /// Call this before using other methods. Safe to call multiple times.
@@ -60,27 +54,15 @@ class TideDataService {
     if (_initialized) return;
 
     try {
-      // Load metadata and site constituents in parallel
-      final results = await Future.wait([
-        rootBundle.loadString('assets/data/tide/metadata.json'),
-        rootBundle.loadString('assets/data/tide/constituents_sites.json'),
-      ]);
-
-      // Parse JSON on background isolates to avoid blocking UI
-      final parsed = await Future.wait([
-        compute(_parseJsonInIsolate, results[0]),
-        compute(_parseJsonInIsolate, results[1]),
-      ]);
-
-      _metadata = parsed[0];
-      _siteData = parsed[1];
-
+      final metadataStr = await rootBundle.loadString(
+        'assets/data/tide/metadata.json',
+      );
+      _metadata = await compute(_parseJsonInIsolate, metadataStr);
       _initialized = true;
     } catch (e) {
       // Allow initialization to succeed even if files missing
       _initialized = true;
       _metadata = {};
-      _siteData = {'sites': []};
     }
   }
 
@@ -108,8 +90,7 @@ class TideDataService {
 
   /// Get a [TideCalculator] for a specific location.
   ///
-  /// First checks for a matching pre-computed site within [_coordinateTolerance].
-  /// If no site match, attempts grid interpolation (if grid data available).
+  /// Interpolates the bundled FES2022 grid (if grid data available).
   ///
   /// Returns null if no data is available for the location.
   Future<TideCalculator?> getCalculatorForLocation(
@@ -118,13 +99,6 @@ class TideDataService {
   ) async {
     await initialize();
 
-    // Try to find a matching site first
-    final siteConstituents = _findSiteConstituents(latitude, longitude);
-    if (siteConstituents != null) {
-      return TideCalculator(constituents: siteConstituents);
-    }
-
-    // Try grid interpolation
     await _loadGridDataIfNeeded();
     if (_hasGridData) {
       final gridConstituents = _interpolateGrid(latitude, longitude);
@@ -136,68 +110,10 @@ class TideDataService {
     return null;
   }
 
-  /// Get a [TideCalculator] for a pre-computed site by ID.
-  ///
-  /// Use this when you know the exact site ID from the bundled data.
-  Future<TideCalculator?> getCalculatorForSiteId(String siteId) async {
-    await initialize();
-
-    final sites = _siteData?['sites'] as List<dynamic>?;
-    if (sites == null) return null;
-
-    for (final site in sites) {
-      if (site['id'] == siteId) {
-        final constituents = _parseConstituents(
-          site['constituents'] as Map<String, dynamic>,
-        );
-        return TideCalculator(constituents: constituents);
-      }
-    }
-
-    return null;
-  }
-
-  /// Get a list of all available site IDs with tide data.
-  Future<List<String>> getAvailableSiteIds() async {
-    await initialize();
-
-    final sites = _siteData?['sites'] as List<dynamic>?;
-    if (sites == null) return [];
-
-    return sites.map((s) => s['id'] as String).toList();
-  }
-
-  /// Get site information by ID.
-  Future<TideSiteInfo?> getSiteInfo(String siteId) async {
-    await initialize();
-
-    final sites = _siteData?['sites'] as List<dynamic>?;
-    if (sites == null) return null;
-
-    for (final site in sites) {
-      if (site['id'] == siteId) {
-        return TideSiteInfo(
-          id: site['id'] as String,
-          name: site['name'] as String? ?? site['id'] as String,
-          latitude: (site['lat'] as num).toDouble(),
-          longitude: (site['lon'] as num).toDouble(),
-        );
-      }
-    }
-
-    return null;
-  }
-
   /// Check if tide data is available for a location.
   Future<bool> hasTideData(double latitude, double longitude) async {
     await initialize();
 
-    // Check sites
-    if (_findSiteConstituents(latitude, longitude) != null) {
-      return true;
-    }
-
-    // Check grid
     await _loadGridDataIfNeeded();
     if (_hasGridData) {
       return _interpolateGrid(latitude, longitude) != null;
@@ -218,28 +134,6 @@ class TideDataService {
       datum: _metadata!['datum'] as String? ?? 'MSL',
       extractionDate: _metadata!['extraction_date'] as String?,
     );
-  }
-
-  /// Find constituents for a site near the given coordinates.
-  Map<String, TideConstituent>? _findSiteConstituents(
-    double latitude,
-    double longitude,
-  ) {
-    final sites = _siteData?['sites'] as List<dynamic>?;
-    if (sites == null) return null;
-
-    for (final site in sites) {
-      final siteLat = (site['lat'] as num).toDouble();
-      final siteLon = (site['lon'] as num).toDouble();
-
-      // Check if within tolerance (approximately 1 km at equator)
-      if ((latitude - siteLat).abs() < _coordinateTolerance &&
-          (longitude - siteLon).abs() < _coordinateTolerance) {
-        return _parseConstituents(site['constituents'] as Map<String, dynamic>);
-      }
-    }
-
-    return null;
   }
 
   /// Interpolate constituents from grid data.
@@ -418,24 +312,6 @@ class TideDataService {
 
     return result;
   }
-}
-
-/// Information about a tide data site.
-class TideSiteInfo {
-  final String id;
-  final String name;
-  final double latitude;
-  final double longitude;
-
-  const TideSiteInfo({
-    required this.id,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-  });
-
-  @override
-  String toString() => 'TideSiteInfo($id: $name @ $latitude, $longitude)';
 }
 
 /// Metadata about the tide data source.

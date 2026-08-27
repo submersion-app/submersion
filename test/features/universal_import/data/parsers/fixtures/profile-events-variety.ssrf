@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<divelog program='subsurface' version='3'>
+  <dives>
+    <dive number='1' date='2026-03-15' time='10:00:00' duration='45:00 min'>
+      <divecomputer model='Test' dctype='CCR'>
+      <depth max='30.0 m' mean='15.0 m' />
+      <event time='0:00 min' name='SP change' value='700' />
+      <event time='2:00 min' name='bookmark' description='cool fish' />
+      <event time='5:00 min' name='ascent' value='12.5' />
+      <event time='10:00 min' name='po2' value='1.65' />
+      <event time='25:00 min' name='ceiling' value='18.0' />
+      <event time='30:00 min' name='violation' />
+      <event time='35:00 min' name='deco stop' />
+      <event time='40:00 min' name='safety stop' />
+      <sample time='0:30 min' depth='5.0 m' />
+      <sample time='5:00 min' depth='25.0 m' />
+      <sample time='40:00 min' depth='5.0 m' />
+      <sample time='45:00 min' depth='0.5 m' />
+      </divecomputer>
+    </dive>
+  </dives>
+</divelog>

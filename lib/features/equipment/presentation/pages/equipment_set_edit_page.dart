@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/features/equipment/presentation/widgets/geofence_editor_sheet.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
   final String? setId;
@@ -31,6 +36,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   final Set<String> _selectedEquipmentIds = {};
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _isDefault = false;
+  List<EquipmentSetGeofence> _geofences = [];
 
   @override
   void dispose() {
@@ -46,11 +53,39 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _nameController.text = set.name;
     _descriptionController.text = set.description;
     _selectedEquipmentIds.addAll(set.equipmentIds);
+    _isDefault = set.isDefault;
+    _geofences = List.of(set.geofences);
+  }
+
+  /// Drops selections whose equipment has been deleted since the form opened.
+  ///
+  /// [_initializeFromSet] seeds the selection once. If a gear item is deleted
+  /// while this page is on screen -- by a sync, or from the equipment tab --
+  /// its checkbox disappears but the id stays selected, so it can be neither
+  /// seen nor un-checked, and the save would re-insert a dangling foreign key
+  /// (issue #819). The repository prunes such ids as well, but only at write
+  /// time; doing it here keeps the rendered membership honest.
+  ///
+  /// An id is kept when the freshly loaded [set] still lists it. Retired gear
+  /// renders no checkbox yet is legitimately a member, and a set may reference
+  /// gear that [allEquipmentProvider] (diver-scoped) does not return -- neither
+  /// may be silently dropped.
+  void _pruneDeletedSelections(
+    EquipmentSet set,
+    List<EquipmentItem>? everyEquipment,
+  ) {
+    if (everyEquipment == null) return;
+    final known = {...everyEquipment.map((e) => e.id), ...set.equipmentIds};
+    _selectedEquipmentIds.retainWhere(known.contains);
   }
 
   @override
   Widget build(BuildContext context) {
     final allEquipmentAsync = ref.watch(activeEquipmentProvider);
+    // Existence check for _pruneDeletedSelections. Deliberately not
+    // activeEquipmentProvider: retired gear still belongs to a set, it just
+    // gets no checkbox.
+    final everyEquipment = ref.watch(allEquipmentProvider).valueOrNull;
 
     if (widget.isEditing) {
       final setAsync = ref.watch(equipmentSetProvider(widget.setId!));
@@ -67,6 +102,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
             );
           }
           _initializeFromSet(set);
+          _pruneDeletedSelections(set, everyEquipment);
           return _buildForm(context, allEquipmentAsync, set);
         },
         loading: () => Scaffold(
@@ -133,6 +169,66 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 hintText: context.l10n.equipment_setEdit_descriptionHint,
               ),
               maxLines: 2,
+            ),
+            const SizedBox(height: 24),
+
+            // Default set
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_defaultSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_defaultSwitch_subtitle,
+              ),
+              value: _isDefault,
+              onChanged: (v) => setState(() => _isDefault = v),
+            ),
+            const SizedBox(height: 16),
+
+            // Geofences
+            Text(
+              context.l10n.equipment_setEdit_geofencesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              context.l10n.equipment_setEdit_geofencesSubtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._geofences.asMap().entries.map((entry) {
+              final i = entry.key;
+              final g = entry.value;
+              final formatter = UnitFormatter(ref.watch(settingsProvider));
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.place_outlined),
+                title: Text(
+                  g.label ?? context.l10n.equipment_geofenceEditor_title,
+                ),
+                subtitle: Text(
+                  context.l10n.equipment_setEdit_geofenceRadius(
+                    formatter.formatGeoDistance(g.radiusMeters),
+                  ),
+                ),
+                onTap: () => _editGeofence(i, g),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: context.l10n.equipment_setEdit_removeGeofence,
+                  onPressed: () => setState(() {
+                    _geofences = [
+                      for (var idx = 0; idx < _geofences.length; idx++)
+                        if (idx != i) _geofences[idx],
+                    ];
+                  }),
+                ),
+              );
+            }),
+            OutlinedButton.icon(
+              onPressed: _addGeofence,
+              icon: const Icon(Icons.add_location_alt_outlined),
+              label: Text(context.l10n.equipment_setEdit_addGeofence),
             ),
             const SizedBox(height: 24),
 
@@ -286,11 +382,67 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       title: Text(item.name),
       subtitle: item.fullName != item.name ? Text(item.fullName) : null,
       secondary: Icon(
-        _getIconForType(item.type),
+        equipmentTypeIcon(item.type),
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       controlAffinity: ListTileControlAffinity.trailing,
     );
+  }
+
+  Future<void> _addGeofence() async {
+    final draft = await showGeofenceEditor(context);
+    if (draft == null || !mounted) return;
+    setState(() {
+      _geofences = [
+        ..._geofences,
+        EquipmentSetGeofence(
+          id: const Uuid().v4(),
+          setId: widget.setId ?? '',
+          label: draft.label,
+          latitude: draft.latitude,
+          longitude: draft.longitude,
+          radiusMeters: draft.radiusMeters,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
+    });
+  }
+
+  /// Opens the editor seeded from an existing staged geofence and replaces it
+  /// in place with the returned draft (preserving id / setId / createdAt so the
+  /// reconcile step in [_saveSet] treats it as an update, not a new fence).
+  Future<void> _editGeofence(int index, EquipmentSetGeofence existing) async {
+    final draft = await showGeofenceEditor(
+      context,
+      initial: GeofenceDraft(
+        latitude: existing.latitude,
+        longitude: existing.longitude,
+        label: existing.label,
+        radiusMeters: existing.radiusMeters,
+      ),
+    );
+    if (draft == null || !mounted) return;
+    setState(() {
+      _geofences = [
+        for (var i = 0; i < _geofences.length; i++)
+          if (i == index)
+            EquipmentSetGeofence(
+              id: existing.id,
+              setId: existing.setId,
+              // Rebuild rather than copyWith so clearing the label (draft.label
+              // == null) is honored instead of retaining the old value.
+              label: draft.label,
+              latitude: draft.latitude,
+              longitude: draft.longitude,
+              radiusMeters: draft.radiusMeters,
+              createdAt: existing.createdAt,
+              updatedAt: DateTime.now(),
+            )
+          else
+            _geofences[i],
+      ];
+    });
   }
 
   Future<void> _saveSet(EquipmentSet? existingSet) async {
@@ -316,10 +468,40 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
 
       final notifier = ref.read(equipmentSetListNotifierProvider.notifier);
 
+      final String savedId;
       if (widget.isEditing) {
         await notifier.updateSet(set);
+        savedId = set.id;
       } else {
-        await notifier.addSet(set);
+        final created = await notifier.addSet(set);
+        savedId = created.id;
+      }
+
+      // Default flag (per-diver mutual exclusion handled in the repository).
+      // Turning the switch off clears the flag, leaving the diver with no
+      // default so nothing auto-applies until one is set again.
+      if (_isDefault) {
+        await notifier.setAsDefault(savedId);
+      } else if (existingSet?.isDefault ?? false) {
+        await notifier.clearDefault(savedId);
+      }
+
+      // Reconcile geofences: remove dropped, add/update the rest.
+      final repo = ref.read(equipmentSetRepositoryProvider);
+      final existingGeofences = await repo.getGeofencesForSet(savedId);
+      final keptIds = _geofences.map((g) => g.id).toSet();
+      for (final old in existingGeofences) {
+        if (!keptIds.contains(old.id)) {
+          await notifier.removeGeofence(savedId, old.id);
+        }
+      }
+      for (final g in _geofences) {
+        final fence = g.copyWith(setId: savedId);
+        if (existingGeofences.any((e) => e.id == g.id)) {
+          await notifier.updateGeofence(fence);
+        } else {
+          await notifier.addGeofence(fence);
+        }
       }
 
       if (mounted) {
@@ -347,34 +529,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  IconData _getIconForType(EquipmentType type) {
-    switch (type) {
-      case EquipmentType.regulator:
-        return Icons.air;
-      case EquipmentType.bcd:
-        return Icons.accessibility_new;
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return Icons.checkroom;
-      case EquipmentType.fins:
-        return Icons.directions_walk;
-      case EquipmentType.mask:
-        return Icons.visibility;
-      case EquipmentType.computer:
-        return Icons.watch;
-      case EquipmentType.tank:
-        return MdiIcons.divingScubaTank;
-      case EquipmentType.weights:
-        return Icons.fitness_center;
-      case EquipmentType.light:
-        return Icons.flashlight_on;
-      case EquipmentType.camera:
-        return Icons.camera_alt;
-      default:
-        return Icons.backpack;
     }
   }
 }

@@ -14,8 +14,11 @@ import 'package:submersion/features/marine_life/data/repositories/species_reposi
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   late ProviderContainer container;
@@ -200,6 +203,97 @@ void main() {
       final diveList = await container.read(divesProvider.future);
       final undoDive = diveList.where((d) => d.id == 'um-dive');
       expect(undoDive.first.site?.id, equals('um-2'));
+    });
+  });
+
+  group('sitesWithCountsProvider auto-refresh', () {
+    test('refreshes dive counts when a dive is written directly to the DB '
+        '(sync scenario)', () async {
+      final site = await siteRepository.createSite(
+        const DiveSite(id: 'count-site', name: 'Count Site'),
+      );
+
+      // An active listener keeps the provider (and both its sites and dives
+      // table-change subscriptions) alive, mirroring a widget that watches
+      // the list.
+      final sub = container.listen(sitesWithCountsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      // Initially the site exists with a zero dive count.
+      final initial = await container.read(sitesWithCountsProvider.future);
+      final initialEntry = initial.firstWhere((s) => s.site.id == site.id);
+      expect(initialEntry.diveCount, equals(0));
+
+      // A sync applies a remote dive for this site straight to the DB. The
+      // watchDivesChanges tick must invalidate the provider so the count
+      // refreshes.
+      await _insertDive(database, id: 'count-dive', siteId: site.id);
+
+      var count = 0;
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        final sites = await container.read(sitesWithCountsProvider.future);
+        final entry = sites.where((s) => s.site.id == site.id);
+        count = entry.isEmpty ? 0 : entry.first.diveCount;
+        if (count >= 1) break;
+      }
+
+      expect(
+        count,
+        equals(1),
+        reason:
+            'sitesWithCountsProvider should auto-refresh dive counts after a '
+            'direct dives-table write without any manual invalidation',
+      );
+    });
+  });
+
+  group('site card config providers', () {
+    test('detailed config defaults to the enriched slots', () {
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final config = container.read(siteDetailedCardConfigProvider);
+      final slotFields = {for (final s in config.slots) s.slotId: s.field};
+
+      expect(slotFields, {
+        'title': SiteField.siteName,
+        'subtitle': SiteField.location,
+        'stat1': SiteField.depthRange,
+        'stat2': SiteField.diveCount,
+      });
+      expect(config.extraFields, [
+        SiteField.lastDived,
+        SiteField.maxDepthReached,
+      ]);
+      expect(
+        container.read(siteDetailedCardConfigProvider.notifier),
+        isA<EntityCardConfigNotifier<SiteField>>(),
+      );
+    });
+
+    test('compact config defaults to count and depth range stats', () {
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final config = container.read(siteCompactCardConfigProvider);
+      final slotFields = {for (final s in config.slots) s.slotId: s.field};
+
+      expect(slotFields['stat1'], SiteField.diveCount);
+      expect(slotFields['stat2'], SiteField.depthRange);
+      expect(config.extraFields, isEmpty);
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 /// Dive buddy entity
 class Buddy extends Equatable {
@@ -13,6 +14,7 @@ class Buddy extends Equatable {
   final CertificationAgency? certificationAgency;
   final String? photoPath;
   final String notes;
+  final bool isFavorite;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,6 +28,7 @@ class Buddy extends Equatable {
     this.certificationAgency,
     this.photoPath,
     this.notes = '',
+    this.isFavorite = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -64,6 +67,7 @@ class Buddy extends Equatable {
     CertificationAgency? certificationAgency,
     String? photoPath,
     String? notes,
+    bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -77,6 +81,7 @@ class Buddy extends Equatable {
       certificationAgency: certificationAgency ?? this.certificationAgency,
       photoPath: photoPath ?? this.photoPath,
       notes: notes ?? this.notes,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -93,15 +98,18 @@ class Buddy extends Equatable {
     certificationAgency,
     photoPath,
     notes,
+    isFavorite,
     createdAt,
     updatedAt,
   ];
 }
 
-/// Buddy with role for a specific dive
+/// Buddy with role for a specific dive. The role is resolved from the
+/// dive_roles table (synthetic for unknown slugs); persistence always uses
+/// [DiveRole.id], never the display name.
 class BuddyWithRole extends Equatable {
   final Buddy buddy;
-  final BuddyRole role;
+  final DiveRole role;
 
   const BuddyWithRole({required this.buddy, required this.role});
 

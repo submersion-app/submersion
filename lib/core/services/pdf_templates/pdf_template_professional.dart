@@ -2,9 +2,11 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -23,6 +25,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -38,6 +41,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         build: (context) => _buildCoverPage(
           title: title,
           diveCount: dives.length,
+          dates: dates,
           diver: diver,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
@@ -54,6 +58,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           build: (context) => _buildDiverProfilePage(
             diver: diver,
             totalDives: dives.length,
+            dates: dates,
             certifications: certifications,
           ),
         ),
@@ -68,6 +73,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           margin: const pw.EdgeInsets.all(40),
           build: (context) => PdfSharedComponents.buildCertificationCardsPage(
             certifications: certifications,
+            dates: dates,
             diver: diver,
             accentColor: PdfColors.grey800,
           ),
@@ -93,7 +99,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 children: [
                   pw.Text(
                     'Professional Dive Log',
-                    style: pw.TextStyle(
+                    style: const pw.TextStyle(
                       fontSize: 12,
                       fontWeight: pw.FontWeight.bold,
                       color: PdfColors.grey700,
@@ -116,6 +122,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 (dive) => [
                   _buildProfessionalDiveEntry(
                     dive,
+                    dates: dates,
                     signatures: diveSignatures?[dive.id],
                   ),
                   pw.SizedBox(height: 24),
@@ -133,6 +140,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
   pw.Widget _buildCoverPage({
     required String title,
     required int diveCount,
+    required PdfDateFormatter dates,
     Diver? diver,
     DateTime? firstDiveDate,
     DateTime? lastDiveDate,
@@ -150,7 +158,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
               children: [
                 pw.Text(
                   'PROFESSIONAL',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
                     letterSpacing: 4,
@@ -160,7 +168,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 pw.SizedBox(height: 8),
                 pw.Text(
                   title.toUpperCase(),
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 32,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -182,7 +190,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 if (firstDiveDate != null && lastDiveDate != null) ...[
                   pw.SizedBox(height: 8),
                   pw.Text(
-                    '${PdfSharedComponents.formatDate(firstDiveDate)} - ${PdfSharedComponents.formatDate(lastDiveDate)}',
+                    '${dates.date(firstDiveDate)} - ${dates.date(lastDiveDate)}',
                     style: const pw.TextStyle(
                       fontSize: 12,
                       color: PdfColors.grey600,
@@ -194,7 +202,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           ),
           pw.SizedBox(height: 40),
           pw.Text(
-            'Generated ${PdfSharedComponents.formatDateTime(DateTime.now())}',
+            'Generated ${dates.dateTime(DateTime.now())}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
           ),
         ],
@@ -205,6 +213,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
   pw.Widget _buildDiverProfilePage({
     required Diver diver,
     required int totalDives,
+    required PdfDateFormatter dates,
     List<Certification>? certifications,
   }) {
     return pw.Column(
@@ -212,7 +221,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
       children: [
         pw.Text(
           'Diver Profile',
-          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
         pw.SizedBox(height: 16),
         pw.Divider(color: PdfColors.grey400),
@@ -257,7 +269,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         if (certifications != null && certifications.isNotEmpty) ...[
           pw.Text(
             'Certifications',
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
           pw.SizedBox(height: 8),
           ...certifications
@@ -276,13 +291,17 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                         ),
                       ),
                       pw.SizedBox(width: 8),
+                      // This bullet is a single line with no separate agency
+                      // field, unlike the certifications section in
+                      // PdfSharedComponents -- so the agency stays here. The
+                      // title is derived so it is not printed twice.
                       pw.Text(
-                        '${cert.agency.displayName} - ${cert.name}',
+                        '${cert.agency.displayName} - ${certificationTitle(cert)}',
                         style: const pw.TextStyle(fontSize: 10),
                       ),
                       if (cert.issueDate != null) ...[
                         pw.Text(
-                          ' (${PdfSharedComponents.formatDate(cert.issueDate!)})',
+                          ' (${dates.date(cert.issueDate!)})',
                           style: const pw.TextStyle(
                             fontSize: 10,
                             color: PdfColors.grey600,
@@ -311,7 +330,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
         children: [
           pw.Text(
             label.toUpperCase(),
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 8,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey600,
@@ -327,6 +346,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
 
   pw.Widget _buildProfessionalDiveEntry(
     Dive dive, {
+    required PdfDateFormatter dates,
     List<Signature>? signatures,
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
@@ -350,13 +370,13 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
             children: [
               pw.Text(
                 'DIVE #${dive.diveNumber ?? '-'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.Text(
-                PdfSharedComponents.formatDateTime(dive.dateTime),
+                dates.dateTime(dive.dateTime),
                 style: const pw.TextStyle(fontSize: 12),
               ),
             ],
@@ -389,8 +409,8 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                     ),
                     _buildMetricRow(
                       'Duration',
-                      dive.bottomTime != null
-                          ? '${dive.bottomTime!.inMinutes} min'
+                      dive.effectiveRuntime != null
+                          ? '${dive.effectiveRuntime!.inMinutes} min'
                           : '-',
                     ),
                   ],
@@ -407,7 +427,11 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                     ),
                     _buildMetricRow(
                       'Visibility',
-                      dive.visibility?.displayName ?? '-',
+                      // Measured distance from v144; pre-v144 dives fall back
+                      // to their bucket label.
+                      dive.visibilityMeters != null
+                          ? '${dive.visibilityMeters!.toStringAsFixed(0)}m'
+                          : (dive.visibility?.displayName ?? '-'),
                     ),
                     if (tank != null)
                       _buildMetricRow('Gas', tank.gasMix.name)
@@ -433,7 +457,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
                 children: [
                   pw.Text(
                     'NOTES',
-                    style: pw.TextStyle(
+                    style: const pw.TextStyle(
                       fontSize: 8,
                       fontWeight: pw.FontWeight.bold,
                       color: PdfColors.grey600,
@@ -455,7 +479,7 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           pw.SizedBox(height: 12),
           pw.Text(
             'VERIFICATION',
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey700,
@@ -506,7 +530,10 @@ class PdfTemplateProfessional extends PdfTemplateBuilder {
           ),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ],
       ),

@@ -147,17 +147,29 @@ You can pair multiple dive computers:
 - Backup computers on same dive
 - Shared device (rental)
 
-### Multi-Profile Dives
+### Multi-Computer Dives
 
 If you dive with multiple computers simultaneously:
 
 1. Download from each computer
-2. Dives are matched by time
-3. Each profile is stored separately
-4. Select **primary profile** for statistics
+2. When the second computer's dive matches one already in your log with
+   high confidence, the import review step arrives with **Consolidate**
+   pre-selected -- you can override any suggestion before finishing
+3. The consolidated dive keeps everything each computer recorded: profiles,
+   tanks and transmitter pressure curves, events, and per-computer summary
+   stats
+4. Dives already imported as separate entries can be consolidated later:
+   select the overlapping dives in the dive list and choose **Combine**, or
+   use **Merge with another dive** on the dive detail page
+5. On the dive detail page, toggle each computer's chart overlay, compare
+   the computers' numbers in the Data Sources grid, and use **Set as
+   primary** to choose which computer drives the dive's statistics
+
+Re-downloading a dive from a computer that is already one of the dive's
+sources is detected by fingerprint and defaults to Skip.
 
 <div class="tip">
-<strong>Tip:</strong> The primary profile is used for statistics. Usually choose your most accurate computer.
+<strong>Tip:</strong> The primary computer is used for statistics. Usually choose your most accurate computer. Consolidation is undoable right after it happens, and any computer can later be unlinked back into its own dive.
 </div>
 
 ### Linked Dive Computers

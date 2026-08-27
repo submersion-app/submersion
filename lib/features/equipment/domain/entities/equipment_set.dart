@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 
 /// A named collection of equipment items
 class EquipmentSet extends Equatable {
@@ -10,6 +11,8 @@ class EquipmentSet extends Equatable {
   final String description;
   final List<String> equipmentIds;
   final List<EquipmentItem>? items; // Populated when fetched with items
+  final bool isDefault;
+  final List<EquipmentSetGeofence> geofences; // Populated when fetched
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -20,6 +23,8 @@ class EquipmentSet extends Equatable {
     this.description = '',
     this.equipmentIds = const [],
     this.items,
+    this.isDefault = false,
+    this.geofences = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -39,6 +44,8 @@ class EquipmentSet extends Equatable {
     String? description,
     List<String>? equipmentIds,
     List<EquipmentItem>? items,
+    bool? isDefault,
+    List<EquipmentSetGeofence>? geofences,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -49,6 +56,8 @@ class EquipmentSet extends Equatable {
       description: description ?? this.description,
       equipmentIds: equipmentIds ?? this.equipmentIds,
       items: items ?? this.items,
+      isDefault: isDefault ?? this.isDefault,
+      geofences: geofences ?? this.geofences,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -61,6 +70,8 @@ class EquipmentSet extends Equatable {
     name,
     description,
     equipmentIds,
+    isDefault,
+    geofences,
     createdAt,
     updatedAt,
   ];

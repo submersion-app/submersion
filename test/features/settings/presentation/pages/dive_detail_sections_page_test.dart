@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,6 +20,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   // Stub remaining SettingsNotifier methods
   @override
@@ -41,6 +46,10 @@ class _MockSettingsNotifierWithSections extends StateNotifier<AppSettings>
       state = state.copyWith(clearDiveDetailSections: true);
 
   @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -59,7 +68,7 @@ Widget _buildTestWidget() {
 
 void main() {
   group('DiveDetailSectionsPage', () {
-    testWidgets('renders all 17 section names', (tester) async {
+    testWidgets('renders all section names', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -71,14 +80,17 @@ void main() {
       }
     });
 
-    testWidgets('renders 17 switches', (tester) async {
+    testWidgets('renders a switch per section', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byType(Switch), findsNWidgets(17));
+      expect(
+        find.byType(Switch),
+        findsNWidgets(DiveDetailSectionId.values.length),
+      );
     });
 
     testWidgets('renders drag handles', (tester) async {
@@ -88,7 +100,10 @@ void main() {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(17));
+      expect(
+        find.byIcon(Icons.drag_handle),
+        findsNWidgets(DiveDetailSectionId.values.length),
+      );
     });
 
     testWidgets('shows fixed sections note', (tester) async {
@@ -301,7 +316,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // First section should be Tanks, second should be Deco Status
+      // First section should be Cylinders (tanks id), second Deco Status
       final titles = tester.widgetList<Text>(
         find.descendant(of: find.byType(ListTile), matching: find.byType(Text)),
       );
@@ -314,7 +329,7 @@ void main() {
                 DiveDetailSectionId.values.any((id) => id.displayName == d),
           )
           .toList();
-      expect(displayNames.first, 'Tanks');
+      expect(displayNames.first, 'Cylinders');
     });
 
     testWidgets('shows app bar title', (tester) async {

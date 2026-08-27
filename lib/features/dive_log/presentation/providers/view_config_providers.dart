@@ -111,8 +111,7 @@ class TableViewConfigNotifier extends StateNotifier<domain.TableViewConfig> {
   void reorderColumn(int oldIndex, int newIndex) {
     final cols = List<domain.TableColumnConfig>.from(state.columns);
     final item = cols.removeAt(oldIndex);
-    final target = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    cols.insert(target.clamp(0, cols.length), item);
+    cols.insert(newIndex.clamp(0, cols.length), item);
     state = state.copyWith(columns: cols);
     _save();
   }
@@ -257,6 +256,13 @@ class CardViewConfigNotifier extends StateNotifier<domain.CardViewConfig> {
     _save();
   }
 
+  /// Toggle whether tag chips are shown on the card.
+  void setShowTags(bool value) {
+    if (state.showTags == value) return;
+    state = state.copyWith(showTags: value);
+    _save();
+  }
+
   /// Reset to the default config for the current mode.
   void resetToDefault() {
     state = _defaultForMode(_mode ?? ListViewMode.compact);
@@ -338,6 +344,7 @@ final tablePresetsProvider =
       diverId,
     ) async {
       final repo = ref.watch(viewConfigRepositoryProvider);
+      ref.invalidateSelfWhen(repo.watchPresetsChanges());
       await repo.ensureBuiltInPresets(diverId);
       return repo.getPresetsForMode(diverId, ListViewMode.table);
     });

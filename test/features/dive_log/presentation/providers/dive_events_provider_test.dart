@@ -17,6 +17,7 @@ void main() {
         depth: 5.0,
         value: null,
         tankId: null,
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -40,6 +41,7 @@ void main() {
         timestamp: 300,
         eventType: 'decoStopStart',
         severity: 'info',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -54,6 +56,7 @@ void main() {
         timestamp: 400,
         eventType: 'decoViolation',
         severity: 'alert',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -71,6 +74,7 @@ void main() {
         severity: 'info',
         tankId: 'tank-2',
         depth: 21.0,
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -88,6 +92,7 @@ void main() {
         eventType: 'bookmark',
         severity: 'info',
         description: 'Saw turtle',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -105,6 +110,7 @@ void main() {
         severity: 'warning',
         value: 12.5,
         depth: 15.0,
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -122,6 +128,7 @@ void main() {
         eventType: 'ppO2High',
         severity: 'alert',
         value: 1.6,
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -138,6 +145,7 @@ void main() {
         timestamp: 900,
         eventType: 'unknownEventType',
         severity: 'info',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -152,6 +160,7 @@ void main() {
         timestamp: 1000,
         eventType: 'bookmark',
         severity: 'unknownSeverity',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -166,6 +175,7 @@ void main() {
         timestamp: 1100,
         eventType: 'bookmark',
         severity: 'warning',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -180,6 +190,7 @@ void main() {
         timestamp: 1200,
         eventType: 'bookmark',
         severity: 'alert',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -194,6 +205,7 @@ void main() {
         timestamp: 0,
         eventType: 'bookmark',
         severity: 'info',
+        source: 'imported',
         createdAt: 1700000000000,
       );
 
@@ -236,6 +248,7 @@ void main() {
           timestamp: 0,
           eventType: typeName,
           severity: 'info',
+          source: 'imported',
           createdAt: 1700000000000,
         );
 

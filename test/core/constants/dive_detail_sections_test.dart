@@ -7,8 +7,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('DiveDetailSectionId', () {
-    test('has 17 values', () {
-      expect(DiveDetailSectionId.values.length, 17);
+    // Deliberate canary. Adding a section is a four-place change that the
+    // compiler only partly checks, so this failing is the prompt to also
+    // update defaultSections and the ARB keys for the localized switches.
+    test('section count changes are intentional', () {
+      expect(DiveDetailSectionId.values.length, 21);
     });
 
     test('values match expected IDs', () {
@@ -85,8 +88,8 @@ void main() {
       const jsonStr =
           '[{"id":"decoO2","visible":true},{"id":"details","visible":false}]';
       final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-      // 2 saved + 15 missing = 17 total
-      expect(sections.length, 17);
+      // saved entries first, the rest appended
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections[0].id, DiveDetailSectionId.decoO2);
       expect(sections[0].visible, true);
       expect(sections[1].id, DiveDetailSectionId.details);
@@ -99,32 +102,35 @@ void main() {
       const jsonStr =
           '[{"id":"decoO2","visible":true},{"id":"unknown","visible":true},{"id":"details","visible":false}]';
       final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-      // 2 known + 15 missing = 17 (unknown skipped)
-      expect(sections.length, 17);
+      // unknown ids skipped, the rest appended
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections[0].id, DiveDetailSectionId.decoO2);
       expect(sections[1].id, DiveDetailSectionId.details);
     });
 
     test('sectionsFromJson returns defaults for null input', () {
       final sections = DiveDetailSectionConfig.sectionsFromJson(null);
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections.every((s) => s.visible), true);
     });
 
     test('sectionsFromJson returns defaults for empty string', () {
       final sections = DiveDetailSectionConfig.sectionsFromJson('');
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
     });
 
     test('sectionsFromJson returns defaults for invalid JSON', () {
       final sections = DiveDetailSectionConfig.sectionsFromJson('not json');
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
     });
   });
 
   group('defaultSections', () {
-    test('contains all 17 section IDs', () {
-      expect(DiveDetailSectionConfig.defaultSections.length, 17);
+    test('contains every section ID', () {
+      expect(
+        DiveDetailSectionConfig.defaultSections.length,
+        DiveDetailSectionId.values.length,
+      );
       final ids = DiveDetailSectionConfig.defaultSections
           .map((s) => s.id)
           .toSet();
@@ -158,7 +164,7 @@ void main() {
         ),
       ];
       final result = DiveDetailSectionConfig.ensureAllSections(saved);
-      expect(result.length, 17);
+      expect(result.length, DiveDetailSectionId.values.length);
       expect(result[0].id, DiveDetailSectionId.decoO2);
       expect(result[0].visible, true);
       expect(result[1].id, DiveDetailSectionId.details);
@@ -169,8 +175,8 @@ void main() {
     test('returns saved config unchanged when all sections present', () {
       const saved = DiveDetailSectionConfig.defaultSections;
       final result = DiveDetailSectionConfig.ensureAllSections(saved);
-      expect(result.length, 17);
-      for (var i = 0; i < 17; i++) {
+      expect(result.length, DiveDetailSectionId.values.length);
+      for (var i = 0; i < DiveDetailSectionId.values.length; i++) {
         expect(result[i].id, saved[i].id);
         expect(result[i].visible, saved[i].visible);
       }
@@ -268,8 +274,8 @@ void main() {
         ];
         final json = DiveDetailSectionConfig.sectionsToJson(original);
         final restored = DiveDetailSectionConfig.sectionsFromJson(json);
-        // 3 saved + 14 missing = 17
-        expect(restored.length, 17);
+        // saved entries keep their order, the rest appended
+        expect(restored.length, DiveDetailSectionId.values.length);
         // First 3 preserve original order and visibility
         expect(restored[0].id, DiveDetailSectionId.tanks);
         expect(restored[0].visible, false);
@@ -280,7 +286,7 @@ void main() {
       },
     );
 
-    test('full 17-section round-trip preserves exact order', () {
+    test('full round-trip preserves exact order', () {
       final custom = List.of(DiveDetailSectionConfig.defaultSections);
       // Reverse order and toggle some off
       final reversed = custom.reversed.toList();
@@ -288,8 +294,8 @@ void main() {
       reversed[5] = reversed[5].copyWith(visible: false);
       final json = DiveDetailSectionConfig.sectionsToJson(reversed);
       final restored = DiveDetailSectionConfig.sectionsFromJson(json);
-      expect(restored.length, 17);
-      for (var i = 0; i < 17; i++) {
+      expect(restored.length, DiveDetailSectionId.values.length);
+      for (var i = 0; i < DiveDetailSectionId.values.length; i++) {
         expect(restored[i].id, reversed[i].id);
         expect(restored[i].visible, reversed[i].visible);
       }
@@ -299,7 +305,7 @@ void main() {
   group('ensureAllSections edge cases', () {
     test('handles empty input list', () {
       final result = DiveDetailSectionConfig.ensureAllSections([]);
-      expect(result.length, 17);
+      expect(result.length, DiveDetailSectionId.values.length);
       expect(result.every((s) => s.visible), true);
     });
 
@@ -328,13 +334,13 @@ void main() {
       final sections = DiveDetailSectionConfig.sectionsFromJson(
         '{"foo":"bar"}',
       );
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections.every((s) => s.visible), true);
     });
 
     test('returns defaults when JSON list contains non-map items', () {
       final sections = DiveDetailSectionConfig.sectionsFromJson('[1, 2, 3]');
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections.every((s) => s.visible), true);
     });
 
@@ -343,7 +349,7 @@ void main() {
           '[{"id":"foo","visible":true},{"id":"bar","visible":false}]';
       final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
       // All unknown → parsed list empty → returns defaults
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
       expect(sections.every((s) => s.visible), true);
     });
 
@@ -354,7 +360,7 @@ void main() {
         final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
         // Non-Map items are skipped; valid decoO2 is preserved; missing sections
         // are appended by ensureAllSections.
-        expect(sections.length, 17);
+        expect(sections.length, DiveDetailSectionId.values.length);
         expect(sections.first.id, DiveDetailSectionId.decoO2);
         expect(sections.first.visible, true);
       },
@@ -362,13 +368,13 @@ void main() {
   });
 
   group('sectionsFromJson with all sections present', () {
-    test('returns exact list when all 17 sections are in JSON', () {
+    test('returns exact list when all sections are in JSON', () {
       final allSections = DiveDetailSectionConfig.defaultSections
           .map((s) => s.toJson())
           .toList();
       final json = jsonEncode(allSections);
       final sections = DiveDetailSectionConfig.sectionsFromJson(json);
-      expect(sections.length, 17);
+      expect(sections.length, DiveDetailSectionId.values.length);
     });
   });
 
@@ -399,7 +405,7 @@ void main() {
       expect(DiveDetailSectionId.altitude.displayName, 'Altitude');
       expect(DiveDetailSectionId.tide.displayName, 'Tide');
       expect(DiveDetailSectionId.weights.displayName, 'Weights');
-      expect(DiveDetailSectionId.tanks.displayName, 'Tanks');
+      expect(DiveDetailSectionId.tanks.displayName, 'Cylinders');
       expect(DiveDetailSectionId.buddies.displayName, 'Buddies');
       expect(DiveDetailSectionId.signatures.displayName, 'Signatures');
       expect(DiveDetailSectionId.equipment.displayName, 'Equipment');
@@ -421,7 +427,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.description,
-        'Phase/time segmentation, cylinder breakdown',
+        'Phase/time SAC segmentation',
       );
       expect(
         DiveDetailSectionId.details.description,
@@ -445,7 +451,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.description,
-        'Tank list, gas mixes, pressures, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
       );
       expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
       expect(
@@ -532,7 +538,7 @@ void main() {
       );
       expect(DiveDetailSectionId.tide.localizedDisplayName(l10n), 'Tide');
       expect(DiveDetailSectionId.weights.localizedDisplayName(l10n), 'Weights');
-      expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Tanks');
+      expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Cylinders');
       expect(DiveDetailSectionId.buddies.localizedDisplayName(l10n), 'Buddies');
       expect(
         DiveDetailSectionId.signatures.localizedDisplayName(l10n),
@@ -566,7 +572,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDescription(l10n),
-        'Phase/time segmentation, cylinder breakdown',
+        'Phase/time SAC segmentation',
       );
       expect(
         DiveDetailSectionId.details.localizedDescription(l10n),
@@ -590,7 +596,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
-        'Tank list, gas mixes, pressures, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
       );
       expect(
         DiveDetailSectionId.buddies.localizedDescription(l10n),
@@ -632,6 +638,102 @@ void main() {
           .map((id) => id.localizedDisplayName(l10n))
           .toList();
       expect(names.toSet().length, names.length);
+    });
+  });
+
+  group('defaultSections stays in sync with the enum', () {
+    // defaultSections is a hand-maintained const list that duplicates
+    // DiveDetailSectionId. Adding an enum value without adding it here
+    // compiles fine but omits the section from every fresh install's
+    // default layout, where it would simply never appear.
+    test('covers every enum value exactly once, in declaration order', () {
+      final defaults = DiveDetailSectionConfig.defaultSections
+          .map((s) => s.id)
+          .toList();
+      expect(
+        defaults,
+        DiveDetailSectionId.values,
+        reason:
+            'defaultSections drifted from DiveDetailSectionId; add the '
+            'missing section in enum declaration order',
+      );
+    });
+  });
+
+  group('reef health section', () {
+    test('is a registered section with name and description', () {
+      expect(
+        DiveDetailSectionId.values,
+        contains(DiveDetailSectionId.reefHealth),
+      );
+      expect(DiveDetailSectionId.reefHealth.displayName, 'Water Conditions');
+      expect(DiveDetailSectionId.reefHealth.description.isNotEmpty, isTrue);
+    });
+
+    test('ensureAllSections appends reefHealth to a legacy config', () {
+      const legacy = [
+        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
+      ];
+      final result = DiveDetailSectionConfig.ensureAllSections(legacy);
+      expect(result.map((s) => s.id), contains(DiveDetailSectionId.reefHealth));
+    });
+
+    test('stays visible for gauge dives', () {
+      expect(DiveDetailSectionId.reefHealth.hiddenInGaugeMode, isFalse);
+    });
+  });
+
+  group('buoyancy section', () {
+    test('is a registered section with a non-empty name', () {
+      expect(
+        DiveDetailSectionId.values,
+        contains(DiveDetailSectionId.buoyancy),
+      );
+      expect(DiveDetailSectionId.buoyancy.displayName.isNotEmpty, isTrue);
+    });
+
+    test('ensureAllSections appends buoyancy to a legacy config', () {
+      const legacy = [
+        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
+      ];
+      final result = DiveDetailSectionConfig.ensureAllSections(legacy);
+      expect(result.map((s) => s.id), contains(DiveDetailSectionId.buoyancy));
+    });
+
+    test('round-trips through JSON', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.buoyancy,
+        visible: false,
+      );
+      final restored = DiveDetailSectionConfig.fromJson(config.toJson());
+      expect(restored.id, DiveDetailSectionId.buoyancy);
+      expect(restored.visible, isFalse);
+    });
+
+    test('stays visible for gauge dives', () {
+      expect(DiveDetailSectionId.buoyancy.hiddenInGaugeMode, isFalse);
+    });
+  });
+
+  group('hiddenInGaugeMode', () {
+    test('gauge hides deco, SAC segments, and cylinders sections only', () {
+      final hidden = DiveDetailSectionId.values
+          .where((s) => s.hiddenInGaugeMode)
+          .toSet();
+      expect(hidden, {
+        DiveDetailSectionId.decoO2,
+        DiveDetailSectionId.sacSegments,
+        DiveDetailSectionId.tanks,
+      });
+    });
+
+    test('sections a gauge diver still wants remain visible', () {
+      expect(DiveDetailSectionId.environment.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.weights.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.equipment.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.notes.hiddenInGaugeMode, isFalse);
     });
   });
 }

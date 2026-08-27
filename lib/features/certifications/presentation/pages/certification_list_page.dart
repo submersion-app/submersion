@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -77,27 +78,28 @@ class CertificationListPage extends ConsumerWidget {
           },
           columnSettingsAction: IconButton(
             icon: const Icon(Icons.view_column_outlined),
-            tooltip: 'Column settings',
-            onPressed: () {
-              final config = ref.read(certificationTableConfigProvider);
-              final notifier = ref.read(
-                certificationTableConfigProvider.notifier,
-              );
-              showEntityTableColumnPicker<CertificationField>(
-                context,
-                config: config,
-                adapter: CertificationFieldAdapter.instance,
-                onToggleColumn: notifier.toggleColumn,
-                onReorderColumn: notifier.reorderColumn,
-                onTogglePin: notifier.togglePin,
-              );
-            },
+            tooltip: context.l10n.columnConfig_tooltip_columnSettings,
+            onPressed: () => showEntityTableColumnPicker<CertificationField>(
+              context,
+              configProvider: certificationTableConfigProvider,
+              adapter: CertificationFieldAdapter.instance,
+            ),
           ),
           appBarActions: [
             IconButton(
               icon: const Icon(Icons.wallet, size: 20),
               tooltip: context.l10n.certifications_list_tooltip_walletView,
               onPressed: () => context.push('/certifications/wallet'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.search, size: 20),
+              tooltip: context.l10n.certifications_list_tooltip_search,
+              onPressed: () {
+                showSearch(
+                  context: context,
+                  delegate: CertificationSearchDelegate(ref),
+                );
+              },
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
@@ -110,22 +112,13 @@ class CertificationListPage extends ConsumerWidget {
                   currentField: sort.field,
                   currentDirection: sort.direction,
                   fields: CertificationSortField.values,
-                  getFieldDisplayName: (field) => field.displayName,
+                  getFieldDisplayName: (field) =>
+                      field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
                     ref.read(certificationSortProvider.notifier).state =
                         SortState(field: field, direction: direction);
                   },
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.search, size: 20),
-              tooltip: context.l10n.certifications_list_tooltip_search,
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: CertificationSearchDelegate(ref),
                 );
               },
             ),

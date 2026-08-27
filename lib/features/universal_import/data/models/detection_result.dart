@@ -46,10 +46,18 @@ class DetectionResult extends Equatable {
 
   /// A human-readable description of the detection result.
   String get description {
-    if (sourceApp != null) {
-      return 'Detected ${sourceApp!.displayName} ${format.displayName} file';
+    final formatDisplay = format.displayName;
+    if (sourceApp == null) {
+      return 'Detected $formatDisplay file';
     }
-    return 'Detected ${format.displayName} file';
+    final appDisplay = sourceApp!.displayName;
+    // Some format displayNames already embed the source app name
+    // (e.g. "MacDive XML", "Subsurface XML", "Shearwater Cloud").
+    // Skip the prefix in those cases to avoid "Detected MacDive MacDive XML".
+    if (formatDisplay.toLowerCase().startsWith(appDisplay.toLowerCase())) {
+      return 'Detected $formatDisplay file';
+    }
+    return 'Detected $appDisplay $formatDisplay file';
   }
 
   @override

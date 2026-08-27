@@ -16,7 +16,13 @@ class MapListScaffold extends ConsumerWidget {
   static const double _mobileInfoCardBottomOffset = 80;
 
   final String sectionKey;
+
+  /// Plain title text; also feeds the pane accessibility labels.
   final String title;
+
+  /// Rendered in the AppBar in place of a plain [title] when set, for pages
+  /// whose title carries a feature accent.
+  final Widget? titleWidget;
   final Widget listPane;
   final Widget mapPane;
   final Widget? infoCard;
@@ -29,6 +35,7 @@ class MapListScaffold extends ConsumerWidget {
     super.key,
     required this.sectionKey,
     required this.title,
+    this.titleWidget,
     required this.listPane,
     required this.mapPane,
     this.infoCard,
@@ -58,7 +65,7 @@ class MapListScaffold extends ConsumerWidget {
       // Mobile: Show only map with info card overlay
       return Scaffold(
         appBar: AppBar(
-          title: Semantics(header: true, child: Text(title)),
+          title: Semantics(header: true, child: titleWidget ?? Text(title)),
           leading: _buildLeadingButton(context),
           actions: actions,
         ),
@@ -84,7 +91,7 @@ class MapListScaffold extends ConsumerWidget {
     // Desktop: Show list + map split
     return Scaffold(
       appBar: AppBar(
-        title: Semantics(header: true, child: Text(title)),
+        title: Semantics(header: true, child: titleWidget ?? Text(title)),
         leading: _buildLeadingButton(context),
         actions: [
           // Expand button when collapsed

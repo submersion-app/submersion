@@ -247,11 +247,11 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // getStatistics - SUM(bottom_time)
+  // getStatistics - SUM(COALESCE(runtime, bottom_time))
   // ---------------------------------------------------------------------------
 
   group('getStatistics', () {
-    test('sums bottom_time for total time', () async {
+    test('falls back to bottom_time when runtime is null', () async {
       await insertDive(
         id: 'dive-stat1',
         diveNumber: 1,
@@ -270,8 +270,34 @@ void main() {
       final stats = await repository.getStatistics();
 
       expect(stats.totalDives, 2);
-      // Total time should be sum of bottom times: 30 + 45 = 75 minutes
+      // No runtime set → falls back to bottom times: 30 + 45 = 75 minutes
       expect(stats.totalTimeSeconds, (30 + 45) * 60);
+    });
+
+    test('prefers runtime over bottom_time when both are set', () async {
+      // Regression for issue #195: total time was summing bottom_time only,
+      // ignoring the runtime field that captures full descent/ascent/bottom.
+      await insertDive(
+        id: 'dive-with-runtime',
+        diveNumber: 1,
+        bottomTimeSeconds: 30 * 60,
+        runtimeSeconds: 40 * 60,
+        maxDepth: 20.0,
+        diveDateTimeMs: DateTime(2026, 3, 28, 10, 0).millisecondsSinceEpoch,
+      );
+      await insertDive(
+        id: 'dive-no-runtime',
+        diveNumber: 2,
+        bottomTimeSeconds: 45 * 60,
+        maxDepth: 25.0,
+        diveDateTimeMs: DateTime(2026, 3, 28, 11, 0).millisecondsSinceEpoch,
+      );
+
+      final stats = await repository.getStatistics();
+
+      expect(stats.totalDives, 2);
+      // Dive 1 contributes runtime (40), dive 2 falls back to bottom_time (45)
+      expect(stats.totalTimeSeconds, (40 + 45) * 60);
     });
   });
 

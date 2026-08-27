@@ -2,39 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Result from the location picker
 class PickedLocation {
   final double latitude;
   final double longitude;
-  final String? country;
-  final String? region;
-  final String? locality;
+
+  /// What the coordinates reverse-geocoded to.
+  final PlaceLookup place;
 
   const PickedLocation({
     required this.latitude,
     required this.longitude,
-    this.country,
-    this.region,
-    this.locality,
+    required this.place,
   });
 }
 
 /// A full-screen map for picking a location
-class LocationPickerMap extends StatefulWidget {
+class LocationPickerMap extends ConsumerStatefulWidget {
   /// Initial location to center the map on (optional)
   final LatLng? initialLocation;
 
   const LocationPickerMap({super.key, this.initialLocation});
 
   @override
-  State<LocationPickerMap> createState() => _LocationPickerMapState();
+  ConsumerState<LocationPickerMap> createState() => _LocationPickerMapState();
 }
 
-class _LocationPickerMapState extends State<LocationPickerMap> {
+class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
   final MapController _mapController = MapController();
   LatLng? _selectedLocation;
   bool _isGeocoding = false;
@@ -58,6 +63,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
       final result = await LocationService.instance.reverseGeocode(
         _selectedLocation!.latitude,
         _selectedLocation!.longitude,
+        languageCode: ref.read(placeNameLanguageProvider),
       );
 
       if (mounted) {
@@ -93,6 +99,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
     final result = await LocationService.instance.reverseGeocode(
       _selectedLocation!.latitude,
       _selectedLocation!.longitude,
+      languageCode: ref.read(placeNameLanguageProvider),
     );
 
     if (mounted) {
@@ -100,9 +107,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         PickedLocation(
           latitude: _selectedLocation!.latitude,
           longitude: _selectedLocation!.longitude,
-          country: result.country,
-          region: result.region,
-          locality: result.locality,
+          place: result,
         ),
       );
     }
@@ -127,6 +132,7 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     // Default to a world view if no initial location
     final initialCenter = widget.initialLocation ?? const LatLng(20.0, 0.0);
@@ -153,62 +159,66 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
         label: context.l10n.diveSites_locationPicker_semantics_map,
         child: Stack(
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: initialCenter,
-                initialZoom: initialZoom,
-                minZoom: 2.0,
-                maxZoom: 18.0,
-                onTap: _onMapTap,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            TrackpadZoomMap(
+              controller: _mapController,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: initialCenter,
+                  initialZoom: initialZoom,
+                  minZoom: 2.0,
+                  maxZoom: ref.watch(mapTileMaxZoomProvider),
+                  onTap: _onMapTap,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
                 ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'app.submersion',
-                  maxZoom: 19,
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
-                ),
-                if (_selectedLocation != null)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _selectedLocation!,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  if (_selectedLocation != null)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _selectedLocation!,
+                          width: 50,
+                          height: 50,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.onPrimary,
+                                width: 3,
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.location_on,
-                              size: 28,
-                              color: colorScheme.onPrimary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.location_on,
+                                size: 28,
+                                color: colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-              ],
+                      ],
+                    ),
+                  const MapAttribution(),
+                ],
+              ),
             ),
 
             // Instructions overlay
@@ -277,10 +287,14 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                 left: 16,
                 right: 16,
                 child: Semantics(
+                  // Per-axis rather than the combined grid reference: this is
+                  // read aloud, and "16Q DH 96898 51535" is far harder to
+                  // follow by ear than degrees. Grid formats degrade to
+                  // decimal degrees here by design.
                   label: context.l10n
                       .diveSites_locationPicker_semantics_coordinates(
-                        _selectedLocation!.latitude.toStringAsFixed(6),
-                        _selectedLocation!.longitude.toStringAsFixed(6),
+                        units.formatLatitude(_selectedLocation!.latitude),
+                        units.formatLongitude(_selectedLocation!.longitude),
                       ),
                   child: Card(
                     child: Padding(
@@ -306,8 +320,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                                           ),
                                     ),
                                     Text(
-                                      _selectedLocation!.latitude
-                                          .toStringAsFixed(6),
+                                      units.formatLatitude(
+                                        _selectedLocation!.latitude,
+                                      ),
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
@@ -332,8 +347,9 @@ class _LocationPickerMapState extends State<LocationPickerMap> {
                                           ),
                                     ),
                                     Text(
-                                      _selectedLocation!.longitude
-                                          .toStringAsFixed(6),
+                                      units.formatLongitude(
+                                        _selectedLocation!.longitude,
+                                      ),
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium

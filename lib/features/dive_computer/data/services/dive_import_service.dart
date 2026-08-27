@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/downloaded_tank_defaults.dart';
+import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -12,8 +17,8 @@ enum ImportMode {
   /// Import all dives, skipping exact duplicates
   all,
 
-  /// Replace existing dives with downloaded versions
-  replace,
+  /// Replace existing dive's source data with the downloaded version
+  replaceSource,
 }
 
 /// How to resolve conflicts when a duplicate is detected.
@@ -21,8 +26,8 @@ enum ConflictResolution {
   /// Skip the downloaded dive, keep the existing one
   skip,
 
-  /// Replace the existing dive with the downloaded one
-  replace,
+  /// Replace the existing dive's source data with the downloaded version
+  replaceSource,
 
   /// Import as a new dive (creates duplicate)
   importAsNew,
@@ -66,12 +71,24 @@ class DuplicateResult {
   /// Depth difference in meters (if matched)
   final double? depthDifferenceMeters;
 
+  /// True when [matchingDiveId] was matched via an exact hit against one of
+  /// the matched dive's EXISTING `dive_data_sources` keys (fingerprint or
+  /// source UUID) rather than fuzzy time/depth/duration matching.
+  ///
+  /// Set by [DiveImportService.detectDuplicate]'s fingerprint pass, which
+  /// KNOWS the match came from a source-key hit. Propagated through
+  /// `DiveMatchResult.matchedExistingSource` so the import wizard can
+  /// default such matches to skip instead of consolidate — the downloaded
+  /// dive is a re-download of data the matched dive already has.
+  final bool matchedExistingSource;
+
   const DuplicateResult({
     this.matchingDiveId,
     required this.confidence,
     required this.score,
     this.timeDifferenceSeconds,
     this.depthDifferenceMeters,
+    this.matchedExistingSource = false,
   });
 
   /// No duplicate found
@@ -215,19 +232,42 @@ class ImportResult {
   int get totalProcessed => imported + skipped + updated;
 }
 
+/// Supplies the default tank preset to fill downloaded cylinders with, or
+/// null when the diver has not opted in (or the preset no longer exists).
+typedef DefaultTankPresetLoader = Future<TankPresetEntity?> Function();
+
 /// Service for importing downloaded dives into the app's database.
 class DiveImportService {
   final DiveComputerRepository _repository;
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
+  final GpsTrackMatchService? _gpsTrackMatchService;
+  final DefaultTankPresetLoader? _defaultTankPresetForImports;
 
   DiveImportService({
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
     DiveParser? parser,
+    GpsTrackMatchService? gpsTrackMatchService,
+    DefaultTankPresetLoader? defaultTankPresetForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
-       _parser = parser ?? const DiveParser();
+       _parser = parser ?? const DiveParser(),
+       _gpsTrackMatchService = gpsTrackMatchService,
+       _defaultTankPresetForImports = defaultTankPresetForImports;
+
+  /// The preset to fill downloaded cylinders with.
+  ///
+  /// [importDives] resolves it once for the whole batch. The wizard's
+  /// per-dive entry points ([importSingleDiveAsNew], [resolveConflict])
+  /// resolve it per call: one small preset lookup beside a profile write of
+  /// thousands of samples, and deliberately not cached across calls so a
+  /// toggle flipped in Settings applies to the next download.
+  Future<TankPresetEntity?> _loadDefaultTankPreset() async {
+    final loader = _defaultTankPresetForImports;
+    if (loader == null) return null;
+    return loader();
+  }
 
   /// Import a list of downloaded dives.
   ///
@@ -246,6 +286,10 @@ class DiveImportService {
     ImportMode mode = ImportMode.newOnly,
     ConflictResolution defaultResolution = ConflictResolution.skip,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     int imported = 0;
     int skipped = 0;
@@ -260,10 +304,23 @@ class DiveImportService {
     final sortedDives = List<DownloadedDive>.of(dives)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
+    // One source-key snapshot for the whole batch. Downloaded dives carry
+    // unique fingerprints, so a dive imported earlier in this loop can never
+    // be a fingerprint match for a later one -- the snapshot cannot go stale
+    // within the batch.
+    final sourceKeysCache = _diveRepository != null
+        ? await _diveRepository.getSourceKeysByDiveId()
+        : null;
+
+    final defaultTankPreset = await _loadDefaultTankPreset();
+
     for (final dive in sortedDives) {
       try {
         // Check for duplicates
-        final duplicateResult = await detectDuplicate(dive);
+        final duplicateResult = await detectDuplicate(
+          dive,
+          sourceKeysCache: sourceKeysCache,
+        );
 
         if (duplicateResult.isDuplicate) {
           // Handle based on mode and confidence
@@ -289,12 +346,16 @@ class DiveImportService {
                   confidence: duplicateResult.confidence,
                 ),
               );
-            } else if (defaultResolution == ConflictResolution.replace) {
+            } else if (defaultResolution == ConflictResolution.replaceSource) {
               // Update existing dive
               await _updateExistingDive(
                 dive,
                 duplicateResult.matchingDiveId!,
                 computer.id,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               updated++;
             } else {
@@ -306,17 +367,26 @@ class DiveImportService {
                 computer.id,
                 diverId,
                 forceNew: true,
+                defaultTankPreset: defaultTankPreset,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               );
               importedDiveIds.add(diveId);
               importedDives.add(dive);
               imported++;
             }
-          } else if (mode == ImportMode.replace) {
+          } else if (mode == ImportMode.replaceSource) {
             // Replace existing
             await _updateExistingDive(
               dive,
               duplicateResult.matchingDiveId!,
               computer.id,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             updated++;
           } else {
@@ -327,6 +397,11 @@ class DiveImportService {
               computer.id,
               diverId,
               forceNew: true,
+              defaultTankPreset: defaultTankPreset,
+              descriptorVendor: descriptorVendor,
+              descriptorProduct: descriptorProduct,
+              descriptorModel: descriptorModel,
+              libdivecomputerVersion: libdivecomputerVersion,
             );
             importedDiveIds.add(diveId);
             importedDives.add(dive);
@@ -334,7 +409,16 @@ class DiveImportService {
           }
         } else {
           // No duplicate - import as new
-          final diveId = await _importNewDive(dive, computer.id, diverId);
+          final diveId = await _importNewDive(
+            dive,
+            computer.id,
+            diverId,
+            defaultTankPreset: defaultTankPreset,
+            descriptorVendor: descriptorVendor,
+            descriptorProduct: descriptorProduct,
+            descriptorModel: descriptorModel,
+            libdivecomputerVersion: libdivecomputerVersion,
+          );
           importedDiveIds.add(diveId);
           importedDives.add(dive);
           imported++;
@@ -342,6 +426,17 @@ class DiveImportService {
       } catch (e) {
         // Log error but continue with other dives
         skipped++;
+      }
+    }
+
+    // Stamp GPS from recorded surface tracks before the summary step, so
+    // the existing "Match sites" flow sees these dives as site-matchable.
+    // Best-effort: a matching failure must never fail the import itself.
+    if (_gpsTrackMatchService != null && importedDiveIds.isNotEmpty) {
+      try {
+        await _gpsTrackMatchService.sweep(limitToIds: importedDiveIds);
+      } catch (_) {
+        // GPS stamping is an enhancement; the dives imported fine.
       }
     }
 
@@ -357,18 +452,50 @@ class DiveImportService {
   }
 
   /// Detect if a downloaded dive matches an existing dive.
+  ///
+  /// Checks for an exact fingerprint match against ANY of a dive's sources
+  /// (primary or consolidated secondary) before falling back to fuzzy
+  /// time/depth/duration matching. This closes the re-download hole where a
+  /// dive that was previously consolidated as a SECONDARY computer's data
+  /// would not be recognized as a duplicate on the next download from that
+  /// same secondary computer, since only the primary computer's fingerprint
+  /// was ever checked.
   Future<DuplicateResult> detectDuplicate(
     DownloadedDive dive, {
     double timeTolerance = 5.0, // minutes
-    double depthTolerance = 0.5, // meters
+    String? diverId,
+    Map<String, Set<String>>? sourceKeysCache,
   }) async {
+    final rawFingerprint = dive.rawFingerprint;
+    if (rawFingerprint != null &&
+        rawFingerprint.isNotEmpty &&
+        _diveRepository != null) {
+      final hexFingerprint = _hexEncodeUppercase(rawFingerprint);
+      // Callers checking many dives in one session (the wizard adapter,
+      // importDives) prefetch the source-key map once and pass it in;
+      // querying it per dive is O(dives x whole-log source keys).
+      final sourceKeys =
+          sourceKeysCache ??
+          await _diveRepository.getSourceKeysByDiveId(diverId: diverId);
+      for (final entry in sourceKeys.entries) {
+        if (entry.value.contains(hexFingerprint)) {
+          return DuplicateResult(
+            matchingDiveId: entry.key,
+            confidence: DuplicateConfidence.exact,
+            score: 1.0,
+            matchedExistingSource: true,
+          );
+        }
+      }
+    }
+
     // Use the repository's enhanced matching with scoring
     final match = await _repository.findMatchingDiveWithScore(
       profileStartTime: dive.startTime,
       toleranceMinutes: timeTolerance.round(),
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
-      fingerprint: dive.fingerprint,
+      diverId: diverId,
     );
 
     if (match == null) {
@@ -399,11 +526,19 @@ class DiveImportService {
   }
 
   /// Import a downloaded dive as a new dive.
+  ///
+  /// [defaultTankPreset], when given, fills the cylinder size the computer
+  /// did not report so volumetric SAC is reachable on the new dive.
   Future<String> _importNewDive(
     DownloadedDive dive,
     String computerId,
     String? diverId, {
     bool forceNew = false,
+    TankPresetEntity? defaultTankPreset,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     // Calculate chronological dive number
     int? diveNumber;
@@ -417,11 +552,18 @@ class DiveImportService {
     // Parse profile data
     final profilePoints = _parser.parseProfile(dive);
 
-    // Convert tanks to TankData
-    final tanks = _parser.parseTanks(dive);
+    // Convert tanks to TankData, filling the cylinder size from the default
+    // preset when the diver opted in (computers report pressure, not size).
+    final parsedTanks = _parser.parseTanks(dive);
+    final tanks = defaultTankPreset == null
+        ? parsedTanks
+        : applyDefaultPresetToTanks(parsedTanks, defaultTankPreset);
 
     // Convert events to EventData
     final events = _convertEvents(dive.events);
+
+    // Convert gas switches to GasSwitchData
+    final gasSwitches = _parser.parseGasSwitches(dive);
 
     // Import using repository
     final diveId = await _repository.importProfile(
@@ -438,9 +580,21 @@ class DiveImportService {
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
+      diveMode: dive.diveMode,
       events: events,
+      gasSwitches: gasSwitches,
       diveNumber: diveNumber,
       forceNew: forceNew,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+      entryLatitude: dive.entryLatitude,
+      entryLongitude: dive.entryLongitude,
+      exitLatitude: dive.exitLatitude,
+      exitLongitude: dive.exitLongitude,
     );
 
     return diveId;
@@ -454,39 +608,80 @@ class DiveImportService {
     DownloadedDive dive, {
     required String computerId,
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
-    return _importNewDive(dive, computerId, diverId, forceNew: true);
+    return _importNewDive(
+      dive,
+      computerId,
+      diverId,
+      forceNew: true,
+      defaultTankPreset: await _loadDefaultTankPreset(),
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+    );
   }
 
-  /// Update an existing dive with downloaded data.
+  /// Replace an existing dive's source data with a fresh download.
+  ///
+  /// Clears the old profile and data source rows for this computer, then
+  /// re-imports so the new raw bytes and parsed data are stored.
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
-    String computerId,
-  ) async {
-    // Parse profile data
+    String computerId, {
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
+  }) async {
+    // Remove the existing profile + source row so importProfile won't
+    // short-circuit on the "already exists" check.
+    await _repository.clearSourceAndProfiles(
+      diveId: existingDiveId,
+      computerId: computerId,
+    );
+
     final profilePoints = _parser.parseProfile(dive);
-
-    // Convert events to EventData
     final events = _convertEvents(dive.events);
+    final gasSwitches = _parser.parseGasSwitches(dive);
+    // Tanks are passed (though importProfile does not re-create them for an
+    // existing dive) so gas switches can be matched to the existing cylinders
+    // by gas mix rather than by a possibly-stale cylinder index.
+    final tanks = _parser.parseTanks(dive);
 
-    // Clear existing profile for this computer and add new one
-    // Note: This is a simplified implementation
-    // A full implementation would update dive metadata as well
-
-    // Import the profile (will associate with existing dive)
+    // Re-import using the existing dive's start time so that importProfile
+    // matches it back to the same dive row.
     await _repository.importProfile(
       computerId: computerId,
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
-      isPrimary: false, // Keep existing primary
+      avgDepth: dive.avgDepth,
+      isPrimary: true,
+      tanks: tanks,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
+      diveMode: dive.diveMode,
       events: events,
+      gasSwitches: gasSwitches,
+      rawData: dive.rawData,
+      rawFingerprint: dive.rawFingerprint,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+      entryLatitude: dive.entryLatitude,
+      entryLongitude: dive.entryLongitude,
+      exitLatitude: dive.exitLatitude,
+      exitLongitude: dive.exitLongitude,
     );
   }
 
@@ -496,6 +691,10 @@ class DiveImportService {
     ConflictResolution resolution,
     String computerId, {
     String? diverId,
+    String? descriptorVendor,
+    String? descriptorProduct,
+    int? descriptorModel,
+    String? libdivecomputerVersion,
   }) async {
     conflict.resolution = resolution;
 
@@ -503,26 +702,51 @@ class DiveImportService {
       case ConflictResolution.skip:
         return null;
 
-      case ConflictResolution.replace:
+      case ConflictResolution.replaceSource:
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,
           computerId,
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
         );
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:
-        return await _importNewDive(conflict.downloaded, computerId, diverId);
+        return await _importNewDive(
+          conflict.downloaded,
+          computerId,
+          diverId,
+          defaultTankPreset: await _loadDefaultTankPreset(),
+          descriptorVendor: descriptorVendor,
+          descriptorProduct: descriptorProduct,
+          descriptorModel: descriptorModel,
+          libdivecomputerVersion: libdivecomputerVersion,
+        );
 
       case ConflictResolution.askUser:
         // This shouldn't be called with askUser
         return null;
 
       case ConflictResolution.consolidate:
-        // Consolidation is handled by DiveComputerAdapter._consolidateDive()
-        // which calls DiveRepository.consolidateComputer() directly.
+        // Consolidation is handled by DiveComputerAdapter._consolidateDive(),
+        // which imports the download as a new dive then folds it into the
+        // matched dive via DiveConsolidationService.apply().
         return null;
     }
+  }
+
+  /// Hex-encode [bytes] the same way SQLite's `hex()` function does
+  /// (uppercase, no separators), so it can be compared against
+  /// `DiveRepository.getSourceKeysByDiveId`'s fingerprint keys.
+  static String _hexEncodeUppercase(Uint8List bytes) {
+    final buffer = StringBuffer();
+    for (final byte in bytes) {
+      buffer.write(byte.toRadixString(16).padLeft(2, '0'));
+    }
+    return buffer.toString().toUpperCase();
   }
 
   List<EventData> _convertEvents(List<DownloadedEvent> events) {

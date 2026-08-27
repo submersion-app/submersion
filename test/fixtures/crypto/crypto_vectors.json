@@ -1,0 +1,36 @@
+{
+  "aesGcm": {
+    "key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "nonce": "AAECAwQFBgcICQoL",
+    "aad": "ssv1.devA.cs.00042.json",
+    "plaintext": "eyJoZWxsbyI6InN1Ym1lcnNpb24iLCJuIjo0Mn0=",
+    "ciphertextWithTag": "PCC+fqmJrTm3Y+T+04QdH/C/6FrSV30SGl3Rt2Aeidl2RDTOi8NWcVV6vi/R"
+  },
+  "hkdfData": {
+    "ikm": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "info": "sbe:v1:data",
+    "output": "RMeFIbxOD7Yj8RkfoSFhG4yW+SgqW9y0WMwoxs90lo8="
+  },
+  "argon2id": {
+    "password": "correct horse battery staple",
+    "salt": "AAECAwQFBgcICQoLDA0ODw==",
+    "m": 1024,
+    "t": 3,
+    "p": 1,
+    "output": "WQ193Teh7YZBejYUvkfJ94KCijiQI5ABjTm7ZVb+4Ck="
+  },
+  "envelopePlain": {
+    "key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "keyId": "8f14e45f-ceea-467f-ab37-a10a8d5f4c11",
+    "filename": "ssv1.devA.cs.00042.json",
+    "plaintext": "eyJoZWxsbyI6InN1Ym1lcnNpb24iLCJuIjo0Mn0=",
+    "envelope": "U0JFMY8U5F/O6kZ/qzehCo1fTBEAAAECAwQFBgcICQoLPCC+fqmJrTm3Y+T+04QdH/C/6FrSV30SGl3Rt2Aeidl2RDTOi8NWcVV6vi/R"
+  },
+  "envelopeGzip": {
+    "key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "keyId": "8f14e45f-ceea-467f-ab37-a10a8d5f4c11",
+    "filename": "ssv1.devA.cs.00042.json",
+    "plaintext": "eyJoZWxsbyI6InN1Ym1lcnNpb24iLCJuIjo0Mn0=",
+    "envelope": "U0JFMY8U5F/O6kZ/qzehCo1fTBEBAAECAwQFBgcICQoLWIneG8XlwhuPvjzde6G1pEqBNWbaVRK2dUrPS9GmU2BQ2v1OnfC4nXTKpYZtmig47rTRwHnq+Z8+EslLSi9dxl4="
+  }
+}

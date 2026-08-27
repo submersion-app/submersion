@@ -135,6 +135,11 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
               verticalLines: [],
             ),
           ),
+          // Editing rebuilds the chart data (waypoints shift marker indices,
+          // range shading tracks the selection). The default 150ms implicit
+          // animation lerps old data to new by list index, sliding markers
+          // between unrelated positions; render every edit immediately.
+          duration: Duration.zero,
         ),
       ),
     );

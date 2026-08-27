@@ -8,9 +8,12 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
 
   s.source_files     = 'Classes/**/*.{swift,c,h}'
-  s.public_header_files = 'Classes/libdc_wrapper.h'
+  # Matches the macOS podspec so the shared Swift sources compile identically.
+  # No IOKit framework here: iOS has no USB host support, so ftdi_usb_darwin.c
+  # compiles to stubs (issue #732).
+  s.public_header_files = 'Classes/{libdc_wrapper,ftdi_usb_darwin}.h'
   s.dependency 'Flutter'
-  s.platform         = :ios, '14.0'
+  s.platform         = :ios, '15.0'
   s.swift_version    = '5.9'
 
   # Preserve libdivecomputer source and config for build script
@@ -27,11 +30,15 @@ Pod::Spec.new do |s|
     'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES',
   }
 
-  # Build libdivecomputer from source before compiling Swift
+  # Build libdivecomputer from source before compiling Swift.
+  # No :output_files on purpose: with an output declared and no inputs, Xcode
+  # skips this phase whenever build/libdivecomputer.a already exists, so a
+  # patched source (e.g. the Swift GPS exit fix) would never be recompiled.
+  # build_libdc.sh does its own source-freshness check, so always running it is
+  # cheap when nothing changed.
   s.script_phase = {
     :name => 'Build libdivecomputer',
     :script => '"${PODS_TARGET_SRCROOT}/build_libdc.sh"',
     :execution_position => :before_compile,
-    :output_files => ['$(PODS_TARGET_SRCROOT)/build/libdivecomputer.a'],
   }
 end

@@ -2,11 +2,13 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
@@ -19,15 +21,18 @@ class TripRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
+  /// Emits whenever the `trips` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchTripsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.trips));
+
   /// Get all trips ordered by start date (most recent first)
   Future<List<domain.Trip>> getAllTrips({String? diverId}) async {
     try {
       final query = _db.select(_db.trips)
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToTrips(query, diverId);
 
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
@@ -57,13 +62,17 @@ class TripRepository {
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
     final searchTerm = '%${query.toLowerCase()}%';
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final results = await _db.customSelect('''
@@ -72,36 +81,11 @@ class TripRepository {
          OR LOWER(location) LIKE ?
          OR LOWER(resort_name) LIKE ?
          OR LOWER(liveaboard_name) LIKE ?)
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Trip(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        startDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['start_date'] as int,
-        ),
-        endDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['end_date'] as int,
-        ),
-        location: row.data['location'] as String?,
-        resortName: row.data['resort_name'] as String?,
-        liveaboardName: row.data['liveaboard_name'] as String?,
-        notes: (row.data['notes'] as String?) ?? '',
-        tripType: TripType.fromName(
-          (row.data['trip_type'] as String?) ?? 'shore',
-        ),
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map((row) => _mapDataToTrip(row.data)).toList();
   }
 
   /// Create a new trip
@@ -125,6 +109,10 @@ class TripRepository {
               liveaboardName: Value(trip.liveaboardName),
               notes: Value(trip.notes),
               tripType: Value(trip.tripType.name),
+              isShared: Value(trip.isShared),
+              returnFlightAt: Value(
+                trip.returnFlightAt?.millisecondsSinceEpoch,
+              ),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -165,6 +153,9 @@ class TripRepository {
           liveaboardName: Value(trip.liveaboardName),
           notes: Value(trip.notes),
           tripType: Value(trip.tripType.name),
+          isShared: Value(trip.isShared),
+          // Value(null) writes SQL NULL, so clearing the flight time works.
+          returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
           updatedAt: Value(now),
         ),
       );
@@ -185,27 +176,108 @@ class TripRepository {
     }
   }
 
+  /// Flip the shared state of a single trip. Marks it pending for sync.
+  Future<void> setShared(String id, bool isShared) async {
+    try {
+      _log.info('Setting trip $id isShared=$isShared');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
+        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'trips',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set shared flag on trip $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Mark every private trip owned by [diverId] as shared. Returns the
+  /// count of rows updated. All updated rows are marked pending for sync.
+  Future<int> shareAllForDiver(String diverId) async {
+    try {
+      _log.info('Bulk sharing all private trips for diver $diverId');
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      return await _db.transaction(() async {
+        final toShare =
+            await (_db.select(_db.trips)..where(
+                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
+                ))
+                .get();
+
+        if (toShare.isEmpty) return 0;
+
+        await _db.customUpdate(
+          'UPDATE trips SET is_shared = 1, updated_at = ? '
+          'WHERE diver_id = ? AND is_shared = 0',
+          variables: [Variable.withInt(now), Variable.withString(diverId)],
+          updates: {_db.trips},
+        );
+
+        for (final row in toShare) {
+          await _syncRepository.markRecordPending(
+            entityType: 'trips',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
+        SyncEventBus.notifyLocalChange();
+        return toShare.length;
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to bulk-share trips for diver $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Delete a trip and all associated child records.
   /// Removes liveaboard details, itinerary days, and dive associations
   /// before deleting the trip itself.
+  ///
+  /// The whole cascade runs in one transaction so a failure partway through
+  /// (e.g. a checklist delete throwing) rolls back every prior step instead
+  /// of leaving the trip half-deleted. Drift nested transactions join the
+  /// parent, so the child repositories' own `markRecordPending`/`logDeletion`
+  /// writes are safe inside this wrapper. Those child repos also fire their
+  /// own `SyncEventBus.notifyLocalChange()` mid-transaction; that is
+  /// pre-existing, debounced-downstream behavior and is left as-is. This
+  /// method's own notify is deferred until after the transaction commits so
+  /// listeners never observe a rolled-back delete as "changed".
   Future<void> deleteTrip(String id) async {
     try {
       _log.info('Deleting trip: $id');
 
-      // Delete child records with non-nullable FKs first
-      await LiveaboardDetailsRepository().deleteByTripId(id);
-      await ItineraryDayRepository().deleteByTripId(id);
+      await _db.transaction(() async {
+        // Delete child records with non-nullable FKs first
+        await LiveaboardDetailsRepository().deleteByTripId(id);
+        await ItineraryDayRepository().deleteByTripId(id);
+        await TripChecklistRepository().deleteByTripId(id);
 
-      // Remove trip association from dives (nullable FK)
-      await _db.customUpdate(
-        'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
-        variables: [Variable.withString(id)],
-        updates: {_db.dives},
-      );
+        // Remove trip association from dives (nullable FK)
+        await _db.customUpdate(
+          'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
+          variables: [Variable.withString(id)],
+          updates: {_db.dives},
+        );
 
-      // Delete the trip
-      await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'trips', recordId: id);
+        // Delete the trip
+        await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(entityType: 'trips', recordId: id);
+      });
+
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted trip: $id');
     } catch (e, stackTrace) {
@@ -218,34 +290,45 @@ class TripRepository {
     }
   }
 
-  /// Get dives for a specific trip
-  Future<List<String>> getDiveIdsForTrip(String tripId) async {
-    final results = await _db
-        .customSelect(
-          '''
+  /// Get dives for a specific trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// returned. Pass null to return dives from all divers (import-time use).
+  Future<List<String>> getDiveIdsForTrip(
+    String tripId, {
+    String? diverId,
+  }) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final results = await _db.customSelect('''
       SELECT id FROM dives
       WHERE trip_id = ?
+      $diverClause
       ORDER BY dive_date_time DESC
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .get();
+    ''', variables: variables).get();
 
     return results.map((row) => row.data['id'] as String).toList();
   }
 
-  /// Get dive count for a trip
-  Future<int> getDiveCountForTrip(String tripId) async {
-    final result = await _db
-        .customSelect(
-          '''
+  /// Get dive count for a trip.
+  ///
+  /// When [diverId] is non-null only dives belonging to that diver are
+  /// counted. Pass null to count dives from all divers (import-time use).
+  Future<int> getDiveCountForTrip(String tripId, {String? diverId}) async {
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final result = await _db.customSelect('''
       SELECT COUNT(*) as count
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return result.data['count'] as int? ?? 0;
   }
@@ -301,7 +384,15 @@ class TripRepository {
     try {
       _log.info('Scanning for candidate dives: $startDate - $endDate');
       final startMs = startDate.millisecondsSinceEpoch;
-      final endMs = endDate.millisecondsSinceEpoch;
+      final endMs = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+        999,
+      ).millisecondsSinceEpoch;
 
       final rows = await _db
           .customSelect(
@@ -405,32 +496,40 @@ class TripRepository {
     }
   }
 
-  /// Get trip statistics
-  Future<domain.TripWithStats> getTripWithStats(String tripId) async {
+  /// Get trip statistics.
+  ///
+  /// When [diverId] is non-null the aggregate stats (dive count, bottom time,
+  /// depths) are computed only from dives belonging to that diver.
+  /// Pass null to aggregate dives from all divers (import-time use).
+  Future<domain.TripWithStats> getTripWithStats(
+    String tripId, {
+    String? diverId,
+  }) async {
     final trip = await getTripById(tripId);
     if (trip == null) {
       throw Exception('Trip not found');
     }
 
-    final statsResult = await _db
-        .customSelect(
-          '''
+    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+    final variables = [
+      Variable.withString(tripId),
+      if (diverId != null) Variable.withString(diverId),
+    ];
+    final statsResult = await _db.customSelect('''
       SELECT
         COUNT(*) as dive_count,
-        COALESCE(SUM(bottom_time), 0) as total_bottom_time,
+        COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_depth
       FROM dives
       WHERE trip_id = ?
-    ''',
-          variables: [Variable.withString(tripId)],
-        )
-        .getSingle();
+      $diverClause
+    ''', variables: variables).getSingle();
 
     return domain.TripWithStats(
       trip: trip,
       diveCount: statsResult.data['dive_count'] as int? ?? 0,
-      totalBottomTime: statsResult.data['total_bottom_time'] as int? ?? 0,
+      totalRuntime: statsResult.data['total_runtime'] as int? ?? 0,
       maxDepth: statsResult.data['max_depth'] as double?,
       avgDepth: statsResult.data['avg_depth'] as double?,
     );
@@ -439,101 +538,81 @@ class TripRepository {
   /// Find trip that contains a specific date
   Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
     final dateMs = date.millisecondsSinceEpoch;
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 'trips',
+      diverId: diverId,
+      conjunction: 'AND',
+    );
     final variables = [
       Variable.withInt(dateMs),
       Variable.withInt(dateMs),
-      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
     ];
 
     final result = await _db.customSelect('''
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
-      $diverFilter
+      ${vis.whereClause}
       ORDER BY start_date DESC
       LIMIT 1
     ''', variables: variables).getSingleOrNull();
 
     if (result == null) return null;
 
-    return domain.Trip(
-      id: result.data['id'] as String,
-      diverId: result.data['diver_id'] as String?,
-      name: result.data['name'] as String,
-      startDate: DateTime.fromMillisecondsSinceEpoch(
-        result.data['start_date'] as int,
-      ),
-      endDate: DateTime.fromMillisecondsSinceEpoch(
-        result.data['end_date'] as int,
-      ),
-      location: result.data['location'] as String?,
-      resortName: result.data['resort_name'] as String?,
-      liveaboardName: result.data['liveaboard_name'] as String?,
-      notes: (result.data['notes'] as String?) ?? '',
-      tripType: TripType.fromName(
-        (result.data['trip_type'] as String?) ?? 'shore',
-      ),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        result.data['created_at'] as int,
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        result.data['updated_at'] as int,
-      ),
-    );
+    return _mapDataToTrip(result.data);
   }
 
-  /// Get all trips with their statistics
+  /// Get all trips with their statistics.
+  ///
+  /// When [diverId] is non-null:
+  ///   - The trip visibility predicate restricts which trips are returned
+  ///     (owned by the diver or shared).
+  ///   - The dive JOIN is scoped to that diver so stats reflect only their
+  ///     dives on shared trips.
+  /// Pass null to return all trips with unfiltered stats.
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
   }) async {
-    final diverFilter = diverId != null ? 'WHERE t.diver_id = ?' : '';
-    final variables = diverId != null
-        ? [Variable.withString(diverId)]
-        : <Variable<Object>>[];
+    final vis = VisibilityFilter.sqlFragment(
+      tableAlias: 't',
+      diverId: diverId,
+      conjunction: 'WHERE',
+    );
+
+    // Build the JOIN condition: always match trip_id, and also match
+    // diver_id when a specific diver is requested so that stats on shared
+    // trips reflect only that diver's dives.
+    final joinClause = diverId != null
+        ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?'
+        : 'LEFT JOIN dives d ON d.trip_id = t.id';
+
+    // When diverId is provided, prepend its variable before the visibility
+    // filter variables so the positional binding lines up with joinClause.
+    final variables = [
+      if (diverId != null) Variable.withString(diverId),
+      ...vis.variables,
+    ];
 
     final rows = await _db.customSelect('''
       SELECT
         t.*,
         COUNT(DISTINCT d.id) AS dive_count,
-        COALESCE(SUM(d.bottom_time), 0) AS total_bottom_time,
+        COALESCE(SUM(COALESCE(d.runtime, d.bottom_time)), 0) AS total_runtime,
         MAX(d.max_depth) AS max_depth,
         AVG(d.avg_depth) AS avg_depth
       FROM trips t
-      LEFT JOIN dives d ON d.trip_id = t.id
-      $diverFilter
+      $joinClause
+      ${vis.whereClause}
       GROUP BY t.id
       ORDER BY t.start_date DESC
     ''', variables: variables).get();
 
     return rows.map((row) {
-      final trip = domain.Trip(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        startDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['start_date'] as int,
-        ),
-        endDate: DateTime.fromMillisecondsSinceEpoch(
-          row.data['end_date'] as int,
-        ),
-        location: row.data['location'] as String?,
-        resortName: row.data['resort_name'] as String?,
-        liveaboardName: row.data['liveaboard_name'] as String?,
-        notes: (row.data['notes'] as String?) ?? '',
-        tripType: TripType.fromName(
-          (row.data['trip_type'] as String?) ?? 'shore',
-        ),
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
+      final trip = _mapDataToTrip(row.data);
       return domain.TripWithStats(
         trip: trip,
         diveCount: row.data['dive_count'] as int,
-        totalBottomTime: row.data['total_bottom_time'] as int,
+        totalRuntime: row.data['total_runtime'] as int,
         maxDepth: row.data['max_depth'] as double?,
         avgDepth: row.data['avg_depth'] as double?,
       );
@@ -552,8 +631,46 @@ class TripRepository {
       liveaboardName: row.liveaboardName,
       notes: row.notes,
       tripType: TripType.fromName(row.tripType),
+      isShared: row.isShared,
+      // Wall-clock-as-UTC: decode with isUtc so the stored components are
+      // preserved rather than shifted into the device's timezone.
+      returnFlightAt: row.returnFlightAt != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              row.returnFlightAt!,
+              isUtc: true,
+            )
+          : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+    );
+  }
+
+  /// Shared mapper for customSelect rows (searchTrips, findTripForDate,
+  /// getAllTripsWithStats) so a new trips column cannot silently miss one
+  /// of the hand-written sites.
+  domain.Trip _mapDataToTrip(Map<String, Object?> data) {
+    return domain.Trip(
+      id: data['id'] as String,
+      diverId: data['diver_id'] as String?,
+      name: data['name'] as String,
+      startDate: DateTime.fromMillisecondsSinceEpoch(data['start_date'] as int),
+      endDate: DateTime.fromMillisecondsSinceEpoch(data['end_date'] as int),
+      location: data['location'] as String?,
+      resortName: data['resort_name'] as String?,
+      liveaboardName: data['liveaboard_name'] as String?,
+      notes: (data['notes'] as String?) ?? '',
+      tripType: TripType.fromName((data['trip_type'] as String?) ?? 'shore'),
+      isShared: (data['is_shared'] as int? ?? 0) != 0,
+      // Wall-clock-as-UTC: decode with isUtc so the stored components are
+      // preserved rather than shifted into the device's timezone.
+      returnFlightAt: data['return_flight_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              data['return_flight_at'] as int,
+              isUtc: true,
+            )
+          : null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
     );
   }
 }

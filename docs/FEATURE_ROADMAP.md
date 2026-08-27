@@ -182,17 +182,22 @@
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
 | Multiple computers per dive | ✅ Implemented | v1.5 | DiveComputer entity with profiles |
-| Profile selector UI | ✅ Implemented | v1.5 | ProfileSelectorWidget for switching |
+| Per-computer overlay UI | ✅ Implemented | v1.6 | ComputerToggleBar drives depth/temperature/event/pressure overlays |
 | Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
-| Profile merging | 📋 Planned | v2.0 | Combine multiple sources |
-| Multi-transmitter support | 📋 Planned | v2.0 | Track multiple tank transmitters (sidemount) |
+| Profile merging (consolidation) | ✅ Implemented | v1.6 | Full-fidelity multi-computer consolidation; see docs/superpowers/specs/2026-07-02-multi-computer-consolidation-completion-design.md |
+| Multi-transmitter support | 🚧 Partial | v1.6 | Pressure samples stored per computer (v94); chart still draws one series per tank -- per-(tank, computer) series split is a follow-up |
 
 **v1.5 Tasks:**
 
 - [x] DiveComputer entity (name, manufacturer, model, serial)
 - [x] Add `computerId` to dive_profiles table
-- [x] UI to select active profile when multiple exist (ProfileSelectorWidget)
+- [x] Per-computer visibility toggles when multiple sources exist (ComputerToggleBar; the earlier ProfileSelectorWidget was superseded and removed)
 - [x] Primary profile indicator for statistics
+- [x] `computerId` attribution on dive_tanks, tank_pressure_profiles, dive_profile_events (v94)
+- [x] DiveConsolidationService: fold overlapping dives from different computers into one entry (undoable, sync-safe)
+- [x] Import wizard auto-suggests Consolidate for high-confidence cross-computer matches; re-downloads of already-consolidated sources default to Skip
+- [x] Combine dialog consolidates time-overlapping selections with a primary selector
+- [x] Data Sources comparison grid (per-computer max/avg depth, duration, temp, CNS, OTU, deco, GF)
 
 **v2.0 Tasks:**
 
@@ -1222,7 +1227,7 @@
 |---------|--------|-------|-------|
 | View community dive sites | 📋 Planned | v2.0 | Requires backend |
 | Explore nearby sites | 📋 Planned | v2.0 | GPS-based search |
-| User-submitted site photos | 📋 Planned | v2.0 | Photo gallery per site |
+| User-submitted site photos | ✅ Implemented | v1.5 | Site media section: photos, videos, and PDF/document attachments per site (issues #211/#627) |
 | Dive site reviews & ratings | 📋 Planned | v2.0 | Rate and review sites |
 
 **v2.0 Tasks:**
@@ -1297,6 +1302,13 @@
 - [ ] Layout presets (Compact, Detailed, Photo-focused)
 
 ---
+
+### Setup Wizard (Completed)
+
+- [x] Setup wizard for new databases (discussion #523): first-run fork
+      (fresh start vs existing data), units with locale-aware preset,
+      appearance, backup schedule and cloud sync connect, restore/adopt
+      paths, feature-discovery finish screen, Settings re-entry
 
 ## 15.2 Multi-User / Family Support
 
@@ -1682,9 +1694,9 @@
 
 | Platform | Status | Requirements |
 |----------|--------|--------------|
-| iOS | ✅ | iOS 13+ |
+| iOS | ✅ | iOS 15+ |
 | Android | ✅ | Android 7+ |
-| macOS | ✅ | macOS 11+ |
+| macOS | ✅ | macOS 12+ |
 | Windows | ✅ | Windows 10+ |
 | Linux | ✅ | Desktop Linux |
 | Web | v2.0 | Requires cloud sync |

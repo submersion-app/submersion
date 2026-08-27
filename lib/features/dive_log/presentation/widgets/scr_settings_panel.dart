@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -111,41 +112,60 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   void initState() {
     super.initState();
     _selectedType = widget.scrType ?? ScrType.cmf;
+    // Every seed goes through formatDecimalForInput so the diver's locale
+    // decides the separator, matching what parseUserDecimal reads back in
+    // _notifyChange. The VO2 default is formatted too: a literal '1.30' would
+    // be unreadable in a comma-decimal locale and silently become null (#1091).
     _injectionRateController = TextEditingController(
-      text: widget.injectionRate?.toStringAsFixed(1) ?? '',
+      text: widget.injectionRate != null
+          ? formatDecimalForInput(widget.injectionRate!)
+          : '',
     );
     _additionRatioController = TextEditingController(
-      text: widget.additionRatio?.toStringAsFixed(2) ?? '',
+      text: widget.additionRatio != null
+          ? formatDecimalForInput(widget.additionRatio!)
+          : '',
     );
+    // Orifice size is a free-text spec ("40", "50"), not a parsed quantity.
     _orificeSizeController = TextEditingController(
       text: widget.orificeSize ?? '',
     );
     _supplyO2Controller = TextEditingController(
-      text: widget.supplyGas?.o2.toString() ?? '40',
+      text: formatDecimalForInput(widget.supplyGas?.o2 ?? 40),
     );
     _supplyHeController = TextEditingController(
-      text: widget.supplyGas?.he.toString() ?? '0',
+      text: formatDecimalForInput(widget.supplyGas?.he ?? 0),
     );
     _assumedVo2Controller = TextEditingController(
-      text: widget.assumedVo2?.toStringAsFixed(2) ?? '1.30',
+      text: formatDecimalForInput(widget.assumedVo2 ?? 1.30),
     );
     _loopO2MinController = TextEditingController(
-      text: widget.loopO2Min?.toStringAsFixed(1) ?? '',
+      text: widget.loopO2Min != null
+          ? formatDecimalForInput(widget.loopO2Min!)
+          : '',
     );
     _loopO2MaxController = TextEditingController(
-      text: widget.loopO2Max?.toStringAsFixed(1) ?? '',
+      text: widget.loopO2Max != null
+          ? formatDecimalForInput(widget.loopO2Max!)
+          : '',
     );
     _loopO2AvgController = TextEditingController(
-      text: widget.loopO2Avg?.toStringAsFixed(1) ?? '',
+      text: widget.loopO2Avg != null
+          ? formatDecimalForInput(widget.loopO2Avg!)
+          : '',
     );
     _scrubberTypeController = TextEditingController(
       text: widget.scrubberType ?? '',
     );
     _scrubberDurationController = TextEditingController(
-      text: widget.scrubberDurationMinutes?.toString() ?? '',
+      text: widget.scrubberDurationMinutes != null
+          ? formatDecimalForInput(widget.scrubberDurationMinutes!.toDouble())
+          : '',
     );
     _scrubberRemainingController = TextEditingController(
-      text: widget.scrubberRemainingMinutes?.toString() ?? '',
+      text: widget.scrubberRemainingMinutes != null
+          ? formatDecimalForInput(widget.scrubberRemainingMinutes!.toDouble())
+          : '',
     );
   }
 
@@ -167,28 +187,28 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   }
 
   void _notifyChange() {
-    final supplyO2 = double.tryParse(_supplyO2Controller.text);
-    final supplyHe = double.tryParse(_supplyHeController.text);
+    final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
+    final supplyHe = parseUserDecimal(_supplyHeController.text);
 
     widget.onChanged(
       scrType: _selectedType,
-      injectionRate: double.tryParse(_injectionRateController.text),
-      additionRatio: double.tryParse(_additionRatioController.text),
+      injectionRate: parseUserDecimal(_injectionRateController.text),
+      additionRatio: parseUserDecimal(_additionRatioController.text),
       orificeSize: _orificeSizeController.text.isNotEmpty
           ? _orificeSizeController.text
           : null,
       supplyGas: supplyO2 != null
           ? GasMix(o2: supplyO2, he: supplyHe ?? 0)
           : null,
-      assumedVo2: double.tryParse(_assumedVo2Controller.text),
-      loopO2Min: double.tryParse(_loopO2MinController.text),
-      loopO2Max: double.tryParse(_loopO2MaxController.text),
-      loopO2Avg: double.tryParse(_loopO2AvgController.text),
+      assumedVo2: parseUserDecimal(_assumedVo2Controller.text),
+      loopO2Min: parseUserDecimal(_loopO2MinController.text),
+      loopO2Max: parseUserDecimal(_loopO2MaxController.text),
+      loopO2Avg: parseUserDecimal(_loopO2AvgController.text),
       scrubberType: _scrubberTypeController.text.isNotEmpty
           ? _scrubberTypeController.text
           : null,
-      scrubberDurationMinutes: int.tryParse(_scrubberDurationController.text),
-      scrubberRemainingMinutes: int.tryParse(_scrubberRemainingController.text),
+      scrubberDurationMinutes: parseUserInt(_scrubberDurationController.text),
+      scrubberRemainingMinutes: parseUserInt(_scrubberRemainingController.text),
     );
   }
 
@@ -578,8 +598,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
       ('O₂', 100.0, 0.0),
     ];
 
-    final currentO2 = double.tryParse(_supplyO2Controller.text) ?? 40.0;
-    final currentHe = double.tryParse(_supplyHeController.text) ?? 0.0;
+    final currentO2 = parseUserDecimal(_supplyO2Controller.text) ?? 40.0;
+    final currentHe = parseUserDecimal(_supplyHeController.text) ?? 0.0;
 
     return Wrap(
       spacing: 8,
@@ -593,8 +613,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
           selected: isSelected,
           onSelected: (_) {
             setState(() {
-              _supplyO2Controller.text = o2.toString();
-              _supplyHeController.text = he.toString();
+              _supplyO2Controller.text = formatDecimalForInput(o2);
+              _supplyHeController.text = formatDecimalForInput(he);
             });
             _notifyChange();
           },
@@ -604,9 +624,9 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   }
 
   Widget _buildCalculatedLoopFo2(ThemeData theme) {
-    final injectionRate = double.tryParse(_injectionRateController.text);
-    final supplyO2 = double.tryParse(_supplyO2Controller.text);
-    final vo2 = double.tryParse(_assumedVo2Controller.text) ?? 1.3;
+    final injectionRate = parseUserDecimal(_injectionRateController.text);
+    final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
+    final vo2 = parseUserDecimal(_assumedVo2Controller.text) ?? 1.3;
 
     if (injectionRate == null || supplyO2 == null || injectionRate <= vo2) {
       return const SizedBox.shrink();
@@ -653,8 +673,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
   }
 
   String _calculateN2() {
-    final o2 = double.tryParse(_supplyO2Controller.text) ?? 40.0;
-    final he = double.tryParse(_supplyHeController.text) ?? 0.0;
+    final o2 = parseUserDecimal(_supplyO2Controller.text) ?? 40.0;
+    final he = parseUserDecimal(_supplyHeController.text) ?? 0.0;
     final n2 = 100.0 - o2 - he;
     return n2.clamp(0.0, 100.0).toStringAsFixed(0);
   }

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -95,6 +94,66 @@ void main() {
       final theme = AppThemeRegistry.resolveTheme(preset, Brightness.dark);
       expect(theme, isNotNull);
       expect(theme.brightness, Brightness.dark);
+    });
+  });
+
+  group('snack bar defaults', () {
+    test('every preset theme shows a snack bar close icon', () {
+      for (final preset in AppThemeRegistry.presets) {
+        expect(
+          preset.lightTheme.snackBarTheme.showCloseIcon,
+          isTrue,
+          reason: '${preset.id} lightTheme',
+        );
+        expect(
+          preset.darkTheme.snackBarTheme.showCloseIcon,
+          isTrue,
+          reason: '${preset.id} darkTheme',
+        );
+      }
+    });
+
+    test('resolveTheme carries the snack bar close icon default', () {
+      final preset = AppThemeRegistry.findById('submersion');
+      for (final brightness in Brightness.values) {
+        expect(
+          AppThemeRegistry.resolveTheme(
+            preset,
+            brightness,
+          ).snackBarTheme.showCloseIcon,
+          isTrue,
+          reason: brightness.name,
+        );
+      }
+    });
+
+    testWidgets('a snack bar can be dismissed with its close button', (
+      tester,
+    ) async {
+      final preset = AppThemeRegistry.findById('submersion');
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          scaffoldMessengerKey: messengerKey,
+          theme: AppThemeRegistry.resolveTheme(preset, Brightness.light),
+          home: const Scaffold(body: SizedBox.shrink()),
+        ),
+      );
+
+      messengerKey.currentState!.showSnackBar(
+        SnackBar(
+          content: const Text('Linked 3 items'),
+          duration: const Duration(minutes: 5),
+          action: SnackBarAction(label: 'Undo', onPressed: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Linked 3 items'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.text('Linked 3 items'), findsNothing);
     });
   });
 }

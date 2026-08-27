@@ -1,0 +1,170 @@
+{
+  "chambers": [
+    {
+      "id": "us-duke",
+      "name": "Duke Center for Hyperbaric Medicine and Environmental Physiology",
+      "country": "US",
+      "city": "Durham, NC",
+      "phone": "+1-919-684-6726",
+      "emergencyPhone": "+1-919-684-8111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://anesthesiology.duke.edu/hyperbaric-center/emergency"}
+    },
+    {
+      "id": "us-catalina",
+      "name": "USC Catalina Hyperbaric Chamber",
+      "country": "US",
+      "city": "Avalon, CA",
+      "phone": "+1-310-510-4020",
+      "emergencyPhone": "+1-310-510-1053",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://dornsife.usc.edu/hyperbaric/phone/"}
+    },
+    {
+      "id": "us-ucsd-hillcrest",
+      "name": "UC San Diego Health Hyperbaric Medicine Center (Hillcrest)",
+      "country": "US",
+      "city": "San Diego, CA",
+      "phone": "+1-858-657-7000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://health.ucsd.edu/care/undersea/"}
+    },
+    {
+      "id": "us-hennepin",
+      "name": "Hennepin Healthcare Center for Hyperbaric Medicine",
+      "country": "US",
+      "city": "Minneapolis, MN",
+      "phone": "+1-612-873-7420",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://hennepinhealthcare.org/services/hyperbaric-medicine"}
+    },
+    {
+      "id": "us-virginia-mason",
+      "name": "Virginia Mason Center for Hyperbaric Medicine",
+      "country": "US",
+      "city": "Seattle, WA",
+      "phone": "+1-206-583-6543",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.vmfh.org/our-services/hyperbaric-medicine/vmmc-hyperbaric-medicine"}
+    },
+    {
+      "id": "us-uf-shands",
+      "name": "UF Health Wound Care and Hyperbaric Center",
+      "country": "US",
+      "city": "Gainesville, FL",
+      "phone": "+1-352-265-4450",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://ufhealth.org/conditions-and-treatments/hyperbaric-oxygen-therapy"}
+    },
+    {
+      "id": "us-utmb-galveston",
+      "name": "UTMB Health Undersea and Diving Medicine",
+      "country": "US",
+      "city": "Galveston, TX",
+      "phone": "+1-832-505-0372",
+      "capability": "hyperbaric_unit",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.utmbhealth.com/services/wound-care-hyperbarics/specialties/undersea-medicine"}
+    },
+    {
+      "id": "us-loma-linda",
+      "name": "Loma Linda University Medical Center Hyperbaric Medicine Service",
+      "country": "US",
+      "city": "Loma Linda, CA",
+      "phone": "+1-909-558-1000",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://news.llu.edu/patient-care/hyperbaric-medicine-service-receives-accreditation"}
+    },
+    {
+      "id": "us-htc-honolulu",
+      "name": "Hyperbaric Treatment Center (Kuakini Medical Center / University Health Partners of Hawaii)",
+      "country": "US",
+      "city": "Honolulu, HI",
+      "phone": "+1-808-587-3425",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.hawaii.edu/news/2025/03/23/hyperbaric-treatment-center-40-years/"}
+    },
+    {
+      "id": "ca-uhn-toronto",
+      "name": "University Health Network Hyperbaric Medicine Unit (Toronto General Hospital)",
+      "country": "CA",
+      "city": "Toronto, ON",
+      "phone": "+1-416-340-3598",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.uhn.ca/Surgery/Treatments_Procedures/Hyperbaric_Medicine_Unit"}
+    },
+    {
+      "id": "ca-vgh",
+      "name": "Vancouver General Hospital Hyperbaric Unit",
+      "country": "CA",
+      "city": "Vancouver, BC",
+      "phone": "+1-604-875-5000",
+      "emergencyPhone": "+1-604-875-4007",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://cuhma.ca/vgh-unit.html"}
+    },
+    {
+      "id": "ca-halifax-qeii",
+      "name": "QEII Health Sciences Centre Hyperbaric Medicine Program",
+      "country": "CA",
+      "city": "Halifax, NS",
+      "phone": "+1-902-473-2222",
+      "emergencyPhone": "+1-902-473-7998",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://cuhma.ca/qe-ii-health-sciences-centre.html"}
+    },
+    {
+      "id": "ca-sacre-coeur-montreal",
+      "name": "Hopital du Sacre-Coeur de Montreal, Service de Medecine Hyperbare",
+      "country": "CA",
+      "city": "Montreal, QC",
+      "phone": "+1-514-338-2777",
+      "emergencyPhone": "+1-514-338-2050",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.ciusssnordmtl.ca/soins-et-services/services-medicaux-specialises/hyperbare-medecine"}
+    },
+    {
+      "id": "ca-hotel-dieu-levis",
+      "name": "Centre de Medecine de Plongee du Quebec (Hotel-Dieu de Levis)",
+      "country": "CA",
+      "city": "Levis, QC",
+      "phone": "+1-418-835-7121",
+      "emergencyPhone": "+1-888-835-7121",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.cisssca.com/soins-et-services/hyperbare-et-medecine-de-plongee"}
+    },
+    {
+      "id": "ca-hamilton",
+      "name": "Hamilton Health Sciences Hyperbaric Medicine Program (Hamilton General Hospital)",
+      "country": "CA",
+      "city": "Hamilton, ON",
+      "phone": "+1-905-521-2100",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "http://www.hamiltonhealthsciences.ca/areas-of-care/critical-care/hyperbaric-medicine-program"}
+    },
+    {
+      "id": "ca-tobermory",
+      "name": "Tobermory Hyperbaric Facility",
+      "country": "CA",
+      "city": "Tobermory, ON",
+      "phone": "+1-519-596-2306",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.tobermoryhyperbaric.ca/about"}
+    }
+  ]
+}

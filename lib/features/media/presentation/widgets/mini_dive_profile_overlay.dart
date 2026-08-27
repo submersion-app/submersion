@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -85,12 +86,19 @@ class MiniDiveProfileOverlay extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 4),
-        Text(
-          context.l10n.media_miniProfile_headerLabel,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
+        // Flexible + ellipsis: the card is a fixed 160 px, so a long
+        // translation (or the wide test font) must truncate instead of
+        // overflowing the row.
+        Flexible(
+          child: Text(
+            context.l10n.media_miniProfile_headerLabel,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         const Spacer(),
@@ -130,9 +138,13 @@ class MiniDiveProfileOverlay extends StatelessWidget {
 
     // Create depth line spots with NEGATED depths for proper orientation
     // (fl_chart Y-axis goes up, but we want depth to increase downward)
-    final depthSpots = sortedProfile
-        .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth))
-        .toList();
+    // The x-axis starts at 0 but computers do not sample there, so descend
+    // from the surface to close the gap (issue #684). Same one-sample-interval
+    // rule as the full profile chart.
+    final depthSpots = <FlSpot>[
+      if (shouldDrawSurfaceLeadIn(sortedProfile)) const FlSpot(0, 0),
+      ...sortedProfile.map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)),
+    ];
 
     // Find the depth at the photo timestamp for the marker
     final photoDepth = _interpolateDepth(sortedProfile, photoElapsedSeconds);
@@ -200,6 +212,10 @@ class MiniDiveProfileOverlay extends StatelessWidget {
                   ],
                 ),
               ),
+              // The marker dot below is a Positioned widget that jumps
+              // instantly when the photo changes; without this the marker
+              // line would trail it by the default 150ms implicit animation.
+              duration: Duration.zero,
             ),
 
             // Photo marker dot (positioned on top of the chart)

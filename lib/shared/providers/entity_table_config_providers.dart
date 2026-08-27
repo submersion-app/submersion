@@ -100,8 +100,7 @@ class EntityTableConfigNotifier<F extends EntityField>
   void reorderColumn(int oldIndex, int newIndex) {
     final cols = List<EntityTableColumnConfig<F>>.from(state.columns);
     final item = cols.removeAt(oldIndex);
-    final target = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    cols.insert(target.clamp(0, cols.length), item);
+    cols.insert(newIndex.clamp(0, cols.length), item);
     state = state.copyWith(columns: cols);
     _save();
   }

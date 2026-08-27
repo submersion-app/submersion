@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
 /// Record type used as the adapter entity: pairs a [DiveCenter] with its
@@ -65,6 +66,46 @@ enum DiveCenterField implements EntityField {
     DiveCenterField.longitude => 'Lon',
     DiveCenterField.diveCount => 'Dives',
     DiveCenterField.notes => 'Notes',
+  };
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    DiveCenterField.centerName => l10n.enum_diveCenterField_centerName,
+    DiveCenterField.city => l10n.enum_diveCenterField_city,
+    DiveCenterField.country => l10n.enum_diveCenterField_country,
+    DiveCenterField.stateProvince => l10n.enum_diveCenterField_stateProvince,
+    DiveCenterField.street => l10n.enum_diveCenterField_street,
+    DiveCenterField.postalCode => l10n.enum_diveCenterField_postalCode,
+    DiveCenterField.phone => l10n.enum_diveCenterField_phone,
+    DiveCenterField.email => l10n.enum_diveCenterField_email,
+    DiveCenterField.website => l10n.enum_diveCenterField_website,
+    DiveCenterField.affiliations => l10n.enum_diveCenterField_affiliations,
+    DiveCenterField.rating => l10n.enum_diveCenterField_rating,
+    DiveCenterField.latitude => l10n.enum_diveCenterField_latitude,
+    DiveCenterField.longitude => l10n.enum_diveCenterField_longitude,
+    DiveCenterField.diveCount => l10n.enum_diveCenterField_diveCount,
+    DiveCenterField.notes => l10n.enum_diveCenterField_notes,
+  };
+
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    DiveCenterField.centerName => l10n.enum_diveCenterField_centerName_short,
+    DiveCenterField.city => l10n.enum_diveCenterField_city_short,
+    DiveCenterField.country => l10n.enum_diveCenterField_country_short,
+    DiveCenterField.stateProvince =>
+      l10n.enum_diveCenterField_stateProvince_short,
+    DiveCenterField.street => l10n.enum_diveCenterField_street_short,
+    DiveCenterField.postalCode => l10n.enum_diveCenterField_postalCode_short,
+    DiveCenterField.phone => l10n.enum_diveCenterField_phone_short,
+    DiveCenterField.email => l10n.enum_diveCenterField_email_short,
+    DiveCenterField.website => l10n.enum_diveCenterField_website_short,
+    DiveCenterField.affiliations =>
+      l10n.enum_diveCenterField_affiliations_short,
+    DiveCenterField.rating => l10n.enum_diveCenterField_rating_short,
+    DiveCenterField.latitude => l10n.enum_diveCenterField_latitude_short,
+    DiveCenterField.longitude => l10n.enum_diveCenterField_longitude_short,
+    DiveCenterField.diveCount => l10n.enum_diveCenterField_diveCount_short,
+    DiveCenterField.notes => l10n.enum_diveCenterField_notes_short,
   };
 
   @override
@@ -228,8 +269,8 @@ class DiveCenterFieldAdapter
       DiveCenterField.affiliations =>
         (value as List<String>).isEmpty ? '--' : value.join(', '),
       DiveCenterField.rating => (value as double).toStringAsFixed(1),
-      DiveCenterField.latitude => (value as double).toStringAsFixed(5),
-      DiveCenterField.longitude => (value as double).toStringAsFixed(5),
+      DiveCenterField.latitude => units.formatLatitude(value as double),
+      DiveCenterField.longitude => units.formatLongitude(value as double),
       DiveCenterField.diveCount => value.toString(),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),
     };

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Two-line compact card tile for the trip list.
 ///
@@ -11,12 +13,20 @@ class CompactTripListTile extends StatelessWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
+  final bool showSharedBadge;
+  final bool isSelectionMode;
+  final bool isChecked;
+  final ValueChanged<bool>? onCheckChanged;
 
   const CompactTripListTile({
     super.key,
     required this.tripWithStats,
     this.isSelected = false,
     this.onTap,
+    this.showSharedBadge = false,
+    this.isSelectionMode = false,
+    this.isChecked = false,
+    this.onCheckChanged,
   });
 
   @override
@@ -25,7 +35,7 @@ class CompactTripListTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final cardColor = isSelected
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final dateFormat = DateFormat.yMMMd();
@@ -43,65 +53,95 @@ class CompactTripListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                // Line 1: trip name, date range, chevron
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        trip.name,
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      dateRangeStr,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: secondaryTextColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
+                // The checkbox sits beside the whole two-line block rather
+                // than on line 1, so it stays vertically centred against it.
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isChecked,
+                  onChanged: onCheckChanged,
                 ),
-                // Line 2: dive count and bottom time
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.scuba_diving,
-                      size: 13,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${tripWithStats.diveCount}',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.primary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Line 1: trip name, date range, chevron
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              trip.name,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (showSharedBadge) ...[
+                            const SizedBox(width: 6),
+                            Tooltip(
+                              message: context
+                                  .l10n
+                                  .accessibility_label_sharedWithAllProfiles,
+                              child: Icon(
+                                Icons.people_outline,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(width: 8),
+                          Text(
+                            dateRangeStr,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: secondaryTextColor,
+                            ),
+                          ),
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.chevron_right,
+                              color: secondaryTextColor,
+                              size: 20,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    if (tripWithStats.totalBottomTime > 0) ...[
-                      const SizedBox(width: 12),
-                      Icon(Icons.timer, size: 13, color: colorScheme.primary),
-                      const SizedBox(width: 4),
-                      Text(
-                        tripWithStats.formattedBottomTime,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                        ),
+                      // Line 2: dive count and bottom time
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.scuba_diving,
+                            size: 13,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${tripWithStats.diveCount}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          if (tripWithStats.totalRuntime > 0) ...[
+                            const SizedBox(width: 12),
+                            Icon(
+                              Icons.timer,
+                              size: 13,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              tripWithStats.formattedRuntime,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),

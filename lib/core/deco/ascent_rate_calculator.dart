@@ -78,6 +78,17 @@ class AscentRateViolation {
 
 /// Calculator for ascent rates and violations.
 class AscentRateCalculator {
+  /// Default warning threshold in m/min (safe -> warning band boundary).
+  static const double defaultWarningThreshold = 9.0;
+
+  /// Default critical threshold in m/min (warning -> danger band boundary).
+  static const double defaultCriticalThreshold = 12.0;
+
+  /// Default width of the time-based smoothing window, in seconds. Callers
+  /// that interpret a violation's extent need this: smoothing narrows a
+  /// threshold crossing towards the middle of the excursion that caused it.
+  static const int defaultSmoothingWindowSeconds = 15;
+
   /// Warning threshold in m/min (default 9)
   final double warningThreshold;
 
@@ -95,10 +106,10 @@ class AscentRateCalculator {
   final int smoothingWindowSeconds;
 
   const AscentRateCalculator({
-    this.warningThreshold = 9.0,
-    this.criticalThreshold = 12.0,
+    this.warningThreshold = defaultWarningThreshold,
+    this.criticalThreshold = defaultCriticalThreshold,
     this.smoothingWindow = 3,
-    this.smoothingWindowSeconds = 15,
+    this.smoothingWindowSeconds = defaultSmoothingWindowSeconds,
   });
 
   /// Calculate ascent rate between two profile points.
@@ -240,6 +251,12 @@ class AscentRateCalculator {
   }
 
   /// Find all ascent rate violations in a profile.
+  ///
+  /// A violation spans the time the offending rates were *measured over*: a
+  /// rate point describes the depth change since the previous sample, so a run
+  /// of violating points i..j covers `[t(i-1), t(j)]`. Anchoring the start at
+  /// `t(i)` instead made a run of one point collapse to a zero-length range,
+  /// which the safety review rendered to the diver as "for 0s".
   List<AscentRateViolation> findViolations(List<AscentRatePoint> ratePoints) {
     final violations = <AscentRateViolation>[];
 
@@ -255,8 +272,9 @@ class AscentRateCalculator {
 
       if (isViolation) {
         if (violationStart == null) {
-          // Start new violation
-          violationStart = point.timestamp;
+          // Start new violation, at the beginning of the interval whose rate
+          // first exceeded the threshold.
+          violationStart = ratePoints[i > 0 ? i - 1 : 0].timestamp;
           maxRate = point.rateMetersPerMin;
           depthAtMax = point.depth;
           hasCritical = point.category == AscentRateCategory.danger;

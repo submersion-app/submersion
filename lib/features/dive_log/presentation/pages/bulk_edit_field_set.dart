@@ -1,0 +1,230 @@
+import 'package:drift/drift.dart';
+
+import 'package:submersion/core/database/database.dart';
+
+/// The universe of gated scalar fields in the bulk-edit form. Collections
+/// (tags/equipment/buddies/tanks/weights/sightings) are handled separately via
+/// [BulkCollectionType] + the engine's collection ops.
+enum BulkField {
+  diveCenter,
+  trip,
+  course,
+  rating,
+  isFavorite,
+  waterType,
+  visibility,
+  currentDirection,
+  currentStrength,
+  swellHeight,
+  entryMethod,
+  exitMethod,
+  altitude,
+  surfacePressure,
+  surfaceInterval,
+  gradientFactorLow,
+  gradientFactorHigh,
+  decoAlgorithm,
+  decoConservatism,
+  diveComputerModel,
+  windSpeed,
+  windDirection,
+  cloudCover,
+  precipitation,
+  humidity,
+  weatherDescription,
+  diveMode,
+  setpointLow,
+  setpointHigh,
+  setpointDeco,
+  diluentGas,
+  scrubberType,
+  scrubberDuration,
+
+  /// The active diver's own role on the dive. Lives in the Buddies group of
+  /// the form even though it is a scalar column, because that is where the
+  /// single-dive editor puts it (#1220).
+  diverRole,
+  notes,
+}
+
+/// The collections the bulk-edit form can mutate (Add/Remove/Replace).
+enum BulkCollectionType {
+  tags,
+  diveTypes,
+  equipment,
+  buddies,
+  tanks,
+  weights,
+  sightings,
+}
+
+/// Already-converted scalar values (metric, enum `.name`/`.code` strings, FK
+/// ids) collected from the form controllers, ready to drop into a companion.
+class BulkScalarInputs {
+  BulkScalarInputs({
+    this.diveCenterId,
+    this.tripId,
+    this.courseId,
+    this.rating,
+    this.isFavorite,
+    this.waterType,
+    this.visibilityMeters,
+    this.currentDirection,
+    this.currentStrength,
+    this.swellHeight,
+    this.entryMethod,
+    this.exitMethod,
+    this.altitude,
+    this.surfacePressure,
+    this.surfaceIntervalSeconds,
+    this.gradientFactorLow,
+    this.gradientFactorHigh,
+    this.decoAlgorithm,
+    this.decoConservatism,
+    this.diveComputerModel,
+    this.windSpeed,
+    this.windDirection,
+    this.cloudCover,
+    this.precipitation,
+    this.humidity,
+    this.weatherDescription,
+    this.diveMode,
+    this.setpointLow,
+    this.setpointHigh,
+    this.setpointDeco,
+    this.diluentO2,
+    this.diluentHe,
+    this.scrubberType,
+    this.scrubberDuration,
+    this.diverRoleId,
+    this.notes,
+  });
+
+  final String? diveCenterId;
+  final String? tripId;
+  final String? courseId;
+  final int? rating;
+  final bool? isFavorite;
+  final String? waterType;
+
+  /// Measured visibility in meters. Replaces the pre-v144 bucket string:
+  /// applying it also clears the legacy bucket on every touched dive, matching
+  /// the precedence rule in the dive repository.
+  final double? visibilityMeters;
+  final String? currentDirection;
+  final String? currentStrength;
+  final double? swellHeight;
+  final String? entryMethod;
+  final String? exitMethod;
+  final double? altitude;
+  final double? surfacePressure;
+  final int? surfaceIntervalSeconds;
+  final int? gradientFactorLow;
+  final int? gradientFactorHigh;
+  final String? decoAlgorithm;
+  final int? decoConservatism;
+  final String? diveComputerModel;
+  final double? windSpeed;
+  final String? windDirection;
+  final String? cloudCover;
+  final String? precipitation;
+  final double? humidity;
+  final String? weatherDescription;
+  final String? diveMode; // .code
+  final double? setpointLow;
+  final double? setpointHigh;
+  final double? setpointDeco;
+  final double? diluentO2;
+  final double? diluentHe;
+  final String? scrubberType;
+  final int? scrubberDuration;
+
+  /// dive_roles id for the active diver's own role, or null to clear it.
+  final String? diverRoleId;
+  final String? notes;
+}
+
+/// Build the partial scalar companion from the enabled gates. Only enabled
+/// fields are present; disabled fields stay absent (so they aren't written).
+DivesCompanion buildScalarCompanion(
+  Set<BulkField> enabled,
+  BulkScalarInputs i,
+) {
+  var c = const DivesCompanion();
+  for (final f in enabled) {
+    c = switch (f) {
+      BulkField.diveCenter => c.copyWith(diveCenterId: Value(i.diveCenterId)),
+      BulkField.trip => c.copyWith(tripId: Value(i.tripId)),
+      BulkField.course => c.copyWith(courseId: Value(i.courseId)),
+      BulkField.rating => c.copyWith(rating: Value(i.rating)),
+      BulkField.isFavorite => c.copyWith(
+        isFavorite: Value(i.isFavorite ?? false),
+      ),
+      BulkField.waterType => c.copyWith(waterType: Value(i.waterType)),
+      BulkField.visibility => c.copyWith(
+        visibilityMeters: Value(i.visibilityMeters),
+        // Clear the legacy bucket so a bulk-set measurement cannot leave a
+        // dive carrying a contradicting band.
+        visibility: const Value(null),
+      ),
+      BulkField.currentDirection => c.copyWith(
+        currentDirection: Value(i.currentDirection),
+      ),
+      BulkField.currentStrength => c.copyWith(
+        currentStrength: Value(i.currentStrength),
+      ),
+      BulkField.swellHeight => c.copyWith(swellHeight: Value(i.swellHeight)),
+      BulkField.entryMethod => c.copyWith(entryMethod: Value(i.entryMethod)),
+      BulkField.exitMethod => c.copyWith(exitMethod: Value(i.exitMethod)),
+      BulkField.altitude => c.copyWith(altitude: Value(i.altitude)),
+      BulkField.surfacePressure => c.copyWith(
+        surfacePressure: Value(i.surfacePressure),
+      ),
+      BulkField.surfaceInterval => c.copyWith(
+        surfaceIntervalSeconds: Value(i.surfaceIntervalSeconds),
+      ),
+      BulkField.gradientFactorLow => c.copyWith(
+        gradientFactorLow: Value(i.gradientFactorLow),
+      ),
+      BulkField.gradientFactorHigh => c.copyWith(
+        gradientFactorHigh: Value(i.gradientFactorHigh),
+      ),
+      BulkField.decoAlgorithm => c.copyWith(
+        decoAlgorithm: Value(i.decoAlgorithm),
+      ),
+      BulkField.decoConservatism => c.copyWith(
+        decoConservatism: Value(i.decoConservatism),
+      ),
+      BulkField.diveComputerModel => c.copyWith(
+        diveComputerModel: Value(i.diveComputerModel),
+      ),
+      BulkField.windSpeed => c.copyWith(windSpeed: Value(i.windSpeed)),
+      BulkField.windDirection => c.copyWith(
+        windDirection: Value(i.windDirection),
+      ),
+      BulkField.cloudCover => c.copyWith(cloudCover: Value(i.cloudCover)),
+      BulkField.precipitation => c.copyWith(
+        precipitation: Value(i.precipitation),
+      ),
+      BulkField.humidity => c.copyWith(humidity: Value(i.humidity)),
+      BulkField.weatherDescription => c.copyWith(
+        weatherDescription: Value(i.weatherDescription),
+      ),
+      BulkField.diveMode => c.copyWith(diveMode: Value(i.diveMode ?? 'oc')),
+      BulkField.setpointLow => c.copyWith(setpointLow: Value(i.setpointLow)),
+      BulkField.setpointHigh => c.copyWith(setpointHigh: Value(i.setpointHigh)),
+      BulkField.setpointDeco => c.copyWith(setpointDeco: Value(i.setpointDeco)),
+      BulkField.diluentGas => c.copyWith(
+        diluentO2: Value(i.diluentO2),
+        diluentHe: Value(i.diluentHe),
+      ),
+      BulkField.scrubberType => c.copyWith(scrubberType: Value(i.scrubberType)),
+      BulkField.scrubberDuration => c.copyWith(
+        scrubberDurationMinutes: Value(i.scrubberDuration),
+      ),
+      BulkField.diverRole => c.copyWith(diverRole: Value(i.diverRoleId)),
+      BulkField.notes => c.copyWith(notes: Value(i.notes ?? '')),
+    };
+  }
+  return c;
+}

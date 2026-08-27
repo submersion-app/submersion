@@ -44,5 +44,16 @@ void main() {
       expect(sample.temperature, 22.0);
       expect(sample.heartRate, 72);
     });
+
+    test('ImportedGasSwitch supports value equality', () {
+      const a = ImportedGasSwitch(timeSeconds: 2474, tankIndex: 1, depth: 21);
+      const b = ImportedGasSwitch(timeSeconds: 2474, tankIndex: 1, depth: 21);
+      const c = ImportedGasSwitch(timeSeconds: 2474, tankIndex: 2, depth: 21);
+
+      expect(a, b);
+      expect(a, isNot(c));
+      expect(a.depth, 21);
+      expect(const ImportedGasSwitch(timeSeconds: 0, tankIndex: 0).depth, null);
+    });
   });
 }

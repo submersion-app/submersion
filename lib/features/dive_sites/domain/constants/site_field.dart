@@ -2,13 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
-/// Wrapper pairing a [DiveSite] with its computed dive count.
-typedef SiteWithCount = ({DiveSite site, int diveCount});
+/// Entity handed to [SiteFieldAdapter]. An alias of the repository's class so
+/// the table view and the list cards share one type with no conversion.
+typedef SiteWithCount = SiteWithDiveCount;
 
 /// Categories grouping related site fields together.
-enum SiteFieldCategory { core, depth, conditions, details, coordinates }
+enum SiteFieldCategory {
+  core,
+  depth,
+  conditions,
+  details,
+  coordinates,
+  statistics,
+}
 
 /// Enumeration of every field from the DiveSite entity (plus dive count)
 /// that can appear in table views. Each value implements [EntityField] directly
@@ -22,6 +32,9 @@ enum SiteField implements EntityField {
   location,
   country,
   region,
+  city,
+  island,
+  bodyOfWater,
   diveCount,
 
   // Depth
@@ -34,7 +47,11 @@ enum SiteField implements EntityField {
   typicalVisibility,
   typicalCurrent,
   difficulty,
+  // Named entryType for historical reasons; it reads DiveSite.entryMethod.
+  // Renaming it would throw on users' saved table layouts, which store these
+  // members by name.
   entryType,
+  exitMethod,
   bestSeason,
 
   // Details
@@ -45,7 +62,12 @@ enum SiteField implements EntityField {
 
   // Coordinates
   latitude,
-  longitude;
+  longitude,
+
+  // Statistics (aggregated over the dives logged at the site)
+  depthRange,
+  lastDived,
+  maxDepthReached;
 
   @override
   String get name => toString().split('.').last;
@@ -61,6 +83,12 @@ enum SiteField implements EntityField {
         return 'Country';
       case SiteField.region:
         return 'Region';
+      case SiteField.city:
+        return 'City';
+      case SiteField.island:
+        return 'Island';
+      case SiteField.bodyOfWater:
+        return 'Body of Water';
       case SiteField.diveCount:
         return 'Dive Count';
       case SiteField.maxDepth:
@@ -79,6 +107,8 @@ enum SiteField implements EntityField {
         return 'Difficulty';
       case SiteField.entryType:
         return 'Entry Type';
+      case SiteField.exitMethod:
+        return 'Exit Method';
       case SiteField.bestSeason:
         return 'Best Season';
       case SiteField.mooringNumber:
@@ -93,6 +123,12 @@ enum SiteField implements EntityField {
         return 'Latitude';
       case SiteField.longitude:
         return 'Longitude';
+      case SiteField.depthRange:
+        return 'Depth Range';
+      case SiteField.lastDived:
+        return 'Last Dived';
+      case SiteField.maxDepthReached:
+        return 'Your Max Depth';
     }
   }
 
@@ -107,6 +143,12 @@ enum SiteField implements EntityField {
         return 'Country';
       case SiteField.region:
         return 'Region';
+      case SiteField.city:
+        return 'City';
+      case SiteField.island:
+        return 'Island';
+      case SiteField.bodyOfWater:
+        return 'Water Body';
       case SiteField.diveCount:
         return 'Dives';
       case SiteField.maxDepth:
@@ -125,6 +167,8 @@ enum SiteField implements EntityField {
         return 'Diff';
       case SiteField.entryType:
         return 'Entry';
+      case SiteField.exitMethod:
+        return 'Exit';
       case SiteField.bestSeason:
         return 'Season';
       case SiteField.mooringNumber:
@@ -139,8 +183,76 @@ enum SiteField implements EntityField {
         return 'Lat';
       case SiteField.longitude:
         return 'Lon';
+      case SiteField.depthRange:
+        return 'Depth';
+      case SiteField.lastDived:
+        return 'Last dived';
+      case SiteField.maxDepthReached:
+        return 'Your max';
     }
   }
+
+  @override
+  String localizedDisplayName(AppLocalizations l10n) => switch (this) {
+    SiteField.siteName => l10n.enum_siteField_siteName,
+    SiteField.location => l10n.enum_siteField_location,
+    SiteField.country => l10n.enum_siteField_country,
+    SiteField.region => l10n.enum_siteField_region,
+    SiteField.city => l10n.enum_siteField_city,
+    SiteField.island => l10n.enum_siteField_island,
+    SiteField.bodyOfWater => l10n.enum_siteField_bodyOfWater,
+    SiteField.diveCount => l10n.enum_siteField_diveCount,
+    SiteField.maxDepth => l10n.enum_siteField_maxDepth,
+    SiteField.minDepth => l10n.enum_siteField_minDepth,
+    SiteField.altitude => l10n.enum_siteField_altitude,
+    SiteField.waterType => l10n.enum_siteField_waterType,
+    SiteField.typicalVisibility => l10n.enum_siteField_typicalVisibility,
+    SiteField.typicalCurrent => l10n.enum_siteField_typicalCurrent,
+    SiteField.difficulty => l10n.enum_siteField_difficulty,
+    SiteField.entryType => l10n.enum_siteField_entryType,
+    SiteField.exitMethod => l10n.enum_siteField_exitMethod,
+    SiteField.bestSeason => l10n.enum_siteField_bestSeason,
+    SiteField.mooringNumber => l10n.enum_siteField_mooringNumber,
+    SiteField.hazards => l10n.enum_siteField_hazards,
+    SiteField.rating => l10n.enum_siteField_rating,
+    SiteField.notes => l10n.enum_siteField_notes,
+    SiteField.latitude => l10n.enum_siteField_latitude,
+    SiteField.longitude => l10n.enum_siteField_longitude,
+    SiteField.depthRange => l10n.enum_siteField_depthRange,
+    SiteField.lastDived => l10n.enum_siteField_lastDived,
+    SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached,
+  };
+
+  @override
+  String localizedShortLabel(AppLocalizations l10n) => switch (this) {
+    SiteField.siteName => l10n.enum_siteField_siteName_short,
+    SiteField.location => l10n.enum_siteField_location_short,
+    SiteField.country => l10n.enum_siteField_country_short,
+    SiteField.region => l10n.enum_siteField_region_short,
+    SiteField.city => l10n.enum_siteField_city_short,
+    SiteField.island => l10n.enum_siteField_island_short,
+    SiteField.bodyOfWater => l10n.enum_siteField_bodyOfWater_short,
+    SiteField.diveCount => l10n.enum_siteField_diveCount_short,
+    SiteField.maxDepth => l10n.enum_siteField_maxDepth_short,
+    SiteField.minDepth => l10n.enum_siteField_minDepth_short,
+    SiteField.altitude => l10n.enum_siteField_altitude_short,
+    SiteField.waterType => l10n.enum_siteField_waterType_short,
+    SiteField.typicalVisibility => l10n.enum_siteField_typicalVisibility_short,
+    SiteField.typicalCurrent => l10n.enum_siteField_typicalCurrent_short,
+    SiteField.difficulty => l10n.enum_siteField_difficulty_short,
+    SiteField.entryType => l10n.enum_siteField_entryType_short,
+    SiteField.exitMethod => l10n.enum_siteField_exitMethod_short,
+    SiteField.bestSeason => l10n.enum_siteField_bestSeason_short,
+    SiteField.mooringNumber => l10n.enum_siteField_mooringNumber_short,
+    SiteField.hazards => l10n.enum_siteField_hazards_short,
+    SiteField.rating => l10n.enum_siteField_rating_short,
+    SiteField.notes => l10n.enum_siteField_notes_short,
+    SiteField.latitude => l10n.enum_siteField_latitude_short,
+    SiteField.longitude => l10n.enum_siteField_longitude_short,
+    SiteField.depthRange => l10n.enum_siteField_depthRange_short,
+    SiteField.lastDived => l10n.enum_siteField_lastDived_short,
+    SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached_short,
+  };
 
   @override
   IconData? get icon {
@@ -153,6 +265,12 @@ enum SiteField implements EntityField {
         return Icons.flag;
       case SiteField.region:
         return Icons.map;
+      case SiteField.city:
+        return Icons.location_city;
+      case SiteField.island:
+        return Icons.landscape;
+      case SiteField.bodyOfWater:
+        return Icons.waves;
       case SiteField.diveCount:
         return Icons.water;
       case SiteField.maxDepth:
@@ -171,6 +289,8 @@ enum SiteField implements EntityField {
         return Icons.signal_cellular_alt;
       case SiteField.entryType:
         return Icons.login;
+      case SiteField.exitMethod:
+        return Icons.logout;
       case SiteField.bestSeason:
         return Icons.calendar_month;
       case SiteField.mooringNumber:
@@ -185,6 +305,12 @@ enum SiteField implements EntityField {
         return Icons.my_location;
       case SiteField.longitude:
         return Icons.my_location;
+      case SiteField.depthRange:
+        return Icons.straighten;
+      case SiteField.lastDived:
+        return Icons.history;
+      case SiteField.maxDepthReached:
+        return Icons.vertical_align_bottom;
     }
   }
 
@@ -199,6 +325,12 @@ enum SiteField implements EntityField {
         return 100;
       case SiteField.region:
         return 100;
+      case SiteField.city:
+        return 110;
+      case SiteField.island:
+        return 110;
+      case SiteField.bodyOfWater:
+        return 130;
       case SiteField.diveCount:
         return 80;
       case SiteField.maxDepth:
@@ -217,6 +349,8 @@ enum SiteField implements EntityField {
         return 90;
       case SiteField.entryType:
         return 90;
+      case SiteField.exitMethod:
+        return 90;
       case SiteField.bestSeason:
         return 100;
       case SiteField.mooringNumber:
@@ -230,6 +364,12 @@ enum SiteField implements EntityField {
       case SiteField.latitude:
         return 90;
       case SiteField.longitude:
+        return 90;
+      case SiteField.depthRange:
+        return 100;
+      case SiteField.lastDived:
+        return 110;
+      case SiteField.maxDepthReached:
         return 90;
     }
   }
@@ -245,6 +385,12 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.region:
         return 60;
+      case SiteField.city:
+        return 60;
+      case SiteField.island:
+        return 60;
+      case SiteField.bodyOfWater:
+        return 70;
       case SiteField.diveCount:
         return 50;
       case SiteField.maxDepth:
@@ -262,6 +408,8 @@ enum SiteField implements EntityField {
       case SiteField.difficulty:
         return 60;
       case SiteField.entryType:
+        return 60;
+      case SiteField.exitMethod:
         return 60;
       case SiteField.bestSeason:
         return 60;
@@ -277,6 +425,12 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.longitude:
         return 60;
+      case SiteField.depthRange:
+        return 60;
+      case SiteField.lastDived:
+        return 70;
+      case SiteField.maxDepthReached:
+        return 50;
     }
   }
 
@@ -286,6 +440,9 @@ enum SiteField implements EntityField {
       case SiteField.siteName:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.diveCount:
       case SiteField.maxDepth:
       case SiteField.minDepth:
@@ -294,16 +451,20 @@ enum SiteField implements EntityField {
       case SiteField.rating:
       case SiteField.latitude:
       case SiteField.longitude:
+      case SiteField.lastDived:
+      case SiteField.maxDepthReached:
         return true;
       case SiteField.location:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
       case SiteField.typicalCurrent:
       case SiteField.entryType:
+      case SiteField.exitMethod:
       case SiteField.bestSeason:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
+      case SiteField.depthRange:
         return false;
     }
   }
@@ -315,6 +476,9 @@ enum SiteField implements EntityField {
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.diveCount:
         return SiteFieldCategory.core.name;
       case SiteField.maxDepth:
@@ -326,6 +490,7 @@ enum SiteField implements EntityField {
       case SiteField.typicalCurrent:
       case SiteField.difficulty:
       case SiteField.entryType:
+      case SiteField.exitMethod:
       case SiteField.bestSeason:
         return SiteFieldCategory.conditions.name;
       case SiteField.mooringNumber:
@@ -336,6 +501,10 @@ enum SiteField implements EntityField {
       case SiteField.latitude:
       case SiteField.longitude:
         return SiteFieldCategory.coordinates.name;
+      case SiteField.depthRange:
+      case SiteField.lastDived:
+      case SiteField.maxDepthReached:
+        return SiteFieldCategory.statistics.name;
     }
   }
 
@@ -349,20 +518,27 @@ enum SiteField implements EntityField {
       case SiteField.rating:
       case SiteField.latitude:
       case SiteField.longitude:
+      case SiteField.maxDepthReached:
         return true;
       case SiteField.siteName:
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
       case SiteField.typicalCurrent:
       case SiteField.difficulty:
       case SiteField.entryType:
+      case SiteField.exitMethod:
       case SiteField.bestSeason:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
+      case SiteField.depthRange:
+      case SiteField.lastDived:
         return false;
     }
   }
@@ -400,6 +576,12 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return site.country;
       case SiteField.region:
         return site.region;
+      case SiteField.city:
+        return site.city;
+      case SiteField.island:
+        return site.island;
+      case SiteField.bodyOfWater:
+        return site.bodyOfWater;
       case SiteField.diveCount:
         return entity.diveCount;
       case SiteField.maxDepth:
@@ -409,17 +591,22 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.altitude:
         return site.altitude;
       case SiteField.waterType:
-        return site.conditions?.waterType;
+        return site.waterType?.displayName;
       case SiteField.typicalVisibility:
-        return site.conditions?.typicalVisibility;
       case SiteField.typicalCurrent:
-        return site.conditions?.typicalCurrent;
+        // No backing column. These members are retained because saved table
+        // layouts reference them by name, so removing them would throw on
+        // load. They render blank until a real column exists.
+        return null;
       case SiteField.difficulty:
         return site.difficulty;
       case SiteField.entryType:
-        return site.conditions?.entryType;
+        return site.entryMethod?.displayName;
+      case SiteField.exitMethod:
+        return site.exitMethod?.displayName;
       case SiteField.bestSeason:
-        return site.conditions?.bestSeason;
+        // No backing column; retained for saved-layout compatibility.
+        return null;
       case SiteField.mooringNumber:
         return site.mooringNumber;
       case SiteField.hazards:
@@ -432,21 +619,32 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return site.location?.latitude;
       case SiteField.longitude:
         return site.location?.longitude;
+      case SiteField.depthRange:
+        if (site.minDepth == null && site.maxDepth == null) return null;
+        return (min: site.minDepth, max: site.maxDepth);
+      case SiteField.lastDived:
+        return entity.lastDivedAt;
+      case SiteField.maxDepthReached:
+        return entity.maxDepthReached;
     }
   }
 
   @override
   String formatValue(SiteField field, dynamic value, UnitFormatter units) {
-    if (value == null) return '--';
+    if (value == null) return kFieldValuePlaceholder;
     switch (field) {
       case SiteField.siteName:
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
       case SiteField.typicalCurrent:
       case SiteField.entryType:
+      case SiteField.exitMethod:
       case SiteField.bestSeason:
       case SiteField.mooringNumber:
       case SiteField.hazards:
@@ -464,8 +662,24 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.rating:
         return (value as double).toStringAsFixed(1);
       case SiteField.latitude:
+        return units.formatLatitude(value as double);
       case SiteField.longitude:
-        return (value as double).toStringAsFixed(5);
+        return units.formatLongitude(value as double);
+      case SiteField.depthRange:
+        final range = value as ({double? min, double? max});
+        final min = range.min;
+        final max = range.max;
+        if (min != null && max != null) {
+          // One trailing symbol for the pair ("16-98ft"), matching the site
+          // list card's historical rendering.
+          final low = units.convertDepth(min).toStringAsFixed(0);
+          return '$low-${units.formatDepth(max, decimals: 0)}';
+        }
+        return units.formatDepth(max ?? min, decimals: 0);
+      case SiteField.lastDived:
+        return units.formatDate(value as DateTime);
+      case SiteField.maxDepthReached:
+        return units.formatDepth(value as double, decimals: 0);
     }
   }
 

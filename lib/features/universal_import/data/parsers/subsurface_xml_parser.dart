@@ -10,6 +10,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
 ///
@@ -71,16 +72,17 @@ class SubsurfaceXmlParser implements ImportParser {
       );
     }
 
-    // Parse sites and build lookup map
-    final siteMap = <String, Map<String, dynamic>>{};
+    // Parse sites, folding the duplicates a Subsurface logbook accumulates.
+    // The aliases the fold produces redirect each dive's divesiteid to the
+    // surviving site.
+    var siteAliases = const <String, String>{};
     final divesitesElement = root.findElements('divesites').firstOrNull;
     if (divesitesElement != null) {
-      final sites = _parseSites(divesitesElement);
-      for (final site in sites) {
-        final id = site['uddfId'] as String?;
-        if (id != null) siteMap[id] = site;
+      final folded = foldSubsurfaceSites(_parseSites(divesitesElement));
+      siteAliases = folded.aliases;
+      if (folded.sites.isNotEmpty) {
+        entities[ImportEntityType.sites] = folded.sites;
       }
-      if (sites.isNotEmpty) entities[ImportEntityType.sites] = sites;
     }
 
     // Parse dives (with trip support)
@@ -90,6 +92,7 @@ class SubsurfaceXmlParser implements ImportParser {
       final trips = <Map<String, dynamic>>[];
       final allTags = <String, Map<String, dynamic>>{};
       final allBuddies = <String, Map<String, dynamic>>{};
+      final allMedia = <Map<String, dynamic>>[];
 
       // Process trip-wrapped dives
       for (final tripElement in divesElement.findElements('trip')) {
@@ -100,11 +103,14 @@ class SubsurfaceXmlParser implements ImportParser {
         final tripDives = <Map<String, dynamic>>[];
         for (final diveElement in tripElement.findElements('dive')) {
           try {
-            final diveData = _parseDive(diveElement, siteMap: siteMap);
+            final diveData = _parseDive(diveElement, siteAliases: siteAliases);
             if (diveData != null) {
               diveData['tripRef'] = tripId;
               _collectTags(diveElement, diveData, allTags);
               _collectBuddies(diveElement, diveData, allBuddies);
+              // dives.length is this dive's index, because the pictures are
+              // collected before the dive is appended.
+              _collectPictures(diveElement, dives.length, allMedia, warnings);
               dives.add(diveData);
               tripDives.add(diveData);
             }
@@ -134,10 +140,11 @@ class SubsurfaceXmlParser implements ImportParser {
       // Process standalone dives (not inside a trip)
       for (final diveElement in divesElement.findElements('dive')) {
         try {
-          final diveData = _parseDive(diveElement, siteMap: siteMap);
+          final diveData = _parseDive(diveElement, siteAliases: siteAliases);
           if (diveData != null) {
             _collectTags(diveElement, diveData, allTags);
             _collectBuddies(diveElement, diveData, allBuddies);
+            _collectPictures(diveElement, dives.length, allMedia, warnings);
             dives.add(diveData);
           }
         } catch (e) {
@@ -153,6 +160,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
       if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
       if (trips.isNotEmpty) entities[ImportEntityType.trips] = trips;
+      if (allMedia.isNotEmpty) entities[ImportEntityType.media] = allMedia;
       if (allTags.isNotEmpty) {
         entities[ImportEntityType.tags] = allTags.values.toList();
       }
@@ -170,7 +178,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
   Map<String, dynamic>? _parseDive(
     XmlElement dive, {
-    Map<String, Map<String, dynamic>> siteMap = const {},
+    Map<String, String> siteAliases = const {},
   }) {
     final dateStr = dive.getAttribute('date');
     final timeStr = dive.getAttribute('time');
@@ -242,7 +250,9 @@ class SubsurfaceXmlParser implements ImportParser {
       if (airTemp != null) result['airTemp'] = airTemp;
     }
 
-    // Visibility enum
+    // Visibility enum. Deliberately NOT mapped to visibilityMeters: unlike
+    // UDDF, Subsurface's visibility attribute is a subjective 1-5 star rating,
+    // not a distance, so converting it would invent a measurement nobody took.
     final visibilityVal = _parseInt(dive.getAttribute('visibility'));
     final visibility = _mapVisibility(visibilityVal);
     if (visibility != null) result['visibility'] = visibility;
@@ -285,10 +295,11 @@ class SubsurfaceXmlParser implements ImportParser {
     }
     if (notesParts.isNotEmpty) result['notes'] = notesParts.join('\n');
 
-    // Site linking via divesiteid attribute
+    // Site linking via divesiteid attribute, redirected to the surviving site
+    // when the referenced entry folded into a duplicate.
     final siteId = dive.getAttribute('divesiteid')?.trim();
     if (siteId != null && siteId.isNotEmpty) {
-      result['site'] = {'uddfId': siteId};
+      result['site'] = {'uddfId': siteAliases[siteId] ?? siteId};
     }
 
     // Profile samples — parsed before cylinders for pressure fallback
@@ -310,6 +321,15 @@ class SubsurfaceXmlParser implements ImportParser {
       result['gasSwitches'] = gasSwitches;
     }
 
+    final events = divecomputer != null
+        ? _parseProfileEvents(divecomputer)
+        : const <Map<String, dynamic>>[];
+    if (events.isNotEmpty) result['events'] = events;
+
+    if (divecomputer != null) {
+      result.addAll(_parseDiveComputerMetadata(divecomputer));
+    }
+
     // Weights
     final weights = _parseWeights(dive);
     if (weights.isNotEmpty) result['weights'] = weights;
@@ -317,23 +337,26 @@ class SubsurfaceXmlParser implements ImportParser {
     return result;
   }
 
+  /// Reads every `<site>` verbatim, including the ones Subsurface left
+  /// unnamed. Deciding which of these are the same place is the folder's job:
+  /// dropping an unnamed site here would strand its dives with no coordinates
+  /// at all, which is how imported dives used to lose their location.
   List<Map<String, dynamic>> _parseSites(XmlElement divesites) {
     final sites = <Map<String, dynamic>>[];
     for (final site in divesites.findElements('site')) {
-      final name = site.getAttribute('name');
-      if (name == null || name.isEmpty) continue;
-      final siteData = <String, dynamic>{'name': name};
+      final siteData = <String, dynamic>{};
+      final name = site.getAttribute('name')?.trim();
+      if (name != null && name.isNotEmpty) siteData['name'] = name;
       final uuid = site.getAttribute('uuid')?.trim();
-      if (uuid != null) siteData['uddfId'] = uuid;
-      final gps = site.getAttribute('gps');
-      if (gps != null) {
-        final parts = gps.trim().split(RegExp(r'\s+'));
-        if (parts.length == 2) {
-          final lat = double.tryParse(parts[0].trim());
-          final lon = double.tryParse(parts[1].trim());
-          if (lat != null) siteData['latitude'] = lat;
-          if (lon != null) siteData['longitude'] = lon;
-        }
+      if (uuid != null && uuid.isNotEmpty) siteData['uddfId'] = uuid;
+      final coordinates = _parseGps(site.getAttribute('gps'));
+      if (coordinates != null) {
+        siteData['latitude'] = coordinates.$1;
+        siteData['longitude'] = coordinates.$2;
+      }
+      final description = site.getAttribute('description');
+      if (description != null && description.trim().isNotEmpty) {
+        siteData['description'] = description.trim();
       }
       for (final geo in site.findElements('geo')) {
         final cat = geo.getAttribute('cat');
@@ -349,6 +372,28 @@ class SubsurfaceXmlParser implements ImportParser {
       sites.add(siteData);
     }
     return sites;
+  }
+
+  /// Parses a Subsurface `gps` attribute: two decimal degrees separated by
+  /// whitespace or a comma, the same pair of separators Subsurface's own
+  /// `parse_location()` accepts.
+  ///
+  /// A pair that is short, unparseable, or off the globe yields null rather
+  /// than a half-set or nonsensical coordinate.
+  ///
+  /// The `isFinite` check is not redundant with the range check: `double`
+  /// parses 'NaN', and every comparison against NaN is false, so a range
+  /// check on its own would wave it straight through.
+  (double, double)? _parseGps(String? raw) {
+    if (raw == null) return null;
+    final parts = raw.trim().split(RegExp(r'[\s,]+'));
+    if (parts.length != 2) return null;
+    final lat = double.tryParse(parts[0]);
+    final lon = double.tryParse(parts[1]);
+    if (lat == null || lon == null) return null;
+    if (!lat.isFinite || !lon.isFinite) return null;
+    if (lat.abs() > 90 || lon.abs() > 180) return null;
+    return (lat, lon);
   }
 
   Map<String, dynamic> _parseTrip(XmlElement trip) {
@@ -428,6 +473,64 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
+  /// Collects `<picture>` elements from [diveElement] into [allMedia].
+  ///
+  /// Subsurface stores an absolute path from the exporting machine, so
+  /// `filename` is kept verbatim (Windows separators included) and resolved
+  /// later against a user-picked folder. `offset` is signed and relative to
+  /// dive start; a picture taken before the dive began carries a negative
+  /// offset. An unparseable offset costs the picture its timestamp, not its
+  /// import, so it is kept with a null offset.
+  void _collectPictures(
+    XmlElement diveElement,
+    int diveIndex,
+    List<Map<String, dynamic>> allMedia,
+    List<ImportWarning> warnings,
+  ) {
+    for (final picture in diveElement.findElements('picture')) {
+      final filename = picture.getAttribute('filename')?.trim();
+      if (filename == null || filename.isEmpty) {
+        warnings.add(
+          const ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            message: 'Skipped a photo with no filename',
+            entityType: ImportEntityType.media,
+          ),
+        );
+        continue;
+      }
+
+      // Same parser the <site> elements use: it accepts a comma
+      // separator and rejects NaN and out-of-range pairs.
+      final gps = _parseGps(picture.getAttribute('gps'));
+      allMedia.add({
+        'filename': filename,
+        'offsetSeconds': _parseSignedDurationSeconds(
+          picture.getAttribute('offset'),
+        ),
+        'latitude': gps?.$1,
+        'longitude': gps?.$2,
+        '_diveIndex': diveIndex,
+      });
+    }
+  }
+
+  /// Parses a signed Subsurface duration: '+3:20 min', '-1:05 min', '3:20 min'.
+  ///
+  /// Returns null when the value is absent or malformed. The sign applies to
+  /// the whole duration, so '-1:05 min' is -65 seconds, not -60 plus 5.
+  static int? _parseSignedDurationSeconds(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final trimmed = value.trim();
+    final negative = trimmed.startsWith('-');
+    final magnitude = (negative || trimmed.startsWith('+'))
+        ? trimmed.substring(1)
+        : trimmed;
+    final seconds = _parseDurationSeconds(magnitude);
+    if (seconds == null) return null;
+    return negative ? -seconds : seconds;
+  }
+
   /// Parses `<sample>` elements from a `<divecomputer>` into profile points.
   ///
   /// Subsurface only records tank pressure on a subset of samples (when the
@@ -441,6 +544,21 @@ class SubsurfaceXmlParser implements ImportParser {
     // Track which tank indices have pressure data across all samples
     final tankIndicesWithPressure = <int>{};
 
+    // Subsurface delta-encodes sample attributes: ndl, tts, rbt, cns and
+    // in_deco are only written when the value changes from the previous
+    // sample, so an omitted attribute means "unchanged", not "unknown".
+    // Carry the last seen value forward; samples before the first
+    // occurrence stay null.
+    int? lastNdl;
+    int? lastTts;
+    int? lastRbt;
+    double? lastCns;
+    double? lastSetpoint;
+    double? lastPpo2;
+    double? lastStopDepth;
+    final lastSensor = List<double?>.filled(6, null);
+    bool inDeco = false;
+
     for (final sample in divecomputer.findElements('sample')) {
       final timestamp = _parseDurationSeconds(sample.getAttribute('time'));
       final depth = _parseDouble(sample.getAttribute('depth'));
@@ -450,19 +568,69 @@ class SubsurfaceXmlParser implements ImportParser {
       if (temp != null) point['temperature'] = temp;
       final heartRate = _parseInt(sample.getAttribute('heartbeat'));
       if (heartRate != null) point['heartRate'] = heartRate;
-      final ndl = _parseDurationSeconds(sample.getAttribute('ndl'));
+      final ndl = _parseDurationSeconds(sample.getAttribute('ndl')) ?? lastNdl;
       if (ndl != null) point['ndl'] = ndl;
-      final tts = _parseDurationSeconds(sample.getAttribute('tts'));
+      lastNdl = ndl;
+      final tts = _parseDurationSeconds(sample.getAttribute('tts')) ?? lastTts;
       if (tts != null) point['tts'] = tts;
-      final rbt = _parseDurationSeconds(sample.getAttribute('rbt'));
+      lastTts = tts;
+      final rbt = _parseDurationSeconds(sample.getAttribute('rbt')) ?? lastRbt;
       if (rbt != null) point['rbt'] = rbt;
-      final cns = _parseDouble(sample.getAttribute('cns'));
+      lastRbt = rbt;
+      final cns = _parseDouble(sample.getAttribute('cns')) ?? lastCns;
       if (cns != null) point['cns'] = cns;
-      final ppo2 = _parseDouble(sample.getAttribute('po2'));
+      lastCns = cns;
+      // CCR setpoint: Subsurface writes the controller setpoint as the `po2`
+      // attribute (from `sample.setpoint`), delta-encoded so it only appears
+      // when it changes — carry the last value forward like ndl/tts/cns.
+      // Values are bar (unit suffix stripped by `_parseDouble`). This path does
+      // NOT run the mbar/bar heuristic that `SP change` events go through,
+      // keeping the direct-attribute path predictable.
+      final po2Setpoint = _parseDouble(sample.getAttribute('po2'));
+      if (po2Setpoint != null) lastSetpoint = po2Setpoint;
+      // An explicit `setpoint` attribute (some third-party exporters) applies to
+      // this sample only and is intentionally not forward-filled here; setpoint
+      // segments for display are derived at read time from `SP change` events.
+      final explicitSetpoint = _parseDouble(sample.getAttribute('setpoint'));
+      final setpoint = explicitSetpoint ?? lastSetpoint;
+      if (setpoint != null) point['setpoint'] = setpoint;
+
+      // Measured ppO2 is the dive computer's calculated value, exported as
+      // `dc_supplied_ppo2` (NOT `po2`, which is the setpoint above). Like the
+      // O2 cells below it is delta-encoded (written only when it changes), so
+      // carry the last value forward. Never averaged or otherwise synthesized.
+      final ppo2 =
+          _parseDouble(sample.getAttribute('dc_supplied_ppo2')) ?? lastPpo2;
       if (ppo2 != null) point['ppO2'] = ppo2;
-      if (_parseInt(sample.getAttribute('in_deco')) == 1) {
-        point['decoType'] = 2;
+      lastPpo2 = ppo2;
+
+      // Individual O2 cell readings (`sensor1`..`sensor6`). Subsurface
+      // delta-encodes each cell (writes it only when that cell's value
+      // changes), so an absent attribute means "unchanged" — carry the last
+      // value forward per cell, exactly like temperature/pressure/setpoint.
+      for (var cell = 1; cell <= 6; cell++) {
+        final reading =
+            _parseDouble(sample.getAttribute('sensor$cell')) ??
+            lastSensor[cell - 1];
+        if (reading != null) point['o2Sensor$cell'] = reading;
+        lastSensor[cell - 1] = reading;
       }
+      final inDecoAttr = _parseInt(sample.getAttribute('in_deco'));
+      if (inDecoAttr != null) inDeco = inDecoAttr == 1;
+      if (inDeco) point['decoType'] = 2;
+
+      // Computer-reported deco stop depth, mapped to the sample ceiling. This
+      // is the stop depth in effect at this sample and changes over the dive.
+      // Subsurface delta-encodes stopdepth (written only when it changes), so
+      // an omitted attribute means "unchanged" - carry the last value forward
+      // like ndl/tts/in_deco. A value of 0.0 m is a real "no stop" signal, not
+      // missing data: it clears the obligation, and that cleared state is
+      // carried forward too. Values are meters (unit suffix stripped by
+      // `_parseDouble`).
+      final stopDepth =
+          _parseDouble(sample.getAttribute('stopdepth')) ?? lastStopDepth;
+      lastStopDepth = stopDepth;
+      if (stopDepth != null && stopDepth > 0) point['ceiling'] = stopDepth;
 
       // Read pressure0, pressure1, ... for each tank
       for (var tankIdx = 0; tankIdx < 10; tankIdx++) {
@@ -558,11 +726,96 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
+  /// Parses a Subsurface `Deco model` extradata value into algorithm + gradient
+  /// factors. Subsurface emits strings like `'GF 40/85'` for Bühlmann with
+  /// gradient factors. Non-GF formats (e.g., `'VPM-B +2'`) are preserved as
+  /// the raw lowercased algorithm string with no gradient-factor extraction.
+  ///
+  /// Returns a map with optional keys:
+  ///   - `'decoAlgorithm'`: String
+  ///   - `'gradientFactorLow'`: int
+  ///   - `'gradientFactorHigh'`: int
+  ///
+  /// Returns an empty map when the input is null or empty.
+  static Map<String, dynamic> _parseDecoModel(String? value) {
+    if (value == null || value.trim().isEmpty) return const {};
+    final trimmed = value.trim();
+    final gfMatch = RegExp(r'^GF\s*(\d+)\s*/\s*(\d+)$').firstMatch(trimmed);
+    if (gfMatch != null) {
+      return {
+        'decoAlgorithm': 'buhlmann',
+        'gradientFactorLow': int.parse(gfMatch.group(1)!),
+        'gradientFactorHigh': int.parse(gfMatch.group(2)!),
+      };
+    }
+    return {'decoAlgorithm': trimmed.toLowerCase()};
+  }
+
+  /// Extracts dive-level metadata from a `<divecomputer>` element:
+  /// model attribute, serial/firmware from extradata, deco algorithm and
+  /// gradient factors parsed from the `Deco model` extradata string, and
+  /// surface pressure from the `<surface>` child element.
+  ///
+  /// Returns a map with only the keys that had values. Absent fields are
+  /// omitted (no null-value noise).
+  static Map<String, dynamic> _parseDiveComputerMetadata(
+    XmlElement divecomputer,
+  ) {
+    final result = <String, dynamic>{};
+
+    final model = divecomputer.getAttribute('model');
+    if (model != null && model.isNotEmpty) {
+      result['diveComputerModel'] = model;
+    }
+
+    final surface = divecomputer.findElements('surface').firstOrNull;
+    if (surface != null) {
+      final pressure = _parseDouble(surface.getAttribute('pressure'));
+      if (pressure != null) result['surfacePressure'] = pressure;
+    }
+
+    final extradata = <String, String>{};
+    for (final ed in divecomputer.findElements('extradata')) {
+      final key = ed.getAttribute('key');
+      final value = ed.getAttribute('value');
+      if (key != null && value != null) extradata[key] = value;
+    }
+
+    final serial = extradata['Serial'];
+    if (serial != null && serial.isNotEmpty) {
+      result['diveComputerSerial'] = serial;
+    }
+
+    final fwVersion = extradata['FW Version'];
+    if (fwVersion != null && fwVersion.isNotEmpty) {
+      result['diveComputerFirmware'] = fwVersion;
+    }
+
+    final decoModel = extradata['Deco model'];
+    if (decoModel != null) {
+      result.addAll(_parseDecoModel(decoModel));
+    }
+
+    return result;
+  }
+
+  /// Returns true when the element has a non-null, non-empty attribute value
+  /// for [name]. Empty-string attribute values (`<cylinder o2='' />`) count as
+  /// absent, which matches the surrounding import contract.
+  static bool _hasNonEmptyAttribute(XmlElement element, String name) {
+    final value = element.getAttribute(name);
+    return value != null && value.isNotEmpty;
+  }
+
   /// Parses `<cylinder>` elements into tank maps with [GasMix] objects.
   ///
-  /// Empty cylinders (no size and no description) are skipped. The first
-  /// cylinder uses profile sample pressures as a fallback when `start`/`end`
-  /// attributes are absent.
+  /// A cylinder is preserved when it carries any cylinder-property attribute:
+  /// `size`, `description`, `o2`, `he`, `workpressure`, `use`, or `depth`.
+  /// Cylinders with only pressure-reading attributes (`start`, `end`) are
+  /// skipped — these are dive-computer sensor artifacts, not real cylinders.
+  ///
+  /// The first emitted cylinder uses profile sample pressures as a fallback
+  /// when `start`/`end` attributes are absent on the cylinder itself.
   List<Map<String, dynamic>> _parseCylinders(
     XmlElement dive,
     List<Map<String, dynamic>>? profilePoints,
@@ -573,9 +826,24 @@ class SubsurfaceXmlParser implements ImportParser {
     for (final cyl in dive.findElements('cylinder')) {
       final size = cyl.getAttribute('size');
       final description = cyl.getAttribute('description');
-      // Skip empty cylinder elements
-      if ((size == null || size.isEmpty) &&
-          (description == null || description.isEmpty)) {
+      // Skip cylinders that carry no meaningful cylinder-property signal.
+      // Cylinder *properties* (size, description, gas mix, role, rated
+      // pressure, max depth) mean the author intended a real cylinder.
+      // Pressure *readings* (`start`, `end`) are sensor artifacts that
+      // Subsurface dive computers can emit for phantom cylinder slots
+      // (see the `does not invent extra tanks from placeholder cylinders`
+      // regression test using subsurface_export.ssrf) — these are excluded
+      // from the preservation signal on purpose. Empty-string attribute
+      // values (e.g., `<cylinder o2='' />`) also count as absent.
+      final hasAnyCylinderProperty =
+          _hasNonEmptyAttribute(cyl, 'size') ||
+          _hasNonEmptyAttribute(cyl, 'description') ||
+          _hasNonEmptyAttribute(cyl, 'o2') ||
+          _hasNonEmptyAttribute(cyl, 'he') ||
+          _hasNonEmptyAttribute(cyl, 'workpressure') ||
+          _hasNonEmptyAttribute(cyl, 'use') ||
+          _hasNonEmptyAttribute(cyl, 'depth');
+      if (!hasAnyCylinderProperty) {
         cylinderIndex++;
         continue;
       }
@@ -627,6 +895,115 @@ class SubsurfaceXmlParser implements ImportParser {
       cylinderIndex++;
     }
     return tanks;
+  }
+
+  /// Parses `<event>` children of a `<divecomputer>` into typed profile-event
+  /// maps.
+  ///
+  /// Currently emits: `setpointChange` (from `SP change`), `bookmark`,
+  /// `safetyStopStart` (from `safety stop`), `decoStopStart` (from `deco stop`),
+  /// `decoViolation` (from `ceiling` or `violation`), `ascentRateWarning`
+  /// (from `ascent`), and `ppO2High` / `ppO2Low`
+  /// (from `po2`, split by `value` threshold: >= 1.4 → high, <= 0.18 → low).
+  ///
+  /// Gas-change events remain handled by `_parseGasSwitches` (persisted via
+  /// the distinct `GasSwitches` table). Future slices may extend this method
+  /// to cover additional types.
+  ///
+  /// Setpoint value normalization: Subsurface typically emits `value` in mbar
+  /// (e.g., 1200 for 1.2 bar) but some third-party exporters use bar (1.2).
+  /// The `> 10` threshold is exclusive: realistic setpoints are 0.2-1.6 bar
+  /// (200-1600 mbar), so 10 is unreachable in either unit.
+  ///
+  /// Implausible values (non-positive) and unparseable timestamps are dropped.
+  static List<Map<String, dynamic>> _parseProfileEvents(
+    XmlElement divecomputer,
+  ) {
+    final events = <Map<String, dynamic>>[];
+    for (final event in divecomputer.findElements('event')) {
+      final name = event.getAttribute('name')?.trim().toLowerCase();
+
+      if (name == 'sp change') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final raw = _parseDouble(event.getAttribute('value'));
+        if (raw == null || raw <= 0) continue;
+        final bar = raw > 10 ? raw / 1000 : raw;
+        events.add({
+          'eventType': 'setpointChange',
+          'timestamp': timestamp,
+          'value': bar,
+        });
+      } else if (name == 'bookmark') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final description = event.getAttribute('description');
+        events.add({
+          'eventType': 'bookmark',
+          'timestamp': timestamp,
+          'description': ?description,
+        });
+      } else if (name == 'safety stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'safetyStopStart', 'timestamp': timestamp});
+      } else if (name == 'deco stop') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        events.add({'eventType': 'decoStopStart', 'timestamp': timestamp});
+      } else if (name == 'ceiling' || name == 'violation') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        events.add({
+          'eventType': 'decoViolation',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'ascent') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        // Flat mapping to `ascentRateWarning`: Subsurface emits a single
+        // `name='ascent'` for all ascent alarms. The `ascentRateCritical`
+        // enum variant is not produced here because the critical-vs-warning
+        // threshold (typically 18 m/min recreational / 9 m/min technical) is
+        // diver-configurable and not accessible from the parser layer.
+        // A future enrichment slice may add threshold-based variant selection
+        // once the setting is plumbed through.
+        events.add({
+          'eventType': 'ascentRateWarning',
+          'timestamp': timestamp,
+          'value': ?value,
+        });
+      } else if (name == 'po2') {
+        final timestamp = _parseDurationSeconds(event.getAttribute('time'));
+        if (timestamp == null) continue;
+        final value = _parseDouble(event.getAttribute('value'));
+        if (value == null || value <= 0) continue;
+        // Subsurface emits a single `po2` event name for both high- and
+        // low-ppO2 alarms; the `value` attribute tells us which direction
+        // the ppO2 crossed. Threshold choices match typical CCR alarm config:
+        //   >= 1.4 bar → ppO2High (toxicity warning)
+        //   <= 0.18 bar → ppO2Low (hypoxia warning)
+        // Values in the "normal" range (0.18 < v < 1.4) default to ppO2High;
+        // Subsurface shouldn't emit an event in that range, but if it does,
+        // ppO2High surfaces the anomaly rather than silently dropping it.
+        final eventType = value <= 0.18 ? 'ppO2Low' : 'ppO2High';
+        events.add({
+          'eventType': eventType,
+          'timestamp': timestamp,
+          'value': value,
+        });
+      }
+      // Unrecognized names (e.g., `gaschange` which has a separate pipeline,
+      // DC metadata like `low battery`, `heading`) fall through silently. The
+      // import pipeline that consumes `result['events']` is responsible for
+      // logging truly unknown event types — this parser stays quiet because
+      // the full set of names Subsurface can emit is broader than what we
+      // persist (Slice C.2 handles 7 types; future slices may add more).
+    }
+    return events;
   }
 
   List<Map<String, dynamic>> _parseGasSwitches(XmlElement divecomputer) {

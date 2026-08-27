@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -147,6 +149,41 @@ void main() {
         expect(fetched.caption, equals('Beautiful reef'));
         expect(fetched.isFavorite, isTrue);
       });
+
+      test(
+        'hydrates takenAt as wall-clock-UTC so enrichment is not TZ-skewed',
+        () async {
+          // taken_at is persisted as wall-clock-UTC millis (the same convention
+          // the dive side uses: dive_repository_impl reads entry_time with
+          // isUtc: true, and the media write path stores the ms of an already-
+          // UTC DateTime). It must be read back as a *UTC* DateTime. If it is
+          // hydrated as local, the TripMediaScanner.toWallClockUtc() call inside
+          // EnrichmentService.calculateEnrichment reinterprets the shifted local
+          // digits as UTC and displaces the photo time by the host's UTC offset
+          // relative to the (correctly UTC) dive start — pinning every item to
+          // the first profile point (surface depth). Regression guard for that
+          // skew.
+          final takenAt = DateTime.utc(2025, 12, 27, 11, 47, 48);
+          final media = createTestMediaItem(
+            filePath: '/photos/reef.jpg',
+            takenAt: takenAt,
+          );
+
+          final created = await repository.createMedia(media);
+          final fetched = await repository.getMediaById(created.id);
+
+          expect(fetched, isNotNull);
+          expect(
+            fetched!.takenAt.isUtc,
+            isTrue,
+            reason:
+                'takenAt must round-trip as UTC to match the wall-clock-UTC '
+                'storage convention; a local value skews enrichment by the '
+                'host UTC offset.',
+          );
+          expect(fetched.takenAt, equals(takenAt));
+        },
+      );
 
       test('should create media linked to a dive', () async {
         final dive = await createTestDiveInDb(diveNumber: 1);
@@ -423,6 +460,38 @@ void main() {
         final result = await repository.getEnrichmentForMedia(media.id);
         expect(result!.depthMeters, equals(20.0));
       });
+
+      // An enrichment is a join product of the media and ONE dive's profile,
+      // so its diveId is part of the value, not just a back-pointer. The
+      // update path used to leave it at whatever the row was first written
+      // with, which meant a row repaired against a different dive kept
+      // claiming the old one.
+      test('should update the dive link when saving over an existing '
+          'enrichment', () async {
+        final dive = await createTestDiveInDb(diveNumber: 1);
+        final otherDive = await createTestDiveInDb(diveNumber: 2);
+        final media = await repository.createMedia(
+          createTestMediaItem(diveId: dive.id, filePath: '/photos/moved.jpg'),
+        );
+
+        await repository.saveEnrichment(
+          createTestEnrichment(
+            mediaId: media.id,
+            diveId: otherDive.id,
+            depthMeters: 10.0,
+          ),
+        );
+        await repository.saveEnrichment(
+          createTestEnrichment(
+            mediaId: media.id,
+            diveId: dive.id,
+            depthMeters: 20.0,
+          ),
+        );
+
+        final result = await repository.getEnrichmentForMedia(media.id);
+        expect(result!.diveId, equals(dive.id));
+      });
     });
 
     group('media count', () {
@@ -611,6 +680,187 @@ void main() {
       });
     });
 
+    group('source-type fields round-trip', () {
+      test('createMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 1);
+        final item = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          localPath: '/Users/me/x.jpg',
+          bookmarkRef: 'bref-abc',
+          url: 'https://example.com/photo.jpg',
+          subscriptionId: 'sub-001',
+          entryKey: 'entry-key-001',
+          connectorAccountId: 'connector-001',
+          remoteAssetId: 'remote-asset-001',
+          originDeviceId: 'mac-01',
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+
+        final created = await repository.createMedia(item);
+        final fetched = await repository.getMediaById(created.id);
+
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.localFile));
+        expect(fetched.localPath, equals('/Users/me/x.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-abc'));
+        expect(fetched.url, equals('https://example.com/photo.jpg'));
+        expect(fetched.subscriptionId, equals('sub-001'));
+        expect(fetched.entryKey, equals('entry-key-001'));
+        expect(fetched.connectorAccountId, equals('connector-001'));
+        expect(fetched.remoteAssetId, equals('remote-asset-001'));
+        expect(fetched.originDeviceId, equals('mac-01'));
+      });
+
+      test('updateMedia round-trips all 9 source-type fields', () async {
+        final takenAt = DateTime.utc(2024, 6, 2);
+        final initial = MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.platformGallery,
+          takenAt: takenAt,
+          createdAt: takenAt,
+          updatedAt: takenAt,
+        );
+        final created = await repository.createMedia(initial);
+
+        final updated = created.copyWith(
+          sourceType: MediaSourceType.serviceConnector,
+          localPath: '/local/path.jpg',
+          bookmarkRef: 'bref-xyz',
+          url: 'https://service.com/asset.jpg',
+          subscriptionId: 'sub-002',
+          entryKey: 'entry-key-002',
+          connectorAccountId: 'connector-002',
+          remoteAssetId: 'remote-asset-002',
+          originDeviceId: 'ipad-01',
+        );
+        await repository.updateMedia(updated);
+
+        final fetched = await repository.getMediaById(created.id);
+        expect(fetched, isNotNull);
+        expect(fetched!.sourceType, equals(MediaSourceType.serviceConnector));
+        expect(fetched.localPath, equals('/local/path.jpg'));
+        expect(fetched.bookmarkRef, equals('bref-xyz'));
+        expect(fetched.url, equals('https://service.com/asset.jpg'));
+        expect(fetched.subscriptionId, equals('sub-002'));
+        expect(fetched.entryKey, equals('entry-key-002'));
+        expect(fetched.connectorAccountId, equals('connector-002'));
+        expect(fetched.remoteAssetId, equals('remote-asset-002'));
+        expect(fetched.originDeviceId, equals('ipad-01'));
+      });
+
+      test(
+        'unknown sourceType string falls back to platformGallery on read',
+        () async {
+          final takenAt = DateTime.utc(2024, 6, 3);
+          final item = MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/tmp/x.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          );
+          final created = await repository.createMedia(item);
+
+          // Force an unknown source_type value directly in the DB to exercise
+          // the _mapRowToMediaItem fallback. This simulates a row written by
+          // a future schema version with a source-type the current build
+          // doesn't know about.
+          final db = DatabaseService.instance.database;
+          await db.customStatement(
+            "UPDATE media SET source_type = 'futureUnknownSource' WHERE id = ?",
+            [created.id],
+          );
+
+          final fetched = await repository.getMediaById(created.id);
+
+          expect(fetched, isNotNull);
+          expect(fetched!.sourceType, equals(MediaSourceType.platformGallery));
+        },
+      );
+    });
+
+    group('originDeviceId auto-population', () {
+      test(
+        'createMedia auto-populates originDeviceId for localFile source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.localFile,
+              localPath: '/x.jpg',
+              // originDeviceId intentionally not set — repo should fill it in
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+          expect(created.originDeviceId, isNotEmpty);
+        },
+      );
+
+      test(
+        'createMedia auto-populates originDeviceId for serviceConnector source',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.serviceConnector,
+              connectorAccountId: 'acc-1',
+              remoteAssetId: 'remote-asset-uuid',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNotNull);
+        },
+      );
+
+      test('createMedia preserves caller-provided originDeviceId', () async {
+        final created = await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/x.jpg',
+            originDeviceId: 'mac-explicit',
+            takenAt: DateTime.utc(2024, 1, 1),
+            createdAt: DateTime.utc(2024, 1, 1),
+            updatedAt: DateTime.utc(2024, 1, 1),
+          ),
+        );
+        expect(created.originDeviceId, equals('mac-explicit'));
+      });
+
+      test(
+        'createMedia leaves originDeviceId null for non-device-local sources',
+        () async {
+          final created = await repository.createMedia(
+            MediaItem(
+              id: '',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.networkUrl,
+              url: 'https://example.com/x.jpg',
+              takenAt: DateTime.utc(2024, 1, 1),
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          );
+          expect(created.originDeviceId, isNull);
+        },
+      );
+    });
+
     group('deleteMultipleMedia', () {
       test('deletes multiple media items in a single transaction', () async {
         final dive = await createTestDiveInDb();
@@ -640,6 +890,160 @@ void main() {
       test('handles non-existent IDs without error', () async {
         await repository.deleteMultipleMedia(['non-existent-id']);
         // Should not throw
+      });
+    });
+
+    group('getAllBySourceType', () {
+      test('filters by sourceType and returns matching items', () async {
+        final takenAt = DateTime.utc(2024, 6, 1);
+
+        // Seed three items: two localFile, one platformGallery.
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/Users/me/local-a.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.localFile,
+            localPath: '/Users/me/local-b.jpg',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+        await repository.createMedia(
+          MediaItem(
+            id: '',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.platformGallery,
+            platformAssetId: 'gallery-id',
+            takenAt: takenAt,
+            createdAt: takenAt,
+            updatedAt: takenAt,
+          ),
+        );
+
+        final localFiles = await repository.getAllBySourceType(
+          MediaSourceType.localFile,
+        );
+        expect(localFiles, hasLength(2));
+        expect(
+          localFiles.every((m) => m.sourceType == MediaSourceType.localFile),
+          isTrue,
+        );
+
+        final gallery = await repository.getAllBySourceType(
+          MediaSourceType.platformGallery,
+        );
+        expect(gallery, hasLength(1));
+        expect(gallery.first.platformAssetId, 'gallery-id');
+      });
+
+      test('returns empty list when no items match', () async {
+        final result = await repository.getAllBySourceType(
+          MediaSourceType.networkUrl,
+        );
+        expect(result, isEmpty);
+      });
+
+      // Null and empty mean opposite things here, and getting them backwards
+      // would either sweep the whole library or sweep none of it.
+      test(
+        'a null filter returns every row, an empty set returns none',
+        () async {
+          await repository.createMedia(
+            createTestMediaItem(platformAssetId: 'gallery-1'),
+          );
+
+          expect(await repository.getAllBySourceTypes(null), isNotEmpty);
+          expect(await repository.getAllBySourceTypes(const {}), isEmpty);
+        },
+      );
+    });
+
+    group('markVerified', () {
+      test('writes the flag and the stamp and nothing else', () async {
+        // Deliberately not updateMedia, which writes all 30 columns from the
+        // caller's snapshot. The passive reconciliation path is driven by
+        // grid tiles, whose snapshot is routinely stale, so a full-row write
+        // from there would roll back whatever changed since the tile built.
+        final created = await repository.createMedia(
+          createTestMediaItem(
+            caption: 'reef at 18m',
+            platformAssetId: 'asset-1',
+          ),
+        );
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: true,
+          verifiedAt: DateTime.utc(2026, 8, 22, 9),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.isOrphaned, isTrue);
+        // isAtSameMomentAs, not equals: the column stores epoch millis and
+        // the row mapper rebuilds a LOCAL DateTime, so an equals against a
+        // UTC literal compares zones rather than instants.
+        expect(
+          after.lastVerifiedAt!.isAtSameMomentAs(DateTime.utc(2026, 8, 22, 9)),
+          isTrue,
+        );
+        expect(after.caption, 'reef at 18m');
+        expect(after.platformAssetId, 'asset-1');
+        expect(after.diveId, created.diveId);
+      });
+
+      test('is a no-op when the row already has the desired flag', () async {
+        // Idempotent at the DB layer, not merely at the caller. The write is
+        // sync-visible (markRecordPending), and reconciledOrphanFlag's guard
+        // compares against the CALLER's snapshot, which for a grid tile can
+        // lag the row. A caller holding a stale snapshot must not be able to
+        // queue redundant sync work by asking for a state the row already has.
+        final created = await repository.createMedia(
+          createTestMediaItem(isOrphaned: true),
+        );
+        final before = await repository.getMediaById(created.id);
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: true,
+          verifiedAt: DateTime.utc(2026, 8, 22, 11),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.updatedAt, before!.updatedAt, reason: 'no row written');
+        expect(after.lastVerifiedAt, before.lastVerifiedAt);
+      });
+
+      test('clears the flag as readily as it sets it', () async {
+        // The un-orphan direction matters as much: a photo restored to the
+        // library must stop being reported as missing.
+        final created = await repository.createMedia(
+          createTestMediaItem(isOrphaned: true),
+        );
+
+        await repository.markVerified(
+          created.id,
+          isOrphaned: false,
+          verifiedAt: DateTime.utc(2026, 8, 22, 10),
+        );
+
+        final after = await repository.getMediaById(created.id);
+        expect(after!.isOrphaned, isFalse);
+        expect(
+          after.lastVerifiedAt!.isAtSameMomentAs(DateTime.utc(2026, 8, 22, 10)),
+          isTrue,
+        );
       });
     });
   });

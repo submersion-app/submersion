@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Garmin" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>No Timestamps</name>
+    <trkseg>
+      <trkpt lat="20.500000" lon="-87.250000"/>
+      <trkpt lat="20.510000" lon="-87.260000"/>
+      <trkpt lat="20.520000" lon="-87.270000"/>
+    </trkseg>
+  </trk>
+</gpx>

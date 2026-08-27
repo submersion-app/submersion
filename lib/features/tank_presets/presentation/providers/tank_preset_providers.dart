@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
@@ -11,11 +12,18 @@ final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
 
 /// All tank presets provider (custom + built-in, custom first)
 /// Includes built-in presets plus custom presets for the current diver
+///
+/// Stays a [FutureProvider] so imperative
+/// `ref.read(tankPresetsProvider.future)` reads still resolve, while
+/// self-invalidating whenever the `tank_presets` table changes -- including
+/// when a sync applies remote changes -- so list UIs refresh instead of serving
+/// a cached one-shot snapshot.
 final tankPresetsProvider = FutureProvider<List<TankPresetEntity>>((ref) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getAllPresets(diverId: validatedDiverId);
 });
 
@@ -27,6 +35,7 @@ final customTankPresetsProvider = FutureProvider<List<TankPresetEntity>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getCustomPresets(diverId: validatedDiverId);
 });
 
@@ -36,6 +45,7 @@ final tankPresetProvider = FutureProvider.family<TankPresetEntity?, String>((
   id,
 ) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getPresetById(id);
 });
 
@@ -48,7 +58,11 @@ class TankPresetListNotifier
 
   TankPresetListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      TankPresetListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -60,9 +74,20 @@ class TankPresetListNotifier
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(tankPresetsProvider);
         _ref.invalidate(customTankPresetsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          TankPresetListNotifier,
+          'initialize and load',
+        );
       }
     });
+
+    // Refresh when the tank_presets table changes (e.g. a sync writes rows
+    // directly). Cancelled on dispose (provider is autoDispose).
+    final tableChangeSub = _repository.watchTankPresetsChanges().listen(
+      (_) => _silentReloadPresets(),
+    );
+    _ref.onDispose(tableChangeSub.cancel);
   }
 
   Future<void> _initializeAndLoad() async {
@@ -81,6 +106,25 @@ class TankPresetListNotifier
       state = AsyncValue.data(presets);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Reload without flipping to a loading state, so table-driven refreshes
+  /// (e.g. after a sync write) do not flash a spinner over existing data.
+  /// Resolves the validated diver id first so a tick arriving before
+  /// initialization completes still scopes the query correctly (otherwise a
+  /// null diver id would drop custom presets).
+  Future<void> _silentReloadPresets() async {
+    try {
+      _validatedDiverId = await _ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
+      final presets = await _repository.getAllPresets(
+        diverId: _validatedDiverId,
+      );
+      if (mounted) state = AsyncValue.data(presets);
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 

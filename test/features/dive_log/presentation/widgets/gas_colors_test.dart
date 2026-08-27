@@ -14,14 +14,21 @@ void main() {
       expect(GasColors.nitrox, const Color(0xFF4CAF50));
     });
 
+    test('oxygen is blue', () {
+      expect(GasColors.oxygen, const Color(0xFF1976D2));
+    });
+
     test('trimix is purple', () {
       expect(GasColors.trimix, const Color(0xFF9C27B0));
     });
 
-    test('all three colors are distinct', () {
+    test('all four colors are distinct', () {
       expect(GasColors.air, isNot(GasColors.nitrox));
+      expect(GasColors.air, isNot(GasColors.oxygen));
       expect(GasColors.air, isNot(GasColors.trimix));
+      expect(GasColors.nitrox, isNot(GasColors.oxygen));
       expect(GasColors.nitrox, isNot(GasColors.trimix));
+      expect(GasColors.oxygen, isNot(GasColors.trimix));
     });
   });
 
@@ -32,6 +39,10 @@ void main() {
 
     test('returns nitrox color for GasType.nitrox', () {
       expect(GasColors.forGasType(GasType.nitrox), GasColors.nitrox);
+    });
+
+    test('returns oxygen color for GasType.oxygen', () {
+      expect(GasColors.forGasType(GasType.oxygen), GasColors.oxygen);
     });
 
     test('returns trimix color for GasType.trimix', () {
@@ -55,9 +66,24 @@ void main() {
       expect(GasColors.forGasMix(mix), GasColors.trimix);
     });
 
+    test('returns oxygen color for pure O2 (100%)', () {
+      const mix = GasMix(o2: 100, he: 0);
+      expect(GasColors.forGasMix(mix), GasColors.oxygen);
+    });
+
+    test('returns oxygen color for 99% O2', () {
+      const mix = GasMix(o2: 99, he: 0);
+      expect(GasColors.forGasMix(mix), GasColors.oxygen);
+    });
+
     test('trimix takes precedence over nitrox when both apply', () {
       // High O2 + He = trimix, not nitrox
       const mix = GasMix(o2: 32, he: 20);
+      expect(GasColors.forGasMix(mix), GasColors.trimix);
+    });
+
+    test('trimix takes precedence over oxygen', () {
+      const mix = GasMix(o2: 100, he: 1);
       expect(GasColors.forGasMix(mix), GasColors.trimix);
     });
   });
@@ -79,8 +105,20 @@ void main() {
       expect(GasColors.forMixPercent(21, 35), GasColors.trimix);
     });
 
+    test('returns oxygen for 99% O2', () {
+      expect(GasColors.forMixPercent(99, 0), GasColors.oxygen);
+    });
+
+    test('returns oxygen for 100% O2', () {
+      expect(GasColors.forMixPercent(100, 0), GasColors.oxygen);
+    });
+
     test('trimix takes precedence over nitrox', () {
       expect(GasColors.forMixPercent(32, 20), GasColors.trimix);
+    });
+
+    test('trimix takes precedence over oxygen', () {
+      expect(GasColors.forMixPercent(100, 1), GasColors.trimix);
     });
   });
 
@@ -97,8 +135,20 @@ void main() {
       expect(GasColors.forMixFraction(0.32, 0), GasColors.nitrox);
     });
 
+    test('returns oxygen for 0.99 O2 fraction', () {
+      expect(GasColors.forMixFraction(0.99, 0), GasColors.oxygen);
+    });
+
+    test('returns oxygen for 1.0 O2 fraction', () {
+      expect(GasColors.forMixFraction(1.0, 0), GasColors.oxygen);
+    });
+
     test('returns trimix when He fraction is present', () {
       expect(GasColors.forMixFraction(0.21, 0.35), GasColors.trimix);
+    });
+
+    test('trimix takes precedence over oxygen', () {
+      expect(GasColors.forMixFraction(1.0, 0.01), GasColors.trimix);
     });
   });
 

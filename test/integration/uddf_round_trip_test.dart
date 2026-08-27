@@ -16,6 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/geocoding/nominatim_throttle.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -70,6 +72,9 @@ void main() {
   });
 
   setUp(() async {
+    // Nominatim spacing would add a real second per geocode here.
+    LocationService.throttle = NominatimThrottle(minimumGap: Duration.zero);
+    addTearDown(() => LocationService.throttle = NominatimThrottle());
     // Create fresh in-memory database for each test
     testDb = AppDatabase(NativeDatabase.memory());
     DatabaseService.instance.setTestDatabase(testDb);

@@ -1,19 +1,26 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart'
     as domain;
 
 /// Repository for persisting user-saved CSV import presets.
 ///
-/// Presets are local-only (not synced). Each row stores the full preset as a
-/// JSON blob in the `preset_json` column, with `id` and `name` duplicated at
-/// the table level for efficient queries.
+/// Each row stores the full preset as a JSON blob in the `preset_json` column,
+/// with `id` and `name` duplicated at the table level for efficient queries.
 class CsvPresetRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _log = LoggerService.forClass(CsvPresetRepository);
+
+  /// Emits whenever the `csv_presets` table changes so the preset list
+  /// refreshes after a sync or any other write that bypasses the notifiers.
+  Stream<void> watchPresetsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.csvPresets));
 
   /// Returns all user-saved presets, ordered by name.
   Future<List<domain.CsvPreset>> getAllPresets() async {
@@ -60,6 +67,15 @@ class CsvPresetRepository {
             ),
           );
 
+      // Mark pending so the edit is protected during merge and gets an HLC
+      // stamped (the choke point also stamps the row's hlc column).
+      await _syncRepository.markRecordPending(
+        entityType: 'csvPresets',
+        recordId: preset.id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+
       _log.info('Saved CSV preset: ${preset.id}');
     } catch (e, stackTrace) {
       _log.error(
@@ -76,6 +92,8 @@ class CsvPresetRepository {
     try {
       _log.info('Deleting CSV preset: $id');
       await (_db.delete(_db.csvPresets)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'csvPresets', recordId: id);
+      SyncEventBus.notifyLocalChange();
       _log.info('Deleted CSV preset: $id');
     } catch (e, stackTrace) {
       _log.error(

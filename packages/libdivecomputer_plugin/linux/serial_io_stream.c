@@ -187,14 +187,16 @@ static int serial_configure(void* userdata, unsigned int baudrate,
     if (stopbits == 2) options.c_cflag |= CSTOPB;
     else options.c_cflag &= ~CSTOPB;
 
-    // Flow control: 0=none, 1=software, 2=hardware
-    if (flowcontrol == 2) {
+    // Flow control. See LIBDC_FLOWCONTROL_* in libdc_wrapper.h: hardware is 1
+    // and software is 2, not the other way round (issue #1155).
+    if (flowcontrol == LIBDC_FLOWCONTROL_HARDWARE) {
         options.c_cflag |= CRTSCTS;
         options.c_iflag &= ~(IXON | IXOFF);
-    } else if (flowcontrol == 1) {
+    } else if (flowcontrol == LIBDC_FLOWCONTROL_SOFTWARE) {
         options.c_cflag &= ~CRTSCTS;
         options.c_iflag |= (IXON | IXOFF);
     } else {
+        // LIBDC_FLOWCONTROL_NONE, and anything libdivecomputer might add.
         options.c_cflag &= ~CRTSCTS;
         options.c_iflag &= ~(IXON | IXOFF);
     }

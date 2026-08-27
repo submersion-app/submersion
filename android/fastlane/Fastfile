@@ -12,6 +12,24 @@
 
 default_platform(:android)
 
+# Google Play rejects a release-notes body over 500 characters per locale.
+PLAY_CHANGELOG_LIMIT = 500
+
+# Where supply looks for release notes. fastlane runs lane bodies and helper
+# methods in this `fastlane` directory but wraps every action in Dir.chdir(".."),
+# and supply resolves its default metadata_path from there by globbing
+# "./fastlane/metadata/android". Writing to that same path from a helper landed
+# the notes one directory deeper than supply looked, so supply resolved
+# metadata_path to nil, skipped its whole metadata phase, and reported a
+# successful upload with no release notes attached - which is what Play beta
+# testers saw while TestFlight testers got the full changelog.
+#
+# Anchored to this file rather than to the working directory. Keep it at the top
+# level: fastlane evaluates the Fastfile with __FILE__ set to a bare "Fastfile",
+# so __dir__ only resolves while fastlane's own chdir into this folder is still
+# in effect.
+PLAY_METADATA_ROOT = File.expand_path(File.join(__dir__, "metadata", "android"))
+
 platform :android do
   desc "Upload AAB to internal testing track"
   lane :upload do
@@ -50,9 +68,131 @@ platform :android do
     UI.success("AAB validation passed!")
   end
 
+  desc "Upload AAB to the beta testing track (PLAY_BETA_TRACK, default alpha), released"
+  lane :upload_beta do
+    aab_path = find_aab
+    track = beta_track
+    changelog_root = write_beta_changelog
+
+    UI.message("Uploading to the '#{track}' testing track...")
+    upload_to_play_store(
+      aab: aab_path,
+      track: track,
+      release_status: "completed",
+      # Passed explicitly, and taken from the helper that just wrote the file, so
+      # the directory supply reads is the directory the notes went into. supply's
+      # own default is resolved from a different working directory than lane code
+      # runs in, which silently cost every Play beta its release notes.
+      metadata_path: changelog_root || PLAY_METADATA_ROOT,
+      skip_upload_metadata: true,
+      # Beta testers need to know what a build changed; the other lanes stay
+      # silent because their notes are managed in the Play Console.
+      skip_upload_changelogs: changelog_root.nil?,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("AAB released to the '#{track}' track!")
+  end
+
+  desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default alpha) to production"
+  lane :promote_to_production do |options|
+    version_code = options[:version_code] || UI.user_error!("version_code is required")
+    rollout = options[:rollout] || "1.0"
+    track = beta_track
+
+    UI.message("Promoting build #{version_code} from '#{track}' to production (rollout #{rollout})...")
+    upload_to_play_store(
+      track: track,
+      track_promote_to: "production",
+      version_code: version_code,
+      rollout: rollout,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("Build #{version_code} promoted to production!")
+  end
+
   # ============================================================================
   # Helper Methods
   # ============================================================================
+
+  # The Play track carrying beta builds. 'alpha' (closed testing) until Google
+  # grants production access -- open testing ('beta') is gated behind it, and
+  # running a closed test (12+ testers, 14 days) is what earns it. Flip
+  # PLAY_BETA_TRACK to 'beta' in beta.yml/promote.yml (or the default here)
+  # once production access is granted.
+  def beta_track
+    track = ENV["PLAY_BETA_TRACK"] || "alpha"
+    unless ["alpha", "beta"].include?(track)
+      UI.user_error!(
+        "PLAY_BETA_TRACK must be 'alpha' (closed testing) or 'beta' " \
+        "(open testing); got '#{track}'."
+      )
+    end
+    track
+  end
+
+  # Reads the notes the beta pipeline generated.
+  #
+  # PLAY_BETA_CHANGELOG_FILE (a path) is the pipeline's contract;
+  # PLAY_BETA_CHANGELOG (the text) remains for local runs. Passing a path keeps
+  # commit-derived text out of shell and environment assignments in a workflow
+  # that holds the Play service account key.
+  def read_beta_notes
+    path = ENV["PLAY_BETA_CHANGELOG_FILE"].to_s.strip
+    return ENV["PLAY_BETA_CHANGELOG"].to_s if path.empty?
+
+    unless File.exist?(path)
+      UI.important("PLAY_BETA_CHANGELOG_FILE points at #{path}, which does not exist.")
+      return ENV["PLAY_BETA_CHANGELOG"].to_s
+    end
+
+    File.read(path)
+  end
+
+  # Writes the beta release notes where supply expects them:
+  # <metadata_root>/<locale>/changelogs/<versionCode>.txt. The file is generated
+  # per build rather than committed, so the notes always match the AAB being
+  # uploaded. Returns the absolute metadata root so the caller can hand supply
+  # the same path, or nil when there is nothing to write, which leaves the
+  # existing Play notes untouched instead of blanking them.
+  def write_beta_changelog(metadata_root = PLAY_METADATA_ROOT)
+    notes = read_beta_notes.strip
+    version_code = ENV["PLAY_VERSION_CODE"].to_s.strip
+
+    if notes.empty? || version_code.empty?
+      UI.important(
+        "PLAY_BETA_CHANGELOG or PLAY_VERSION_CODE is unset; uploading without " \
+        "release notes."
+      )
+      return nil
+    end
+
+    unless version_code.match?(/\A\d+\z/)
+      UI.user_error!("PLAY_VERSION_CODE must be digits only; got '#{version_code}'.")
+    end
+
+    # Google rejects a release-notes body over 500 characters per locale, and
+    # rejects the whole upload rather than truncating it.
+    if notes.length > PLAY_CHANGELOG_LIMIT
+      UI.important(
+        "Release notes are #{notes.length} characters; truncating to " \
+        "#{PLAY_CHANGELOG_LIMIT} for Play."
+      )
+    end
+
+    dir = File.join(metadata_root, "en-US", "changelogs")
+    FileUtils.mkdir_p(dir)
+    File.write(File.join(dir, "#{version_code}.txt"), notes[0, PLAY_CHANGELOG_LIMIT])
+    UI.message("Wrote Play release notes for version code #{version_code} to #{dir}.")
+    metadata_root
+  end
 
   # Finds the AAB file. Checks for the renamed artifact first (CI),
   # then falls back to the default Flutter build output (local).

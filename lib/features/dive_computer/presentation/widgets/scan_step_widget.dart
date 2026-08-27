@@ -64,14 +64,14 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
             dividerColor: Colors.transparent,
             labelColor: colorScheme.onPrimaryContainer,
             unselectedLabelColor: colorScheme.onSurfaceVariant,
-            tabs: const [
+            tabs: [
               Tab(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.bluetooth, size: 18),
-                    SizedBox(width: 8),
-                    Text('Bluetooth'),
+                    const Icon(Icons.bluetooth, size: 18),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.diveComputer_scan_tabBluetooth),
                   ],
                 ),
               ),
@@ -79,9 +79,9 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.usb, size: 18),
-                    SizedBox(width: 8),
-                    Text('USB Cable'),
+                    const Icon(Icons.usb, size: 18),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.diveComputer_scan_tabUsb),
                   ],
                 ),
               ),
@@ -136,7 +136,7 @@ class _BluetoothScanTab extends ConsumerWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Scanning for dive computers...',
+                  context.l10n.diveComputer_scan_scanningStatus,
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -166,7 +166,7 @@ class _BluetoothScanTab extends ConsumerWidget {
                   onPressed: () {
                     ref.read(discoveryNotifierProvider.notifier).startScan();
                   },
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.diveComputer_scan_retry),
                 ),
               ],
             ),
@@ -193,7 +193,9 @@ class _BluetoothScanTab extends ConsumerWidget {
                               .stopScan();
                         },
                         icon: const Icon(Icons.stop),
-                        label: const Text('Stop Scanning'),
+                        label: Text(
+                          context.l10n.diveComputer_scan_stopScanning,
+                        ),
                       )
                     : FilledButton.icon(
                         onPressed: () {
@@ -202,7 +204,7 @@ class _BluetoothScanTab extends ConsumerWidget {
                               .startScan();
                         },
                         icon: const Icon(Icons.bluetooth_searching),
-                        label: const Text('Scan Again'),
+                        label: Text(context.l10n.diveComputer_scan_scanAgain),
                       ),
               ),
             ],
@@ -227,13 +229,13 @@ class _BluetoothScanTab extends ConsumerWidget {
               color: colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
-            Text('Looking for Devices', style: theme.textTheme.titleLarge),
+            Text(
+              context.l10n.diveComputer_scan_lookingForDevicesTitle,
+              style: theme.textTheme.titleLarge,
+            ),
             const SizedBox(height: 12),
             Text(
-              'Make sure your dive computer is:\n'
-              '• Turned on\n'
-              '• In Bluetooth pairing mode\n'
-              '• Close to your device',
+              context.l10n.diveComputer_scan_emptyStateInstructions,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -319,12 +321,16 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
 
     return usbDevicesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stack) => Center(
+        child: Text(
+          context.l10n.diveComputer_download_errorWithMessage(error.toString()),
+        ),
+      ),
       data: (usbDevicesByManufacturer) {
         if (usbDevicesByManufacturer.isEmpty) {
           return Center(
             child: Text(
-              'No USB devices available',
+              context.l10n.diveComputer_scan_noUsbDevicesAvailable,
               style: theme.textTheme.bodyLarge,
             ),
           );
@@ -478,7 +484,7 @@ class _UsbDeviceListTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label: 'USB device: ${model.model}',
+        label: context.l10n.diveComputer_scan_usbSemanticLabel(model.model),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -510,7 +516,7 @@ class _UsbDeviceListTile extends StatelessWidget {
                       Text(model.model, style: theme.textTheme.titleMedium),
                       const SizedBox(height: 4),
                       Text(
-                        'USB Cable',
+                        context.l10n.diveComputer_scan_usbCableLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -555,8 +561,9 @@ class _DeviceListTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: Semantics(
         button: true,
-        label:
-            'Bluetooth device: ${savedComputer?.displayName ?? device.displayName}',
+        label: context.l10n.diveComputer_scan_bluetoothSemanticLabel(
+          savedComputer?.displayName ?? device.displayName,
+        ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -611,7 +618,7 @@ class _DeviceListTile extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'Known',
+                                context.l10n.diveComputer_scan_knownBadge,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: colorScheme.onTertiary,
                                 ),
@@ -628,7 +635,7 @@ class _DeviceListTile extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'Supported',
+                                context.l10n.diveComputer_scan_supportedBadge,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: colorScheme.onPrimary,
                                 ),

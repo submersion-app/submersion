@@ -20,6 +20,14 @@ extension SemanticWidgetExtensions on Widget {
 ///
 /// Screen readers cannot interpret visual chart data, so this provides
 /// a textual alternative describing the chart's key information.
+///
+/// Not localized: the glue (" chart. ") and the [chartType] word callers
+/// pass are both English, so the announcement stays English under every
+/// locale. New callers must not use it -- give the chart its own ARB key
+/// that spells the whole sentence out, the way the statistics pages now do
+/// (for example `statistics_timePatterns_dayOfWeek_semanticLabel`). The
+/// remaining callers are the deco/tissue panels, whose long English
+/// descriptions need the same treatment (issue #1042 follow-up).
 String chartSummaryLabel({
   required String chartType,
   required String description,

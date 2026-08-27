@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 
 /// Singleton service managing the local-only cache database.
@@ -60,9 +61,12 @@ class LocalCacheDatabaseService {
   Future<void> close() async {
     if (_database == null) return;
     try {
-      await _database!.close().timeout(const Duration(seconds: 5));
-    } catch (_) {
-      // Ignore close errors
+      // Shutdown path: a plain close() hangs while any watch() subscription
+      // is paused (Riverpod 3 pauses the streams of unlistened providers),
+      // because drift awaits the stream store before closing the executor.
+      // This helper falls back to closing the executor directly, which for
+      // this main-isolate database is the real sqlite3 close.
+      await closeDatabaseForAppShutdown(_database!);
     } finally {
       _database = null;
     }

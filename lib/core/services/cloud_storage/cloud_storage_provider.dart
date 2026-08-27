@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 /// Information about a file stored in cloud storage
@@ -35,9 +36,33 @@ class CloudStorageException implements Exception {
 
   const CloudStorageException(this.message, [this.cause, this.stackTrace]);
 
+  /// User-facing message that appends the underlying [cause] when present.
+  ///
+  /// The top-level [message] is intentionally generic (e.g. "Could not reach
+  /// S3 endpoint ..."); the [cause] carries the actionable transport detail
+  /// (TLS handshake / certificate / socket errors). Unlike [toString] this
+  /// omits the class-name prefix, so it is safe to show directly in a
+  /// snackbar.
+  String get displayMessage => '$message${_causeSuffix(cause)}';
+
   @override
-  String toString() =>
-      'CloudStorageException: $message${cause != null ? ' ($cause)' : ''}';
+  String toString() => 'CloudStorageException: $message${_causeSuffix(cause)}';
+
+  /// `' (<cause>)'` for a non-null [cause], else `''`.
+  ///
+  /// Prefers the cause's own (informative) `toString` -- which carries the
+  /// actionable detail like `CERTIFICATE_VERIFY_FAILED` -- but falls back to
+  /// [Error.safeToString] if that throws, so an error-display path can never
+  /// itself throw. (A bare [Error.safeToString] is not used because it
+  /// renders exceptions as "Instance of '...'", discarding the detail.)
+  static String _causeSuffix(Object? cause) {
+    if (cause == null) return '';
+    try {
+      return ' ($cause)';
+    } catch (_) {
+      return ' (${Error.safeToString(cause)})';
+    }
+  }
 }
 
 /// Abstract interface for cloud storage providers (iCloud, Google Drive, etc.)
@@ -96,6 +121,25 @@ abstract class CloudStorageProvider {
   /// Throws [CloudStorageException] if the file doesn't exist or download fails.
   Future<Uint8List> downloadFile(String fileId);
 
+  /// Upload a local file to cloud storage.
+  ///
+  /// The path-based twin of [uploadFile] for large artifacts (database
+  /// backups): providers override it to stream from disk so the whole file is
+  /// never resident in memory. [CloudStorageProviderMixin] supplies a
+  /// buffering fallback that delegates to [uploadFile].
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  });
+
+  /// Download a file from cloud storage straight to [destinationPath].
+  ///
+  /// The path-based twin of [downloadFile]; same memory rationale as
+  /// [uploadFileFromPath]. Implementations must not leave a partial file at
+  /// [destinationPath] on failure.
+  Future<void> downloadToFile(String fileId, String destinationPath);
+
   /// Get information about a file
   ///
   /// [fileId] The ID of the file
@@ -142,8 +186,41 @@ abstract class CloudStorageProvider {
 }
 
 /// Mixin providing common functionality for cloud storage providers
-mixin CloudStorageProviderMixin {
+mixin CloudStorageProviderMixin implements CloudStorageProvider {
   static const String syncFolderName = 'Submersion Sync';
+
+  /// Buffering fallback: reads the source into memory and delegates to
+  /// [uploadFile]. Providers with a streaming transport override this.
+  @override
+  Future<UploadResult> uploadFileFromPath(
+    String sourcePath,
+    String filename, {
+    String? folderId,
+  }) async {
+    final data = await File(sourcePath).readAsBytes();
+    return uploadFile(data, filename, folderId: folderId);
+  }
+
+  /// Buffering fallback: downloads into memory via [downloadFile] and spills
+  /// to [destinationPath]. Providers with a streaming transport override
+  /// this. Deletes a partial destination on failure so callers never see a
+  /// truncated file.
+  @override
+  Future<void> downloadToFile(String fileId, String destinationPath) async {
+    final bytes = await downloadFile(fileId);
+    final dest = File(destinationPath);
+    try {
+      await dest.writeAsBytes(bytes, flush: true);
+    } catch (_) {
+      try {
+        if (await dest.exists()) await dest.delete();
+      } catch (_) {
+        // Best-effort cleanup; the original error is the one that matters.
+      }
+      rethrow;
+    }
+  }
+
   static const String syncFileStem = 'submersion_sync';
   static const String canonicalSyncFileName = '$syncFileStem.json';
   static const String syncFilePrefix = '${syncFileStem}_';

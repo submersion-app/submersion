@@ -27,6 +27,23 @@ class SpeciesRepository {
     return rows.map((row) => _mapRowToSpecies(row)).toList();
   }
 
+  /// Emits whenever the `species` table changes so list providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchSpeciesChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.species));
+
+  /// Emits whenever the `sightings` table changes so aggregate providers can
+  /// refresh after a sync or any other write.
+  Stream<void> watchSightingChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.sightings));
+
+  /// Emits whenever the `site_species` table changes, which is where a site's
+  /// expected species live. Curating that list never touches `species`, so
+  /// [watchSpeciesChanges] alone leaves the expected list stale after an add
+  /// or a remove.
+  Stream<void> watchSiteSpeciesChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.siteSpecies));
+
   /// Get species by category
   Future<List<domain.Species>> getSpeciesByCategory(
     SpeciesCategory category,
@@ -199,6 +216,57 @@ class SpeciesRepository {
     }).toList();
   }
 
+  /// Batched variant of [getSightingsForDive]: one query for many dives.
+  /// Returns a map keyed by dive id; dives without sightings are absent.
+  ///
+  /// The dive ids are queried in chunks so the bound-variable count never
+  /// exceeds SQLite's default limit (999) on very large trips.
+  Future<Map<String, List<domain.Sighting>>> getSightingsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+
+    const chunkSize = 900; // safely under SQLite's 999 bound-variable limit
+    final byDive = <String, List<domain.Sighting>>{};
+
+    for (var start = 0; start < diveIds.length; start += chunkSize) {
+      final end = (start + chunkSize < diveIds.length)
+          ? start + chunkSize
+          : diveIds.length;
+      final chunk = diveIds.sublist(start, end);
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final results = await _db
+          .customSelect(
+            '''
+      SELECT s.*, sp.common_name, sp.category
+      FROM sightings s
+      JOIN species sp ON s.species_id = sp.id
+      WHERE s.dive_id IN ($placeholders)
+      ORDER BY sp.category ASC, sp.common_name ASC
+    ''',
+            variables: [for (final id in chunk) Variable.withString(id)],
+          )
+          .get();
+
+      for (final row in results) {
+        final sighting = domain.Sighting(
+          id: row.data['id'] as String,
+          diveId: row.data['dive_id'] as String,
+          speciesId: row.data['species_id'] as String,
+          speciesName: row.data['common_name'] as String,
+          speciesCategory: SpeciesCategory.values.firstWhere(
+            (c) => c.name == row.data['category'],
+            orElse: () => SpeciesCategory.other,
+          ),
+          count: row.data['count'] as int,
+          notes: (row.data['notes'] as String?) ?? '',
+        );
+        byDive.putIfAbsent(sighting.diveId, () => []).add(sighting);
+      }
+    }
+    return byDive;
+  }
+
   /// Update sighting
   Future<void> updateSighting(domain.Sighting sighting) async {
     await (_db.update(
@@ -272,6 +340,92 @@ class SpeciesRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
+  }
+
+  Future<void> _bumpDive(String diveId, int now) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Add each sighting template to every dive (fresh id + diveId per dive).
+  /// No notify/transaction — BulkDiveEditService owns those.
+  Future<void> bulkAddSightings(
+    List<String> diveIds,
+    List<domain.Sighting> sightings,
+  ) async {
+    if (diveIds.isEmpty || sightings.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final sighting in sightings) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.sightings)
+            .insert(
+              SightingsCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                speciesId: Value(sighting.speciesId),
+                count: Value(sighting.count),
+                notes: Value(sighting.notes),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'sightings',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDive(diveId, now);
+    }
+  }
+
+  /// Replace each dive's sightings with [sightings]. No notify/transaction.
+  Future<void> bulkReplaceSightings(
+    List<String> diveIds,
+    List<domain.Sighting> sightings,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.sightings,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.sightings,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'sightings',
+          recordId: row.id,
+        );
+      }
+      for (final sighting in sightings) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.sightings)
+            .insert(
+              SightingsCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                speciesId: Value(sighting.speciesId),
+                count: Value(sighting.count),
+                notes: Value(sighting.notes),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'sightings',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDive(diveId, now);
+    }
   }
 
   /// Seed built-in species from the bundled JSON asset.
@@ -436,6 +590,24 @@ class SpeciesRepository {
   }
 
   /// Check if a species is referenced by any sightings
+  /// Sighting counts for every species that has at least one sighting.
+  ///
+  /// One GROUP BY rather than a per-row [isSpeciesInUse] call, so a list can
+  /// decide which species are deletable without N queries. Species absent
+  /// from the map have no sightings.
+  Future<Map<String, int>> sightingCountsBySpecies() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT species_id, COUNT(*) as count FROM sightings '
+          'GROUP BY species_id',
+        )
+        .get();
+    return {
+      for (final row in rows)
+        row.data['species_id'] as String: row.data['count'] as int,
+    };
+  }
+
   Future<bool> isSpeciesInUse(String id) async {
     final result = await _db
         .customSelect(
@@ -545,7 +717,7 @@ class SpeciesRepository {
         );
 
     await _syncRepository.markRecordPending(
-      entityType: 'site_species',
+      entityType: 'siteSpecies',
       recordId: id,
       localUpdatedAt: now,
     );
@@ -579,7 +751,7 @@ class SpeciesRepository {
       final id = existing.data['id'] as String;
       await (_db.delete(_db.siteSpecies)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(
-        entityType: 'site_species',
+        entityType: 'siteSpecies',
         recordId: id,
       );
       SyncEventBus.notifyLocalChange();
@@ -598,7 +770,7 @@ class SpeciesRepository {
 
     for (final row in existing) {
       await _syncRepository.logDeletion(
-        entityType: 'site_species',
+        entityType: 'siteSpecies',
         recordId: row.id,
       );
     }

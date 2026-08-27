@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
@@ -21,20 +24,16 @@ void main() {
     minDepth: 5.0,
     altitude: 200.0,
     difficulty: SiteDifficulty.advanced,
+    waterType: WaterType.salt,
     rating: 4.5,
     notes: 'Great site',
     hazards: 'Strong current',
     mooringNumber: '7',
-    conditions: SiteConditions(
-      waterType: 'salt',
-      typicalVisibility: '20m',
-      typicalCurrent: 'moderate',
-      bestSeason: 'summer',
-      entryType: 'shore',
-    ),
+    entryMethod: EntryMethod.shore,
+    exitMethod: EntryMethod.ladder,
   );
 
-  const testEntity = (site: testSite, diveCount: 12);
+  const testEntity = SiteWithDiveCount(site: testSite, diveCount: 12);
 
   group('SiteFieldAdapter.allFields', () {
     test('has expected count matching SiteField.values', () {
@@ -165,10 +164,10 @@ void main() {
       expect(adapter.extractValue(SiteField.rating, testEntity), equals(4.5));
     });
 
-    test('returns waterType from conditions', () {
+    test('returns waterType displayName from the entity', () {
       expect(
         adapter.extractValue(SiteField.waterType, testEntity),
-        equals('salt'),
+        equals('Salt Water'),
       );
     });
 
@@ -181,13 +180,13 @@ void main() {
 
     test('returns null for notes when empty', () {
       final emptyNotesSite = testSite.copyWith(notes: '');
-      final entity = (site: emptyNotesSite, diveCount: 0);
+      final entity = SiteWithDiveCount(site: emptyNotesSite, diveCount: 0);
       expect(adapter.extractValue(SiteField.notes, entity), isNull);
     });
 
     test('returns null for location when site has no GeoPoint', () {
       const noLocSite = DiveSite(id: 'no-loc', name: 'No Loc');
-      const entity = (site: noLocSite, diveCount: 0);
+      const entity = SiteWithDiveCount(site: noLocSite, diveCount: 0);
       expect(adapter.extractValue(SiteField.latitude, entity), isNull);
       expect(adapter.extractValue(SiteField.longitude, entity), isNull);
     });
@@ -232,10 +231,10 @@ void main() {
       expect(adapter.formatValue(SiteField.rating, 4.5, units), equals('4.5'));
     });
 
-    test('formats latitude/longitude with 5 decimal places', () {
+    test('formats latitude/longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(SiteField.latitude, 36.04270, units),
-        equals('36.04270'),
+        equals('36.042700° N'),
       );
     });
 
@@ -629,31 +628,32 @@ void main() {
       );
     });
 
-    test('returns typicalVisibility from conditions', () {
+    test('returns null for the fields with no backing column', () {
+      // typicalVisibility, typicalCurrent and bestSeason have never had a
+      // column behind them. The enum members stay for saved-layout
+      // compatibility, so the honest value is null.
       expect(
         adapter.extractValue(SiteField.typicalVisibility, testEntity),
-        equals('20m'),
+        isNull,
       );
-    });
-
-    test('returns typicalCurrent from conditions', () {
       expect(
         adapter.extractValue(SiteField.typicalCurrent, testEntity),
-        equals('moderate'),
+        isNull,
       );
+      expect(adapter.extractValue(SiteField.bestSeason, testEntity), isNull);
     });
 
-    test('returns entryType from conditions', () {
+    test('returns entryType from the real entry method column', () {
       expect(
         adapter.extractValue(SiteField.entryType, testEntity),
-        equals('shore'),
+        equals(EntryMethod.shore.displayName),
       );
     });
 
-    test('returns bestSeason from conditions', () {
+    test('returns exitMethod from the real exit method column', () {
       expect(
-        adapter.extractValue(SiteField.bestSeason, testEntity),
-        equals('summer'),
+        adapter.extractValue(SiteField.exitMethod, testEntity),
+        equals(EntryMethod.ladder.displayName),
       );
     });
 
@@ -679,31 +679,32 @@ void main() {
       );
     });
 
-    test('returns null for conditions fields when conditions is null', () {
-      const noCondSite = DiveSite(id: 'no-cond', name: 'No Conditions');
-      const entity = (site: noCondSite, diveCount: 0);
+    test('returns null for condition fields on a bare site', () {
+      const bareSite = DiveSite(id: 'bare', name: 'Bare Site');
+      const entity = SiteWithDiveCount(site: bareSite, diveCount: 0);
       expect(adapter.extractValue(SiteField.waterType, entity), isNull);
       expect(adapter.extractValue(SiteField.typicalVisibility, entity), isNull);
       expect(adapter.extractValue(SiteField.typicalCurrent, entity), isNull);
       expect(adapter.extractValue(SiteField.entryType, entity), isNull);
+      expect(adapter.extractValue(SiteField.exitMethod, entity), isNull);
       expect(adapter.extractValue(SiteField.bestSeason, entity), isNull);
     });
 
     test('returns null for difficulty when not set', () {
       const noDiffSite = DiveSite(id: 'no-diff', name: 'No Difficulty');
-      const entity = (site: noDiffSite, diveCount: 0);
+      const entity = SiteWithDiveCount(site: noDiffSite, diveCount: 0);
       expect(adapter.extractValue(SiteField.difficulty, entity), isNull);
     });
 
     test('returns null for mooringNumber when not set', () {
       const site = DiveSite(id: 'no-mooring', name: 'No Mooring');
-      const entity = (site: site, diveCount: 0);
+      const entity = SiteWithDiveCount(site: site, diveCount: 0);
       expect(adapter.extractValue(SiteField.mooringNumber, entity), isNull);
     });
 
     test('returns null for hazards when not set', () {
       const site = DiveSite(id: 'no-hazards', name: 'No Hazards');
-      const entity = (site: site, diveCount: 0);
+      const entity = SiteWithDiveCount(site: site, diveCount: 0);
       expect(adapter.extractValue(SiteField.hazards, entity), isNull);
     });
   });
@@ -793,10 +794,10 @@ void main() {
       expect(formatted, equals('5m'));
     });
 
-    test('formats longitude with 5 decimal places', () {
+    test('formats longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(SiteField.longitude, 14.19827, units),
-        equals('14.19827'),
+        equals('14.198270° E'),
       );
     });
 
@@ -859,6 +860,144 @@ void main() {
         adapter.formatValue(SiteField.bestSeason, null, units),
         equals('--'),
       );
+    });
+  });
+
+  group('SiteField location fields', () {
+    final adapter = SiteFieldAdapter.instance;
+    const site = DiveSite(
+      id: 's',
+      name: 'S',
+      city: 'Cebu City',
+      island: 'Malapascua',
+      bodyOfWater: 'Visayan Sea',
+    );
+    const entity = SiteWithDiveCount(site: site, diveCount: 0);
+
+    test('extracts city, island, bodyOfWater', () {
+      expect(adapter.extractValue(SiteField.city, entity), 'Cebu City');
+      expect(adapter.extractValue(SiteField.island, entity), 'Malapascua');
+      expect(
+        adapter.extractValue(SiteField.bodyOfWater, entity),
+        'Visayan Sea',
+      );
+    });
+
+    test('formats string passthrough and null', () {
+      expect(
+        adapter.formatValue(SiteField.city, 'Cebu City', units),
+        'Cebu City',
+      );
+      expect(adapter.formatValue(SiteField.island, null, units), '--');
+    });
+  });
+
+  group('statistics fields', () {
+    const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+
+    test('depthRange extracts a min/max record from the site', () {
+      final value = SiteFieldAdapter.instance.extractValue(
+        SiteField.depthRange,
+        testEntity,
+      );
+      expect(value, (min: 5.0, max: 50.0));
+    });
+
+    test('depthRange is null when the site has no depths', () {
+      const bare = SiteWithDiveCount(
+        site: DiveSite(id: 's', name: 'Bare'),
+        diveCount: 0,
+      );
+      expect(
+        SiteFieldAdapter.instance.extractValue(SiteField.depthRange, bare),
+        isNull,
+      );
+    });
+
+    test('depthRange formats as a single-symbol range in metric', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(SiteField.depthRange, (
+          min: 5.0,
+          max: 50.0,
+        ), units),
+        '5-50m',
+      );
+    });
+
+    test('depthRange converts both ends in imperial', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(SiteField.depthRange, (
+          min: 5.0,
+          max: 50.0,
+        ), imperial),
+        '16-164ft',
+      );
+    });
+
+    test('depthRange with only a max depth formats the max', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(SiteField.depthRange, (
+          min: null,
+          max: 50.0,
+        ), units),
+        '50m',
+      );
+    });
+
+    test('lastDived reads the aggregate and formats as a date', () {
+      final entry = SiteWithDiveCount(
+        site: testSite,
+        diveCount: 1,
+        lastDivedAt: DateTime(2024, 3, 5),
+      );
+      final value = SiteFieldAdapter.instance.extractValue(
+        SiteField.lastDived,
+        entry,
+      );
+      expect(value, DateTime(2024, 3, 5));
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.lastDived,
+          value,
+          units,
+        ),
+        units.formatDate(DateTime(2024, 3, 5)),
+      );
+    });
+
+    test('maxDepthReached reads the aggregate and formats as a depth', () {
+      const entry = SiteWithDiveCount(
+        site: testSite,
+        diveCount: 1,
+        maxDepthReached: 31.5,
+      );
+      final value = SiteFieldAdapter.instance.extractValue(
+        SiteField.maxDepthReached,
+        entry,
+      );
+      expect(value, 31.5);
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.maxDepthReached,
+          value,
+          units,
+        ),
+        '32m',
+      );
+    });
+
+    test('statistics fields carry the statistics category and icons', () {
+      for (final f in [
+        SiteField.depthRange,
+        SiteField.lastDived,
+        SiteField.maxDepthReached,
+      ]) {
+        expect(f.categoryName, 'statistics');
+        expect(f.icon, isNotNull);
+      }
+      expect(SiteField.depthRange.sortable, isFalse);
+      expect(SiteField.lastDived.sortable, isTrue);
+      expect(SiteField.maxDepthReached.sortable, isTrue);
     });
   });
 }

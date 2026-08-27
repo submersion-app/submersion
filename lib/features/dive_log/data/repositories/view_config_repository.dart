@@ -4,16 +4,24 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/view_field_config.dart'
     as domain;
 
 /// Repository for persisting dive list view configurations and field presets.
 class ViewConfigRepository {
   final AppDatabase _db;
+  final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
 
   ViewConfigRepository(this._db);
+
+  /// Emits whenever a saved field preset changes so the preset providers
+  /// refresh after a sync or any other write that bypasses the notifiers.
+  Stream<void> watchPresetsChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.fieldPresets));
 
   // ---------------------------------------------------------------------------
   // Table Config
@@ -161,13 +169,31 @@ class ViewConfigRepository {
             ),
           ),
         );
+
+    // Mark pending so the edit is protected during merge and gets an HLC
+    // stamped onto the row. field_presets is an HLC-filtered changeset entity,
+    // so an unstamped preset (hlc == null) is silently dropped from every
+    // incremental sync once the base watermark is established.
+    await _syncRepository.markRecordPending(
+      entityType: 'fieldPresets',
+      recordId: preset.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Deletes the preset with [presetId] only if it is not a built-in preset.
   Future<void> deletePreset(String presetId) async {
-    await (_db.delete(
+    final deleted = await (_db.delete(
       _db.fieldPresets,
     )..where((r) => r.id.equals(presetId) & r.isBuiltIn.equals(false))).go();
+    if (deleted > 0) {
+      await _syncRepository.logDeletion(
+        entityType: 'fieldPresets',
+        recordId: presetId,
+      );
+      SyncEventBus.notifyLocalChange();
+    }
   }
 
   /// Upserts built-in table presets for [diverId]. Idempotent: safe to call
@@ -210,7 +236,9 @@ class ViewConfigRepository {
             ))
             .getSingleOrNull();
 
+    final String rowId;
     if (existing != null) {
+      rowId = existing.id;
       await (_db.update(
         _db.viewConfigs,
       )..where((r) => r.id.equals(existing.id))).write(
@@ -220,11 +248,12 @@ class ViewConfigRepository {
         ),
       );
     } else {
+      rowId = _uuid.v4();
       await _db
           .into(_db.viewConfigs)
           .insert(
             ViewConfigsCompanion(
-              id: Value(_uuid.v4()),
+              id: Value(rowId),
               diverId: Value(diverId),
               viewMode: Value(viewMode),
               configJson: Value(configJson),
@@ -232,6 +261,15 @@ class ViewConfigRepository {
             ),
           );
     }
+
+    // Mark pending so the edit is protected during merge and gets an HLC
+    // stamped onto the row (cross-device config edits resolve by HLC).
+    await _syncRepository.markRecordPending(
+      entityType: 'viewConfigs',
+      recordId: rowId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   domain.CardViewConfig _defaultCardConfig(ListViewMode mode) {

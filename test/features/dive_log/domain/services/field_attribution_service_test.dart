@@ -6,6 +6,7 @@ DiveDataSource _makeSource({
   required String id,
   required String diveId,
   required bool isPrimary,
+  String? computerName,
   String? computerModel,
   String? sourceFormat,
   double? maxDepth,
@@ -21,6 +22,7 @@ DiveDataSource _makeSource({
     id: id,
     diveId: diveId,
     isPrimary: isPrimary,
+    computerName: computerName,
     computerModel: computerModel,
     sourceFormat: sourceFormat,
     maxDepth: maxDepth,
@@ -32,6 +34,19 @@ DiveDataSource _makeSource({
     otu: otu,
     importedAt: now,
     createdAt: now,
+  );
+}
+
+/// Legacy-name adapter: preserves the pre-nameOf displayName semantics the
+/// expectations in this file were written against.
+Map<String, String> _compute(
+  List<DiveDataSource> sources, {
+  String? viewedSourceId,
+}) {
+  return FieldAttributionService.computeAttribution(
+    sources,
+    viewedSourceId: viewedSourceId,
+    nameOf: (s) => s.computerName ?? s.computerModel ?? 'Unknown Source',
   );
 }
 
@@ -51,13 +66,13 @@ void main() {
         ),
       ];
 
-      final result = FieldAttributionService.computeAttribution(sources);
+      final result = _compute(sources);
 
       expect(result, isEmpty);
     });
 
     test('returns empty map for empty sources list', () {
-      final result = FieldAttributionService.computeAttribution([]);
+      final result = _compute([]);
 
       expect(result, isEmpty);
     });
@@ -88,10 +103,7 @@ void main() {
         duration: 3700,
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        secondary,
-      ]);
+      final result = _compute([primary, secondary]);
 
       expect(result['maxDepth'], equals('Suunto D5'));
       expect(result['avgDepth'], equals('Suunto D5'));
@@ -119,10 +131,7 @@ void main() {
         sourceFormat: 'appleWatch',
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        watch,
-      ]);
+      final result = _compute([primary, watch]);
 
       expect(result['heartRate'], equals('Apple Watch Ultra'));
     });
@@ -144,15 +153,12 @@ void main() {
         sourceFormat: 'garmin',
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        garmin,
-      ]);
+      final result = _compute([primary, garmin]);
 
       expect(result['heartRate'], equals('Garmin Descent Mk2'));
     });
 
-    test('attributes GPS to GPS-capable source (Apple Watch)', () {
+    test('does not attribute GPS to a wearable without stored coordinates', () {
       final primary = _makeSource(
         id: 's1',
         diveId: diveId,
@@ -169,16 +175,13 @@ void main() {
         sourceFormat: 'appleWatch',
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        watch,
-      ]);
+      final result = _compute([primary, watch]);
 
-      expect(result['gps'], equals('Apple Watch Ultra'));
+      expect(result.containsKey('gps'), isFalse);
     });
 
     test(
-      'falls back heartRate and gps to active source when no capable source',
+      'falls back heartRate to active source; gps absent without coordinates',
       () {
         final primary = _makeSource(
           id: 's1',
@@ -196,13 +199,10 @@ void main() {
           sourceFormat: 'shearwater',
         );
 
-        final result = FieldAttributionService.computeAttribution([
-          primary,
-          secondary,
-        ]);
+        final result = _compute([primary, secondary]);
 
         expect(result['heartRate'], equals('Suunto D5'));
-        expect(result['gps'], equals('Suunto D5'));
+        expect(result.containsKey('gps'), isFalse);
       },
     );
 
@@ -230,10 +230,7 @@ void main() {
           duration: 3700,
         );
 
-        final result = FieldAttributionService.computeAttribution([
-          primary,
-          secondary,
-        ], viewedSourceId: 's2');
+        final result = _compute([primary, secondary], viewedSourceId: 's2');
 
         expect(result['maxDepth'], equals('Shearwater Petrel'));
         expect(result['avgDepth'], equals('Shearwater Petrel'));
@@ -259,7 +256,7 @@ void main() {
         maxDepth: 31.0,
       );
 
-      final result = FieldAttributionService.computeAttribution([
+      final result = _compute([
         primary,
         secondary,
       ], viewedSourceId: 'nonexistent-id');
@@ -287,10 +284,7 @@ void main() {
         duration: 3700,
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        first,
-        second,
-      ]);
+      final result = _compute([first, second]);
 
       expect(result['maxDepth'], equals('Suunto D5'));
       expect(result['bottomTime'], equals('Suunto D5'));
@@ -315,10 +309,7 @@ void main() {
         maxDepth: 31.0,
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        secondary,
-      ]);
+      final result = _compute([primary, secondary]);
 
       expect(result.containsKey('maxDepth'), isTrue);
       expect(result.containsKey('avgDepth'), isFalse);
@@ -326,6 +317,32 @@ void main() {
       expect(result.containsKey('cns'), isFalse);
       expect(result.containsKey('otu'), isFalse);
       expect(result.containsKey('surfaceInterval'), isFalse);
+    });
+
+    test('uses the computer friendly name for attribution when set', () {
+      final primary = _makeSource(
+        id: 's1',
+        diveId: diveId,
+        isPrimary: true,
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix AI',
+        sourceFormat: 'shearwater',
+        maxDepth: 30.0,
+        duration: 3600,
+      );
+      final secondary = _makeSource(
+        id: 's2',
+        diveId: diveId,
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+        sourceFormat: 'suunto',
+        maxDepth: 31.0,
+      );
+
+      final result = _compute([primary, secondary]);
+
+      expect(result['maxDepth'], equals('My Perdix'));
+      expect(result['bottomTime'], equals('My Perdix'));
     });
 
     test('uses Unknown Source display name when computerModel is null', () {
@@ -345,10 +362,7 @@ void main() {
         sourceFormat: 'shearwater',
       );
 
-      final result = FieldAttributionService.computeAttribution([
-        primary,
-        secondary,
-      ]);
+      final result = _compute([primary, secondary]);
 
       expect(result['maxDepth'], equals('Unknown Source'));
     });

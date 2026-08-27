@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesEditPage extends ConsumerStatefulWidget {
@@ -161,7 +162,7 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                       items: SpeciesCategory.values.map((category) {
                         return DropdownMenuItem(
                           value: category,
-                          child: Text(category.displayName),
+                          child: Text(category.localizedName(context.l10n)),
                         );
                       }).toList(),
                       onChanged: (value) {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for managing dive numbering - detecting gaps and renumbering dives
@@ -280,10 +282,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
     setState(() => _isRenumbering = true);
     try {
       final repository = ref.read(diveRepositoryProvider);
-      await repository.assignMissingDiveNumbers();
-      ref.invalidate(diveNumberingInfoProvider);
-      ref.invalidate(diveListNotifierProvider);
-      ref.invalidate(paginatedDiveListProvider);
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      await repository.assignMissingDiveNumbers(diverId: diverId);
+      invalidateDiveNumberingProviders(ref);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -322,7 +323,7 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
               keyboardType: TextInputType.number,
               controller: TextEditingController(text: _startFrom.toString()),
               onChanged: (value) {
-                final num = int.tryParse(value);
+                final num = parseUserInt(value);
                 if (num != null && num > 0) {
                   _startFrom = num;
                 }
@@ -352,10 +353,9 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
     setState(() => _isRenumbering = true);
     try {
       final repository = ref.read(diveRepositoryProvider);
-      await repository.renumberAllDives(startFrom: startFrom);
-      ref.invalidate(diveNumberingInfoProvider);
-      ref.invalidate(diveListNotifierProvider);
-      ref.invalidate(paginatedDiveListProvider);
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      await repository.renumberAllDives(startFrom: startFrom, diverId: diverId);
+      invalidateDiveNumberingProviders(ref);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -375,6 +375,18 @@ class _DiveNumberingDialogState extends ConsumerState<DiveNumberingDialog> {
       setState(() => _isRenumbering = false);
     }
   }
+}
+
+/// Invalidates all Riverpod providers that must refresh after any dive
+/// renumbering operation (renumber-all or assign-missing).
+///
+/// Includes [diveProvider] (the per-dive detail cache) so that open detail
+/// pages reflect the new numbers without requiring a save round-trip.
+void invalidateDiveNumberingProviders(WidgetRef ref) {
+  ref.invalidate(diveNumberingInfoProvider);
+  ref.invalidate(diveListNotifierProvider);
+  ref.invalidate(paginatedDiveListProvider);
+  ref.invalidate(diveProvider);
 }
 
 /// Shows the dive numbering dialog

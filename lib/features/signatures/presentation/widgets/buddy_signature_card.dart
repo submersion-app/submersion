@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
 /// Card displaying a buddy's signature status
 class BuddySignatureCard extends StatelessWidget {
@@ -71,7 +72,7 @@ class BuddySignatureCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       Text(
-                        buddyWithRole.role.displayName,
+                        buddyWithRole.role.localizedName(context.l10n),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

@@ -2,18 +2,39 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 
 /// Repository provider
 final diverRepositoryProvider = Provider<DiverRepository>((ref) {
   return DiverRepository();
 });
 
-/// All divers provider
+/// Diver merge repository provider
+final diverMergeRepositoryProvider = Provider<DiverMergeRepository>((ref) {
+  return DiverMergeRepository();
+});
+
+/// All divers provider.
+///
+/// A [FutureProvider] that self-invalidates whenever the `divers` table is
+/// written (e.g. after a sync), so the list refreshes while imperative
+/// `ref.read(allDiversProvider.future)` reads still resolve.
 final allDiversProvider = FutureProvider<List<Diver>>((ref) async {
   final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
   return repository.getAllDivers();
+});
+
+/// Duplicate diver groups (same normalized name), surfaced after sync so the
+/// user can confirm a merge. Empty when there are no apparent duplicates.
+final duplicateDiverGroupsProvider = FutureProvider<List<DuplicateDiverGroup>>((
+  ref,
+) async {
+  final divers = await ref.watch(allDiversProvider.future);
+  return DiverMergeRepository.findDuplicateGroups(divers);
 });
 
 /// Check if any diver profiles exist
@@ -28,12 +49,44 @@ final diverByIdProvider = FutureProvider.family<Diver?, String>((
   id,
 ) async {
   final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
   return repository.getDiverById(id);
 });
 
 /// Key for storing current diver ID in SharedPreferences.
 /// Public so the backup restore flow can sync this value.
 const String currentDiverIdKey = 'current_diver_id';
+
+/// After the local database content has been replaced wholesale (backup
+/// restore, or adopting a replaced sync library), realign the active diver:
+/// validate the restored settings' active diver against the divers table,
+/// fall back to the default diver, and persist the result to
+/// SharedPreferences so startup picks up the right diver.
+Future<void> realignActiveDiverAfterDataReplace(SharedPreferences prefs) async {
+  try {
+    final repository = DiverRepository();
+
+    var restoredId = await repository.getActiveDiverIdFromSettings();
+
+    if (restoredId != null) {
+      final diver = await repository.getDiverById(restoredId);
+      if (diver == null) {
+        restoredId = null;
+      }
+    }
+
+    if (restoredId == null) {
+      final defaultDiver = await repository.getDefaultDiver();
+      restoredId = defaultDiver?.id;
+    }
+
+    if (restoredId != null) {
+      await prefs.setString(currentDiverIdKey, restoredId);
+    }
+  } catch (_) {
+    // Non-fatal: startup validation in CurrentDiverIdNotifier handles it.
+  }
+}
 
 /// Current diver ID provider (persisted to both SharedPreferences and DB)
 final currentDiverIdProvider =
@@ -126,6 +179,7 @@ class CurrentDiverIdNotifier extends StateNotifier<String?> {
 final currentDiverProvider = FutureProvider<Diver?>((ref) async {
   final currentId = ref.watch(currentDiverIdProvider);
   final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
 
   if (currentId != null) {
     final diver = await repository.getDiverById(currentId);
@@ -142,6 +196,12 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
 final validatedCurrentDiverIdProvider = FutureProvider<String?>((ref) async {
   final currentId = ref.watch(currentDiverIdProvider);
   final repository = ref.watch(diverRepositoryProvider);
+  // Widely awaited, so this tick cascades across the app. That is intended and
+  // rare: the divers table is written only by diver CRUD and a sync applying
+  // one, never by a dive import. Without it, deleting the active diver
+  // elsewhere (or a sync doing so) left every diver-scoped query in the app
+  // resolving against an id that no longer exists.
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
 
   if (currentId != null) {
     final diver = await repository.getDiverById(currentId);
@@ -161,6 +221,12 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
   DiverListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
     _loadDivers();
+
+    // Refresh when the divers table changes (e.g. a sync writes rows directly).
+    final tableChangeSub = _repository.watchDiversChanges().listen(
+      (_) => _silentReloadDivers(),
+    );
+    _ref.onDispose(tableChangeSub.cancel);
   }
 
   Future<void> _loadDivers() async {
@@ -170,6 +236,17 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
       state = AsyncValue.data(divers);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  /// Reload without flipping to a loading state, so table-driven refreshes
+  /// (e.g. after a sync write) do not flash a spinner over existing data.
+  Future<void> _silentReloadDivers() async {
+    try {
+      final divers = await _repository.getAllDivers();
+      if (mounted) state = AsyncValue.data(divers);
+    } catch (e, st) {
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
@@ -191,8 +268,8 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
     _ref.invalidate(diverByIdProvider(diver.id));
   }
 
-  Future<void> deleteDiver(String id) async {
-    await _repository.deleteDiver(id);
+  Future<DeleteDiverResult> deleteDiver(String id) async {
+    final result = await _repository.deleteDiverWithReassignment(id);
     await refresh();
 
     // If deleted diver was current, clear selection
@@ -200,6 +277,7 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
     if (currentId == id) {
       await _ref.read(currentDiverIdProvider.notifier).clearCurrentDiver();
     }
+    return result;
   }
 
   Future<void> setAsDefault(String id) async {
@@ -220,6 +298,10 @@ final diverDiveCountProvider = FutureProvider.family<int, String>((
   diverId,
 ) async {
   final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
+  // A junction read over dives.diver_id: a merge or bulk delete changes the
+  // count without the divers table being written.
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getDiveCountForDiver(diverId);
 });
 
@@ -229,6 +311,8 @@ final diverTotalBottomTimeProvider = FutureProvider.family<int, String>((
   diverId,
 ) async {
   final repository = ref.watch(diverRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getTotalBottomTimeForDiver(diverId);
 });
 
@@ -257,6 +341,9 @@ final diverStatsProvider = FutureProvider.family<DiverStats, String>((
   diverId,
 ) async {
   final repository = ref.watch(diverRepositoryProvider);
+  // The stats read the `dives` table, so self-invalidate when dives change
+  // (e.g. after a sync) to keep the per-tile counts on the diver list fresh.
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   final diveCount = await repository.getDiveCountForDiver(diverId);
   final totalTime = await repository.getTotalBottomTimeForDiver(diverId);
   return DiverStats(diveCount: diveCount, totalBottomTimeSeconds: totalTime);

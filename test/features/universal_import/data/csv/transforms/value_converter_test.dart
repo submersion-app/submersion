@@ -305,9 +305,12 @@ void main() {
       expect(converter.parseDiveType('drift'), 'drift');
     });
 
-    test('maps cave/cavern', () {
+    test('maps cave', () {
       expect(converter.parseDiveType('cave'), 'cave');
-      expect(converter.parseDiveType('cavern'), 'cave');
+    });
+
+    test('maps cavern', () {
+      expect(converter.parseDiveType('cavern'), 'cavern');
     });
 
     test('maps technical/tec', () {
@@ -746,9 +749,12 @@ void main() {
         expect(service.parseDiveType('drift'), 'drift');
       });
 
-      test('maps cave/cavern', () {
+      test('maps cave', () {
         expect(service.parseDiveType('cave'), 'cave');
-        expect(service.parseDiveType('cavern'), 'cave');
+      });
+
+      test('maps cavern', () {
+        expect(service.parseDiveType('cavern'), 'cavern');
       });
 
       test('maps tech/technical', () {

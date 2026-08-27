@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
 /// Calculator for oxygen toxicity (CNS and OTU).
@@ -18,10 +20,14 @@ class O2ToxicityCalculator {
   /// CNS warning threshold percentage (default 80%)
   final int cnsWarningThreshold;
 
+  /// CNS calculation method (default: Shearwater-style interpolation)
+  final CnsCalculationMethod cnsMethod;
+
   const O2ToxicityCalculator({
     this.ppO2WarningThreshold = 1.4,
     this.ppO2CriticalThreshold = 1.6,
     this.cnsWarningThreshold = 80,
+    this.cnsMethod = CnsCalculationMethod.shearwater,
   });
 
   /// Calculate ppO2 at a given depth for a gas mix.
@@ -64,7 +70,7 @@ class O2ToxicityCalculator {
       return ((ambientPressure * narcoticFraction) - 1.0) * 10.0;
     } else {
       final n2Pressure = ambientPressure * n2Fraction;
-      return (n2Pressure / 0.79 - 1.0) * 10.0;
+      return (n2Pressure / airN2Fraction - 1.0) * 10.0;
     }
   }
 
@@ -73,7 +79,7 @@ class O2ToxicityCalculator {
   /// Based on NOAA Diving Manual oxygen exposure limits.
   /// Returns CNS% per minute.
   double getCnsPerMinute(double ppO2) {
-    return CnsTable.cnsPerMinute(ppO2);
+    return CnsTable.cnsPerMinute(ppO2, method: cnsMethod);
   }
 
   /// Calculate CNS% for a single time segment at constant ppO2.
@@ -82,7 +88,7 @@ class O2ToxicityCalculator {
   /// [durationSeconds] is the duration in seconds.
   /// Returns CNS% accumulated.
   double calculateCnsForSegment(double ppO2, int durationSeconds) {
-    return CnsTable.cnsForSegment(ppO2, durationSeconds);
+    return CnsTable.cnsForSegment(ppO2, durationSeconds, method: cnsMethod);
   }
 
   /// Calculate OTU for a single time segment at constant ppO2.

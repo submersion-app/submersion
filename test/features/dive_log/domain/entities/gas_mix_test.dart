@@ -12,6 +12,53 @@ void main() {
       const tx2135 = GasMix(o2: 20.999999999, he: 34.999999999);
       expect(tx2135.name, 'Tx 21/35');
     });
+
+    test('pure oxygen (100%) returns O2', () {
+      const o2 = GasMix(o2: 100.0, he: 0.0);
+      expect(o2.name, 'O2');
+    });
+
+    test('99% O2 with no helium returns O2', () {
+      const o2 = GasMix(o2: 99.0, he: 0.0);
+      expect(o2.name, 'O2');
+    });
+
+    test('trimix takes precedence over oxygen label', () {
+      const trimixHighO2 = GasMix(o2: 99.0, he: 1.0);
+      expect(trimixHighO2.name, startsWith('Tx'));
+    });
+
+    test('air returns Air', () {
+      const air = GasMix(o2: 21.0, he: 0.0);
+      expect(air.name, 'Air');
+    });
+  });
+
+  group('GasMix.isOxygen', () {
+    test('100% O2 with no helium is oxygen', () {
+      const o2 = GasMix(o2: 100.0, he: 0.0);
+      expect(o2.isOxygen, isTrue);
+    });
+
+    test('99% O2 with no helium is oxygen', () {
+      const o2 = GasMix(o2: 99.0, he: 0.0);
+      expect(o2.isOxygen, isTrue);
+    });
+
+    test('98% O2 is not oxygen', () {
+      const almostO2 = GasMix(o2: 98.0, he: 0.0);
+      expect(almostO2.isOxygen, isFalse);
+    });
+
+    test('100% O2 with helium is not oxygen (trimix)', () {
+      const heliox = GasMix(o2: 100.0, he: 1.0);
+      expect(heliox.isOxygen, isFalse);
+    });
+
+    test('air is not oxygen', () {
+      const air = GasMix(o2: 21.0, he: 0.0);
+      expect(air.isOxygen, isFalse);
+    });
   });
 
   group('GasMix.mnd', () {

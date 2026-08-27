@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.4.3+88
+version: 1.7.6+123
 
 environment:
   sdk: ^3.10.0
@@ -14,22 +14,32 @@ dependencies:
 
   # Core
   cupertino_icons: ^1.0.8
-  material_design_icons_flutter: ^7.0.7296
 
   # State Management
-  flutter_riverpod: ^3.1.0
-  riverpod_annotation: ^4.0.0
-  riverpod: ^3.1.0
+  # 3.4.2 floor: earlier versions throw "setState() called during build" from
+  # UncontrolledProviderScope when a Consumer reads a provider that was
+  # invalidated while auto-paused. Guard test:
+  # test/core/providers/autopause_flush_during_build_test.dart
+  # riverpod_annotation pins an EXACT riverpod version (4.0.6 -> 3.4.2), so
+  # these three move as a set; keep their floors in step.
+  flutter_riverpod: ^3.4.2
+  riverpod_annotation: ^4.0.6
+  riverpod: ^3.4.2
 
   # Database
-  drift: ^2.30.0
-  sqlite3: ^2.9.4
-  sqlite3_flutter_libs: ^0.5.41
+  drift: ^2.34.3
+  sqlite3: ^3.5.1
+  # SQLCipher now arrives through the sqlite3 build hook rather than a
+  # separate `sqlcipher_flutter_libs` dependency -- see the `hooks:` section
+  # at the bottom of this file. sqlite3 3.x dropped the DynamicLibrary loader
+  # (`package:sqlite3/open.dart`) that the old override needed, and both
+  # `sqlite3_flutter_libs` and `sqlcipher_flutter_libs` are tombstoned as a
+  # result (issue #433). One native lib still serves both plaintext and
+  # encrypted databases; the codec only engages when PRAGMA key is set.
   path_provider: ^2.1.5
   path: ^1.9.0
 
   # Serialization
-  freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
   # Navigation
@@ -43,38 +53,68 @@ dependencies:
   flutter_map_tile_caching: ^10.1.1  # Offline map tile caching
   latlong2: ^0.9.1
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
   photo_view: ^0.15.0
   video_player: ^2.10.1
 
   # Networking
   http: ^1.2.2
+  # Network-type detection for media store transfer policies (Wi-Fi vs
+  # cellular vs offline).
+  connectivity_plus: ^7.3.1
+  # FFI for reading the Windows certificate store (TLS trust on Windows).
+  ffi: ^2.1.0
 
   # Cloud Storage
   google_sign_in: ^7.2.0
-  googleapis: ^15.0.0
+  googleapis: ^16.0.0
   extension_google_sign_in_as_googleapis_auth: ^3.0.0
   googleapis_auth: ^2.0.0
 
   # Platform Integration
   libdivecomputer_plugin:
     path: packages/libdivecomputer_plugin
-  permission_handler: ^12.0.1
-  file_picker: ^10.3.9
+  submersion_saf:
+    path: packages/submersion_saf
+  submersion_ocr:
+    path: packages/submersion_ocr
+  submersion_transcoder:
+    path: packages/submersion_transcoder
+  permission_handler: ^13.0.1
+  file_picker: ^12.0.0
   image_picker: ^1.1.2
-  share_plus: ^12.0.1
-  desktop_drop: ^0.4.4
-  receive_sharing_intent: ^1.8.1
+  share_plus: ^13.3.0
+  desktop_drop: ^0.7.0
+  # Pinned <1.9.0: 1.9.0 is Swift Package Manager-only and drops CocoaPods
+  # support, which breaks the iOS/macOS build (this project uses CocoaPods).
+  receive_sharing_intent: ">=1.8.1 <1.9.0"
   url_launcher: ^6.3.1
-  flutter_contacts: ^1.1.9+2
+  flutter_contacts: ^2.0.2
   geolocator: ^14.0.2
-  geocoding: ^4.0.0
+  geocoding: ^5.0.0
   photo_manager: ^3.6.0
-  native_exif: ^0.6.0
+  native_exif: ^0.8.0
+  # Pure-Dart decode/resize/JPEG-encode for media store thumbnails.
+  image: ^4.3.0
   health: ^13.3.0  # Cross-platform health data (HealthKit, Health Connect)
 
   # Storage
   shared_preferences: ^2.3.2
-  flutter_secure_storage: ^10.0.0
+  # v11 removed the legacy Android ciphers (RSA_ECB_PKCS1Padding,
+  # AES_CBC_PKCS7Padding). v10 rewrites existing entries to the new ciphers on
+  # first access (migrateOnAlgorithmChange defaults to true, and we pass no
+  # AndroidOptions), so anyone who has run a v10 build is already migrated.
+  # A user who skips v10 entirely -- last ran a pre-2026-06-21 build, then
+  # jumps here -- loses the Android entries. That degrades rather than
+  # destroys: every secret in this store is a CACHE or MIRROR whose durable
+  # copy lives elsewhere (the database sidecar, the self-decrypting .sbe, the
+  # cloud keyslot file), so the worst case is the lock screen asking for the
+  # passphrase and cloud accounts needing re-auth. Apple/Windows/Linux are
+  # untouched: everything v11 removed is Android-only.
+  #
+  # Costs compileSdk 37, which the module hardcodes -- see
+  # android/app/build.gradle.kts.
+  flutter_secure_storage: ^11.0.0
 
   # PDF/Printing
   printing: ^5.14.2
@@ -82,10 +122,12 @@ dependencies:
   # Utilities
   intl: ^0.20.2
   uuid: ^4.5.0
-  xml: ^6.5.0
+  xml: ^7.0.1
+  clock: ^1.1.2  # zone-aware now() so tests can drive time via fake_async
   pdf: ^3.11.1
   csv: ^6.0.0
-  excel: ^4.0.6
+  excel_community: ^2.2.1  # maintained fork of `excel` (archive 4.x)
+  archive: ^4.0.9  # ZIP expansion for DiveCloud export archives
   fit_tool: ^1.0.5  # Garmin FIT file parsing for dive imports
   logger: ^2.0.0  # Used to suppress fit_tool's verbose warnings
   collection: ^1.18.0
@@ -95,14 +137,22 @@ dependencies:
 
   # Auto-Update
   auto_updater: ^1.0.0
-  package_info_plus: ^8.0.0
+  package_info_plus: ^10.2.1
 
   # Notifications
-  flutter_local_notifications: ^18.0.1
-  workmanager: ^0.9.0+3
-  timezone: ^0.10.0
+  flutter_local_notifications: ^22.0.1
+  workmanager: ^0.10.7
+  timezone: ^0.11.0
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
+  cryptography: ^2.9.0
+  cryptography_flutter: ^2.3.4
+  flutter_web_auth_2: ^5.0.3
+  local_auth: ^3.0.2
+  pdfrx: ^2.4.7
+  # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
+  # phone that locks mid-wipe suspends the work behind it (issue #1194).
+  wakelock_plus: ^1.7.0
 
 dev_dependencies:
   flutter_test:
@@ -112,31 +162,55 @@ dev_dependencies:
 
   cross_file: ^0.3.5
   flutter_lints: ^6.0.0
+  # Test-only: lets google_sign_in_authenticator_test swap in a fake
+  # GoogleSignInPlatform, so the mobile/macOS auth path is exercisable
+  # without a device or a real Google session.
+  google_sign_in_platform_interface: ^3.1.0
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.10.4
-  drift_dev: ^2.30.0
-  freezed: ^3.2.3
+  drift_dev: ^2.34.0
   json_serializable: ^6.11.2
-  riverpod_generator: ^4.0.0+1
+  # 4.0.8 is the generator that matches riverpod_annotation 4.0.6, and the
+  # reason the analyzer floor below is ^13.
+  riverpod_generator: ^4.0.8
   mockito: ^5.6.1
+  plugin_platform_interface: ^2.1.8
+  path_provider_platform_interface: ^2.1.3  # mock docs dir in db service tests
+  permission_handler_platform_interface: ^4.4.0  # mock BLE scan permission grants
+  file_picker_platform_interface: ^3.0.1  # fake picker in file/import tests
+  geocoding_platform_interface: ^5.0.0  # fake geocoder in location service tests
+  flutter_web_auth_2_platform_interface: ^5.0.0  # mock auth in redirect-capture test
+  share_plus_platform_interface: ^7.2.0  # fake share sheet in media share tests
+  video_player_platform_interface: ^6.7.0  # fake player in media viewer tests
+  fake_async: ^1.3.3  # synthetic clock + Timer driving for unit tests
+  # AST parsing for the provider change-tick architecture test. The ^13 floor
+  # is forced by riverpod_generator 4.0.8, which riverpod 3.4.2 requires.
+  analyzer: ^13.3.0
 
 dependency_overrides:
-  # Pin to 9.4.5 to avoid CNAuthorizationStatusLimited compile error
-  # See: https://github.com/Baseflow/flutter-permission-handler/issues/1450
-  permission_handler_apple: 9.4.5
   # fit_tool (3 years unmaintained) has stale deps; overrides are safe because:
   # - csv: fit_tool uses csv for optional CSV export, not core FIT binary parsing
   # - logger: fit_tool uses basic logging; logger 2.x is backward-compatible
   csv: ^6.0.0
   logger: ^2.0.0
-  # Pin to 12.3.0 — v12.4.0 calls NSProcessInfo.isiOSAppOnVision which is
-  # unavailable with Xcode 16.2's SDK, causing iOS build failure in CI.
-  device_info_plus: 12.3.0
   # Vendored with threading fix for #83 — WinSparkle callbacks were calling
   # event_sink_->Success() from background threads, violating Flutter's
   # platform channel threading requirement.
   auto_updater_windows:
     path: packages/auto_updater_windows
+
+# Selects the SQLCipher build of SQLite for `package:sqlite3`, replacing the
+# retired `sqlcipher_flutter_libs`. sqlite3 downloads prebuilt SQLCipher
+# libraries (verified against sha256 references baked into the package) for
+# every target, so no local OpenSSL toolchain is needed to build any more --
+# the SQLCipher binaries link OpenSSL on Windows, Linux and Android.
+#
+# Note: upstream warns the SQLCipher build may track a slightly older SQLite
+# version than the default `sqlite3` build.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlcipher
 
 flutter:
   generate: true
@@ -146,3 +220,22 @@ flutter:
     - assets/data/
     - assets/data/tide/
     - assets/icon/
+
+  shaders:
+    - shaders/heatmap.frag
+
+  # Vendored Material Design Icons font (replaces material_design_icons_flutter,
+  # which extends the now-sealed IconData and breaks on Flutter 3.44+).
+  # Glyphs are referenced via lib/core/icons/mdi_icons.dart.
+  fonts:
+    - family: Material Design Icons
+      fonts:
+        - asset: assets/fonts/materialdesignicons-webfont.ttf
+    # Dive-gear glyphs that no icon font has (wetsuit, drysuit, BCD,
+    # rebreather, hood, gloves, bootie, reel, DPV, regulator). Drawn in
+    # tool/equipment_glyphs.py and compiled by
+    # tool/build_equipment_icon_font.py; referenced via
+    # lib/core/icons/submersion_icons.dart.
+    - family: Submersion Equipment
+      fonts:
+        - asset: assets/fonts/submersion-equipment.ttf

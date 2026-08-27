@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_edit
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_toolbar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_chart.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for editing a dive profile's depth data.
 ///
@@ -58,19 +59,16 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     final shouldDiscard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text(
-          'You have unsaved changes to this dive profile. '
-          'Are you sure you want to discard them?',
-        ),
+        title: Text(context.l10n.forms_discard_title),
+        content: Text(context.l10n.diveLog_profileEditor_discardBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard'),
+            child: Text(context.l10n.forms_discard_discard),
           ),
         ],
       ),
@@ -85,20 +83,16 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Save profile?'),
-        content: const Text(
-          'This will save the edited profile as the primary profile '
-          'for this dive. The original profile will be preserved '
-          'and can be restored later.',
-        ),
+        title: Text(context.l10n.diveLog_profileEditor_saveTitle),
+        content: Text(context.l10n.diveLog_profileEditor_saveBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Save'),
+            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -113,9 +107,11 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       ref.invalidate(diveProfileProvider(widget.diveId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save profile: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveLog_profileEditor_saveFailed('$e')),
+          ),
+        );
       }
       return;
     }
@@ -131,18 +127,26 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
 
     return diveAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Edit Profile')),
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Edit Profile')),
-        body: Center(child: Text('Error loading dive: $error')),
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
+        body: Center(
+          child: Text(
+            context.l10n.diveLog_profileEditor_errorLoadingDive('$error'),
+          ),
+        ),
       ),
       data: (dive) {
         if (dive == null || dive.profile.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Profile')),
-            body: const Center(child: Text('No profile data available')),
+            appBar: AppBar(
+              title: Text(context.l10n.diveLog_profileEditor_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.diveLog_profileEditor_noProfileData),
+            ),
           );
         }
 
@@ -168,19 +172,19 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Edit Profile'),
+          title: Text(context.l10n.diveLog_profileEditor_title),
           actions: [
             IconButton(
               icon: const Icon(Icons.undo),
               onPressed: state.undoStack.isNotEmpty
                   ? () => notifier.undo()
                   : null,
-              tooltip: 'Undo',
+              tooltip: context.l10n.diveLog_profileEditor_undo,
             ),
             FilledButton.icon(
               onPressed: state.hasChanges ? _handleSave : null,
               icon: const Icon(Icons.save, size: 18),
-              label: const Text('Save'),
+              label: Text(context.l10n.common_action_save),
             ),
             const SizedBox(width: 8),
           ],

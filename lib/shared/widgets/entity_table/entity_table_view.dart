@@ -47,9 +47,6 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// Called when user double-taps a row.
   final void Function(String entityId)? onEntityDoubleTap;
 
-  /// Called when user long-presses a row.
-  final void Function(String entityId)? onEntityLongPress;
-
   /// IDs of selected entities (for bulk selection mode).
   final Set<String> selectedIds;
 
@@ -71,7 +68,6 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     required this.onEntityTap,
     this.onEntityTapDown,
     this.onEntityDoubleTap,
-    this.onEntityLongPress,
     this.selectedIds = const {},
     this.isSelectionMode = false,
     this.highlightedId,
@@ -377,9 +373,6 @@ class _EntityTableViewState<T, F extends EntityField>
                           onDoubleTap: widget.onEntityDoubleTap != null
                               ? () => widget.onEntityDoubleTap!(entityId)
                               : null,
-                          onLongPress: widget.onEntityLongPress != null
-                              ? () => widget.onEntityLongPress!(entityId)
-                              : null,
                           child: ColoredBox(
                             color: _rowBackground(
                               index: index,
@@ -464,9 +457,6 @@ class _EntityTableViewState<T, F extends EntityField>
                               onTap: () => widget.onEntityTap(entityId),
                               onDoubleTap: widget.onEntityDoubleTap != null
                                   ? () => widget.onEntityDoubleTap!(entityId)
-                                  : null,
-                              onLongPress: widget.onEntityLongPress != null
-                                  ? () => widget.onEntityLongPress!(entityId)
                                   : null,
                               child: ColoredBox(
                                 color: _rowBackground(

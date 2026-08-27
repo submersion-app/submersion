@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+
 /// Single-row flat tile for the site list (maximum density).
 ///
 /// Row: Site name (expanded) | Location (truncated) | Dive count | Chevron
@@ -8,9 +11,10 @@ class DenseSiteListTile extends StatelessWidget {
   final String? location;
   final int diveCount;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHighlighted;
+  final bool showSharedBadge;
 
   const DenseSiteListTile({
     super.key,
@@ -18,16 +22,17 @@ class DenseSiteListTile extends StatelessWidget {
     this.location,
     required this.diveCount,
     this.onTap,
-    this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHighlighted = false,
+    this.showSharedBadge = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final rowColor = isSelected
-        ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+    final rowColor = (isSelected || isHighlighted)
+        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
 
@@ -46,27 +51,15 @@ class DenseSiteListTile extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTap,
-          onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.only(
-              left: 8,
-              right: 16,
-              top: 10,
-              bottom: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: [
-                Visibility(
-                  visible: isSelectionMode,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: Checkbox(
-                    value: isSelected,
-                    onChanged: (_) => onTap?.call(),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
+                SelectionCheckboxSlot(
+                  isSelectionMode: isSelectionMode,
+                  isChecked: isSelected,
+                  onChanged: (_) => onTap?.call(),
+                  gap: 8,
                 ),
                 // Site name (expanded)
                 Expanded(
@@ -78,6 +71,18 @@ class DenseSiteListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showSharedBadge) ...[
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message:
+                        context.l10n.accessibility_label_sharedWithAllProfiles,
+                    child: Icon(
+                      Icons.people_outline,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 8),
                 // Location (truncated, ~100px width)
                 if (location != null)

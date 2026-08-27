@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -21,6 +22,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _TestSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> setMapStyle(MapStyle style) async =>
+      state = state.copyWith(mapStyle: style);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -125,7 +130,9 @@ void main() {
         expect(importCalled, isTrue);
       });
 
-      testWidgets('Consolidate button is disabled', (tester) async {
+      testWidgets('Consolidate button fires onConsolidate callback', (
+        tester,
+      ) async {
         var consolidateCalled = false;
         await tester.pumpWidget(
           _buildCard(
@@ -139,12 +146,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Consolidate button should be visible but disabled.
+        // Consolidate button is enabled and fires its callback on tap.
         expect(find.text('Consolidate'), findsOneWidget);
         await tester.tap(find.text('Consolidate'));
         await tester.pump();
 
-        expect(consolidateCalled, isFalse);
+        expect(consolidateCalled, isTrue);
       });
     },
   );
@@ -186,7 +193,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // The selected button (Consolidate) renders as FilledButton.tonal.
-      // Inactive buttons (Skip, Import as New) render as OutlinedButton.
+      // Inactive buttons (Skip, Import as New, Replace Source) render as
+      // OutlinedButton.
       final filledButtons = tester
           .widgetList<FilledButton>(find.byType(FilledButton))
           .toList();
@@ -196,8 +204,8 @@ void main() {
 
       // Exactly one filled button (the selected one).
       expect(filledButtons.length, 1);
-      // Two outlined buttons (the inactive ones).
-      expect(outlinedButtons.length, 2);
+      // Three outlined buttons (the inactive ones).
+      expect(outlinedButtons.length, 3);
     });
 
     testWidgets(
@@ -248,7 +256,7 @@ void main() {
       },
     );
 
-    testWidgets('Consolidate button is disabled in tri-state mode', (
+    testWidgets('tapping Consolidate calls onActionChanged with consolidate', (
       tester,
     ) async {
       DuplicateAction? received;
@@ -265,12 +273,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Consolidate button should be visible but disabled.
+      // Consolidate button is enabled and reports its action on tap.
       expect(find.text('Consolidate'), findsOneWidget);
       await tester.tap(find.text('Consolidate'));
       await tester.pump();
 
-      expect(received, isNull);
+      expect(received, DuplicateAction.consolidate);
     });
 
     testWidgets('availableActions hides Consolidate button when not in set', (
@@ -680,6 +688,97 @@ void main() {
       // importAsNew is selected — should have one filled button.
       expect(find.byType(FilledButton), findsOneWidget);
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Pending state / "Choose an action" label
+  // ---------------------------------------------------------------------------
+
+  group('DiveComparisonCard - pending state', () {
+    testWidgets(
+      'renders "Choose an action" label when isPending + null selectedAction',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildCard(
+            card: DiveComparisonCard(
+              incoming: _testIncoming,
+              existingDiveId: _existingDiveId,
+              matchScore: 0.95,
+              selectedAction: null,
+              onActionChanged: (_) {},
+              isPending: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Choose an action'), findsOneWidget);
+      },
+    );
+
+    testWidgets('no button is pre-highlighted when selectedAction is null', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          card: DiveComparisonCard(
+            incoming: _testIncoming,
+            existingDiveId: _existingDiveId,
+            matchScore: 0.95,
+            selectedAction: null,
+            onActionChanged: (_) {},
+            isPending: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // No FilledButton should be present — all buttons remain outlined
+      // or text style because no action matches the null selection.
+      expect(find.byType(FilledButton), findsNothing);
+    });
+
+    testWidgets('does NOT render "Choose an action" when not pending', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          card: DiveComparisonCard(
+            incoming: _testIncoming,
+            existingDiveId: _existingDiveId,
+            matchScore: 0.95,
+            selectedAction: DuplicateAction.skip,
+            onActionChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose an action'), findsNothing);
+    });
+
+    testWidgets(
+      'does NOT render "Choose an action" when pending but action is set',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildCard(
+            card: DiveComparisonCard(
+              incoming: _testIncoming,
+              existingDiveId: _existingDiveId,
+              matchScore: 0.95,
+              selectedAction: DuplicateAction.skip,
+              onActionChanged: (_) {},
+              isPending: true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Once a decision is made the "Choose an action" prompt goes away
+        // even if the pending flag is still set momentarily.
+        expect(find.text('Choose an action'), findsNothing);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------

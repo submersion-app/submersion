@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -41,8 +43,15 @@ void main() {
       brand: brand,
       model: model,
       serialNumber: serialNumber,
-      size: size,
       status: status,
+      attributes: [
+        if (size != null)
+          EquipmentAttribute.curated(
+            equipmentId: id,
+            key: 'size',
+            valueText: size,
+          ),
+      ],
       purchaseDate: purchaseDate,
       purchasePrice: purchasePrice,
       purchaseCurrency: purchaseCurrency,
@@ -177,6 +186,159 @@ void main() {
 
         expect(result.length, equals(1));
         expect(result[0].name, equals('Active Reg'));
+      });
+
+      test('excludes status-retired gear even when isActive was never flipped '
+          '(#636)', () async {
+        await repository.createEquipment(
+          createTestEquipment(name: 'Active Reg'),
+        );
+        // Legacy inconsistency: the edit page used to set status=retired
+        // while leaving isActive=true, so existing rows can carry both.
+        await repository.createEquipment(
+          createTestEquipment(
+            name: 'Status-Retired Reg',
+            status: EquipmentStatus.retired,
+            isActive: true,
+          ),
+        );
+
+        final result = await repository.getActiveEquipment();
+
+        expect(result.map((e) => e.name).toList(), ['Active Reg']);
+      });
+    });
+
+    group('retirement keeps status and isActive in sync (#636)', () {
+      test('retireEquipment writes the retired status too', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(name: 'Old Reg'),
+        );
+
+        await repository.retireEquipment(item.id);
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.isActive, isFalse);
+        expect(stored.status, EquipmentStatus.retired);
+        expect(await repository.getActiveEquipment(), isEmpty);
+        expect((await repository.getRetiredEquipment()).map((e) => e.name), [
+          'Old Reg',
+        ]);
+      });
+
+      test('reactivateEquipment clears a retired status', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(name: 'Back In Service'),
+        );
+        await repository.retireEquipment(item.id);
+
+        await repository.reactivateEquipment(item.id);
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.isActive, isTrue);
+        expect(stored.status, EquipmentStatus.active);
+        expect((await repository.getActiveEquipment()).map((e) => e.name), [
+          'Back In Service',
+        ]);
+      });
+
+      test('reactivateEquipment leaves a non-retired status alone', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(
+            name: 'Needs Service Reg',
+            status: EquipmentStatus.needsService,
+            isActive: false,
+          ),
+        );
+
+        await repository.reactivateEquipment(item.id);
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.isActive, isTrue);
+        expect(
+          stored.status,
+          EquipmentStatus.needsService,
+          reason: 'reactivating is not a declaration that the item is fit',
+        );
+      });
+
+      test('a non-retired status filter matches only that status', () async {
+        await repository.createEquipment(
+          createTestEquipment(name: 'Active Reg'),
+        );
+        await repository.createEquipment(
+          createTestEquipment(
+            name: 'Loaned Reg',
+            status: EquipmentStatus.loaned,
+          ),
+        );
+        await repository.createEquipment(
+          createTestEquipment(name: 'Retired Reg', isActive: false),
+        );
+
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.loaned,
+          )).map((e) => e.name),
+          ['Loaned Reg'],
+          reason:
+              'only the Retired filter widens to the legacy isActive flag; '
+              'other statuses match on status alone',
+        );
+      });
+
+      test('retiring and reactivating stage the row for sync', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(name: 'Synced Reg'),
+        );
+        final db = DatabaseService.instance.database;
+
+        Future<int> pendingCount() async {
+          final rows = await db.select(db.syncRecords).get();
+          return rows
+              .where(
+                (r) => r.entityType == 'equipment' && r.recordId == item.id,
+              )
+              .length;
+        }
+
+        // createEquipment already staged it; clear so the assertion is about
+        // retire/reactivate rather than the create.
+        await db.delete(db.syncRecords).go();
+        expect(await pendingCount(), 0);
+
+        await repository.retireEquipment(item.id);
+        expect(
+          await pendingCount(),
+          1,
+          reason:
+              'an unsynced retirement leaves the item active on every other '
+              'device, which now also keeps it in the active-gear queries',
+        );
+
+        await db.delete(db.syncRecords).go();
+        await repository.reactivateEquipment(item.id);
+        expect(await pendingCount(), 1);
+      });
+
+      test('legacy isActive-only retirements still list as retired', () async {
+        // Written by the pre-fix retire path: isActive false, status active.
+        await repository.createEquipment(
+          createTestEquipment(name: 'Legacy Retired', isActive: false),
+        );
+
+        expect((await repository.getRetiredEquipment()).map((e) => e.name), [
+          'Legacy Retired',
+        ]);
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.retired,
+          )).map((e) => e.name),
+          ['Legacy Retired'],
+          reason:
+              'the Retired filter must not hide items that only ever had '
+              'isActive flipped',
+        );
       });
     });
 

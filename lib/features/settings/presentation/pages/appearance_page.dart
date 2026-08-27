@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 const _sectionRoutes = [
   'dives',
@@ -51,7 +55,11 @@ class AppearancePage extends ConsumerWidget {
             context.l10n.settings_appearance_general,
           ),
           ListTile(
-            leading: const Icon(Icons.palette_outlined),
+            leading: const FeatureAccentIcon(
+              Icons.palette_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
             title: Text(context.l10n.settings_themes_current),
             subtitle: Text(_resolveCurrentThemeName(context, ref)),
             trailing: const Icon(Icons.chevron_right),
@@ -60,14 +68,127 @@ class AppearancePage extends ConsumerWidget {
           const Divider(),
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
+          const DisplayZoomSettingsTile(),
+          const Divider(),
           ListTile(
-            leading: const Icon(Icons.language),
+            leading: const FeatureAccentIcon(
+              Icons.language,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
             title: Text(context.l10n.settings_appearance_appLanguage),
             subtitle: Text(
-              LanguageSettingsPage.getDisplayName(settings.locale),
+              LanguageSettingsPage.getDisplayName(
+                context.l10n,
+                settings.locale,
+              ),
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go('/settings/language'),
+            onTap: () => context.push('/settings/language'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const FeatureAccentIcon(
+              Icons.map_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_mapStyle),
+            subtitle: Text(_getMapStyleDisplayName(context, settings.mapStyle)),
+            trailing: DropdownButton<MapStyle>(
+              value: settings.mapStyle,
+              underline: const SizedBox.shrink(),
+              onChanged: (style) {
+                if (style != null) {
+                  ref.read(settingsProvider.notifier).setMapStyle(style);
+                }
+              },
+              items: MapStyle.values.map((style) {
+                return DropdownMenuItem(
+                  value: style,
+                  child: Text(_getMapStyleDisplayName(context, style)),
+                );
+              }).toList(),
+            ),
+          ),
+          const Divider(),
+          Consumer(
+            builder: (context, ref, _) {
+              final primary = ref.watch(navPrimaryDestinationsProvider);
+              // Skip pinned Home and More; take the 3 middle labels.
+              final middleLabels = primary
+                  .skip(1)
+                  .take(primary.length - 2)
+                  .map((d) => d.label(context.l10n))
+                  .toList();
+              final preview = context.l10n
+                  .settings_navCustomization_subtitlePreview(
+                    middleLabels.isNotEmpty ? middleLabels[0] : '',
+                    middleLabels.length > 1 ? middleLabels[1] : '',
+                    middleLabels.length > 2 ? middleLabels[2] : '',
+                  );
+              return ListTile(
+                leading: const FeatureAccentIcon(
+                  Icons.view_quilt_outlined,
+                  featureId: 'settings-appearance',
+                  surface: AccentSurface.list,
+                ),
+                title: Text(context.l10n.settings_navCustomization_title),
+                subtitle: Text(preview),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/appearance/navigation'),
+              );
+            },
+          ),
+          const Divider(),
+
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.format_paint_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentNavIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentNavIcons_subtitle,
+            ),
+            value: settings.accentNavIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentNavIcons(value),
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.title_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentSectionHeaders),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentSectionHeaders_subtitle,
+            ),
+            value: settings.accentSectionHeaders,
+            onChanged: (value) => ref
+                .read(settingsProvider.notifier)
+                .setAccentSectionHeaders(value),
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.list_alt_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentListIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentListIcons_subtitle,
+            ),
+            value: settings.accentListIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentListIcons(value),
           ),
           const Divider(),
 
@@ -75,6 +196,11 @@ class AppearancePage extends ConsumerWidget {
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_sections,
+          ),
+          ListTile(
+            title: Text(context.l10n.nav_home),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/appearance/home'),
           ),
           for (final route in _sectionRoutes)
             ListTile(
@@ -150,6 +276,17 @@ class AppearancePage extends ConsumerWidget {
       case ThemeMode.dark:
         return Icons.dark_mode;
     }
+  }
+
+  String _getMapStyleDisplayName(BuildContext context, MapStyle style) {
+    return switch (style) {
+      MapStyle.openStreetMap =>
+        context.l10n.settings_appearance_mapStyle_openStreetMap,
+      MapStyle.openTopoMap =>
+        context.l10n.settings_appearance_mapStyle_openTopoMap,
+      MapStyle.esriSatellite =>
+        context.l10n.settings_appearance_mapStyle_esriSatellite,
+    };
   }
 
   String _resolveCurrentThemeName(BuildContext context, WidgetRef ref) {

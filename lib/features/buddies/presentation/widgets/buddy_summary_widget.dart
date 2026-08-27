@@ -26,7 +26,8 @@ class BuddySummaryWidget extends ConsumerWidget {
             buddiesAsync.when(
               data: (buddies) => _buildOverview(context, ref, buddies),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) =>
+                  Center(child: Text('${context.l10n.common_label_error}: $e')),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),

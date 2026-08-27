@@ -3,8 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/delete_diver_dialog.dart';
+import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DiverProfileHubPage extends ConsumerWidget {
@@ -40,9 +45,9 @@ class DiverProfileHubPage extends ConsumerWidget {
             actions: [
               if (diverCount > 1)
                 PopupMenuButton<String>(
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'delete') {
-                      _showDeleteConfirmation(context, ref, diver);
+                      await _showDeleteConfirmation(context, ref, diver);
                     }
                   },
                   itemBuilder: (context) => [
@@ -65,7 +70,7 @@ class DiverProfileHubPage extends ConsumerWidget {
               const SizedBox(height: 16),
               _buildSectionTilesCard(context, diver),
               const SizedBox(height: 16),
-              _buildManagementTilesCard(context, ref, diver),
+              _buildManagementTilesCard(context, diver),
               const SizedBox(height: 32),
             ],
           ),
@@ -177,6 +182,14 @@ class DiverProfileHubPage extends ConsumerWidget {
             const Divider(height: 1),
             _buildSectionTile(
               context,
+              icon: Icons.emergency_outlined,
+              title: context.l10n.safetyHub_emergencyCardLink,
+              subtitle: context.l10n.safetyHub_emergencyCardLink_subtitle,
+              route: '/settings/diver-profile/emergency-card',
+            ),
+            const Divider(height: 1),
+            _buildSectionTile(
+              context,
               icon: Icons.medical_information,
               title: context.l10n.settings_profileHub_medicalInfo,
               subtitle: _medicalInfoSubtitle(context, diver),
@@ -189,6 +202,30 @@ class DiverProfileHubPage extends ConsumerWidget {
               title: context.l10n.settings_profileHub_insurance,
               subtitle: _insuranceSubtitle(context, diver),
               route: '/settings/diver-profile/insurance',
+            ),
+            const Divider(height: 1),
+            _buildSectionTile(
+              context,
+              icon: Icons.history,
+              title: context.l10n.divers_edit_priorExperienceSection,
+              subtitle: _priorExperienceSubtitle(context, diver),
+              route: '/settings/diver-profile/prior',
+            ),
+            const Divider(height: 1),
+            Consumer(
+              builder: (context, ref, _) {
+                final latest = ref.watch(latestDiverWeightProvider).valueOrNull;
+                final units = UnitFormatter(ref.watch(settingsProvider));
+                return _buildSectionTile(
+                  context,
+                  icon: Icons.monitor_weight,
+                  title: context.l10n.diverProfile_bodyWeight_title,
+                  subtitle: latest != null
+                      ? units.formatWeight(latest.weightKg)
+                      : context.l10n.diverProfile_bodyWeight_empty,
+                  route: '/settings/diver-profile/body-weight',
+                );
+              },
             ),
             const Divider(height: 1),
             _buildSectionTile(
@@ -220,11 +257,7 @@ class DiverProfileHubPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildManagementTilesCard(
-    BuildContext context,
-    WidgetRef ref,
-    Diver diver,
-  ) {
+  Widget _buildManagementTilesCard(BuildContext context, Diver diver) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -238,7 +271,7 @@ class DiverProfileHubPage extends ConsumerWidget {
               ),
               title: Text(context.l10n.settings_profileHub_switchDiver),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showDiverSwitcher(context, ref, diver.id),
+              onTap: () => showDiverSwitcherSheet(context),
             ),
             const Divider(height: 1),
             ListTile(
@@ -310,136 +343,48 @@ class DiverProfileHubPage extends ConsumerWidget {
     return diver.notes.split('\n').first;
   }
 
-  // -- Dialogs --
-
-  void _showDiverSwitcher(
-    BuildContext context,
-    WidgetRef ref,
-    String currentDiverId,
-  ) {
-    final diverListAsync = ref.read(diverListNotifierProvider);
-
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(sheetContext).size.height * 0.4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text(
-                  context.l10n.settings_profile_switchDiver_title,
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-              ),
-              const Divider(),
-              Flexible(
-                child: diverListAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(
-                    child: Text(
-                      context.l10n.settings_profile_error_loadingDiver,
-                    ),
-                  ),
-                  data: (divers) => ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: divers.length,
-                    itemBuilder: (listContext, index) {
-                      final diver = divers[index];
-                      final isActive = diver.id == currentDiverId;
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(
-                            sheetContext,
-                          ).colorScheme.primaryContainer,
-                          foregroundColor: Theme.of(
-                            sheetContext,
-                          ).colorScheme.onPrimaryContainer,
-                          child: Text(diver.initials),
-                        ),
-                        title: Text(diver.name),
-                        trailing: isActive
-                            ? Icon(
-                                Icons.check,
-                                color: Theme.of(
-                                  sheetContext,
-                                ).colorScheme.primary,
-                              )
-                            : null,
-                        onTap: () {
-                          if (!isActive) {
-                            ref
-                                .read(currentDiverIdProvider.notifier)
-                                .setCurrentDiver(diver.id);
-                            Navigator.of(sheetContext).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  context.l10n.settings_profile_switchedTo(
-                                    diver.name,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  String _priorExperienceSubtitle(BuildContext context, Diver diver) {
+    if (diver.priorDiveCount != null) {
+      return '${diver.priorDiveCount} ${context.l10n.divers_edit_priorDivesLabel}';
+    }
+    if (diver.divingSince != null) {
+      return context.l10n.statistics_divingSince(diver.divingSince!.year);
+    }
+    return context.l10n.divers_edit_divingSinceNotSet;
   }
 
-  void _showDeleteConfirmation(
+  Future<void> _showDeleteConfirmation(
     BuildContext context,
     WidgetRef ref,
     Diver diver,
-  ) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(context.l10n.settings_profileHub_deleteConfirmTitle),
-          content: Text(
-            context.l10n.settings_profileHub_deleteConfirmContent(diver.name),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(context.l10n.divers_detail_cancelButton),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                ref
-                    .read(diverListNotifierProvider.notifier)
-                    .deleteDiver(diver.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.l10n.settings_profileHub_deleted),
-                  ),
-                );
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-              ),
-              child: Text(context.l10n.divers_detail_deleteButton),
-            ),
-          ],
-        );
-      },
+  ) async {
+    final confirmed = await DeleteDiverDialog.show(
+      context,
+      diverName: diver.name,
     );
+    if (confirmed && context.mounted) {
+      final result = await ref
+          .read(diverListNotifierProvider.notifier)
+          .deleteDiver(diver.id);
+      if (context.mounted) {
+        if (result.hasReassignments) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.divers_delete_reassigned_snackbar(
+                  result.reassignedTripsCount,
+                  result.reassignedSitesCount,
+                  result.reassignedToDiverName ?? '',
+                ),
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
+          );
+        }
+      }
+    }
   }
 }

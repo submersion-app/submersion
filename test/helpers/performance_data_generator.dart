@@ -154,13 +154,6 @@ class PerformanceDataGenerator {
   // --------------------------------------------------------------------------
 
   Future<List<String>> _generateBuddies(String diverId, int now) async {
-    const certLevels = [
-      'Open Water',
-      'Advanced Open Water',
-      'Rescue Diver',
-      'Divemaster',
-      'Instructor',
-    ];
     final companions = <BuddiesCompanion>[];
     for (var i = 1; i <= 20; i++) {
       final id = _uuid.v4();
@@ -169,7 +162,6 @@ class PerformanceDataGenerator {
           id: Value(id),
           diverId: Value(diverId),
           name: Value('Buddy $i'),
-          certificationLevel: Value(certLevels[i % certLevels.length]),
           createdAt: Value(now),
           updatedAt: Value(now),
         ),

@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 /// Invalidates the Riverpod providers that correspond to the given set of
 /// imported entity types.
@@ -74,6 +75,12 @@ void invalidateImportRelatedProviders(
 
       case ImportEntityType.diveTypes:
         ref.invalidate(diveTypesProvider);
+
+      case ImportEntityType.media:
+        // Photos land on dives that may already be on screen.
+        ref.invalidate(mediaForDiveProvider);
+        ref.invalidate(mediaCountForDiveProvider);
+        ref.invalidate(mediaListNotifierProvider);
     }
   }
 }

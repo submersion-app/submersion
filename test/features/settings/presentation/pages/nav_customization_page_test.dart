@@ -1,0 +1,233 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
+
+class _FakeRepo implements AppSettingsRepository {
+  List<String>? stored;
+
+  /// No database, so nothing ever ticks.
+  @override
+  Stream<void> watchSettingsChanges() => const Stream.empty();
+
+  @override
+  Future<List<String>?> getNavPrimaryIdsRaw() async => stored;
+  @override
+  Future<void> setNavPrimaryIds(List<String> ids) async {
+    stored = List<String>.from(ids);
+  }
+
+  @override
+  Future<bool> getShareByDefault() async => false;
+  @override
+  Future<void> setShareByDefault(bool value) async {}
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
+}
+
+void main() {
+  group('applyReorderPreservingDivider', () {
+    // Movable items: [a, b, c, d, e, f]; divider sits at dividerIndex=3.
+    // Flat list shown to user: [a, b, c, DIVIDER, d, e, f].
+
+    test('drop above divider stays above divider', () {
+      // Move 'e' (flat index 5) to position 1 (before 'b')
+      final result = applyReorderPreservingDivider(
+        movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
+        dividerIndex: 3,
+        oldIndex: 5,
+        newIndex: 1,
+      );
+      expect(result, ['a', 'e', 'b', 'c', 'd', 'f']);
+    });
+
+    test('drop below divider stays below divider', () {
+      // onReorderItem reports the post-removal flat index, so moving 'a' (flat 0)
+      // to between 'd' and 'e' below the divider is newIndex 4 (not 5).
+      final result = applyReorderPreservingDivider(
+        movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
+        dividerIndex: 3,
+        oldIndex: 0,
+        newIndex: 4,
+      );
+      expect(result, ['b', 'c', 'd', 'a', 'e', 'f']);
+    });
+
+    test('attempting to drag the divider itself is a no-op', () {
+      final result = applyReorderPreservingDivider(
+        movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
+        dividerIndex: 3,
+        oldIndex: 3, // divider's position
+        newIndex: 1,
+      );
+      expect(result, ['a', 'b', 'c', 'd', 'e', 'f']);
+    });
+
+    test('newIndex is treated as the post-removal index (no internal shift)', () {
+      // onReorderItem already adjusts for the removed item, so dragging 'a' (0)
+      // to the bottom reports newIndex 6 (end of the 6-item post-removal flat
+      // list); the helper must not subtract again.
+      final result = applyReorderPreservingDivider(
+        movable: const ['a', 'b', 'c', 'd', 'e', 'f'],
+        dividerIndex: 3,
+        oldIndex: 0,
+        newIndex: 6,
+      );
+      expect(result, ['b', 'c', 'd', 'e', 'f', 'a']);
+    });
+
+    test(
+      'same-position reorder returns content-equal but non-identical list',
+      () {
+        // Drop-on-self (or any drag that results in no position change) still
+        // produces a fresh list. _commitReorder therefore uses listEquals, not
+        // identical, to detect a no-op and skip the repository write.
+        const input = ['a', 'b', 'c', 'd', 'e', 'f'];
+        final result = applyReorderPreservingDivider(
+          movable: input,
+          dividerIndex: 3,
+          oldIndex: 4,
+          newIndex: 4,
+        );
+        expect(result, input);
+        expect(identical(result, input), isFalse);
+      },
+    );
+  });
+
+  group('NavCustomizationPage widget', () {
+    Widget buildHarness(AppSettingsRepository repo) {
+      return ProviderScope(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(repo)],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NavCustomizationPage(),
+        ),
+      );
+    }
+
+    testWidgets('shows pinned Home and More rows', (tester) async {
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('More'), findsOneWidget);
+      // Lock icons render for pinned rows.
+      expect(find.byIcon(Icons.lock_outline), findsNWidgets(2));
+    });
+
+    testWidgets('shows the divider row with correct label', (tester) async {
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Items below appear in the More menu'), findsOneWidget);
+    });
+
+    testWidgets('Reset button is disabled when list matches defaults', (
+      tester,
+    ) async {
+      final repo = _FakeRepo(); // empty store -> defaults after load
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      final resetButton = find.widgetWithText(TextButton, 'Reset to defaults');
+      expect(resetButton, findsOneWidget);
+      final button = tester.widget<TextButton>(resetButton);
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('Reset button is enabled after customization', (tester) async {
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Reset to defaults'),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('tapping Reset restores defaults via the repository', (
+      tester,
+    ) async {
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Reset to defaults'));
+      await tester.pumpAndSettle();
+
+      expect(repo.stored, kDefaultPrimaryIds);
+    });
+
+    testWidgets('move-up on first overflow row promotes it to primary', (
+      tester,
+    ) async {
+      // Default primary: [dives, sites, trips]; first overflow = media.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      // Find the move-up button whose tooltip targets Media.
+      await tester.tap(find.byTooltip('Move Media up'));
+      await tester.pumpAndSettle();
+
+      // Media should now be primary; trips (the last default primary)
+      // should drop to overflow.
+      expect(repo.stored, contains('media'));
+      expect(repo.stored, isNot(contains('trips')));
+    });
+
+    testWidgets('move-down on last primary row demotes it to overflow', (
+      tester,
+    ) async {
+      // Default primary: [dives, sites, trips]; last primary = trips.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Move Trips down'));
+      await tester.pumpAndSettle();
+
+      // Trips should be displaced; media (first overflow originally)
+      // should now be primary.
+      expect(repo.stored, contains('media'));
+      expect(repo.stored, isNot(contains('trips')));
+    });
+
+    testWidgets('move-down moves a row down by exactly one slot (not two)', (
+      tester,
+    ) async {
+      // Default primary order is [dives, sites, trips]. Moving the first row
+      // down by one must swap it with the second -> [sites, dives, trips], and
+      // must NOT overshoot to [sites, trips, dives]. The move buttons feed
+      // _commitReorder/applyReorderPreservingDivider, which expect
+      // onReorderItem-style (already-adjusted) indices; this guards against the
+      // old onReorder off-by-one in _moveDown.
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      // The first arrow_downward belongs to the first movable row (dives).
+      await tester.tap(find.byIcon(Icons.arrow_downward).first);
+      await tester.pumpAndSettle();
+
+      expect(repo.stored, ['sites', 'dives', 'trips']);
+    });
+  });
+}

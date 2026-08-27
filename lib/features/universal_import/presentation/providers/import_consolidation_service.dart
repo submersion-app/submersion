@@ -1,91 +1,111 @@
-import 'package:drift/drift.dart' show Value;
-import 'package:uuid/uuid.dart';
-
-import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion, DiveProfilesCompanion;
-import 'package:submersion/core/utils/number_utils.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
-/// Attaches consolidate-flagged imported dives as secondary computer
-/// readings on matched existing dives.
+const _log = LoggerService('ImportConsolidationService');
+
+/// Result of [performConsolidations]: how many indices were folded
+/// successfully vs. how many failed and were compensated.
+class ConsolidationSummary {
+  const ConsolidationSummary({
+    required this.consolidated,
+    required this.failed,
+    this.removedDiveIds = const {},
+  });
+
+  /// Number of dives successfully folded into their matched dive.
+  final int consolidated;
+
+  /// Number of dives whose fold failed unexpectedly after having already
+  /// been imported as a standalone dive. Each one was deleted (see
+  /// [performConsolidations]) rather than left stranded.
+  final int failed;
+
+  /// The freshly-imported standalone dive ids that are NO LONGER present after
+  /// this call -- each was either folded into its match (and tombstoned by
+  /// [DiveConsolidationService.apply]) or removed by the compensating delete.
+  ///
+  /// A dive whose fold AND compensating delete both failed is intentionally
+  /// absent: it is still standalone in the DB, so the caller must keep
+  /// reporting it as imported instead of hiding a stranded duplicate.
+  final Set<String> removedDiveIds;
+}
+
+/// Folds consolidate-flagged imported dives into their matched existing
+/// dives.
 ///
-/// Returns the number of successful consolidations.
-Future<int> performConsolidations({
+/// The dives at [indices] have already been persisted as full standalone
+/// dives (via `UddfEntityImporter.import`, in the same call as the rest of
+/// the payload's dive selection, so cross-references to trips/sites/buddies
+/// from this import resolve correctly) -- [diveIdByIndex] maps each source
+/// index to the id that import produced. This function folds each of those
+/// freshly-imported dives into the dive matched by [duplicateResult] via
+/// [DiveConsolidationService.apply], which carries over every sample
+/// column, tank, pressure, and event with attribution, then tombstones the
+/// now-redundant standalone dive.
+///
+/// The import (above, before this function runs) and the fold are not part
+/// of the same transaction. If [DiveConsolidationService.apply] throws for
+/// one index, the freshly-imported standalone dive at that index is deleted
+/// via [DiveRepository.bulkDeleteDives] (tombstone-honoring) so it doesn't
+/// strand as a bare, unconsolidated duplicate, and the loop continues with
+/// the remaining indices rather than aborting the whole import.
+Future<ConsolidationSummary> performConsolidations({
   required Set<int> indices,
-  required List<Map<String, dynamic>> diveItems,
+  required Map<int, String> diveIdByIndex,
   required ImportDuplicateResult? duplicateResult,
+  required DiveConsolidationService consolidationService,
   required DiveRepository diveRepository,
 }) async {
-  const uuid = Uuid();
-  final now = DateTime.now();
-  var count = 0;
+  var consolidated = 0;
+  var failed = 0;
+  final removedDiveIds = <String>{};
 
   for (final index in indices) {
     final matchResult = duplicateResult?.diveMatchFor(index);
     if (matchResult == null) continue;
 
-    final diveData = diveItems[index];
-    final dateTime = diveData['dateTime'] as DateTime?;
-    if (dateTime == null) continue;
-    final runtime = diveData['runtime'] as Duration?;
-    final duration = diveData['duration'] as Duration?;
-    final effectiveDuration = runtime ?? duration;
-    final exitTime = effectiveDuration != null
-        ? dateTime.add(effectiveDuration)
-        : null;
+    final newDiveId = diveIdByIndex[index];
+    if (newDiveId == null) continue;
 
-    final secondaryReading = DiveDataSourcesCompanion.insert(
-      id: uuid.v4(),
-      diveId: matchResult.diveId,
-      isPrimary: const Value(false),
-      computerModel: Value(diveData['diveComputerModel'] as String?),
-      computerSerial: Value(diveData['diveComputerSerial'] as String?),
-      sourceFormat: Value(diveData['sourceFormat'] as String?),
-      maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
-      avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-      duration: Value(effectiveDuration?.inSeconds),
-      waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
-      entryTime: Value(dateTime),
-      exitTime: Value(exitTime),
-      cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
-      otu: Value(asDoubleOrNull(diveData['otu'])),
-      importedAt: now,
-      createdAt: now,
-    );
-
-    final profileData =
-        (diveData['profile'] as List?)?.cast<Map<String, dynamic>>() ??
-        const <Map<String, dynamic>>[];
-    final secondaryProfile = profileData
-        .map(
-          (p) => DiveProfilesCompanion.insert(
-            id: uuid.v4(),
-            diveId: matchResult.diveId,
-            isPrimary: const Value(false),
-            timestamp: p['timestamp'] as int? ?? 0,
-            depth: asDoubleOrNull(p['depth']) ?? 0.0,
-            temperature: Value(asDoubleOrNull(p['temperature'])),
-            pressure: const Value(null),
-            heartRate: Value(p['heartRate'] as int?),
-            setpoint: Value(asDoubleOrNull(p['setpoint'])),
-            ppO2: Value(asDoubleOrNull(p['ppO2'])),
-            cns: Value(asDoubleOrNull(p['cns'])),
-            ndl: Value(p['ndl'] as int?),
-            rbt: Value(p['rbt'] as int?),
-            decoType: Value(p['decoType'] as int?),
-            tts: Value(p['tts'] as int?),
-          ),
-        )
-        .toList();
-
-    await diveRepository.consolidateComputer(
-      targetDiveId: matchResult.diveId,
-      secondaryReading: secondaryReading,
-      secondaryProfile: secondaryProfile,
-    );
-    count++;
+    try {
+      await consolidationService.apply(
+        targetDiveId: matchResult.diveId,
+        secondaryDiveIds: [newDiveId],
+      );
+      consolidated++;
+      // The fold tombstoned the standalone dive.
+      removedDiveIds.add(newDiveId);
+    } catch (e, st) {
+      _log.error(
+        'Consolidation fold failed for dive into ${matchResult.diveId}',
+        error: e,
+        stackTrace: st,
+      );
+      try {
+        await diveRepository.bulkDeleteDives([newDiveId]);
+        // The compensating delete removed the standalone dive.
+        removedDiveIds.add(newDiveId);
+      } catch (deleteError, deleteStack) {
+        // The compensating delete failed too -- log it and continue rather
+        // than rethrow, so the remaining indices are still processed instead
+        // of aborting the whole import. The dive is deliberately left OUT of
+        // [removedDiveIds] because it is still standalone in the DB; the caller
+        // must keep counting it as imported rather than hiding a duplicate.
+        _log.error(
+          'Compensating delete failed for orphaned dive $newDiveId',
+          error: deleteError,
+          stackTrace: deleteStack,
+        );
+      }
+      failed++;
+    }
   }
 
-  return count;
+  return ConsolidationSummary(
+    consolidated: consolidated,
+    failed: failed,
+    removedDiveIds: removedDiveIds,
+  );
 }

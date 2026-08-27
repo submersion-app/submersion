@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 
@@ -31,7 +32,12 @@ void main() {
       expect(await repository.getBottomTimeTrend(), isEmpty);
       expect(await repository.getDivesPerYear(), isEmpty);
       expect(await repository.getCumulativeDiveCount(), isEmpty);
-      expect(await repository.getVisibilityDistribution(), isEmpty);
+      expect(
+        await repository.getVisibilityDistribution(
+          scale: VisibilityScale.tropical,
+        ),
+        isEmpty,
+      );
       expect(await repository.getWaterTypeDistribution(), isEmpty);
       expect(await repository.getEntryMethodDistribution(), isEmpty);
       expect(await repository.getTemperatureByMonth(), isEmpty);
@@ -62,7 +68,8 @@ void main() {
       expect(sacPressureRecords.worst, isNull);
 
       // Methods that return empty map
-      expect(await repository.getSacByTankRole(), isEmpty);
+      expect(await repository.getSacVolumeByTankRole(), isEmpty);
+      expect(await repository.getSacPressureByTankRole(), isEmpty);
 
       // Methods that return tuple defaults
       final soloVsBuddy = await repository.getSoloVsBuddyCount();
@@ -80,7 +87,8 @@ void main() {
 
       final decoStats = await repository.getDecoObligationStats();
       expect(decoStats.decoCount, equals(0));
-      expect(decoStats.totalCount, equals(0));
+      expect(decoStats.noDecoCount, equals(0));
+      expect(decoStats.unknownCount, equals(0));
 
       // Methods that return empty entity
       final speciesStats = await repository.getSpeciesStatistics(

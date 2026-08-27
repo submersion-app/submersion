@@ -7,7 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 class ServiceRecord {
   final String id;
   final String equipmentId;
-  final ServiceType serviceType;
+  final ServiceCategory serviceCategory;
   final DateTime serviceDate;
   final String? provider;
   final double? cost;
@@ -18,7 +18,7 @@ class ServiceRecord {
   const ServiceRecord({
     required this.id,
     required this.equipmentId,
-    required this.serviceType,
+    required this.serviceCategory,
     required this.serviceDate,
     this.provider,
     this.cost,

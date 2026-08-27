@@ -14,6 +14,12 @@ extension DiveFieldFormatter on DiveField {
       case DiveField.swellHeight:
         return units.formatDepth(value as double?);
 
+      case DiveField.visibility:
+        // Measured dives extract a metric double; pre-v144 dives extract the
+        // legacy bucket's label, which is already display-ready.
+        if (value is double) return units.formatDistance(value);
+        return value.toString();
+
       case DiveField.waterTemp:
       case DiveField.airTemp:
         return units.formatTemperature(value as double?);
@@ -30,7 +36,10 @@ extension DiveFieldFormatter on DiveField {
 
       case DiveField.sacRate:
         if (value is double) {
-          return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
+          // The base unit of [value] depends on the SAC mode: L/min in volume
+          // mode, bar/min in pressure mode. [convertSac] and [sacSymbol] honor
+          // the diver's SAC unit and volume/pressure unit preferences.
+          return '${units.convertSac(value).toStringAsFixed(1)} ${units.sacSymbol}';
         }
         return '--';
 

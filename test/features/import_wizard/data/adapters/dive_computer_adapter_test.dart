@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion, DiveProfilesCompanion;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -10,16 +8,20 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
   MockSpec<DiveImportService>(),
   MockSpec<DiveComputerRepository>(),
   MockSpec<DiveRepository>(),
+  MockSpec<DiveConsolidationService>(),
 ])
 import 'dive_computer_adapter_test.mocks.dart';
 
@@ -30,6 +32,7 @@ import 'dive_computer_adapter_test.mocks.dart';
 DiveComputer makeComputer({
   String id = 'computer-1',
   String name = 'My Perdix',
+  String? diverId,
   String? manufacturer = 'Shearwater',
   String? model = 'Perdix',
   String? serialNumber = 'SN-12345',
@@ -38,6 +41,7 @@ DiveComputer makeComputer({
   return DiveComputer(
     id: id,
     name: name,
+    diverId: diverId,
     manufacturer: manufacturer,
     model: model,
     serialNumber: serialNumber,
@@ -70,6 +74,7 @@ void main() {
   late MockDiveImportService mockImportService;
   late MockDiveComputerRepository mockComputerRepo;
   late MockDiveRepository mockDiveRepo;
+  late MockDiveConsolidationService mockConsolidationService;
   late DiveComputer computer;
   late DiveComputerAdapter adapter;
 
@@ -79,15 +84,22 @@ void main() {
     mockImportService = MockDiveImportService();
     mockComputerRepo = MockDiveComputerRepository();
     mockDiveRepo = MockDiveRepository();
+    mockConsolidationService = MockDiveConsolidationService();
     computer = makeComputer();
 
     adapter = DiveComputerAdapter(
       importService: mockImportService,
       computerRepository: mockComputerRepo,
       diveRepository: mockDiveRepo,
+      consolidationService: mockConsolidationService,
       diverId: diverId,
       knownComputer: computer,
     );
+
+    // checkDuplicates prefetches the source-key map once per download.
+    when(
+      mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => {});
   });
 
   // -------------------------------------------------------------------------
@@ -217,6 +229,64 @@ void main() {
 
       expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(2));
     });
+
+    test('marks below-cutoff dives as autoSkip', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 6, 12, 14, 30, 5));
+      adapter.setDownloadedDives([
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 12, 14, 30, 5),
+        ), // == cutoff -> skip
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 1),
+        ), // older -> skip
+        makeDownloadedDive(
+          startTime: DateTime.utc(2026, 6, 20),
+        ), // newer -> keep
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, equals({0, 1}));
+    });
+
+    test('has no autoSkip when cutoff is null', () async {
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 20)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
+
+    test('has no autoSkip when no dive is at or before the cutoff', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 1, 1));
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 20)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
+
+    test('resetState() clears a previously set cutoff', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 6, 12));
+      adapter.resetState();
+      adapter.setDownloadedDives([
+        makeDownloadedDive(startTime: DateTime.utc(2026, 6, 1)),
+      ]);
+
+      final bundle = await adapter.buildBundle();
+      final group = bundle.groups[ImportEntityType.dives]!;
+
+      expect(group.autoSkipIndices, isNull);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -229,7 +299,13 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.likely,
@@ -252,7 +328,13 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.likely,
@@ -278,7 +360,13 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           confidence: DuplicateConfidence.none,
           score: 0.2,
@@ -296,7 +384,13 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.possible,
@@ -318,7 +412,13 @@ void main() {
       adapter.setDownloadedDives([dive]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
           confidence: DuplicateConfidence.none,
@@ -339,7 +439,13 @@ void main() {
       adapter.setDownloadedDives([dive1, dive2]);
       final bundle = await adapter.buildBundle();
 
-      when(mockImportService.detectDuplicate(dive1)).thenAnswer(
+      when(
+        mockImportService.detectDuplicate(
+          dive1,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-1',
           confidence: DuplicateConfidence.exact,
@@ -348,7 +454,11 @@ void main() {
         ),
       );
       when(
-        mockImportService.detectDuplicate(dive2),
+        mockImportService.detectDuplicate(
+          dive2,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
 
       final result = await adapter.checkDuplicates(bundle);
@@ -360,6 +470,31 @@ void main() {
       expect(
         result.groups[ImportEntityType.dives]!.matchResults!.length,
         equals(1),
+      );
+    });
+
+    test('preserves autoSkipIndices computed by buildBundle', () async {
+      adapter.setSinceCutoff(DateTime.utc(2026, 3, 15, 9, 0));
+      final dive = makeDownloadedDive(
+        startTime: DateTime.utc(2026, 3, 15, 8, 0),
+      );
+      adapter.setDownloadedDives([dive]);
+      final bundle = await adapter.buildBundle();
+      expect(bundle.groups[ImportEntityType.dives]!.autoSkipIndices, {0});
+
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer((_) async => DuplicateResult.noMatch());
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(
+        result.groups[ImportEntityType.dives]!.autoSkipIndices,
+        equals({0}),
       );
     });
   });
@@ -454,75 +589,99 @@ void main() {
       expect(result.importedCounts[ImportEntityType.dives], equals(1));
     });
 
-    test(
-      'handles DuplicateAction.consolidate by calling consolidateComputer',
-      () async {
-        final dive = makeDownloadedDive(
-          profile: [
-            const ProfileSample(timeSeconds: 0, depth: 0.0),
-            const ProfileSample(timeSeconds: 60, depth: 10.0),
-          ],
-        );
-        adapter.setDownloadedDives([dive]);
+    test('handles DuplicateAction.consolidate by importing as new then '
+        'folding into the matched dive via DiveConsolidationService', () async {
+      final dive = makeDownloadedDive(
+        profile: [
+          const ProfileSample(timeSeconds: 0, depth: 0.0),
+          const ProfileSample(timeSeconds: 60, depth: 10.0),
+        ],
+      );
+      adapter.setDownloadedDives([dive]);
 
-        // Build a bundle with match results to provide the target dive ID.
-        final rawBundle = await adapter.buildBundle();
-        final bundleWithDupes = ImportBundle(
-          source: rawBundle.source,
-          groups: {
-            ImportEntityType.dives: EntityGroup(
-              items: rawBundle.groups[ImportEntityType.dives]!.items,
-              duplicateIndices: {0},
-              matchResults: {
-                0: const DiveMatchResult(
-                  diveId: 'existing-dive-1',
-                  score: 0.9,
-                  timeDifferenceMs: 5000,
-                ),
-              },
-            ),
-          },
-        );
-
-        when(
-          mockDiveRepo.consolidateComputer(
-            targetDiveId: anyNamed('targetDiveId'),
-            secondaryReading: anyNamed('secondaryReading'),
-            secondaryProfile: anyNamed('secondaryProfile'),
-          ),
-        ).thenAnswer((_) async {});
-
-        final result = await adapter.performImport(
-          bundleWithDupes,
-          {
-            ImportEntityType.dives: {0},
-          },
-          {
-            ImportEntityType.dives: {0: DuplicateAction.consolidate},
-          },
-        );
-
-        verify(
-          mockDiveRepo.consolidateComputer(
-            targetDiveId: 'existing-dive-1',
-            secondaryReading: argThat(
-              isA<DiveDataSourcesCompanion>(),
-              named: 'secondaryReading',
-            ),
-            secondaryProfile: argThat(
-              isA<List<DiveProfilesCompanion>>().having(
-                (l) => l.length,
-                'length',
-                2,
+      // Build a bundle with match results to provide the target dive ID.
+      final rawBundle = await adapter.buildBundle();
+      final bundleWithDupes = ImportBundle(
+        source: rawBundle.source,
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: rawBundle.groups[ImportEntityType.dives]!.items,
+            duplicateIndices: {0},
+            matchResults: {
+              0: const DiveMatchResult(
+                diveId: 'existing-dive-1',
+                score: 0.9,
+                timeDifferenceMs: 5000,
               ),
-              named: 'secondaryProfile',
-            ),
+            },
           ),
-        ).called(1);
-        expect(result.consolidatedCount, equals(1));
-        expect(result.importedCounts[ImportEntityType.dives], equals(0));
-      },
-    );
+        },
+      );
+
+      when(
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
+          diverId: diverId,
+        ),
+      ).thenAnswer((_) async => 'new-secondary-dive');
+
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenAnswer(
+        (_) async => const DiveConsolidationOutcome(
+          targetDiveId: 'existing-dive-1',
+          snapshot: DiveMergeSnapshot(
+            mergedDiveId: 'existing-dive-1',
+            diveRows: [],
+            profileRows: [],
+            tankRows: [],
+            weightRows: [],
+            customFieldRows: [],
+            equipmentRows: [],
+            diveTypeRows: [],
+            tagRows: [],
+            buddyRows: [],
+            sightingRows: [],
+            eventRows: [],
+            gasSwitchRows: [],
+            tankPressureRows: [],
+            dataSourceRows: [],
+            tideRows: [],
+            mediaDiveIds: {},
+          ),
+        ),
+      );
+
+      final result = await adapter.performImport(
+        bundleWithDupes,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.consolidate},
+        },
+      );
+
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          dive,
+          computerId: computer.id,
+          diverId: diverId,
+        ),
+      ).called(1);
+      verify(
+        mockConsolidationService.apply(
+          targetDiveId: 'existing-dive-1',
+          secondaryDiveIds: ['new-secondary-dive'],
+        ),
+      ).called(1);
+      expect(result.consolidatedCount, equals(1));
+      expect(result.importedCounts[ImportEntityType.dives], equals(0));
+    });
 
     test('returns correct counts for mixed actions', () async {
       final dive1 = makeDownloadedDive(
@@ -575,12 +734,42 @@ void main() {
       );
 
       when(
-        mockDiveRepo.consolidateComputer(
-          targetDiveId: anyNamed('targetDiveId'),
-          secondaryReading: anyNamed('secondaryReading'),
-          secondaryProfile: anyNamed('secondaryProfile'),
+        mockImportService.importSingleDiveAsNew(
+          dive2,
+          computerId: computer.id,
+          diverId: diverId,
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => 'new-secondary-dive');
+
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenAnswer(
+        (_) async => const DiveConsolidationOutcome(
+          targetDiveId: 'existing-dive-1',
+          snapshot: DiveMergeSnapshot(
+            mergedDiveId: 'existing-dive-1',
+            diveRows: [],
+            profileRows: [],
+            tankRows: [],
+            weightRows: [],
+            customFieldRows: [],
+            equipmentRows: [],
+            diveTypeRows: [],
+            tagRows: [],
+            buddyRows: [],
+            sightingRows: [],
+            eventRows: [],
+            gasSwitchRows: [],
+            tankPressureRows: [],
+            dataSourceRows: [],
+            tideRows: [],
+            mediaDiveIds: {},
+          ),
+        ),
+      );
 
       final result = await adapter.performImport(
         bundleWithDupes,
@@ -682,6 +871,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
       adapterNoComputer.setDownloadedDives([makeDownloadedDive()]);
@@ -693,6 +883,122 @@ void main() {
 
       expect(result.errorMessage, isNotNull);
     });
+
+    test('breaks loop mid-import when cancelToken is cancelled', () async {
+      final dive1 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 10, 0),
+        fingerprint: 'fp1',
+      );
+      final dive2 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 14, 0),
+        fingerprint: 'fp2',
+      );
+      final dive3 = makeDownloadedDive(
+        startTime: DateTime(2026, 3, 15, 18, 0),
+        fingerprint: 'fp3',
+      );
+      adapter.setDownloadedDives([dive1, dive2, dive3]);
+      final bundle = await adapter.buildBundle();
+
+      final cancelToken = ImportCancellationToken();
+
+      when(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).thenAnswer((invocation) async {
+        // Cancel the token after the FIRST dive is imported so the loop
+        // breaks before processing dives 2 and 3.
+        cancelToken.cancel();
+        return 'imported-id';
+      });
+
+      final result = await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1, 2},
+        },
+        {},
+        cancelToken: cancelToken,
+      );
+
+      // Only the first dive was imported before cancellation kicked in.
+      expect(result.importedCounts[ImportEntityType.dives], equals(1));
+      verify(
+        mockImportService.importSingleDiveAsNew(
+          any,
+          computerId: anyNamed('computerId'),
+          diverId: anyNamed('diverId'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).called(1);
+    });
+
+    test(
+      'cancelled import only advances fingerprint for processed dives',
+      () async {
+        // Three dives with incrementing startTimes. selectNewestFingerprint
+        // picks by latest startTime, so if ALL dives were used the fingerprint
+        // would be 'fp3'. With cancellation after dive1, it should be 'fp1'.
+        final dive1 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 10, 0),
+          fingerprint: 'fp1',
+        );
+        final dive2 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 14, 0),
+          fingerprint: 'fp2',
+        );
+        final dive3 = makeDownloadedDive(
+          startTime: DateTime(2026, 3, 15, 18, 0),
+          fingerprint: 'fp3',
+        );
+        adapter.setDownloadedDives([dive1, dive2, dive3]);
+        final bundle = await adapter.buildBundle();
+
+        final cancelToken = ImportCancellationToken();
+
+        when(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).thenAnswer((_) async {
+          cancelToken.cancel();
+          return 'imported-id';
+        });
+
+        await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {0, 1, 2},
+          },
+          {},
+          cancelToken: cancelToken,
+        );
+
+        // Fingerprint advances only to the processed dive's fingerprint,
+        // not to the newest downloaded dive's fingerprint. Next session can
+        // still pick up dive2 and dive3.
+        verify(
+          mockComputerRepo.updateLastFingerprint('computer-1', 'fp1'),
+        ).called(1);
+        verifyNever(mockComputerRepo.updateLastFingerprint(any, 'fp3'));
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -713,6 +1019,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
         displayName: 'Custom Name',
       );
@@ -744,6 +1051,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -766,6 +1074,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
       expect(discoveryAdapter.isKnownComputer, isFalse);
@@ -783,12 +1092,19 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
-      final existingComputer = makeComputer(id: 'found-computer');
+      final existingComputer = makeComputer(
+        id: 'found-computer',
+        diverId: diverId,
+      );
       when(
-        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+        mockComputerRepo.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+          diverId: diverId,
+        ),
       ).thenAnswer((_) async => existingComputer);
 
       final device = DiscoveredDevice(
@@ -803,7 +1119,10 @@ void main() {
 
       expect(discoveryAdapter.computer, equals(existingComputer));
       verify(
-        mockComputerRepo.findByBluetoothAddress('AA:BB:CC:DD:EE:FF'),
+        mockComputerRepo.findByBluetoothAddress(
+          'AA:BB:CC:DD:EE:FF',
+          diverId: diverId,
+        ),
       ).called(1);
     });
 
@@ -812,11 +1131,15 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
       when(
-        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+        mockComputerRepo.findByBluetoothAddress(
+          '11:22:33:44:55:66',
+          diverId: diverId,
+        ),
       ).thenAnswer((_) async => null);
 
       final device = DiscoveredDevice(
@@ -830,7 +1153,10 @@ void main() {
       await discoveryAdapter.resolveKnownComputer(device);
 
       verify(
-        mockComputerRepo.findByBluetoothAddress('11:22:33:44:55:66'),
+        mockComputerRepo.findByBluetoothAddress(
+          '11:22:33:44:55:66',
+          diverId: diverId,
+        ),
       ).called(1);
       // No computer found, so it stays null.
       expect(discoveryAdapter.computer, isNull);
@@ -841,6 +1167,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -854,7 +1181,12 @@ void main() {
 
       await discoveryAdapter.resolveKnownComputer(device);
 
-      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
       expect(discoveryAdapter.computer, isNull);
     });
 
@@ -870,7 +1202,74 @@ void main() {
 
       await adapter.resolveKnownComputer(device);
 
-      verifyNever(mockComputerRepo.findByBluetoothAddress(any));
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
+
+    test(
+      'leaves computer null when address belongs to different diver',
+      () async {
+        final discoveryAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+        );
+
+        // The address exists but belongs to another diver; diver-scoped lookup
+        // returns null.
+        when(
+          mockComputerRepo.findByBluetoothAddress(
+            'AA:BB:CC:DD:EE:FF',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => null);
+
+        final device = DiscoveredDevice(
+          id: 'device-1',
+          name: 'Perdix 2',
+          connectionType: DeviceConnectionType.ble,
+          address: 'AA:BB:CC:DD:EE:FF',
+          discoveredAt: DateTime(2026, 3, 20),
+        );
+
+        await discoveryAdapter.resolveKnownComputer(device);
+
+        expect(discoveryAdapter.computer, isNull);
+      },
+    );
+
+    test('is a no-op when diverId is empty', () async {
+      final emptyDiverAdapter = DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: '',
+      );
+
+      final device = DiscoveredDevice(
+        id: 'device-1',
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: 'AA:BB:CC:DD:EE:FF',
+        discoveredAt: DateTime(2026, 3, 20),
+      );
+
+      await emptyDiverAdapter.resolveKnownComputer(device);
+
+      verifyNever(
+        mockComputerRepo.findByBluetoothAddress(
+          any,
+          diverId: anyNamed('diverId'),
+        ),
+      );
+      expect(emptyDiverAdapter.computer, isNull);
     });
   });
 
@@ -884,6 +1283,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -911,6 +1311,59 @@ void main() {
     });
 
     test(
+      'rebinds a discovered identifier to an existing hardware record',
+      () async {
+        final discoveryAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+        );
+        final existingComputer = makeComputer(
+          id: 'existing-computer',
+          serialNumber: 'SN-12345',
+        );
+        when(
+          mockComputerRepo.findByHardwareIdentity(
+            manufacturer: 'Shearwater',
+            model: 'Perdix',
+            serialNumber: 'SN-12345',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => existingComputer);
+
+        final device = DiscoveredDevice(
+          id: 'device-1',
+          name: 'Perdix 2',
+          connectionType: DeviceConnectionType.ble,
+          address: 'NEW-HOST-IDENTIFIER',
+          recognizedModel: const DeviceModel(
+            id: 'shearwater_perdix',
+            manufacturer: 'Shearwater',
+            model: 'Perdix',
+            connectionTypes: [DeviceConnectionType.ble],
+          ),
+          discoveredAt: DateTime(2026, 3, 20),
+        );
+
+        await discoveryAdapter.ensureComputer(
+          device: device,
+          serialNumber: 'SN-12345',
+          firmwareVersion: 'v4.0',
+        );
+
+        expect(discoveryAdapter.computer?.id, equals('existing-computer'));
+        expect(
+          discoveryAdapter.computer?.bluetoothAddress,
+          equals('NEW-HOST-IDENTIFIER'),
+        );
+        verify(mockComputerRepo.updateComputer(captureAny)).called(1);
+        verifyNever(mockComputerRepo.createComputer(any));
+      },
+    );
+
+    test(
       'is a no-op when computer already set (known-computer mode)',
       () async {
         final device = DiscoveredDevice(
@@ -932,6 +1385,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -968,6 +1422,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -998,6 +1453,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -1028,6 +1484,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
 
@@ -1145,6 +1602,7 @@ void main() {
         importService: mockImportService,
         computerRepository: mockComputerRepo,
         diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
         diverId: diverId,
       );
       final tagName = noComputer.defaultTagName;

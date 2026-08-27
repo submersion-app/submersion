@@ -157,7 +157,7 @@ lib/
 │   ├── dive_types/
 │   ├── marine_life/
 │   ├── tools/
-│   └── onboarding/
+│   └── setup_wizard/
 │
 └── shared/                      # Shared components
     ├── constants/

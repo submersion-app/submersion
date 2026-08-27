@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/data/services/dive_time_migration_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
   const FixDiveTimesPage({super.key});
@@ -63,15 +66,17 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to load dives: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.settings_fixDiveTimes_loadError('$e')),
+          ),
+        );
       }
     }
   }
 
   void _onOffsetChanged(String value) {
-    final parsed = int.tryParse(value);
+    final parsed = parseUserInt(value);
     setState(() => _offsetHours = parsed ?? 0);
   }
 
@@ -98,7 +103,7 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   Future<void> _pickRangeStart(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _rangeStart ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -114,7 +119,7 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   Future<void> _pickRangeEnd(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _rangeEnd ?? DateTime.now(),
       firstDate: DateTime(1950),
@@ -149,14 +154,14 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
 
   Future<void> _applyOffset() async {
     if (_selectedIds.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No dives selected.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.settings_fixDiveTimes_noSelection)),
+      );
       return;
     }
     if (_offsetHours == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hour offset is 0 — nothing to change.')),
+        SnackBar(content: Text(context.l10n.settings_fixDiveTimes_zeroOffset)),
       );
       return;
     }
@@ -174,7 +179,11 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Updated ${_selectedIds.length} dive${_selectedIds.length == 1 ? '' : 's'} by $_offsetHours hour${_offsetHours.abs() == 1 ? '' : 's'}.',
+              context.l10n.settings_fixDiveTimes_applied(
+                _selectedIds.length,
+                '$_offsetHours',
+                _offsetHours.abs(),
+              ),
             ),
           ),
         );
@@ -200,20 +209,22 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Apply Time Offset'),
+        title: Text(context.l10n.settings_fixDiveTimes_confirmTitle),
         content: Text(
-          'This will shift ${_selectedIds.length} dive${_selectedIds.length == 1 ? '' : 's'} '
-          'by $_offsetHours hour${_offsetHours.abs() == 1 ? '' : 's'}. '
-          'This cannot be undone automatically.',
+          context.l10n.settings_fixDiveTimes_confirmBody(
+            _selectedIds.length,
+            '$_offsetHours',
+            _offsetHours.abs(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Apply'),
+            child: Text(context.l10n.settings_fixDiveTimes_confirmApply),
           ),
         ],
       ),
@@ -232,12 +243,16 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fix Dive Times'),
+        title: Text(context.l10n.settings_fixDiveTimes_title),
         actions: [
           if (_dives.isNotEmpty)
             TextButton(
               onPressed: _toggleSelectAll,
-              child: Text(allSelected ? 'Deselect All' : 'Select All'),
+              child: Text(
+                allSelected
+                    ? context.l10n.settings_fixDiveTimes_deselectAll
+                    : context.l10n.settings_fixDiveTimes_selectAll,
+              ),
             ),
         ],
       ),
@@ -331,7 +346,10 @@ class _FilterBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Date Range Filter', style: theme.textTheme.labelLarge),
+          Text(
+            context.l10n.settings_fixDiveTimes_dateRangeFilter,
+            style: theme.textTheme.labelLarge,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -339,11 +357,11 @@ class _FilterBar extends StatelessWidget {
                 child: TextField(
                   controller: rangeStartController,
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'From',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.settings_fixDiveTimes_from,
+                    border: const OutlineInputBorder(),
                     isDense: true,
-                    suffixIcon: Icon(Icons.calendar_today, size: 18),
+                    suffixIcon: const Icon(Icons.calendar_today, size: 18),
                   ),
                   onTap: onPickStart,
                 ),
@@ -353,11 +371,11 @@ class _FilterBar extends StatelessWidget {
                 child: TextField(
                   controller: rangeEndController,
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'To',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.settings_fixDiveTimes_to,
+                    border: const OutlineInputBorder(),
                     isDense: true,
-                    suffixIcon: Icon(Icons.calendar_today, size: 18),
+                    suffixIcon: const Icon(Icons.calendar_today, size: 18),
                   ),
                   onTap: onPickEnd,
                 ),
@@ -366,14 +384,17 @@ class _FilterBar extends StatelessWidget {
                 const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.clear),
-                  tooltip: 'Clear date range',
+                  tooltip: context.l10n.settings_fixDiveTimes_clearRange,
                   onPressed: onClearRange,
                 ),
               ],
             ],
           ),
           const SizedBox(height: 12),
-          Text('Hour Offset', style: theme.textTheme.labelLarge),
+          Text(
+            context.l10n.settings_fixDiveTimes_hourOffset,
+            style: theme.textTheme.labelLarge,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -387,9 +408,9 @@ class _FilterBar extends StatelessWidget {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
                   ],
-                  decoration: const InputDecoration(
-                    labelText: 'Hours (e.g. +7, -5)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.settings_fixDiveTimes_hoursField,
+                    border: const OutlineInputBorder(),
                     isDense: true,
                   ),
                   onChanged: onOffsetChanged,
@@ -398,7 +419,7 @@ class _FilterBar extends StatelessWidget {
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
-                  'Enter a positive or negative integer to shift dive times.',
+                  context.l10n.settings_fixDiveTimes_offsetHint,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -438,7 +459,11 @@ class _PreviewBanner extends StatelessWidget {
       color: colorScheme.secondaryContainer,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
-        'Preview: $selectedCount dive${selectedCount == 1 ? '' : 's'} will shift by $direction hour${offsetHours.abs() == 1 ? '' : 's'}.',
+        context.l10n.settings_fixDiveTimes_preview(
+          selectedCount,
+          direction,
+          offsetHours.abs(),
+        ),
         style: theme.textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSecondaryContainer,
         ),
@@ -474,8 +499,8 @@ class _DiveListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentTime = formatter.formatDateTimeBullet(dive.dateTime);
     final diveLabel = dive.diveNumber != null
-        ? 'Dive #${dive.diveNumber}'
-        : 'Dive';
+        ? context.l10n.settings_fixDiveTimes_diveNumber(dive.diveNumber!)
+        : context.l10n.settings_fixDiveTimes_diveFallback;
     final siteLabel = dive.siteName != null ? ' — ${dive.siteName}' : '';
 
     String? previewText;
@@ -558,10 +583,10 @@ class _ApplyBar extends StatelessWidget {
                 : const Icon(Icons.check),
             label: Text(
               selectedCount == 0
-                  ? 'Select dives to apply'
+                  ? context.l10n.settings_fixDiveTimes_selectDivesHint
                   : offsetHours == 0
-                  ? 'Enter an hour offset'
-                  : 'Apply to $selectedCount dive${selectedCount == 1 ? '' : 's'}',
+                  ? context.l10n.settings_fixDiveTimes_enterOffsetHint
+                  : context.l10n.settings_fixDiveTimes_apply(selectedCount),
             ),
           ),
         ),
@@ -595,8 +620,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               hasFilter
-                  ? 'No dives found in this date range.'
-                  : 'No dives found.',
+                  ? context.l10n.settings_fixDiveTimes_emptyFiltered
+                  : context.l10n.settings_fixDiveTimes_empty,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

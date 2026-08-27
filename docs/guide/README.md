@@ -30,7 +30,7 @@ Submersion has five main sections accessible from the bottom navigation bar (mob
 
 ### Core Workflow
 
-1. **Create a diver profile** - On first launch, you'll set up your diver profile
+1. **Run the setup wizard** - On first launch, create your profile and pick units, appearance, and backup options (or restore existing data)
 2. **Add dive sites** - Build your site database (or import existing sites)
 3. **Log dives** - Manually or download from a dive computer
 4. **Track gear** - Add your equipment with service reminders

@@ -73,8 +73,8 @@ class HeatMapSettings {
   final bool isVisible;
 
   const HeatMapSettings({
-    this.opacity = 0.6,
-    this.radius = 30.0,
+    this.opacity = 0.55,
+    this.radius = 60.0,
     this.isVisible = true,
   });
 

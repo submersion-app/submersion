@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
@@ -23,6 +24,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   Future<List<int>> buildPdf({
     required List<Dive> dives,
     required PdfPageSize pageSize,
+    required PdfDateFormatter dates,
     String title = 'Dive Logbook',
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -39,6 +41,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           title: title,
           diveCount: dives.length,
           pageFormat: pageFormat,
+          dates: dates,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
           diver: diver,
@@ -65,6 +68,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           margin: const pw.EdgeInsets.all(32),
           build: (context) => PdfSharedComponents.buildCertificationCardsPage(
             certifications: certifications,
+            dates: dates,
             diver: diver,
           ),
         ),
@@ -85,7 +89,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             children: [
               ...pageDives.expand(
                 (dive) => [
-                  _buildDiveEntry(dive, signatures: diveSignatures?[dive.id]),
+                  _buildDiveEntry(
+                    dive,
+                    dates: dates,
+                    signatures: diveSignatures?[dive.id],
+                  ),
                   pw.SizedBox(height: 16),
                   pw.Divider(),
                   pw.SizedBox(height: 16),
@@ -100,7 +108,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     return await pdf.save();
   }
 
-  pw.Widget _buildDiveEntry(Dive dive, {List<Signature>? signatures}) {
+  pw.Widget _buildDiveEntry(
+    Dive dive, {
+    required PdfDateFormatter dates,
+    List<Signature>? signatures,
+  }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
 
     return pw.Container(
@@ -118,13 +130,13 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - ${dive.site?.name ?? 'Unknown Site'}',
-                style: pw.TextStyle(
+                style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.Text(
-                PdfSharedComponents.formatDateTime(dive.dateTime),
+                dates.dateTime(dive.dateTime),
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,
@@ -143,7 +155,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(
                 'Duration',
-                '${dive.bottomTime?.inMinutes ?? '-'} min',
+                '${pdfDiveDurationMinutes(dive)} min',
               ),
               pw.SizedBox(width: 16),
               PdfSharedComponents.buildInfoChip(
@@ -178,7 +190,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             pw.SizedBox(height: 8),
             pw.Text(
               'Verified by:',
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColors.grey700,
@@ -189,7 +201,12 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
               spacing: 8,
               runSpacing: 8,
               children: signatures
-                  .map((sig) => PdfSharedComponents.buildSignatureBlock(sig))
+                  .map(
+                    (sig) => PdfSharedComponents.buildSignatureBlock(
+                      sig,
+                      dates: dates,
+                    ),
+                  )
                   .toList(),
             ),
           ],

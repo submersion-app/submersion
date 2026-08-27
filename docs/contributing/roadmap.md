@@ -236,7 +236,7 @@ Community features and advanced integrations.
 
 - :crystal_ball: Community dive site database
 - :crystal_ball: User reviews and ratings
-- :crystal_ball: Site photo galleries
+- :white_check_mark: Site photo galleries (site media section with photo, video, and document attachments)
 - :crystal_ball: Discover nearby sites
 
 ### Advanced Features
@@ -286,9 +286,9 @@ When planning features, we consider:
 
 | Platform | Status | Version |
 |----------|--------|---------|
-| iOS | :white_check_mark: | iOS 13+ |
+| iOS | :white_check_mark: | iOS 15+ |
 | Android | :white_check_mark: | Android 7+ |
-| macOS | :white_check_mark: | macOS 11+ |
+| macOS | :white_check_mark: | macOS 12+ |
 | Windows | :white_check_mark: | Windows 10+ |
 | Linux | :white_check_mark: | Desktop |
 | Web | :clipboard: v2.0 | Requires sync |

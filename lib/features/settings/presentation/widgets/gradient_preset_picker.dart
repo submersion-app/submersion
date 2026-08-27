@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/settings/presentation/widgets/custom_gradient_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A horizontal scrollable row of gradient swatch cards.
 /// Each card shows a linear gradient preview. The selected preset has a
@@ -211,7 +212,7 @@ class _CustomGradientSwatch extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Custom',
+            context.l10n.settings_appearance_colorGradient_custom,
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected

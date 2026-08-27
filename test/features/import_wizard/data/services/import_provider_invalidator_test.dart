@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Testable mirror of invalidateImportRelatedProviders.
@@ -71,6 +72,12 @@ void _invalidateWithCallback(
 
       case ImportEntityType.diveTypes:
         invalidate(diveTypesProvider);
+
+      case ImportEntityType.media:
+        // Photos land on dives that may already be on screen.
+        invalidate(mediaForDiveProvider);
+        invalidate(mediaCountForDiveProvider);
+        invalidate(mediaListNotifierProvider);
     }
   }
 }

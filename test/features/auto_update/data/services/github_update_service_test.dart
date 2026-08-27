@@ -40,9 +40,9 @@ void main() {
                   'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Android.apk',
             },
             {
-              'name': 'Submersion-$tagName-Windows.zip',
+              'name': 'Submersion-$tagName-Windows-Setup.exe',
               'browser_download_url':
-                  'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Windows.zip',
+                  'https://github.com/$owner/$repo/releases/download/$tagName/Submersion-$tagName-Windows-Setup.exe',
             },
           ],
     };
@@ -89,6 +89,106 @@ void main() {
       expect(available.version, '1.1.0');
       expect(available.releaseNotes, 'New features');
       expect(available.downloadUrl, contains('Linux.tar.gz'));
+    });
+
+    test(
+      '4-segment current version equal to the release tag is up to date',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response(
+            jsonEncode(makeRelease(tagName: 'v1.7.1.118')),
+            200,
+          );
+        });
+
+        final service = GithubUpdateService(
+          owner: owner,
+          repo: repo,
+          currentVersion: '1.7.1.118',
+          platformSuffix: 'Linux.tar.gz',
+          httpClient: client,
+        );
+
+        expect(await service.checkForUpdate(), isA<UpToDate>());
+      },
+    );
+
+    test('finds the Windows installer asset by its real suffix', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode(makeRelease(tagName: 'v9.9.9.999')),
+          200,
+        );
+      });
+
+      final service = GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: currentVersion,
+        platformSuffix: 'Windows-Setup.exe',
+        httpClient: client,
+      );
+
+      final status = await service.checkForUpdate();
+      expect(status, isA<UpdateAvailable>());
+      expect(
+        (status as UpdateAvailable).downloadUrl,
+        endsWith('Windows-Setup.exe'),
+      );
+    });
+
+    // The scenario from #1258: a phone sitting on v1.7.4.6062 while
+    // v1.7.5.6772 was published. currentVersion is assembled in
+    // update_providers.dart from PackageInfo, whose Android values are the
+    // APK's versionName and versionCode. Promoted stable APKs carry the
+    // tag's build number as their versionCode (promote.yml copies the beta
+    // artifacts, and beta APKs are built with build-number = commit count),
+    // so the assembled string is directly comparable to the 4-segment tag.
+    test(
+      'an Android install is offered the APK asset for a newer tag',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response(
+            jsonEncode(makeRelease(tagName: 'v1.7.5.6772')),
+            200,
+          );
+        });
+
+        final service = GithubUpdateService(
+          owner: owner,
+          repo: repo,
+          currentVersion: '1.7.4.6062',
+          platformSuffix: 'Android.apk',
+          httpClient: client,
+        );
+
+        final status = await service.checkForUpdate();
+        expect(status, isA<UpdateAvailable>());
+        expect((status as UpdateAvailable).version, '1.7.5.6772');
+        expect(status.downloadUrl, endsWith('Android.apk'));
+      },
+    );
+
+    test('an Android install on the published build stays quiet', () async {
+      // The other half of the same wiring: if versionCode did not line up
+      // with the tag's build number, every check would report the version
+      // the device is already running as an available update, forever.
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode(makeRelease(tagName: 'v1.7.5.6772')),
+          200,
+        );
+      });
+
+      final service = GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: '1.7.5.6772',
+        platformSuffix: 'Android.apk',
+        httpClient: client,
+      );
+
+      expect(await service.checkForUpdate(), isA<UpToDate>());
     });
 
     test('returns UpToDate when current is newer than remote', () async {

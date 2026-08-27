@@ -314,5 +314,24 @@ void main() {
         expect(copy.sourceFileName, 'new.uddf');
       });
     });
+
+    group('customDiveRoles', () {
+      const roleRow = {'id': 'uuid-1', 'name': 'Hekkensluiter', 'sortOrder': 9};
+
+      test('participates in isEmpty, totalItems, and summary', () {
+        const result = UddfImportResult(customDiveRoles: [roleRow]);
+
+        expect(result.isEmpty, isFalse);
+        expect(result.totalItems, 1);
+        expect(result.summary, contains('1 custom dive roles'));
+      });
+
+      test('survives copyWithSourceFileName', () {
+        const result = UddfImportResult(customDiveRoles: [roleRow]);
+        final copy = result.copyWithSourceFileName('backup.uddf');
+        expect(copy.customDiveRoles, hasLength(1));
+        expect(copy.customDiveRoles.single['id'], 'uuid-1');
+      });
+    });
   });
 }

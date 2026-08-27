@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared comparison card for dive duplicate resolution.
 ///
@@ -30,8 +32,11 @@ class DiveComparisonCard extends ConsumerWidget {
   final IncomingDiveData incoming;
   final String existingDiveId;
   final double matchScore;
-  final String existingLabel;
-  final String incomingLabel;
+
+  /// Column headers for the diff table. Null resolves to the localized
+  /// defaults at build time; a const constructor cannot reach l10n.
+  final String? existingLabel;
+  final String? incomingLabel;
 
   // --- Immediate-action mode callbacks (backwards compatible) ---
   final VoidCallback? onSkip;
@@ -57,13 +62,20 @@ class DiveComparisonCard extends ConsumerWidget {
   /// avoid a nested card outline (grey line artifact).
   final bool embedded;
 
+  /// Whether the enclosing row still needs an explicit user decision.
+  ///
+  /// When `true` AND [selectedAction] is `null`, a "Choose an action" label is
+  /// rendered above the action-button row to make the required decision
+  /// visually prominent. Has no effect in immediate-action mode.
+  final bool isPending;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
     required this.existingDiveId,
     required this.matchScore,
-    this.existingLabel = 'Existing',
-    this.incomingLabel = 'Downloaded',
+    this.existingLabel,
+    this.incomingLabel,
     this.onSkip,
     this.onImportAsNew,
     this.onConsolidate,
@@ -71,12 +83,45 @@ class DiveComparisonCard extends ConsumerWidget {
     this.onActionChanged,
     this.availableActions,
     this.embedded = false,
+    this.isPending = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final resolvedExistingLabel =
+        existingLabel ?? context.l10n.universalImport_compare_existing;
+    final resolvedIncomingLabel =
+        incomingLabel ?? context.l10n.universalImport_compare_downloaded;
+
+    // An empty id means the duplicate is another dive within the SAME import
+    // batch (DiveMatchResult.inBatchIndex) — there is no existing database
+    // dive to load or compare against, but the action selector must still
+    // render so the user can flip the default skip to import-as-new.
+    if (existingDiveId.isEmpty) {
+      final content = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              context.l10n.universalImport_review_inBatchDuplicate,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          _buildActionButtons(context, ref),
+        ],
+      );
+      if (embedded) return content;
+      return Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
 
     final existingAsync = ref.watch(diveProvider(existingDiveId));
     final profileAsync = ref.watch(diveProfileProvider(existingDiveId));
@@ -86,15 +131,15 @@ class DiveComparisonCard extends ConsumerWidget {
         padding: EdgeInsets.all(24),
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (_, _) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text('Error loading dive data'),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(context.l10n.universalImport_compare_errorLoading),
       ),
       data: (existingDive) {
         if (existingDive == null) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('Existing dive not found'),
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(context.l10n.universalImport_compare_diveNotFound),
           );
         }
 
@@ -123,8 +168,8 @@ class DiveComparisonCard extends ConsumerWidget {
         final existingProfile = profileAsync.valueOrNull ?? [];
         final diveNum = existingDive.diveNumber;
         final effectiveExistingLabel = diveNum != null
-            ? '$existingLabel (#$diveNum)'
-            : existingLabel;
+            ? '$resolvedExistingLabel (#$diveNum)'
+            : resolvedExistingLabel;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -136,11 +181,13 @@ class DiveComparisonCard extends ConsumerWidget {
                 existingProfile: existingProfile,
                 incomingProfile: incoming.profile,
                 existingLabel: _computerLabel(
+                  context.l10n,
                   null,
                   existingDive.diveComputerModel,
                   existingDive.diveComputerSerial,
                 ),
                 incomingLabel: _computerLabel(
+                  context.l10n,
                   incoming.computerName,
                   incoming.computerModel,
                   incoming.computerSerial,
@@ -159,6 +206,7 @@ class DiveComparisonCard extends ConsumerWidget {
                 context,
                 comparison,
                 effectiveExistingLabel,
+                resolvedIncomingLabel,
                 units,
               ),
 
@@ -201,7 +249,7 @@ class DiveComparisonCard extends ConsumerWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Same: $summary',
+              context.l10n.universalImport_compare_sameFields(summary),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -216,6 +264,7 @@ class DiveComparisonCard extends ConsumerWidget {
     BuildContext context,
     DiveComparisonResult comparison,
     String existingLabel,
+    String incomingLabel,
     UnitFormatter units,
   ) {
     final theme = Theme.of(context);
@@ -227,7 +276,7 @@ class DiveComparisonCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'DIFFERENCES',
+            context.l10n.universalImport_compare_differences,
             style: theme.textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -281,20 +330,22 @@ class DiveComparisonCard extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
     // Format values using UnitFormatter for unit-aware display.
     final existingStr =
         field.existingText ??
         (field.existingRaw != null
-            ? _formatFieldValue(field.type, field.existingRaw, units)
+            ? _formatFieldValue(l10n, field.type, field.existingRaw, units)
             : null);
     final incomingStr =
         field.incomingText ??
         (field.incomingRaw != null
-            ? _formatFieldValue(field.type, field.incomingRaw, units)
+            ? _formatFieldValue(l10n, field.type, field.incomingRaw, units)
             : null);
 
-    String formatValue(String? value) => value ?? 'not recorded';
+    String formatValue(String? value) =>
+        value ?? l10n.universalImport_compare_notRecorded;
     final hasExisting = existingStr != null;
     final hasIncoming = incomingStr != null;
     final isChanged = hasExisting && hasIncoming && field.name != 'computer';
@@ -354,8 +405,12 @@ class DiveComparisonCard extends ConsumerWidget {
   }
 
   Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isTriState = selectedAction != null;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    // Tri-state selector mode is identified by the presence of an
+    // [onActionChanged] callback. A pending row legitimately passes a null
+    // [selectedAction] in this mode, so we cannot key off the action value.
+    final isTriState = onActionChanged != null;
 
     // In tri-state mode, limit buttons to availableActions (default: all).
     bool showAction(DuplicateAction action) {
@@ -374,11 +429,12 @@ class DiveComparisonCard extends ConsumerWidget {
     }
 
     Color? colorFor(DuplicateAction action) {
-      if (!isTriState || selectedAction != action) return null;
+      if (!isTriState) return null;
       return switch (action) {
         DuplicateAction.skip => colorScheme.error,
         DuplicateAction.importAsNew => Colors.green,
         DuplicateAction.consolidate => colorScheme.primary,
+        DuplicateAction.replaceSource => Colors.orange,
       };
     }
 
@@ -392,8 +448,8 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showAction(DuplicateAction.skip)) {
       buttons.add(
         _ActionButton(
-          label: 'Skip',
-          subtitle: 'Discard this download',
+          label: context.l10n.universalImport_label_skip,
+          subtitle: context.l10n.universalImport_compare_skipSubtitle,
           onPressed: callbackFor(DuplicateAction.skip, onSkip),
           style: styleFor(DuplicateAction.skip, _ActionButtonStyle.text),
           color: colorFor(DuplicateAction.skip),
@@ -404,8 +460,8 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showAction(DuplicateAction.importAsNew)) {
       buttons.add(
         _ActionButton(
-          label: 'Import as New',
-          subtitle: 'Save as separate dive',
+          label: context.l10n.universalImport_label_importAsNew,
+          subtitle: context.l10n.universalImport_compare_importAsNewSubtitle,
           onPressed: callbackFor(DuplicateAction.importAsNew, onImportAsNew),
           style: styleFor(
             DuplicateAction.importAsNew,
@@ -416,12 +472,27 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
+    if (showAction(DuplicateAction.replaceSource)) {
+      buttons.add(
+        _ActionButton(
+          label: context.l10n.universalImport_label_replaceSource,
+          subtitle: context.l10n.universalImport_label_replaceSourceSubtitle,
+          onPressed: callbackFor(DuplicateAction.replaceSource, null),
+          style: styleFor(
+            DuplicateAction.replaceSource,
+            _ActionButtonStyle.outlined,
+          ),
+          color: colorFor(DuplicateAction.replaceSource),
+        ),
+      );
+    }
+
     if (showAction(DuplicateAction.consolidate)) {
       buttons.add(
         _ActionButton(
-          label: 'Consolidate',
-          subtitle: 'Add as 2nd computer reading',
-          onPressed: null, // Disabled — consolidation is under development.
+          label: context.l10n.universalImport_label_consolidate,
+          subtitle: context.l10n.universalImport_compare_consolidateSubtitle,
+          onPressed: callbackFor(DuplicateAction.consolidate, onConsolidate),
           style: styleFor(
             DuplicateAction.consolidate,
             _ActionButtonStyle.outlined,
@@ -431,43 +502,77 @@ class DiveComparisonCard extends ConsumerWidget {
       );
     }
 
+    // Show a "Choose an action" label when the enclosing row is pending and
+    // no action has been selected yet — reinforces the pending visual cue and
+    // makes the required decision prominent.
+    final showChooseLabel = isPending && isTriState && selectedAction == null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: 8,
-        runSpacing: 4,
-        children: buttons,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showChooseLabel)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                context.l10n.universalImport_pending_chooseAction,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.tertiary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          Wrap(
+            alignment: WrapAlignment.start,
+            spacing: 8,
+            runSpacing: 4,
+            children: buttons,
+          ),
+        ],
       ),
     );
   }
 
   /// Format a raw field value using UnitFormatter for unit-aware display.
   static String _formatFieldValue(
+    AppLocalizations l10n,
     ComparisonFieldType type,
     double? rawValue,
     UnitFormatter units,
   ) {
-    if (rawValue == null) return '--';
+    if (rawValue == null) return l10n.common_placeholder_noValue;
     switch (type) {
       case ComparisonFieldType.depth:
         return units.formatDepth(rawValue);
       case ComparisonFieldType.temperature:
         return units.formatTemperature(rawValue);
       case ComparisonFieldType.duration:
-        return '${(rawValue / 60).round()} min';
+        return l10n.diveComputer_download_durationMin(
+          '${(rawValue / 60).round()}',
+        );
       case ComparisonFieldType.dateTime:
       case ComparisonFieldType.text:
         return rawValue.toString();
     }
   }
 
-  String _computerLabel(String? name, String? model, String? serial) {
+  String _computerLabel(
+    AppLocalizations l10n,
+    String? name,
+    String? model,
+    String? serial,
+  ) {
     final parts = <String>[];
     if (name != null && name.isNotEmpty) parts.add(name);
     if (model != null && model != name) parts.add(model);
-    if (serial != null) parts.add('S/N: $serial');
-    return parts.isEmpty ? 'Unknown' : parts.join(' \u00b7 ');
+    if (serial != null) {
+      parts.add(l10n.universalImport_compare_serial(serial));
+    }
+    return parts.isEmpty
+        ? l10n.diveComputer_detail_unknown
+        : parts.join(' \u00b7 ');
   }
 }
 
@@ -518,17 +623,31 @@ class _ActionButton extends StatelessWidget {
 
     const minSize = Size(0, 48);
 
+    // When the button is disabled (onPressed == null), skip the semantic
+    // color/border so Material's default disabled styling takes over — keeps
+    // the "not clickable" affordance visually clear.
+    final isEnabled = onPressed != null;
+    final effectiveColor = isEnabled ? color : null;
     switch (style) {
       case _ActionButtonStyle.text:
         return TextButton(
           onPressed: onPressed,
-          style: TextButton.styleFrom(minimumSize: minSize),
+          style: TextButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: effectiveColor,
+          ),
           child: child,
         );
       case _ActionButtonStyle.outlined:
         return OutlinedButton(
           onPressed: onPressed,
-          style: OutlinedButton.styleFrom(minimumSize: minSize),
+          style: OutlinedButton.styleFrom(
+            minimumSize: minSize,
+            foregroundColor: effectiveColor,
+            side: effectiveColor != null
+                ? BorderSide(color: effectiveColor, width: 2.5)
+                : null,
+          ),
           child: child,
         );
       case _ActionButtonStyle.filled:
@@ -536,8 +655,8 @@ class _ActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: FilledButton.styleFrom(
             minimumSize: minSize,
-            backgroundColor: color,
-            foregroundColor: color != null ? Colors.white : null,
+            backgroundColor: effectiveColor,
+            foregroundColor: effectiveColor != null ? Colors.white : null,
           ),
           child: child,
         );

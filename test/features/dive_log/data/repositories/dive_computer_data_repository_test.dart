@@ -266,6 +266,35 @@ void main() {
       expect(await repository.hasMultipleDataSources(diveId1), isFalse);
       expect(await repository.hasMultipleDataSources(diveId2), isTrue);
     });
+
+    test('returns false when two readings share a computerId (same-computer '
+        'merge provenance, not a real second source)', () async {
+      final diveId = await insertTestDive();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: const Value('dc-a'),
+              name: const Value('Petrel 3'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'r1',
+          diveId: diveId,
+          isPrimary: true,
+          computerId: 'dc-a',
+        ),
+      );
+      await repository.saveComputerReading(
+        buildReading(id: 'r2', diveId: diveId, computerId: 'dc-a'),
+      );
+
+      expect(await repository.hasMultipleDataSources(diveId), isFalse);
+    });
   });
 
   // ---------------------------------------------------------------------------

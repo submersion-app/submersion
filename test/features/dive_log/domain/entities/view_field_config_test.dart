@@ -78,7 +78,7 @@ void main() {
   group('TableViewConfig', () {
     test('defaultConfig has expected columns', () {
       final config = TableViewConfig.defaultConfig();
-      expect(config.columns.length, equals(22));
+      expect(config.columns.length, equals(23));
       expect(config.columns[0].field, equals(DiveField.diveNumber));
       expect(config.columns[0].isPinned, isTrue);
       expect(config.columns[1].field, equals(DiveField.siteName));
@@ -86,16 +86,17 @@ void main() {
       // Core fields
       expect(config.columns[2].field, equals(DiveField.dateTime));
       expect(config.columns[3].field, equals(DiveField.diveTypeName));
-      expect(config.columns[6].field, equals(DiveField.runtime));
+      expect(config.columns[4].field, equals(DiveField.diveMode));
+      expect(config.columns[7].field, equals(DiveField.runtime));
       // Gas/Tank fields
-      expect(config.columns[8].field, equals(DiveField.primaryGas));
-      expect(config.columns[11].field, equals(DiveField.sacRate));
+      expect(config.columns[9].field, equals(DiveField.primaryGas));
+      expect(config.columns[12].field, equals(DiveField.sacRate));
       // Environment fields
-      expect(config.columns[12].field, equals(DiveField.waterTemp));
+      expect(config.columns[13].field, equals(DiveField.waterTemp));
       // People fields
-      expect(config.columns[16].field, equals(DiveField.buddy));
+      expect(config.columns[17].field, equals(DiveField.buddy));
       // Metadata fields
-      expect(config.columns[21].field, equals(DiveField.notes));
+      expect(config.columns[22].field, equals(DiveField.notes));
       expect(config.sortField, isNull);
       expect(config.sortAscending, isTrue);
     });
@@ -309,11 +310,47 @@ void main() {
       expect(modified.mode, equals(original.mode));
       expect(modified.slots.length, equals(original.slots.length));
       expect(modified.extraFields, equals(original.extraFields));
+      expect(modified.showTags, equals(original.showTags));
     });
 
-    test('props includes mode, slots, and extraFields', () {
+    test('props includes mode, slots, extraFields, and showTags', () {
       final config = CardViewConfig.defaultCompact();
-      expect(config.props.length, equals(3));
+      expect(config.props.length, equals(4));
+    });
+
+    test('defaults showTags to true for all factory constructors', () {
+      expect(CardViewConfig.defaultCompact().showTags, isTrue);
+      expect(CardViewConfig.defaultDense().showTags, isTrue);
+      expect(CardViewConfig.defaultDetailed().showTags, isTrue);
+    });
+
+    test('copyWith updates showTags', () {
+      final original = CardViewConfig.defaultDetailed();
+      final modified = original.copyWith(showTags: false);
+      expect(modified.showTags, isFalse);
+      // other fields unchanged
+      expect(modified.mode, equals(original.mode));
+      expect(modified.slots, equals(original.slots));
+    });
+
+    test('serializes showTags round-trip', () {
+      final config = CardViewConfig.defaultDetailed().copyWith(showTags: false);
+      final json = jsonEncode(config.toJson());
+      final restored = CardViewConfig.fromJson(
+        jsonDecode(json) as Map<String, dynamic>,
+      );
+      expect(restored.showTags, isFalse);
+    });
+
+    test('fromJson defaults showTags to true when missing', () {
+      final json = {
+        'mode': 'detailed',
+        'slots': [
+          {'slotId': 'title', 'field': 'siteName'},
+        ],
+      };
+      final config = CardViewConfig.fromJson(json);
+      expect(config.showTags, isTrue);
     });
   });
 
@@ -567,11 +604,11 @@ void main() {
   });
 
   group('FieldPreset edge cases', () {
-    test('Standard preset has 22 columns with category grouping', () {
+    test('Standard preset has 23 columns with category grouping', () {
       final presets = FieldPreset.builtInTablePresets();
       final standard = presets.firstWhere((p) => p.name == 'Standard');
       final config = TableViewConfig.fromJson(standard.configJson);
-      expect(config.columns.length, equals(22));
+      expect(config.columns.length, equals(23));
       final fields = config.columns.map((c) => c.field).toList();
       // Verify key fields from each category are present
       expect(fields, contains(DiveField.waterTemp));

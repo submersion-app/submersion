@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dives SYSTEM "http://www.mac-dive.com/macdive_logbook.dtd">
+<dives>
+    <units>Imperial</units>
+    <schema>2.2.0</schema>
+    <dive>
+        <date>2024-06-01 09:00:00</date>
+        <identifier>20240601090000-IMP</identifier>
+        <maxDepth>100</maxDepth>
+        <averageDepth>60</averageDepth>
+        <duration>2400</duration>
+        <tempHigh>80</tempHigh>
+        <tempLow>70</tempLow>
+        <weight>10</weight>
+        <gases>
+            <gas>
+                <pressureStart>3000</pressureStart>
+                <pressureEnd>1000</pressureEnd>
+                <oxygen>32</oxygen>
+                <tankSize>77.4</tankSize>
+                <workingPressure>3000</workingPressure>
+                <supplyType>Open Circuit</supplyType>
+                <tankName>AL80</tankName>
+            </gas>
+        </gases>
+        <samples>
+            <sample><time>0</time><depth>0</depth><pressure>3000</pressure><temperature>80</temperature></sample>
+            <sample><time>600</time><depth>100</depth><pressure>2000</pressure><temperature>72</temperature></sample>
+        </samples>
+    </dive>
+</dives>

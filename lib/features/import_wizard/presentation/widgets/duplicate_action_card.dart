@@ -5,6 +5,8 @@ import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A collapsed/expandable card summarising one duplicate item.
 ///
@@ -19,7 +21,11 @@ class DuplicateActionCard extends StatefulWidget {
   final DiveMatchResult matchResult;
 
   /// The currently selected action for this item.
-  final DuplicateAction selectedAction;
+  ///
+  /// `null` when the user has not yet made a decision. In that state the
+  /// card renders without an action badge and the embedded comparison card
+  /// leaves every action button outlined (no button is pre-highlighted).
+  final DuplicateAction? selectedAction;
 
   /// The set of action buttons to show in the expanded comparison card.
   final Set<DuplicateAction> availableActions;
@@ -35,6 +41,12 @@ class DuplicateActionCard extends StatefulWidget {
   /// Only shown when [selectedAction] is [DuplicateAction.importAsNew].
   final int? projectedDiveNumber;
 
+  /// Whether this duplicate still needs an explicit user decision.
+  ///
+  /// When `true`, the card is rendered in a warning visual state: a 1.5-px
+  /// warning-colored border and a [NeedsDecisionPill] in the header.
+  final bool isPending;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -44,6 +56,7 @@ class DuplicateActionCard extends StatefulWidget {
     required this.onActionChanged,
     required this.existingDiveId,
     this.projectedDiveNumber,
+    this.isPending = false,
   });
 
   @override
@@ -54,22 +67,40 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
   bool _expanded = false;
 
   @override
+  void didUpdateWidget(DuplicateActionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-collapse when an action is selected (user made their decision).
+    if (oldWidget.selectedAction == null && widget.selectedAction != null) {
+      setState(() => _expanded = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final score = widget.matchResult.score;
 
+    // Fallback-free border colour for non-pending rows. Pending rows always
+    // override with the tertiary warning border below, so the fallback used
+    // here (when [selectedAction] is null) is only theoretical.
     final borderColor = switch (widget.selectedAction) {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.skip => score >= 0.7 ? colorScheme.error : Colors.orange,
+      DuplicateAction.replaceSource => Colors.blue.shade700,
+      null => colorScheme.tertiary,
     };
+
+    final BorderSide borderSide = widget.isPending
+        ? BorderSide(color: colorScheme.tertiary, width: 1.5)
+        : BorderSide(color: borderColor, width: 1.5);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: 1.5),
+        side: borderSide,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -80,6 +111,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
             matchResult: widget.matchResult,
             selectedAction: widget.selectedAction,
             expanded: _expanded,
+            isPending: widget.isPending,
             onToggle: () => setState(() => _expanded = !_expanded),
             projectedDiveNumber:
                 widget.selectedAction == DuplicateAction.importAsNew
@@ -98,7 +130,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'Dive data not available for comparison.',
+          context.l10n.universalImport_compare_noDiveData,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -111,10 +143,11 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       incoming: diveData,
       existingDiveId: widget.existingDiveId,
       matchScore: widget.matchResult.score,
-      incomingLabel: 'Incoming',
+      incomingLabel: context.l10n.universalImport_compare_incoming,
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
       availableActions: widget.availableActions,
+      isPending: widget.isPending,
     );
   }
 }
@@ -122,8 +155,12 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
 class _CollapsedHeader extends StatelessWidget {
   final EntityItem item;
   final DiveMatchResult matchResult;
-  final DuplicateAction selectedAction;
+
+  /// The action chosen for this row, or `null` when the user has not yet
+  /// decided. Null suppresses the trailing [_ActionBadge].
+  final DuplicateAction? selectedAction;
   final bool expanded;
+  final bool isPending;
   final VoidCallback onToggle;
   final int? projectedDiveNumber;
 
@@ -133,6 +170,7 @@ class _CollapsedHeader extends StatelessWidget {
     required this.selectedAction,
     required this.expanded,
     required this.onToggle,
+    this.isPending = false,
     this.projectedDiveNumber,
   });
 
@@ -162,79 +200,95 @@ class _CollapsedHeader extends StatelessWidget {
       onTap: onToggle,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dive number badge (centered vertically between title + subtitle)
-            if (projectedDiveNumber != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '#$projectedDiveNumber',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            // Title + subtitle column
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+            // Top row: dive number + title/subtitle + chevron
+            Row(
+              children: [
+                if (projectedDiveNumber != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (effectiveSubtitle.isNotEmpty)
-                    Text(
-                      effectiveSubtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '#$projectedDiveNumber',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
+                  ),
+                  const SizedBox(width: 8),
                 ],
-              ),
-            ),
-            // Dive profile sparkline (only when profile data exists)
-            if (item.diveData != null && item.diveData!.profile.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              DiveSparkline(profile: item.diveData!.profile),
-            ],
-            const SizedBox(width: 8),
-            // Match % badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: badgeBorderColor, width: 1.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$percent% match',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: badgeBorderColor,
-                  fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (effectiveSubtitle.isNotEmpty)
+                        Text(
+                          effectiveSubtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Icon(
+                  expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            // Action badge
-            _ActionBadge(action: selectedAction),
-            const SizedBox(width: 4),
-            // Expand/collapse chevron
-            Icon(
-              expanded ? Icons.expand_less : Icons.expand_more,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
+            const SizedBox(height: 6),
+            // Bottom row: sparkline + badges (wraps on narrow screens)
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (!expanded &&
+                    item.diveData != null &&
+                    item.diveData!.profile.isNotEmpty)
+                  DiveSparkline(profile: item.diveData!.profile),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: badgeBorderColor, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    context.l10n.universalImport_label_percentMatch(percent),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: badgeBorderColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (isPending) NeedsDecisionPill(colorScheme: colorScheme),
+                if (selectedAction != null)
+                  _ActionBadge(action: selectedAction!),
+              ],
             ),
           ],
         ),
@@ -251,10 +305,24 @@ class _ActionBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final (label, color) = switch (action) {
-      DuplicateAction.skip => ('SKIP', theme.colorScheme.error),
-      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
-      DuplicateAction.consolidate => ('CONSOLIDATE', Colors.green.shade700),
+      DuplicateAction.skip => (
+        l10n.universalImport_entityAction_skipBadge,
+        theme.colorScheme.error,
+      ),
+      DuplicateAction.importAsNew => (
+        l10n.universalImport_entityAction_importBadge,
+        Colors.green.shade700,
+      ),
+      DuplicateAction.consolidate => (
+        l10n.universalImport_entityAction_consolidateBadge,
+        Colors.green.shade700,
+      ),
+      DuplicateAction.replaceSource => (
+        l10n.universalImport_entityAction_replaceBadge,
+        Colors.blue.shade700,
+      ),
     };
 
     return Container(

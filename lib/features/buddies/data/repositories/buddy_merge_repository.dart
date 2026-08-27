@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -7,6 +6,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 
 /// Snapshot of a DiveBuddies junction row for undo.
 class DiveBuddySnapshot {
@@ -25,18 +25,44 @@ class DiveBuddySnapshot {
   });
 }
 
+/// Snapshot of a certification's instructor link for undo.
+class CertificationInstructorSnapshot {
+  final String certificationId;
+  final String instructorId;
+
+  const CertificationInstructorSnapshot({
+    required this.certificationId,
+    required this.instructorId,
+  });
+}
+
+/// Snapshot of a certification's buddy owner for undo (issue #553).
+class CertificationOwnerSnapshot {
+  final String certificationId;
+  final String previousBuddyId;
+
+  const CertificationOwnerSnapshot({
+    required this.certificationId,
+    required this.previousBuddyId,
+  });
+}
+
 /// Snapshot captured before a buddy merge for undo.
 class BuddyMergeSnapshot {
   final domain.Buddy originalSurvivor;
   final List<domain.Buddy> deletedBuddies;
   final List<DiveBuddySnapshot> deletedDiveBuddyEntries;
   final List<DiveBuddySnapshot> modifiedDiveBuddyEntries;
+  final List<CertificationInstructorSnapshot> repointedCertifications;
+  final List<CertificationOwnerSnapshot> repointedOwnerCerts;
 
   const BuddyMergeSnapshot({
     required this.originalSurvivor,
     required this.deletedBuddies,
     required this.deletedDiveBuddyEntries,
     required this.modifiedDiveBuddyEntries,
+    this.repointedCertifications = const [],
+    this.repointedOwnerCerts = const [],
   });
 }
 
@@ -55,6 +81,7 @@ class BuddyMergeResult {
 class BuddyMergeRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final CertificationRepository _certRepo = CertificationRepository();
   final _log = LoggerService.forClass(BuddyMergeRepository);
 
   static const _roleRank = {
@@ -81,28 +108,15 @@ class BuddyMergeRepository {
       name: row.name,
       email: row.email,
       phone: row.phone,
-      certificationLevel: _parseCertificationLevel(row.certificationLevel),
-      certificationAgency: _parseCertificationAgency(row.certificationAgency),
+      // Cert level/agency are derived from the certifications table at
+      // hydration (issue #553); merge snapshots don't need the derived value.
+      certificationLevel: null,
+      certificationAgency: null,
       photoPath: row.photoPath,
       notes: row.notes,
+      isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-    );
-  }
-
-  CertificationLevel? _parseCertificationLevel(String? value) {
-    if (value == null) return null;
-    return CertificationLevel.values.firstWhere(
-      (l) => l.name == value,
-      orElse: () => CertificationLevel.other,
-    );
-  }
-
-  CertificationAgency? _parseCertificationAgency(String? value) {
-    if (value == null) return null;
-    return CertificationAgency.values.firstWhere(
-      (a) => a.name == value,
-      orElse: () => CertificationAgency.other,
     );
   }
 
@@ -178,6 +192,8 @@ class BuddyMergeRepository {
       // Track which survivor rows have already been snapshotted so that
       // 3+ buddy merges don't record intermediate roles.
       final modifiedRowIds = <String>{};
+      final repointedCertifications = <CertificationInstructorSnapshot>[];
+      final repointedOwnerCerts = <CertificationOwnerSnapshot>[];
 
       await _db.transaction(() async {
         // Update survivor with merged fields
@@ -285,6 +301,60 @@ class BuddyMergeRepository {
           }
         }
 
+        // Re-point certification instructor links (issue #395).
+        final linkedCerts = await (_db.select(
+          _db.certifications,
+        )..where((t) => t.instructorId.isIn(duplicateIds))).get();
+        for (final cert in linkedCerts) {
+          repointedCertifications.add(
+            CertificationInstructorSnapshot(
+              certificationId: cert.id,
+              instructorId: cert.instructorId!,
+            ),
+          );
+          await (_db.update(
+            _db.certifications,
+          )..where((t) => t.id.equals(cert.id))).write(
+            CertificationsCompanion(
+              instructorId: Value(survivorId),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'certifications',
+            recordId: cert.id,
+            localUpdatedAt: now,
+          );
+        }
+
+        // Survivor inherits the union of certs: reassign owner (buddyId) from
+        // duplicates to survivor so the duplicate-buddy delete below does not
+        // CASCADE them away (issue #553).
+        final ownedCerts = await (_db.select(
+          _db.certifications,
+        )..where((t) => t.buddyId.isIn(duplicateIds))).get();
+        for (final cert in ownedCerts) {
+          repointedOwnerCerts.add(
+            CertificationOwnerSnapshot(
+              certificationId: cert.id,
+              previousBuddyId: cert.buddyId!,
+            ),
+          );
+          await (_db.update(
+            _db.certifications,
+          )..where((t) => t.id.equals(cert.id))).write(
+            CertificationsCompanion(
+              buddyId: Value(survivorId),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'certifications',
+            recordId: cert.id,
+            localUpdatedAt: now,
+          );
+        }
+
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
@@ -330,6 +400,8 @@ class BuddyMergeRepository {
           deletedBuddies: deletedBuddies,
           deletedDiveBuddyEntries: allDeleted,
           modifiedDiveBuddyEntries: modifiedDiveBuddyEntries,
+          repointedCertifications: repointedCertifications,
+          repointedOwnerCerts: repointedOwnerCerts,
         ),
       );
     } catch (e, stackTrace) {
@@ -371,10 +443,9 @@ class BuddyMergeRepository {
                   name: Value(buddy.name),
                   email: Value(buddy.email),
                   phone: Value(buddy.phone),
-                  certificationLevel: Value(buddy.certificationLevel?.name),
-                  certificationAgency: Value(buddy.certificationAgency?.name),
                   photoPath: Value(buddy.photoPath),
                   notes: Value(buddy.notes),
+                  isFavorite: Value(buddy.isFavorite),
                   createdAt: Value(buddy.createdAt.millisecondsSinceEpoch),
                   updatedAt: Value(buddy.updatedAt.millisecondsSinceEpoch),
                 ),
@@ -420,6 +491,41 @@ class BuddyMergeRepository {
             localUpdatedAt: now,
           );
         }
+
+        // 5. Restore certification instructor links.
+        for (final entry in snapshot.repointedCertifications) {
+          await (_db.update(
+            _db.certifications,
+          )..where((t) => t.id.equals(entry.certificationId))).write(
+            CertificationsCompanion(
+              instructorId: Value(entry.instructorId),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'certifications',
+            recordId: entry.certificationId,
+            localUpdatedAt: now,
+          );
+        }
+
+        // 6. Restore certification buddy-owner links (issue #553). The deleted
+        // duplicate buddies were re-created in step 2, so the FK target exists.
+        for (final entry in snapshot.repointedOwnerCerts) {
+          await (_db.update(
+            _db.certifications,
+          )..where((t) => t.id.equals(entry.certificationId))).write(
+            CertificationsCompanion(
+              buddyId: Value(entry.previousBuddyId),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'certifications',
+            recordId: entry.certificationId,
+            localUpdatedAt: now,
+          );
+        }
       });
 
       SyncEventBus.notifyLocalChange();
@@ -439,10 +545,33 @@ class BuddyMergeRepository {
     if (ids.isEmpty) return;
     try {
       _log.info('Bulk deleting ${ids.length} buddies');
-      await (_db.delete(_db.buddies)..where((t) => t.id.isIn(ids))).go();
-      for (final id in ids) {
-        await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);
-      }
+      // Atomic (issue #553 review): tombstone each buddy's certs (the cascade
+      // removes them silently otherwise), delete the buddies, and tombstone
+      // them -- all in one transaction.
+      await _db.transaction(() async {
+        // Delete + tombstone cert rows inline (no per-cert notifyLocalChange):
+        // a single notify fires after commit instead of one per cert. Batch the
+        // cert lookup (getCertificationsForBuddies) to avoid an N+1 per buddy.
+        final certsByBuddy = await _certRepo.getCertificationsForBuddies(ids);
+        for (final certs in certsByBuddy.values) {
+          for (final cert in certs) {
+            await (_db.delete(
+              _db.certifications,
+            )..where((t) => t.id.equals(cert.id))).go();
+            await _syncRepository.logDeletion(
+              entityType: 'certifications',
+              recordId: cert.id,
+            );
+          }
+        }
+        await (_db.delete(_db.buddies)..where((t) => t.id.isIn(ids))).go();
+        for (final id in ids) {
+          await _syncRepository.logDeletion(
+            entityType: 'buddies',
+            recordId: id,
+          );
+        }
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${ids.length} buddies');
     } catch (e, stackTrace) {
@@ -462,10 +591,9 @@ class BuddyMergeRepository {
         name: Value(buddy.name),
         email: Value(buddy.email),
         phone: Value(buddy.phone),
-        certificationLevel: Value(buddy.certificationLevel?.name),
-        certificationAgency: Value(buddy.certificationAgency?.name),
         photoPath: Value(buddy.photoPath),
         notes: Value(buddy.notes),
+        isFavorite: Value(buddy.isFavorite),
         updatedAt: Value(now),
       ),
     );

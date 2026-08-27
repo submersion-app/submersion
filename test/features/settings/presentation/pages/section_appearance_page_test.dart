@@ -712,8 +712,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Default settings have some metrics enabled. The exact count depends
-      // on default AppSettings. Find the pattern "X of 18"
-      expect(find.textContaining('of 18'), findsOneWidget);
+      // on default AppSettings. Find the pattern "X of 22" -- one entry per
+      // SwitchListTile on DefaultVisibleMetricsPage.
+      expect(find.textContaining('of 22'), findsOneWidget);
     });
   });
 
@@ -1074,6 +1075,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(pushedPath, '/settings/dive-detail-sections');
+    });
+  });
+
+  group('SectionAppearancePage - Gas timeline toggle', () {
+    testWidgets('toggling gas timeline switch updates state', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('dives'));
+      await tester.pumpAndSettle();
+
+      final gasTimelineSwitch = find.widgetWithIcon(
+        SwitchListTile,
+        Icons.timeline,
+      );
+      expect(gasTimelineSwitch, findsOneWidget);
+
+      var switchWidget = tester.widget<SwitchListTile>(gasTimelineSwitch);
+      expect(switchWidget.value, isFalse);
+
+      await tester.tap(gasTimelineSwitch);
+      await tester.pumpAndSettle();
+
+      switchWidget = tester.widget<SwitchListTile>(gasTimelineSwitch);
+      expect(switchWidget.value, isTrue);
     });
   });
 }

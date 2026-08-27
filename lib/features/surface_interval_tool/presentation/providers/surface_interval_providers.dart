@@ -1,9 +1,12 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 // =============================================================================
@@ -28,6 +31,12 @@ final siSecondDiveDepthProvider = StateProvider<double>((ref) => 18.0);
 /// Second dive time in minutes.
 final siSecondDiveTimeProvider = StateProvider<int>((ref) => 45);
 
+/// Second dive O2 percentage (21 = air, 32 = EAN32, etc.).
+final siSecondDiveO2Provider = StateProvider<double>((ref) => 21.0);
+
+/// Second dive Helium percentage (0 for recreational, >0 for trimix).
+final siSecondDiveHeProvider = StateProvider<double>((ref) => 0.0);
+
 /// Current surface interval for chart visualization (minutes).
 final siSurfaceIntervalProvider = StateProvider<int>((ref) => 60);
 
@@ -45,6 +54,94 @@ final siFirstDiveFN2Provider = Provider<double>((ref) {
 /// Helium fraction for first dive gas.
 final siFirstDiveFHeProvider = Provider<double>((ref) {
   return ref.watch(siFirstDiveHeProvider) / 100.0;
+});
+
+/// Nitrogen fraction for second dive gas.
+final siSecondDiveFN2Provider = Provider<double>((ref) {
+  final o2 = ref.watch(siSecondDiveO2Provider);
+  final he = ref.watch(siSecondDiveHeProvider);
+  return (100 - o2 - he) / 100.0;
+});
+
+/// Helium fraction for second dive gas.
+final siSecondDiveFHeProvider = Provider<double>((ref) {
+  return ref.watch(siSecondDiveHeProvider) / 100.0;
+});
+
+// =============================================================================
+// Oxygen Exposure (ppO2 / MOD)
+// =============================================================================
+
+/// Oxygen exposure for one dive's gas at that dive's planned depth.
+@immutable
+class SiGasSafety {
+  /// The planned depth this exposure was evaluated at, in meters.
+  final double depthMeters;
+
+  /// Partial pressure of oxygen at [depthMeters], in bar.
+  final double ppO2;
+
+  /// Maximum operating depth for this mix at [limit], in meters.
+  final double modMeters;
+
+  /// The diver's configured working ppO2 ceiling, in bar.
+  final double limit;
+
+  const SiGasSafety({
+    required this.depthMeters,
+    required this.ppO2,
+    required this.modMeters,
+    required this.limit,
+  });
+
+  /// Whether the planned depth puts the diver past their ppO2 ceiling.
+  ///
+  /// The ceiling itself is allowed; only exposure above it is a violation. The
+  /// tolerance keeps a mix that lands exactly on the limit from tripping the
+  /// warning through floating point noise.
+  bool get exceedsMod => ppO2 > limit + 1e-9;
+}
+
+SiGasSafety _gasSafetyAt({
+  required double depthMeters,
+  required double o2Percent,
+  required double limit,
+}) {
+  final o2Fraction = o2Percent / 100.0;
+  return SiGasSafety(
+    depthMeters: depthMeters,
+    ppO2: O2ToxicityCalculator.calculatePpO2(depthMeters, o2Fraction),
+    modMeters: O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: limit),
+    limit: limit,
+  );
+}
+
+/// Oxygen exposure for the first dive's gas at the first dive's depth.
+final siFirstDiveGasSafetyProvider = Provider<SiGasSafety>((ref) {
+  return _gasSafetyAt(
+    depthMeters: ref.watch(siFirstDiveDepthProvider),
+    o2Percent: ref.watch(siFirstDiveO2Provider),
+    limit: ref.watch(ppO2MaxWorkingProvider),
+  );
+});
+
+/// Oxygen exposure for the second dive's gas at the second dive's depth.
+final siSecondDiveGasSafetyProvider = Provider<SiGasSafety>((ref) {
+  return _gasSafetyAt(
+    depthMeters: ref.watch(siSecondDiveDepthProvider),
+    o2Percent: ref.watch(siSecondDiveO2Provider),
+    limit: ref.watch(ppO2MaxWorkingProvider),
+  );
+});
+
+/// Whether both planned dives stay within the diver's working ppO2 ceiling.
+///
+/// Kept separate from [siSecondDiveIsSafeProvider] so the no-deco verdict and
+/// the oxygen verdict stay independently testable and independently explainable
+/// to the diver.
+final siGasMixesAreSafeProvider = Provider<bool>((ref) {
+  return !ref.watch(siFirstDiveGasSafetyProvider).exceedsMod &&
+      !ref.watch(siSecondDiveGasSafetyProvider).exceedsMod;
 });
 
 /// Tissue compartments state after first dive completes.
@@ -86,6 +183,8 @@ final siRecoveredCompartmentsProvider = Provider<List<TissueCompartment>>((
 final siSecondDiveNdlProvider = Provider<int>((ref) {
   final recoveredCompartments = ref.watch(siRecoveredCompartmentsProvider);
   final secondDiveDepth = ref.watch(siSecondDiveDepthProvider);
+  final fN2 = ref.watch(siSecondDiveFN2Provider);
+  final fHe = ref.watch(siSecondDiveFHeProvider);
   final settings = ref.watch(settingsProvider);
 
   final algorithm = BuhlmannAlgorithm(
@@ -96,8 +195,8 @@ final siSecondDiveNdlProvider = Provider<int>((ref) {
 
   return algorithm.calculateNdl(
     depthMeters: secondDiveDepth,
-    fN2: airN2Fraction,
-    fHe: 0.0,
+    fN2: fN2,
+    fHe: fHe,
   );
 });
 
@@ -110,51 +209,153 @@ final siSecondDiveIsSafeProvider = Provider<bool>((ref) {
   return ndl > 0 && ndl >= secondDiveTime * 60;
 });
 
-/// Minimum surface interval in minutes to achieve safe second dive.
-/// Uses binary search to find the shortest interval where NDL >= dive time.
-final siMinimumIntervalProvider = Provider<int>((ref) {
+/// Longest surface interval the planner searches, in minutes.
+///
+/// This is a reporting horizon, not a physical limit. Compartment 16 has a 635
+/// minute nitrogen half-time, so a heavily loaded diver is still off-gassing
+/// well past six hours; a plan that does not fit inside the horizon may still
+/// fit after a longer wait. Only the clean-tissue no-stop limit settles whether
+/// a dive is possible at all.
+const int siMaxSearchIntervalMinutes = 360;
+
+/// Why the planner did or did not produce a surface interval.
+enum SiIntervalOutcome {
+  /// A wait inside [siMaxSearchIntervalMinutes] makes the second dive no-stop.
+  withinHorizon,
+
+  /// Off-gassing gets there eventually, but not inside the planner's horizon.
+  /// The remedy is a longer wait, not a different dive.
+  beyondHorizon,
+
+  /// The second dive busts its no-stop limit even on completely clean tissues,
+  /// so no surface interval of any length is enough. The remedy is a shorter or
+  /// shallower dive.
+  impossible,
+}
+
+/// How long a diver must wait on the surface before the planned second dive.
+@immutable
+class SiMinimumInterval {
+  /// Which of the three answers the planner arrived at.
+  final SiIntervalOutcome outcome;
+
+  /// Shortest surface interval, in minutes, after which the second dive fits
+  /// inside its no-decompression limit.
+  ///
+  /// Set only for [SiIntervalOutcome.withinHorizon]; null otherwise, because
+  /// the planner has no honest number to offer in those states.
+  final int? minutes;
+
+  /// No-stop limit at the second dive's depth and mix on clean tissues, in
+  /// seconds.
+  ///
+  /// Surface time works toward this ceiling and can never beat it, which is
+  /// what separates "wait longer" from "change the dive". It depends only on
+  /// the second dive's depth and mix, not on how loaded the first dive left the
+  /// diver.
+  final int cleanTissueNoStopSeconds;
+
+  const SiMinimumInterval({
+    required this.outcome,
+    required this.minutes,
+    required this.cleanTissueNoStopSeconds,
+  });
+
+  /// Whether the planner produced a concrete interval to wait.
+  bool get hasInterval => minutes != null;
+}
+
+/// Minimum surface interval needed before the planned second dive.
+///
+/// Binary searches for the shortest wait whose NDL covers the planned dive, but
+/// only after settling two questions the search itself cannot answer. The
+/// search returns its own bounds when it finds nothing, so on its own it cannot
+/// tell "no wait is long enough" from "the answer is exactly the bound" -- that
+/// is what reported an impossible plan as a plausible six hour wait.
+final siMinimumIntervalProvider = Provider<SiMinimumInterval>((ref) {
   final postDiveCompartments = ref.watch(siPostDiveCompartmentsProvider);
   final secondDiveDepth = ref.watch(siSecondDiveDepthProvider);
   final secondDiveTime = ref.watch(siSecondDiveTimeProvider);
+  final fN2 = ref.watch(siSecondDiveFN2Provider);
+  final fHe = ref.watch(siSecondDiveFHeProvider);
   final settings = ref.watch(settingsProvider);
 
   final requiredNdlSeconds = secondDiveTime * 60;
 
-  // Binary search for minimum surface interval (0 to 360 minutes / 6 hours)
-  int low = 0;
-  int high = 360;
-
-  while (high - low > 1) {
-    final mid = (low + high) ~/ 2;
-
-    // Simulate recovery at surface for 'mid' minutes
-    final recoveredCompartments = _calculateRecoveredCompartments(
-      postDiveCompartments,
-      mid,
-    );
-
-    // Check NDL for second dive
+  /// NDL for the second dive after [surfaceIntervalMinutes] of off-gassing.
+  int ndlAfter(int surfaceIntervalMinutes) {
     final algorithm = BuhlmannAlgorithm(
       gfLow: settings.gfLowDecimal,
       gfHigh: settings.gfHighDecimal,
     );
-    algorithm.setCompartments(recoveredCompartments);
-
-    final ndl = algorithm.calculateNdl(
-      depthMeters: secondDiveDepth,
-      fN2: airN2Fraction,
-      fHe: 0.0,
+    algorithm.setCompartments(
+      _calculateRecoveredCompartments(
+        postDiveCompartments,
+        surfaceIntervalMinutes,
+      ),
     );
+    return algorithm.calculateNdl(
+      depthMeters: secondDiveDepth,
+      fN2: fN2,
+      fHe: fHe,
+    );
+  }
 
-    if (ndl >= requiredNdlSeconds) {
+  // Surface off-gassing drives every compartment toward equilibrium with
+  // surface air, so the second dive's NDL rises toward -- and never past -- the
+  // no-stop time a diver with clean tissues would get here. That makes the
+  // clean-tissue NDL an exact test for "no surface interval can ever be
+  // enough", and unlike a fixed horizon it does not depend on how far the slow
+  // compartments still have to unload. calculateNdl signals a standing deco
+  // obligation with -1, which is not a duration, so floor it at zero.
+  final cleanTissue = BuhlmannAlgorithm(
+    gfLow: settings.gfLowDecimal,
+    gfHigh: settings.gfHighDecimal,
+  );
+  final cleanTissueNoStopSeconds = math.max(
+    0,
+    cleanTissue.calculateNdl(depthMeters: secondDiveDepth, fN2: fN2, fHe: fHe),
+  );
+
+  SiMinimumInterval result(SiIntervalOutcome outcome, int? minutes) {
+    return SiMinimumInterval(
+      outcome: outcome,
+      minutes: minutes,
+      cleanTissueNoStopSeconds: cleanTissueNoStopSeconds,
+    );
+  }
+
+  if (requiredNdlSeconds > cleanTissueNoStopSeconds) {
+    return result(SiIntervalOutcome.impossible, null);
+  }
+
+  // The dive does fit on clean tissues, so waiting is the right remedy -- but
+  // the diver may still need longer than the planner looks ahead.
+  if (ndlAfter(siMaxSearchIntervalMinutes) < requiredNdlSeconds) {
+    return result(SiIntervalOutcome.beyondHorizon, null);
+  }
+
+  // A diver who can roll straight into the next dive should not be handed a
+  // one minute wait, which is what the bare search converges to.
+  if (ndlAfter(0) >= requiredNdlSeconds) {
+    return result(SiIntervalOutcome.withinHorizon, 0);
+  }
+
+  // Invariant: low is known to be too short, high is known to be sufficient.
+  int low = 0;
+  int high = siMaxSearchIntervalMinutes;
+
+  while (high - low > 1) {
+    final mid = (low + high) ~/ 2;
+
+    if (ndlAfter(mid) >= requiredNdlSeconds) {
       high = mid;
     } else {
       low = mid;
     }
   }
 
-  // Return the higher value to ensure safety
-  return high;
+  return result(SiIntervalOutcome.withinHorizon, high);
 });
 
 /// Data class for a single point on the tissue recovery chart.
@@ -294,6 +495,8 @@ void resetSurfaceIntervalInputs(WidgetRef ref) {
   ref.read(siFirstDiveHeProvider.notifier).state = 0.0;
   ref.read(siSecondDiveDepthProvider.notifier).state = 18.0;
   ref.read(siSecondDiveTimeProvider.notifier).state = 45;
+  ref.read(siSecondDiveO2Provider.notifier).state = 21.0;
+  ref.read(siSecondDiveHeProvider.notifier).state = 0.0;
   ref.read(siSurfaceIntervalProvider.notifier).state = 60;
 }
 

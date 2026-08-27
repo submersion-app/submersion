@@ -1,3 +1,4 @@
+import 'package:excel_community/excel_community.dart' as xl;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
@@ -77,6 +78,26 @@ void main() {
       // XLSX files start with PK zip header
       expect(bytes[0], 0x50); // 'P'
       expect(bytes[1], 0x4B); // 'K'
+    });
+
+    test('workbook carries no stray default sheet', () async {
+      final bytes = await service.generateExcelBytes(
+        dives: [makeDive(id: 'd1', diveNumber: 1, maxDepth: 20.0)],
+        sites: const [],
+        equipment: const [],
+        depthUnit: DepthUnit.meters,
+        temperatureUnit: TemperatureUnit.celsius,
+        pressureUnit: PressureUnit.bar,
+        volumeUnit: VolumeUnit.liters,
+        dateFormat: DateFormatPreference.yyyymmdd,
+      );
+
+      final excel = xl.Excel.decodeBytes(bytes);
+
+      // The excel package will not delete a workbook's last remaining sheet,
+      // so the default sheet has to be removed after the real ones exist.
+      expect(excel.tables.keys, isNot(contains('Sheet1')));
+      expect(excel.tables.keys, contains('Dives'));
     });
 
     test('generates Excel with null bottomTime', () async {

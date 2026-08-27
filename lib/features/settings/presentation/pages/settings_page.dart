@@ -2,14 +2,27 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/utils/app_version.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
@@ -17,42 +30,68 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
+import 'package:submersion/features/auto_update/domain/beta_program_links.dart';
+import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
 
+/// Reference URLs for the CNS calculation methods, opened from the CNS method
+/// picker dialog's "Sources" section.
+const _cnsSourceNoaaUrl = 'https://www.omao.noaa.gov/noaa-diving-program';
+const _cnsSourceShearwaterUrl =
+    'https://shearwater.com/blogs/community/shearwater-and-the-cns-oxygen-clock';
+const _cnsSourceTheoreticalDiverUrl =
+    'https://thetheoreticaldiver.org/wordpress/index.php/2019/08/15/calculating-oxygen-cns-toxicity/';
+const _cnsSourceSubsurfaceUrl =
+    'https://github.com/subsurface/subsurface/commit/a0912b38bd';
+
 /// Opens the GitHub issues page in an external browser. Falls back to a
-/// snackbar if the URL cannot be launched or an error occurs.
+/// snackbar with a copy-link action if the launch fails.
 Future<void> launchReportIssue(BuildContext context) async {
   final uri = Uri.parse(reportIssueUrl);
   var didLaunch = false;
 
-  if (await canLaunchUrl(uri)) {
-    try {
-      didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      didLaunch = false;
-    }
+  // No canLaunchUrl guard: it false-negatives for https on Android 11+
+  // unless the scheme is declared in the manifest <queries> block.
+  try {
+    didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } catch (_) {
+    didLaunch = false;
   }
 
   if (!didLaunch && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.settings_about_reportIssue_snackbar)),
+      SnackBar(
+        content: Text(context.l10n.settings_about_reportIssue_snackbar),
+        action: SnackBarAction(
+          label: context.l10n.settings_about_reportIssue_copy,
+          onPressed: () =>
+              Clipboard.setData(const ClipboardData(text: reportIssueUrl)),
+        ),
+      ),
     );
   }
 }
@@ -94,7 +133,7 @@ class SettingsPage extends ConsumerWidget {
 
     if (selectedSection != null) {
       // Show section detail page
-      return _SettingsSectionDetailPage(sectionId: selectedSection, ref: ref);
+      return SettingsSectionDetailPage(sectionId: selectedSection);
     }
 
     // Mobile: Show section list
@@ -110,6 +149,10 @@ class SettingsPage extends ConsumerWidget {
     switch (sectionId) {
       case 'profile':
         return const DiverProfileHubPage();
+      case 'safety':
+        return const SafetySettingsPage();
+      case 'security':
+        return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -126,6 +169,8 @@ class SettingsPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'sharedData':
+        return const SharedDataSectionContent();
       case 'debug':
         return const DebugLogViewerPage();
       default:
@@ -141,8 +186,12 @@ class SettingsMobileContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugEnabled = ref.watch(debugModeNotifierProvider);
+    final allDiversAsync = ref.watch(allDiversProvider);
+    final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
+
     final sections = settingsSections
         .where((s) => s.id != 'dataSources' || Platform.isIOS)
+        .where((s) => s.id != 'sharedData' || diverCount >= 2)
         .toList();
 
     // Insert Debug section just before About when debug mode is enabled
@@ -156,19 +205,22 @@ class SettingsMobileContent extends ConsumerWidget {
           icon: Icons.bug_report_outlined,
           title: 'Debug',
           subtitle: 'Logs & diagnostics',
-          color: Colors.grey,
         ),
       );
     }
 
+    // The setup card rides inside the list (row 0) so it scrolls away and
+    // can never overflow the viewport when it carries many items.
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: sections.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemCount: sections.length + 1,
+        separatorBuilder: (context, index) =>
+            index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (context, index) {
-          final section = sections[index];
+          if (index == 0) return const PendingSetupCard();
+          final section = sections[index - 1];
           return _MobileSettingsTile(section: section);
         },
       ),
@@ -176,15 +228,33 @@ class SettingsMobileContent extends ConsumerWidget {
   }
 }
 
-/// Mobile detail page for settings sections accessed via query params.
-class _SettingsSectionDetailPage extends ConsumerWidget {
-  final String sectionId;
-  final WidgetRef ref;
+/// Settings sections that render a page of their own, mapped to that page's
+/// route.
+///
+/// [SettingsSectionDetailPage] supplies a Scaffold and an AppBar, so sections
+/// whose content is itself a Scaffold with an AppBar (Diver Profile, Safety,
+/// Debug) would show two stacked app bars inside it. Appearance is listed too
+/// because it has a dedicated page, keeping that route canonical.
+///
+/// Used both by the settings list tile and by the '/settings/section/:id'
+/// route's redirect, so a deep link to that path cannot bypass it.
+const settingsSectionDedicatedRoutes = <String, String>{
+  'profile': '/settings/diver-profile',
+  'appearance': '/settings/appearance',
+  'safety': '/settings/safety',
+  'debug': '/settings/debug-logs',
+};
 
-  const _SettingsSectionDetailPage({
-    required this.sectionId,
-    required this.ref,
-  });
+/// Mobile detail page for a single settings section.
+///
+/// Reached by pushing the '/settings/section/:sectionId' child route, which
+/// go_router wraps in a platform-adaptive page so the section slides in like
+/// every other sub-page. Also rendered directly by [SettingsPage] for legacy
+/// `/settings?selected=<id>` deep links.
+class SettingsSectionDetailPage extends ConsumerWidget {
+  final String sectionId;
+
+  const SettingsSectionDetailPage({super.key, required this.sectionId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -197,7 +267,15 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: context.l10n.settings_backToSettings_tooltip,
-          onPressed: () => context.go('/settings'),
+          // Pop the pushed section route; fall back to go() for deep links
+          // where the detail page is the root of the stack.
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/settings');
+            }
+          },
         ),
       ),
       body: _buildContent(context, ref),
@@ -215,7 +293,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
-      'debug' => 'Debug',
+      'sharedData' => context.l10n.settings_sharedData_sectionTitle,
+      'debug' => context.l10n.settings_section_debug_title,
       _ => context.l10n.settings_appBar_title,
     };
   }
@@ -224,6 +303,10 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
     switch (sectionId) {
       case 'profile':
         return const DiverProfileHubPage();
+      case 'safety':
+        return const SafetySettingsPage();
+      case 'security':
+        return const SecuritySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -240,6 +323,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
         return const _DataSourcesSectionContent();
       case 'about':
         return const _AboutSectionContent();
+      case 'sharedData':
+        return const SharedDataSectionContent();
       case 'debug':
         return const DebugLogViewerPage();
       default:
@@ -256,7 +341,7 @@ class _MobileSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = section.color ?? colorScheme.primary;
+    final color = settingsSectionColor(context, section.id);
 
     return ListTile(
       leading: Container(
@@ -297,6 +382,10 @@ class _MobileSettingsTile extends StatelessWidget {
       'data' => context.l10n.settings_section_data_title,
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
+      'sharedData' => context.l10n.settings_sharedData_sectionTitle,
+      'safety' => context.l10n.settings_section_safety_title,
+      'security' => context.l10n.settings_section_security_title,
+      'debug' => context.l10n.settings_section_debug_title,
       _ => section.title,
     };
   }
@@ -312,26 +401,27 @@ class _MobileSettingsTile extends StatelessWidget {
       'data' => context.l10n.settings_section_data_subtitle,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
+      'safety' => context.l10n.settings_section_safety_subtitle,
+      'security' => context.l10n.settings_section_security_subtitle,
+      'debug' => context.l10n.settings_section_debug_subtitle,
       _ => section.subtitle,
     };
   }
 
   void _navigateToSection(BuildContext context, String sectionId) {
-    // Navigate to the appropriate page based on section
-    switch (sectionId) {
-      case 'profile':
-        context.push('/settings/diver-profile');
-        break;
-      case 'appearance':
-        context.push('/settings/appearance');
-        break;
-      default:
-        // For sections that don't have dedicated pages,
-        // show them in a detail page using query params
-        final state = GoRouterState.of(context);
-        final currentPath = state.uri.path;
-        context.go('$currentPath?selected=$sectionId');
-    }
+    // Sections without a page of their own get the shared section route.
+    // PUSH (not go): go() replaces the location in place, leaving nothing on
+    // the stack for the system back gesture to pop, so Android closed the
+    // whole app (#647).
+    //
+    // This pushes a child route rather than '/settings?selected=<id>'. The
+    // latter re-matched the '/settings' tab root, whose pageBuilder returns a
+    // NoTransitionPage so bottom-nav tab switches do not animate -- which
+    // also robbed every pushed section of its slide-in.
+    context.push(
+      settingsSectionDedicatedRoutes[sectionId] ??
+          '/settings/section/$sectionId',
+    );
   }
 }
 
@@ -423,6 +513,70 @@ class _UnitsSectionContent extends ConsumerWidget {
                       : '${settings.pressureUnit.symbol}/min',
                   onTap: () =>
                       _showSacUnitPicker(context, ref, settings.sacUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_gasModel,
+                  value: settings.gasModel == GasModel.ideal
+                      ? context.l10n.settings_units_gasModel_ideal
+                      : context.l10n.settings_units_gasModel_real,
+                  onTap: () =>
+                      _showGasModelPicker(context, ref, settings.gasModel),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_defaultCurrency,
+                  value: settings.defaultCurrency,
+                  onTap: () => _showCurrencyPicker(
+                    context,
+                    ref,
+                    settings.defaultCurrency,
+                  ),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_visibilityScale_title,
+                  value: visibilityPresetLabel(
+                    context.l10n,
+                    settings.visibilityScalePreset,
+                  ),
+                  onTap: () =>
+                      showVisibilityScalePicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_coordinateFormat_title,
+                  value: coordinateFormatLabel(
+                    context.l10n,
+                    settings.coordinateFormat,
+                  ),
+                  onTap: () =>
+                      showCoordinateFormatPicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_placeNameLanguage_title),
+                  subtitle: Text(
+                    context.l10n.settings_placeNameLanguage_subtitle,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        placeNameLanguageLabel(settings.placeNameLanguage),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () =>
+                      showPlaceNameLanguagePicker(context, ref, settings),
                 ),
               ],
             ),
@@ -769,6 +923,122 @@ class _UnitsSectionContent extends ConsumerWidget {
     );
   }
 
+  /// Pick the equation of state behind every pressure-to-volume conversion.
+  ///
+  /// The dialog spells out the consequence, because the difference between the
+  /// two answers is what divers read as a bug when their hand calculation
+  /// disagrees with the app (issue #828).
+  void _showGasModelPicker(
+    BuildContext context,
+    WidgetRef ref,
+    GasModel currentModel,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_units_dialog_gasModel),
+        // Scrollable: unlike the sibling unit pickers this one carries an
+        // explanatory paragraph above two subtitled options, which overflows
+        // a short dialog on small screens or at large text scales.
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  context.l10n.settings_units_gasModel_explanation,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              ListTile(
+                title: Text(context.l10n.settings_units_gasModel_real),
+                subtitle: Text(
+                  context.l10n.settings_units_gasModel_real_subtitle,
+                ),
+                trailing: currentModel == GasModel.real
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setGasModel(GasModel.real);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              ListTile(
+                title: Text(context.l10n.settings_units_gasModel_ideal),
+                subtitle: Text(
+                  context.l10n.settings_units_gasModel_ideal_subtitle,
+                ),
+                trailing: currentModel == GasModel.ideal
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setGasModel(GasModel.ideal);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCurrencyPicker(
+    BuildContext context,
+    WidgetRef ref,
+    String currentCode,
+  ) {
+    final current = currentCode.trim().toUpperCase();
+    final codes = currencyCodesWith(current);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_units_dialog_defaultCurrency),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final code in codes)
+                ListTile(
+                  title: Text('$code  ${currencySymbol(code)}'),
+                  trailing: code == current
+                      ? Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setDefaultCurrency(code);
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showTimeFormatPicker(
     BuildContext context,
     WidgetRef ref,
@@ -879,14 +1149,32 @@ class _DecompressionSectionContent extends ConsumerWidget {
             context.l10n.settings_decompression_aboutContent,
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Data Source Preferences'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_oxygenToxicity,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.percent),
+              title: Text(context.l10n.settings_decompression_cnsMethodTitle),
+              subtitle: Text(
+                _cnsMethodLabel(context, settings.cnsCalculationMethod),
+              ),
+              trailing: const Icon(Icons.edit),
+              onTap: () => _showCnsMethodPicker(context, ref, settings),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_dataSources,
+          ),
           const SizedBox(height: 4),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              'When set to Dive Computer, the app uses data reported by the '
-              'dive computer when available. Falls back to calculated values '
-              'when computer data is not present.',
+              context.l10n.settings_decompression_header_dataSources_subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -898,25 +1186,28 @@ class _DecompressionSectionContent extends ConsumerWidget {
               children: [
                 _buildSourceDropdownTile(
                   context,
-                  title: 'NDL Source',
+                  title: context.l10n.settings_decompression_ndlSource,
                   value: settings.defaultNdlSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
                       .setDefaultNdlSource(source),
                 ),
                 const Divider(height: 1),
+                // No Ceiling Source tile: the ceiling line always renders the
+                // exact calculated curve (issue #755). The Computer/Calculated
+                // choice remains meaningful for the deco stop schedule below.
                 _buildSourceDropdownTile(
                   context,
-                  title: 'Ceiling Source',
-                  value: settings.defaultCeilingSource,
+                  title: context.l10n.settings_decompression_decoStopSource,
+                  value: settings.defaultDecoStopSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
-                      .setDefaultCeilingSource(source),
+                      .setDefaultDecoStopSource(source),
                 ),
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
-                  title: 'TTS Source',
+                  title: context.l10n.settings_decompression_ttsSource,
                   value: settings.defaultTtsSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -925,7 +1216,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
-                  title: 'CNS Source',
+                  title: context.l10n.settings_decompression_cnsSource,
                   value: settings.defaultCnsSource,
                   onChanged: (source) => ref
                       .read(settingsProvider.notifier)
@@ -972,6 +1263,52 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_ascent,
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              context.l10n.settings_decompression_header_ascent_subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.swap_vert),
+              title: Text(context.l10n.settings_decompression_ascentGasLabel),
+              dense: true,
+              trailing: DropdownButton<AscentGasSet>(
+                value: settings.ascentGasSet,
+                underline: const SizedBox.shrink(),
+                items: [
+                  DropdownMenuItem(
+                    value: AscentGasSet.allCarried,
+                    child: Text(
+                      context.l10n.settings_decompression_ascentGas_allCarried,
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: AscentGasSet.decoStageOnly,
+                    child: Text(
+                      context.l10n.settings_decompression_ascentGas_decoStage,
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    ref.read(settingsProvider.notifier).setAscentGasSet(value);
+                  }
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -989,19 +1326,252 @@ class _DecompressionSectionContent extends ConsumerWidget {
       trailing: DropdownButton<MetricDataSource>(
         value: value,
         underline: const SizedBox.shrink(),
-        items: const [
+        items: [
           DropdownMenuItem(
             value: MetricDataSource.calculated,
-            child: Text('Calculated'),
+            child: Text(context.l10n.settings_decompression_sourceCalculated),
           ),
           DropdownMenuItem(
             value: MetricDataSource.computer,
-            child: Text('Dive Computer'),
+            child: Text(context.l10n.settings_decompression_sourceComputer),
           ),
         ],
         onChanged: (newValue) {
           if (newValue != null) onChanged(newValue);
         },
+      ),
+    );
+  }
+
+  String _cnsMethodLabel(BuildContext context, CnsCalculationMethod method) {
+    switch (method) {
+      case CnsCalculationMethod.classic:
+        return context.l10n.settings_decompression_cnsMethodClassic;
+      case CnsCalculationMethod.shearwater:
+        return context.l10n.settings_decompression_cnsMethodShearwater;
+      case CnsCalculationMethod.subsurface:
+        return context.l10n.settings_decompression_cnsMethodSubsurface;
+    }
+  }
+
+  String _cnsMethodDescription(
+    BuildContext context,
+    CnsCalculationMethod method,
+  ) {
+    switch (method) {
+      case CnsCalculationMethod.classic:
+        return context.l10n.settings_decompression_cnsMethodClassicDesc;
+      case CnsCalculationMethod.shearwater:
+        return context.l10n.settings_decompression_cnsMethodShearwaterDesc;
+      case CnsCalculationMethod.subsurface:
+        return context.l10n.settings_decompression_cnsMethodSubsurfaceDesc;
+    }
+  }
+
+  Widget _buildCnsSourceLink(BuildContext context, String label, String url) {
+    final color = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: () => _launchCnsSource(context, url),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.open_in_new, size: 16, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: color,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchCnsSource(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    var didLaunch = false;
+
+    if (await canLaunchUrl(uri)) {
+      try {
+        didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        didLaunch = false;
+      }
+    }
+
+    if (!didLaunch && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.settings_linkOpenFailed)),
+      );
+    }
+  }
+
+  Widget _buildCnsMethodOption(
+    BuildContext context,
+    BuildContext dialogContext,
+    WidgetRef ref,
+    AppSettings settings,
+    CnsCalculationMethod method,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = settings.cnsCalculationMethod == method;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Semantics(
+        button: true,
+        label: _cnsMethodLabel(context, method),
+        child: InkWell(
+          onTap: () {
+            ref.read(settingsProvider.notifier).setCnsCalculationMethod(method);
+            Navigator.of(dialogContext).pop();
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              border: isSelected
+                  ? Border.all(color: colorScheme.primary, width: 2)
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _cnsMethodLabel(context, method),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        _cnsMethodDescription(context, method),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(Icons.check, color: colorScheme.primary, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCnsMethodPicker(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_decompression_cnsMethodTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final method in CnsCalculationMethod.values)
+                _buildCnsMethodOption(
+                  context,
+                  dialogContext,
+                  ref,
+                  settings,
+                  method,
+                ),
+              const SizedBox(height: 8),
+              const Divider(),
+              ExpansionTile(
+                title: Text(
+                  context.l10n.settings_decompression_cnsMethodAboutTitle,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 8),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.settings_decompression_cnsMethodAboutBody,
+                    style: textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.settings_decompression_cnsMethodSourcesTitle,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  _buildCnsSourceLink(
+                    context,
+                    context.l10n.settings_decompression_cnsMethodSourceNoaa,
+                    _cnsSourceNoaaUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceShearwater,
+                    _cnsSourceShearwaterUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceTheoreticalDiver,
+                    _cnsSourceTheoreticalDiverUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceSubsurface,
+                    _cnsSourceSubsurfaceUrl,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.settings_decompression_cnsMethodDisclaimer,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.l10n.common_action_close),
+          ),
+        ],
       ),
     );
   }
@@ -1077,23 +1647,35 @@ class _DecompressionSectionContent extends ConsumerWidget {
   }
 }
 
-/// Appearance section content
-const _sectionHubEntries = [
-  ('dives', 'Dives'),
-  ('sites', 'Sites'),
-  ('buddies', 'Buddies'),
-  ('trips', 'Trips'),
-  ('equipment', 'Equipment'),
-  ('diveCenters', 'Dive Centers'),
-  ('certifications', 'Certifications'),
-  ('courses', 'Courses'),
+/// Appearance section content. Ordered section keys; labels are resolved
+/// through [_getSectionDisplayName] so the desktop pane localizes like the
+/// standalone AppearancePage.
+const _sectionHubKeys = [
+  'home',
+  'dives',
+  'sites',
+  'buddies',
+  'trips',
+  'equipment',
+  'diveCenters',
+  'certifications',
+  'courses',
 ];
 
-String _getSectionDisplayName(String key) {
-  for (final entry in _sectionHubEntries) {
-    if (entry.$1 == key) return entry.$2;
-  }
-  return key;
+String _getSectionDisplayName(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'home' => l10n.nav_home,
+    'dives' => l10n.nav_dives,
+    'sites' => l10n.nav_sites,
+    'buddies' => l10n.nav_buddies,
+    'trips' => l10n.nav_trips,
+    'equipment' => l10n.nav_equipment,
+    'diveCenters' => l10n.nav_diveCenters,
+    'certifications' => l10n.nav_certifications,
+    'courses' => l10n.nav_courses,
+    _ => key,
+  };
 }
 
 class _AppearanceSectionContent extends ConsumerStatefulWidget {
@@ -1118,8 +1700,8 @@ class _AppearanceSectionContentState
     // Priority 1: Column config sub-page
     if (_showColumnConfig) {
       final backLabel = _columnConfigSection != null
-          ? _getSectionDisplayName(_columnConfigSection!)
-          : 'Appearance';
+          ? _getSectionDisplayName(context, _columnConfigSection!)
+          : context.l10n.settings_section_appearance_title;
       return Column(
         children: [
           Align(
@@ -1156,20 +1738,22 @@ class _AppearanceSectionContentState
               key: const Key('sectionBackButton'),
               onPressed: () => setState(() => _activeSectionKey = null),
               icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Appearance'),
+              label: Text(context.l10n.settings_section_appearance_title),
             ),
           ),
           Expanded(
-            child: SectionAppearancePage(
-              sectionKey: _activeSectionKey!,
-              embedded: true,
-              onColumnConfigTap: () {
-                setState(() {
-                  _showColumnConfig = true;
-                  _columnConfigSection = _activeSectionKey;
-                });
-              },
-            ),
+            child: _activeSectionKey == 'home'
+                ? const HomeAppearancePage(embedded: true)
+                : SectionAppearancePage(
+                    sectionKey: _activeSectionKey!,
+                    embedded: true,
+                    onColumnConfigTap: () {
+                      setState(() {
+                        _showColumnConfig = true;
+                        _columnConfigSection = _activeSectionKey;
+                      });
+                    },
+                  ),
           ),
         ],
       );
@@ -1182,7 +1766,10 @@ class _AppearanceSectionContentState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // -- General --
-          _buildSectionHeader(context, 'General'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_general,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -1216,27 +1803,120 @@ class _AppearanceSectionContentState
                   leading: const Icon(Icons.language),
                   title: Text(context.l10n.settings_appearance_header_language),
                   subtitle: Text(
-                    LanguageSettingsPage.getDisplayName(settings.locale),
+                    LanguageSettingsPage.getDisplayName(
+                      context.l10n,
+                      settings.locale,
+                    ),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => setState(() => _showLanguageList = true),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.map_outlined),
+                  title: Text(context.l10n.settings_appearance_mapStyle),
+                  subtitle: Text(
+                    _getMapStyleDisplayName(context, settings.mapStyle),
+                  ),
+                  trailing: DropdownButton<MapStyle>(
+                    value: settings.mapStyle,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (style) {
+                      if (style != null) {
+                        ref.read(settingsProvider.notifier).setMapStyle(style);
+                      }
+                    },
+                    items: MapStyle.values.map((style) {
+                      return DropdownMenuItem(
+                        value: style,
+                        child: Text(_getMapStyleDisplayName(context, style)),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.format_paint_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentNavIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentNavIcons_subtitle,
+                  ),
+                  value: settings.accentNavIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentNavIcons(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.title_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(
+                    context.l10n.settings_appearance_accentSectionHeaders,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_accentSectionHeaders_subtitle,
+                  ),
+                  value: settings.accentSectionHeaders,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentSectionHeaders(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.list_alt_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentListIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentListIcons_subtitle,
+                  ),
+                  value: settings.accentListIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentListIcons(value),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
           // -- Sections --
-          _buildSectionHeader(context, 'Sections'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_sections,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
-                for (final (index, entry) in _sectionHubEntries.indexed) ...[
+                for (final (index, key) in _sectionHubKeys.indexed) ...[
                   if (index > 0) const Divider(height: 1),
                   ListTile(
-                    title: Text(entry.$2),
+                    title: Text(_getSectionDisplayName(context, key)),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => setState(() => _activeSectionKey = entry.$1),
+                    onTap: () => setState(() => _activeSectionKey = key),
                   ),
                 ],
               ],
@@ -1265,6 +1945,17 @@ class _AppearanceSectionContentState
       default:
         return preset.nameKey;
     }
+  }
+
+  String _getMapStyleDisplayName(BuildContext context, MapStyle style) {
+    return switch (style) {
+      MapStyle.openStreetMap =>
+        context.l10n.settings_appearance_mapStyle_openStreetMap,
+      MapStyle.openTopoMap =>
+        context.l10n.settings_appearance_mapStyle_openTopoMap,
+      MapStyle.esriSatellite =>
+        context.l10n.settings_appearance_mapStyle_esriSatellite,
+    };
   }
 
   Widget _buildLanguageSubPage(BuildContext context, AppSettings settings) {
@@ -1399,32 +2090,7 @@ class _NotificationsSectionContent extends ConsumerWidget {
                   permissionAsync.when(
                     data: (granted) {
                       if (!granted) {
-                        return ListTile(
-                          leading: const Icon(
-                            Icons.warning,
-                            color: Colors.orange,
-                          ),
-                          title: Text(
-                            context.l10n.settings_notifications_disabled_title,
-                          ),
-                          subtitle: Text(
-                            context
-                                .l10n
-                                .settings_notifications_disabled_subtitle,
-                          ),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              await NotificationService.instance
-                                  .requestPermission();
-                              ref.invalidate(notificationPermissionProvider);
-                            },
-                            child: Text(
-                              context
-                                  .l10n
-                                  .settings_notifications_disabled_enableButton,
-                            ),
-                          ),
-                        );
+                        return const NotificationPermissionCard();
                       }
                       return const SizedBox.shrink();
                     },
@@ -1488,6 +2154,42 @@ class _NotificationsSectionContent extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.luggage),
+                title: Text(context.l10n.settings_notifications_tripLeadTitle),
+                subtitle: Text(
+                  context.l10n.settings_notifications_tripLeadDays(
+                    settings.tripServiceLeadDays,
+                  ),
+                ),
+                trailing: DropdownButton<int>(
+                  value: settings.tripServiceLeadDays,
+                  underline: const SizedBox.shrink(),
+                  // Always include the persisted value so a non-standard lead
+                  // time (a future UI, manual edit, or migration) never trips
+                  // DropdownButton's "value must appear in items" assertion.
+                  items:
+                      ({7, 14, 21, 30, settings.tripServiceLeadDays}.toList()
+                            ..sort())
+                          .map(
+                            (days) => DropdownMenuItem(
+                              value: days,
+                              child: Text('$days'),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (days) {
+                    if (days != null) {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .setTripServiceLeadDays(days);
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildInfoCard(
               context,
               context.l10n.settings_notifications_howItWorks_title,
@@ -1544,7 +2246,17 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: Icon(MdiIcons.divingScubaTank),
+                  leading: const Icon(Icons.groups),
+                  title: Text(context.l10n.settings_manage_diveRoles),
+                  subtitle: Text(
+                    context.l10n.settings_manage_diveRoles_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/dive-roles'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(MdiIcons.divingScubaTank),
                   title: Text(context.l10n.settings_manage_tankPresets),
                   subtitle: Text(
                     context.l10n.settings_manage_tankPresets_subtitle,
@@ -1554,7 +2266,55 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.pets),
+                  leading: const Icon(Icons.build_circle_outlined),
+                  title: Text(context.l10n.settings_manage_serviceTypes),
+                  subtitle: Text(
+                    context.l10n.settings_manage_serviceTypes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/equipment/service-types'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.auto_fix_high),
+                  title: Text(context.l10n.settings_manage_setupAssistant),
+                  subtitle: Text(
+                    context.l10n.settings_manage_setupAssistant_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/setup-assistant'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.checklist),
+                  title: Text(context.l10n.settings_manage_checklistTemplates),
+                  subtitle: Text(
+                    context.l10n.settings_manage_checklistTemplates_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/checklist-templates'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.fact_check),
+                  title: Text(context.l10n.settings_manage_preDiveChecklists),
+                  subtitle: Text(
+                    context.l10n.settings_manage_preDiveChecklists_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/pre-dive-checklists'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.safetyHub_incidentsLink),
+                  subtitle: Text(context.l10n.safetyHub_incidentsLink_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/incidents'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),
                   trailing: const Icon(Icons.chevron_right),
@@ -1567,6 +2327,209 @@ class _ManageSectionContent extends StatelessWidget {
                   subtitle: Text(context.l10n.settings_manage_tags_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tags'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// SHARED DATA SECTION
+// ============================================================================
+
+/// Confirms and bulk-shares all private sites for the current diver.
+Future<void> _confirmAndBulkShareSites(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  if (!context.mounted) return;
+
+  final siteRepo = ref.read(siteRepositoryProvider);
+  final allSites = await siteRepo.getAllSites(diverId: diverId);
+  final privateCount = allSites.where((s) => !s.isShared).length;
+
+  if (privateCount == 0) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: Text(context.l10n.settings_shareAllSites_confirm(privateCount)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(context.l10n.common_action_share),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+
+  try {
+    final count = await siteRepo.shareAllForDiver(diverId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.settings_shareAllSites_snackbar(count)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_error_tryAgain),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+      ),
+    );
+  }
+}
+
+/// Confirms and bulk-shares all private trips for the current diver.
+Future<void> _confirmAndBulkShareTrips(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return;
+  if (!context.mounted) return;
+
+  final tripRepo = ref.read(tripRepositoryProvider);
+  final allTrips = await tripRepo.getAllTrips(diverId: diverId);
+  final privateCount = allTrips.where((t) => !t.isShared).length;
+
+  if (privateCount == 0) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: Text(context.l10n.settings_shareAllTrips_confirm(privateCount)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(context.l10n.common_action_share),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+
+  try {
+    final count = await tripRepo.shareAllForDiver(diverId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.settings_shareAllTrips_snackbar(count)),
+      ),
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.common_error_tryAgain),
+        backgroundColor: Theme.of(context).colorScheme.errorContainer,
+      ),
+    );
+  }
+}
+
+/// Shared data section content: default-sharing toggle and bulk-share actions.
+///
+/// Visible only when 2+ diver profiles exist. Contains:
+///   1. A toggle to share new sites and trips by default.
+///   2. An action to share all existing private sites.
+///   3. An action to share all existing private trips.
+class SharedDataSectionContent extends ConsumerWidget {
+  const SharedDataSectionContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shareByDefaultAsync = ref.watch(shareByDefaultProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_sharedData_sectionTitle,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                shareByDefaultAsync.when(
+                  data: (shareByDefault) => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: shareByDefault,
+                    onChanged: (value) async {
+                      try {
+                        await ref
+                            .read(appSettingsRepositoryProvider)
+                            .setShareByDefault(value);
+                        ref.invalidate(shareByDefaultProvider);
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(context.l10n.common_error_tryAgain),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.errorContainer,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  loading: () => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: false,
+                    onChanged: null,
+                  ),
+                  error: (e, st) => SwitchListTile(
+                    title: Text(context.l10n.settings_shareByDefault_title),
+                    value: false,
+                    onChanged: null,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllSites_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareSites(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_shareAllTrips_title),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _confirmAndBulkShareTrips(context, ref),
                 ),
               ],
             ),
@@ -1594,6 +2557,39 @@ class _DataSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.add_location_alt_outlined),
+              title: Text(context.l10n.settings_siteMatch_title),
+              subtitle: Text(context.l10n.settings_siteMatch_subtitle),
+              trailing: DropdownButton<SiteMatchSensitivity>(
+                value: ref.watch(settingsProvider).siteMatchSensitivity,
+                underline: const SizedBox.shrink(),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setSiteMatchSensitivity(value);
+                  }
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.strict,
+                    child: Text(context.l10n.settings_siteMatch_strict),
+                  ),
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.balanced,
+                    child: Text(context.l10n.settings_siteMatch_balanced),
+                  ),
+                  DropdownMenuItem(
+                    value: SiteMatchSensitivity.relaxed,
+                    child: Text(context.l10n.settings_siteMatch_relaxed),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildSectionHeader(
             context,
             context.l10n.settings_data_header_backupSync,
@@ -1608,6 +2604,27 @@ class _DataSectionContent extends ConsumerWidget {
                   subtitle: _buildBackupSubtitle(context, ref),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/backup'),
+                ),
+                // Cloud sync is available on every platform (iCloud on
+                // Apple devices, S3-compatible storage elsewhere); the
+                // Cloud Sync page gates which providers each platform sees.
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync),
+                  title: Text(context.l10n.settings_cloudSync_appBar_title),
+                  subtitle: Text(
+                    context.l10n.settings_cloudSync_entry_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/cloud-sync'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.perm_media_outlined),
+                  title: Text(context.l10n.settings_photosMedia_title),
+                  subtitle: Text(context.l10n.settings_photosMedia_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/photos-media'),
                 ),
               ],
             ),
@@ -1646,17 +2663,28 @@ class _DataSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Data Tools'),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_dataTools,
+          ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.access_time),
-                  title: const Text('Fix Dive Times'),
-                  subtitle: const Text('Adjust times for imported dives'),
+                  title: Text(context.l10n.settings_fixDiveTimes_title),
+                  subtitle: Text(context.l10n.settings_fixDiveTimes_subtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/fix-dive-times'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.rule),
+                  title: Text(context.l10n.dataQuality_settings_title),
+                  subtitle: Text(context.l10n.dataQuality_settings_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/data-quality'),
                 ),
               ],
             ),
@@ -1700,7 +2728,7 @@ class _DataSourcesSectionContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final permissionsAsync = ref.watch(healthImportHasPermissionsProvider);
+    final permissionsAsync = ref.watch(healthImportPermissionStatusProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1763,12 +2791,13 @@ class _DataSourcesSectionContent extends ConsumerWidget {
                   const SizedBox(height: 12),
                   // Permission status
                   permissionsAsync.when(
-                    data: (hasPerms) =>
-                        _buildPermissionStatus(context, hasPerms: hasPerms),
-                    loading: () =>
-                        _buildPermissionStatus(context, isLoading: true),
-                    error: (_, _) =>
-                        _buildPermissionStatus(context, hasPerms: false),
+                    data: (status) =>
+                        _buildPermissionStatus(context, status: status),
+                    loading: () => _buildPermissionStatus(context),
+                    error: (_, _) => _buildPermissionStatus(
+                      context,
+                      status: HealthPermissionStatus.undetermined,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1797,6 +2826,22 @@ class _DataSourcesSectionContent extends ConsumerWidget {
                     context
                         .l10n
                         .settings_dataSources_appleHealth_dataTypeWorkouts,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.vertical_align_bottom),
+                  title: Text(
+                    context.l10n.settings_dataSources_appleHealth_dataTypeDepth,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.thermostat),
+                  title: Text(
+                    context
+                        .l10n
+                        .settings_dataSources_appleHealth_dataTypeWaterTemp,
                   ),
                 ),
                 const Divider(height: 1),
@@ -1877,15 +2922,19 @@ class _DataSourcesSectionContent extends ConsumerWidget {
     );
   }
 
+  /// Permission row for the Apple Health card.
+  ///
+  /// A null [status] means the check is still running. Apple never discloses
+  /// read access, so [HealthPermissionStatus.undetermined] is the normal
+  /// steady state on iOS and must not be painted as a refusal.
   Widget _buildPermissionStatus(
     BuildContext context, {
-    bool hasPerms = false,
-    bool isLoading = false,
+    HealthPermissionStatus? status,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (isLoading) {
+    if (status == null) {
       return Row(
         children: [
           SizedBox(
@@ -1907,23 +2956,40 @@ class _DataSourcesSectionContent extends ConsumerWidget {
       );
     }
 
+    final (icon, color, label) = switch (status) {
+      HealthPermissionStatus.granted => (
+        Icons.check_circle,
+        Colors.green,
+        context.l10n.settings_dataSources_appleHealth_permissionGranted,
+      ),
+      HealthPermissionStatus.denied => (
+        Icons.cancel,
+        colorScheme.error,
+        context.l10n.settings_dataSources_appleHealth_permissionNotGranted,
+      ),
+      HealthPermissionStatus.unsupported => (
+        Icons.info_outline,
+        colorScheme.onSurfaceVariant,
+        context.l10n.settings_dataSources_appleHealth_permissionUnsupported,
+      ),
+      HealthPermissionStatus.undetermined => (
+        Icons.health_and_safety,
+        colorScheme.onSurfaceVariant,
+        context.l10n.settings_dataSources_appleHealth_permissionManagedInHealth,
+      ),
+    };
+
     return Row(
       children: [
-        Icon(
-          hasPerms ? Icons.check_circle : Icons.cancel,
-          size: 16,
-          color: hasPerms ? Colors.green : colorScheme.error,
-        ),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
-        Text(
-          hasPerms
-              ? context.l10n.settings_dataSources_appleHealth_permissionGranted
-              : context
-                    .l10n
-                    .settings_dataSources_appleHealth_permissionNotGranted,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: hasPerms ? Colors.green : colorScheme.error,
-            fontWeight: FontWeight.w500,
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
@@ -1950,12 +3016,16 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   @override
   Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
+    final isBetaChannel =
+        UpdateChannelConfig.isAutoUpdateEnabled &&
+        ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
     final versionString = packageInfoAsync.when(
       data: (info) {
-        final version = info.version.endsWith('.${info.buildNumber}')
-            ? info.version
-            : '${info.version}.${info.buildNumber}';
-        return context.l10n.settings_about_version(version);
+        final version = formatAppVersion(info);
+        final base = context.l10n.settings_about_version(version);
+        return isBetaChannel
+            ? context.l10n.settings_updates_channelBadgeBeta(base)
+            : base;
       },
       loading: () => '',
       error: (_, _) => '',
@@ -1988,11 +3058,39 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                     );
                   },
                 ),
+                // Beta enrollment signpost for store builds: the app cannot
+                // switch channels itself there, so link to the store's beta
+                // program. Null on every build that has its own updater, and
+                // on platforms whose program is not live.
+                if (betaEnrollUrl case final enrollUrl?) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.science_outlined),
+                    title: Text(context.l10n.settings_updates_joinBeta),
+                    subtitle: Text(
+                      context.l10n.settings_updates_joinBetaSubtitle,
+                    ),
+                    onTap: () => launchUrl(
+                      Uri.parse(enrollUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                ],
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.bug_report),
                   title: Text(context.l10n.settings_about_reportIssue),
                   onTap: () => launchReportIssue(context),
+                ),
+                const Divider(height: 1),
+                // CC-BY attribution for the seascape's bathymetry sources.
+                ListTile(
+                  leading: const Icon(Icons.water),
+                  title: Text(
+                    context.l10n.settings_about_bathymetryCredit,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  dense: true,
                 ),
               ],
             ),
@@ -2000,7 +3098,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           // Auto-update section (only for non-store builds)
           if (UpdateChannelConfig.isAutoUpdateEnabled) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Updates'),
+            _buildSectionHeader(context, context.l10n.settings_updates_header),
             const SizedBox(height: 8),
             _buildUpdatesCard(context),
           ],
@@ -2055,15 +3153,21 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   Widget _buildUpdatesCard(BuildContext context) {
     final updateStatus = ref.watch(updateStatusProvider);
     final prefs = ref.watch(updatePreferencesProvider);
+    final channel = ref.watch(releaseChannelProvider);
 
     final statusText = switch (updateStatus) {
-      UpToDate() => 'Up to date',
-      Checking() => 'Checking...',
-      UpdateAvailable(:final version) => 'Version $version available',
-      Downloading(:final progress) =>
-        'Downloading... ${(progress * 100).toInt()}%',
-      ReadyToInstall(:final version) => 'Version $version ready to install',
-      UpdateError(:final message) => 'Error: $message',
+      UpToDate() => context.l10n.settings_updates_upToDate,
+      Checking() => context.l10n.settings_updates_checking,
+      UpdateAvailable(:final version) =>
+        context.l10n.settings_updates_versionAvailable(version),
+      Downloading(:final progress) => context.l10n.settings_updates_downloading(
+        (progress * 100).toInt().toString(),
+      ),
+      ReadyToInstall(:final version) =>
+        context.l10n.settings_updates_readyToInstall(version),
+      UpdateError(:final message) => context.l10n.settings_updates_error(
+        message,
+      ),
     };
 
     final lastCheck = prefs.lastCheckTime;
@@ -2071,14 +3175,14 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ? '${lastCheck.month}/${lastCheck.day}/${lastCheck.year} '
               '${lastCheck.hour.toString().padLeft(2, '0')}:'
               '${lastCheck.minute.toString().padLeft(2, '0')}'
-        : 'Never';
+        : context.l10n.settings_updates_never;
 
     return Card(
       child: Column(
         children: [
           ListTile(
             leading: const Icon(Icons.refresh),
-            title: const Text('Check for Updates'),
+            title: Text(context.l10n.settings_updates_checkForUpdates),
             subtitle: Text(statusText),
             onTap: updateStatus is Checking
                 ? null
@@ -2089,8 +3193,10 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           const Divider(height: 1),
           SwitchListTile(
             secondary: const Icon(Icons.auto_mode),
-            title: const Text('Automatic updates'),
-            subtitle: const Text('Check for updates periodically'),
+            title: Text(context.l10n.settings_updates_automaticUpdates),
+            subtitle: Text(
+              context.l10n.settings_updates_automaticUpdatesSubtitle,
+            ),
             value: prefs.autoUpdateEnabled,
             onChanged: (value) async {
               await prefs.setAutoUpdateEnabled(value);
@@ -2099,13 +3205,98 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
           ),
           const Divider(height: 1),
           ListTile(
+            leading: const Icon(Icons.alt_route),
+            title: Text(context.l10n.settings_updates_channel),
+            subtitle: Text(
+              channel == ReleaseChannel.beta
+                  ? context.l10n.settings_updates_channelBeta
+                  : context.l10n.settings_updates_channelStable,
+            ),
+            onTap: () => _showChannelPicker(context),
+          ),
+          const Divider(height: 1),
+          ListTile(
             leading: const Icon(Icons.schedule),
-            title: const Text('Last checked'),
+            title: Text(context.l10n.settings_updates_lastChecked),
             subtitle: Text(lastCheckText),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _showChannelPicker(BuildContext context) async {
+    final current = ref.read(releaseChannelProvider);
+    final selected = await showDialog<ReleaseChannel>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.settings_updates_channel),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final channel in ReleaseChannel.values)
+              ListTile(
+                title: Text(switch (channel) {
+                  ReleaseChannel.stable =>
+                    ctx.l10n.settings_updates_channelStable,
+                  ReleaseChannel.beta => ctx.l10n.settings_updates_channelBeta,
+                }),
+                subtitle: Text(switch (channel) {
+                  ReleaseChannel.stable =>
+                    ctx.l10n.settings_updates_channelStableSubtitle,
+                  ReleaseChannel.beta =>
+                    ctx.l10n.settings_updates_channelBetaSubtitle,
+                }),
+                trailing: channel == current
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(ctx).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () => Navigator.of(ctx).pop(channel),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == current || !context.mounted) return;
+
+    if (selected == ReleaseChannel.beta) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.settings_updates_betaDialogTitle),
+          content: Text(ctx.l10n.settings_updates_betaDialogBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ctx.l10n.settings_updates_betaDialogConfirm),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
+    final prefs = ref.read(updatePreferencesProvider);
+    await prefs.setReleaseChannel(selected);
+    ref.invalidate(updatePreferencesProvider);
+    // releaseChannelProvider and updateServiceProvider re-derive from the
+    // invalidated preferences; the fresh service applies the new feed on
+    // its next check.
+    if (!mounted || !context.mounted) return;
+    if (selected == ReleaseChannel.stable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.settings_updates_stableSwitchNotice),
+        ),
+      );
+    }
+    await ref.read(updateStatusProvider.notifier).checkForUpdate();
   }
 
   void _showAboutDialog(BuildContext context, String versionString) {

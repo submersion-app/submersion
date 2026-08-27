@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 
 void main() {
   group('BackupRecord', () {
@@ -131,6 +132,126 @@ void main() {
 
         expect(different, isNot(equals(record)));
       });
+    });
+
+    test('defaults: type is manual, pinned is false, counts may be null', () {
+      final r = BackupRecord(
+        id: 'id',
+        filename: 'f.db',
+        timestamp: DateTime(2026, 4, 12),
+        sizeBytes: 10,
+        location: BackupLocation.local,
+      );
+      expect(r.type, BackupType.manual);
+      expect(r.pinned, false);
+      expect(r.appVersion, isNull);
+      expect(r.fromSchemaVersion, isNull);
+      expect(r.toSchemaVersion, isNull);
+      expect(r.diveCount, isNull);
+      expect(r.siteCount, isNull);
+    });
+
+    test('toJson/fromJson round-trip with new fields populated', () {
+      final original = BackupRecord(
+        id: 'id',
+        filename: 'f.db',
+        timestamp: DateTime.fromMillisecondsSinceEpoch(1700000000000),
+        sizeBytes: 42,
+        location: BackupLocation.local,
+        diveCount: 3,
+        siteCount: 4,
+        type: BackupType.preMigration,
+        appVersion: '1.6.0.1241',
+        fromSchemaVersion: 63,
+        toSchemaVersion: 64,
+        pinned: true,
+        localPath: '/tmp/f.db',
+      );
+      final restored = BackupRecord.fromJson(original.toJson());
+      expect(restored, original);
+    });
+
+    test(
+      'fromJson reads legacy records (no type/pinned/appVersion fields)',
+      () {
+        final legacyJson = {
+          'id': 'id',
+          'filename': 'f.db',
+          'timestamp': 1700000000000,
+          'sizeBytes': 42,
+          'location': 'local',
+          'diveCount': 3,
+          'siteCount': 4,
+          'cloudFileId': null,
+          'localPath': '/tmp/f.db',
+          'isAutomatic': false,
+        };
+        final r = BackupRecord.fromJson(legacyJson);
+        expect(r.type, BackupType.manual);
+        expect(r.pinned, false);
+        expect(r.appVersion, isNull);
+        expect(r.fromSchemaVersion, isNull);
+        expect(r.toSchemaVersion, isNull);
+        expect(r.diveCount, 3);
+        expect(r.siteCount, 4);
+      },
+    );
+
+    test('fromJson handles null counts for pre-migration records', () {
+      final json = {
+        'id': 'id',
+        'filename': 'f.db',
+        'timestamp': 1700000000000,
+        'sizeBytes': 42,
+        'location': 'local',
+        'diveCount': null,
+        'siteCount': null,
+        'cloudFileId': null,
+        'localPath': '/tmp/f.db',
+        'isAutomatic': true,
+        'type': 'preMigration',
+        'appVersion': '1.6.0.1241',
+        'fromSchemaVersion': 63,
+        'toSchemaVersion': 64,
+        'pinned': true,
+      };
+      final r = BackupRecord.fromJson(json);
+      expect(r.diveCount, isNull);
+      expect(r.siteCount, isNull);
+      expect(r.type, BackupType.preMigration);
+    });
+
+    test('copyWith preserves new fields when not overridden', () {
+      final original = BackupRecord(
+        id: 'id',
+        filename: 'f.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        type: BackupType.preMigration,
+        pinned: true,
+        fromSchemaVersion: 63,
+        toSchemaVersion: 64,
+      );
+      final copy = original.copyWith(sizeBytes: 2);
+      expect(copy.type, BackupType.preMigration);
+      expect(copy.pinned, true);
+      expect(copy.fromSchemaVersion, 63);
+      expect(copy.toSchemaVersion, 64);
+      expect(copy.sizeBytes, 2);
+    });
+
+    test('copyWith can set pinned independently', () {
+      final original = BackupRecord(
+        id: 'id',
+        filename: 'f.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        pinned: false,
+      );
+      final pinned = original.copyWith(pinned: true);
+      expect(pinned.pinned, true);
     });
   });
 

@@ -16,13 +16,48 @@ class SurfaceIntervalResult extends ConsumerWidget {
 
     final minInterval = ref.watch(siMinimumIntervalProvider);
     final currentInterval = ref.watch(siSurfaceIntervalProvider);
-    final isSafe = ref.watch(siSecondDiveIsSafeProvider);
+    final ndlIsSafe = ref.watch(siSecondDiveIsSafeProvider);
+    final gasIsSafe = ref.watch(siGasMixesAreSafeProvider);
     final ndl = ref.watch(siSecondDiveNdlProvider);
 
-    // Format interval as hours:minutes
-    final hours = minInterval ~/ 60;
-    final minutes = minInterval % 60;
-    final intervalText = hours > 0 ? '${hours}h ${minutes}m' : '$minutes min';
+    // The card only reads as safe when the diver has both off-gassed enough
+    // and picked a mix they can actually breathe at the planned depth.
+    final isSafe = ndlIsSafe && gasIsSafe;
+
+    const horizonHours = siMaxSearchIntervalMinutes ~/ 60;
+
+    // Format interval as hours:minutes. Neither state without an interval gets
+    // a number here: one would be read as "wait this long and you are fine",
+    // and in one of those states waiting is not the remedy at all.
+    final String intervalText;
+    final String intervalSemanticsText;
+    // What the diver should do about it, set exactly when there is no interval
+    // to show. It drives both the visible notice and the spoken summary, so a
+    // screen reader hears the remedy and the ceiling instead of hearing the
+    // headline restated.
+    final String? outcomeAdvice;
+    switch (minInterval.outcome) {
+      case SiIntervalOutcome.withinHorizon:
+        final hours = minInterval.minutes! ~/ 60;
+        final minutes = minInterval.minutes! % 60;
+        intervalText = hours > 0 ? '${hours}h ${minutes}m' : '$minutes min';
+        intervalSemanticsText = intervalText;
+        outcomeAdvice = null;
+      case SiIntervalOutcome.beyondHorizon:
+        intervalText = '> ${horizonHours}h';
+        intervalSemanticsText = context.l10n
+            .surfaceInterval_result_beyondHorizonShort(horizonHours);
+        outcomeAdvice = context.l10n.surfaceInterval_result_beyondHorizon(
+          horizonHours,
+        );
+      case SiIntervalOutcome.impossible:
+        intervalText = '—';
+        intervalSemanticsText =
+            context.l10n.surfaceInterval_result_notAchievable;
+        outcomeAdvice = context.l10n.surfaceInterval_result_noIntervalHelps(
+          minInterval.cleanTissueNoStopSeconds ~/ 60,
+        );
+    }
 
     // Format NDL for display
     String ndlText;
@@ -42,12 +77,17 @@ class SurfaceIntervalResult extends ConsumerWidget {
 
     return Semantics(
       label: context.l10n.surfaceInterval_result_semantics(
-        intervalText,
+        intervalSemanticsText,
         currentText,
         ndlText,
-        isSafe
-            ? context.l10n.surfaceInterval_result_safeToDive
-            : context.l10n.surfaceInterval_result_notYetSafe,
+        // Oxygen is the acute risk, so it leads when both are wrong, then any
+        // outcome that carries its own headline.
+        !gasIsSafe
+            ? context.l10n.surfaceInterval_result_gasUnsafe
+            : outcomeAdvice ??
+                  (ndlIsSafe
+                      ? context.l10n.surfaceInterval_result_safeToDive
+                      : context.l10n.surfaceInterval_result_notYetSafe),
       ),
       child: Card(
         color: isSafe
@@ -124,32 +164,25 @@ class SurfaceIntervalResult extends ConsumerWidget {
                 ],
               ),
 
-              if (!isSafe) ...[
+              if (!gasIsSafe) ...[
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: colorScheme.onErrorContainer,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          context.l10n.surfaceInterval_result_increaseInterval,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                _ResultNotice(
+                  icon: Icons.warning_amber,
+                  message: context.l10n.surfaceInterval_result_gasUnsafe,
+                ),
+              ],
+
+              // Every state without an interval is also short on no-deco time,
+              // so this branch covers all three -- but each wants different
+              // advice, and telling an impossible plan to wait longer would be
+              // dead wrong.
+              if (!ndlIsSafe) ...[
+                const SizedBox(height: 16),
+                _ResultNotice(
+                  icon: Icons.info_outline,
+                  message:
+                      outcomeAdvice ??
+                      context.l10n.surfaceInterval_result_increaseInterval,
                 ),
               ],
             ],
@@ -188,6 +221,44 @@ class SurfaceIntervalResult extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// An explanatory banner inside the result card telling the diver what to fix.
+class _ResultNotice extends StatelessWidget {
+  const _ResultNotice({required this.icon, required this.message});
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.error.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: Icon(icon, size: 20, color: colorScheme.onErrorContainer),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

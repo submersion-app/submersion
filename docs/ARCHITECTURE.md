@@ -237,7 +237,7 @@ submersion/
 │   │   ├── dive_types/              # Custom dive types
 │   │   ├── marine_life/             # Species sightings
 │   │   ├── tools/                   # Calculators
-│   │   └── onboarding/              # First-run experience
+│   │   └── setup_wizard/            # First-run setup wizard + Settings re-entry
 │   │
 │   └── shared/                      # Reusable components
 │       ├── constants/
@@ -862,9 +862,9 @@ flutter test test/core/deco/    # Deco algorithm tests only
 
 | Platform | Status | Requirements |
 |----------|--------|--------------|
-| iOS | ✅ Ready | iOS 13+ |
+| iOS | ✅ Ready | iOS 15+ |
 | Android | ✅ Ready | Android 7+ (API 24) |
-| macOS | ✅ Ready | macOS 11+ |
+| macOS | ✅ Ready | macOS 12+ |
 | Windows | ✅ Ready | Windows 10+ |
 | Linux | ✅ Ready | Modern desktop Linux |
 | Web | 📋 Planned | v2.0 (requires cloud sync) |

@@ -318,6 +318,94 @@ void main() {
         expect(s2.containsKey('ndl'), isFalse);
       });
 
+      test('maps per-cell O2 sensor ppO2 (absent cells stay absent)', () {
+        final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 40,
+          avgDepthMeters: 30,
+          durationSeconds: 3600,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 30.0,
+              ppo2: 1.2,
+              o2Sensor1: 1.18,
+              o2Sensor2: 1.21,
+              o2Sensor3: 1.19,
+            ),
+            pigeon.ProfileSample(timeSeconds: 20, depthMeters: 30.0),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        );
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+        final profile = result['profile'] as List;
+
+        final s1 = profile[0] as Map<String, dynamic>;
+        expect(s1['ppO2'], 1.2);
+        expect(s1['o2Sensor1'], 1.18);
+        expect(s1['o2Sensor2'], 1.21);
+        expect(s1['o2Sensor3'], 1.19);
+        expect(s1.containsKey('o2Sensor4'), isFalse);
+        expect(s1.containsKey('o2Sensor5'), isFalse);
+        expect(s1.containsKey('o2Sensor6'), isFalse);
+
+        final s2 = profile[1] as Map<String, dynamic>;
+        expect(s2.containsKey('o2Sensor1'), isFalse);
+      });
+
+      test('keeps cell readings when the computer logs no aggregate ppO2', () {
+        final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 40,
+          avgDepthMeters: 30,
+          durationSeconds: 3600,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 10,
+              depthMeters: 30.0,
+              o2Sensor1: 1.18,
+              o2Sensor2: 1.21,
+              o2Sensor3: 1.19,
+            ),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        );
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+        final sample =
+            (result['profile'] as List).single as Map<String, dynamic>;
+
+        // The loop value is averaged from the cells downstream
+        // (resolveRebreatherPpO2), so the cells must survive on their own.
+        expect(sample.containsKey('ppO2'), isFalse);
+        expect(sample['o2Sensor1'], 1.18);
+        expect(sample['o2Sensor2'], 1.21);
+        expect(sample['o2Sensor3'], 1.19);
+      });
+
       test('maps deco stop samples with ceiling and no ndl', () {
         final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
         final parsed = pigeon.ParsedDive(

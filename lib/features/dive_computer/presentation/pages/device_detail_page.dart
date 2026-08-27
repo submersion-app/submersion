@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -151,19 +154,31 @@ class DeviceDetailPage extends ConsumerWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
-            _buildInfoRow(context, 'Name', computer.name),
             _buildInfoRow(
               context,
-              'Manufacturer',
-              computer.manufacturer ?? 'Unknown',
+              context.l10n.diveComputer_detail_labelName,
+              computer.name,
             ),
-            _buildInfoRow(context, 'Model', computer.model ?? 'Unknown'),
-            if (computer.serialNumber != null)
-              _buildInfoRow(context, 'Serial Number', computer.serialNumber!),
             _buildInfoRow(
               context,
-              'Connection',
-              _getConnectionName(computer.connectionType),
+              context.l10n.diveComputer_detail_labelManufacturer,
+              computer.manufacturer ?? context.l10n.diveComputer_detail_unknown,
+            ),
+            _buildInfoRow(
+              context,
+              context.l10n.diveComputer_detail_labelModel,
+              computer.model ?? context.l10n.diveComputer_detail_unknown,
+            ),
+            if (computer.serialNumber != null)
+              _buildInfoRow(
+                context,
+                context.l10n.diveLog_detail_label_serialNumber,
+                computer.serialNumber!,
+              ),
+            _buildInfoRow(
+              context,
+              context.l10n.diveComputer_detail_labelConnection,
+              _getConnectionName(context, computer.connectionType),
             ),
           ],
         ),
@@ -203,7 +218,10 @@ class DeviceDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Statistics', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.diveComputer_detail_statisticsTitle,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -212,7 +230,7 @@ class DeviceDetailPage extends ConsumerWidget {
                     context,
                     Icons.scuba_diving,
                     '${computer.diveCount}',
-                    'Dives Imported',
+                    context.l10n.diveComputer_detail_divesImported,
                     colorScheme,
                   ),
                 ),
@@ -220,8 +238,8 @@ class DeviceDetailPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     Icons.download,
-                    computer.lastDownloadFormatted,
-                    'Last Download',
+                    formatLastDownload(context, computer.lastDownload),
+                    context.l10n.diveComputer_detail_lastDownload,
                     colorScheme,
                   ),
                 ),
@@ -277,13 +295,63 @@ class DeviceDetailPage extends ConsumerWidget {
               onPressed: () =>
                   context.push('/dive-computers/${computer.id}/download'),
               icon: const Icon(Icons.download),
-              label: const Text('Download Dives'),
+              label: Text(context.l10n.diveComputer_detail_downloadDivesButton),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _viewDivesFromComputer(context, ref, computer),
               icon: const Icon(Icons.list),
-              label: const Text('View Dives from This Computer'),
+              label: Text(context.l10n.diveComputer_detail_viewDivesButton),
+            ),
+            if (computer.lastDiveFingerprint != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => _confirmReimportAll(context, computer),
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_detail_reimportAllButton),
+              ),
+            ],
+            Consumer(
+              builder: (context, ref, _) {
+                final counts = ref.watch(rawDataCountProvider(computer.id));
+                return counts.when(
+                  data: (c) {
+                    if (c.withRawData == 0) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () =>
+                              _confirmReparseAll(context, ref, computer, c),
+                          icon: const Icon(Icons.refresh),
+                          label: Text(
+                            context.l10n.diveComputer_detail_reparseAllButton,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            c.withoutRawData > 0
+                                ? context.l10n
+                                      .diveComputer_detail_reparseRawDataCountWithout(
+                                        c.withRawData,
+                                        c.withoutRawData,
+                                      )
+                                : context.l10n
+                                      .diveComputer_detail_reparseRawDataCount(
+                                        c.withRawData,
+                                      ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (err, stack) => const SizedBox.shrink(),
+                );
+              },
             ),
           ],
         ),
@@ -304,7 +372,10 @@ class DeviceDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Notes', style: theme.textTheme.titleMedium),
+            Text(
+              context.l10n.diveComputer_detail_notesTitle,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(computer.notes, style: theme.textTheme.bodyMedium),
           ],
@@ -317,23 +388,128 @@ class DeviceDetailPage extends ConsumerWidget {
     ref.read(diveComputerNotifierProvider.notifier).setFavorite(computer.id);
   }
 
+  /// Shows the dive list restricted to this computer.
+  ///
+  /// Filters on the computer id, not its serial number. Keying this on the
+  /// serial used to dead-end with a "no serial number" snackbar on every
+  /// computer whose firmware never reported one (issue #1064), even though the
+  /// dives were downloaded and attributed correctly.
   void _viewDivesFromComputer(
     BuildContext context,
     WidgetRef ref,
     DiveComputer computer,
   ) {
-    if (computer.serialNumber != null && computer.serialNumber!.isNotEmpty) {
-      ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-        computerSerial: computer.serialNumber,
-      );
-      context.go('/dives');
-    } else {
+    ref.read(diveFilterProvider.notifier).state = DiveFilterState(
+      computerId: computer.id,
+    );
+    context.go('/dives');
+  }
+
+  Future<void> _confirmReimportAll(
+    BuildContext context,
+    DiveComputer computer,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveComputer_detail_reimportDialogTitle),
+        content: Text(
+          l10n.diveComputer_detail_reimportDialogBody(computer.displayName),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.common_action_continue),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.push('/dive-computers/${computer.id}/download?forceFull=true');
+    }
+  }
+
+  Future<void> _confirmReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    DiveComputer computer,
+    ({int withRawData, int withoutRawData}) counts,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveComputer_detail_reparseAllTitle),
+        content: Text(
+          l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.common_action_reparse),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await _executeReparseAll(context, ref, computer.id);
+    }
+  }
+
+  Future<void> _executeReparseAll(
+    BuildContext context,
+    WidgetRef ref,
+    String computerId,
+  ) async {
+    final service = ref.read(reparseServiceProvider);
+    final l10n = context.l10n;
+
+    final counts = await service.getRawDataCounts(computerId);
+    if (counts.withRawData == 0) return;
+
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot filter: no serial number for this computer.'),
+        SnackBar(
+          content: Text(
+            l10n.diveComputer_detail_reparseAllProgress(counts.withRawData),
+          ),
         ),
       );
     }
+
+    final result = await service.reparseAllForComputer(
+      computerId,
+      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+    );
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.failed == 0
+                ? l10n.diveComputer_detail_reparseAllSuccess(result.succeeded)
+                : l10n.diveComputer_detail_reparseAllPartial(
+                    result.succeeded,
+                    result.succeeded + result.failed,
+                    result.failed,
+                  ),
+          ),
+        ),
+      );
+    }
+
+    ref.invalidate(rawDataCountProvider(computerId));
   }
 
   void _handleMenuAction(
@@ -363,23 +539,23 @@ class DeviceDetailPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Computer'),
+        title: Text(context.l10n.diveComputer_detail_editDialogTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'e.g., My Perdix',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveComputer_detail_labelName,
+                hintText: context.l10n.diveComputer_detail_editNameHint,
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Optional notes',
+              decoration: InputDecoration(
+                labelText: context.l10n.diveComputer_detail_notesTitle,
+                hintText: context.l10n.diveComputer_detail_editNotesHint,
               ),
               maxLines: 3,
             ),
@@ -388,7 +564,7 @@ class DeviceDetailPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.common_action_cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -399,7 +575,7 @@ class DeviceDetailPage extends ConsumerWidget {
               ref.read(diveComputerNotifierProvider.notifier).update(updated);
               Navigator.of(context).pop();
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),
@@ -414,15 +590,16 @@ class DeviceDetailPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Computer?'),
+        title: Text(dialogContext.l10n.diveComputer_detail_deleteDialogTitle),
         content: Text(
-          'Are you sure you want to remove "${computer.displayName}"? '
-          'This will not delete any dives that were imported from this computer.',
+          dialogContext.l10n.diveComputer_detail_deleteDialogContent(
+            computer.displayName,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(dialogContext.l10n.common_action_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -435,7 +612,7 @@ class DeviceDetailPage extends ConsumerWidget {
               Navigator.of(dialogContext).pop();
               context.pop(); // Go back to list
             },
-            child: const Text('Delete'),
+            child: Text(dialogContext.l10n.common_action_delete),
           ),
         ],
       ),
@@ -459,21 +636,22 @@ class DeviceDetailPage extends ConsumerWidget {
     }
   }
 
-  String _getConnectionName(String? connectionType) {
+  String _getConnectionName(BuildContext context, String? connectionType) {
+    final l10n = context.l10n;
     switch (connectionType?.toLowerCase()) {
       case 'ble':
-        return 'Bluetooth LE';
+        return l10n.diveComputer_connectionType_ble;
       case 'bluetooth':
       case 'bluetoothclassic':
-        return 'Bluetooth';
+        return l10n.diveComputer_connectionType_bluetooth;
       case 'usb':
-        return 'USB';
+        return l10n.diveComputer_connectionType_usb;
       case 'wifi':
-        return 'Wi-Fi';
+        return l10n.diveComputer_connectionType_wifi;
       case 'infrared':
-        return 'Infrared';
+        return l10n.diveComputer_connectionType_infrared;
       default:
-        return 'Unknown';
+        return l10n.diveComputer_connectionType_unknown;
     }
   }
 }

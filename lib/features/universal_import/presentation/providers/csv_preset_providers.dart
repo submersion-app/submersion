@@ -12,5 +12,6 @@ final csvPresetRepositoryProvider = Provider<CsvPresetRepository>((ref) {
 /// Invalidate this provider after saving or deleting a preset to refresh.
 final userCsvPresetsProvider = FutureProvider<List<CsvPreset>>((ref) async {
   final repo = ref.read(csvPresetRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchPresetsChanges());
   return repo.getAllPresets();
 });

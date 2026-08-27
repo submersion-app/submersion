@@ -9,7 +9,7 @@ import '../../../../helpers/test_app.dart';
 TripWithStats _makeTrip({
   String name = 'Test Trip',
   int diveCount = 5,
-  int totalBottomTime = 0,
+  int totalRuntime = 0,
 }) {
   final now = DateTime(2025, 6, 1);
   return TripWithStats(
@@ -23,7 +23,7 @@ TripWithStats _makeTrip({
       updatedAt: now,
     ),
     diveCount: diveCount,
-    totalBottomTime: totalBottomTime,
+    totalRuntime: totalRuntime,
   );
 }
 
@@ -62,7 +62,7 @@ void main() {
         testApp(
           child: CompactTripListTile(
             // 3600 seconds = 1h 0m
-            tripWithStats: _makeTrip(totalBottomTime: 3600),
+            tripWithStats: _makeTrip(totalRuntime: 3600),
             onTap: () {},
           ),
         ),
@@ -76,7 +76,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           child: CompactTripListTile(
-            tripWithStats: _makeTrip(totalBottomTime: 0),
+            tripWithStats: _makeTrip(totalRuntime: 0),
             onTap: () {},
           ),
         ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -62,6 +61,15 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
+              if (!set.isDefault)
+                PopupMenuItem(
+                  value: 'setAsDefault',
+                  child: ListTile(
+                    leading: const Icon(Icons.star_outline),
+                    title: Text(context.l10n.equipment_setDetail_setAsDefault),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -104,9 +112,24 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            set.name,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  set.name,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ),
+                              if (set.isDefault) ...[
+                                const SizedBox(width: 8),
+                                Chip(
+                                  label: Text(
+                                    context.l10n.equipment_sets_defaultBadge,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
+                            ],
                           ),
                           if (set.description.isNotEmpty) ...[
                             const SizedBox(height: 4),
@@ -189,6 +212,39 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               )
             else
               ...set.items!.map((item) => _buildEquipmentTile(context, item)),
+            const SizedBox(height: 24),
+            Text(
+              context.l10n.equipment_setDetail_geofencesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, _) {
+                final fencesAsync = ref.watch(
+                  equipmentSetGeofencesProvider(setId),
+                );
+                return fencesAsync.maybeWhen(
+                  data: (fences) => fences.isEmpty
+                      ? Text(context.l10n.equipment_setDetail_noGeofences)
+                      : Column(
+                          children: [
+                            for (final g in fences)
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.place_outlined),
+                                title: Text(
+                                  g.label ??
+                                      context
+                                          .l10n
+                                          .equipment_geofenceEditor_title,
+                                ),
+                              ),
+                          ],
+                        ),
+                  orElse: () => const SizedBox.shrink(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -203,7 +259,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
           child: Icon(
-            _getIconForType(item.type),
+            equipmentTypeIcon(item.type),
             color: Theme.of(context).colorScheme.onTertiaryContainer,
           ),
         ),
@@ -222,6 +278,21 @@ class EquipmentSetDetailPage extends ConsumerWidget {
     String action,
     EquipmentSet set,
   ) async {
+    if (action == 'setAsDefault') {
+      await ref
+          .read(equipmentSetListNotifierProvider.notifier)
+          .setAsDefault(setId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.equipment_setDetail_setAsDefaultSnackbar(set.name),
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (action == 'delete') {
       final confirmed = await showDialog<bool>(
         context: context,
@@ -259,34 +330,6 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           );
         }
       }
-    }
-  }
-
-  IconData _getIconForType(EquipmentType type) {
-    switch (type) {
-      case EquipmentType.regulator:
-        return Icons.air;
-      case EquipmentType.bcd:
-        return Icons.accessibility_new;
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return Icons.checkroom;
-      case EquipmentType.fins:
-        return Icons.directions_walk;
-      case EquipmentType.mask:
-        return Icons.visibility;
-      case EquipmentType.computer:
-        return Icons.watch;
-      case EquipmentType.tank:
-        return MdiIcons.divingScubaTank;
-      case EquipmentType.weights:
-        return Icons.fitness_center;
-      case EquipmentType.light:
-        return Icons.flashlight_on;
-      case EquipmentType.camera:
-        return Icons.camera_alt;
-      default:
-        return Icons.backpack;
     }
   }
 }

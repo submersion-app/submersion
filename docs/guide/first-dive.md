@@ -2,18 +2,23 @@
 
 Let's log your first dive in Submersion! This quick tutorial will get you familiar with the basics.
 
-## Step 1: Create Your Diver Profile
+## Step 1: Run the Setup Wizard
 
-When you first launch Submersion, you'll be asked to create a diver profile.
+When you first launch Submersion, a short setup wizard walks you through
+creating your logbook. If you already have Submersion data, choose
+**I have existing Submersion data** to restore a backup, connect cloud
+sync, or open an existing folder instead.
 
 <div class="screenshot-placeholder">
-  <strong>Screenshot: Welcome/Onboarding Screen</strong><br>
-  <em>The welcome screen where you create your first diver profile</em>
+  <strong>Screenshot: Setup Wizard Welcome Screen</strong><br>
+  <em>The welcome screen where setup begins</em>
 </div>
 
-1. Enter your **name**
-2. Optionally add your **email** and **phone**
-3. Tap **Create Profile**
+1. Choose **Set up a new logbook**
+2. Enter your **name**
+3. Pick your **units** (Metric or Imperial), appearance, and backup
+   preferences - every step after the name can be skipped
+4. Tap **Start logging**
 
 <div class="tip">
 <strong>Tip:</strong> You can add more details to your profile later, including emergency contacts, medical info, and insurance details.

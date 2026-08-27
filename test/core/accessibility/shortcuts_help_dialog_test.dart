@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   setUp(() {
@@ -13,7 +14,12 @@ void main() {
   group('ShortcutsHelpDialog', () {
     testWidgets('renders dialog title', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: ShortcutsHelpDialog())),
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: ShortcutsHelpDialog()),
+        ),
       );
 
       expect(find.text('Keyboard Shortcuts'), findsOneWidget);
@@ -21,7 +27,12 @@ void main() {
 
     testWidgets('renders keyboard icon', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: ShortcutsHelpDialog())),
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: ShortcutsHelpDialog()),
+        ),
       );
 
       expect(find.byIcon(Icons.keyboard), findsOneWidget);
@@ -52,7 +63,12 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: ShortcutsHelpDialog())),
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: ShortcutsHelpDialog()),
+        ),
       );
 
       // Category headers
@@ -70,6 +86,9 @@ void main() {
     testWidgets('close button dismisses dialog', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -95,6 +114,9 @@ void main() {
     testWidgets('showShortcutsHelpDialog opens the dialog', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -117,7 +139,12 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: ShortcutsHelpDialog())),
+        const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('en'),
+          home: Scaffold(body: ShortcutsHelpDialog()),
+        ),
       );
 
       // Title should still render

@@ -18,6 +18,12 @@ class IncomingDiveData {
   final String? computerSerial;
   final List<DiveProfilePoint> profile;
   final String? siteName;
+  final String? weather;
+  final String? surfaceConditions;
+  final String? boatName;
+  final String? boatCaptain;
+  final String? diveOperator;
+  final String? sourceUuid;
 
   const IncomingDiveData({
     this.startTime,
@@ -30,6 +36,12 @@ class IncomingDiveData {
     this.computerSerial,
     this.profile = const [],
     this.siteName,
+    this.weather,
+    this.surfaceConditions,
+    this.boatName,
+    this.boatCaptain,
+    this.diveOperator,
+    this.sourceUuid,
   });
 
   /// Create from a [DownloadedDive] (dive computer download flow).
@@ -86,6 +98,12 @@ class IncomingDiveData {
       computerSerial: data['diveComputerSerial'] as String?,
       siteName: data['siteName'] as String?,
       profile: profile,
+      weather: data['weather'] as String?,
+      surfaceConditions: data['surfaceConditions'] as String?,
+      boatName: data['boatName'] as String?,
+      boatCaptain: data['boatCaptain'] as String?,
+      diveOperator: data['diveOperator'] as String?,
+      sourceUuid: data['sourceUuid'] as String?,
     );
   }
 }

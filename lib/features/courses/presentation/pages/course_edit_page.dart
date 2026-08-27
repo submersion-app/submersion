@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -112,7 +114,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
 
   Widget _buildForm(BuildContext context, Course? existingCourse) {
     final colorScheme = Theme.of(context).colorScheme;
-    final buddiesAsync = ref.watch(allBuddiesProvider);
+    final formatter = UnitFormatter(ref.watch(settingsProvider));
 
     final form = Form(
       key: _formKey,
@@ -162,7 +164,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           ListTile(
             leading: const Icon(Icons.calendar_today),
             title: Text(context.l10n.courses_label_startDate),
-            subtitle: Text(DateFormat.yMMMd().format(_startDate)),
+            subtitle: Text(formatter.formatDate(_startDate)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _selectDate(context, isStart: true),
           ),
@@ -173,7 +175,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
             secondary: const Icon(Icons.check_circle),
             title: Text(context.l10n.courses_label_completed),
             subtitle: _completionDate != null
-                ? Text(DateFormat.yMMMd().format(_completionDate!))
+                ? Text(formatter.formatDate(_completionDate!))
                 : Text(context.l10n.courses_label_courseInProgress),
             value: _completionDate != null,
             onChanged: (value) {
@@ -186,7 +188,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
             ListTile(
               leading: const SizedBox(width: 24),
               title: Text(context.l10n.courses_label_completionDate),
-              subtitle: Text(DateFormat.yMMMd().format(_completionDate!)),
+              subtitle: Text(formatter.formatDate(_completionDate!)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _selectDate(context, isStart: false),
             ),
@@ -210,54 +212,24 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           const SizedBox(height: 12),
 
           // Instructor from buddies (optional)
-          buddiesAsync.when(
-            data: (buddies) {
-              final instructors = buddies
-                  .where((b) => b.certificationLevel != null)
-                  .toList();
-              if (instructors.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<String?>(
-                    initialValue: _instructorId,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.courses_field_selectFromBuddies,
-                      prefixIcon: const Icon(Icons.people),
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(context.l10n.courses_label_none),
-                      ),
-                      ...instructors.map((buddy) {
-                        return DropdownMenuItem(
-                          value: buddy.id,
-                          child: Text(buddy.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _instructorId = value;
-                        if (value != null) {
-                          final buddy = instructors.firstWhere(
-                            (b) => b.id == value,
-                          );
-                          _instructorNameController.text = buddy.displayName;
-                        }
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              );
+          InstructorPickerField(
+            instructorId: _instructorId,
+            onSelected: (buddy, instructorCert) {
+              setState(() {
+                _instructorId = buddy?.id;
+                if (buddy != null) {
+                  // Snapshot the picked buddy fully: overwrite both name and
+                  // number so switching to a buddy without a card number
+                  // clears a stale one rather than leaving the previous
+                  // value behind.
+                  _instructorNameController.text = buddy.name;
+                  _instructorNumberController.text =
+                      instructorCert?.cardNumber ?? '';
+                }
+              });
             },
-            loading: () => const SizedBox.shrink(),
-            error: (error, stack) => const SizedBox.shrink(),
           ),
+          const SizedBox(height: 16),
 
           // Instructor name (manual)
           TextFormField(
@@ -359,7 +331,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
     if (widget.embedded) {
       return Column(
         children: [
-          _buildEmbeddedHeader(context),
+          _buildEmbeddedHeader(context, existingCourse),
           Expanded(child: form),
         ],
       );
@@ -387,7 +359,12 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
     );
   }
 
-  Widget _buildEmbeddedHeader(BuildContext context) {
+  /// Header for the master-detail (embedded) editor.
+  ///
+  /// [existingCourse] must be forwarded to [_save]: without it the save builds
+  /// a course with an empty id while still taking the update branch, so the
+  /// write becomes an `UPDATE ... WHERE id = ''` that matches nothing.
+  Widget _buildEmbeddedHeader(BuildContext context, Course? existingCourse) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 8),
@@ -410,7 +387,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
               child: Text(context.l10n.common_action_cancel),
             ),
           TextButton(
-            onPressed: _isLoading ? null : () => _save(null),
+            onPressed: _isLoading ? null : () => _save(existingCourse),
             child: Text(context.l10n.common_action_save),
           ),
         ],
@@ -422,13 +399,21 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
     BuildContext context, {
     required bool isStart,
   }) async {
-    final initialDate = isStart
+    final firstDate = isStart ? DateTime(1950) : _startDate;
+    final lastDate = DateTime(2100);
+    // Clamp into [firstDate, lastDate]: a completion date defaults to today,
+    // which precedes a future start date and would trip showDatePicker's
+    // initialDate assertion.
+    var initialDate = isStart
         ? _startDate
         : (_completionDate ?? DateTime.now());
-    final firstDate = isStart ? DateTime(1950) : _startDate;
-    final lastDate = DateTime.now().add(const Duration(days: 365));
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
 
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,

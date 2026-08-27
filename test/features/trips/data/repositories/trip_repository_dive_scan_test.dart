@@ -204,6 +204,29 @@ void main() {
       expect(candidates.first.isUnassigned, isFalse);
     });
 
+    test('includes dive logged at noon on the end day', () async {
+      final startDate = DateTime(2024, 6, 1);
+      final endDate = DateTime(2024, 6, 7);
+
+      await insertTrip(id: tripId, startDate: startDate, endDate: endDate);
+
+      await insertDive(
+        id: 'dive-end-day-noon',
+        dateTime: DateTime(2024, 6, 7, 12, 0, 0),
+        dId: diverId,
+      );
+
+      final candidates = await repository.findCandidateDivesForTrip(
+        tripId: tripId,
+        startDate: startDate,
+        endDate: endDate,
+        diverId: diverId,
+      );
+
+      expect(candidates, hasLength(1));
+      expect(candidates.first.dive.id, equals('dive-end-day-noon'));
+    });
+
     test('excludes dives from other divers', () async {
       final startDate = DateTime(2024, 6, 1);
       final endDate = DateTime(2024, 6, 7);

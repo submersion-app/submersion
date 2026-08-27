@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -89,7 +90,7 @@ class DiveTypesPage extends ConsumerWidget {
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,
       ),
-      title: Text(diveType.name),
+      title: Text(diveType.localizedName(context.l10n)),
       subtitle: canDelete
           ? Text(context.l10n.diveTypes_custom)
           : Text(context.l10n.diveTypes_builtIn),

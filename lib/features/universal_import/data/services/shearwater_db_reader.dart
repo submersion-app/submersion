@@ -115,6 +115,35 @@ LEFT JOIN log_data ld ON dd.DiveId = ld.log_id
 ORDER BY dd.DiveDate
 ''';
 
+  /// Synchronous companion to [isShearwaterCloudDb] for callers that
+  /// have already probed the SQLite table set (e.g. the format detector
+  /// runs every DB-flavor check against one probe to avoid doubling
+  /// temp-file I/O).
+  static bool matchesTables(Set<String> tables) =>
+      _requiredTables.every(tables.contains);
+
+  /// Writes [bytes] to a temp SQLite file, opens it read-only, and
+  /// returns the set of table names. Returns an empty set (doesn't
+  /// throw) for non-SQLite inputs. Shared by the format detector so
+  /// multiple DB-flavor checks can run against one probe.
+  static Future<Set<String>> probeSqliteTableNames(Uint8List bytes) async {
+    final tempPath = _tempPath();
+    final tempFile = File(tempPath);
+    try {
+      await tempFile.writeAsBytes(bytes);
+      final db = sqlite3.open(tempPath, mode: OpenMode.readOnly);
+      try {
+        return _listTables(db);
+      } finally {
+        db.close();
+      }
+    } catch (_) {
+      return const <String>{};
+    } finally {
+      _deleteTempFile(tempFile);
+    }
+  }
+
   /// Returns true if the given bytes represent a Shearwater Cloud database.
   ///
   /// Writes the bytes to a temporary file and opens it as SQLite. Checks
@@ -130,7 +159,7 @@ ORDER BY dd.DiveDate
         final tables = _listTables(db);
         return _requiredTables.every((t) => tables.contains(t));
       } finally {
-        db.dispose();
+        db.close();
       }
     } catch (_) {
       return false;
@@ -153,7 +182,7 @@ ORDER BY dd.DiveDate
         final rows = db.select(_query);
         return rows.map(_rowToRawDive).toList();
       } finally {
-        db.dispose();
+        db.close();
       }
     } finally {
       _deleteTempFile(tempFile);

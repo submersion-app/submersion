@@ -4,7 +4,11 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
@@ -12,10 +16,11 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/healthkit_adapter_steps.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -103,6 +108,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
   };
+
+  /// HealthKit only produces dives, so every tab gets the adapter-wide set.
+  @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
 
   @override
   List<WizardStepDef> get acquisitionSteps => [
@@ -218,6 +228,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) async {
     final baseSelections = Set<int>.from(
       selections[ImportEntityType.dives] ?? <int>{},
@@ -255,7 +266,13 @@ class HealthKitAdapter implements ImportSourceAdapter {
     var imported = 0;
     final importedDiveIds = <String>[];
 
+    // One instance for the run: its lookup cache collapses a batch of dives
+    // at the same location into a single elevation request.
+    final altitudeEnricher = DiveAltitudeEnricher();
+
     for (var i = 0; i < sortedIndices.length; i++) {
+      if (cancelToken?.isCancelled ?? false) break;
+
       final index = sortedIndices[i];
 
       if (index >= _parsedDives.length) continue;
@@ -263,11 +280,17 @@ class HealthKitAdapter implements ImportSourceAdapter {
       final importedDive = _parsedDives[index];
       final dive = _converter.convert(importedDive, diverId: _diverId);
       await _diveRepository.createDive(dive);
+      await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      await ChecklistDiveLinker().applyForImportedDive(dive);
+      await altitudeEnricher.applyForImportedDive(dive);
 
       imported++;
       importedDiveIds.add(dive.id);
       onProgress?.call(ImportPhase.dives, i + 1, total);
     }
+
+    // Queue a data-quality scan of the imported dives (fire-and-forget).
+    scheduleQualityScan(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

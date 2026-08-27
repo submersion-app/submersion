@@ -1,0 +1,146 @@
+// Adapted from plan
+// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// Task 9. The dialog subscribes to `NetworkScanService.scanAll()` once in
+// `initState`, holds the latest progress event in widget state, and flips
+// to a "Done" summary when the stream emits `NetworkScanPhase.finished`.
+// Cancel closes the dialog and cancels the stream subscription, which
+// terminates the underlying generator and aborts any in-flight HTTP
+// requests. Rows that completed before cancellation keep their persisted
+// `isOrphaned` / `lastVerifiedAt` state.
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/features/media/domain/value_objects/network_scan_progress.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The "Scan all network media" progress dialog.
+///
+/// Subscribes to `NetworkScanService.scanAll()` and rebuilds on each
+/// progress event. When the scan reaches [NetworkScanPhase.finished], the
+/// dialog flips to a summary view with a Done button. Cancel is always
+/// available; it closes the dialog and cancels the stream subscription,
+/// which terminates the generator and aborts any in-flight HTTP requests.
+/// Rows that completed before cancellation keep their persisted
+/// `isOrphaned` / `lastVerifiedAt` state.
+class NetworkScanDialog extends ConsumerStatefulWidget {
+  const NetworkScanDialog({super.key}) : _injectedStream = null;
+
+  /// Test-only constructor that takes a pre-built stream so tests don't
+  /// need to wire the full Riverpod scope.
+  @visibleForTesting
+  const NetworkScanDialog.test({
+    super.key,
+    required Stream<NetworkScanProgress> stream,
+  }) : _injectedStream = stream;
+
+  final Stream<NetworkScanProgress>? _injectedStream;
+
+  @override
+  ConsumerState<NetworkScanDialog> createState() => _NetworkScanDialogState();
+}
+
+class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
+  StreamSubscription<NetworkScanProgress>? _sub;
+  NetworkScanProgress? _progress;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final stream =
+        widget._injectedStream ??
+        ref.read(networkScanServiceProvider).scanAll();
+    _sub = stream.listen(
+      (p) {
+        if (!mounted) return;
+        setState(() => _progress = p);
+      },
+      onError: (Object e) {
+        if (!mounted) return;
+        setState(() => _error = e);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = _progress;
+    final finished = p?.phase == NetworkScanPhase.finished;
+    return AlertDialog(
+      title: Text(context.l10n.media_scan_title),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_error != null)
+              Text(
+                context.l10n.media_scan_failed('$_error'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              )
+            else if (finished)
+              // Final summary view: one-line summary; the running counters
+              // are subsumed by the report.
+              Text(_summary(ref))
+            else ...[
+              // Render a determinate bar at 0 before the first event
+              // arrives so `pumpAndSettle` can still drain the frame queue.
+              LinearProgressIndicator(value: p?.fractionDone ?? 0.0),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.media_scan_progressItems(
+                  p?.done ?? 0,
+                  p?.total ?? 0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.media_scan_progressReachability(
+                  p?.available ?? 0,
+                  p?.unreachable ?? 0,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        if (!finished)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.l10n.common_action_cancel),
+          )
+        else
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.l10n.common_action_done),
+          ),
+      ],
+    );
+  }
+
+  String _summary(WidgetRef ref) {
+    final report = ref.read(networkScanServiceProvider).lastReport;
+    if (report == null) return '';
+    final l10n = context.l10n;
+    final seconds = (report.durationMs / 1000).toStringAsFixed(1);
+    final base = l10n.media_scan_summary(
+      report.total,
+      seconds,
+      report.available,
+      report.unreachable,
+    );
+    if (report.skippedNoUrl == 0) return base;
+    return l10n.media_scan_summarySkipped(base, report.skippedNoUrl);
+  }
+}

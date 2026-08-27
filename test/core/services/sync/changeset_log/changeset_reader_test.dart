@@ -1,0 +1,329 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
+import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/retirement_marker.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+
+import '../../../../helpers/changeset_test_helpers.dart';
+import '../../../../helpers/test_database.dart';
+import '../../../../helpers/mock_providers.dart';
+import '../../../../support/fake_cloud_storage_provider.dart';
+
+/// The reader is exercised by publishing as the local (singleton) device, then
+/// pulling as a *different* selfDeviceId so the published files read as a peer.
+/// `apply` is a spy that records payloads, so we can assert fetch order and
+/// cursor advance without a second database.
+void main() {
+  late FakeCloudStorageProvider provider;
+  late ChangesetWriter writer;
+  late ChangesetReader reader;
+  late String folder;
+  final applied = <SyncPayload>[];
+
+  setUp(() async {
+    await setUpTestDatabase();
+    final db = DatabaseService.instance.database;
+    final serializer = SyncDataSerializer();
+    final codec = ChangesetCodec(serializer);
+    writer = ChangesetWriter(
+      serializer,
+      codec,
+      PublishStateStore(db),
+      compactionByteRatio: 1000.0,
+      compactionMaxChangesets: 1 << 30,
+    );
+    reader = ChangesetReader(codec, PeerCursorStore(db));
+    provider = FakeCloudStorageProvider();
+    folder = await provider.getOrCreateSyncFolder();
+    applied.clear();
+  });
+  tearDown(() => tearDownTestDatabase());
+
+  Future<void> spyApply(SyncPayload p) async => applied.add(p);
+
+  Future<String> publishAsPeer() async {
+    final peerId = await SyncRepository().getDeviceId();
+    final deletions = await SyncRepository().getAllDeletions();
+    await writer.publish(
+      provider: provider,
+      deviceId: peerId,
+      folderId: folder,
+      deletions: deletions,
+    );
+    return peerId;
+  }
+
+  Future<ChangesetReadResult> pullAs(String selfDeviceId) => reader.pull(
+    provider: provider,
+    selfDeviceId: selfDeviceId,
+    folderId: folder,
+    apply: spyApply,
+    applyBaseFile: spyApplyBaseFile(applied),
+  );
+
+  test(
+    'streams the base to a temp file that exists during apply and is deleted '
+    'after',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishAsPeer();
+
+      // Isolated temp dir so the assertion is deterministic and does not race
+      // other tests sharing Directory.systemTemp.
+      final tmpDir = await Directory.systemTemp.createTemp('reader_cleanup');
+      final isolatedReader = ChangesetReader(
+        ChangesetCodec(SyncDataSerializer()),
+        PeerCursorStore(DatabaseService.instance.database),
+        baseSink: BasePartFileSink(tempDirProvider: () async => tmpDir),
+      );
+
+      String? seenPath;
+      var existedDuringApply = false;
+      await isolatedReader.pull(
+        provider: provider,
+        selfDeviceId: 'reader-cleanup',
+        folderId: folder,
+        apply: (p) async {},
+        applyBaseFile: (path, manifest) async {
+          seenPath = path;
+          existedDuringApply = await File(path).exists();
+        },
+      );
+
+      expect(seenPath, isNotNull);
+      expect(
+        existedDuringApply,
+        isTrue,
+        reason: 'temp file must exist during applyBaseFile',
+      );
+      expect(
+        tmpDir.listSync(),
+        isEmpty,
+        reason: 'reader must delete the streamed base temp file after apply',
+      );
+      await tmpDir.delete(recursive: true);
+    },
+  );
+
+  test(
+    'cold-start pulls base then changesets, in order, and advances cursor',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final peerId = await publishAsPeer(); // base @1 (d1)
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+      );
+      await publishAsPeer(); // changeset @2 (d2)
+
+      final result = await pullAs('reader-x');
+      expect(result.peersProcessed, 1);
+      expect(applied.length, 2);
+      expect(applied.first.data.dives.map((d) => d['id']), contains('d1'));
+      expect(applied.last.data.dives.map((d) => d['id']), contains('d2'));
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get(peerId, provider.providerId);
+      expect(cursor!.lastSeqApplied, 2);
+    },
+  );
+
+  test('an up-to-date peer applies nothing on a second pull', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publishAsPeer();
+    await pullAs('reader-x');
+    applied.clear();
+
+    await pullAs('reader-x');
+    expect(applied, isEmpty);
+  });
+
+  test('steady-state pulls only the new changeset', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publishAsPeer(); // base @1
+    await pullAs('reader-x'); // applies base, cursor=1
+    applied.clear();
+
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+    );
+    await publishAsPeer(); // changeset @2
+    await pullAs('reader-x');
+
+    expect(applied.length, 1);
+    expect(applied.single.data.dives.map((d) => d['id']), contains('d2'));
+  });
+
+  test('the device skips its own files', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+
+    final result = await pullAs(peerId); // pull AS the publisher
+    expect(result.peersProcessed, 0);
+    expect(applied, isEmpty);
+  });
+
+  test('cold-start from a base-less manifest (post-adopt peer) applies its '
+      'changesets in order and advances the cursor', () async {
+    // A peer that adopted a Replace-restored library publishes changesets
+    // with NO base of its own (the adopted epoch is already published by the
+    // other devices). Hand-craft that log shape: changesets 1..2 and a
+    // manifest with a null baseSeq.
+    final serializer = SyncDataSerializer();
+    final codec = ChangesetCodec(serializer);
+    const peerId = 'adopted-peer';
+
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'edit-1', diveNumber: 1),
+    );
+    final cs1 = await serializer.exportChangeset(
+      deviceId: peerId,
+      hlcWatermark: null,
+      deletions: const [],
+      seq: 1,
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'edit-2', diveNumber: 2),
+    );
+    final cs2 = await serializer.exportChangeset(
+      deviceId: peerId,
+      hlcWatermark: cs1.toHlc,
+      deletions: const [],
+      seq: 2,
+    );
+    await provider.uploadFile(
+      codec.encodeChangeset(cs1),
+      ChangesetLogLayout.changesetName(peerId, 1),
+      folderId: folder,
+    );
+    await provider.uploadFile(
+      codec.encodeChangeset(cs2),
+      ChangesetLogLayout.changesetName(peerId, 2),
+      folderId: folder,
+    );
+    await provider.uploadFile(
+      SyncManifest(
+        deviceId: peerId,
+        provider: provider.providerId,
+        headSeq: 2,
+        publishedHlcHigh: cs2.toHlc,
+        updatedAt: 0,
+      ).toBytes(),
+      ChangesetLogLayout.manifestName(peerId),
+      folderId: folder,
+    );
+
+    final result = await pullAs('reader-x');
+
+    expect(result.peersProcessed, 1);
+    expect(applied.length, 2);
+    expect(applied.first.data.dives.map((d) => d['id']), contains('edit-1'));
+    expect(applied.last.data.dives.map((d) => d['id']), contains('edit-2'));
+    final cursor = await PeerCursorStore(
+      DatabaseService.instance.database,
+    ).get(peerId, provider.providerId);
+    expect(cursor!.lastSeqApplied, 2);
+    expect(cursor.baseSeqApplied, isNull);
+  });
+
+  test('pull records the applied HLC ack on the peer cursor', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'ack-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+
+    await pullAs('reader-self');
+
+    final manifest = SyncManifest.fromBytes(
+      await provider.downloadFile(
+        '$folder/${ChangesetLogLayout.manifestName(peerId)}',
+      ),
+    );
+    final cursor = await PeerCursorStore(
+      DatabaseService.instance.database,
+    ).get(peerId, provider.providerId);
+    expect(cursor!.appliedHlcHigh, isNotNull);
+    expect(cursor.appliedHlcHigh, manifest.publishedHlcHigh);
+  });
+
+  test('pull skips a retired peer and reports it', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'ret-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+    await provider.uploadFile(
+      RetirementMarker(deviceId: peerId, retiredAt: 1).toBytes(),
+      ChangesetLogLayout.retiredMarkerName(peerId),
+      folderId: folder,
+    );
+
+    final result = await pullAs('reader-self');
+
+    expect(applied, isEmpty);
+    expect(result.peersProcessed, 0);
+    expect(result.retiredPeerIds, {peerId});
+    expect(result.retiredPeerHasFiles, isTrue);
+    expect(result.peerManifests, isEmpty);
+    expect(
+      await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get(peerId, provider.providerId),
+      isNull,
+    );
+  });
+
+  test('pull uses a caller-supplied listing instead of re-listing', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'pre-1', diveNumber: 1),
+    );
+    await publishAsPeer();
+
+    // An empty pre-listing must be honored verbatim: the peer's files exist
+    // in the cloud but the reader must not issue its own listFiles call.
+    final result = await reader.pull(
+      provider: provider,
+      selfDeviceId: 'reader-self',
+      folderId: folder,
+      apply: spyApply,
+      applyBaseFile: spyApplyBaseFile(applied),
+      preListedFiles: const [],
+    );
+
+    expect(result.peersProcessed, 0);
+    expect(applied, isEmpty);
+  });
+
+  test('pull returns live peer manifests', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'man-1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+
+    final result = await pullAs('reader-self');
+
+    expect(result.peerManifests.map((m) => m.deviceId), [peerId]);
+    expect(result.retiredPeerIds, isEmpty);
+    expect(result.retiredPeerHasFiles, isFalse);
+  });
+}

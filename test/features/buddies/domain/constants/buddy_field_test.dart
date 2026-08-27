@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
   );
-  final testEntity = (buddy: testBuddy, diveCount: 15);
+  final testEntity = BuddyWithDiveCount(buddy: testBuddy, diveCount: 15);
 
   group('BuddyFieldAdapter.allFields', () {
     test('has expected count matching BuddyField.values', () {
@@ -140,7 +141,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
-      final entity = (buddy: buddy, diveCount: 0);
+      final entity = BuddyWithDiveCount(buddy: buddy, diveCount: 0);
       expect(adapter.extractValue(BuddyField.email, entity), isNull);
     });
 
@@ -151,7 +152,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
-      final entity = (buddy: buddy, diveCount: 0);
+      final entity = BuddyWithDiveCount(buddy: buddy, diveCount: 0);
       expect(adapter.extractValue(BuddyField.phone, entity), isNull);
     });
 
@@ -162,7 +163,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
-      final entity = (buddy: buddy, diveCount: 0);
+      final entity = BuddyWithDiveCount(buddy: buddy, diveCount: 0);
       expect(
         adapter.extractValue(BuddyField.certificationLevel, entity),
         isNull,
@@ -176,7 +177,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
-      final entity = (buddy: buddy, diveCount: 0);
+      final entity = BuddyWithDiveCount(buddy: buddy, diveCount: 0);
       expect(
         adapter.extractValue(BuddyField.certificationAgency, entity),
         isNull,
@@ -190,7 +191,7 @@ void main() {
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
-      final entity = (buddy: buddy, diveCount: 0);
+      final entity = BuddyWithDiveCount(buddy: buddy, diveCount: 0);
       expect(adapter.extractValue(BuddyField.notes, entity), equals(''));
     });
   });
@@ -226,25 +227,25 @@ void main() {
       );
     });
 
-    test('formats certification level using enum name', () {
+    test('formats certification level using its display name', () {
       expect(
         adapter.formatValue(
           BuddyField.certificationLevel,
           CertificationLevel.advancedOpenWater,
           units,
         ),
-        equals('advancedOpenWater'),
+        equals('Advanced Open Water'),
       );
     });
 
-    test('formats certification agency using enum name', () {
+    test('formats certification agency using its display name', () {
       expect(
         adapter.formatValue(
           BuddyField.certificationAgency,
           CertificationAgency.padi,
           units,
         ),
-        equals('padi'),
+        equals('PADI'),
       );
     });
 
@@ -425,6 +426,51 @@ void main() {
           );
         }
       }
+    });
+  });
+
+  group('lastDive and display names', () {
+    test('lastDive reads the aggregate and formats as a date', () {
+      final entry = BuddyWithDiveCount(
+        buddy: testBuddy,
+        diveCount: 15,
+        lastDiveAt: DateTime(2024, 3, 5),
+      );
+      final value = BuddyFieldAdapter.instance.extractValue(
+        BuddyField.lastDive,
+        entry,
+      );
+      expect(value, DateTime(2024, 3, 5));
+      expect(
+        BuddyFieldAdapter.instance.formatValue(
+          BuddyField.lastDive,
+          value,
+          units,
+        ),
+        units.formatDate(DateTime(2024, 3, 5)),
+      );
+      expect(BuddyField.lastDive.categoryName, 'statistics');
+      expect(BuddyField.lastDive.sortable, isTrue);
+      expect(BuddyField.lastDive.icon, Icons.history);
+    });
+
+    test('certification level and agency format as display names', () {
+      expect(
+        BuddyFieldAdapter.instance.formatValue(
+          BuddyField.certificationLevel,
+          CertificationLevel.advancedOpenWater,
+          units,
+        ),
+        'Advanced Open Water',
+      );
+      expect(
+        BuddyFieldAdapter.instance.formatValue(
+          BuddyField.certificationAgency,
+          CertificationAgency.padi,
+          units,
+        ),
+        'PADI',
+      );
     });
   });
 }

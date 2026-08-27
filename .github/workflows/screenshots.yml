@@ -37,12 +37,12 @@ jobs:
   # ============================================================================
   capture-ios:
     name: Capture iOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -63,13 +63,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -79,7 +79,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -172,12 +172,12 @@ jobs:
   # ============================================================================
   capture-macos:
     name: Capture macOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -198,13 +198,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -214,7 +214,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -274,13 +274,13 @@ jobs:
   # ============================================================================
   upload:
     name: Upload to App Store Connect
-    runs-on: macos-14
+    runs-on: macos-26
     needs: [capture-ios, capture-macos]
     timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1

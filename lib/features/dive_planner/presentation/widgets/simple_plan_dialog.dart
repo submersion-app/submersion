@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Simple dialog for creating a basic rectangular dive plan.
 ///
@@ -33,14 +34,15 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: const Text('Quick Plan'),
+      title: Text(l10n.divePlanner_action_quickPlan),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Create a simple rectangular dive profile',
+            l10n.divePlanner_quickPlan_subtitle,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
@@ -50,11 +52,16 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
             children: [
               SizedBox(
                 width: 60,
-                child: Text('Depth:', style: theme.textTheme.bodyMedium),
+                child: Text(
+                  l10n.divePlanner_quickPlan_depthLabel,
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
               Expanded(
                 child: Semantics(
-                  label: 'Depth: ${units.formatDepth(_depth)}',
+                  label: l10n.divePlanner_quickPlan_depthSemantics(
+                    units.formatDepth(_depth),
+                  ),
                   child: Slider(
                     value: _depth,
                     min: 5,
@@ -82,17 +89,22 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
             children: [
               SizedBox(
                 width: 60,
-                child: Text('Time:', style: theme.textTheme.bodyMedium),
+                child: Text(
+                  l10n.divePlanner_quickPlan_timeLabel,
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
               Expanded(
                 child: Semantics(
-                  label: 'Bottom time: $_bottomTime minutes',
+                  label: l10n.divePlanner_quickPlan_bottomTimeSemantics(
+                    _bottomTime,
+                  ),
                   child: Slider(
                     value: _bottomTime.toDouble(),
                     min: 5,
                     max: 120,
                     divisions: 23,
-                    label: '$_bottomTime min',
+                    label: l10n.divePlanner_quickPlan_minutes(_bottomTime),
                     onChanged: (v) => setState(() => _bottomTime = v.round()),
                   ),
                 ),
@@ -100,7 +112,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
               SizedBox(
                 width: 60,
                 child: Text(
-                  '$_bottomTime min',
+                  l10n.divePlanner_quickPlan_minutes(_bottomTime),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -113,9 +125,10 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
 
           // Preview info
           Semantics(
-            label:
-                'Plan preview: Descent to ${units.formatDepth(_depth)}, '
-                'bottom time $_bottomTime minutes, ascent with safety stop',
+            label: l10n.divePlanner_quickPlan_previewSemantics(
+              units.formatDepth(_depth),
+              _bottomTime,
+            ),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -126,7 +139,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Plan Preview:',
+                    l10n.divePlanner_quickPlan_previewTitle,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -134,19 +147,21 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                   const SizedBox(height: 4),
                   ExcludeSemantics(
                     child: Text(
-                      'Descent to ${units.formatDepth(_depth)}',
+                      l10n.divePlanner_quickPlan_previewDescent(
+                        units.formatDepth(_depth),
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
                   ExcludeSemantics(
                     child: Text(
-                      'Bottom time: $_bottomTime min',
+                      l10n.divePlanner_quickPlan_previewBottomTime(_bottomTime),
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
                   ExcludeSemantics(
                     child: Text(
-                      'Ascent with safety stop',
+                      l10n.divePlanner_quickPlan_previewAscent,
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -159,7 +174,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -171,7 +186,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
                 );
             Navigator.pop(context);
           },
-          child: const Text('Create'),
+          child: Text(l10n.divePlanner_quickPlan_create),
         ),
       ],
     );

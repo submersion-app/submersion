@@ -355,6 +355,10 @@ Future<void> showSignatureCaptureSheet({
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    // Drawing on the signature canvas uses a pan gesture; the sheet's
+    // drag-to-dismiss would otherwise win the gesture arena and move the
+    // whole sheet instead of drawing. A Cancel button provides dismissal.
+    enableDrag: false,
     builder: (context) => SignatureCaptureSheet(
       initialSignerName: initialSignerName,
       onSave: onSave,

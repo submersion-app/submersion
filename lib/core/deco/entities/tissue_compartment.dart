@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+
 /// Represents a single tissue compartment in the Bühlmann decompression model.
 ///
 /// The Bühlmann ZH-L16C model uses 16 tissue compartments with different
@@ -40,7 +42,7 @@ class TissueCompartment extends Equatable {
     required this.mValueBN2,
     required this.mValueAHe,
     required this.mValueBHe,
-    this.currentPN2 = 0.79, // Surface N2 tension at sea level
+    this.currentPN2 = inspiredSurfaceN2Bar,
     this.currentPHe = 0.0,
   });
 
@@ -98,16 +100,24 @@ class TissueCompartment extends Equatable {
     return (totalInertGas - 1.0) / denominator;
   }
 
-  /// Calculate ceiling (minimum safe depth) in meters for this compartment
-  /// Using gradient factor to add conservatism
-  double ceiling({double gf = 1.0}) {
+  /// Ceiling as an absolute ambient pressure in bar for this compartment,
+  /// with gradient factor [gf] applied. Depth conversion is the caller's
+  /// job (via DiveEnvironment) so this stays environment-agnostic.
+  double ceilingPressureBar({double gf = 1.0}) {
     // Ceiling in bar absolute = (P_tissue - a * gf) / (gf / b + 1 - gf)
     final a = blendedA;
     final b = blendedB;
-    final pCeiling = (totalInertGas - a * gf) / (gf / b + 1 - gf);
+    return (totalInertGas - a * gf) / (gf / b + 1 - gf);
+  }
 
-    // Convert from bar absolute to meters (1 bar = 10m water)
-    final ceilingMeters = (pCeiling - 1.0) * 10.0;
+  /// Calculate ceiling (minimum safe depth) in meters for this compartment
+  /// using gradient factor to add conservatism.
+  ///
+  /// LEGACY: assumes 1.0 bar surface and 10 m/bar. The Buhlmann engine now
+  /// converts [ceilingPressureBar] through its DiveEnvironment instead;
+  /// this remains for display widgets that predate environments.
+  double ceiling({double gf = 1.0}) {
+    final ceilingMeters = (ceilingPressureBar(gf: gf) - 1.0) * 10.0;
 
     // Ceiling cannot be negative (can't ascend above surface)
     return ceilingMeters < 0 ? 0 : ceilingMeters;

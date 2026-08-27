@@ -10,8 +10,16 @@ class ImportOptions extends Equatable {
   /// The detected/confirmed format.
   final ImportFormat format;
 
-  const ImportOptions({required this.sourceApp, required this.format});
+  /// The source file's name, when known. Used by formats that carry no
+  /// in-file dive name (e.g. Garmin FIT) to seed the dive name from the file.
+  final String? fileName;
+
+  const ImportOptions({
+    required this.sourceApp,
+    required this.format,
+    this.fileName,
+  });
 
   @override
-  List<Object?> get props => [sourceApp, format];
+  List<Object?> get props => [sourceApp, format, fileName];
 }

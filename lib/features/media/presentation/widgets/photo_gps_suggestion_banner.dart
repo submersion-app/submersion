@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Banner widget that suggests using GPS coordinates from photos
@@ -35,12 +37,13 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
     }
 
     final gpsAsync = ref.watch(divePhotoGpsProvider(diveId));
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return gpsAsync.when(
       data: (gps) {
         if (gps == null) return const SizedBox.shrink();
 
-        return _buildBanner(context, gps);
+        return _buildBanner(context, units, gps);
       },
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -49,6 +52,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
 
   Widget _buildBanner(
     BuildContext context,
+    UnitFormatter units,
     ({double latitude, double longitude}) gps,
   ) {
     final theme = Theme.of(context);
@@ -98,8 +102,7 @@ class PhotoGpsSuggestionBanner extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               context.l10n.media_gpsBanner_coordinates(
-                gps.latitude.toStringAsFixed(5),
-                gps.longitude.toStringAsFixed(5),
+                units.formatCoordinates(gps.latitude, gps.longitude),
               ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -5,7 +7,9 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 @GenerateMocks([DiveComputerRepository, DiveRepository])
 import 'dive_import_service_test.mocks.dart';
@@ -31,6 +35,12 @@ void main() {
       diveRepository: mockDiveRepo,
     );
 
+    // Default: no known source keys (importDives prefetches this once per
+    // batch for the fingerprint pass).
+    when(
+      mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => {});
+
     // Default: no duplicates found
     when(
       mockComputerRepo.findMatchingDiveWithScore(
@@ -38,7 +48,7 @@ void main() {
         toleranceMinutes: anyNamed('toleranceMinutes'),
         durationSeconds: anyNamed('durationSeconds'),
         maxDepth: anyNamed('maxDepth'),
-        fingerprint: anyNamed('fingerprint'),
+        diverId: anyNamed('diverId'),
       ),
     ).thenAnswer((_) async => null);
 
@@ -59,8 +69,15 @@ void main() {
         gfHigh: anyNamed('gfHigh'),
         decoConservatism: anyNamed('decoConservatism'),
         events: anyNamed('events'),
+        gasSwitches: anyNamed('gasSwitches'),
         diveNumber: anyNamed('diveNumber'),
         forceNew: anyNamed('forceNew'),
+        rawData: anyNamed('rawData'),
+        rawFingerprint: anyNamed('rawFingerprint'),
+        descriptorVendor: anyNamed('descriptorVendor'),
+        descriptorProduct: anyNamed('descriptorProduct'),
+        descriptorModel: anyNamed('descriptorModel'),
+        libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
       ),
     ).thenAnswer((_) async => 'dive-id');
   });
@@ -137,7 +154,14 @@ void main() {
           gfHigh: anyNamed('gfHigh'),
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
           diveNumber: 1,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -157,7 +181,14 @@ void main() {
           gfHigh: anyNamed('gfHigh'),
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
           diveNumber: 2,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
 
@@ -177,7 +208,14 @@ void main() {
           gfHigh: anyNamed('gfHigh'),
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
           diveNumber: 3,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -241,7 +279,14 @@ void main() {
             gfHigh: anyNamed('gfHigh'),
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
             diveNumber: 1,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
 
@@ -262,7 +307,14 @@ void main() {
             gfHigh: anyNamed('gfHigh'),
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
             diveNumber: 2,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -307,7 +359,14 @@ void main() {
             gfHigh: anyNamed('gfHigh'),
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
             diveNumber: 6,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -333,7 +392,7 @@ void main() {
             toleranceMinutes: anyNamed('toleranceMinutes'),
             durationSeconds: anyNamed('durationSeconds'),
             maxDepth: anyNamed('maxDepth'),
-            fingerprint: anyNamed('fingerprint'),
+            diverId: anyNamed('diverId'),
           ),
         ).thenAnswer(
           (_) async => const DiveMatchResult(
@@ -372,8 +431,15 @@ void main() {
             gfHigh: anyNamed('gfHigh'),
             decoConservatism: anyNamed('decoConservatism'),
             events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
             diveNumber: anyNamed('diveNumber'),
             forceNew: true,
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
           ),
         ).called(1);
       },
@@ -416,8 +482,15 @@ void main() {
           gfHigh: anyNamed('gfHigh'),
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
           diveNumber: anyNamed('diveNumber'),
           forceNew: true,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
     });
@@ -474,9 +547,506 @@ void main() {
           gfHigh: anyNamed('gfHigh'),
           decoConservatism: anyNamed('decoConservatism'),
           events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
           diveNumber: 4,
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
         ),
       ).called(1);
+    });
+
+    test(
+      'resolveConflict with replaceSource calls clearSourceAndProfiles then importProfile',
+      () async {
+        final dive = DownloadedDive(
+          fingerprint: 'fp-replace',
+          startTime: DateTime(2026, 4, 5, 8, 30),
+          durationSeconds: 3000,
+          maxDepth: 22.0,
+          avgDepth: 14.5,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+          rawData: Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]),
+          rawFingerprint: Uint8List.fromList([0x01, 0x02, 0x03]),
+        );
+
+        final conflict = ImportConflict(
+          downloaded: dive,
+          existingDiveId: 'existing-dive-42',
+          duplicateResult: const DuplicateResult(
+            matchingDiveId: 'existing-dive-42',
+            confidence: DuplicateConfidence.exact,
+            score: 0.95,
+          ),
+        );
+
+        // Stub clearSourceAndProfiles
+        when(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: anyNamed('diveId'),
+            computerId: anyNamed('computerId'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final result = await service.resolveConflict(
+          conflict,
+          ConflictResolution.replaceSource,
+          computer.id,
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Perdix',
+          descriptorModel: 42,
+          libdivecomputerVersion: '0.8.0',
+        );
+
+        // Returns the existing dive ID
+        expect(result, equals('existing-dive-42'));
+
+        // Verify clearSourceAndProfiles was called with correct IDs
+        verify(
+          mockComputerRepo.clearSourceAndProfiles(
+            diveId: 'existing-dive-42',
+            computerId: computer.id,
+          ),
+        ).called(1);
+
+        // Verify importProfile was called with isPrimary: true, descriptor
+        // fields, rawData, rawFingerprint, and avgDepth
+        verify(
+          mockComputerRepo.importProfile(
+            computerId: computer.id,
+            profileStartTime: DateTime(2026, 4, 5, 8, 30),
+            points: anyNamed('points'),
+            durationSeconds: 3000,
+            maxDepth: 22.0,
+            avgDepth: 14.5,
+            isPrimary: true,
+            diverId: anyNamed('diverId'),
+            tanks: anyNamed('tanks'),
+            decoAlgorithm: anyNamed('decoAlgorithm'),
+            gfLow: anyNamed('gfLow'),
+            gfHigh: anyNamed('gfHigh'),
+            decoConservatism: anyNamed('decoConservatism'),
+            events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
+            diveNumber: anyNamed('diveNumber'),
+            forceNew: anyNamed('forceNew'),
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: 'Shearwater',
+            descriptorProduct: 'Perdix',
+            descriptorModel: 42,
+            libdivecomputerVersion: '0.8.0',
+          ),
+        ).called(1);
+      },
+    );
+
+    test('resolveConflict with replaceSource forwards the dive gas switches to '
+        'importProfile', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-replace-gas',
+        startTime: DateTime(2026, 4, 6, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 25.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+        gasSwitches: const [
+          GasSwitchEvent(timeSeconds: 600, depth: 12.0, toTankIndex: 1),
+        ],
+        rawData: Uint8List.fromList([0xDE, 0xAD]),
+      );
+
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-77',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-77',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      when(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      final captured =
+          verify(
+                mockComputerRepo.importProfile(
+                  computerId: anyNamed('computerId'),
+                  profileStartTime: anyNamed('profileStartTime'),
+                  points: anyNamed('points'),
+                  durationSeconds: anyNamed('durationSeconds'),
+                  maxDepth: anyNamed('maxDepth'),
+                  avgDepth: anyNamed('avgDepth'),
+                  isPrimary: anyNamed('isPrimary'),
+                  diverId: anyNamed('diverId'),
+                  tanks: anyNamed('tanks'),
+                  decoAlgorithm: anyNamed('decoAlgorithm'),
+                  gfLow: anyNamed('gfLow'),
+                  gfHigh: anyNamed('gfHigh'),
+                  decoConservatism: anyNamed('decoConservatism'),
+                  events: anyNamed('events'),
+                  gasSwitches: captureAnyNamed('gasSwitches'),
+                  diveNumber: anyNamed('diveNumber'),
+                  forceNew: anyNamed('forceNew'),
+                  rawData: anyNamed('rawData'),
+                  rawFingerprint: anyNamed('rawFingerprint'),
+                  descriptorVendor: anyNamed('descriptorVendor'),
+                  descriptorProduct: anyNamed('descriptorProduct'),
+                  descriptorModel: anyNamed('descriptorModel'),
+                  libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                ),
+              ).captured.single
+              as List<GasSwitchData>;
+
+      expect(captured, hasLength(1));
+      expect(captured.single.timestamp, 600);
+      expect(captured.single.depth, 12.0);
+      expect(captured.single.toTankIndex, 1);
+    });
+
+    test('resolveConflict with consolidate returns null', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-consolidate',
+        startTime: DateTime(2026, 4, 10, 11, 0),
+        durationSeconds: 2400,
+        maxDepth: 18.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-99',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-99',
+          confidence: DuplicateConfidence.likely,
+          score: 0.80,
+        ),
+      );
+
+      final result = await service.resolveConflict(
+        conflict,
+        ConflictResolution.consolidate,
+        computer.id,
+      );
+
+      expect(result, isNull);
+      expect(conflict.resolution, ConflictResolution.consolidate);
+
+      // Neither clearSourceAndProfiles nor importProfile should be called
+      verifyNever(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // detectDuplicate (Task 8 finding 1)
+  // ---------------------------------------------------------------------------
+
+  group('detectDuplicate', () {
+    test('sets matchedExistingSource=true and score 1.0 on a fingerprint hit '
+        'against an existing dive\'s source keys', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-source-hit',
+        startTime: DateTime(2026, 5, 1, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 20.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+        rawFingerprint: Uint8List.fromList([0xAA, 0xBB, 0xCC]),
+      );
+
+      when(
+        mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+      ).thenAnswer(
+        (_) async => {
+          'existing-dive-source-hit': {'AABBCC'},
+        },
+      );
+
+      final result = await service.detectDuplicate(dive, diverId: 'diver-1');
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-dive-source-hit');
+      expect(result.score, 1.0);
+      expect(result.confidence, DuplicateConfidence.exact);
+      expect(result.matchedExistingSource, isTrue);
+
+      // The fingerprint pass short-circuits fuzzy matching entirely.
+      verifyNever(
+        mockComputerRepo.findMatchingDiveWithScore(
+          profileStartTime: anyNamed('profileStartTime'),
+          toleranceMinutes: anyNamed('toleranceMinutes'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          diverId: anyNamed('diverId'),
+        ),
+      );
+    });
+
+    test('a prefetched sourceKeysCache is used instead of querying the '
+        'repository per dive', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-cached-hit',
+        startTime: DateTime(2026, 5, 1, 10, 0),
+        durationSeconds: 3000,
+        maxDepth: 20.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+        rawFingerprint: Uint8List.fromList([0xAA, 0xBB, 0xCC]),
+      );
+
+      final result = await service.detectDuplicate(
+        dive,
+        diverId: 'diver-1',
+        sourceKeysCache: {
+          'existing-dive-cached': {'AABBCC'},
+        },
+      );
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-dive-cached');
+      expect(result.matchedExistingSource, isTrue);
+      // The cache fully replaces the per-dive repository query.
+      verifyNever(
+        mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+      );
+    });
+
+    test('leaves matchedExistingSource=false for a fuzzy time/depth/duration '
+        'match with no source-key hit', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-fuzzy',
+        startTime: DateTime(2026, 5, 2, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 20.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+        rawFingerprint: Uint8List.fromList([0x11, 0x22, 0x33]),
+      );
+
+      // No source-key hit for this fingerprint.
+      when(
+        mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => {});
+
+      when(
+        mockComputerRepo.findMatchingDiveWithScore(
+          profileStartTime: anyNamed('profileStartTime'),
+          toleranceMinutes: anyNamed('toleranceMinutes'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer(
+        (_) async => const DiveMatchResult(
+          diveId: 'existing-dive-fuzzy',
+          score: 0.8,
+          timeDifferenceMs: 60000,
+        ),
+      );
+
+      final result = await service.detectDuplicate(dive, diverId: 'diver-1');
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-dive-fuzzy');
+      expect(result.matchedExistingSource, isFalse);
+    });
+
+    test(
+      'leaves matchedExistingSource=false when no match is found at all',
+      () async {
+        final dive = DownloadedDive(
+          fingerprint: 'fp-none',
+          startTime: DateTime(2026, 5, 3, 9, 0),
+          durationSeconds: 3000,
+          maxDepth: 20.0,
+          profile: const [],
+          tanks: const [],
+          events: const [],
+        );
+
+        final result = await service.detectDuplicate(dive, diverId: 'diver-1');
+
+        expect(result.isDuplicate, isFalse);
+        expect(result.matchedExistingSource, isFalse);
+      },
+    );
+  });
+
+  group('default tank preset for downloads (issue #386)', () {
+    final al80 = TankPresetEntity.fromBuiltIn(TankPresets.al80);
+
+    DownloadedDive diveWithPressureOnlyTank() => DownloadedDive(
+      fingerprint: 'fp-al',
+      startTime: DateTime(2026, 2, 1, 9, 0),
+      durationSeconds: 2700,
+      maxDepth: 18.0,
+      profile: const [],
+      tanks: const [
+        DownloadedTank(
+          index: 0,
+          o2Percent: 21.0,
+          startPressure: 200.0,
+          endPressure: 60.0,
+        ),
+      ],
+      events: const [],
+    );
+
+    List<TankData> importedTanks() {
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: captureAnyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).captured;
+      return captured.single as List<TankData>;
+    }
+
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+    });
+
+    test(
+      'fills the cylinder size from the preset when one is supplied',
+      () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          defaultTankPresetForImports: () async => al80,
+        );
+
+        await service.importDives(
+          dives: [diveWithPressureOnlyTank()],
+          computer: computer,
+        );
+
+        final tanks = importedTanks();
+        expect(tanks.single.volumeLiters, al80.volumeLiters);
+        expect(tanks.single.presetName, 'al80');
+        // The transmitter's pressures are untouched.
+        expect(tanks.single.startPressure, 200.0);
+        expect(tanks.single.endPressure, 60.0);
+      },
+    );
+
+    test('leaves the tank alone when the loader yields no preset', () async {
+      // The toggle is off, or the configured preset no longer exists.
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async => null,
+      );
+
+      await service.importDives(
+        dives: [diveWithPressureOnlyTank()],
+        computer: computer,
+      );
+
+      expect(importedTanks().single.volumeLiters, isNull);
+    });
+
+    test('leaves the tank alone without a loader', () async {
+      await service.importDives(
+        dives: [diveWithPressureOnlyTank()],
+        computer: computer,
+      );
+
+      expect(importedTanks().single.volumeLiters, isNull);
+    });
+
+    test('applies to the explicit import-as-new path too', () async {
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async => al80,
+      );
+
+      await service.importSingleDiveAsNew(
+        diveWithPressureOnlyTank(),
+        computerId: computer.id,
+      );
+
+      expect(importedTanks().single.volumeLiters, al80.volumeLiters);
+    });
+
+    test('resolves the preset once per batch', () async {
+      var loads = 0;
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async {
+          loads++;
+          return al80;
+        },
+      );
+
+      await service.importDives(
+        dives: [
+          diveWithPressureOnlyTank(),
+          DownloadedDive(
+            fingerprint: 'fp-second',
+            startTime: DateTime(2026, 2, 2, 9, 0),
+            durationSeconds: 2700,
+            maxDepth: 18.0,
+            profile: const [],
+            tanks: const [DownloadedTank(index: 0, o2Percent: 21.0)],
+            events: const [],
+          ),
+        ],
+        computer: computer,
+      );
+
+      expect(loads, 1);
     });
   });
 }

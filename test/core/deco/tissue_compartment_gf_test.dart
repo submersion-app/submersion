@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 void main() {
@@ -11,7 +12,7 @@ void main() {
     mValueBN2: 0.5050,
     mValueAHe: 1.7424,
     mValueBHe: 0.4245,
-    currentPN2: 0.79, // Surface saturated
+    currentPN2: inspiredSurfaceN2Bar, // Surface saturated
     currentPHe: 0.0,
   );
 
@@ -58,7 +59,7 @@ void main() {
 
     test('returns negative when undersaturated', () {
       // Surface-saturated tissue at depth (tissue tension < ambient)
-      // At 20m (3.0 bar), surface-saturated tissue (0.79) is way below ambient
+      // At 20m (3.0 bar), surface-saturated tissue is way below ambient
       final gf = comp1.gradientFactor(3.0);
       expect(gf, isNegative);
     });

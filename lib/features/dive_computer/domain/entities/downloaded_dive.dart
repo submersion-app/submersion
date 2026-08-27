@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:submersion/core/constants/enums.dart';
+
 /// Phases of the download process.
 enum DownloadPhase {
   initializing,
@@ -105,6 +109,12 @@ class DownloadedDive {
   /// Maximum temperature in Celsius (if available)
   final double? maxTemperature;
 
+  /// GPS entry/exit fixes in decimal degrees (Shearwater Swift), if available
+  final double? entryLatitude;
+  final double? entryLongitude;
+  final double? exitLatitude;
+  final double? exitLongitude;
+
   /// Depth-time profile points
   final List<ProfileSample> profile;
 
@@ -132,6 +142,15 @@ class DownloadedDive {
   /// Dive events from the computer
   final List<DownloadedEvent> events;
 
+  /// Raw dive data bytes from libdivecomputer (for re-parse)
+  final Uint8List? rawData;
+
+  /// Raw fingerprint bytes from libdivecomputer
+  final Uint8List? rawFingerprint;
+
+  /// Breathing/logging mode reported by the computer (oc/ccr/scr/gauge).
+  final DiveMode diveMode;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -140,6 +159,10 @@ class DownloadedDive {
     this.avgDepth,
     this.minTemperature,
     this.maxTemperature,
+    this.entryLatitude,
+    this.entryLongitude,
+    this.exitLatitude,
+    this.exitLongitude,
     required this.profile,
     this.tanks = const [],
     this.gasSwitches = const [],
@@ -148,7 +171,10 @@ class DownloadedDive {
     this.gfLow,
     this.gfHigh,
     this.decoConservatism,
+    this.diveMode = DiveMode.oc,
     this.events = const [],
+    this.rawData,
+    this.rawFingerprint,
   });
 
   /// Duration as a Duration object
@@ -175,8 +201,18 @@ class ProfileSample {
   /// Tank index for pressure (0-based)
   final int? tankIndex;
 
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer reports one
+  /// pressure per air-integrated transmitter, so a single sample can carry
+  /// several; [pressure]/[tankIndex] hold only the last of them (issue #1223).
+  /// Null when the source reports at most one pressure per sample.
+  final List<double?>? tankPressures;
+
   /// Heart rate in bpm (if available)
   final int? heartRate;
+
+  /// Compass heading in degrees (0-359); null when not reported.
+  final double? heading;
 
   /// CCR setpoint in bar (if available)
   final double? setpoint;
@@ -211,13 +247,34 @@ class ProfileSample {
   /// Time to surface in seconds
   final int? tts;
 
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  /// cell has no reading. [ppo2] holds the aggregate/computed value.
+  final double? o2Sensor1;
+  final double? o2Sensor2;
+  final double? o2Sensor3;
+  final double? o2Sensor4;
+  final double? o2Sensor5;
+  final double? o2Sensor6;
+
+  /// Raw O2 cell output in millivolts (sensor 1..6), null when that cell
+  /// reports none. Present even when the matching [o2Sensor1]..[o2Sensor6] is
+  /// null because the logged calibration could not be trusted (issue #810).
+  final int? o2SensorMv1;
+  final int? o2SensorMv2;
+  final int? o2SensorMv3;
+  final int? o2SensorMv4;
+  final int? o2SensorMv5;
+  final int? o2SensorMv6;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
     this.temperature,
     this.pressure,
     this.tankIndex,
+    this.tankPressures,
     this.heartRate,
+    this.heading,
     this.setpoint,
     this.ppo2,
     this.cns,
@@ -229,6 +286,18 @@ class ProfileSample {
     this.decoTime,
     this.decoDepth,
     this.tts,
+    this.o2Sensor1,
+    this.o2Sensor2,
+    this.o2Sensor3,
+    this.o2Sensor4,
+    this.o2Sensor5,
+    this.o2Sensor6,
+    this.o2SensorMv1,
+    this.o2SensorMv2,
+    this.o2SensorMv3,
+    this.o2SensorMv4,
+    this.o2SensorMv5,
+    this.o2SensorMv6,
   });
 }
 
@@ -252,6 +321,10 @@ class DownloadedTank {
   /// Tank volume in liters
   final double? volumeLiters;
 
+  /// Inferred cylinder role (a [TankRole] name, e.g. 'deco'), or null to use
+  /// the default. Derived from the computer's tank usage / the gas mix.
+  final String? role;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -259,6 +332,7 @@ class DownloadedTank {
     this.startPressure,
     this.endPressure,
     this.volumeLiters,
+    this.role,
   });
 
   /// Whether this is air (21% O2)

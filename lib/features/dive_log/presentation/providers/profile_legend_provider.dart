@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 part 'profile_legend_provider.g.dart';
@@ -22,15 +23,22 @@ class ProfileLegendState {
   final bool showTemperature;
   final bool showPressure;
   final bool showCeiling;
+  final bool showDecoStops;
 
   // Secondary toggles (shown in "More" popover)
   final bool showHeartRate;
   final bool showSac;
   final bool showAscentRateColors;
+
+  /// Separate ascent-rate magnitude line (m/min). Its session state seeds from
+  /// the persisted [AppSettings.defaultShowAscentRateLine] default; distinct
+  /// from [showAscentRateColors], which tints the depth line by velocity band.
+  final bool showAscentRateLine;
   final bool showEvents;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
+  final bool showPhotoMarkers;
 
   // Advanced decompression/gas toggles
   final bool showNdl;
@@ -46,17 +54,35 @@ class ProfileLegendState {
   final bool showCns;
   final bool showOtu;
 
-  // Per-metric data source preferences (session overrides)
+  /// Raw O2 cell output lines (issue #810). Seeds from the persisted
+  /// [AppSettings.defaultShowO2CellMv] default (issue #1235).
+  final bool showO2CellMv;
+
+  // Per-metric data source preferences (session overrides).
+  // The ceiling line has no source toggle: every import path stores only the
+  // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
+  // would duplicate the deco-stop band. The ceiling line therefore always
+  // renders the exact, continuous calculated curve (see issue #755).
   final MetricDataSource ndlSource;
-  final MetricDataSource ceilingSource;
   final MetricDataSource ttsSource;
   final MetricDataSource cnsSource;
+  final MetricDataSource decoStopSource;
 
   // Per-tank pressure visibility (keyed by tank ID)
   final Map<String, bool> showTankPressure;
 
+  // Gas timeline strip visibility
+  final bool showGas;
+
   // Collapsible section expanded/collapsed state (session-only)
   final Map<String, bool> sectionExpanded;
+
+  /// Whether secondary-axis metric overlays follow the visible depth window
+  /// when zoomed, instead of magnifying with the depth axis and potentially
+  /// leaving the viewport. Seeds from the device-local
+  /// [AppSettings.profileMetricsFollowViewport]; this is a rendering mode, not
+  /// a series toggle, so it is excluded from [activeSecondaryCount].
+  final bool metricsFollowViewport;
 
   const ProfileLegendState({
     this.rightAxisMetric,
@@ -64,13 +90,16 @@ class ProfileLegendState {
     this.showTemperature = true,
     this.showPressure = false,
     this.showCeiling = true,
+    this.showDecoStops = true,
     this.showHeartRate = false,
     this.showSac = false,
-    this.showAscentRateColors = true,
+    this.showAscentRateColors = false,
+    this.showAscentRateLine = false,
     this.showEvents = true,
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
+    this.showPhotoMarkers = true,
     this.showNdl = false,
     this.showPpO2 = false,
     this.showPpN2 = false,
@@ -83,11 +112,13 @@ class ProfileLegendState {
     this.showTts = false,
     this.showCns = false,
     this.showOtu = false,
+    this.showO2CellMv = false,
     this.ndlSource = MetricDataSource.calculated,
-    this.ceilingSource = MetricDataSource.calculated,
     this.ttsSource = MetricDataSource.calculated,
     this.cnsSource = MetricDataSource.calculated,
+    this.decoStopSource = MetricDataSource.calculated,
     this.showTankPressure = const {},
+    this.showGas = true,
     this.sectionExpanded = const {
       'overlays': true,
       'decompression': true,
@@ -96,19 +127,24 @@ class ProfileLegendState {
       'gasAnalysis': false,
       'other': false,
       'tankPressures': true,
+      'display': false,
     },
+    this.metricsFollowViewport = false,
   });
 
   /// Count of active secondary toggles (for badge display)
   int get activeSecondaryCount {
     var count = 0;
     if (showCeiling) count++;
+    if (showDecoStops) count++;
     if (showHeartRate) count++;
     if (showSac) count++;
     if (showAscentRateColors) count++;
+    if (showAscentRateLine) count++;
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
+    if (showPhotoMarkers) count++;
     if (showNdl) count++;
     if (showPpO2) count++;
     if (showPpN2) count++;
@@ -121,6 +157,7 @@ class ProfileLegendState {
     if (showTts) count++;
     if (showCns) count++;
     if (showOtu) count++;
+    if (showO2CellMv) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
   }
@@ -135,13 +172,16 @@ class ProfileLegendState {
     bool? showTemperature,
     bool? showPressure,
     bool? showCeiling,
+    bool? showDecoStops,
     bool? showHeartRate,
     bool? showSac,
     bool? showAscentRateColors,
+    bool? showAscentRateLine,
     bool? showEvents,
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
+    bool? showPhotoMarkers,
     bool? showNdl,
     bool? showPpO2,
     bool? showPpN2,
@@ -154,12 +194,15 @@ class ProfileLegendState {
     bool? showTts,
     bool? showCns,
     bool? showOtu,
+    bool? showO2CellMv,
     MetricDataSource? ndlSource,
-    MetricDataSource? ceilingSource,
     MetricDataSource? ttsSource,
     MetricDataSource? cnsSource,
+    MetricDataSource? decoStopSource,
     Map<String, bool>? showTankPressure,
+    bool? showGas,
     Map<String, bool>? sectionExpanded,
+    bool? metricsFollowViewport,
   }) {
     return ProfileLegendState(
       rightAxisMetric: clearRightAxisMetric
@@ -169,13 +212,16 @@ class ProfileLegendState {
       showTemperature: showTemperature ?? this.showTemperature,
       showPressure: showPressure ?? this.showPressure,
       showCeiling: showCeiling ?? this.showCeiling,
+      showDecoStops: showDecoStops ?? this.showDecoStops,
       showHeartRate: showHeartRate ?? this.showHeartRate,
       showSac: showSac ?? this.showSac,
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
+      showAscentRateLine: showAscentRateLine ?? this.showAscentRateLine,
       showEvents: showEvents ?? this.showEvents,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
+      showPhotoMarkers: showPhotoMarkers ?? this.showPhotoMarkers,
       showNdl: showNdl ?? this.showNdl,
       showPpO2: showPpO2 ?? this.showPpO2,
       showPpN2: showPpN2 ?? this.showPpN2,
@@ -188,12 +234,16 @@ class ProfileLegendState {
       showTts: showTts ?? this.showTts,
       showCns: showCns ?? this.showCns,
       showOtu: showOtu ?? this.showOtu,
+      showO2CellMv: showO2CellMv ?? this.showO2CellMv,
       ndlSource: ndlSource ?? this.ndlSource,
-      ceilingSource: ceilingSource ?? this.ceilingSource,
       ttsSource: ttsSource ?? this.ttsSource,
       cnsSource: cnsSource ?? this.cnsSource,
+      decoStopSource: decoStopSource ?? this.decoStopSource,
       showTankPressure: showTankPressure ?? this.showTankPressure,
+      showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
+      metricsFollowViewport:
+          metricsFollowViewport ?? this.metricsFollowViewport,
     );
   }
 
@@ -207,13 +257,16 @@ class ProfileLegendState {
           showTemperature == other.showTemperature &&
           showPressure == other.showPressure &&
           showCeiling == other.showCeiling &&
+          showDecoStops == other.showDecoStops &&
           showHeartRate == other.showHeartRate &&
           showSac == other.showSac &&
           showAscentRateColors == other.showAscentRateColors &&
+          showAscentRateLine == other.showAscentRateLine &&
           showEvents == other.showEvents &&
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
+          showPhotoMarkers == other.showPhotoMarkers &&
           showNdl == other.showNdl &&
           showPpO2 == other.showPpO2 &&
           showPpN2 == other.showPpN2 &&
@@ -226,11 +279,14 @@ class ProfileLegendState {
           showTts == other.showTts &&
           showCns == other.showCns &&
           showOtu == other.showOtu &&
+          showO2CellMv == other.showO2CellMv &&
           ndlSource == other.ndlSource &&
-          ceilingSource == other.ceilingSource &&
           ttsSource == other.ttsSource &&
           cnsSource == other.cnsSource &&
+          decoStopSource == other.decoStopSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
+          showGas == other.showGas &&
+          metricsFollowViewport == other.metricsFollowViewport &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
   @override
@@ -240,13 +296,16 @@ class ProfileLegendState {
     showTemperature,
     showPressure,
     showCeiling,
+    showDecoStops,
     showHeartRate,
     showSac,
     showAscentRateColors,
+    showAscentRateLine,
     showEvents,
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
+    showPhotoMarkers,
     showNdl,
     showPpO2,
     showPpN2,
@@ -259,11 +318,14 @@ class ProfileLegendState {
     showTts,
     showCns,
     showOtu,
+    showO2CellMv,
     ndlSource,
-    ceilingSource,
     ttsSource,
     cnsSource,
+    decoStopSource,
     ...showTankPressure.entries,
+    showGas,
+    metricsFollowViewport,
     ...sectionExpanded.entries,
   ]);
 }
@@ -280,20 +342,65 @@ class ProfileLegendState {
 class ProfileLegend extends _$ProfileLegend {
   @override
   ProfileLegendState build() {
-    // Initialize from user settings
-    final settings = ref.watch(settingsProvider);
+    // Initialize from user settings. Select ONLY the default-visibility
+    // fields consumed below: watching the whole settingsProvider would
+    // rebuild this provider (discarding the session's toggle state) on any
+    // unrelated settings write, e.g. persisting the fullscreen readout
+    // card position on drag end.
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          defaultShowTemperature: s.defaultShowTemperature,
+          defaultShowPressure: s.defaultShowPressure,
+          showCeilingOnProfile: s.showCeilingOnProfile,
+          showDecoStopsOnProfile: s.showDecoStopsOnProfile,
+          defaultShowHeartRate: s.defaultShowHeartRate,
+          defaultShowSac: s.defaultShowSac,
+          showAscentRateColors: s.showAscentRateColors,
+          defaultShowAscentRateLine: s.defaultShowAscentRateLine,
+          defaultShowEvents: s.defaultShowEvents,
+          showMaxDepthMarker: s.showMaxDepthMarker,
+          showPressureThresholdMarkers: s.showPressureThresholdMarkers,
+          defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
+          defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
+          defaultShowGasTimeline: s.defaultShowGasTimeline,
+          defaultShowO2CellMv: s.defaultShowO2CellMv,
+          showNdlOnProfile: s.showNdlOnProfile,
+          defaultShowPpO2: s.defaultShowPpO2,
+          defaultShowPpN2: s.defaultShowPpN2,
+          defaultShowPpHe: s.defaultShowPpHe,
+          defaultShowGasDensity: s.defaultShowGasDensity,
+          defaultShowGf: s.defaultShowGf,
+          defaultShowSurfaceGf: s.defaultShowSurfaceGf,
+          defaultShowMeanDepth: s.defaultShowMeanDepth,
+          defaultShowTts: s.defaultShowTts,
+          defaultShowCns: s.defaultShowCns,
+          defaultShowOtu: s.defaultShowOtu,
+          defaultNdlSource: s.defaultNdlSource,
+          defaultTtsSource: s.defaultTtsSource,
+          defaultCnsSource: s.defaultCnsSource,
+          defaultDecoStopSource: s.defaultDecoStopSource,
+          profileMetricsFollowViewport: s.profileMetricsFollowViewport,
+        ),
+      ),
+    );
     return ProfileLegendState(
       // rightAxisMetric is null initially - uses setting default via fallback
       showTemperature: settings.defaultShowTemperature,
       showPressure: settings.defaultShowPressure,
       showCeiling: settings.showCeilingOnProfile,
+      showDecoStops: settings.showDecoStopsOnProfile,
       showHeartRate: settings.defaultShowHeartRate,
       showSac: settings.defaultShowSac,
       showAscentRateColors: settings.showAscentRateColors,
+      showAscentRateLine: settings.defaultShowAscentRateLine,
       showEvents: settings.defaultShowEvents,
       showMaxDepthMarker: settings.showMaxDepthMarker,
       showPressureMarkers: settings.showPressureThresholdMarkers,
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
+      showPhotoMarkers: settings.defaultShowPhotoMarkers,
+      showGas: settings.defaultShowGasTimeline,
+      showO2CellMv: settings.defaultShowO2CellMv,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
       showPpN2: settings.defaultShowPpN2,
@@ -307,10 +414,17 @@ class ProfileLegend extends _$ProfileLegend {
       showCns: settings.defaultShowCns,
       showOtu: settings.defaultShowOtu,
       ndlSource: settings.defaultNdlSource,
-      ceilingSource: settings.defaultCeilingSource,
       ttsSource: settings.defaultTtsSource,
       cnsSource: settings.defaultCnsSource,
+      decoStopSource: settings.defaultDecoStopSource,
+      metricsFollowViewport: settings.profileMetricsFollowViewport,
     );
+  }
+
+  /// Flip the overlay scaling mode for this chart session only, leaving the
+  /// device-local default untouched.
+  void toggleMetricsFollowViewport() {
+    state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
   }
 
   /// Set the right axis metric for this session (also un-hides it)
@@ -348,6 +462,10 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showCeiling: !state.showCeiling);
   }
 
+  void toggleDecoStops() {
+    state = state.copyWith(showDecoStops: !state.showDecoStops);
+  }
+
   // Secondary toggle methods
   void toggleHeartRate() {
     state = state.copyWith(showHeartRate: !state.showHeartRate);
@@ -359,6 +477,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleAscentRateColors() {
     state = state.copyWith(showAscentRateColors: !state.showAscentRateColors);
+  }
+
+  void toggleAscentRateLine() {
+    state = state.copyWith(showAscentRateLine: !state.showAscentRateLine);
   }
 
   void toggleEvents() {
@@ -375,6 +497,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleGasSwitchMarkers() {
     state = state.copyWith(showGasSwitchMarkers: !state.showGasSwitchMarkers);
+  }
+
+  void togglePhotoMarkers() {
+    state = state.copyWith(showPhotoMarkers: !state.showPhotoMarkers);
   }
 
   // Advanced decompression/gas toggle methods
@@ -426,9 +552,13 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showOtu: !state.showOtu);
   }
 
+  void toggleO2CellMv() {
+    state = state.copyWith(showO2CellMv: !state.showO2CellMv);
+  }
+
   // Data source set methods (for SegmentedButton)
-  void setCeilingSource(MetricDataSource source) {
-    state = state.copyWith(ceilingSource: source);
+  void setDecoStopSource(MetricDataSource source) {
+    state = state.copyWith(decoStopSource: source);
   }
 
   void setNdlSource(MetricDataSource source) {
@@ -456,6 +586,11 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(
       sectionExpanded: {...state.sectionExpanded, sectionKey: expanded},
     );
+  }
+
+  /// Toggle visibility of the gas-usage timeline strip below the chart.
+  void toggleGas() {
+    state = state.copyWith(showGas: !state.showGas);
   }
 
   /// Toggle visibility for a specific tank's pressure line

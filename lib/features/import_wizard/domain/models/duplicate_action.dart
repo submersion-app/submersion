@@ -8,4 +8,7 @@ enum DuplicateAction {
 
   /// Merge the incoming item's data into the matched existing entry.
   consolidate,
+
+  /// Replace the matched entry's source data with the incoming item.
+  replaceSource,
 }

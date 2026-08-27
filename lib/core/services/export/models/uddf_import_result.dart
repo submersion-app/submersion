@@ -18,6 +18,7 @@ class UddfImportResult {
   final List<Map<String, dynamic>> trips;
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> customDiveTypes;
+  final List<Map<String, dynamic>> customDiveRoles;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> courses;
@@ -43,6 +44,7 @@ class UddfImportResult {
     this.trips = const [],
     this.tags = const [],
     this.customDiveTypes = const [],
+    this.customDiveRoles = const [],
     this.diveComputers = const [],
     this.equipmentSets = const [],
     this.courses = const [],
@@ -64,6 +66,7 @@ class UddfImportResult {
       trips.isEmpty &&
       tags.isEmpty &&
       customDiveTypes.isEmpty &&
+      customDiveRoles.isEmpty &&
       diveComputers.isEmpty &&
       equipmentSets.isEmpty &&
       courses.isEmpty;
@@ -83,6 +86,7 @@ class UddfImportResult {
       trips.length +
       tags.length +
       customDiveTypes.length +
+      customDiveRoles.length +
       diveComputers.length +
       equipmentSets.length +
       courses.length;
@@ -110,6 +114,9 @@ class UddfImportResult {
     if (customDiveTypes.isNotEmpty) {
       parts.add('${customDiveTypes.length} custom dive types');
     }
+    if (customDiveRoles.isNotEmpty) {
+      parts.add('${customDiveRoles.length} custom dive roles');
+    }
     if (species.isNotEmpty) parts.add('${species.length} species');
     if (serviceRecords.isNotEmpty) {
       parts.add('${serviceRecords.length} service records');
@@ -136,6 +143,7 @@ class UddfImportResult {
       trips: trips,
       tags: tags,
       customDiveTypes: customDiveTypes,
+      customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,

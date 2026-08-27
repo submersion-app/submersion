@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 
 // ---------------------------------------------------------------------------
 // Fake adapter
@@ -38,6 +44,10 @@ class _FakeAdapter implements ImportSourceAdapter {
   };
 
   @override
+  Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
+      supportedDuplicateActions;
+
+  @override
   Future<ImportBundle> buildBundle() => throw UnimplementedError();
 
   @override
@@ -51,6 +61,7 @@ class _FakeAdapter implements ImportSourceAdapter {
     Map<ImportEntityType, Map<int, DuplicateAction>> duplicateActions, {
     bool retainSourceDiveNumbers = false,
     ImportProgressCallback? onProgress,
+    ImportCancellationToken? cancelToken,
   }) => throw UnimplementedError();
 }
 
@@ -66,6 +77,11 @@ Widget _buildWidget(
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
+      // Pinned so the English assertions in this file do not depend on the host
+      // machine's locale, which flutter_test forwards to the app.
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: ImportSummaryStep(
           onDone: onDone ?? () {},
@@ -162,6 +178,65 @@ void main() {
 
       expect(find.text('Sites'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('shows match-sites button when imported dives are eligible', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final ids = ['d1'];
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: const {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ids,
+        ),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/dives/match-sites',
+            builder: (_, _) => const Scaffold(body: Text('match review page')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+            // Value-equality key: matches by contents regardless of instance.
+            eligibleImportedDivesProvider(
+              ImportedDiveIds(ids),
+            ).overrideWith((ref) => ids),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Match 1 dives to sites'), findsOneWidget);
+
+      // Tapping navigates to the review route (covers the push handler).
+      await tester.tap(find.text('Match 1 dives to sites'));
+      await tester.pumpAndSettle();
+      expect(find.text('match review page'), findsOneWidget);
     });
 
     testWidgets('hides rows for entity types with count 0', (tester) async {
@@ -686,10 +761,138 @@ void main() {
       await tester.pumpWidget(_buildWidget(notifier));
       await tester.pump();
 
-      // consolidatedCount > 0 means hasNewDives is true
-      expect(find.text('Successfully Imported'), findsOneWidget);
+      // consolidatedCount > 0 means hasActivity is true
+      expect(find.text('Successfully Consolidated'), findsOneWidget);
       expect(find.text('View Dives'), findsOneWidget);
     });
+  });
+
+  group('ImportSummaryStep - updated/replaced source data', () {
+    testWidgets('shows Successfully Updated when only updatedCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {},
+          consolidatedCount: 0,
+          updatedCount: 3,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_success_title')),
+        findsOneWidget,
+      );
+      expect(find.text('Successfully Updated'), findsOneWidget);
+    });
+
+    testWidgets('shows Replaced source data row when updatedCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {},
+          consolidatedCount: 0,
+          updatedCount: 5,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_updated_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Replaced source data'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+    });
+
+    testWidgets('shows View Dives button when only updatedCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {},
+          consolidatedCount: 0,
+          updatedCount: 2,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('View Dives'), findsOneWidget);
+      expect(find.text('Done'), findsOneWidget);
+    });
+
+    testWidgets('hides updated row when updatedCount is 0', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          updatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.byKey(const Key('import_summary_updated_row')), findsNothing);
+    });
+
+    testWidgets(
+      'prefers Successfully Imported title when both imported and updated',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final notifier = _makeNotifier();
+        notifier.state = notifier.state.copyWith(
+          importResult: const UnifiedImportResult(
+            importedCounts: {ImportEntityType.dives: 2},
+            consolidatedCount: 0,
+            updatedCount: 3,
+            skippedCount: 0,
+          ),
+        );
+
+        await tester.pumpWidget(_buildWidget(notifier));
+        await tester.pump();
+
+        expect(find.text('Successfully Imported'), findsOneWidget);
+        expect(find.text('Successfully Updated'), findsNothing);
+        // Both rows should appear
+        expect(find.text('Dives'), findsOneWidget);
+        expect(
+          find.byKey(const Key('import_summary_updated_row')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 
   group('ImportSummaryStep - entity type coverage', () {
@@ -851,6 +1054,232 @@ void main() {
 
       expect(find.text('Courses'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
+    });
+  });
+
+  group('ImportSummaryStep - per-file outcomes (bulk import)', () {
+    testWidgets('renders a row per file with each outcome status', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          fileOutcomes: [
+            ImportFileOutcome(
+              fileName: 'jan.fit',
+              formatName: 'Garmin FIT',
+              status: ImportFileOutcomeStatus.imported,
+              importedDives: 2,
+            ),
+            ImportFileOutcome(
+              fileName: 'feb.uddf',
+              formatName: 'UDDF',
+              status: ImportFileOutcomeStatus.imported,
+              importedDives: 1,
+            ),
+            ImportFileOutcome(
+              fileName: 'broken.uddf',
+              formatName: 'UDDF',
+              status: ImportFileOutcomeStatus.parseFailed,
+              error: 'bad xml',
+            ),
+            ImportFileOutcome(
+              fileName: 'log.csv',
+              formatName: 'CSV',
+              status: ImportFileOutcomeStatus.needsIndividualImport,
+            ),
+            ImportFileOutcome(
+              fileName: 'mystery.dat',
+              formatName: 'Unknown',
+              status: ImportFileOutcomeStatus.unsupported,
+            ),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      // Section header (from l10n).
+      expect(find.text('Files'), findsOneWidget);
+      // One row per file.
+      expect(find.text('jan.fit'), findsOneWidget);
+      expect(find.text('feb.uddf'), findsOneWidget);
+      expect(find.text('broken.uddf'), findsOneWidget);
+      expect(find.text('log.csv'), findsOneWidget);
+      expect(find.text('mystery.dat'), findsOneWidget);
+      // Status labels for the non-imported outcomes.
+      expect(find.text('Could not be read'), findsNothing);
+      expect(find.text('Failed to read'), findsOneWidget);
+      expect(find.text('Needs individual import'), findsOneWidget);
+      expect(find.text('Unsupported format'), findsOneWidget);
+      // Imported count label (pluralized).
+      expect(find.text('2 dives imported'), findsOneWidget);
+      expect(find.text('1 dive imported'), findsOneWidget);
+    });
+
+    testWidgets('single-file imports render no file outcome section', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Files'), findsNothing);
+    });
+  });
+
+  group('ImportSummaryStep - photo rows (ZIP imports)', () {
+    testWidgets('shows photos-attached row when attachedPhotoCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          attachedPhotoCount: 3,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_photos_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Photos attached'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('shows unmatched-photos row when unmatchedPhotoCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          unmatchedPhotoCount: 1,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_unmatched_photos_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Photos not matched to a dive'), findsOneWidget);
+    });
+
+    testWidgets('hides both photo rows when counts are 0', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.byKey(const Key('import_summary_photos_row')), findsNothing);
+      expect(
+        find.byKey(const Key('import_summary_unmatched_photos_row')),
+        findsNothing,
+      );
+    });
+  });
+
+  group('ImportSummaryStep - notices', () {
+    // A notice explains data the source file did not contain. The import
+    // succeeded, so this must read as an explanation, not as a failure.
+    Future<void> pumpWithNotices(
+      WidgetTester tester,
+      List<ImportNotice> notices, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: notices,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('explains a missing-tank-pressure notice', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+      ]);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsOneWidget);
+      expect(find.text('Tank pressure not recorded'), findsOneWidget);
+      expect(find.textContaining('SAC cannot be calculated'), findsOneWidget);
+      expect(find.text('Affects 12 dives'), findsOneWidget);
+    });
+
+    testWidgets('uses the singular for a single dive', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 1),
+      ], dives: 1);
+
+      expect(find.text('Affects 1 dive'), findsOneWidget);
+    });
+
+    testWidgets('shows no notices section when there are none', (tester) async {
+      await pumpWithNotices(tester, const []);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+    });
+
+    testWidgets('still reports the import as successful', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+      ]);
+
+      expect(find.text('Successfully Imported'), findsOneWidget);
     });
   });
 }

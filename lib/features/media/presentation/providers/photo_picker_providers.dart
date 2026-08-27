@@ -8,6 +8,8 @@ import 'package:submersion/features/media/data/services/media_import_service.dar
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service_desktop.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service_mobile.dart';
+import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
 /// Provider for the platform-appropriate PhotoPickerService.
 ///
@@ -59,25 +61,35 @@ final photoPermissionProvider = FutureProvider<PhotoPermissionStatus>((
 });
 
 /// Provider for getting a thumbnail for a specific asset.
+///
+/// Auto-disposing with a retention window. Riverpod 3 keeps a family entry
+/// forever by default, so scrolling a large picker used to leave one thumbnail
+/// buffer per asset on the heap for the process lifetime (#1175).
 final assetThumbnailProvider = FutureProvider.family<Uint8List?, String>((
   ref,
   assetId,
 ) async {
+  retainFor(ref, thumbnailRetention);
   final service = ref.watch(photoPickerServiceProvider);
   return service.getThumbnail(assetId);
-});
+}, isAutoDispose: true);
 
 /// Provider for getting full-resolution image bytes for a specific asset.
 ///
 /// Use this for displaying photos in the full-screen viewer.
-/// Results are cached by Riverpod to avoid repeated fetches during swipe navigation.
+///
+/// Cached to avoid repeated fetches during swipe navigation, but only for
+/// [fullResolutionRetention] after the last watcher leaves. These are
+/// megabyte-scale buffers and the cache used to be permanent, so a long
+/// browsing session accumulated every photo it had shown (#1175).
 final assetFullResolutionProvider = FutureProvider.family<Uint8List?, String>((
   ref,
   assetId,
 ) async {
+  retainFor(ref, fullResolutionRetention);
   final service = ref.watch(photoPickerServiceProvider);
   return service.getFileBytes(assetId);
-});
+}, isAutoDispose: true);
 
 /// Provider for getting a video file path for playback.
 ///
@@ -239,5 +251,6 @@ final mediaImportServiceProvider = Provider<MediaImportService>((ref) {
   return MediaImportService(
     mediaRepository: MediaRepository(),
     enrichmentService: ref.watch(enrichmentServiceProvider),
+    onMediaCreated: ref.watch(mediaStoreEnqueueProvider),
   );
 });

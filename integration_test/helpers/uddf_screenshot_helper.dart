@@ -5,6 +5,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
@@ -20,6 +21,8 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -208,7 +211,6 @@ class UddfScreenshotImporter {
         brand: equipData['brand'] as String?,
         model: equipData['model'] as String?,
         serialNumber: equipData['serialNumber'] as String?,
-        size: equipData['size'] as String?,
         status: equipStatus,
         purchaseDate: equipData['purchaseDate'] as DateTime?,
         purchasePrice: equipData['purchasePrice'] as double?,
@@ -217,6 +219,14 @@ class UddfScreenshotImporter {
         serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
+        attributes: [
+          if ((equipData['size'] as String?)?.trim().isNotEmpty ?? false)
+            EquipmentAttribute.curated(
+              equipmentId: newId,
+              key: EquipmentAttrKeys.size,
+              valueText: (equipData['size'] as String).trim(),
+            ),
+        ],
       );
 
       await _equipmentRepository.createEquipment(item);
@@ -429,7 +439,11 @@ class UddfScreenshotImporter {
 
       // If coordinates exist but country/region are missing, use reverse geolocation
       if (lat != null && lon != null && (country == null || country.isEmpty)) {
-        final geoResult = await locationService.reverseGeocode(lat, lon);
+        final geoResult = await locationService.reverseGeocode(
+          lat,
+          lon,
+          languageCode: LocationService.defaultLanguageCode,
+        );
         country = geoResult.country;
         region = geoResult.region;
       }
@@ -675,7 +689,7 @@ class UddfScreenshotImporter {
         rating: diveData['rating'] as int?,
         notes: notes,
         visibility: diveData['visibility'] as Visibility?,
-        diveTypeId: diveTypeId,
+        diveTypeIds: [diveTypeId],
         profile: profile,
         tanks: tanks,
         site: linkedSite,
@@ -760,7 +774,7 @@ class UddfScreenshotImporter {
           await _buddyRepository.addBuddyToDive(
             diveId,
             newBuddyId,
-            BuddyRole.buddy,
+            DiveRole.buddyId,
           );
         }
       }
@@ -775,7 +789,7 @@ class UddfScreenshotImporter {
         await _buddyRepository.addBuddyToDive(
           diveId,
           buddy.id,
-          BuddyRole.buddy,
+          DiveRole.buddyId,
         );
         buddiesImported++;
       }

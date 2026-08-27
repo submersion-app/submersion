@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The review step of the import wizard.
 ///
@@ -36,7 +37,6 @@ class ReviewStep extends ConsumerWidget {
     }
 
     final types = bundle.availableTypes;
-    final availableActions = notifier.supportedDuplicateActions;
     final counts = _AggregateCounts.compute(state);
 
     // Compute projected dive numbers for the review list.
@@ -59,7 +59,6 @@ class ReviewStep extends ConsumerWidget {
       bundle: bundle,
       state: state,
       notifier: notifier,
-      availableActions: availableActions,
       counts: counts,
       projectedDiveNumbers: projectedDiveNumbers,
       existingTags: existingTags,
@@ -122,12 +121,11 @@ class ReviewStep extends ConsumerWidget {
 // Multi-type layout (tab bar)
 // ---------------------------------------------------------------------------
 
-class _MultiTypeLayout extends StatelessWidget {
+class _MultiTypeLayout extends StatefulWidget {
   final List<ImportEntityType> types;
   final ImportBundle bundle;
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
   final _AggregateCounts counts;
   final Map<int, int>? projectedDiveNumbers;
   final List<Tag> existingTags;
@@ -139,7 +137,6 @@ class _MultiTypeLayout extends StatelessWidget {
     required this.bundle,
     required this.state,
     required this.notifier,
-    required this.availableActions,
     required this.counts,
     this.projectedDiveNumbers,
     required this.existingTags,
@@ -148,60 +145,117 @@ class _MultiTypeLayout extends StatelessWidget {
   });
 
   @override
+  State<_MultiTypeLayout> createState() => _MultiTypeLayoutState();
+}
+
+class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
+  void _showImportOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => _ImportOptionsSheet(
+        notifier: widget.notifier,
+        existingTags: widget.existingTags,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final hasDives = bundle.groups.containsKey(ImportEntityType.dives);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasDives = widget.bundle.groups.containsKey(ImportEntityType.dives);
 
     return DefaultTabController(
-      length: types.length,
+      length: widget.types.length,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (hasDives)
-            _RetainDiveNumbersToggle(state: state, notifier: notifier),
-          TabBar(
-            tabs: [
-              for (final type in types)
-                Tab(text: _tabLabel(type, bundle.groups[type]!.items.length)),
-            ],
+          Builder(
+            builder: (context) {
+              final tabController = DefaultTabController.of(context);
+              return ListenableBuilder(
+                listenable: tabController,
+                builder: (context, _) {
+                  final showOptionsButton =
+                      hasDives &&
+                      (widget.types.length == 1 ||
+                          tabController.index ==
+                              widget.types.indexOf(ImportEntityType.dives));
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TabBar(
+                          labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          indicatorWeight: 3,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          indicatorColor: colorScheme.primary,
+                          labelColor: colorScheme.primary,
+                          unselectedLabelColor: colorScheme.onSurfaceVariant,
+                          labelStyle: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          unselectedLabelStyle: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                          tabs: [
+                            for (final type in widget.types)
+                              Tab(
+                                height: 36,
+                                text: _tabLabel(
+                                  type,
+                                  widget.bundle.groups[type]!.items.length,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (showOptionsButton)
+                        TextButton.icon(
+                          icon: const Icon(Icons.tune, size: 18),
+                          label: Text(
+                            context.l10n.universalImport_label_options,
+                          ),
+                          onPressed: () => _showImportOptions(context),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
-          if (hasDives)
-            Builder(
-              builder: (context) {
-                final tabController = DefaultTabController.of(context);
-                final divesIndex = types.indexOf(ImportEntityType.dives);
-                return ListenableBuilder(
-                  listenable: tabController,
-                  builder: (context, _) {
-                    if (tabController.index != divesIndex) {
-                      return const SizedBox.shrink();
-                    }
-                    return ImportTagsField(
-                      tags: state.importTags,
-                      existingTags: existingTags,
-                      onAdd: (tag) => notifier.addImportTag(tag),
-                      onRemove: (index) => notifier.removeImportTag(index),
-                    );
-                  },
-                );
-              },
-            ),
           Expanded(
             child: TabBarView(
               children: [
-                for (final type in types)
+                for (final type in widget.types)
                   _EntityTab(
                     type: type,
-                    bundle: bundle,
-                    state: state,
-                    notifier: notifier,
-                    availableActions: availableActions,
+                    bundle: widget.bundle,
+                    state: widget.state,
+                    notifier: widget.notifier,
                     projectedDiveNumbers: type == ImportEntityType.dives
-                        ? projectedDiveNumbers
+                        ? widget.projectedDiveNumbers
                         : null,
                   ),
               ],
             ),
           ),
-          _BottomBar(counts: counts, onImport: onImport, onBack: onBack),
+          Builder(
+            builder: (ctx) => _BottomBar(
+              counts: widget.counts,
+              onImport: widget.onImport,
+              onBack: widget.onBack,
+              hasPendingReviews: widget.state.hasPendingReviews,
+              totalPending: widget.state.totalPending,
+              onReviewPending: () {
+                final loc = widget.notifier.firstPendingLocation();
+                if (loc == null) return;
+                final tabIdx = widget.types.indexOf(loc.type);
+                if (tabIdx < 0) return;
+                DefaultTabController.maybeOf(ctx)?.animateTo(tabIdx);
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -212,29 +266,32 @@ class _MultiTypeLayout extends StatelessWidget {
   }
 
   String _typeDisplayName(ImportEntityType type) {
+    final l10n = context.l10n;
     switch (type) {
       case ImportEntityType.dives:
-        return 'Dives';
+        return l10n.diveImport_uddf_dives;
       case ImportEntityType.sites:
-        return 'Sites';
+        return l10n.diveImport_uddf_sites;
       case ImportEntityType.buddies:
-        return 'Buddies';
+        return l10n.diveImport_uddf_buddies;
       case ImportEntityType.equipment:
-        return 'Equipment';
+        return l10n.diveImport_uddf_equipment;
       case ImportEntityType.trips:
-        return 'Trips';
+        return l10n.diveImport_uddf_trips;
       case ImportEntityType.certifications:
-        return 'Certifications';
+        return l10n.diveImport_uddf_certifications;
       case ImportEntityType.diveCenters:
-        return 'Dive Centers';
+        return l10n.diveImport_uddf_diveCenters;
       case ImportEntityType.tags:
-        return 'Tags';
+        return l10n.diveImport_uddf_tags;
       case ImportEntityType.diveTypes:
-        return 'Dive Types';
+        return l10n.diveImport_uddf_diveTypes;
       case ImportEntityType.equipmentSets:
-        return 'Equipment Sets';
+        return l10n.diveImport_uddf_equipmentSets;
       case ImportEntityType.courses:
-        return 'Courses';
+        return l10n.diveImport_uddf_tabCourses;
+      case ImportEntityType.media:
+        return l10n.diveImport_uddf_media;
     }
   }
 }
@@ -248,7 +305,6 @@ class _EntityTab extends StatelessWidget {
   final ImportBundle bundle;
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
-  final Set<DuplicateAction> availableActions;
   final Map<int, int>? projectedDiveNumbers;
 
   const _EntityTab({
@@ -256,7 +312,6 @@ class _EntityTab extends StatelessWidget {
     required this.bundle,
     required this.state,
     required this.notifier,
-    required this.availableActions,
     this.projectedDiveNumbers,
   });
 
@@ -265,6 +320,9 @@ class _EntityTab extends StatelessWidget {
     final group = bundle.groups[type]!;
     final selectedIndices = state.selections[type] ?? const <int>{};
     final duplicateActions = state.duplicateActions[type] ?? const {};
+    // Per-tab, not per-adapter: an adapter may implement an action for only
+    // some entity types (e.g. Universal supports replaceSource on sites only).
+    final availableActions = notifier.duplicateActionsFor(type);
 
     return SingleChildScrollView(
       child: EntityReviewList(
@@ -272,9 +330,28 @@ class _EntityTab extends StatelessWidget {
         selectedIndices: selectedIndices,
         duplicateActions: duplicateActions,
         availableActions: availableActions,
+        pendingIndices: state.pendingFor(type),
         onToggleSelection: (i) => notifier.toggleSelection(type, i),
-        onDuplicateActionChanged: (i, a) =>
-            notifier.setDuplicateAction(type, i, a),
+        onDuplicateActionChanged: (i, a) {
+          notifier.setDuplicateAction(type, i, a);
+          _showActionSnackbar(
+            context,
+            context.l10n.universalImport_snackbar_markedAs(
+              _actionLabel(context, a),
+            ),
+          );
+        },
+        onBulkAction: (action) {
+          final count = state.pendingFor(type).length;
+          notifier.applyBulkAction(type, action);
+          _showActionSnackbar(
+            context,
+            context.l10n.universalImport_snackbar_bulkMarkedAs(
+              count,
+              _actionLabel(context, action),
+            ),
+          );
+        },
         onSelectAll: () => notifier.selectAll(type),
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
@@ -284,27 +361,29 @@ class _EntityTab extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Retain dive numbers toggle
-// ---------------------------------------------------------------------------
+String _actionLabel(
+  BuildContext context,
+  DuplicateAction action,
+) => switch (action) {
+  DuplicateAction.skip => context.l10n.universalImport_label_skip,
+  DuplicateAction.importAsNew => context.l10n.universalImport_label_importAsNew,
+  DuplicateAction.consolidate => context.l10n.universalImport_label_consolidate,
+  DuplicateAction.replaceSource =>
+    context.l10n.universalImport_label_replaceSource,
+};
 
-class _RetainDiveNumbersToggle extends StatelessWidget {
-  final ImportWizardState state;
-  final ImportWizardNotifier notifier;
-
-  const _RetainDiveNumbersToggle({required this.state, required this.notifier});
-
-  @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      title: const Text('Retain source dive numbers'),
-      subtitle: const Text(
-        'Use dive numbers from the imported file instead of auto-assigning',
+void _showActionSnackbar(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
       ),
-      value: state.retainSourceDiveNumbers,
-      onChanged: (value) => notifier.setRetainSourceDiveNumbers(value),
     );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -315,44 +394,107 @@ class _BottomBar extends StatelessWidget {
   final _AggregateCounts counts;
   final VoidCallback onImport;
   final VoidCallback? onBack;
+  final bool hasPendingReviews;
+  final int totalPending;
+  final VoidCallback onReviewPending;
 
-  const _BottomBar({required this.counts, required this.onImport, this.onBack});
+  const _BottomBar({
+    required this.counts,
+    required this.onImport,
+    this.onBack,
+    required this.hasPendingReviews,
+    required this.totalPending,
+    required this.onReviewPending,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final parts = <String>[];
     if (counts.importing > 0) {
-      parts.add('${counts.importing} new');
+      parts.add(l10n.universalImport_counts_new(counts.importing));
     }
     if (counts.consolidating > 0) {
-      parts.add('${counts.consolidating} merging');
+      parts.add(l10n.universalImport_counts_merging(counts.consolidating));
+    }
+    if (counts.replacing > 0) {
+      parts.add(l10n.universalImport_counts_replacing(counts.replacing));
     }
     if (counts.skipping > 0) {
-      parts.add('${counts.skipping} skipped');
+      parts.add(l10n.universalImport_counts_skipped(counts.skipping));
     }
 
-    final countsText = parts.isEmpty ? 'Nothing selected' : parts.join(', ');
+    final countsText = parts.isEmpty
+        ? l10n.universalImport_counts_nothingSelected
+        : parts.join(', ');
 
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (onBack != null)
-              TextButton(onPressed: onBack, child: const Text('Back')),
-            Expanded(
-              child: Text(
-                countsText,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            if (hasPendingReviews) ...[
+              Semantics(
+                liveRegion: true,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: theme.colorScheme.tertiary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n.universalImport_pending_gateHint(
+                          totalPending,
+                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.tertiary,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: onReviewPending,
+                      child: Text(
+                        context.l10n.universalImport_pending_reviewAction,
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-            FilledButton(
-              onPressed: onImport,
-              child: const Text('Import Selected'),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              children: [
+                if (onBack != null)
+                  TextButton(
+                    onPressed: onBack,
+                    child: Text(l10n.common_action_back),
+                  ),
+                Expanded(
+                  child: Text(
+                    countsText,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                FilledButton(
+                  onPressed:
+                      (hasPendingReviews ||
+                          (counts.importing +
+                                  counts.consolidating +
+                                  counts.replacing) ==
+                              0)
+                      ? null
+                      : onImport,
+                  child: Text(l10n.universalImport_action_importSelected),
+                ),
+              ],
             ),
           ],
         ),
@@ -370,11 +512,13 @@ class _AggregateCounts {
   final int importing;
   final int consolidating;
   final int skipping;
+  final int replacing;
 
   const _AggregateCounts({
     required this.importing,
     required this.consolidating,
     required this.skipping,
+    required this.replacing,
   });
 
   /// Compute counts from [ImportWizardState].
@@ -384,6 +528,7 @@ class _AggregateCounts {
   /// - consolidating: duplicates with [DuplicateAction.consolidate]
   /// - skipping: duplicates with [DuplicateAction.skip] + non-selected
   ///   non-duplicate items
+  /// - replacing: duplicates with [DuplicateAction.replaceSource]
   static _AggregateCounts compute(ImportWizardState state) {
     final bundle = state.bundle;
     if (bundle == null) {
@@ -391,12 +536,14 @@ class _AggregateCounts {
         importing: 0,
         consolidating: 0,
         skipping: 0,
+        replacing: 0,
       );
     }
 
     var importing = 0;
     var consolidating = 0;
     var skipping = 0;
+    var replacing = 0;
 
     for (final entry in bundle.groups.entries) {
       final type = entry.key;
@@ -427,6 +574,8 @@ class _AggregateCounts {
             consolidating++;
           case DuplicateAction.skip:
             skipping++;
+          case DuplicateAction.replaceSource:
+            replacing++;
         }
       }
     }
@@ -435,6 +584,7 @@ class _AggregateCounts {
       importing: importing,
       consolidating: consolidating,
       skipping: skipping,
+      replacing: replacing,
     );
   }
 
@@ -444,5 +594,85 @@ class _AggregateCounts {
     return result.isProbable
         ? DuplicateAction.skip
         : DuplicateAction.importAsNew;
+  }
+}
+
+/// Bottom sheet content for import options (retain dive numbers + tags).
+///
+/// Uses [StateNotifier.addListener] to reactively rebuild when the notifier's
+/// state changes, avoiding the need for a [ProviderScope] in the overlay tree.
+class _ImportOptionsSheet extends StatefulWidget {
+  final ImportWizardNotifier notifier;
+  final List<Tag> existingTags;
+
+  const _ImportOptionsSheet({
+    required this.notifier,
+    required this.existingTags,
+  });
+
+  @override
+  State<_ImportOptionsSheet> createState() => _ImportOptionsSheetState();
+}
+
+class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
+  ImportWizardState? _currentState;
+  late final Function() _removeListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _removeListener = widget.notifier.addListener((state) {
+      if (mounted) {
+        setState(() => _currentState = state);
+      } else {
+        _currentState = state;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeListener();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = _currentState;
+    if (state == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.universalImport_title_importOptions,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            title: Text(context.l10n.universalImport_label_retainDiveNumbers),
+            subtitle: Text(
+              context.l10n.universalImport_label_retainDiveNumbersSubtitle,
+            ),
+            value: state.retainSourceDiveNumbers,
+            onChanged: (value) =>
+                widget.notifier.setRetainSourceDiveNumbers(value),
+          ),
+          const Divider(),
+          ImportTagsField(
+            tags: state.importTags,
+            existingTags: widget.existingTags,
+            onAdd: (tag) => widget.notifier.addImportTag(tag),
+            onRemove: (index) => widget.notifier.removeImportTag(index),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 }

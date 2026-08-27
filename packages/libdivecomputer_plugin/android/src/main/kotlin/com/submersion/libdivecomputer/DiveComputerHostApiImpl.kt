@@ -4,21 +4,29 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.hardware.usb.UsbManager
 import android.os.Handler
 import android.os.Looper
+import com.hoho.android.usbserial.driver.UsbSerialDriver
 import io.flutter.plugin.common.BinaryMessenger
 import java.util.concurrent.Executors
 
 // Transport bitmask values matching libdc_wrapper.h.
 private const val LIBDC_TRANSPORT_SERIAL = 1 shl 0
 private const val LIBDC_TRANSPORT_USB = 1 shl 1
+@Suppress("unused") // kept so the bitmask table matches libdc_wrapper.h
 private const val LIBDC_TRANSPORT_USBHID = 1 shl 2
 private const val LIBDC_TRANSPORT_IRDA = 1 shl 3
 private const val LIBDC_TRANSPORT_BLE = 1 shl 5
 
 private const val LIBDC_STATUS_CANCELLED = -10
-private const val UINT32_SENTINEL: Long = 4294967295L  // UINT32_MAX = unavailable
 private const val GATT_INSUFFICIENT_AUTHENTICATION = 5
+
+// Settle time between a stale-bond repair (GATT close + removeBond) and the
+// reconnect attempt. An immediate reconnect races the Bluetooth stack's
+// teardown and the peripheral's advertising recovery and fails to establish
+// (status 147).
+private const val BOND_REPAIR_SETTLE_MS = 2500L
 
 private const val TAG = "DiveComputerHost"
 
@@ -33,15 +41,53 @@ class DiveComputerHostApiImpl(
         NativeLogger.setFlutterApi(it)
     }
     private val executor = Executors.newSingleThreadExecutor()
+
+    // Re-parsing archived raw bytes runs here rather than on [executor], which
+    // is the download worker: a re-parse must not queue behind an in-flight
+    // BLE download. Never shut down, matching [executor] -- this instance lives
+    // for the process lifetime.
+    private val parseExecutor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var bleScanner: BleScanner? = null
     private var downloadSessionPtr: Long = 0
     private var activeBleStream: BleIoStream? = null
+    private var activeSerialStream: UsbSerialIoStream? = null
+
+    // Serial/USB downloads run in the :dc process via this client so a native
+    // libdivecomputer crash can't kill the app (issue #318). BLE stays in-process.
+    private val serialDownloadClient = SerialDownloadClient(context, flutterApi)
+    @Volatile private var serialDownloadActive = false
+
+    // Dive buffering for the multi-port USB-serial probe (see macOS parity).
+    // While buffering, onDive accumulates instead of dispatching so dives from a
+    // wrong port are not leaked to Flutter; flushed on success, discarded on
+    // failure. Guarded because onDive fires on libdivecomputer's download thread.
+    private val diveBufferLock = Any()
+    private var isBufferingDives = false
+    private val bufferedDives = mutableListOf<ParsedDive>()
+
+    init {
+        // Points the crash-survivable serial tracer at submersion.log so its
+        // synchronous breadcrumbs survive a native download crash (issue #318).
+        NativeTrace.init(context)
+    }
 
     // MARK: - Device Descriptors
 
     override fun getDeviceDescriptors(callback: (Result<List<DeviceDescriptor>>) -> Unit) {
         executor.execute {
+            // If the native library failed to load, return an empty list rather
+            // than crashing on the native call below (issue #318). The download
+            // path surfaces the user-facing error.
+            if (LibdcWrapper.loadError != null) {
+                NativeLogger.e(
+                    TAG, "LDC",
+                    "getDeviceDescriptors: native library unavailable: " +
+                        "${LibdcWrapper.loadError?.javaClass?.simpleName}"
+                )
+                callback(Result.success(emptyList()))
+                return@execute
+            }
             val descriptors = mutableListOf<DeviceDescriptor>()
             val iterPtr = LibdcWrapper.nativeDescriptorIteratorNew()
             if (iterPtr == 0L) {
@@ -69,9 +115,12 @@ class DiveComputerHostApiImpl(
     private fun mapTransports(bitmask: Int): List<TransportType> {
         val transports = mutableListOf<TransportType>()
         if (bitmask and LIBDC_TRANSPORT_BLE != 0) transports.add(TransportType.BLE)
-        if (bitmask and LIBDC_TRANSPORT_USB != 0 ||
-            bitmask and LIBDC_TRANSPORT_USBHID != 0
-        ) {
+        // USBHID is deliberately NOT surfaced as USB: no platform build
+        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // advertising it sent HID-only devices (Suunto EON Steel family)
+        // into the serial path's "No USB serial ports found" dead end
+        // (#143). BLE is the working path for those devices.
+        if (bitmask and LIBDC_TRANSPORT_USB != 0) {
             transports.add(TransportType.USB)
         }
         if (bitmask and LIBDC_TRANSPORT_SERIAL != 0) transports.add(TransportType.SERIAL)
@@ -111,6 +160,16 @@ class DiveComputerHostApiImpl(
     }
 
     private fun startBleDiscovery() {
+        // BleScanner identifies devices via LibdcWrapper.nativeDescriptorMatch on
+        // the (async) scan-result thread. Bail with a clear error if the native
+        // library never loaded, rather than crashing there (issue #318).
+        // Signal completion on the way out so the scan UI stops spinning
+        // instead of waiting for results that can never arrive (issue #123).
+        if (!nativeLibraryReady()) {
+            mainHandler.post { flutterApi.onDiscoveryComplete { } }
+            return
+        }
+
         val scanner = BleScanner(context)
         scanner.onDeviceDiscovered = { device ->
             mainHandler.post { flutterApi.onDeviceDiscovered(device) { } }
@@ -131,12 +190,48 @@ class DiveComputerHostApiImpl(
     ) {
         callback(Result.success(Unit))
 
+        if (device.transport == TransportType.SERIAL || device.transport == TransportType.USB) {
+            // Serial-over-USB runs in the :dc process so a native libdivecomputer
+            // crash takes down only that process, not the app (issue #318). No
+            // in-process fallback.
+            serialDownloadActive = true
+            serialDownloadClient.start(
+                SerialDownloadRequest(
+                    vendor = device.vendor,
+                    product = device.product,
+                    model = device.model,
+                    name = device.name,
+                    fingerprint = decodeFingerprint(fingerprint),
+                )
+            )
+            return
+        }
+
+        serialDownloadActive = false
         executor.execute {
-            performDownload(device, fingerprint)
+            // Backstop: convert any native-level failure into a reported error
+            // instead of an uncaught Throwable that kills the executor thread
+            // and the app (issue #318).
+            try {
+                performDownload(device, fingerprint)
+            } catch (t: Throwable) {
+                NativeLogger.e(
+                    TAG, "LDC",
+                    "download crashed: ${t.javaClass.simpleName}: ${t.message}"
+                )
+                reportError(
+                    "download_error",
+                    "Download failed unexpectedly (${t.javaClass.simpleName})."
+                )
+            }
         }
     }
 
     override fun cancelDownload() {
+        if (serialDownloadActive) {
+            serialDownloadClient.cancel()
+            return
+        }
         if (downloadSessionPtr != 0L) {
             LibdcWrapper.nativeDownloadCancel(downloadSessionPtr)
         }
@@ -147,6 +242,10 @@ class DiveComputerHostApiImpl(
     }
 
     private fun performDownload(device: DiscoveredDevice, fingerprint: String? = null, isRetry: Boolean = false) {
+        // Fail clearly if the native library never loaded, rather than crashing
+        // on the first native call below (issue #318).
+        if (!nativeLibraryReady()) return
+
         // Create download session.
         val sessionPtr = LibdcWrapper.nativeDownloadSessionNew()
         if (sessionPtr == 0L) {
@@ -155,6 +254,69 @@ class DiveComputerHostApiImpl(
         }
         downloadSessionPtr = sessionPtr
 
+        // Dispatch by transport. Exhaustive (no `else`) on purpose so a future
+        // transport must be handled explicitly rather than silently mis-routed.
+        // Each branch owns its own session cleanup.
+        when (device.transport) {
+            TransportType.BLE ->
+                performBleDownload(device, sessionPtr, fingerprint, isRetry)
+            TransportType.SERIAL, TransportType.USB -> {
+                // Unreachable: serial/USB downloads are intercepted in
+                // startDownload and run in the :dc process (issue #318). Guard
+                // defensively so they can never silently run in-process again.
+                reportError("download_error",
+                    "Serial downloads must run in the download process.")
+                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                downloadSessionPtr = 0
+            }
+            TransportType.INFRARED -> {
+                reportError("unsupported_transport", "Infrared transport is not supported on Android")
+                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                downloadSessionPtr = 0
+            }
+        }
+    }
+
+    // Progress/dive callbacks shared by the BLE and serial paths. onDive buffers
+    // instead of dispatching while a multi-port serial probe is in progress.
+    private fun makeDownloadCallback(): DownloadCallback = object : DownloadCallback {
+        override fun onProgress(current: Int, maximum: Int) {
+            val progress = DownloadProgress(
+                current = current.toLong(),
+                total = maximum.toLong(),
+                status = "downloading"
+            )
+            mainHandler.post { flutterApi.onDownloadProgress(progress) { } }
+        }
+
+        override fun onDive(divePtr: Long) {
+            val parsedDive = convertParsedDive(divePtr)
+            val buffering = synchronized(diveBufferLock) {
+                if (isBufferingDives) {
+                    bufferedDives.add(parsedDive)
+                    true
+                } else {
+                    false
+                }
+            }
+            if (!buffering) {
+                mainHandler.post { flutterApi.onDiveDownloaded(parsedDive) { } }
+            }
+        }
+    }
+
+    // Decode hex fingerprint to ByteArray for libdivecomputer (incremental download).
+    private fun decodeFingerprint(fingerprint: String?): ByteArray? =
+        fingerprint?.takeIf { it.isNotEmpty() }?.let { hex ->
+            hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        }
+
+    private fun performBleDownload(
+        device: DiscoveredDevice,
+        sessionPtr: Long,
+        fingerprint: String?,
+        isRetry: Boolean
+    ) {
         // Connect BLE.
         val bluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
@@ -175,6 +337,47 @@ class DiveComputerHostApiImpl(
         }
 
         if (!bleStream.connectAndDiscover()) {
+            // Capture the failure status BEFORE tearing the stream down: the
+            // close() below disconnects, and that may report a fresh (benign)
+            // status over the one that explains the failure.
+            val disconnectStatus = bleStream.lastDisconnectStatus
+
+            // Tear down the GATT client connectAndDiscover created even when
+            // giving up: a leaked client/callback can interfere with later
+            // connection attempts.
+            bleStream.close()
+
+            // A stale bond makes connection establishment itself fail:
+            // Android auto-starts encryption on connect when a bond exists,
+            // and rejected keys disconnect with GATT status 5 before any
+            // service discovery runs. Remove the bond and retry once,
+            // mirroring the same repair on the download-failure path below
+            // (issue #621). If the bond cannot be removed there is nothing
+            // to repair, so fall through and report the failure.
+            if (!isRetry && disconnectStatus == GATT_INSUFFICIENT_AUTHENTICATION) {
+                NativeLogger.w(
+                    TAG, "BLE",
+                    "Auth failure during connect (GATT status 5), removing stale bond and retrying"
+                )
+                if (bleStream.removeBond()) {
+                    activeBleStream = null
+                    LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                    downloadSessionPtr = 0
+                    // Reconnecting immediately after tearing down the
+                    // encrypted link and removing the bond races the
+                    // Bluetooth stack and the device's advertising recovery;
+                    // the fresh connectGatt then never establishes
+                    // (status 147). Give both sides a moment to settle
+                    // before the retry.
+                    Thread.sleep(BOND_REPAIR_SETTLE_MS)
+                    performDownload(device, fingerprint, isRetry = true)
+                    return
+                }
+                NativeLogger.e(
+                    TAG, "BLE",
+                    "Stale-bond repair failed: bond could not be removed"
+                )
+            }
             reportError("connect_failed", "Failed to connect to device")
             LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
             downloadSessionPtr = 0
@@ -182,48 +385,51 @@ class DiveComputerHostApiImpl(
             return
         }
 
-        // Ensure the device is bonded before starting the download.
-        // Devices using encrypted BLE services (e.g. Aqualung i300C on
-        // the Pelagic service) need an established bond. createBond()
+        // Bond the device before starting the download. Devices using
+        // encrypted BLE services (e.g. Aqualung i300C on the Pelagic
+        // service) have to pair sooner or later, and doing it here puts
+        // the system pairing dialog in front of the user before the
+        // transfer starts rather than part-way through it. createBond()
         // works here because we have an active GATT connection.
-        if (!bleStream.ensureBonded()) {
-            reportError("bond_failed", "Failed to pair with device")
-            bleStream.close()
-            LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
-            downloadSessionPtr = 0
-            activeBleStream = null
-            return
-        }
-
-        // Map transport type.
-        val transportValue = when (device.transport) {
-            TransportType.BLE -> LIBDC_TRANSPORT_BLE
-            TransportType.USB -> LIBDC_TRANSPORT_USB
-            TransportType.SERIAL -> LIBDC_TRANSPORT_SERIAL
-            TransportType.INFRARED -> LIBDC_TRANSPORT_IRDA
-        }
-
-        // Set up download callbacks.
-        val downloadCallback = object : DownloadCallback {
-            override fun onProgress(current: Int, maximum: Int) {
-                val progress = DownloadProgress(
-                    current = current.toLong(),
-                    total = maximum.toLong(),
-                    status = "downloading"
+        // Shearwater devices are exempt: their protocol needs no bond,
+        // and holding one blocks Shearwater Cloud until the user unpairs
+        // (issue #910) -- see BondPolicy.
+        //
+        // A bond that does not complete is not fatal. By this point the
+        // link is connected and its services are discovered, and no other
+        // backend bonds at all, so giving up here would throw away a
+        // working connection over an optimisation -- which is what left a
+        // tester unable to download at all (issue #1029). A computer that
+        // really does require encryption still gets it: the Android stack
+        // pairs transparently during the first encrypted GATT operation,
+        // and if that fails the download reports the protocol error that
+        // actually describes the problem.
+        if (BondPolicy.requiresProactiveBond(device.vendor)) {
+            if (!bleStream.ensureBonded()) {
+                val reason = bleStream.lastBondFailure ?: "reason unavailable"
+                if (BondPolicy.bondFailureAbortsDownload(device.vendor)) {
+                    reportError("bond_failed", "Failed to pair with device: $reason")
+                    bleStream.close()
+                    LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                    downloadSessionPtr = 0
+                    activeBleStream = null
+                    return
+                }
+                NativeLogger.w(
+                    TAG, "BLE",
+                    "Proactive bond with ${device.vendor} ${device.product} " +
+                        "did not complete ($reason); continuing unbonded"
                 )
-                mainHandler.post { flutterApi.onDownloadProgress(progress) { } }
             }
-
-            override fun onDive(divePtr: Long) {
-                val parsedDive = convertParsedDive(divePtr)
-                mainHandler.post { flutterApi.onDiveDownloaded(parsedDive) { } }
-            }
+        } else {
+            NativeLogger.d(
+                TAG, "BLE",
+                "Skipping proactive bond for ${device.vendor} (BondPolicy)"
+            )
         }
 
-        // Decode hex fingerprint to ByteArray for libdivecomputer.
-        val fingerprintBytes: ByteArray? = fingerprint?.takeIf { it.isNotEmpty() }?.let { hex ->
-            hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-        }
+        val downloadCallback = makeDownloadCallback()
+        val fingerprintBytes = decodeFingerprint(fingerprint)
 
         // Run the download.
         val errorBuf = ByteArray(256)
@@ -232,7 +438,7 @@ class DiveComputerHostApiImpl(
             LibdcWrapper.nativeDownloadRun(
                 sessionPtr,
                 device.vendor, device.product,
-                device.model.toInt(), transportValue,
+                device.model.toInt(), LIBDC_TRANSPORT_BLE,
                 bleStream, device.name,
                 fingerprintBytes,
                 downloadCallback, errorBuf
@@ -255,12 +461,23 @@ class DiveComputerHostApiImpl(
             ) {
                 NativeLogger.w(TAG, "BLE", "Auth failure (GATT status 5), removing stale bond and retrying")
                 bleStream.close()
-                bleStream.removeBond()
-                activeBleStream = null
-                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
-                downloadSessionPtr = 0
-                performDownload(device, fingerprint, isRetry = true)
-                return
+                if (bleStream.removeBond()) {
+                    activeBleStream = null
+                    LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                    downloadSessionPtr = 0
+                    // Same settle wait as the connect-path repair: an
+                    // immediate reconnect after removeBond fails to
+                    // establish (status 147).
+                    Thread.sleep(BOND_REPAIR_SETTLE_MS)
+                    performDownload(device, fingerprint, isRetry = true)
+                    return
+                }
+                // Bond removal failed; fall through and surface the
+                // original download error.
+                NativeLogger.e(
+                    TAG, "BLE",
+                    "Stale-bond repair failed: bond could not be removed"
+                )
             }
 
             val errorMsg = String(errorBuf).trim('\u0000')
@@ -272,6 +489,140 @@ class DiveComputerHostApiImpl(
         LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
         downloadSessionPtr = 0
         activeBleStream = null
+    }
+
+    // Serial-over-USB download with auto-probe, mirroring the macOS/Linux/Windows
+    // backends. Connected USB-to-serial adapters are enumerated via the vendored
+    // usb-serial-for-android prober; each is tried with a full download. With
+    // more than one candidate, dives are buffered so a wrong adapter cannot leak
+    // phantom dives (flushed on success, discarded on failure).
+    private fun performUsbSerialDownload(
+        device: DiscoveredDevice,
+        sessionPtr: Long,
+        fingerprint: String?
+    ) {
+        val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
+        val drivers: List<UsbSerialDriver> = usbManager?.let {
+            // Not getDefaultProber(): its table lists only stock bridge-chip
+            // identifiers, so a dive cable with a reprogrammed product ID is
+            // invisible (issue #732).
+            DiveCableIds.prober().findAllDrivers(it)
+        } ?: emptyList()
+
+        if (drivers.isEmpty()) {
+            reportError(
+                "no_serial_ports",
+                "No USB serial ports found. Is the dive computer connected and powered on?"
+            )
+            LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+            downloadSessionPtr = 0
+            return
+        }
+
+        val downloadCallback = makeDownloadCallback()
+        val fingerprintBytes = decodeFingerprint(fingerprint)
+        val buffering = drivers.size > 1
+        synchronized(diveBufferLock) {
+            isBufferingDives = buffering
+            bufferedDives.clear()
+        }
+
+        val probeLog = StringBuilder()
+        var anyOpened = false
+        var lastResult = -1
+        var lastErrorMsg = ""
+
+        for (driver in drivers) {
+            synchronized(diveBufferLock) { bufferedDives.clear() }
+
+            val stream = UsbSerialIoStream(context, driver)
+            val probeDev = driver.device
+            // Records the driver class + USB VID/PID so the debug log identifies
+            // the cable's chipset (FTDI 0x0403 vs CP210x 0x10c4 etc.) (issue #318).
+            NativeTrace.d(
+                "probe ${driver.javaClass.simpleName} " +
+                    "vid=0x${Integer.toHexString(probeDev.vendorId)} " +
+                    "pid=0x${Integer.toHexString(probeDev.productId)} " +
+                    "name=${probeDev.deviceName}"
+            )
+            if (!stream.open()) {
+                NativeTrace.w("stream.open() failed for ${probeDev.deviceName}")
+                probeLog.append("  ${driver.device.deviceName}: failed to open\n")
+                continue
+            }
+            anyOpened = true
+            activeSerialStream = stream
+            NativeLogger.d(TAG, "SER", "nativeDownloadRun (serial): ${driver.device.deviceName}")
+
+            val errorBuf = ByteArray(256)
+            var thrownMsg: String? = null
+            NativeTrace.d(
+                "nativeDownloadRun begin vendor=${device.vendor} " +
+                    "product=${device.product} model=${device.model}"
+            )
+            val result = try {
+                LibdcWrapper.nativeDownloadRun(
+                    sessionPtr,
+                    device.vendor, device.product,
+                    device.model.toInt(), LIBDC_TRANSPORT_SERIAL,
+                    stream, device.name,
+                    fingerprintBytes,
+                    downloadCallback, errorBuf
+                )
+            } catch (e: Throwable) {
+                NativeTrace.e("nativeDownloadRun threw: ${e.message}")
+                NativeLogger.e(TAG, "LDC", "nativeDownloadRun threw: ${e.message}")
+                thrownMsg = e.message
+                -999
+            }
+            // If the native download crashes the process, this line never lands;
+            // the last UsbSerialIoStream breadcrumb then identifies the operation.
+            NativeTrace.d("nativeDownloadRun returned rc=$result")
+            stream.close()
+            activeSerialStream = null
+            lastResult = result
+            // Prefer libdivecomputer's error text; fall back to the thrown
+            // exception message (errorBuf is empty when the JNI call throws) or a
+            // generic code, so download_error is never blank.
+            lastErrorMsg = String(errorBuf).takeWhile { it.code != 0 }.ifEmpty {
+                thrownMsg ?: "Download failed (rc=$result)"
+            }
+
+            if (result == 0 || result == LIBDC_STATUS_CANCELLED) break
+            probeLog.append("  ${driver.device.deviceName}: download failed (rc=$result)\n")
+            NativeLogger.w(TAG, "SER", "Probe failed on ${driver.device.deviceName} rc=$result")
+        }
+
+        // Flush buffered dives on success OR cancellation (a cancel still posts
+        // onDownloadComplete so the Dart side can import dives downloaded before
+        // the cancel); discard only on real failure. Safe because a wrong port
+        // fails to handshake and emits no dives, and the buffer is cleared per
+        // attempt, so it only ever holds the actively-downloading port's dives.
+        val divesToFlush: List<ParsedDive> = synchronized(diveBufferLock) {
+            val succeeded = lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED
+            val list = if (succeeded) ArrayList(bufferedDives) else emptyList()
+            bufferedDives.clear()
+            isBufferingDives = false
+            list
+        }
+        for (dive in divesToFlush) {
+            mainHandler.post { flutterApi.onDiveDownloaded(dive) { } }
+        }
+
+        when {
+            !anyOpened ->
+                reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
+            lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED ->
+                mainHandler.post { flutterApi.onDownloadComplete(0, null, null) { } }
+            drivers.size > 1 ->
+                reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
+            else ->
+                reportError("download_error", lastErrorMsg)
+        }
+
+        LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+        downloadSessionPtr = 0
+        activeSerialStream = null
     }
 
     // MARK: - Dive Conversion
@@ -288,22 +639,7 @@ class DiveComputerHostApiImpl(
         val sampleCount = LibdcWrapper.nativeGetDiveSampleCount(divePtr)
         val samples = (0 until sampleCount).mapNotNull { i ->
             val s = LibdcWrapper.nativeGetDiveSample(divePtr, i) ?: return@mapNotNull null
-            ProfileSample(
-                timeSeconds = (s[0] / 1000.0).toLong(),
-                depthMeters = s[1],
-                temperatureCelsius = if (s[2].isNaN()) null else s[2],
-                pressureBar = if (s[3].isNaN()) null else s[3],
-                tankIndex = if (s[4].toLong() == UINT32_SENTINEL) null else s[4].toLong(),
-                heartRate = if (s[5].toLong() == UINT32_SENTINEL) null else s[5].toLong(),
-                setpoint = if (s[6].isNaN()) null else s[6],
-                ppo2 = if (s[7].isNaN()) null else s[7],
-                cns = if (s[8].isNaN()) null else s[8],
-                rbt = if (s[9].toLong() == UINT32_SENTINEL) null else s[9].toLong(),
-                decoType = if (s[10].toLong() == UINT32_SENTINEL) null else s[10].toLong(),
-                decoTime = if (s[11].toLong() == UINT32_SENTINEL) null else s[11].toLong(),
-                decoDepth = if (s[12].isNaN()) null else s[12],
-                tts = if (s[13].toLong() == UINT32_SENTINEL || s[13].toLong() == 0L) null else s[13].toLong()
-            )
+            decodeProfileSample(s)
         }
 
         // Convert gas mixes.
@@ -326,7 +662,8 @@ class DiveComputerHostApiImpl(
                 gasMixIndex = tk[0].toLong(),
                 volumeLiters = if (tk[1] > 0) tk[1] else null,
                 startPressureBar = if (tk[3] > 0) tk[3] else null,
-                endPressureBar = if (tk[4] > 0) tk[4] else null
+                endPressureBar = if (tk[4] > 0) tk[4] else null,
+                usage = if (tk[5].toLong() == 0L) null else tk[5].toLong(),
             )
         }
 
@@ -344,6 +681,10 @@ class DiveComputerHostApiImpl(
         val avgDepth = LibdcWrapper.nativeGetDiveAvgDepth(divePtr)
         val minTemp = LibdcWrapper.nativeGetDiveMinTemp(divePtr)
         val maxTemp = LibdcWrapper.nativeGetDiveMaxTemp(divePtr)
+        val entryLat = LibdcWrapper.nativeGetDiveEntryLatitude(divePtr)
+        val entryLon = LibdcWrapper.nativeGetDiveEntryLongitude(divePtr)
+        val exitLat = LibdcWrapper.nativeGetDiveExitLatitude(divePtr)
+        val exitLon = LibdcWrapper.nativeGetDiveExitLongitude(divePtr)
 
         // Convert events.
         val eventCount = LibdcWrapper.nativeGetDiveEventCount(divePtr)
@@ -372,6 +713,10 @@ class DiveComputerHostApiImpl(
         val gfHigh = decoInfo?.let { if (it[3] == 0) null else it[3].toLong() }
         val decoConservatism = decoInfo?.let { if (it[1] == 0) null else it[1].toLong() }
 
+        // Copy raw dive data bytes if available.
+        val rawData = LibdcWrapper.nativeGetDiveRawData(divePtr)
+        val rawFingerprint = LibdcWrapper.nativeGetDiveRawFingerprint(divePtr)
+
         return ParsedDive(
             fingerprint = fingerprint,
             dateTimeYear = LibdcWrapper.nativeGetDiveYear(divePtr).toLong(),
@@ -386,6 +731,10 @@ class DiveComputerHostApiImpl(
             durationSeconds = LibdcWrapper.nativeGetDiveDuration(divePtr).toLong(),
             minTemperatureCelsius = if (minTemp.isNaN()) null else minTemp,
             maxTemperatureCelsius = if (maxTemp.isNaN()) null else maxTemp,
+            entryLatitude = if (entryLat.isNaN()) null else entryLat,
+            entryLongitude = if (entryLon.isNaN()) null else entryLon,
+            exitLatitude = if (exitLat.isNaN()) null else exitLat,
+            exitLongitude = if (exitLon.isNaN()) null else exitLon,
             samples = samples,
             tanks = tanks,
             gasMixes = gasMixes,
@@ -394,7 +743,9 @@ class DiveComputerHostApiImpl(
             decoAlgorithm = decoAlgorithm,
             gfLow = gfLow,
             gfHigh = gfHigh,
-            decoConservatism = decoConservatism
+            decoConservatism = decoConservatism,
+            rawData = rawData,
+            rawFingerprint = rawFingerprint
         )
     }
 
@@ -407,16 +758,68 @@ class DiveComputerHostApiImpl(
         data: ByteArray,
         callback: (Result<ParsedDive>) -> Unit
     ) {
-        callback(Result.failure(
-            FlutterError("UNSUPPORTED",
-                "Raw dive parsing not yet implemented on Android",
+        // Guard before touching any external fun: on a 16 KB-page device the
+        // native library never loaded (issue #318) and the JNI call would throw
+        // UnsatisfiedLinkError on the executor thread, killing the process.
+        val loadError = LibdcWrapper.loadError
+        if (loadError != null) {
+            callback(Result.failure(FlutterError(
+                "native_library_unavailable",
+                "Dive computer support could not be loaded on this device " +
+                    "(${loadError.javaClass.simpleName}). Please update Submersion " +
+                    "to the latest version.",
                 null)))
+            return
+        }
+
+        // model crosses Pigeon as an int64 but libdivecomputer expects an
+        // unsigned int descriptor id. Reject out-of-range values up front so a
+        // corrupt model yields a clear error instead of a silently wrapped cast
+        // and a misleading "no descriptor" failure downstream.
+        if (model < 0 || model > 0xFFFFFFFFL) {
+            callback(Result.failure(FlutterError(
+                "PARSE_ERROR",
+                "Invalid dive computer model number: $model",
+                null)))
+            return
+        }
+
+        parseExecutor.execute {
+            val errorBuf = ByteArray(256)
+            val divePtr = LibdcWrapper.nativeParseRawDive(
+                vendor, product, model.toInt(), data, errorBuf
+            )
+
+            if (divePtr == 0L) {
+                val errorMsg = String(errorBuf).trim('\u0000')
+                mainHandler.post {
+                    callback(Result.failure(FlutterError(
+                        "PARSE_ERROR",
+                        "Failed to parse raw dive data: $errorMsg",
+                        null)))
+                }
+                return@execute
+            }
+
+            val parsedDive = try {
+                convertParsedDive(divePtr)
+            } finally {
+                LibdcWrapper.nativeParsedDiveFree(divePtr)
+            }
+
+            mainHandler.post { callback(Result.success(parsedDive)) }
+        }
     }
 
     // MARK: - Version
 
     override fun getLibdivecomputerVersion(): String {
-        return LibdcWrapper.nativeGetVersion()
+        if (LibdcWrapper.loadError != null) return "unavailable"
+        return try {
+            LibdcWrapper.nativeGetVersion()
+        } catch (t: Throwable) {
+            "unavailable"
+        }
     }
 
     // MARK: - Helpers
@@ -425,6 +828,27 @@ class DiveComputerHostApiImpl(
         mainHandler.post {
             flutterApi.onError(DiveComputerError(code = code, message = message)) { }
         }
+    }
+
+    // Reports a clear, actionable error (instead of crashing) when the native
+    // libdivecomputer JNI library failed to load. The usual cause is an
+    // UnsatisfiedLinkError from a 4 KB-aligned liblibdc_jni.so on a 16 KB-page
+    // Android 15+ device (issue #318); without this guard the failure surfaced
+    // as a silent process death the moment a download started. Returns true
+    // when the native library is usable.
+    private fun nativeLibraryReady(): Boolean {
+        val err = LibdcWrapper.loadError ?: return true
+        NativeLogger.e(
+            TAG, "LDC",
+            "Native library unavailable: ${err.javaClass.simpleName}: ${err.message}"
+        )
+        reportError(
+            "native_library_unavailable",
+            "Dive computer support could not be loaded on this device " +
+                "(${err.javaClass.simpleName}). Please update Submersion to the " +
+                "latest version."
+        )
+        return false
     }
 
     private fun mapEventType(type: Int): String = when (type) {

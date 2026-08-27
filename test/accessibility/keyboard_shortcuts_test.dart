@@ -197,6 +197,7 @@ void main() {
       expect(labels, contains('Go back'));
       expect(labels, contains('Close / Cancel'));
       expect(labels, contains('Keyboard shortcuts'));
+      expect(labels, contains('Switch diver'));
     });
 
     test('ensureRegistered is idempotent', () {

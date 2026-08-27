@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Signature for a function that maps a tissue loading percentage to a color.
@@ -110,7 +111,7 @@ Color thermalColor(double percentage) {
 /// This is a direct port of Subsurface's `colorScale()` function from
 /// `profile-widget/divepercentageitem.cpp`. Uses full-saturation HSV colors.
 ///
-/// Color mapping (for air, inert fraction = 0.79):
+/// Color mapping (for air, inert fraction = air N2 fraction):
 /// - 0 to ~31.6:    Cyan -> Blue -> Purple  (tissue far below ambient)
 /// - ~31.6 to ~39.5: Magenta -> Black        (tissue near inspired gas pressure)
 /// - ~39.5 to 50:    Black -> Green           (tissue between inspired and ambient)
@@ -119,7 +120,10 @@ Color thermalColor(double percentage) {
 /// - 85 to 100:      Orange -> Red            (offgassing, 70-100% GF)
 /// - 100 to 120:     Red -> White             (M-value exceeded)
 /// - 120+:           White
-Color subsurfaceHeatColor(double percentage, {double inertFraction = 0.79}) {
+Color subsurfaceHeatColor(
+  double percentage, {
+  double inertFraction = airN2Fraction,
+}) {
   // scaledValue represents tissue tension as a fraction of inspired inert gas
   // pressure. At 1.0, tissue tension equals inspired N2 at that depth.
   final scaledValue = percentage / (50.0 * inertFraction);

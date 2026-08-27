@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/unavailable_photo_placeholder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Maximum number of thumbnail photos to display in the preview row.
@@ -15,8 +15,14 @@ const int _maxVisibleThumbnails = 5;
 class TripPhotoSection extends ConsumerWidget {
   final String tripId;
   final VoidCallback? onScanPressed;
+  final VoidCallback? onLightroomScanPressed;
 
-  const TripPhotoSection({super.key, required this.tripId, this.onScanPressed});
+  const TripPhotoSection({
+    super.key,
+    required this.tripId,
+    this.onScanPressed,
+    this.onLightroomScanPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,6 +79,18 @@ class TripPhotoSection extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     tooltip: context.l10n.trips_photos_tooltip_scan,
                     onPressed: onScanPressed,
+                  ),
+                // Lightroom scan hidden pending Adobe review
+                // (lightroomUiEnabled).
+                if (lightroomUiEnabled && onLightroomScanPressed != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.cloud_sync_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: context.l10n.settings_lightroom_scanNow,
+                    onPressed: onLightroomScanPressed,
                   ),
               ],
             ),
@@ -206,21 +224,21 @@ class _PhotoRow extends StatelessWidget {
 }
 
 /// Individual photo thumbnail.
-class _PhotoThumbnail extends ConsumerWidget {
+class _PhotoThumbnail extends StatelessWidget {
   final String tripId;
   final MediaItem item;
 
   const _PhotoThumbnail({required this.tripId, required this.item});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final mediaType = item.isVideo ? 'Video' : 'Photo';
+  Widget build(BuildContext context) {
+    final semanticsLabel = item.isVideo
+        ? context.l10n.trips_photos_thumbnail_video
+        : context.l10n.trips_photos_thumbnail_photo;
 
     return Semantics(
       button: true,
-      label: '$mediaType thumbnail. Tap to open gallery',
+      label: semanticsLabel,
       child: GestureDetector(
         onTap: () => context.push('/trips/$tripId/gallery'),
         child: ClipRRect(
@@ -231,11 +249,15 @@ class _PhotoThumbnail extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Thumbnail
-                if (item.platformAssetId != null)
-                  _buildResolvedThumbnail(ref, colorScheme)
-                else
-                  _buildPlaceholder(colorScheme),
+                // Thumbnail — MediaItemView dispatches to the correct resolver
+                // for the item's sourceType and shows UnavailableMediaPlaceholder
+                // for missing assets.
+                MediaItemView(
+                  item: item,
+                  thumbnail: true,
+                  targetSize: const Size(160, 160),
+                  fit: BoxFit.cover,
+                ),
 
                 // Video icon
                 if (item.isVideo)
@@ -260,47 +282,6 @@ class _PhotoThumbnail extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildResolvedThumbnail(WidgetRef ref, ColorScheme colorScheme) {
-    final resultAsync = ref.watch(resolvedThumbnailProvider(item));
-
-    return resultAsync.when(
-      data: (result) {
-        if (result.isUnavailable) {
-          return const UnavailablePhotoPlaceholder();
-        }
-        if (result.bytes == null) {
-          return _buildPlaceholder(colorScheme);
-        }
-        return Image.memory(
-          result.bytes!,
-          fit: BoxFit.cover,
-          cacheWidth: 160,
-          cacheHeight: 160,
-          errorBuilder: (context, error, stack) =>
-              _buildPlaceholder(colorScheme),
-        );
-      },
-      loading: () => Container(
-        color: colorScheme.surfaceContainerHighest,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      error: (error, stack) => _buildPlaceholder(colorScheme),
-    );
-  }
-
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.photo, color: colorScheme.onSurfaceVariant),
     );
   }
 }

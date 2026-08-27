@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for configuring and starting a region download.
 ///
@@ -35,11 +38,11 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   bool _isLoadingName = false;
   int? _estimatedTiles;
 
-  /// Default tile layer options for OpenStreetMap.
+  /// Default tile layer options using the selected map style.
   TileLayer get _tileLayerOptions => TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    urlTemplate: ref.watch(mapTileUrlProvider),
     userAgentPackageName: 'app.submersion',
-    maxZoom: 19,
+    maxZoom: ref.watch(mapTileMaxZoomProvider),
   );
 
   @override
@@ -69,6 +72,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
       final result = await LocationService.instance.reverseGeocode(
         centerLat,
         centerLng,
+        languageCode: ref.read(placeNameLanguageProvider),
       );
 
       if (mounted && _nameController.text.isEmpty) {
@@ -138,12 +142,12 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name for this region')),
+        SnackBar(content: Text(context.l10n.maps_regionDownload_nameRequired)),
       );
       return;
     }
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
 
     // Start the download using the provider
     await ref
@@ -163,9 +167,10 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: const Text('Download Region'),
+      title: Text(l10n.maps_regionDownload_title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -175,8 +180,8 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Region Name',
-                hintText: 'e.g., Cozumel, Mexico',
+                labelText: l10n.maps_regionDownload_nameLabel,
+                hintText: l10n.maps_regionDownload_nameHint,
                 prefixIcon: const Icon(Icons.label),
                 suffixIcon: _isLoadingName
                     ? const Padding(
@@ -194,10 +199,13 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             const SizedBox(height: 24),
 
             // Zoom range selection
-            Text('Zoom Levels', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.maps_regionDownload_zoomLevels,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 4),
             Text(
-              'Higher zoom = more detail, larger download',
+              l10n.maps_regionDownload_zoomHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -209,13 +217,15 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Min: $_minZoom'),
+                      Text(l10n.maps_regionDownload_minZoom(_minZoom)),
                       Slider(
                         value: _minZoom.toDouble(),
                         min: 1,
                         max: 14,
                         divisions: 13,
-                        label: 'Minimum zoom: $_minZoom',
+                        label: l10n.maps_regionDownload_minZoomSemantics(
+                          _minZoom,
+                        ),
                         onChanged: (value) {
                           setState(() {
                             _minZoom = value.round();
@@ -232,13 +242,15 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Max: $_maxZoom'),
+                      Text(l10n.maps_regionDownload_maxZoom(_maxZoom)),
                       Slider(
                         value: _maxZoom.toDouble(),
                         min: 8,
                         max: 18,
                         divisions: 10,
-                        label: 'Maximum zoom: $_maxZoom',
+                        label: l10n.maps_regionDownload_maxZoomSemantics(
+                          _maxZoom,
+                        ),
                         onChanged: (value) {
                           setState(() {
                             _maxZoom = value.round();
@@ -257,11 +269,13 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             // Tile estimate card
             Semantics(
               label: _isEstimating
-                  ? 'Estimating download size'
+                  ? l10n.maps_regionDownload_estimatingSemantics
                   : _estimatedTiles != null
-                  ? 'Estimated download: $_estimatedTiles tiles, '
-                        '${_formatEstimatedSize(_estimatedTiles!)}'
-                  : 'Unable to estimate download size',
+                  ? l10n.maps_regionDownload_estimateSemantics(
+                      _estimatedTiles!,
+                      _formatEstimatedSize(_estimatedTiles!),
+                    )
+                  : l10n.maps_regionDownload_estimateUnavailableSemantics,
               child: Card(
                 color: colorScheme.surfaceContainerHighest,
                 child: Padding(
@@ -274,13 +288,15 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _isEstimating
-                            ? const Text('Estimating...')
+                            ? Text(l10n.maps_regionDownload_estimating)
                             : _estimatedTiles != null
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '~$_estimatedTiles tiles',
+                                    l10n.maps_regionDownload_tileCount(
+                                      _estimatedTiles!,
+                                    ),
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
@@ -295,7 +311,9 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                                   ),
                                 ],
                               )
-                            : const Text('Unable to estimate'),
+                            : Text(
+                                l10n.maps_regionDownload_estimateUnavailable,
+                              ),
                       ),
                     ],
                   ),
@@ -306,9 +324,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             // Warning for large downloads
             if (_estimatedTiles != null && _estimatedTiles! > 10000)
               Semantics(
-                label:
-                    'Warning: Large download. Consider reducing zoom levels '
-                    'or selecting a smaller region.',
+                label: l10n.maps_regionDownload_largeWarningSemantics,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Row(
@@ -323,7 +339,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Large download. Consider reducing zoom levels or selecting a smaller region.',
+                          l10n.maps_regionDownload_largeWarning,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colorScheme.error),
                         ),
@@ -338,12 +354,12 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.common_action_cancel),
         ),
         FilledButton.icon(
           onPressed: _startDownload,
           icon: const Icon(Icons.download),
-          label: const Text('Download'),
+          label: Text(l10n.maps_regionDownload_downloadButton),
         ),
       ],
     );

@@ -55,7 +55,7 @@ class TableViewConfig extends Equatable {
     this.sortAscending = true,
   });
 
-  /// Default table configuration with 22 standard columns.
+  /// Default table configuration with 23 standard columns.
   factory TableViewConfig.defaultConfig() {
     return TableViewConfig(
       columns: [
@@ -64,6 +64,7 @@ class TableViewConfig extends Equatable {
         TableColumnConfig(field: DiveField.siteName, isPinned: true),
         TableColumnConfig(field: DiveField.dateTime),
         TableColumnConfig(field: DiveField.diveTypeName),
+        TableColumnConfig(field: DiveField.diveMode),
         TableColumnConfig(field: DiveField.maxDepth),
         TableColumnConfig(field: DiveField.avgDepth),
         TableColumnConfig(field: DiveField.runtime),
@@ -169,11 +170,13 @@ class CardViewConfig extends Equatable {
   final ListViewMode mode;
   final List<CardSlotConfig> slots;
   final List<DiveField> extraFields;
+  final bool showTags;
 
   const CardViewConfig({
     required this.mode,
     required this.slots,
     this.extraFields = const [],
+    this.showTags = true,
   });
 
   /// Default configuration for the compact card view with 4 named slots.
@@ -210,7 +213,7 @@ class CardViewConfig extends Equatable {
         CardSlotConfig(slotId: 'title', field: DiveField.siteName),
         CardSlotConfig(slotId: 'date', field: DiveField.dateTime),
         CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
-        CardSlotConfig(slotId: 'stat2', field: DiveField.bottomTime),
+        CardSlotConfig(slotId: 'stat2', field: DiveField.runtime),
       ],
       extraFields: [],
     );
@@ -220,11 +223,13 @@ class CardViewConfig extends Equatable {
     ListViewMode? mode,
     List<CardSlotConfig>? slots,
     List<DiveField>? extraFields,
+    bool? showTags,
   }) {
     return CardViewConfig(
       mode: mode ?? this.mode,
       slots: slots ?? this.slots,
       extraFields: extraFields ?? this.extraFields,
+      showTags: showTags ?? this.showTags,
     );
   }
 
@@ -233,6 +238,7 @@ class CardViewConfig extends Equatable {
       'mode': mode.name,
       'slots': slots.map((s) => s.toJson()).toList(),
       'extraFields': extraFields.map((f) => f.name).toList(),
+      'showTags': showTags,
     };
   }
 
@@ -252,11 +258,12 @@ class CardViewConfig extends Equatable {
               .whereType<DiveField>()
               .toList() ??
           [],
+      showTags: json['showTags'] as bool? ?? true,
     );
   }
 
   @override
-  List<Object?> get props => [mode, slots, extraFields];
+  List<Object?> get props => [mode, slots, extraFields, showTags];
 }
 
 /// A named preset for field configuration, either built-in or user-created.
@@ -284,6 +291,7 @@ class FieldPreset extends Equatable {
         TableColumnConfig(field: DiveField.siteName, isPinned: true),
         TableColumnConfig(field: DiveField.dateTime),
         TableColumnConfig(field: DiveField.diveTypeName),
+        TableColumnConfig(field: DiveField.diveMode),
         TableColumnConfig(field: DiveField.maxDepth),
         TableColumnConfig(field: DiveField.avgDepth),
         TableColumnConfig(field: DiveField.runtime),

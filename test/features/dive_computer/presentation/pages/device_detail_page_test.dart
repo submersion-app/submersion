@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -392,7 +393,12 @@ void main() {
       expect(find.text('DOWNLOAD_PAGE'), findsOneWidget);
     });
 
-    testWidgets('view dives shows snackbar for null serial', (tester) async {
+    // Issue #1064: this used to dead-end with a "no serial number" snackbar on
+    // every computer whose firmware never reported one -- the reported case,
+    // covering Shearwater Petrel 3 / NERD / Perdix and the Suunto EON Core.
+    testWidgets('view dives navigates when the computer has no serial', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildTestWidget(computer: _makeComputer(serialNumber: null)),
       );
@@ -405,10 +411,13 @@ void main() {
       await tester.tap(find.text('View Dives from This Computer'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('no serial number'), findsOneWidget);
+      expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+      expect(find.textContaining('serial number'), findsNothing);
     });
 
-    testWidgets('view dives shows snackbar for empty serial', (tester) async {
+    testWidgets('view dives navigates when the serial is empty', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildTestWidget(computer: _makeComputer(serialNumber: '')),
       );
@@ -421,7 +430,7 @@ void main() {
       await tester.tap(find.text('View Dives from This Computer'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('no serial number'), findsOneWidget);
+      expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
     });
 
     testWidgets('view dives navigates when serial exists', (tester) async {
@@ -438,6 +447,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
+    });
+
+    testWidgets('view dives filters on the computer id, not its serial', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          computer: _makeComputer(id: 'comp-1', serialNumber: null),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('View Dives from This Computer'),
+        200,
+      );
+      await tester.tap(find.text('View Dives from This Computer'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('DIVES_LIST_PAGE')),
+      );
+      expect(container.read(diveFilterProvider).computerId, 'comp-1');
     });
   });
 }
