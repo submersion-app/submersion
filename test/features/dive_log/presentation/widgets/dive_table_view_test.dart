@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -62,8 +63,8 @@ Dive _makeDive({
 }
 
 /// A dive with one back-gas tank chosen to yield clean SAC values:
-/// volume-based 9.3 L/min ([Dive.sacFor]) and pressure-based 1.0 bar/min
-/// ([Dive.sacPressure]).
+/// volume-based 9.3 L/min ([Dive.rmvFor]) and pressure-based 1.0 bar/min
+/// ([Dive.sac]).
 ///
 /// minutes = 50, avgPressureAtm = 10/10 + 1 = 2.0
 /// sac        = gasVol(200)-gasVol(100) / 50 / 2.0 ≈ 9.3 L/min (Z-factor,
@@ -91,7 +92,8 @@ Dive _makeSacDive() {
 final _sacConfig = TableViewConfig(
   columns: [
     TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
-    TableColumnConfig(field: DiveField.sacRate),
+    TableColumnConfig(field: DiveField.sac),
+    TableColumnConfig(field: DiveField.rmv),
   ],
 );
 
@@ -816,11 +818,11 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // SAC rate column honors the diver's SAC unit and volume/pressure prefs
-    // (regression for issue #277: the column always showed raw L/min).
+    // SAC and RMV are independent columns (discussions #354, #803); the
+    // display preference never drives the table.
     // -----------------------------------------------------------------------
 
-    testWidgets('sacRate pressure mode (default) shows bar/min', (
+    testWidgets('sac and rmv columns render both lanes in metric', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -828,46 +830,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Default sacUnit is pressurePerMin -> back-gas pressure SAC in bar/min.
       expect(find.text('1.0 bar/min'), findsOneWidget);
-    });
-
-    testWidgets('sacRate pressure mode converts to psi/min in imperial', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _buildTable(
-          dives: [_makeSacDive()],
-          config: _sacConfig,
-          settings: const AppSettings(
-            sacUnit: SacUnit.pressurePerMin,
-            pressureUnit: PressureUnit.psi,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // 1.0 bar/min * 14.5038 = 14.5 psi/min
-      expect(find.text('14.5 psi/min'), findsOneWidget);
-    });
-
-    testWidgets('sacRate volume mode shows L/min', (tester) async {
-      await tester.pumpWidget(
-        _buildTable(
-          dives: [_makeSacDive()],
-          config: _sacConfig,
-          settings: const AppSettings(
-            sacUnit: SacUnit.litersPerMin,
-            volumeUnit: VolumeUnit.liters,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
       expect(find.text('9.3 L/min'), findsOneWidget);
     });
 
-    testWidgets('sacRate volume mode converts to cuft/min in imperial', (
+    testWidgets('sac and rmv columns convert to imperial units', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -875,15 +842,69 @@ void main() {
           dives: [_makeSacDive()],
           config: _sacConfig,
           settings: const AppSettings(
-            sacUnit: SacUnit.litersPerMin,
+            pressureUnit: PressureUnit.psi,
             volumeUnit: VolumeUnit.cubicFeet,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      // 9.1 L/min * 0.0353147 = 0.3 cuft/min
-      expect(find.text('0.3 cuft/min'), findsOneWidget);
+      // 1.0 bar/min * 14.5038 = 14.5, shown without a decimal.
+      expect(find.text('15 psi/min'), findsOneWidget);
+      // 9.3 L/min * 0.0353147 = 0.33 cuft/min, two decimals.
+      expect(find.text('0.33 cuft/min'), findsOneWidget);
+    });
+
+    testWidgets('the columns ignore the display preference', (tester) async {
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeSacDive()],
+          config: _sacConfig,
+          settings: const AppSettings(
+            gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1.0 bar/min'), findsOneWidget);
+      expect(find.text('9.3 L/min'), findsOneWidget);
+    });
+
+    testWidgets('sorting by rmv orders rows by the volume lane', (
+      tester,
+    ) async {
+      // Same tank, double the runtime: half the RMV.
+      final slow = _makeSacDive().copyWith(
+        id: 'sac-2',
+        diveNumber: 2,
+        runtime: const Duration(minutes: 100),
+      );
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [_makeSacDive(), slow],
+          config: TableViewConfig(
+            columns: _sacConfig.columns,
+            sortField: DiveField.rmv,
+            sortAscending: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The lower RMV (the slow dive) sorts above the higher one.
+      final cells = find.textContaining('L/min');
+      expect(cells, findsNWidgets(2));
+      final rows = [
+        for (final element in cells.evaluate())
+          (
+            dy: tester.getTopLeft(find.byWidget(element.widget)).dy,
+            value: double.parse(
+              ((element.widget as Text).data ?? '').split(' ').first,
+            ),
+          ),
+      ]..sort((a, b) => a.dy.compareTo(b.dy));
+      expect(rows.first.value, lessThan(rows.last.value));
     });
   });
 }

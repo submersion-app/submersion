@@ -57,7 +57,8 @@ class DiveEntityField implements EntityField {
       case DiveField.tankCount:
       case DiveField.startPressure:
       case DiveField.endPressure:
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
       case DiveField.gasConsumed:
       case DiveField.totalWeight:
       case DiveField.gradientFactorLow:
@@ -124,8 +125,23 @@ class DiveFieldAdapter extends EntityFieldAdapter<Dive, DiveEntityField> {
     return field.field.formatValue(value, units);
   }
 
+  /// Field names that saved layouts may still carry, mapped to the field
+  /// that replaced them.
+  ///
+  /// Saved layouts store [DiveField.name] verbatim, and an unresolved name
+  /// throws out of `EntityTableViewConfig.fromJson`, so dropping an old name
+  /// would break the dives table for anyone who had customized it. The v170
+  /// migration rewrites local layouts, but a layout synced from an older
+  /// build arrives after that, so this alias is permanent.
+  static const Map<String, DiveField> _legacyNames = {
+    // Split into sac and rmv (discussions #354, #803).
+    'sacRate': DiveField.sac,
+  };
+
   @override
   DiveEntityField fieldFromName(String name) {
+    final legacy = _legacyNames[name];
+    if (legacy != null) return DiveEntityField(legacy);
     return DiveEntityField(DiveField.values.firstWhere((e) => e.name == name));
   }
 }

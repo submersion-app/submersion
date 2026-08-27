@@ -63,7 +63,8 @@ extension DiveFieldColumnSizing on DiveField {
         return 90;
       case DiveField.endPressure:
         return 90;
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
         return 80;
       case DiveField.gasConsumed:
         return 100;
@@ -185,7 +186,8 @@ extension DiveFieldColumnSizing on DiveField {
         return 60;
       case DiveField.endPressure:
         return 60;
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
         return 60;
       case DiveField.gasConsumed:
         return 60;

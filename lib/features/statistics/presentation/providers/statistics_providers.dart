@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
@@ -77,15 +78,15 @@ void _keepAliveWithExpiry(Ref ref) {
 // Gas Statistics Providers
 // ============================================================================
 
-/// SAC trend provider that uses the appropriate calculation based on sacUnit setting
+/// Consumption trend for the lane the gas page shows (SAC or RMV).
 final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sacUnit = ref.watch(sacUnitProvider);
+  final lane = ref.watch(statisticsGasLaneProvider);
   final filter = ref.watch(statisticsFilterProvider);
 
-  if (sacUnit == SacUnit.litersPerMin) {
+  if (lane == GasConsumptionLane.rmv) {
     return repository.getSacVolumeTrend(
       diverId: currentDiverId,
       filter: filter,
@@ -111,16 +112,16 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
   );
 });
 
-/// SAC records provider that uses the appropriate calculation based on sacUnit setting
+/// Best and highest consumption for the lane the gas page shows.
 final sacRecordsProvider =
     FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      final sacUnit = ref.watch(sacUnitProvider);
+      final lane = ref.watch(statisticsGasLaneProvider);
       final filter = ref.watch(statisticsFilterProvider);
 
-      if (sacUnit == SacUnit.litersPerMin) {
+      if (lane == GasConsumptionLane.rmv) {
         return repository.getSacVolumeRecords(
           diverId: currentDiverId,
           filter: filter,
@@ -133,15 +134,15 @@ final sacRecordsProvider =
       }
     });
 
-/// Average SAC by tank role (back gas, stage, deco, etc.)
+/// Average consumption by tank role for the lane the gas page shows.
 final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sacUnit = ref.watch(sacUnitProvider);
+  final lane = ref.watch(statisticsGasLaneProvider);
   final filter = ref.watch(statisticsFilterProvider);
 
-  if (sacUnit == SacUnit.litersPerMin) {
+  if (lane == GasConsumptionLane.rmv) {
     return repository.getSacVolumeByTankRole(
       diverId: currentDiverId,
       filter: filter,

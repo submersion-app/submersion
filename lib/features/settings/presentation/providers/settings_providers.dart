@@ -18,6 +18,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
@@ -55,7 +56,6 @@ class SettingsKeys {
   static const String pressureUnit = 'pressure_unit';
   static const String volumeUnit = 'volume_unit';
   static const String weightUnit = 'weight_unit';
-  static const String sacUnit = 'sac_unit';
   static const String defaultCurrency = 'default_currency';
   static const String unitPreset = 'unit_preset';
   static const String themeMode = 'theme_mode';
@@ -125,7 +125,11 @@ class AppSettings {
   final VolumeUnit volumeUnit;
   final WeightUnit weightUnit;
   final AltitudeUnit altitudeUnit;
-  final SacUnit sacUnit;
+
+  /// Which gas-consumption lanes the single-value surfaces show: SAC
+  /// (tank-pressure rate), RMV (surface volume rate), or both. Replaces the
+  /// SAC unit toggle; each lane now has a fixed unit family.
+  final GasConsumptionDisplay gasConsumptionDisplay;
 
   /// Equation of state used everywhere the app converts cylinder pressure to
   /// gas volume: logged SAC, gas statistics, the planner, and the gas
@@ -480,7 +484,7 @@ class AppSettings {
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
     this.altitudeUnit = AltitudeUnit.meters,
-    this.sacUnit = SacUnit.pressurePerMin,
+    this.gasConsumptionDisplay = GasConsumptionDisplay.both,
     this.gasModel = GasModel.real,
     this.defaultCurrency = 'USD',
     this.visibilityScalePreset = VisibilityScalePreset.tropical,
@@ -642,7 +646,7 @@ class AppSettings {
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
     AltitudeUnit? altitudeUnit,
-    SacUnit? sacUnit,
+    GasConsumptionDisplay? gasConsumptionDisplay,
     GasModel? gasModel,
     String? defaultCurrency,
     VisibilityScalePreset? visibilityScalePreset,
@@ -770,7 +774,8 @@ class AppSettings {
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
       altitudeUnit: altitudeUnit ?? this.altitudeUnit,
-      sacUnit: sacUnit ?? this.sacUnit,
+      gasConsumptionDisplay:
+          gasConsumptionDisplay ?? this.gasConsumptionDisplay,
       gasModel: gasModel ?? this.gasModel,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
       visibilityScalePreset:
@@ -1288,8 +1293,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setSacUnit(SacUnit unit) async {
-    state = state.copyWith(sacUnit: unit);
+  Future<void> setGasConsumptionDisplay(GasConsumptionDisplay display) async {
+    state = state.copyWith(gasConsumptionDisplay: display);
     await _saveSettings();
   }
 
@@ -2003,8 +2008,8 @@ final gasModelProvider = Provider<GasModel>((ref) {
   return ref.watch(settingsProvider.select((s) => s.gasModel));
 });
 
-final sacUnitProvider = Provider<SacUnit>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.sacUnit));
+final gasConsumptionDisplayProvider = Provider<GasConsumptionDisplay>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.gasConsumptionDisplay));
 });
 
 final defaultCurrencyProvider = Provider<String>((ref) {

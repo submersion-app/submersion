@@ -78,7 +78,7 @@ void main() {
   group('TableViewConfig', () {
     test('defaultConfig has expected columns', () {
       final config = TableViewConfig.defaultConfig();
-      expect(config.columns.length, equals(23));
+      expect(config.columns.length, equals(24));
       expect(config.columns[0].field, equals(DiveField.diveNumber));
       expect(config.columns[0].isPinned, isTrue);
       expect(config.columns[1].field, equals(DiveField.siteName));
@@ -90,13 +90,14 @@ void main() {
       expect(config.columns[7].field, equals(DiveField.runtime));
       // Gas/Tank fields
       expect(config.columns[9].field, equals(DiveField.primaryGas));
-      expect(config.columns[12].field, equals(DiveField.sacRate));
+      expect(config.columns[12].field, equals(DiveField.sac));
+      expect(config.columns[13].field, equals(DiveField.rmv));
       // Environment fields
-      expect(config.columns[13].field, equals(DiveField.waterTemp));
+      expect(config.columns[14].field, equals(DiveField.waterTemp));
       // People fields
-      expect(config.columns[17].field, equals(DiveField.buddy));
+      expect(config.columns[18].field, equals(DiveField.buddy));
       // Metadata fields
-      expect(config.columns[22].field, equals(DiveField.notes));
+      expect(config.columns[23].field, equals(DiveField.notes));
       expect(config.sortField, isNull);
       expect(config.sortAscending, isTrue);
     });
@@ -608,7 +609,7 @@ void main() {
       final presets = FieldPreset.builtInTablePresets();
       final standard = presets.firstWhere((p) => p.name == 'Standard');
       final config = TableViewConfig.fromJson(standard.configJson);
-      expect(config.columns.length, equals(23));
+      expect(config.columns.length, equals(24));
       final fields = config.columns.map((c) => c.field).toList();
       // Verify key fields from each category are present
       expect(fields, contains(DiveField.waterTemp));

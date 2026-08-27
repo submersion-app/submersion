@@ -4822,7 +4822,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_label_rateOfChange => 'Valtozasi sebesseg';
 
   @override
-  String get diveLog_detail_label_sacRate => 'SAC ertek';
+  String get diveLog_detail_label_rmv => 'RMV';
+
+  @override
+  String get diveLog_detail_label_sac => 'SAC';
 
   @override
   String get diveLog_detail_label_state => 'Allapot';
@@ -4901,7 +4904,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_sacRateBySegment =>
-      'SAC ertek szakaszonkent';
+      'Gázfogyasztás szakaszonként';
 
   @override
   String get diveLog_detail_section_tags => 'Cimkek';
@@ -5950,7 +5953,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_pressureThresholds => 'Nyomas kuszobertek';
 
   @override
-  String get diveLog_legend_label_sacRate => 'SAC ertek';
+  String get diveLog_legend_label_sacRate => 'Fogyasztás';
 
   @override
   String get diveLog_legend_label_showGas => 'Gazok';
@@ -6057,6 +6060,86 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_listPage_menuMatchSites =>
       'Merülések hozzárendelése helyekhez';
+
+  @override
+  String get diveLog_listPage_menuFetchConditions =>
+      'Körülmények lekérése minden merüléshez';
+
+  @override
+  String get diveLog_fetchConditions_confirmTitle => 'Lekéri a körülményeket?';
+
+  @override
+  String diveLog_fetchConditions_confirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésből hiányoznak a körülmények.',
+      one: '1 merülésből hiányoznak a körülmények.',
+    );
+    return '$_temp0 Csak az üres mezők töltődnek ki, a már megadott adatok nem változnak.';
+  }
+
+  @override
+  String get diveLog_fetchConditions_confirmAction => 'Lekérés';
+
+  @override
+  String get diveLog_fetchConditions_noneNeeded =>
+      'Egyetlen merülésből sem hiányoznak a körülmények.';
+
+  @override
+  String get diveLog_fetchConditions_progressTitle => 'Körülmények lekérése';
+
+  @override
+  String diveLog_fetchConditions_progressCount(int completed, int total) {
+    return '$completed / $total';
+  }
+
+  @override
+  String get diveLog_fetchConditions_summaryTitle => 'Körülmények lekérve';
+
+  @override
+  String diveLog_fetchConditions_summaryFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés frissítve',
+      one: '1 merülés frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnavailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merüléshez nem volt elérhető adat',
+      one: '1 merüléshez nem volt elérhető adat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnchanged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésnél nem volt mit kitölteni',
+      one: '1 merülésnél nem volt mit kitölteni',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Korán leállt; $count merülés lett feldolgozva.',
+      one: 'Korán leállt; 1 merülés lett feldolgozva.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_sighting_decreaseCount => 'Darabszám csökkentése';
@@ -6493,7 +6576,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_units_pressure => 'Nyomás';
 
   @override
-  String get setup_units_sac => 'SAC-érték';
+  String get setup_units_gasConsumption => 'Gázfogyasztás';
 
   @override
   String get setup_units_subtitle =>
@@ -6978,9 +7061,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_rangeStats_label_minTemp => 'Min Temp';
 
   @override
-  String get diveLog_rangeStats_label_sacRate => 'SAC Rate';
-
-  @override
   String get diveLog_rangeStats_title => 'Tartomany stat.';
 
   @override
@@ -7455,7 +7535,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tooltip_rate => 'Sebessg';
 
   @override
-  String get diveLog_tooltip_sac => 'SAC';
+  String get gasConsumption_rmv => 'RMV';
+
+  @override
+  String get gasConsumption_sac => 'SAC';
 
   @override
   String get diveLog_tooltip_sensor => 'Érzékelő';
@@ -10061,10 +10144,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileMetric_pressure_short => 'Nyom';
 
   @override
-  String get enum_profileMetric_sacRate => 'SAC ertek';
+  String get enum_profileMetric_sacRate => 'Gázfogyasztás';
 
   @override
-  String get enum_profileMetric_sacRate_short => 'SAC';
+  String get enum_profileMetric_sacRate_short => 'Fogyasztás';
 
   @override
   String get enum_profileMetric_surfaceGf => 'Felszini GF';
@@ -12410,6 +12493,117 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesManage_searchHint => 'Fajok keresese...';
 
   @override
+  String get marineLife_speciesPage_title => 'Fajok';
+
+  @override
+  String get marineLife_speciesPage_searchHint => 'Látott fajok keresése';
+
+  @override
+  String get marineLife_speciesPage_clearSearchTooltip => 'Keresés törlése';
+
+  @override
+  String get marineLife_speciesPage_manageCatalogTooltip =>
+      'Katalógus kezelése';
+
+  @override
+  String get marineLife_speciesPage_sortTooltip => 'Rendezés';
+
+  @override
+  String get marineLife_speciesPage_sort_mostSightings => 'Legtöbb észlelés';
+
+  @override
+  String get marineLife_speciesPage_sort_recentlySeen => 'Nemrég látott';
+
+  @override
+  String get marineLife_speciesPage_sort_firstSeen => 'Először látott';
+
+  @override
+  String get marineLife_speciesPage_sort_name => 'Név';
+
+  @override
+  String marineLife_speciesPage_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '1 faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_sightingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count észlelés',
+      one: '1 észlelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_divesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_lastSeen(String date) {
+    return 'Utoljára látva: $date';
+  }
+
+  @override
+  String get marineLife_speciesPage_emptyTitle => 'Még nincsenek fajok';
+
+  @override
+  String get marineLife_speciesPage_emptyHint =>
+      'A merüléshez hozzáadott tengeri élőlény-észlelések itt jelennek meg.';
+
+  @override
+  String get marineLife_speciesPage_noMatch =>
+      'Nincs a keresésnek megfelelő faj';
+
+  @override
+  String marineLife_speciesPage_error(String error) {
+    return 'Nem sikerült betölteni a fajokat: $error';
+  }
+
+  @override
+  String get marineLife_speciesPage_retry => 'Újra';
+
+  @override
+  String marineLife_speciesDetail_sightingsTitle(Object count) {
+    return 'Észlelések ($count)';
+  }
+
+  @override
+  String marineLife_speciesDetail_sightingsError(String error) {
+    return 'Nem sikerült betölteni az észleléseket: $error';
+  }
+
+  @override
+  String marineLife_speciesDetail_showAll(Object count) {
+    return 'Összes mutatása ($count)';
+  }
+
+  @override
+  String get marineLife_speciesDetail_showFewer => 'Kevesebb mutatása';
+
+  @override
+  String get marineLife_speciesDetail_unknownSite => 'Ismeretlen merülőhely';
+
+  @override
+  String marineLife_speciesDetail_countTimes(Object count) {
+    return '× $count';
+  }
+
+  @override
   String get marineLife_speciesPicker_allFilter => 'Mind';
 
   @override
@@ -14456,11 +14650,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC arány szegmensenként';
+  String get diveDetailSection_sacSegments_name =>
+      'Gázfogyasztás szakaszonként';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'SAC szegmentálás fázis/idő szerint';
+      'SAC és RMV fázis vagy idő szerint';
 
   @override
   String get diveDetailSection_details_name => 'Részletek';
@@ -14692,7 +14887,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Palack lista, gázkeverékek, nyomások, palackonkénti SAC';
+      'Palack lista, gázkeverékek, nyomások, palackonkénti fogyasztás';
 
   @override
   String get diveDetailSection_buddies_name => 'Merülőpartnerek';
@@ -14862,7 +15057,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_metric_pressure => 'Nyomas';
 
   @override
-  String get settings_appearance_metric_sacRate => 'SAC ertek';
+  String get settings_appearance_metric_sacRate => 'Gázfogyasztás';
 
   @override
   String get settings_appearance_metric_surfaceGf => 'Felszini GF';
@@ -16824,9 +17019,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_dialog_pressureUnit => 'Nyomas egyseg';
 
   @override
-  String get settings_units_dialog_sacRateUnit => 'SAC ertek egyseg';
-
-  @override
   String get settings_units_gasModel => 'Gázszámítások';
 
   @override
@@ -16890,27 +17082,34 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_quickSelect => 'Gyors valasztas';
 
   @override
-  String get settings_units_sacRate => 'SAC ertek';
+  String get settings_units_gasConsumption_both_subtitle =>
+      'SAC és RMV megjelenítése egymás mellett.';
+
+  @override
+  String get settings_units_gasConsumption_both => 'Mindkettő';
+
+  @override
+  String settings_units_gasConsumption_rmv_subtitle(String unit) {
+    return 'Felszínen belélegzett gáztérfogat percenként ($unit). Palacktérfogat szükséges.';
+  }
+
+  @override
+  String settings_units_gasConsumption_sac_subtitle(String unit) {
+    return 'Palacknyomás-csökkenés percenként ($unit). Bármely naplózott nyomással működik.';
+  }
+
+  @override
+  String get settings_units_dialog_gasConsumption =>
+      'Gázfogyasztás megjelenítése';
+
+  @override
+  String get settings_units_gasConsumption => 'Gázfogyasztás';
 
   @override
   String get settings_units_defaultCurrency => 'Alapértelmezett pénznem';
 
   @override
   String get settings_units_dialog_defaultCurrency => 'Alapértelmezett pénznem';
-
-  @override
-  String get settings_units_sac_pressurePerMinute => 'Nyomas percenként';
-
-  @override
-  String get settings_units_sac_pressurePerMinute_subtitle =>
-      'Nem szükseges palack terfogat (bar/min vagy psi/min)';
-
-  @override
-  String get settings_units_sac_volumePerMinute => 'Terfogat percenként';
-
-  @override
-  String get settings_units_sac_volumePerMinute_subtitle =>
-      'Palack terfogat szükseges (L/min vagy cuft/min)';
 
   @override
   String get settings_units_temperature => 'Homerseklet';
@@ -17156,7 +17355,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_category_equipment_title => 'Felszereles';
 
   @override
-  String get statistics_category_gas_subtitle => 'SAC raatak es gazkeverekek';
+  String get statistics_category_gas_subtitle =>
+      'Gázfogyasztás és gázkeverékek';
 
   @override
   String get statistics_category_gas_title => 'Levegofelhasznalas';
@@ -17371,44 +17571,52 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_gas_sacByRole_error =>
-      'Nem sikerult a SAC szerep szerinti betoltese';
+      'Nem sikerult a szerep szerinti fogyasztas betoltese';
 
   @override
   String get statistics_gas_sacByRole_subtitle =>
       'Atlagos felhasznalas palack tipus szerint';
 
   @override
-  String get statistics_gas_sacByRole_title => 'SAC palack szerep szerint';
+  String get statistics_gas_sacByRole_title =>
+      'Gázfogyasztás palack szerep szerint';
 
   @override
-  String get statistics_gas_sacRecords_best => 'Legjobb SAC rata';
-
-  @override
-  String get statistics_gas_sacRecords_empty => 'Meg nincsenek SAC adatok';
+  String get statistics_gas_sacRecords_empty =>
+      'Meg nincsenek fogyasztasi adatok';
 
   @override
   String get statistics_gas_sacRecords_error =>
-      'Nem sikerult a SAC rekordok betoltese';
+      'Nem sikerult a fogyasztasi rekordok betoltese';
 
   @override
-  String get statistics_gas_sacRecords_highest => 'Legmagasabb SAC rata';
+  String get statistics_gas_sacRecords_highestRmv => 'Legmagasabb RMV';
+
+  @override
+  String get statistics_gas_sacRecords_highestSac => 'Legmagasabb SAC';
+
+  @override
+  String get statistics_gas_sacRecords_bestRmv => 'Legjobb RMV';
+
+  @override
+  String get statistics_gas_sacRecords_bestSac => 'Legjobb SAC';
 
   @override
   String get statistics_gas_sacRecords_subtitle =>
       'Legjobb es legrosszabb levegofelhasznalas';
 
   @override
-  String get statistics_gas_sacRecords_title => 'SAC rata rekordok';
+  String get statistics_gas_sacRecords_title => 'Gázfogyasztási rekordok';
 
   @override
   String get statistics_gas_sacTrend_error =>
-      'Nem sikerult a SAC trend betoltese';
+      'Nem sikerult a fogyasztasi trend betoltese';
 
   @override
   String get statistics_gas_sacTrend_subtitle => 'Havi atlag 5 even at';
 
   @override
-  String get statistics_gas_sacTrend_title => 'SAC rata trend';
+  String get statistics_gas_sacTrend_title => 'Gázfogyasztási trend';
 
   @override
   String get statistics_gas_tankRole_backGas => 'Hattergaz';
@@ -17567,6 +17775,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_marineLife_speciesSpotted => 'Eszlelt fajok';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_title =>
+      'Összes faj megtekintése';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_subtitle =>
+      'Minden naplózott faj, kereshetően';
 
   @override
   String get statistics_profile_appBar_title => 'Profil elemzes';
@@ -19947,12 +20163,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get units_profileMetric_millivolts => 'mV';
-
-  @override
-  String get units_sac_litersPerMin => 'L/min';
-
-  @override
-  String get units_sac_pressurePerMin => 'nyomas/min';
 
   @override
   String get units_temperature_celsius => 'C';
@@ -24528,7 +24738,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Add meg a palack térfogatát, hogy a SAC érték $unit/min-ben jelenjen meg';
+    return 'Add meg a palack térfogatát, hogy az RMV $unit/min-ben jelenjen meg';
   }
 
   @override
@@ -25800,7 +26010,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_endPressure => 'Végnyomás';
 
   @override
-  String get enum_diveField_sacRate => 'SAC érték';
+  String get enum_diveField_rmv => 'RMV (térfogatráta)';
+
+  @override
+  String get enum_diveField_sac => 'SAC (nyomásráta)';
 
   @override
   String get enum_diveField_gasConsumed => 'Elhasznált gáz';
@@ -25974,7 +26187,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_endPressure_short => 'Vég ny';
 
   @override
-  String get enum_diveField_sacRate_short => 'SAC';
+  String get enum_diveField_rmv_short => 'RMV';
+
+  @override
+  String get enum_diveField_sac_short => 'SAC';
 
   @override
   String get enum_diveField_gasConsumed_short => 'Gázfogy';

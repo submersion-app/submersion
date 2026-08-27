@@ -398,7 +398,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.displayName,
-        'SAC Rate by Segment',
+        'Gas consumption by segment',
       );
       expect(DiveDetailSectionId.details.displayName, 'Details');
       expect(DiveDetailSectionId.environment.displayName, 'Environment');
@@ -427,7 +427,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.description,
-        'Phase/time SAC segmentation',
+        'SAC and RMV by phase or time',
       );
       expect(
         DiveDetailSectionId.details.description,
@@ -451,7 +451,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.description,
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       );
       expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
       expect(
@@ -525,7 +525,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDisplayName(l10n),
-        'SAC Rate by Segment',
+        'Gas consumption by segment',
       );
       expect(DiveDetailSectionId.details.localizedDisplayName(l10n), 'Details');
       expect(
@@ -572,7 +572,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDescription(l10n),
-        'Phase/time SAC segmentation',
+        'SAC and RMV by phase or time',
       );
       expect(
         DiveDetailSectionId.details.localizedDescription(l10n),
@@ -596,7 +596,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       );
       expect(
         DiveDetailSectionId.buddies.localizedDescription(l10n),

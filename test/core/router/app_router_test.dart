@@ -1115,4 +1115,23 @@ void main() {
       expect(buildWith('not a provider').filterProvider, isNull);
     });
   });
+  group('species routes', () {
+    test('the Species page is registered at /species', () {
+      final route = _findRouteByName(router.configuration.routes, 'species');
+      expect(route, isNotNull);
+      expect(route!.path, '/species');
+    });
+
+    test('the catalog manager is the manage child, declared before the '
+        'species id parameter', () {
+      final species = _findRouteByName(router.configuration.routes, 'species');
+      final paths = _orderedRoutePaths(species!.routes);
+      expect(paths, contains('manage'));
+      expect(paths.indexOf('manage'), lessThan(paths.indexOf(':speciesId')));
+
+      final manage = _findRouteByName(species.routes, 'speciesManage');
+      expect(manage, isNotNull);
+      expect(manage!.path, 'manage');
+    });
+  });
 }

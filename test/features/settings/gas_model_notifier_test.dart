@@ -97,13 +97,15 @@ void main() {
 
     test('setGasModel leaves the other unit settings alone', () async {
       final notifier = container.read(settingsProvider.notifier);
-      final sacUnitBefore = container.read(settingsProvider).sacUnit;
+      final displayBefore = container
+          .read(settingsProvider)
+          .gasConsumptionDisplay;
       final volumeUnitBefore = container.read(settingsProvider).volumeUnit;
 
       await notifier.setGasModel(GasModel.ideal);
 
       final after = container.read(settingsProvider);
-      expect(after.sacUnit, sacUnitBefore);
+      expect(after.gasConsumptionDisplay, displayBefore);
       expect(after.volumeUnit, volumeUnitBefore);
     });
   });

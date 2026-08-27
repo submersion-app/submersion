@@ -2792,7 +2792,8 @@
   "diveLog_detail_label_lowTide": "Low Tide",
   "diveLog_detail_label_ppO2AtPoint": "ppO₂ at selected point:",
   "diveLog_detail_label_rateOfChange": "Rate of Change",
-  "diveLog_detail_label_sacRate": "SAC Rate",
+  "diveLog_detail_label_rmv": "RMV",
+  "diveLog_detail_label_sac": "SAC",
   "diveLog_detail_label_state": "State",
   "diveLog_detail_label_surfaceInterval": "Surface Interval",
   "diveLog_detail_label_surfacePressure": "Surface Pressure",
@@ -2817,7 +2818,7 @@
   "diveLog_detail_section_marineLife": "Marine Life",
   "diveLog_detail_section_notes": "Notes",
   "diveLog_detail_section_oxygenToxicity": "Oxygen Toxicity",
-  "diveLog_detail_section_sacRateBySegment": "SAC Rate by Segment",
+  "diveLog_detail_section_sacRateBySegment": "Gas consumption by segment",
   "diveLog_detail_section_tags": "Tags",
   "diveLog_detail_section_cylinders": "Cylinders",
   "diveLog_detail_section_tide": "Tide",
@@ -3263,7 +3264,7 @@
   "diveLog_legend_label_ppO2": "ppO2",
   "diveLog_legend_label_pressure": "Pressure",
   "diveLog_legend_label_pressureThresholds": "Pressure Thresholds",
-  "diveLog_legend_label_sacRate": "SAC Rate",
+  "diveLog_legend_label_sacRate": "Consumption",
   "diveLog_legend_label_showGas": "Gases",
   "diveLog_legend_label_surfaceGf": "Surface GF",
   "diveLog_legend_label_temp": "Temp",
@@ -3299,6 +3300,63 @@
   "diveLog_listPage_menuAdvancedSearch": "Advanced Search",
   "diveLog_listPage_menuDiveNumbering": "Dive Numbering",
   "diveLog_listPage_menuMatchSites": "Match Dives to Sites",
+  "diveLog_listPage_menuFetchConditions": "Fetch Conditions for All Dives",
+  "diveLog_fetchConditions_confirmTitle": "Fetch conditions?",
+  "diveLog_fetchConditions_confirmBody": "{count, plural, =1{1 dive is missing conditions.} other{{count} dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.",
+  "@diveLog_fetchConditions_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_fetchConditions_confirmAction": "Fetch",
+  "diveLog_fetchConditions_noneNeeded": "No dives are missing conditions.",
+  "diveLog_fetchConditions_progressTitle": "Fetching conditions",
+  "diveLog_fetchConditions_progressCount": "{completed} of {total}",
+  "@diveLog_fetchConditions_progressCount": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_fetchConditions_summaryTitle": "Conditions fetched",
+  "diveLog_fetchConditions_summaryFilled": "{count, plural, =1{1 dive updated} other{{count} dives updated}}",
+  "@diveLog_fetchConditions_summaryFilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_fetchConditions_summaryUnavailable": "{count, plural, =1{1 dive had no data available} other{{count} dives had no data available}}",
+  "@diveLog_fetchConditions_summaryUnavailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}",
+  "@diveLog_fetchConditions_summaryUnchanged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}",
+  "@diveLog_fetchConditions_summaryCancelled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_sighting_decreaseCount": "Decrease count",
   "@diveLog_sighting_decreaseCount": {
     "description": "Tooltip: decrease the sighting count"
@@ -3562,7 +3620,7 @@
   "setup_units_imperial": "Imperial",
   "setup_units_metric": "Metric",
   "setup_units_pressure": "Pressure",
-  "setup_units_sac": "SAC rate",
+  "setup_units_gasConsumption": "Gas consumption",
   "setup_units_subtitle": "Choose how measurements are displayed. You can fine-tune each unit.",
   "setup_units_temperature": "Temperature",
   "setup_units_timeFormat": "Time format",
@@ -3767,7 +3825,6 @@
   "diveLog_rangeStats_label_minDepth": "Min Depth",
   "diveLog_rangeStats_label_minHR": "Min HR",
   "diveLog_rangeStats_label_minTemp": "Min Temp",
-  "diveLog_rangeStats_label_sacRate": "SAC Rate",
   "diveLog_rangeStats_title": "Range Stats",
   "diveLog_rangeStats_tooltip_close": "Close range analysis",
   "diveLog_scr_calculatedLoopFo2": "Calculated loop FO₂: {value}%",
@@ -3919,7 +3976,8 @@
   "diveLog_tooltip_ppO2": "ppO2",
   "diveLog_tooltip_press": "Press",
   "diveLog_tooltip_rate": "Rate",
-  "diveLog_tooltip_sac": "SAC",
+  "gasConsumption_rmv": "RMV",
+  "gasConsumption_sac": "SAC",
   "diveLog_tooltip_sensor": "Sensor",
   "diveLog_legend_label_o2Cells": "O2 cells",
   "diveLog_tooltip_o2CellsTight": "tight",
@@ -5820,8 +5878,8 @@
   "enum_profileMetric_ppO2_short": "ppO2",
   "enum_profileMetric_pressure": "Pressure",
   "enum_profileMetric_pressure_short": "Press",
-  "enum_profileMetric_sacRate": "SAC Rate",
-  "enum_profileMetric_sacRate_short": "SAC",
+  "enum_profileMetric_sacRate": "Gas consumption",
+  "enum_profileMetric_sacRate_short": "Usage",
   "enum_profileMetric_surfaceGf": "Surface GF",
   "enum_profileMetric_surfaceGf_short": "SrfGF",
   "enum_profileMetric_temperature": "Temperature",
@@ -6950,6 +7008,93 @@
   "marineLife_speciesManage_resetSuccess": "Built-in species restored to defaults",
   "marineLife_speciesManage_resetToDefaults": "Reset to Defaults",
   "marineLife_speciesManage_searchHint": "Search species...",
+  "marineLife_speciesPage_title": "Species",
+  "marineLife_speciesPage_searchHint": "Search species you have seen",
+  "marineLife_speciesPage_clearSearchTooltip": "Clear search",
+  "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
+  "marineLife_speciesPage_sortTooltip": "Sort",
+  "marineLife_speciesPage_sort_mostSightings": "Most sightings",
+  "marineLife_speciesPage_sort_recentlySeen": "Recently seen",
+  "marineLife_speciesPage_sort_firstSeen": "First seen",
+  "marineLife_speciesPage_sort_name": "Name",
+  "marineLife_speciesPage_speciesCount": "{count, plural, =1{1 species} other{{count} species}}",
+  "@marineLife_speciesPage_speciesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_speciesPage_sightingsCount": "{count, plural, =1{1 sighting} other{{count} sightings}}",
+  "@marineLife_speciesPage_sightingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_speciesPage_divesCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@marineLife_speciesPage_divesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_speciesPage_lastSeen": "Last seen {date}",
+  "@marineLife_speciesPage_lastSeen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_speciesPage_emptyTitle": "No species yet",
+  "marineLife_speciesPage_emptyHint": "Marine life sightings added to a dive will show up here.",
+  "marineLife_speciesPage_noMatch": "No species match your search",
+  "marineLife_speciesPage_error": "Could not load your species: {error}",
+  "@marineLife_speciesPage_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_speciesPage_retry": "Retry",
+  "marineLife_speciesDetail_sightingsTitle": "Sightings ({count})",
+  "@marineLife_speciesDetail_sightingsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "marineLife_speciesDetail_sightingsError": "Could not load sightings: {error}",
+  "@marineLife_speciesDetail_sightingsError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_speciesDetail_showAll": "Show all ({count})",
+  "@marineLife_speciesDetail_showAll": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "marineLife_speciesDetail_showFewer": "Show fewer",
+  "marineLife_speciesDetail_unknownSite": "Unknown site",
+  "marineLife_speciesDetail_countTimes": "× {count}",
+  "@marineLife_speciesDetail_countTimes": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
   "marineLife_speciesPicker_allFilter": "All",
   "marineLife_speciesPicker_cancelButton": "Cancel",
   "marineLife_speciesPicker_clearSearchTooltip": "Clear search",
@@ -8658,8 +8803,8 @@
       }
     }
   },
-  "diveDetailSection_sacSegments_name": "SAC Rate by Segment",
-  "diveDetailSection_sacSegments_description": "Phase/time SAC segmentation",
+  "diveDetailSection_sacSegments_name": "Gas consumption by segment",
+  "diveDetailSection_sacSegments_description": "SAC and RMV by phase or time",
   "diveDetailSection_details_name": "Details",
   "diveDetailSection_details_description": "Type, location, trip, dive center, interval",
   "diveDetailSection_environment_name": "Environment",
@@ -8774,7 +8919,7 @@
     }
   },
   "diveDetailSection_tanks_name": "Cylinders",
-  "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
+  "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption",
   "diveDetailSection_buddies_name": "Buddies",
   "diveDetailSection_buddies_description": "Buddy list with roles",
   "diveDetailSection_signatures_name": "Signatures",
@@ -8828,7 +8973,7 @@
   "settings_appearance_metric_ppN2": "ppN2",
   "settings_appearance_metric_ppO2": "ppO2",
   "settings_appearance_metric_pressure": "Pressure",
-  "settings_appearance_metric_sacRate": "SAC Rate",
+  "settings_appearance_metric_sacRate": "Gas consumption",
   "settings_appearance_metric_surfaceGf": "Surface GF",
   "settings_appearance_metric_temperature": "Temperature",
   "settings_appearance_metric_tts": "TTS (Time to Surface)",
@@ -9536,7 +9681,6 @@
   "settings_units_dialog_dateFormat": "Date Format",
   "settings_units_dialog_depthUnit": "Depth Unit",
   "settings_units_dialog_pressureUnit": "Pressure Unit",
-  "settings_units_dialog_sacRateUnit": "SAC Rate Unit",
   "settings_units_gasModel": "Gas calculations",
   "settings_units_gasModel_real": "Real gas",
   "settings_units_gasModel_real_subtitle": "Accounts for compressibility. A 12 L cylinder at 200 bar holds about 2317 L.",
@@ -9557,13 +9701,14 @@
   "settings_units_pressure_bar": "Bar",
   "settings_units_pressure_psi": "PSI",
   "settings_units_quickSelect": "Quick Select",
-  "settings_units_sacRate": "SAC Rate",
+  "settings_units_gasConsumption_both_subtitle": "Show SAC and RMV side by side.",
+  "settings_units_gasConsumption_both": "Both",
+  "settings_units_gasConsumption_rmv_subtitle": "Gas volume breathed per minute at the surface ({unit}). Needs a tank volume.",
+  "settings_units_gasConsumption_sac_subtitle": "Tank pressure drop per minute ({unit}). Works with any logged pressures.",
+  "settings_units_dialog_gasConsumption": "Gas consumption display",
+  "settings_units_gasConsumption": "Gas consumption",
   "settings_units_defaultCurrency": "Default Currency",
   "settings_units_dialog_defaultCurrency": "Default Currency",
-  "settings_units_sac_pressurePerMinute": "Pressure per minute",
-  "settings_units_sac_pressurePerMinute_subtitle": "No tank volume needed (bar/min or psi/min)",
-  "settings_units_sac_volumePerMinute": "Volume per minute",
-  "settings_units_sac_volumePerMinute_subtitle": "Requires tank volume (L/min or cuft/min)",
   "settings_units_temperature": "Temperature",
   "settings_units_temperature_celsius": "Celsius (°C)",
   "settings_units_temperature_fahrenheit": "Fahrenheit (°F)",
@@ -10126,7 +10271,7 @@
   "statistics_category_conditions_title": "Conditions",
   "statistics_category_equipment_subtitle": "Gear usage & weight",
   "statistics_category_equipment_title": "Equipment",
-  "statistics_category_gas_subtitle": "SAC rates & gas mixes",
+  "statistics_category_gas_subtitle": "Gas consumption & gas mixes",
   "statistics_category_gas_title": "Air Consumption",
   "statistics_category_geographic_subtitle": "Countries & regions",
   "statistics_category_geographic_title": "Geographic",
@@ -10189,18 +10334,20 @@
   "statistics_gas_gasMix_subtitle": "Dives by gas type",
   "statistics_gas_gasMix_title": "Gas Mix Distribution",
   "statistics_gas_sacByRole_empty": "No multi-tank data available",
-  "statistics_gas_sacByRole_error": "Failed to load SAC by role",
+  "statistics_gas_sacByRole_error": "Failed to load consumption by role",
   "statistics_gas_sacByRole_subtitle": "Average consumption by tank type",
-  "statistics_gas_sacByRole_title": "SAC by Tank Role",
-  "statistics_gas_sacRecords_best": "Best SAC Rate",
-  "statistics_gas_sacRecords_empty": "No SAC data available yet",
-  "statistics_gas_sacRecords_error": "Failed to load SAC records",
-  "statistics_gas_sacRecords_highest": "Highest SAC Rate",
+  "statistics_gas_sacByRole_title": "Gas consumption by tank role",
+  "statistics_gas_sacRecords_empty": "No consumption data yet",
+  "statistics_gas_sacRecords_error": "Failed to load consumption records",
+  "statistics_gas_sacRecords_highestRmv": "Highest RMV",
+  "statistics_gas_sacRecords_highestSac": "Highest SAC",
+  "statistics_gas_sacRecords_bestRmv": "Best RMV",
+  "statistics_gas_sacRecords_bestSac": "Best SAC",
   "statistics_gas_sacRecords_subtitle": "Best and worst air consumption",
-  "statistics_gas_sacRecords_title": "SAC Rate Records",
-  "statistics_gas_sacTrend_error": "Failed to load SAC trend",
+  "statistics_gas_sacRecords_title": "Gas consumption records",
+  "statistics_gas_sacTrend_error": "Failed to load consumption trend",
   "statistics_gas_sacTrend_subtitle": "Monthly average over 5 years",
-  "statistics_gas_sacTrend_title": "SAC Rate Trend",
+  "statistics_gas_sacTrend_title": "Gas consumption trend",
   "statistics_gas_tankRole_backGas": "Back Gas",
   "statistics_gas_tankRole_bailout": "Bailout",
   "statistics_gas_tankRole_deco": "Deco",
@@ -10239,6 +10386,8 @@
   "statistics_marineLife_mostCommon_summary": "{count} species. Most common: {topName} with {topCount} sightings",
   "statistics_marineLife_mostCommon_title": "Most Common Sightings",
   "statistics_marineLife_speciesSpotted": "Species Spotted",
+  "statistics_marineLife_seeAllSpecies_title": "See all species",
+  "statistics_marineLife_seeAllSpecies_subtitle": "Every species you have logged, searchable",
   "statistics_profile_appBar_title": "Profile Analysis",
   "statistics_profile_ascentDescent_empty": "No profile data available",
   "statistics_profile_ascentDescent_error": "Failed to load rate data",
@@ -11886,8 +12035,6 @@
   "units_profileMetric_min": "min",
   "units_profileMetric_percent": "%",
   "units_profileMetric_millivolts": "mV",
-  "units_sac_litersPerMin": "L/min",
-  "units_sac_pressurePerMin": "pressure/min",
   "units_temperature_celsius": "C",
   "units_temperature_fahrenheit": "F",
   "units_timeFormat_twelveHour": "12-hour",
@@ -11946,12 +12093,6 @@
   },
   "@units_profileMetric_percent": {
     "description": "Percent unit symbol"
-  },
-  "@units_sac_litersPerMin": {
-    "description": "Symbol for SAC rate in liters per minute"
-  },
-  "@units_sac_pressurePerMin": {
-    "description": "Symbol for SAC rate in pressure units per minute"
   },
   "@units_temperature_celsius": {
     "description": "Symbol for Celsius temperature unit"
@@ -15691,7 +15832,7 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
-  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show SAC in {unit}/min",
+  "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}/min",
   "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
   "@safetyHub_alert_noFly": {
     "placeholders": {
@@ -16511,7 +16652,8 @@
   "enum_diveField_tankCount": "Tank Count",
   "enum_diveField_startPressure": "Start Pressure",
   "enum_diveField_endPressure": "End Pressure",
-  "enum_diveField_sacRate": "SAC Rate",
+  "enum_diveField_rmv": "RMV (volume rate)",
+  "enum_diveField_sac": "SAC (pressure rate)",
   "enum_diveField_gasConsumed": "Gas Consumed",
   "enum_diveField_totalWeight": "Total Weight",
   "enum_diveField_diveComputerModel": "Dive Computer",
@@ -16569,7 +16711,8 @@
   "enum_diveField_tankCount_short": "Tanks",
   "enum_diveField_startPressure_short": "Start P",
   "enum_diveField_endPressure_short": "End P",
-  "enum_diveField_sacRate_short": "SAC",
+  "enum_diveField_rmv_short": "RMV",
+  "enum_diveField_sac_short": "SAC",
   "enum_diveField_gasConsumed_short": "Gas Used",
   "enum_diveField_totalWeight_short": "Wt",
   "enum_diveField_diveComputerModel_short": "Computer",
@@ -19002,5 +19145,7 @@
   "@settings_dataSources_appleHealth_dataTypeWaterTemp": {"description": "HealthKit data type disclosure: water temperature."},
   "@settings_dataSources_appleHealth_permissionManagedInHealth": {"description": "Permission row shown when the platform will not disclose read access."},
   "@settings_dataSources_appleHealth_permissionUnsupported": {"description": "Permission row shown when HealthKit is unavailable on this device."},
+  "@settings_units_gasConsumption_sac_subtitle": {"placeholders": {"unit": {"type": "String"}}},
+  "@settings_units_gasConsumption_rmv_subtitle": {"placeholders": {"unit": {"type": "String"}}},
   "@diveLog_detail_sacVolumeHint": {"placeholders": {"unit": {"type": "String"}}}
 }

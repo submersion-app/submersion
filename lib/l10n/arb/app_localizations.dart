@@ -8039,11 +8039,17 @@ abstract class AppLocalizations {
   /// **'Rate of Change'**
   String get diveLog_detail_label_rateOfChange;
 
-  /// No description provided for @diveLog_detail_label_sacRate.
+  /// No description provided for @diveLog_detail_label_rmv.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get diveLog_detail_label_sacRate;
+  /// **'RMV'**
+  String get diveLog_detail_label_rmv;
+
+  /// No description provided for @diveLog_detail_label_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC'**
+  String get diveLog_detail_label_sac;
 
   /// No description provided for @diveLog_detail_label_state.
   ///
@@ -8192,7 +8198,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_section_sacRateBySegment.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate by Segment'**
+  /// **'Gas consumption by segment'**
   String get diveLog_detail_section_sacRateBySegment;
 
   /// No description provided for @diveLog_detail_section_tags.
@@ -9956,7 +9962,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_legend_label_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Consumption'**
   String get diveLog_legend_label_sacRate;
 
   /// No description provided for @diveLog_legend_label_showGas.
@@ -10150,6 +10156,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match Dives to Sites'**
   String get diveLog_listPage_menuMatchSites;
+
+  /// No description provided for @diveLog_listPage_menuFetchConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions for All Dives'**
+  String get diveLog_listPage_menuFetchConditions;
+
+  /// No description provided for @diveLog_fetchConditions_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch conditions?'**
+  String get diveLog_fetchConditions_confirmTitle;
+
+  /// No description provided for @diveLog_fetchConditions_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive is missing conditions.} other{{count} dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBody(int count);
+
+  /// No description provided for @diveLog_fetchConditions_confirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch'**
+  String get diveLog_fetchConditions_confirmAction;
+
+  /// No description provided for @diveLog_fetchConditions_noneNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeeded;
+
+  /// No description provided for @diveLog_fetchConditions_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching conditions'**
+  String get diveLog_fetchConditions_progressTitle;
+
+  /// No description provided for @diveLog_fetchConditions_progressCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total}'**
+  String diveLog_fetchConditions_progressCount(int completed, int total);
+
+  /// No description provided for @diveLog_fetchConditions_summaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions fetched'**
+  String get diveLog_fetchConditions_summaryTitle;
+
+  /// No description provided for @diveLog_fetchConditions_summaryFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive updated} other{{count} dives updated}}'**
+  String diveLog_fetchConditions_summaryFilled(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive had no data available} other{{count} dives had no data available}}'**
+  String diveLog_fetchConditions_summaryUnavailable(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
+  String diveLog_fetchConditions_summaryUnchanged(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}'**
+  String diveLog_fetchConditions_summaryCancelled(int count);
 
   /// Tooltip: decrease the sighting count
   ///
@@ -10919,11 +10997,11 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get setup_units_pressure;
 
-  /// No description provided for @setup_units_sac.
+  /// No description provided for @setup_units_gasConsumption.
   ///
   /// In en, this message translates to:
-  /// **'SAC rate'**
-  String get setup_units_sac;
+  /// **'Gas consumption'**
+  String get setup_units_gasConsumption;
 
   /// No description provided for @setup_units_subtitle.
   ///
@@ -11740,12 +11818,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min Temp'**
   String get diveLog_rangeStats_label_minTemp;
-
-  /// No description provided for @diveLog_rangeStats_label_sacRate.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get diveLog_rangeStats_label_sacRate;
 
   /// No description provided for @diveLog_rangeStats_title.
   ///
@@ -12611,11 +12683,17 @@ abstract class AppLocalizations {
   /// **'Rate'**
   String get diveLog_tooltip_rate;
 
-  /// No description provided for @diveLog_tooltip_sac.
+  /// No description provided for @gasConsumption_rmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get gasConsumption_rmv;
+
+  /// No description provided for @gasConsumption_sac.
   ///
   /// In en, this message translates to:
   /// **'SAC'**
-  String get diveLog_tooltip_sac;
+  String get gasConsumption_sac;
 
   /// No description provided for @diveLog_tooltip_sensor.
   ///
@@ -17129,13 +17207,13 @@ abstract class AppLocalizations {
   /// No description provided for @enum_profileMetric_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Gas consumption'**
   String get enum_profileMetric_sacRate;
 
   /// No description provided for @enum_profileMetric_sacRate_short.
   ///
   /// In en, this message translates to:
-  /// **'SAC'**
+  /// **'Usage'**
   String get enum_profileMetric_sacRate_short;
 
   /// No description provided for @enum_profileMetric_surfaceGf.
@@ -21125,6 +21203,150 @@ abstract class AppLocalizations {
   /// **'Search species...'**
   String get marineLife_speciesManage_searchHint;
 
+  /// No description provided for @marineLife_speciesPage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get marineLife_speciesPage_title;
+
+  /// No description provided for @marineLife_speciesPage_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search species you have seen'**
+  String get marineLife_speciesPage_searchHint;
+
+  /// No description provided for @marineLife_speciesPage_clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get marineLife_speciesPage_clearSearchTooltip;
+
+  /// No description provided for @marineLife_speciesPage_manageCatalogTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage catalog'**
+  String get marineLife_speciesPage_manageCatalogTooltip;
+
+  /// No description provided for @marineLife_speciesPage_sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get marineLife_speciesPage_sortTooltip;
+
+  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  ///
+  /// In en, this message translates to:
+  /// **'Most sightings'**
+  String get marineLife_speciesPage_sort_mostSightings;
+
+  /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently seen'**
+  String get marineLife_speciesPage_sort_recentlySeen;
+
+  /// No description provided for @marineLife_speciesPage_sort_firstSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get marineLife_speciesPage_sort_firstSeen;
+
+  /// No description provided for @marineLife_speciesPage_sort_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get marineLife_speciesPage_sort_name;
+
+  /// No description provided for @marineLife_speciesPage_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String marineLife_speciesPage_speciesCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_sightingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sighting} other{{count} sightings}}'**
+  String marineLife_speciesPage_sightingsCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_divesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String marineLife_speciesPage_divesCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_lastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {date}'**
+  String marineLife_speciesPage_lastSeen(String date);
+
+  /// No description provided for @marineLife_speciesPage_emptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No species yet'**
+  String get marineLife_speciesPage_emptyTitle;
+
+  /// No description provided for @marineLife_speciesPage_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life sightings added to a dive will show up here.'**
+  String get marineLife_speciesPage_emptyHint;
+
+  /// No description provided for @marineLife_speciesPage_noMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No species match your search'**
+  String get marineLife_speciesPage_noMatch;
+
+  /// No description provided for @marineLife_speciesPage_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your species: {error}'**
+  String marineLife_speciesPage_error(String error);
+
+  /// No description provided for @marineLife_speciesPage_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get marineLife_speciesPage_retry;
+
+  /// No description provided for @marineLife_speciesDetail_sightingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings ({count})'**
+  String marineLife_speciesDetail_sightingsTitle(Object count);
+
+  /// No description provided for @marineLife_speciesDetail_sightingsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load sightings: {error}'**
+  String marineLife_speciesDetail_sightingsError(String error);
+
+  /// No description provided for @marineLife_speciesDetail_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String marineLife_speciesDetail_showAll(Object count);
+
+  /// No description provided for @marineLife_speciesDetail_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get marineLife_speciesDetail_showFewer;
+
+  /// No description provided for @marineLife_speciesDetail_unknownSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown site'**
+  String get marineLife_speciesDetail_unknownSite;
+
+  /// No description provided for @marineLife_speciesDetail_countTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'× {count}'**
+  String marineLife_speciesDetail_countTimes(Object count);
+
   /// No description provided for @marineLife_speciesPicker_allFilter.
   ///
   /// In en, this message translates to:
@@ -24263,13 +24485,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_sacSegments_name.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate by Segment'**
+  /// **'Gas consumption by segment'**
   String get diveDetailSection_sacSegments_name;
 
   /// No description provided for @diveDetailSection_sacSegments_description.
   ///
   /// In en, this message translates to:
-  /// **'Phase/time SAC segmentation'**
+  /// **'SAC and RMV by phase or time'**
   String get diveDetailSection_sacSegments_description;
 
   /// No description provided for @diveDetailSection_details_name.
@@ -24665,7 +24887,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_tanks_description.
   ///
   /// In en, this message translates to:
-  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC'**
+  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption'**
   String get diveDetailSection_tanks_description;
 
   /// No description provided for @diveDetailSection_buddies_name.
@@ -24971,7 +25193,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_metric_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Gas consumption'**
   String get settings_appearance_metric_sacRate;
 
   /// No description provided for @settings_appearance_metric_surfaceGf.
@@ -28139,12 +28361,6 @@ abstract class AppLocalizations {
   /// **'Pressure Unit'**
   String get settings_units_dialog_pressureUnit;
 
-  /// No description provided for @settings_units_dialog_sacRateUnit.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC Rate Unit'**
-  String get settings_units_dialog_sacRateUnit;
-
   /// No description provided for @settings_units_gasModel.
   ///
   /// In en, this message translates to:
@@ -28265,11 +28481,41 @@ abstract class AppLocalizations {
   /// **'Quick Select'**
   String get settings_units_quickSelect;
 
-  /// No description provided for @settings_units_sacRate.
+  /// No description provided for @settings_units_gasConsumption_both_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get settings_units_sacRate;
+  /// **'Show SAC and RMV side by side.'**
+  String get settings_units_gasConsumption_both_subtitle;
+
+  /// No description provided for @settings_units_gasConsumption_both.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get settings_units_gasConsumption_both;
+
+  /// No description provided for @settings_units_gasConsumption_rmv_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas volume breathed per minute at the surface ({unit}). Needs a tank volume.'**
+  String settings_units_gasConsumption_rmv_subtitle(String unit);
+
+  /// No description provided for @settings_units_gasConsumption_sac_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressure drop per minute ({unit}). Works with any logged pressures.'**
+  String settings_units_gasConsumption_sac_subtitle(String unit);
+
+  /// No description provided for @settings_units_dialog_gasConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption display'**
+  String get settings_units_dialog_gasConsumption;
+
+  /// No description provided for @settings_units_gasConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption'**
+  String get settings_units_gasConsumption;
 
   /// No description provided for @settings_units_defaultCurrency.
   ///
@@ -28282,30 +28528,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default Currency'**
   String get settings_units_dialog_defaultCurrency;
-
-  /// No description provided for @settings_units_sac_pressurePerMinute.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure per minute'**
-  String get settings_units_sac_pressurePerMinute;
-
-  /// No description provided for @settings_units_sac_pressurePerMinute_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No tank volume needed (bar/min or psi/min)'**
-  String get settings_units_sac_pressurePerMinute_subtitle;
-
-  /// No description provided for @settings_units_sac_volumePerMinute.
-  ///
-  /// In en, this message translates to:
-  /// **'Volume per minute'**
-  String get settings_units_sac_volumePerMinute;
-
-  /// No description provided for @settings_units_sac_volumePerMinute_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Requires tank volume (L/min or cuft/min)'**
-  String get settings_units_sac_volumePerMinute_subtitle;
 
   /// No description provided for @settings_units_temperature.
   ///
@@ -28724,7 +28946,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_category_gas_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'SAC rates & gas mixes'**
+  /// **'Gas consumption & gas mixes'**
   String get statistics_category_gas_subtitle;
 
   /// No description provided for @statistics_category_gas_title.
@@ -29069,7 +29291,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacByRole_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC by role'**
+  /// **'Failed to load consumption by role'**
   String get statistics_gas_sacByRole_error;
 
   /// No description provided for @statistics_gas_sacByRole_subtitle.
@@ -29081,32 +29303,44 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacByRole_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC by Tank Role'**
+  /// **'Gas consumption by tank role'**
   String get statistics_gas_sacByRole_title;
-
-  /// No description provided for @statistics_gas_sacRecords_best.
-  ///
-  /// In en, this message translates to:
-  /// **'Best SAC Rate'**
-  String get statistics_gas_sacRecords_best;
 
   /// No description provided for @statistics_gas_sacRecords_empty.
   ///
   /// In en, this message translates to:
-  /// **'No SAC data available yet'**
+  /// **'No consumption data yet'**
   String get statistics_gas_sacRecords_empty;
 
   /// No description provided for @statistics_gas_sacRecords_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC records'**
+  /// **'Failed to load consumption records'**
   String get statistics_gas_sacRecords_error;
 
-  /// No description provided for @statistics_gas_sacRecords_highest.
+  /// No description provided for @statistics_gas_sacRecords_highestRmv.
   ///
   /// In en, this message translates to:
-  /// **'Highest SAC Rate'**
-  String get statistics_gas_sacRecords_highest;
+  /// **'Highest RMV'**
+  String get statistics_gas_sacRecords_highestRmv;
+
+  /// No description provided for @statistics_gas_sacRecords_highestSac.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest SAC'**
+  String get statistics_gas_sacRecords_highestSac;
+
+  /// No description provided for @statistics_gas_sacRecords_bestRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Best RMV'**
+  String get statistics_gas_sacRecords_bestRmv;
+
+  /// No description provided for @statistics_gas_sacRecords_bestSac.
+  ///
+  /// In en, this message translates to:
+  /// **'Best SAC'**
+  String get statistics_gas_sacRecords_bestSac;
 
   /// No description provided for @statistics_gas_sacRecords_subtitle.
   ///
@@ -29117,13 +29351,13 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacRecords_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate Records'**
+  /// **'Gas consumption records'**
   String get statistics_gas_sacRecords_title;
 
   /// No description provided for @statistics_gas_sacTrend_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC trend'**
+  /// **'Failed to load consumption trend'**
   String get statistics_gas_sacTrend_error;
 
   /// No description provided for @statistics_gas_sacTrend_subtitle.
@@ -29135,7 +29369,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacTrend_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate Trend'**
+  /// **'Gas consumption trend'**
   String get statistics_gas_sacTrend_title;
 
   /// No description provided for @statistics_gas_tankRole_backGas.
@@ -29385,6 +29619,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Species Spotted'**
   String get statistics_marineLife_speciesSpotted;
+
+  /// No description provided for @statistics_marineLife_seeAllSpecies_title.
+  ///
+  /// In en, this message translates to:
+  /// **'See all species'**
+  String get statistics_marineLife_seeAllSpecies_title;
+
+  /// No description provided for @statistics_marineLife_seeAllSpecies_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every species you have logged, searchable'**
+  String get statistics_marineLife_seeAllSpecies_subtitle;
 
   /// No description provided for @statistics_profile_appBar_title.
   ///
@@ -33257,18 +33503,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'mV'**
   String get units_profileMetric_millivolts;
-
-  /// Symbol for SAC rate in liters per minute
-  ///
-  /// In en, this message translates to:
-  /// **'L/min'**
-  String get units_sac_litersPerMin;
-
-  /// Symbol for SAC rate in pressure units per minute
-  ///
-  /// In en, this message translates to:
-  /// **'pressure/min'**
-  String get units_sac_pressurePerMin;
 
   /// Symbol for Celsius temperature unit
   ///
@@ -40881,7 +41115,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:
-  /// **'Add a cylinder volume to show SAC in {unit}/min'**
+  /// **'Add a cylinder volume to show RMV in {unit}/min'**
   String diveLog_detail_sacVolumeHint(String unit);
 
   /// No description provided for @safetyHub_alert_noFly.
@@ -42918,11 +43152,17 @@ abstract class AppLocalizations {
   /// **'End Pressure'**
   String get enum_diveField_endPressure;
 
-  /// No description provided for @enum_diveField_sacRate.
+  /// No description provided for @enum_diveField_rmv.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get enum_diveField_sacRate;
+  /// **'RMV (volume rate)'**
+  String get enum_diveField_rmv;
+
+  /// No description provided for @enum_diveField_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC (pressure rate)'**
+  String get enum_diveField_sac;
 
   /// No description provided for @enum_diveField_gasConsumed.
   ///
@@ -43266,11 +43506,17 @@ abstract class AppLocalizations {
   /// **'End P'**
   String get enum_diveField_endPressure_short;
 
-  /// No description provided for @enum_diveField_sacRate_short.
+  /// No description provided for @enum_diveField_rmv_short.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get enum_diveField_rmv_short;
+
+  /// No description provided for @enum_diveField_sac_short.
   ///
   /// In en, this message translates to:
   /// **'SAC'**
-  String get enum_diveField_sacRate_short;
+  String get enum_diveField_sac_short;
 
   /// No description provided for @enum_diveField_gasConsumed_short.
   ///

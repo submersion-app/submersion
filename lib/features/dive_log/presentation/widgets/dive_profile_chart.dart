@@ -9,7 +9,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -21,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
@@ -1323,28 +1323,25 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // SAC
+    // Gas consumption: SAC, or RMV when the diver shows only that lane.
     if (_showSac &&
         widget.sacCurve != null &&
         spot.spotIndex < widget.sacCurve!.length) {
       final sacBarPerMin = widget.sacCurve![spot.spotIndex];
-      String sacValue = '-';
+      var row = (label: context.l10n.gasConsumption_sac, value: '-');
       if (sacBarPerMin > 0) {
-        final normalizedSac = sacBarPerMin * widget.sacNormalizationFactor;
-        final sacUnit = ref.read(settingsProvider).sacUnit;
-        if (sacUnit == SacUnit.litersPerMin && widget.tankVolume != null) {
-          final sacLPerMin = normalizedSac * widget.tankVolume!;
-          sacValue =
-              '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-        } else {
-          sacValue =
-              '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
-        }
+        row = gasConsumptionTooltipRow(
+          l10n: context.l10n,
+          units: units,
+          display: ref.read(gasConsumptionDisplayProvider),
+          sacBarPerMin: sacBarPerMin * widget.sacNormalizationFactor,
+          tankVolume: widget.tankVolume,
+        );
       }
       rows.add(
         TooltipRow(
-          label: context.l10n.diveLog_tooltip_sac,
-          value: sacValue,
+          label: row.label,
+          value: row.value,
           bulletColor: Colors.teal,
         ),
       );
@@ -1779,6 +1776,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       units.temperatureSymbol,
       units.pressureSymbol,
       units.sacSymbol,
+      units.rmvSymbol,
+      units.settings.gasConsumptionDisplay.name,
       colorScheme.hashCode,
       metricBandSig,
     ]);
@@ -2375,7 +2374,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required double totalMaxDepth,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final sacUnit = ref.read(sacUnitProvider);
+    final display = ref.read(gasConsumptionDisplayProvider);
     const heartRateColor = Colors.red;
 
     // Calculate full data bounds (all values stored in meters, convert for
@@ -3167,32 +3166,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                     }
 
-                    // SAC (if enabled - always show row)
+                    // Gas consumption (if enabled, always show the row)
                     if (_showSac) {
                       String sacValue = '—';
+                      String sacLabel = context.l10n.gasConsumption_sac;
                       if (widget.sacCurve != null &&
                           spot.spotIndex < widget.sacCurve!.length) {
                         final sacBarPerMin = widget.sacCurve![spot.spotIndex];
                         if (sacBarPerMin > 0) {
-                          final normalizedSac =
-                              sacBarPerMin * widget.sacNormalizationFactor;
-                          if (sacUnit == SacUnit.litersPerMin &&
-                              widget.tankVolume != null) {
-                            final sacLPerMin =
-                                normalizedSac * widget.tankVolume!;
-                            sacValue =
-                                '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-                          } else {
-                            sacValue =
-                                '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
-                          }
+                          final row = gasConsumptionTooltipRow(
+                            l10n: context.l10n,
+                            units: units,
+                            display: display,
+                            sacBarPerMin:
+                                sacBarPerMin * widget.sacNormalizationFactor,
+                            tankVolume: widget.tankVolume,
+                          );
+                          sacLabel = row.label;
+                          sacValue = row.value;
                         }
                       }
-                      addRow(
-                        context.l10n.diveLog_tooltip_sac,
-                        sacValue,
-                        Colors.teal,
-                      );
+                      addRow(sacLabel, sacValue, Colors.teal);
                     }
 
                     // Ceiling (if enabled - always show row)

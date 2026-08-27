@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -19,6 +20,9 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -97,6 +101,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           context.push('/dives/new');
         }
       },
+    );
+  }
+
+  /// Backfills missing conditions across the logbook. The list refreshes on
+  /// its own: the fill writes through Drift, so the dive streams tick.
+  Future<void> _fetchAllConditions() async {
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (!mounted) return;
+    await showFetchAllConditionsFlow(
+      context: context,
+      service: ref.read(bulkConditionsServiceProvider),
+      diverId: diverId,
     );
   }
 
@@ -248,6 +264,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 showDiveNumberingDialog(context);
               } else if (value == 'data_quality') {
                 context.push('/dives/quality');
+              } else if (value == 'fetch_conditions') {
+                logFailure(
+                  _fetchAllConditions(),
+                  _DiveListPageState,
+                  'fetch conditions for all dives',
+                );
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -297,6 +319,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                       Flexible(
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'fetch_conditions',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.cloud_download_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_listPage_menuFetchConditions,
                         ),
                       ),
                     ],
@@ -1078,7 +1114,6 @@ class DiveListTile extends ConsumerWidget {
                             final value = fullDive != null
                                 ? field.extractFromDive(
                                     fullDive!,
-                                    sacUnit: units.sacUnit,
                                     gasModel: units.settings.gasModel,
                                     diveTypeLabel: diveTypeLabelResolver,
                                   )
@@ -1231,7 +1266,6 @@ class DiveListTile extends ConsumerWidget {
     dynamic value = fullDive != null
         ? field.extractFromDive(
             fullDive!,
-            sacUnit: units.sacUnit,
             gasModel: units.settings.gasModel,
             diveTypeLabel: diveTypeLabelResolver,
           )

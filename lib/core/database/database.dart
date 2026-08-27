@@ -1610,8 +1610,13 @@ class DiverSettings extends Table {
   TextColumn get weightUnit =>
       text().withDefault(const Constant('kilograms'))();
   TextColumn get altitudeUnit => text().withDefault(const Constant('meters'))();
-  TextColumn get sacUnit =>
-      text().withDefault(const Constant('litersPerMin'))();
+
+  /// v170: renamed from sacUnit. Holds a GasConsumptionDisplay name (sac,
+  /// rmv, both). The Drift getter name is also the sync wire key, so this
+  /// rename raises minimumCompatibleSchemaVersion; see
+  /// SyncDataSerializer._renamedWireKeys for the receiving-side tolerance.
+  TextColumn get gasConsumptionDisplay =>
+      text().withDefault(const Constant('both'))();
 
   /// v155: which equation of state converts cylinder pressure to gas volume.
   ///
@@ -3184,7 +3189,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 168;
+  static const int currentSchemaVersion = 170;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3212,7 +3217,14 @@ class AppDatabase extends _$AppDatabase {
   /// until they update. Note the gate is one-directional, so this does NOT
   /// protect us from THEIR payloads; SyncDataSerializer._withRenamedKeys
   /// carries the receiving-side tolerance.
-  static const int minimumCompatibleSchemaVersion = 160;
+  ///
+  /// Raised 160 -> 170 by the SAC/RMV split: v170 renames the synced column
+  /// diver_settings.sac_unit to gas_consumption_display and replaces its
+  /// unit spellings with lane names, which the first two rules classify as
+  /// breaking. Peers below 170 are held until they update. Their payloads
+  /// still arrive here; _renamedWireKeys plus the value map in
+  /// _applyDiverSettingDefaults carry the receiving-side tolerance.
+  static const int minimumCompatibleSchemaVersion = 170;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3495,6 +3507,13 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 161, which #1235 landed on main while this branch was
     // open.
     168,
+    // v170: diver_settings.sac_unit -> gas_consumption_display (a lane
+    // choice: sac, rmv, both) plus the rewrite of saved dive-table layouts
+    // that named the old sacRate column (discussions #354, #803). 167 and 169
+    // are deliberately absent, not missing: 167 is permanently skipped (main
+    // landed 168 past it, so PR #1276 moved its rung up), and 169 belongs to
+    // PR #1320 (dive-computer gear twins).
+    170,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5070,6 +5089,72 @@ class AppDatabase extends _$AppDatabase {
         'RENAME COLUMN service_type TO service_category',
       );
     }
+  }
+
+  /// v170: diver_settings.sac_unit becomes gas_consumption_display and its
+  /// values move from a unit choice to a lane choice (discussions #354 and
+  /// #803). Guarded like the v160 rename, so a database that reaches 170 by
+  /// restore or sync-adopt (neither runs onUpgrade) heals in beforeOpen. The
+  /// value rewrite is idempotent: it only touches the two retired spellings
+  /// and anything that is not a known lane name.
+  Future<void> _assertGasConsumptionDisplayColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('sac_unit') &&
+        !names.contains('gas_consumption_display')) {
+      await customStatement(
+        'ALTER TABLE diver_settings '
+        'RENAME COLUMN sac_unit TO gas_consumption_display',
+      );
+    } else if (!names.contains('gas_consumption_display')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN gas_consumption_display '
+        "TEXT NOT NULL DEFAULT 'both'",
+      );
+      return;
+    }
+    await customStatement(
+      'UPDATE diver_settings SET gas_consumption_display = '
+      'CASE gas_consumption_display '
+      "WHEN 'litersPerMin' THEN 'rmv' "
+      "WHEN 'pressurePerMin' THEN 'sac' "
+      "WHEN 'sac' THEN 'sac' WHEN 'rmv' THEN 'rmv' WHEN 'both' THEN 'both' "
+      "ELSE 'both' END "
+      "WHERE gas_consumption_display NOT IN ('sac', 'rmv', 'both')",
+    );
+  }
+
+  /// v170, rung only: a saved dive-table layout names its columns by enum
+  /// value, and the sacRate column split into sac and rmv. Point each
+  /// diver's layout at the lane they were seeing. Runs after
+  /// [_assertGasConsumptionDisplayColumn] so the lane names are final.
+  ///
+  /// Never called from beforeOpen: DiveFieldAdapter.fieldFromName aliases
+  /// sacRate to sac for layouts that arrive later by sync, and re-running
+  /// this on every open would rewrite rows the diver has since changed. No
+  /// HLC bump: every device applies the same deterministic rewrite to its
+  /// own rows, so there is nothing to push.
+  Future<void> _rewriteLegacySacRateLayouts() async {
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' "
+      "AND name IN ('view_configs', 'diver_settings')",
+    ).get();
+    if (tables.length < 2) return;
+    await customStatement('''
+      UPDATE view_configs
+        SET config_json = REPLACE(config_json, '"sacRate"', '"rmv"')
+        WHERE config_json LIKE '%"sacRate"%'
+          AND diver_id IN (SELECT diver_id FROM diver_settings
+                           WHERE gas_consumption_display = 'rmv')
+    ''');
+    await customStatement('''
+      UPDATE view_configs
+        SET config_json = REPLACE(config_json, '"sacRate"', '"sac"')
+        WHERE config_json LIKE '%"sacRate"%'
+    ''');
   }
 
   Future<void> _assertServiceCostColumns() async {
@@ -8677,6 +8762,14 @@ class AppDatabase extends _$AppDatabase {
           await _assertBuddyFavoriteColumn();
         }
         if (from < 168) await reportProgress();
+        // v170: diver_settings.sac_unit -> gas_consumption_display and the
+        // saved dive-table layouts that named the old sacRate column
+        // (discussions #354, #803).
+        if (from < 170) {
+          await _assertGasConsumptionDisplayColumn();
+          await _rewriteLegacySacRateLayouts();
+        }
+        if (from < 170) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -8885,6 +8978,10 @@ class AppDatabase extends _$AppDatabase {
         // database that arrives by restore or sync-adopt never runs
         // onUpgrade, and every read of a buddy would throw without it.
         await _assertBuddyFavoriteColumn();
+        // v170 backstop: re-assert the diver_settings.sac_unit rename and
+        // value map (discussions #354, #803; same restore / sync-adopt
+        // self-heal as v160). The layout rewrite deliberately stays rung-only.
+        await _assertGasConsumptionDisplayColumn();
 
         // v145 backstop: re-assert the gps_tracks provenance and trim columns.
         await _assertGpsTrackColumns();

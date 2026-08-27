@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -243,8 +244,8 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setWeightUnit(WeightUnit unit) async =>
       state = state.copyWith(weightUnit: unit);
   @override
-  Future<void> setSacUnit(SacUnit unit) async =>
-      state = state.copyWith(sacUnit: unit);
+  Future<void> setGasConsumptionDisplay(GasConsumptionDisplay display) async =>
+      state = state.copyWith(gasConsumptionDisplay: display);
 
   @override
   Future<void> setGasModel(GasModel model) async =>

@@ -73,7 +73,8 @@ class TableViewConfig extends Equatable {
         TableColumnConfig(field: DiveField.primaryGas),
         TableColumnConfig(field: DiveField.startPressure),
         TableColumnConfig(field: DiveField.endPressure),
-        TableColumnConfig(field: DiveField.sacRate),
+        TableColumnConfig(field: DiveField.sac),
+        TableColumnConfig(field: DiveField.rmv),
         // Environment
         TableColumnConfig(field: DiveField.waterTemp),
         TableColumnConfig(field: DiveField.visibility),
@@ -300,7 +301,8 @@ class FieldPreset extends Equatable {
         TableColumnConfig(field: DiveField.primaryGas),
         TableColumnConfig(field: DiveField.startPressure),
         TableColumnConfig(field: DiveField.endPressure),
-        TableColumnConfig(field: DiveField.sacRate),
+        TableColumnConfig(field: DiveField.sac),
+        TableColumnConfig(field: DiveField.rmv),
         // Environment
         TableColumnConfig(field: DiveField.waterTemp),
         TableColumnConfig(field: DiveField.visibility),

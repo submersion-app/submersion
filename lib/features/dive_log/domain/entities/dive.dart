@@ -352,17 +352,19 @@ class Dive extends Equatable {
   List<DiveTank> get bailoutTanks =>
       tanks.where((t) => t.role == TankRole.bailout).toList();
 
-  /// Air consumption rate in L/min at surface (Surface Air Consumption)
-  /// under [model], summing gas consumed across all tanks with valid data.
+  /// RMV: respiratory minute volume in L/min at the surface under [model],
+  /// summing gas consumed across every tank that has pressures and a volume.
+  ///
+  /// This is the diver's property (how much gas their lungs move), so every
+  /// cylinder counts. Its pressure-lane sibling [sac] reads one reference
+  /// cylinder instead, because a pressure drop is a property of that
+  /// cylinder's size (discussions #354, #803).
   ///
   /// Takes the model as a parameter rather than reading a provider so the
-  /// entity stays free of container dependencies, mirroring how
-  /// `extractDiveFieldValue` threads the SAC unit preference. Callers source
-  /// it from `gasModelProvider`.
-  ///
-  /// The runtime is used verbatim: nothing is added for a safety stop
-  /// (issue #828).
-  double? sacFor(GasModel model) {
+  /// entity stays free of container dependencies. Callers source it from
+  /// `gasModelProvider`. The runtime is used verbatim: nothing is added for
+  /// a safety stop (issue #828).
+  double? rmvFor(GasModel model) {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
     }
@@ -415,7 +417,7 @@ class Dive extends Equatable {
     return totalGasLiters / minutes / avgPressureBar;
   }
 
-  /// The cylinder the pressure lane ([sacPressure]) reads, and the one whose
+  /// The cylinder the pressure lane ([sac]) reads, and the one whose
   /// volume converts an unattributed SAC segment to L/min: on a multi-tank
   /// dive the back gas, else the first cylinder; the only cylinder on a
   /// single-tank dive whatever its role. Null when the dive has no cylinders.
@@ -428,10 +430,13 @@ class Dive extends Equatable {
     );
   }
 
-  /// Air consumption rate in pressure units per minute (bar/min or psi/min)
-  /// This is a simpler calculation that doesn't require tank volume.
-  /// It calculates the average pressure drop per minute adjusted for depth.
-  double? get sacPressure {
+  /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
+  /// at the surface, read from [sacReferenceTank] only.
+  ///
+  /// Needs no cylinder volume, so it exists for every dive-computer download
+  /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
+  /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged.
+  double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
     }
