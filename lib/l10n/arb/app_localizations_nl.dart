@@ -33728,4 +33728,410 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit is niet beschikbaar op dit apparaat';
+
+  @override
+  String get divelogsSync_photosHeader => 'Foto\'s';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Foto\'s synchroniseren voor $count gekoppelde duiken';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Foto\'s synchroniseren met divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled foto\'s opgehaald, $pushed verstuurd.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count foto\'s waren al aanwezig (herkend op inhoud).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count externe afbeeldingen hadden geen downloadbare link en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Fotosynchronisatie gestopt: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Uitrusting & brevetten';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear uitrustingsstukken en $certs brevetten al gesynchroniseerd';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Versturen: $gear uitrustingsstukken, $certs brevetten';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Uitrusting & brevetten synchroniseren';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear uitrustingsstukken en $certs brevetten verstuurd.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Versturen van uitrusting/brevetten gestopt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count brevetten hebben een uitgiftedatum nodig voordat ze verstuurd kunnen worden.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Uitrusting en brevetten konden niet worden vergeleken: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de-synchronisatie';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Er is nog geen divelogs.de-account gekoppeld. Start een import om aan te melden.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import openen';
+
+  @override
+  String get divelogsSync_compare => 'Vergelijken';
+
+  @override
+  String get divelogsSync_comparing => 'Vergelijken met divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count duiken al gesynchroniseerd';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Ophalen: $count nieuw op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Controleren en ophalen in de importwizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Versturen: $count duiken niet op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Selectie versturen';
+
+  @override
+  String get divelogsSync_pushing => 'Duiken versturen naar divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count duiken naar divelogs.de verstuurd.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count duiken konden niet worden geconverteerd en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Versturen gestopt na $count duiken: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Alles is gesynchroniseerd.';
+
+  @override
+  String get divelogs_signIn_title => 'Aanmelden bij divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Gebruikersnaam';
+
+  @override
+  String get divelogs_signIn_password => 'Wachtwoord';
+
+  @override
+  String get divelogs_signIn_diver => 'Importeren naar duiker';
+
+  @override
+  String get divelogs_signIn_connect => 'Verbinden';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Duiken ophalen van divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Duiken opgehaald.';
+
+  @override
+  String get divelogs_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get divelogs_fetch_error => 'Kon geen duiken ophalen van divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Dit divelogs.de-account is gekoppeld aan een ander duikersprofiel. Wissel van duiker om te importeren.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importeren van divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Haal je logboek op uit je divelogs.de-account';
+
+  @override
+  String get buddies_section_professionalRoles => 'Professionele rollen';
+
+  @override
+  String get buddies_roles_addRole => 'Rol toevoegen';
+
+  @override
+  String get buddies_roles_role => 'Rol';
+
+  @override
+  String get buddies_roles_agency => 'Organisatie';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Registratienummer';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Rol verwijderen';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Voeg instructeur- of divemasterkwalificaties toe, zodat je ze kunt hergebruiken bij het registreren van certificeringen en cursussen.';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Professionele rollen';
+
+  @override
+  String get certifications_detail_label_level => 'Niveau';
+
+  @override
+  String get certifications_edit_hint_certificationName =>
+      'bijv. Open Water Diver';
+
+  @override
+  String get certifications_edit_label_certificationName =>
+      'Certificeringsnaam *';
+
+  @override
+  String get certifications_edit_label_level => 'Niveau';
+
+  @override
+  String get certifications_edit_level_notSpecified => 'Niet opgegeven';
+
+  @override
+  String get certifications_edit_validation_nameRequired =>
+      'Voer een certificeringsnaam in';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count certificeringen';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return '$count certificering';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter =>
+      'Voeg je eerste certificering toe';
+
+  @override
+  String get certifications_walletCard_error =>
+      'Kan certificeringen niet laden';
+
+  @override
+  String get certifications_walletCard_semanticLabel =>
+      'Certificeringsportemonnee. Tik om alle certificeringen te bekijken';
+
+  @override
+  String get certifications_walletCard_tapToAdd => 'Tik om toe te voegen';
+
+  @override
+  String get certifications_walletCard_title => 'Certificeringsportemonnee';
+
+  @override
+  String get preDive_section_title => 'Pre-dive check';
+
+  @override
+  String get preDive_section_link => 'Checklistsessie koppelen';
+
+  @override
+  String get preDive_section_unlink => 'Ontkoppelen';
+
+  @override
+  String get preDive_section_run => 'Pre-dive checklist uitvoeren';
+
+  @override
+  String get preDive_section_noUnlinked => 'Geen ontkoppelde checklistsessies';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'Pre-dive check';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Gekoppelde pre-dive checklistsessie';
+
+  @override
+  String get dashboard_photos_title => 'Recente foto\'s';
+
+  @override
+  String get diveCenters_summary_topRated => 'Best beoordeeld';
+
+  @override
+  String get diveLog_instruments_customize => 'Instrumenten aanpassen';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Schakel instrumenten in of uit. Sleep om te herschikken.';
+
+  @override
+  String get enum_buddyRole_buddy => 'Buddy';
+
+  @override
+  String get enum_buddyRole_diveGuide => 'Duikgids';
+
+  @override
+  String get enum_buddyRole_diveMaster => 'Divemaster';
+
+  @override
+  String get enum_buddyRole_instructor => 'Instructeur';
+
+  @override
+  String get enum_buddyRole_solo => 'Solo';
+
+  @override
+  String get enum_buddyRole_student => 'Leerling';
+
+  @override
+  String get equipment_addSheet_brandHint => 'bijv. Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => 'Merk';
+
+  @override
+  String get equipment_addSheet_closeTooltip => 'Sluiten';
+
+  @override
+  String get equipment_addSheet_currencyLabel => 'Valuta';
+
+  @override
+  String get equipment_addSheet_dateLabel => 'Datum';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return 'Fout bij toevoegen van uitrusting: $error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => 'bijv. MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => 'Model';
+
+  @override
+  String get equipment_addSheet_nameHint => 'bijv. Mijn primaire ademautomaat';
+
+  @override
+  String get equipment_addSheet_nameLabel => 'Naam';
+
+  @override
+  String get equipment_addSheet_nameValidation => 'Voer een naam in';
+
+  @override
+  String get equipment_addSheet_notesHint => 'Extra notities...';
+
+  @override
+  String get equipment_addSheet_notesLabel => 'Notities';
+
+  @override
+  String get equipment_addSheet_priceLabel => 'Prijs';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => 'Aankoopinformatie';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => 'Serienummer';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint =>
+      'bijv. 365 voor jaarlijks';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel =>
+      'Serviceinterval (dagen)';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'bijv. M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => 'Maat';
+
+  @override
+  String get equipment_addSheet_submitButton => 'Uitrusting toevoegen';
+
+  @override
+  String get equipment_addSheet_successSnackbar =>
+      'Uitrusting succesvol toegevoegd';
+
+  @override
+  String get equipment_addSheet_title => 'Uitrusting toevoegen';
+
+  @override
+  String get equipment_addSheet_typeLabel => 'Type';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      'Deze foto van de duik verwijderen? De foto blijft in je galerij staan.';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => 'Foto ontkoppelen';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => 'Foto ontkoppeld';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count apparaten synchroniseren vanaf een nieuwere versie van Submersion. Werk dit apparaat bij om hun nieuwste wijzigingen te ontvangen.',
+      one:
+          '1 apparaat synchroniseert vanaf een nieuwere versie van Submersion. Werk dit apparaat bij om de nieuwste wijzigingen ervan te ontvangen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => 'Inschakelen';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(Lucht)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => 'Totale bodemtijd';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'Filteren niet mogelijk: geen serienummer voor deze computer.';
 }

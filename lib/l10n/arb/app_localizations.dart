@@ -55861,6 +55861,678 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'HealthKit is not available on this device'**
   String get settings_dataSources_appleHealth_permissionUnsupported;
+
+  /// No description provided for @divelogsSync_photosHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get divelogsSync_photosHeader;
+
+  /// No description provided for @divelogsSync_photosButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync photos for {count} matched dives'**
+  String divelogsSync_photosButton(int count);
+
+  /// No description provided for @divelogsSync_photosSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing photos with divelogs.de...'**
+  String get divelogsSync_photosSyncing;
+
+  /// No description provided for @divelogsSync_photosDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulled {pulled} photos, pushed {pushed}.'**
+  String divelogsSync_photosDone(int pulled, int pushed);
+
+  /// No description provided for @divelogsSync_photosDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos were already present (matched by content).'**
+  String divelogsSync_photosDuplicates(int count);
+
+  /// No description provided for @divelogsSync_photosNoUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remote pictures had no downloadable link and were skipped.'**
+  String divelogsSync_photosNoUrl(int count);
+
+  /// No description provided for @divelogsSync_photosFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo sync stopped: {error}'**
+  String divelogsSync_photosFailed(String error);
+
+  /// No description provided for @divelogsSync_gearCertHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear & certifications'**
+  String get divelogsSync_gearCertHeader;
+
+  /// No description provided for @divelogsSync_gearCertMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'{gear} gear items and {certs} certifications already in sync'**
+  String divelogsSync_gearCertMatched(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {gear} gear items, {certs} certifications'**
+  String divelogsSync_gearCertPush(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync gear & certifications'**
+  String get divelogsSync_gearCertPushButton;
+
+  /// No description provided for @divelogsSync_gearCertPushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {gear} gear items and {certs} certifications.'**
+  String divelogsSync_gearCertPushDone(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear/certification push stopped: {error}'**
+  String divelogsSync_gearCertPushFailed(String error);
+
+  /// No description provided for @divelogsSync_certsMissingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certifications need an issue date before they can be pushed.'**
+  String divelogsSync_certsMissingDate(int count);
+
+  /// No description provided for @divelogsSync_gearCertUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear and certifications could not be compared: {error}'**
+  String divelogsSync_gearCertUnavailable(String error);
+
+  /// No description provided for @divelogsSync_title.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de Sync'**
+  String get divelogsSync_title;
+
+  /// No description provided for @divelogsSync_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'No divelogs.de account is connected yet. Start an import to sign in.'**
+  String get divelogsSync_notConnected;
+
+  /// No description provided for @divelogsSync_openImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Open divelogs.de import'**
+  String get divelogsSync_openImport;
+
+  /// No description provided for @divelogsSync_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get divelogsSync_compare;
+
+  /// No description provided for @divelogsSync_comparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing with divelogs.de...'**
+  String get divelogsSync_comparing;
+
+  /// No description provided for @divelogsSync_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives already in sync'**
+  String divelogsSync_matched(int count);
+
+  /// No description provided for @divelogsSync_pullHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull: {count} new on divelogs.de'**
+  String divelogsSync_pullHeader(int count);
+
+  /// No description provided for @divelogsSync_pullReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and pull in the import wizard'**
+  String get divelogsSync_pullReview;
+
+  /// No description provided for @divelogsSync_pushHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {count} dives not on divelogs.de'**
+  String divelogsSync_pushHeader(int count);
+
+  /// No description provided for @divelogsSync_pushSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Push selected'**
+  String get divelogsSync_pushSelected;
+
+  /// No description provided for @divelogsSync_pushing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushing dives to divelogs.de...'**
+  String get divelogsSync_pushing;
+
+  /// No description provided for @divelogsSync_pushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {count} dives to divelogs.de.'**
+  String divelogsSync_pushDone(int count);
+
+  /// No description provided for @divelogsSync_pushSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives could not be converted and were skipped.'**
+  String divelogsSync_pushSkipped(int count);
+
+  /// No description provided for @divelogsSync_pushFailedPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Push stopped after {count} dives: {error}'**
+  String divelogsSync_pushFailedPartial(int count, String error);
+
+  /// No description provided for @divelogsSync_nothingToSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in sync.'**
+  String get divelogsSync_nothingToSync;
+
+  /// No description provided for @divelogs_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogs_signIn_title;
+
+  /// No description provided for @divelogs_signIn_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogs_signIn_username;
+
+  /// No description provided for @divelogs_signIn_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogs_signIn_password;
+
+  /// No description provided for @divelogs_signIn_diver.
+  ///
+  /// In en, this message translates to:
+  /// **'Import into diver'**
+  String get divelogs_signIn_diver;
+
+  /// No description provided for @divelogs_signIn_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get divelogs_signIn_connect;
+
+  /// No description provided for @divelogs_fetch_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching dives from divelogs.de...'**
+  String get divelogs_fetch_inProgress;
+
+  /// No description provided for @divelogs_fetch_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives fetched.'**
+  String get divelogs_fetch_done;
+
+  /// No description provided for @divelogs_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get divelogs_fetch_retry;
+
+  /// No description provided for @divelogs_fetch_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch dives from divelogs.de.'**
+  String get divelogs_fetch_error;
+
+  /// No description provided for @divelogs_fetch_wrongDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'This divelogs.de account is linked to a different diver profile. Switch divers to import.'**
+  String get divelogs_fetch_wrongDiver;
+
+  /// No description provided for @transfer_import_divelogs_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from divelogs.de'**
+  String get transfer_import_divelogs_title;
+
+  /// No description provided for @transfer_import_divelogs_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull your logbook from your divelogs.de account'**
+  String get transfer_import_divelogs_subtitle;
+
+  /// No description provided for @buddies_section_professionalRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Roles'**
+  String get buddies_section_professionalRoles;
+
+  /// No description provided for @buddies_roles_addRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Add role'**
+  String get buddies_roles_addRole;
+
+  /// No description provided for @buddies_roles_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get buddies_roles_role;
+
+  /// No description provided for @buddies_roles_agency.
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get buddies_roles_agency;
+
+  /// No description provided for @buddies_roles_credentialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential number'**
+  String get buddies_roles_credentialNumber;
+
+  /// No description provided for @buddies_roles_removeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove role'**
+  String get buddies_roles_removeTooltip;
+
+  /// No description provided for @buddies_roles_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add instructor or divemaster credentials to reuse them when logging certifications and courses.'**
+  String get buddies_roles_emptyHint;
+
+  /// No description provided for @buddies_detail_section_professionalRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Roles'**
+  String get buddies_detail_section_professionalRoles;
+
+  /// No description provided for @certifications_detail_label_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get certifications_detail_label_level;
+
+  /// No description provided for @certifications_edit_hint_certificationName.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Open Water Diver'**
+  String get certifications_edit_hint_certificationName;
+
+  /// No description provided for @certifications_edit_label_certificationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Name *'**
+  String get certifications_edit_label_certificationName;
+
+  /// No description provided for @certifications_edit_label_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get certifications_edit_label_level;
+
+  /// No description provided for @certifications_edit_level_notSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get certifications_edit_level_notSpecified;
+
+  /// No description provided for @certifications_edit_validation_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a certification name'**
+  String get certifications_edit_validation_nameRequired;
+
+  /// No description provided for @certifications_walletCard_countPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certifications'**
+  String certifications_walletCard_countPlural(Object count);
+
+  /// No description provided for @certifications_walletCard_countSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certification'**
+  String certifications_walletCard_countSingular(Object count);
+
+  /// No description provided for @certifications_walletCard_emptyFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first certification'**
+  String get certifications_walletCard_emptyFooter;
+
+  /// No description provided for @certifications_walletCard_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load certifications'**
+  String get certifications_walletCard_error;
+
+  /// No description provided for @certifications_walletCard_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Wallet. Tap to view all certifications'**
+  String get certifications_walletCard_semanticLabel;
+
+  /// No description provided for @certifications_walletCard_tapToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add'**
+  String get certifications_walletCard_tapToAdd;
+
+  /// No description provided for @certifications_walletCard_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Wallet'**
+  String get certifications_walletCard_title;
+
+  /// No description provided for @preDive_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-Dive Check'**
+  String get preDive_section_title;
+
+  /// No description provided for @preDive_section_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a checklist session'**
+  String get preDive_section_link;
+
+  /// No description provided for @preDive_section_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get preDive_section_unlink;
+
+  /// No description provided for @preDive_section_run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run pre-dive checklist'**
+  String get preDive_section_run;
+
+  /// No description provided for @preDive_section_noUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No unlinked checklist sessions'**
+  String get preDive_section_noUnlinked;
+
+  /// No description provided for @diveDetailSection_preDiveChecklist_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-Dive Check'**
+  String get diveDetailSection_preDiveChecklist_name;
+
+  /// No description provided for @diveDetailSection_preDiveChecklist_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked pre-dive checklist session'**
+  String get diveDetailSection_preDiveChecklist_description;
+
+  /// No description provided for @dashboard_photos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent photos'**
+  String get dashboard_photos_title;
+
+  /// No description provided for @diveCenters_summary_topRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated'**
+  String get diveCenters_summary_topRated;
+
+  /// No description provided for @diveLog_instruments_customize.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize instruments'**
+  String get diveLog_instruments_customize;
+
+  /// No description provided for @diveLog_instruments_customizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle instruments on or off. Drag to reorder.'**
+  String get diveLog_instruments_customizeHint;
+
+  /// No description provided for @enum_buddyRole_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get enum_buddyRole_buddy;
+
+  /// No description provided for @enum_buddyRole_diveGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Guide'**
+  String get enum_buddyRole_diveGuide;
+
+  /// No description provided for @enum_buddyRole_diveMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Divemaster'**
+  String get enum_buddyRole_diveMaster;
+
+  /// No description provided for @enum_buddyRole_instructor.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor'**
+  String get enum_buddyRole_instructor;
+
+  /// No description provided for @enum_buddyRole_solo.
+  ///
+  /// In en, this message translates to:
+  /// **'Solo'**
+  String get enum_buddyRole_solo;
+
+  /// No description provided for @enum_buddyRole_student.
+  ///
+  /// In en, this message translates to:
+  /// **'Student'**
+  String get enum_buddyRole_student;
+
+  /// No description provided for @equipment_addSheet_brandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Scubapro'**
+  String get equipment_addSheet_brandHint;
+
+  /// No description provided for @equipment_addSheet_brandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get equipment_addSheet_brandLabel;
+
+  /// No description provided for @equipment_addSheet_closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get equipment_addSheet_closeTooltip;
+
+  /// No description provided for @equipment_addSheet_currencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get equipment_addSheet_currencyLabel;
+
+  /// No description provided for @equipment_addSheet_dateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get equipment_addSheet_dateLabel;
+
+  /// No description provided for @equipment_addSheet_errorSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding equipment: {error}'**
+  String equipment_addSheet_errorSnackbar(Object error);
+
+  /// No description provided for @equipment_addSheet_modelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., MK25 EVO'**
+  String get equipment_addSheet_modelHint;
+
+  /// No description provided for @equipment_addSheet_modelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get equipment_addSheet_modelLabel;
+
+  /// No description provided for @equipment_addSheet_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., My Primary Regulator'**
+  String get equipment_addSheet_nameHint;
+
+  /// No description provided for @equipment_addSheet_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get equipment_addSheet_nameLabel;
+
+  /// No description provided for @equipment_addSheet_nameValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get equipment_addSheet_nameValidation;
+
+  /// No description provided for @equipment_addSheet_notesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional notes...'**
+  String get equipment_addSheet_notesHint;
+
+  /// No description provided for @equipment_addSheet_notesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get equipment_addSheet_notesLabel;
+
+  /// No description provided for @equipment_addSheet_priceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get equipment_addSheet_priceLabel;
+
+  /// No description provided for @equipment_addSheet_purchaseInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Information'**
+  String get equipment_addSheet_purchaseInfoTitle;
+
+  /// No description provided for @equipment_addSheet_serialNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number'**
+  String get equipment_addSheet_serialNumberLabel;
+
+  /// No description provided for @equipment_addSheet_serviceIntervalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 365 for yearly'**
+  String get equipment_addSheet_serviceIntervalHint;
+
+  /// No description provided for @equipment_addSheet_serviceIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Interval (days)'**
+  String get equipment_addSheet_serviceIntervalLabel;
+
+  /// No description provided for @equipment_addSheet_sizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., M, L, 42'**
+  String get equipment_addSheet_sizeHint;
+
+  /// No description provided for @equipment_addSheet_sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get equipment_addSheet_sizeLabel;
+
+  /// No description provided for @equipment_addSheet_submitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Equipment'**
+  String get equipment_addSheet_submitButton;
+
+  /// No description provided for @equipment_addSheet_successSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment added successfully'**
+  String get equipment_addSheet_successSnackbar;
+
+  /// No description provided for @equipment_addSheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Equipment'**
+  String get equipment_addSheet_title;
+
+  /// No description provided for @equipment_addSheet_typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get equipment_addSheet_typeLabel;
+
+  /// No description provided for @media_diveMediaSection_unlinkDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this photo from the dive? The photo will remain in your gallery.'**
+  String get media_diveMediaSection_unlinkDialogContent;
+
+  /// No description provided for @media_diveMediaSection_unlinkDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink Photo'**
+  String get media_diveMediaSection_unlinkDialogTitle;
+
+  /// No description provided for @media_diveMediaSection_unlinkSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo unlinked'**
+  String get media_diveMediaSection_unlinkSuccess;
+
+  /// No description provided for @settings_cloudSync_peerRequiresUpdate_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 device syncs from a newer version of Submersion. Update this device to receive its latest changes.} other{{count} devices sync from a newer version of Submersion. Update this device to receive their latest changes.}}'**
+  String settings_cloudSync_peerRequiresUpdate_banner(num count);
+
+  /// No description provided for @settings_notifications_disabled_enableButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get settings_notifications_disabled_enableButton;
+
+  /// Label indicating the second dive uses air
+  ///
+  /// In en, this message translates to:
+  /// **'(Air)'**
+  String get surfaceInterval_secondDive_gasAir;
+
+  /// No description provided for @trips_detail_stat_totalBottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Bottom Time'**
+  String get trips_detail_stat_totalBottomTime;
+
+  /// No description provided for @diveComputer_detail_cannotFilterNoSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot filter: no serial number for this computer.'**
+  String get diveComputer_detail_cannotFilterNoSerial;
 }
 
 class _AppLocalizationsDelegate

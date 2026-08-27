@@ -33835,4 +33835,413 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'A HealthKit nem érhető el ezen az eszközön';
+
+  @override
+  String get divelogsSync_photosHeader => 'Fényképek';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Fényképek szinkronizálása $count párosított merüléshez';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Fényképek szinkronizálása a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled fénykép letöltve, $pushed feltöltve.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count fénykép már megvolt (tartalom alapján felismerve).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count távoli képnek nem volt letölthető hivatkozása, ezért kimaradtak.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'A fényképszinkronizálás leállt: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Felszerelés és minősítések';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Feltöltés: $gear felszerelés, $certs minősítés';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Felszerelés és minősítések szinkronizálása';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés feltöltve.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'A felszerelés/minősítés feltöltése leállt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count minősítéshez kiállítási dátum szükséges a feltöltés előtt.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'A felszerelés és a minősítések összehasonlítása nem sikerült: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de szinkronizálás';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Még nincs csatlakoztatott divelogs.de-fiók. Indíts egy importot a bejelentkezéshez.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import megnyitása';
+
+  @override
+  String get divelogsSync_compare => 'Összehasonlítás';
+
+  @override
+  String get divelogsSync_comparing => 'Összehasonlítás a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count merülés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Letöltés: $count új a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Ellenőrzés és letöltés az importvarázslóban';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Feltöltés: $count merülés nincs a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Kijelöltek feltöltése';
+
+  @override
+  String get divelogsSync_pushing => 'Merülések feltöltése a divelogs.de-re...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count merülés feltöltve a divelogs.de-re.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count merülést nem lehetett konvertálni, ezért kimaradt.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'A feltöltés $count merülés után leállt: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Minden szinkronban van.';
+
+  @override
+  String get divelogs_signIn_title => 'Bejelentkezés a divelogs.de-re';
+
+  @override
+  String get divelogs_signIn_username => 'Felhasználónév';
+
+  @override
+  String get divelogs_signIn_password => 'Jelszó';
+
+  @override
+  String get divelogs_signIn_diver => 'Importálás ebbe a búvárprofilba';
+
+  @override
+  String get divelogs_signIn_connect => 'Csatlakozás';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Merülések letöltése a divelogs.de-ről...';
+
+  @override
+  String get divelogs_fetch_done => 'Merülések letöltve.';
+
+  @override
+  String get divelogs_fetch_retry => 'Újra';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Nem sikerült letölteni a merüléseket a divelogs.de-ről.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Ez a divelogs.de-fiók másik búvárprofilhoz van kötve. Válts búvárprofilt az importáláshoz.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importálás a divelogs.de-ről';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Töltsd le a naplódat a divelogs.de-fiókodból';
+
+  @override
+  String get buddies_section_professionalRoles => 'Szakmai szerepek';
+
+  @override
+  String get buddies_roles_addRole => 'Szerep hozzáadása';
+
+  @override
+  String get buddies_roles_role => 'Szerep';
+
+  @override
+  String get buddies_roles_agency => 'Szervezet';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Igazolványszám';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Szerep eltávolítása';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Adja hozzá az oktatói vagy divemaster képesítéseket, hogy újra felhasználhassa őket képesítések és tanfolyamok rögzítésekor.';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Szakmai szerepek';
+
+  @override
+  String get certifications_detail_label_level => 'Szint';
+
+  @override
+  String get certifications_edit_hint_certificationName =>
+      'pl. Open Water Diver';
+
+  @override
+  String get certifications_edit_label_certificationName => 'Kepesites neve *';
+
+  @override
+  String get certifications_edit_label_level => 'Szint';
+
+  @override
+  String get certifications_edit_level_notSpecified => 'Nincs megadva';
+
+  @override
+  String get certifications_edit_validation_nameRequired =>
+      'Kerem, adja meg a tanusitvany nevet';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count tanusitvany';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return '$count tanusitvany';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter =>
+      'Adja hozza az elso tanusitvanyt';
+
+  @override
+  String get certifications_walletCard_error =>
+      'Nem sikerult a tanusitványok betoltese';
+
+  @override
+  String get certifications_walletCard_semanticLabel =>
+      'Tanusitvany tarca. Koppintson az osszes tanusitvany megtekintésehez';
+
+  @override
+  String get certifications_walletCard_tapToAdd => 'Koppintson a hozzaadashoz';
+
+  @override
+  String get certifications_walletCard_title => 'Tanusitvany tarca';
+
+  @override
+  String get preDive_section_title => 'Merülés előtti ellenőrzés';
+
+  @override
+  String get preDive_section_link => 'Ellenőrzőlista-munkamenet csatolása';
+
+  @override
+  String get preDive_section_unlink => 'Csatolás megszüntetése';
+
+  @override
+  String get preDive_section_run => 'Merülés előtti ellenőrzőlista futtatása';
+
+  @override
+  String get preDive_section_noUnlinked =>
+      'Nincsenek nem csatolt ellenőrzőlista-munkamenetek';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name =>
+      'Merülés előtti ellenőrzés';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Kapcsolt merülés előtti ellenőrzőlista-munkamenet';
+
+  @override
+  String get dashboard_photos_title => 'Legutóbbi fotók';
+
+  @override
+  String get diveCenters_summary_topRated => 'Legjobbra értékelt';
+
+  @override
+  String get diveLog_instruments_customize => 'Műszerek testreszabása';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Kapcsolja be vagy ki a műszereket. Húzza az átrendezéshez.';
+
+  @override
+  String get enum_buddyRole_buddy => 'Buddy';
+
+  @override
+  String get enum_buddyRole_diveGuide => 'Merulesvezeto';
+
+  @override
+  String get enum_buddyRole_diveMaster => 'Divemaster';
+
+  @override
+  String get enum_buddyRole_instructor => 'Oktato';
+
+  @override
+  String get enum_buddyRole_solo => 'Solo';
+
+  @override
+  String get enum_buddyRole_student => 'Tanulo';
+
+  @override
+  String get equipment_addSheet_brandHint => 'pl. Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => 'Marka';
+
+  @override
+  String get equipment_addSheet_closeTooltip => 'Bezaras';
+
+  @override
+  String get equipment_addSheet_currencyLabel => 'Penznem';
+
+  @override
+  String get equipment_addSheet_dateLabel => 'Datum';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return 'Hiba a felszereles hozzaadasakor: $error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => 'pl. MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => 'Modell';
+
+  @override
+  String get equipment_addSheet_nameHint => 'pl. Elsooleges automata';
+
+  @override
+  String get equipment_addSheet_nameLabel => 'Nev';
+
+  @override
+  String get equipment_addSheet_nameValidation => 'Kerem adjon meg egy nevet';
+
+  @override
+  String get equipment_addSheet_notesHint => 'Tovabbl megjegyzesek...';
+
+  @override
+  String get equipment_addSheet_notesLabel => 'Megjegyzesek';
+
+  @override
+  String get equipment_addSheet_priceLabel => 'Ar';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => 'Vasarlasi informaciok';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => 'Sorozatszam';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint =>
+      'pl. 365 az eves szervizhez';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel =>
+      'Szerviz intervallum (nap)';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'pl. M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => 'Meret';
+
+  @override
+  String get equipment_addSheet_submitButton => 'Felszereles hozzaadasa';
+
+  @override
+  String get equipment_addSheet_successSnackbar =>
+      'Felszereles sikeresen hozzaadva';
+
+  @override
+  String get equipment_addSheet_title => 'Felszereles hozzaadasa';
+
+  @override
+  String get equipment_addSheet_typeLabel => 'Tipus';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      'Eltavolitja ezt a fotot a merülesrol? A foto megmarad a galeriadjaban.';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => 'Foto levalasztasa';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => 'Foto levalasztva';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count eszköz a Submersion újabb verziójából szinkronizál. Frissítsd ezt az eszközt, hogy megkapd a legújabb változtatásaikat.',
+      one:
+          '1 eszköz a Submersion újabb verziójából szinkronizál. Frissítsd ezt az eszközt, hogy megkapd a legújabb változtatásait.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => 'Engedelyezes';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(Levegő)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => 'Osszes fenekido';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'Nem lehet szurni: nincs sorozatszam ehhez a szamitogephez.';
 }

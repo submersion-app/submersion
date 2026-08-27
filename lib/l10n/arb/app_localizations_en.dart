@@ -33433,4 +33433,405 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit is not available on this device';
+
+  @override
+  String get divelogsSync_photosHeader => 'Photos';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Sync photos for $count matched dives';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => 'Syncing photos with divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'Pulled $pulled photos, pushed $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count photos were already present (matched by content).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count remote pictures had no downloadable link and were skipped.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Photo sync stopped: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Gear & certifications';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear gear items and $certs certifications already in sync';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Push: $gear gear items, $certs certifications';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'Sync gear & certifications';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'Pushed $gear gear items and $certs certifications.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Gear/certification push stopped: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count certifications need an issue date before they can be pushed.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Gear and certifications could not be compared: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de Sync';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'No divelogs.de account is connected yet. Start an import to sign in.';
+
+  @override
+  String get divelogsSync_openImport => 'Open divelogs.de import';
+
+  @override
+  String get divelogsSync_compare => 'Compare';
+
+  @override
+  String get divelogsSync_comparing => 'Comparing with divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count dives already in sync';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Pull: $count new on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'Review and pull in the import wizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Push: $count dives not on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Push selected';
+
+  @override
+  String get divelogsSync_pushing => 'Pushing dives to divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'Pushed $count dives to divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count dives could not be converted and were skipped.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Push stopped after $count dives: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Everything is in sync.';
+
+  @override
+  String get divelogs_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Username';
+
+  @override
+  String get divelogs_signIn_password => 'Password';
+
+  @override
+  String get divelogs_signIn_diver => 'Import into diver';
+
+  @override
+  String get divelogs_signIn_connect => 'Connect';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Fetching dives from divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Dives fetched.';
+
+  @override
+  String get divelogs_fetch_retry => 'Retry';
+
+  @override
+  String get divelogs_fetch_error => 'Could not fetch dives from divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'This divelogs.de account is linked to a different diver profile. Switch divers to import.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Import from divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Pull your logbook from your divelogs.de account';
+
+  @override
+  String get buddies_section_professionalRoles => 'Professional Roles';
+
+  @override
+  String get buddies_roles_addRole => 'Add role';
+
+  @override
+  String get buddies_roles_role => 'Role';
+
+  @override
+  String get buddies_roles_agency => 'Agency';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Credential number';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Remove role';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Add instructor or divemaster credentials to reuse them when logging certifications and courses.';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Professional Roles';
+
+  @override
+  String get certifications_detail_label_level => 'Level';
+
+  @override
+  String get certifications_edit_hint_certificationName =>
+      'e.g., Open Water Diver';
+
+  @override
+  String get certifications_edit_label_certificationName =>
+      'Certification Name *';
+
+  @override
+  String get certifications_edit_label_level => 'Level';
+
+  @override
+  String get certifications_edit_level_notSpecified => 'Not specified';
+
+  @override
+  String get certifications_edit_validation_nameRequired =>
+      'Please enter a certification name';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count certifications';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return '$count certification';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter =>
+      'Add your first certification';
+
+  @override
+  String get certifications_walletCard_error => 'Failed to load certifications';
+
+  @override
+  String get certifications_walletCard_semanticLabel =>
+      'Certification Wallet. Tap to view all certifications';
+
+  @override
+  String get certifications_walletCard_tapToAdd => 'Tap to add';
+
+  @override
+  String get certifications_walletCard_title => 'Certification Wallet';
+
+  @override
+  String get preDive_section_title => 'Pre-Dive Check';
+
+  @override
+  String get preDive_section_link => 'Link a checklist session';
+
+  @override
+  String get preDive_section_unlink => 'Unlink';
+
+  @override
+  String get preDive_section_run => 'Run pre-dive checklist';
+
+  @override
+  String get preDive_section_noUnlinked => 'No unlinked checklist sessions';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'Pre-Dive Check';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Linked pre-dive checklist session';
+
+  @override
+  String get dashboard_photos_title => 'Recent photos';
+
+  @override
+  String get diveCenters_summary_topRated => 'Top Rated';
+
+  @override
+  String get diveLog_instruments_customize => 'Customize instruments';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Toggle instruments on or off. Drag to reorder.';
+
+  @override
+  String get enum_buddyRole_buddy => 'Buddy';
+
+  @override
+  String get enum_buddyRole_diveGuide => 'Dive Guide';
+
+  @override
+  String get enum_buddyRole_diveMaster => 'Divemaster';
+
+  @override
+  String get enum_buddyRole_instructor => 'Instructor';
+
+  @override
+  String get enum_buddyRole_solo => 'Solo';
+
+  @override
+  String get enum_buddyRole_student => 'Student';
+
+  @override
+  String get equipment_addSheet_brandHint => 'e.g., Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => 'Brand';
+
+  @override
+  String get equipment_addSheet_closeTooltip => 'Close';
+
+  @override
+  String get equipment_addSheet_currencyLabel => 'Currency';
+
+  @override
+  String get equipment_addSheet_dateLabel => 'Date';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return 'Error adding equipment: $error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => 'e.g., MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => 'Model';
+
+  @override
+  String get equipment_addSheet_nameHint => 'e.g., My Primary Regulator';
+
+  @override
+  String get equipment_addSheet_nameLabel => 'Name';
+
+  @override
+  String get equipment_addSheet_nameValidation => 'Please enter a name';
+
+  @override
+  String get equipment_addSheet_notesHint => 'Additional notes...';
+
+  @override
+  String get equipment_addSheet_notesLabel => 'Notes';
+
+  @override
+  String get equipment_addSheet_priceLabel => 'Price';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => 'Purchase Information';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => 'Serial Number';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint => 'e.g., 365 for yearly';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel =>
+      'Service Interval (days)';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'e.g., M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => 'Size';
+
+  @override
+  String get equipment_addSheet_submitButton => 'Add Equipment';
+
+  @override
+  String get equipment_addSheet_successSnackbar =>
+      'Equipment added successfully';
+
+  @override
+  String get equipment_addSheet_title => 'Add Equipment';
+
+  @override
+  String get equipment_addSheet_typeLabel => 'Type';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      'Remove this photo from the dive? The photo will remain in your gallery.';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => 'Unlink Photo';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => 'Photo unlinked';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count devices sync from a newer version of Submersion. Update this device to receive their latest changes.',
+      one:
+          '1 device syncs from a newer version of Submersion. Update this device to receive its latest changes.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => 'Enable';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(Air)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => 'Total Bottom Time';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'Cannot filter: no serial number for this computer.';
 }

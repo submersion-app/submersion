@@ -33629,4 +33629,405 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit غير متوفر على هذا الجهاز';
+
+  @override
+  String get divelogsSync_photosHeader => 'الصور';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'مزامنة صور $count غطسات متطابقة';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'جارٍ مزامنة الصور مع divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'تم سحب $pulled صور ودفع $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count صور كانت موجودة بالفعل (تم التعرف عليها بالمحتوى).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count صور بعيدة لم يكن لها رابط تنزيل وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'توقفت مزامنة الصور: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear قطع معدات و$certs شهادات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'دفع: $gear قطع معدات، $certs شهادات';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'مزامنة المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'تم دفع $gear قطع معدات و$certs شهادات.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'توقف دفع المعدات/الشهادات: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count شهادات تحتاج إلى تاريخ إصدار قبل إمكانية دفعها.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'تعذرت مقارنة المعدات والشهادات: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'مزامنة divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'لا يوجد حساب divelogs.de متصل بعد. ابدأ استيرادا لتسجيل الدخول.';
+
+  @override
+  String get divelogsSync_openImport => 'فتح استيراد divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'مقارنة';
+
+  @override
+  String get divelogsSync_comparing => 'جارٍ المقارنة مع divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count غطسات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'سحب: $count جديدة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'راجع واسحب في معالج الاستيراد';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'دفع: $count غطسات غير موجودة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'دفع المحدد';
+
+  @override
+  String get divelogsSync_pushing => 'جارٍ دفع الغطسات إلى divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'تم دفع $count غطسات إلى divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return 'تعذر تحويل $count غطسات وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'توقف الدفع بعد $count غطسات: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'كل شيء متزامن.';
+
+  @override
+  String get divelogs_signIn_title => 'تسجيل الدخول إلى divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'اسم المستخدم';
+
+  @override
+  String get divelogs_signIn_password => 'كلمة المرور';
+
+  @override
+  String get divelogs_signIn_diver => 'الاستيراد إلى الغواص';
+
+  @override
+  String get divelogs_signIn_connect => 'اتصال';
+
+  @override
+  String get divelogs_fetch_inProgress => 'جارٍ جلب الغطسات من divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'تم جلب الغطسات.';
+
+  @override
+  String get divelogs_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get divelogs_fetch_error => 'تعذر جلب الغطسات من divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'حساب divelogs.de هذا مرتبط بملف غواص آخر. بدّل الغواص للاستيراد.';
+
+  @override
+  String get transfer_import_divelogs_title => 'استيراد من divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'اجلب سجل غطساتك من حسابك على divelogs.de';
+
+  @override
+  String get buddies_section_professionalRoles => 'الأدوار المهنية';
+
+  @override
+  String get buddies_roles_addRole => 'إضافة دور';
+
+  @override
+  String get buddies_roles_role => 'الدور';
+
+  @override
+  String get buddies_roles_agency => 'الجهة';
+
+  @override
+  String get buddies_roles_credentialNumber => 'رقم الاعتماد';
+
+  @override
+  String get buddies_roles_removeTooltip => 'إزالة الدور';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'أضف بيانات اعتماد المدرب أو مدرب الغوص الرئيسي لإعادة استخدامها عند تسجيل الشهادات والدورات.';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'الأدوار المهنية';
+
+  @override
+  String get certifications_detail_label_level => 'المستوى';
+
+  @override
+  String get certifications_edit_hint_certificationName =>
+      'مثال: غواص مياه مفتوحة';
+
+  @override
+  String get certifications_edit_label_certificationName => 'اسم الشهادة *';
+
+  @override
+  String get certifications_edit_label_level => 'المستوى';
+
+  @override
+  String get certifications_edit_level_notSpecified => 'غير محدد';
+
+  @override
+  String get certifications_edit_validation_nameRequired =>
+      'يرجى إدخال اسم الشهادة';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count شهادات';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return '$count شهادة';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter => 'أضف شهادتك الأولى';
+
+  @override
+  String get certifications_walletCard_error => 'فشل في تحميل الشهادات';
+
+  @override
+  String get certifications_walletCard_semanticLabel =>
+      'محفظة الشهادات. انقر لعرض جميع الشهادات';
+
+  @override
+  String get certifications_walletCard_tapToAdd => 'انقر للإضافة';
+
+  @override
+  String get certifications_walletCard_title => 'محفظة الشهادات';
+
+  @override
+  String get preDive_section_title => 'فحص ما قبل الغوص';
+
+  @override
+  String get preDive_section_link => 'ربط جلسة قائمة تحقق';
+
+  @override
+  String get preDive_section_unlink => 'إلغاء الربط';
+
+  @override
+  String get preDive_section_run => 'تشغيل قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_section_noUnlinked =>
+      'لا توجد جلسات قوائم تحقق غير مرتبطة';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'فحص ما قبل الغوص';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'جلسة قائمة تحقق ما قبل الغوص المرتبطة';
+
+  @override
+  String get dashboard_photos_title => 'أحدث الصور';
+
+  @override
+  String get diveCenters_summary_topRated => 'الأعلى تقييماً';
+
+  @override
+  String get diveLog_instruments_customize => 'تخصيص الأدوات';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'قم بتشغيل الأدوات أو إيقافها. اسحب لإعادة الترتيب.';
+
+  @override
+  String get enum_buddyRole_buddy => 'زميل غوص';
+
+  @override
+  String get enum_buddyRole_diveGuide => 'مرشد غوص';
+
+  @override
+  String get enum_buddyRole_diveMaster => 'مدرب غوص رئيسي';
+
+  @override
+  String get enum_buddyRole_instructor => 'مدرب';
+
+  @override
+  String get enum_buddyRole_solo => 'منفرد';
+
+  @override
+  String get enum_buddyRole_student => 'طالب';
+
+  @override
+  String get equipment_addSheet_brandHint => 'مثال: Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => 'العلامة التجارية';
+
+  @override
+  String get equipment_addSheet_closeTooltip => 'إغلاق';
+
+  @override
+  String get equipment_addSheet_currencyLabel => 'العملة';
+
+  @override
+  String get equipment_addSheet_dateLabel => 'التاريخ';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return 'خطأ في إضافة المعدات: $error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => 'مثال: MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => 'الطراز';
+
+  @override
+  String get equipment_addSheet_nameHint => 'مثال: منظم الغوص الرئيسي';
+
+  @override
+  String get equipment_addSheet_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_addSheet_nameValidation => 'يرجى إدخال اسم';
+
+  @override
+  String get equipment_addSheet_notesHint => 'ملاحظات إضافية...';
+
+  @override
+  String get equipment_addSheet_notesLabel => 'ملاحظات';
+
+  @override
+  String get equipment_addSheet_priceLabel => 'السعر';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => 'معلومات الشراء';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => 'الرقم التسلسلي';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint =>
+      'مثال: 365 للصيانة السنوية';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel =>
+      'فترة الصيانة (بالأيام)';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'مثال: M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => 'المقاس';
+
+  @override
+  String get equipment_addSheet_submitButton => 'إضافة معدات';
+
+  @override
+  String get equipment_addSheet_successSnackbar => 'تمت إضافة المعدات بنجاح';
+
+  @override
+  String get equipment_addSheet_title => 'إضافة معدات';
+
+  @override
+  String get equipment_addSheet_typeLabel => 'النوع';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      'هل تريد إزالة هذه الصورة من الغوصة؟ ستبقى الصورة في معرض الصور.';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => 'إلغاء ربط الصورة';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => 'تم إلغاء ربط الصورة';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count أجهزة تتزامن من إصدار أحدث من Submersion. حدّث هذا الجهاز لتلقي أحدث تغييراتها.',
+      one:
+          'جهاز واحد يتزامن من إصدار أحدث من Submersion. حدّث هذا الجهاز لتلقي أحدث تغييراته.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => 'تمكين';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(هواء)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => 'إجمالي وقت القاع';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'لا يمكن التصفية: لا يوجد رقم تسلسلي لهذا الكمبيوتر.';
 }

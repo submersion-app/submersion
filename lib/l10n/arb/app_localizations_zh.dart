@@ -31999,4 +31999,390 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       '此设备不支持 HealthKit';
+
+  @override
+  String get divelogsSync_photosHeader => '照片';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return '为 $count 条匹配的潜水记录同步照片';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => '正在与 divelogs.de 同步照片...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '拉取了 $pulled 张照片,推送了 $pushed 张。';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count 张照片已存在(按内容匹配)。';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count 张远程图片没有可下载链接,已跳过。';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return '照片同步已停止:$error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => '装备与证书';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear 件装备和 $certs 张证书已同步';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return '推送:$gear 件装备,$certs 张证书';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => '同步装备与证书';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '已推送 $gear 件装备和 $certs 张证书。';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return '装备/证书推送已停止:$error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count 张证书需要签发日期后才能推送。';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return '无法比较装备与证书:$error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de 同步';
+
+  @override
+  String get divelogsSync_notConnected => '尚未连接 divelogs.de 账户。请开始导入以登录。';
+
+  @override
+  String get divelogsSync_openImport => '打开 divelogs.de 导入';
+
+  @override
+  String get divelogsSync_compare => '比较';
+
+  @override
+  String get divelogsSync_comparing => '正在与 divelogs.de 比较...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count 条潜水记录已同步';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return '拉取:divelogs.de 上有 $count 条新记录';
+  }
+
+  @override
+  String get divelogsSync_pullReview => '在导入向导中查看并拉取';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return '推送:$count 条潜水记录不在 divelogs.de 上';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => '推送所选';
+
+  @override
+  String get divelogsSync_pushing => '正在向 divelogs.de 推送潜水记录...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '已向 divelogs.de 推送 $count 条潜水记录。';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count 条潜水记录无法转换,已跳过。';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return '推送在 $count 条记录后停止:$error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => '所有记录均已同步。';
+
+  @override
+  String get divelogs_signIn_title => '登录 divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => '用户名';
+
+  @override
+  String get divelogs_signIn_password => '密码';
+
+  @override
+  String get divelogs_signIn_diver => '导入到潜水员';
+
+  @override
+  String get divelogs_signIn_connect => '连接';
+
+  @override
+  String get divelogs_fetch_inProgress => '正在从 divelogs.de 获取潜水记录...';
+
+  @override
+  String get divelogs_fetch_done => '潜水记录已获取。';
+
+  @override
+  String get divelogs_fetch_retry => '重试';
+
+  @override
+  String get divelogs_fetch_error => '无法从 divelogs.de 获取潜水记录。';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      '此 divelogs.de 账户已关联其他潜水员档案。请切换潜水员后再导入。';
+
+  @override
+  String get transfer_import_divelogs_title => '从 divelogs.de 导入';
+
+  @override
+  String get transfer_import_divelogs_subtitle => '从您的 divelogs.de 账户拉取潜水日志';
+
+  @override
+  String get buddies_section_professionalRoles => '专业角色';
+
+  @override
+  String get buddies_roles_addRole => '添加角色';
+
+  @override
+  String get buddies_roles_role => '角色';
+
+  @override
+  String get buddies_roles_agency => '机构';
+
+  @override
+  String get buddies_roles_credentialNumber => '资质编号';
+
+  @override
+  String get buddies_roles_removeTooltip => '移除角色';
+
+  @override
+  String get buddies_roles_emptyHint => '添加教练或潜水长资质，以便在记录认证和课程时重复使用。';
+
+  @override
+  String get buddies_detail_section_professionalRoles => '专业角色';
+
+  @override
+  String get certifications_detail_label_level => '等级';
+
+  @override
+  String get certifications_edit_hint_certificationName => '例如，开放水域潜水员';
+
+  @override
+  String get certifications_edit_label_certificationName => '证书名称 *';
+
+  @override
+  String get certifications_edit_label_level => '等级';
+
+  @override
+  String get certifications_edit_level_notSpecified => '未指定';
+
+  @override
+  String get certifications_edit_validation_nameRequired => '请输入证书名称';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count 个证书';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return '$count 个证书';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter => '添加您的第一个证书';
+
+  @override
+  String get certifications_walletCard_error => '加载证书失败';
+
+  @override
+  String get certifications_walletCard_semanticLabel => '证书卡包。点击查看所有证书';
+
+  @override
+  String get certifications_walletCard_tapToAdd => '点击添加';
+
+  @override
+  String get certifications_walletCard_title => '证书卡包';
+
+  @override
+  String get preDive_section_title => '潜前检查';
+
+  @override
+  String get preDive_section_link => '关联检查清单记录';
+
+  @override
+  String get preDive_section_unlink => '取消关联';
+
+  @override
+  String get preDive_section_run => '执行潜前检查清单';
+
+  @override
+  String get preDive_section_noUnlinked => '没有未关联的检查清单记录';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => '潜前检查';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description => '已关联的潜前检查清单记录';
+
+  @override
+  String get dashboard_photos_title => '最近照片';
+
+  @override
+  String get diveCenters_summary_topRated => '评分最高';
+
+  @override
+  String get diveLog_instruments_customize => '自定义仪表';
+
+  @override
+  String get diveLog_instruments_customizeHint => '开启或关闭仪表。拖动以重新排序。';
+
+  @override
+  String get enum_buddyRole_buddy => '潜伴';
+
+  @override
+  String get enum_buddyRole_diveGuide => '潜水指南';
+
+  @override
+  String get enum_buddyRole_diveMaster => '潜水长';
+
+  @override
+  String get enum_buddyRole_instructor => '教练';
+
+  @override
+  String get enum_buddyRole_solo => '单人';
+
+  @override
+  String get enum_buddyRole_student => '学生';
+
+  @override
+  String get equipment_addSheet_brandHint => '例如 Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => '品牌';
+
+  @override
+  String get equipment_addSheet_closeTooltip => '关闭';
+
+  @override
+  String get equipment_addSheet_currencyLabel => '货币';
+
+  @override
+  String get equipment_addSheet_dateLabel => '日期';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return '添加装备出错：$error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => '例如 MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => '型号';
+
+  @override
+  String get equipment_addSheet_nameHint => '例如：我的主调节器';
+
+  @override
+  String get equipment_addSheet_nameLabel => '名称';
+
+  @override
+  String get equipment_addSheet_nameValidation => '请输入名称';
+
+  @override
+  String get equipment_addSheet_notesHint => '其他备注...';
+
+  @override
+  String get equipment_addSheet_notesLabel => '备注';
+
+  @override
+  String get equipment_addSheet_priceLabel => '价格';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => '购买信息';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => '序列编号';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint => '例如 365 表示每年';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel => '维护间隔（天）';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'e.g., M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => '尺寸';
+
+  @override
+  String get equipment_addSheet_submitButton => '添加装备';
+
+  @override
+  String get equipment_addSheet_successSnackbar => '装备添加成功';
+
+  @override
+  String get equipment_addSheet_title => '添加装备';
+
+  @override
+  String get equipment_addSheet_typeLabel => '类型';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      '从此次潜水中移除此照片吗？照片将保留在您的相册中。';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => '取消关联照片';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => '照片已取消关联';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 台设备正在从更新版本的 Submersion 同步。请更新此设备以接收它们的最新更改。',
+      one: '1 台设备正在从更新版本的 Submersion 同步。请更新此设备以接收其最新更改。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => '启用';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(空气)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => '总计底部时间';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial => '无法筛选:此电脑没有序列号。';
 }

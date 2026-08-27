@@ -33280,4 +33280,401 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit אינו זמין במכשיר הזה';
+
+  @override
+  String get divelogsSync_photosHeader => 'תמונות';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'סנכרן תמונות עבור $count צלילות תואמות';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => 'מסנכרן תמונות עם divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled תמונות נמשכו, $pushed נדחפו.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count תמונות כבר היו קיימות (זוהו לפי תוכן).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return 'ל-$count תמונות מרוחקות לא היה קישור להורדה והן דולגו.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'סנכרון התמונות נעצר: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear פריטי ציוד ו-$certs הסמכות כבר מסונכרנים';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'דחיפה: $gear פריטי ציוד, $certs הסמכות';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'סנכרן ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'נדחפו $gear פריטי ציוד ו-$certs הסמכות.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'דחיפת ציוד/הסמכות נעצרה: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count הסמכות זקוקות לתאריך הנפקה לפני שניתן לדחוף אותן.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'לא ניתן להשוות ציוד והסמכות: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'סנכרון divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'עדיין לא מחובר חשבון divelogs.de. התחל ייבוא כדי להתחבר.';
+
+  @override
+  String get divelogsSync_openImport => 'פתח ייבוא divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'השווה';
+
+  @override
+  String get divelogsSync_comparing => 'משווה מול divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count צלילות כבר מסונכרנות';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'משיכה: $count חדשות ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'בדוק ומשוך באשף הייבוא';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'דחיפה: $count צלילות שאינן ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'דחוף נבחרות';
+
+  @override
+  String get divelogsSync_pushing => 'דוחף צלילות ל-divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count צלילות נדחפו ל-divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count צלילות לא ניתנות להמרה ודולגו.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'הדחיפה נעצרה אחרי $count צלילות: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'הכול מסונכרן.';
+
+  @override
+  String get divelogs_signIn_title => 'התחברות ל-divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'שם משתמש';
+
+  @override
+  String get divelogs_signIn_password => 'סיסמה';
+
+  @override
+  String get divelogs_signIn_diver => 'ייבוא לפרופיל צוללן';
+
+  @override
+  String get divelogs_signIn_connect => 'התחבר';
+
+  @override
+  String get divelogs_fetch_inProgress => 'מוריד צלילות מ-divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'הצלילות הורדו.';
+
+  @override
+  String get divelogs_fetch_retry => 'נסה שוב';
+
+  @override
+  String get divelogs_fetch_error => 'לא ניתן להוריד צלילות מ-divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'חשבון divelogs.de זה מקושר לפרופיל צוללן אחר. החלף צוללן כדי לייבא.';
+
+  @override
+  String get transfer_import_divelogs_title => 'ייבוא מ-divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'משוך את יומן הצלילה מחשבון divelogs.de שלך';
+
+  @override
+  String get buddies_section_professionalRoles => 'תפקידים מקצועיים';
+
+  @override
+  String get buddies_roles_addRole => 'הוסף תפקיד';
+
+  @override
+  String get buddies_roles_role => 'תפקיד';
+
+  @override
+  String get buddies_roles_agency => 'גוף הסמכה';
+
+  @override
+  String get buddies_roles_credentialNumber => 'מספר הסמכה';
+
+  @override
+  String get buddies_roles_removeTooltip => 'הסר תפקיד';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'הוסף הסמכות מדריך או דייבמאסטר לשימוש חוזר בעת רישום הסמכות וקורסים.';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'תפקידים מקצועיים';
+
+  @override
+  String get certifications_detail_label_level => 'רמה';
+
+  @override
+  String get certifications_edit_hint_certificationName =>
+      'לדוגמה, Open Water Diver';
+
+  @override
+  String get certifications_edit_label_certificationName => 'שם הסמכה *';
+
+  @override
+  String get certifications_edit_label_level => 'רמה';
+
+  @override
+  String get certifications_edit_level_notSpecified => 'לא צוין';
+
+  @override
+  String get certifications_edit_validation_nameRequired => 'נא להזין שם הסמכה';
+
+  @override
+  String certifications_walletCard_countPlural(Object count) {
+    return '$count הסמכות';
+  }
+
+  @override
+  String certifications_walletCard_countSingular(Object count) {
+    return 'הסמכה $count';
+  }
+
+  @override
+  String get certifications_walletCard_emptyFooter =>
+      'הוסף את ההסמכה הראשונה שלך';
+
+  @override
+  String get certifications_walletCard_error => 'טעינת ההסמכות נכשלה';
+
+  @override
+  String get certifications_walletCard_semanticLabel =>
+      'ארנק הסמכות. הקש כדי לצפות בכל ההסמכות';
+
+  @override
+  String get certifications_walletCard_tapToAdd => 'הקש להוספה';
+
+  @override
+  String get certifications_walletCard_title => 'ארנק הסמכות';
+
+  @override
+  String get preDive_section_title => 'בדיקה לפני צלילה';
+
+  @override
+  String get preDive_section_link => 'קשר הרצת רשימת בדיקה';
+
+  @override
+  String get preDive_section_unlink => 'בטל קישור';
+
+  @override
+  String get preDive_section_run => 'הרץ רשימת בדיקה לפני צלילה';
+
+  @override
+  String get preDive_section_noUnlinked => 'אין הרצות רשימת בדיקה לא מקושרות';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'בדיקה לפני צלילה';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'הרצת רשימת בדיקה לפני צלילה מקושרת';
+
+  @override
+  String get dashboard_photos_title => 'תמונות אחרונות';
+
+  @override
+  String get diveCenters_summary_topRated => 'מדורג ביותר';
+
+  @override
+  String get diveLog_instruments_customize => 'התאמה אישית של מכשירים';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'הפעל או כבה מכשירים. גרור כדי לסדר מחדש.';
+
+  @override
+  String get enum_buddyRole_buddy => 'שותף';
+
+  @override
+  String get enum_buddyRole_diveGuide => 'מדריך צלילה';
+
+  @override
+  String get enum_buddyRole_diveMaster => 'דייבמאסטר';
+
+  @override
+  String get enum_buddyRole_instructor => 'מדריך';
+
+  @override
+  String get enum_buddyRole_solo => 'יחיד';
+
+  @override
+  String get enum_buddyRole_student => 'תלמיד';
+
+  @override
+  String get equipment_addSheet_brandHint => 'לדוגמה, Scubapro';
+
+  @override
+  String get equipment_addSheet_brandLabel => 'מותג';
+
+  @override
+  String get equipment_addSheet_closeTooltip => 'סגור';
+
+  @override
+  String get equipment_addSheet_currencyLabel => 'מטבע';
+
+  @override
+  String get equipment_addSheet_dateLabel => 'תאריך';
+
+  @override
+  String equipment_addSheet_errorSnackbar(Object error) {
+    return 'שגיאה בהוספת ציוד: $error';
+  }
+
+  @override
+  String get equipment_addSheet_modelHint => 'לדוגמה, MK25 EVO';
+
+  @override
+  String get equipment_addSheet_modelLabel => 'דגם';
+
+  @override
+  String get equipment_addSheet_nameHint => 'לדוגמה, הרגולטור הראשי שלי';
+
+  @override
+  String get equipment_addSheet_nameLabel => 'שם';
+
+  @override
+  String get equipment_addSheet_nameValidation => 'נא להזין שם';
+
+  @override
+  String get equipment_addSheet_notesHint => 'הערות נוספות...';
+
+  @override
+  String get equipment_addSheet_notesLabel => 'הערות';
+
+  @override
+  String get equipment_addSheet_priceLabel => 'מחיר';
+
+  @override
+  String get equipment_addSheet_purchaseInfoTitle => 'פרטי רכישה';
+
+  @override
+  String get equipment_addSheet_serialNumberLabel => 'מספר סידורי';
+
+  @override
+  String get equipment_addSheet_serviceIntervalHint => 'לדוגמה, 365 לשנתי';
+
+  @override
+  String get equipment_addSheet_serviceIntervalLabel => 'מרווח טיפול (ימים)';
+
+  @override
+  String get equipment_addSheet_sizeHint => 'לדוגמה, M, L, 42';
+
+  @override
+  String get equipment_addSheet_sizeLabel => 'מידה';
+
+  @override
+  String get equipment_addSheet_submitButton => 'הוסף ציוד';
+
+  @override
+  String get equipment_addSheet_successSnackbar => 'הציוד נוסף בהצלחה';
+
+  @override
+  String get equipment_addSheet_title => 'הוסף ציוד';
+
+  @override
+  String get equipment_addSheet_typeLabel => 'סוג';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogContent =>
+      'להסיר תמונה זו מהצלילה? התמונה תישאר בגלריה שלך.';
+
+  @override
+  String get media_diveMediaSection_unlinkDialogTitle => 'ביטול קישור תמונה';
+
+  @override
+  String get media_diveMediaSection_unlinkSuccess => 'קישור התמונה בוטל';
+
+  @override
+  String settings_cloudSync_peerRequiresUpdate_banner(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count מכשירים מסתנכרנים מגרסה חדשה יותר של Submersion. עדכן מכשיר זה כדי לקבל את השינויים האחרונים שלהם.',
+      one:
+          'מכשיר אחד מסתנכרן מגרסה חדשה יותר של Submersion. עדכן מכשיר זה כדי לקבל את השינויים האחרונים שלו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_notifications_disabled_enableButton => 'אפשר';
+
+  @override
+  String get surfaceInterval_secondDive_gasAir => '(אוויר)';
+
+  @override
+  String get trips_detail_stat_totalBottomTime => 'סה\"כ זמן תחתית';
+
+  @override
+  String get diveComputer_detail_cannotFilterNoSerial =>
+      'לא ניתן לסנן: אין מספר סידורי למחשב זה.';
 }

@@ -7301,7 +7301,6 @@
       }
     }
   },
-  
   "media_siteMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_documentViewer_title": "Document",
   "media_documentViewer_unavailable": "This document is not available on this device",
@@ -7833,17 +7832,6 @@
   "@media_import_review_chooseDive": {
     "description": "Review row menu: pick a dive"
   },
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   "media_import_intro": "Photos are linked to a dive or a dive site as you import them.",
   "@media_import_intro": {
     "description": "Import section intro text"
@@ -8134,8 +8122,6 @@
       }
     }
   },
-  
-  
   "media_library_filter_clear": "Clear filters",
   "media_library_filter_any": "Any",
   "@media_library_filter_any": {
@@ -19147,5 +19133,158 @@
   "@settings_dataSources_appleHealth_permissionUnsupported": {"description": "Permission row shown when HealthKit is unavailable on this device."},
   "@settings_units_gasConsumption_sac_subtitle": {"placeholders": {"unit": {"type": "String"}}},
   "@settings_units_gasConsumption_rmv_subtitle": {"placeholders": {"unit": {"type": "String"}}},
-  "@diveLog_detail_sacVolumeHint": {"placeholders": {"unit": {"type": "String"}}}
+  "@diveLog_detail_sacVolumeHint": {"placeholders": {"unit": {"type": "String"}}},
+  "divelogsSync_photosHeader": "Photos",
+  "divelogsSync_photosButton": "Sync photos for {count} matched dives",
+  "@divelogsSync_photosButton": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_photosSyncing": "Syncing photos with divelogs.de...",
+  "divelogsSync_photosDone": "Pulled {pulled} photos, pushed {pushed}.",
+  "@divelogsSync_photosDone": {"placeholders": {"pulled": {"type": "int"}, "pushed": {"type": "int"}}},
+  "divelogsSync_photosDuplicates": "{count} photos were already present (matched by content).",
+  "@divelogsSync_photosDuplicates": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_photosNoUrl": "{count} remote pictures had no downloadable link and were skipped.",
+  "@divelogsSync_photosNoUrl": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_photosFailed": "Photo sync stopped: {error}",
+  "@divelogsSync_photosFailed": {"placeholders": {"error": {"type": "String"}}},
+  "divelogsSync_gearCertHeader": "Gear & certifications",
+  "divelogsSync_gearCertMatched": "{gear} gear items and {certs} certifications already in sync",
+  "@divelogsSync_gearCertMatched": {"placeholders": {"gear": {"type": "int"}, "certs": {"type": "int"}}},
+  "divelogsSync_gearCertPush": "Push: {gear} gear items, {certs} certifications",
+  "@divelogsSync_gearCertPush": {"placeholders": {"gear": {"type": "int"}, "certs": {"type": "int"}}},
+  "divelogsSync_gearCertPushButton": "Sync gear & certifications",
+  "divelogsSync_gearCertPushDone": "Pushed {gear} gear items and {certs} certifications.",
+  "@divelogsSync_gearCertPushDone": {"placeholders": {"gear": {"type": "int"}, "certs": {"type": "int"}}},
+  "divelogsSync_gearCertPushFailed": "Gear/certification push stopped: {error}",
+  "@divelogsSync_gearCertPushFailed": {"placeholders": {"error": {"type": "String"}}},
+  "divelogsSync_certsMissingDate": "{count} certifications need an issue date before they can be pushed.",
+  "@divelogsSync_certsMissingDate": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_gearCertUnavailable": "Gear and certifications could not be compared: {error}",
+  "@divelogsSync_gearCertUnavailable": {"placeholders": {"error": {"type": "String"}}},
+  "divelogsSync_title": "divelogs.de Sync",
+  "divelogsSync_notConnected": "No divelogs.de account is connected yet. Start an import to sign in.",
+  "divelogsSync_openImport": "Open divelogs.de import",
+  "divelogsSync_compare": "Compare",
+  "divelogsSync_comparing": "Comparing with divelogs.de...",
+  "divelogsSync_matched": "{count} dives already in sync",
+  "@divelogsSync_matched": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_pullHeader": "Pull: {count} new on divelogs.de",
+  "@divelogsSync_pullHeader": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_pullReview": "Review and pull in the import wizard",
+  "divelogsSync_pushHeader": "Push: {count} dives not on divelogs.de",
+  "@divelogsSync_pushHeader": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_pushSelected": "Push selected",
+  "divelogsSync_pushing": "Pushing dives to divelogs.de...",
+  "divelogsSync_pushDone": "Pushed {count} dives to divelogs.de.",
+  "@divelogsSync_pushDone": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_pushSkipped": "{count} dives could not be converted and were skipped.",
+  "@divelogsSync_pushSkipped": {"placeholders": {"count": {"type": "int"}}},
+  "divelogsSync_pushFailedPartial": "Push stopped after {count} dives: {error}",
+  "@divelogsSync_pushFailedPartial": {"placeholders": {"count": {"type": "int"}, "error": {"type": "String"}}},
+  "divelogsSync_nothingToSync": "Everything is in sync.",
+  "divelogs_signIn_title": "Sign in to divelogs.de",
+  "divelogs_signIn_username": "Username",
+  "divelogs_signIn_password": "Password",
+  "divelogs_signIn_diver": "Import into diver",
+  "divelogs_signIn_connect": "Connect",
+  "divelogs_fetch_inProgress": "Fetching dives from divelogs.de...",
+  "divelogs_fetch_done": "Dives fetched.",
+  "divelogs_fetch_retry": "Retry",
+  "divelogs_fetch_error": "Could not fetch dives from divelogs.de.",
+  "divelogs_fetch_wrongDiver": "This divelogs.de account is linked to a different diver profile. Switch divers to import.",
+  "transfer_import_divelogs_title": "Import from divelogs.de",
+  "transfer_import_divelogs_subtitle": "Pull your logbook from your divelogs.de account",
+  "buddies_section_professionalRoles": "Professional Roles",
+  "buddies_roles_addRole": "Add role",
+  "buddies_roles_role": "Role",
+  "buddies_roles_agency": "Agency",
+  "buddies_roles_credentialNumber": "Credential number",
+  "buddies_roles_removeTooltip": "Remove role",
+  "buddies_roles_emptyHint": "Add instructor or divemaster credentials to reuse them when logging certifications and courses.",
+  "buddies_detail_section_professionalRoles": "Professional Roles",
+  "certifications_detail_label_level": "Level",
+  "certifications_edit_hint_certificationName": "e.g., Open Water Diver",
+  "certifications_edit_label_certificationName": "Certification Name *",
+  "certifications_edit_label_level": "Level",
+  "certifications_edit_level_notSpecified": "Not specified",
+  "certifications_edit_validation_nameRequired": "Please enter a certification name",
+  "certifications_walletCard_countPlural": "{count} certifications",
+  "certifications_walletCard_countSingular": "{count} certification",
+  "certifications_walletCard_emptyFooter": "Add your first certification",
+  "certifications_walletCard_error": "Failed to load certifications",
+  "certifications_walletCard_semanticLabel": "Certification Wallet. Tap to view all certifications",
+  "certifications_walletCard_tapToAdd": "Tap to add",
+  "certifications_walletCard_title": "Certification Wallet",
+  "@certifications_walletCard_countPlural": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "@certifications_walletCard_countSingular": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "preDive_section_title": "Pre-Dive Check",
+  "preDive_section_link": "Link a checklist session",
+  "preDive_section_unlink": "Unlink",
+  "preDive_section_run": "Run pre-dive checklist",
+  "preDive_section_noUnlinked": "No unlinked checklist sessions",
+  "diveDetailSection_preDiveChecklist_name": "Pre-Dive Check",
+  "diveDetailSection_preDiveChecklist_description": "Linked pre-dive checklist session",
+  "dashboard_photos_title": "Recent photos",
+  "diveCenters_summary_topRated": "Top Rated",
+  "diveLog_instruments_customize": "Customize instruments",
+  "diveLog_instruments_customizeHint": "Toggle instruments on or off. Drag to reorder.",
+  "enum_buddyRole_buddy": "Buddy",
+  "enum_buddyRole_diveGuide": "Dive Guide",
+  "enum_buddyRole_diveMaster": "Divemaster",
+  "enum_buddyRole_instructor": "Instructor",
+  "enum_buddyRole_solo": "Solo",
+  "enum_buddyRole_student": "Student",
+  "equipment_addSheet_brandHint": "e.g., Scubapro",
+  "equipment_addSheet_brandLabel": "Brand",
+  "equipment_addSheet_closeTooltip": "Close",
+  "equipment_addSheet_currencyLabel": "Currency",
+  "equipment_addSheet_dateLabel": "Date",
+  "equipment_addSheet_errorSnackbar": "Error adding equipment: {error}",
+  "equipment_addSheet_modelHint": "e.g., MK25 EVO",
+  "equipment_addSheet_modelLabel": "Model",
+  "equipment_addSheet_nameHint": "e.g., My Primary Regulator",
+  "equipment_addSheet_nameLabel": "Name",
+  "equipment_addSheet_nameValidation": "Please enter a name",
+  "equipment_addSheet_notesHint": "Additional notes...",
+  "equipment_addSheet_notesLabel": "Notes",
+  "equipment_addSheet_priceLabel": "Price",
+  "equipment_addSheet_purchaseInfoTitle": "Purchase Information",
+  "equipment_addSheet_serialNumberLabel": "Serial Number",
+  "equipment_addSheet_serviceIntervalHint": "e.g., 365 for yearly",
+  "equipment_addSheet_serviceIntervalLabel": "Service Interval (days)",
+  "equipment_addSheet_sizeHint": "e.g., M, L, 42",
+  "equipment_addSheet_sizeLabel": "Size",
+  "equipment_addSheet_submitButton": "Add Equipment",
+  "equipment_addSheet_successSnackbar": "Equipment added successfully",
+  "equipment_addSheet_title": "Add Equipment",
+  "equipment_addSheet_typeLabel": "Type",
+  "@equipment_addSheet_errorSnackbar": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "media_diveMediaSection_unlinkDialogContent": "Remove this photo from the dive? The photo will remain in your gallery.",
+  "media_diveMediaSection_unlinkDialogTitle": "Unlink Photo",
+  "media_diveMediaSection_unlinkSuccess": "Photo unlinked",
+  "settings_cloudSync_peerRequiresUpdate_banner": "{count, plural, =1{1 device syncs from a newer version of Submersion. Update this device to receive its latest changes.} other{{count} devices sync from a newer version of Submersion. Update this device to receive their latest changes.}}",
+  "settings_notifications_disabled_enableButton": "Enable",
+  "surfaceInterval_secondDive_gasAir": "(Air)",
+  "@surfaceInterval_secondDive_gasAir": {
+    "description": "Label indicating the second dive uses air"
+  },
+  "trips_detail_stat_totalBottomTime": "Total Bottom Time",
+  "diveComputer_detail_cannotFilterNoSerial": "Cannot filter: no serial number for this computer."
 }

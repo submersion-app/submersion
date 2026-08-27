@@ -19,6 +19,9 @@ enum ImportSourceType {
 
   /// A dive computer download.
   diveComputer,
+
+  /// A divelogs.de account pull.
+  divelogs,
 }
 
 /// The kind of entity represented by an [EntityGroup].

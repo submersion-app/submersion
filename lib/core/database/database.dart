@@ -1578,6 +1578,10 @@ class ConnectedAccounts extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// Diver this account is bound to; used by connector kinds whose data is
+  /// per-diver (divelogs.de). Null for library-wide kinds (sync, media).
+  TextColumn get diverId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -3189,7 +3193,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 170;
+  static const int currentSchemaVersion = 174;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3393,7 +3397,8 @@ class AppDatabase extends _$AppDatabase {
     // v137: dives.weather_code, plus a one-time clear of the English weather
     // prose this app generated itself so it can be re-rendered localized.
     137,
-    // v138 is reserved by the divelogs.de branch (connected_accounts.diver_id).
+    // v138 is permanently skipped: it was reserved for the divelogs.de
+    // branch, which moved to 174 once main advanced past it.
     // v139: cylinder_configs + cylinder_config_items (reusable diluent and
     // bailout setups).
     139,
@@ -3514,6 +3519,14 @@ class AppDatabase extends _$AppDatabase {
     // landed 168 past it, so PR #1276 moved its rung up), and 169 belongs to
     // PR #1320 (dive-computer gear twins).
     170,
+    // v174: connected_accounts.diver_id (divelogs.de diver binding).
+    // Renumbered from 116, then 138: main reserved 138 for this branch but
+    // then advanced to 168, and a rung below the shipped version never runs
+    // its onUpgrade step. 171, 172 and 173 are claimed by PRs #1319, #1328 and
+    // #1276, and 169 is permanently skipped now that main landed 170 past
+    // PR #1320 and that branch moved up to 175, so this takes 174. 138 is
+    // permanently skipped too: nothing will ever claim it.
+    174,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3553,7 +3566,8 @@ class AppDatabase extends _$AppDatabase {
       'account_identifier TEXT, '
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL, '
-      'hlc TEXT)',
+      'hlc TEXT, '
+      'diver_id TEXT)',
     );
     final metaCols = await customSelect(
       "PRAGMA table_info('sync_metadata')",
@@ -3961,6 +3975,21 @@ class AppDatabase extends _$AppDatabase {
     final hasThickness = cols.any((c) => c.read<String>('name') == 'thickness');
     if (cols.isNotEmpty && !hasThickness) {
       await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
+    }
+  }
+
+  /// v138: connected_accounts.diver_id column (divelogs.de diver binding).
+  /// Idempotent so it is safe to call from both onUpgrade and the beforeOpen
+  /// backstop.
+  Future<void> _assertConnectedAccountsDiverIdColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('connected_accounts')",
+    ).get();
+    final hasDiverId = cols.any((c) => c.read<String>('name') == 'diver_id');
+    if (cols.isNotEmpty && !hasDiverId) {
+      await customStatement(
+        'ALTER TABLE connected_accounts ADD COLUMN diver_id TEXT',
+      );
     }
   }
 
@@ -8770,6 +8799,12 @@ class AppDatabase extends _$AppDatabase {
           await _rewriteLegacySacRateLayouts();
         }
         if (from < 170) await reportProgress();
+        // v174: connected_accounts.diver_id (divelogs.de diver binding).
+        // Renumbered from 138, which main advanced past; see the ladder note.
+        if (from < 174) {
+          await _assertConnectedAccountsDiverIdColumn();
+        }
+        if (from < 174) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -9001,6 +9036,9 @@ class AppDatabase extends _$AppDatabase {
         // orphaned buddy_roles table whose credentials silently vanish from
         // the UI forever (nothing else reads that table).
         await _migrateBuddyRolesToCertifications();
+        // v174 backstop: re-assert connected_accounts.diver_id column
+        // (parallel-branch collision self-heal).
+        await _assertConnectedAccountsDiverIdColumn();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

@@ -33,3 +33,8 @@ abstract interface class MediaStoreCapable {
 /// Marker: the account is a media acquisition source (Lightroom now;
 /// Immich/SMB per the program spec later).
 abstract interface class MediaSourceCapable {}
+
+/// Marker: the account syncs with a third-party logbook service
+/// (divelogs.de now). Phase 2 of the divelogs program adds sync-plan
+/// members.
+abstract interface class LogbookSyncCapable {}
