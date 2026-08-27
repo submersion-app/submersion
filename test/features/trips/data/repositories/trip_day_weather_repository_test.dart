@@ -215,9 +215,16 @@ void main() {
     // an older build of this feature, or a database written before the id
     // became deterministic. Reconciling rows it did not create is exactly
     // what the repository is being asked to do here.
+    // Built from the day key plus an explicit offset, never from a local
+    // DateTime's epoch. The day is UTC midnight, so a local value lands on a
+    // neighbouring UTC day under a large enough offset and stops being a
+    // stray for the day under test: the fixture would be asserting timezone
+    // arithmetic instead of reconciliation, which is how these passed at
+    // UTC+0 and failed at UTC+9.
     Future<void> insertRaw({
       required String id,
-      required DateTime date,
+      required DateTime day,
+      Duration offset = Duration.zero,
       double? airTemp,
       int updatedAt = 0,
       int createdAt = 0,
@@ -228,7 +235,7 @@ void main() {
             db.TripDayWeatherCompanion(
               id: Value(id),
               tripId: Value(testTripId),
-              date: Value(date.millisecondsSinceEpoch),
+              date: Value(tripDayMillis(day) + offset.inMilliseconds),
               latitude: const Value(12.16),
               longitude: const Value(-68.28),
               airTemp: Value(airTemp),
@@ -251,7 +258,7 @@ void main() {
       // targets the primary key, so a foreign-id row on the same midnight
       // makes the canonical insert miss the conflict target and hit the
       // index. Without cleanup this throws rather than merging.
-      await insertRaw(id: 'from-a-peer', date: day1, airTemp: 10);
+      await insertRaw(id: 'from-a-peer', day: day1, airTemp: 10);
 
       await repository.upsert(sample(airTemp: 25));
 
@@ -264,7 +271,8 @@ void main() {
     test('upsert replaces a same-day row stored off midnight', () async {
       await insertRaw(
         id: 'from-an-older-build',
-        date: DateTime(2026, 3, 8, 17, 30),
+        day: day1,
+        offset: const Duration(hours: 17, minutes: 30),
         airTemp: 10,
       );
 
@@ -277,7 +285,7 @@ void main() {
     });
 
     test('a row for another day is left alone', () async {
-      await insertRaw(id: 'other-day', date: day2, airTemp: 10);
+      await insertRaw(id: 'other-day', day: day2, airTemp: 10);
 
       await repository.upsert(sample());
 
@@ -289,7 +297,7 @@ void main() {
     test('replacing a stray logs its deletion for sync', () async {
       // A stray is a synced record. Dropping it without a tombstone lets the
       // peer that sent it hand it straight back on the next pull.
-      await insertRaw(id: 'from-a-peer', date: day1);
+      await insertRaw(id: 'from-a-peer', day: day1);
 
       await repository.upsert(sample());
 
@@ -308,7 +316,8 @@ void main() {
       // so the day keeps the age it already had.
       await insertRaw(
         id: 'from-a-peer',
-        date: DateTime(2026, 3, 8, 17, 30),
+        day: day1,
+        offset: const Duration(hours: 17, minutes: 30),
         createdAt: 1000,
       );
 
@@ -326,7 +335,8 @@ void main() {
         await repository.upsert(sample(airTemp: 25));
         await insertRaw(
           id: 'from-a-peer',
-          date: DateTime(2026, 3, 8, 17, 30),
+          day: day1,
+          offset: const Duration(hours: 17, minutes: 30),
           airTemp: 10,
           updatedAt: 9999999,
         );
@@ -344,13 +354,15 @@ void main() {
       // on the following UTC day and is genuinely a different day's row.
       await insertRaw(
         id: 'peer-a',
-        date: DateTime.utc(2026, 3, 8, 6),
+        day: day1,
+        offset: const Duration(hours: 6),
         airTemp: 10,
         updatedAt: 100,
       );
       await insertRaw(
         id: 'peer-b',
-        date: DateTime.utc(2026, 3, 8, 23),
+        day: day1,
+        offset: const Duration(hours: 23),
         airTemp: 20,
         updatedAt: 200,
       );
@@ -364,8 +376,16 @@ void main() {
     test('getForTrip does not write while resolving strays', () async {
       // Reads stay pure: a cleanup here would fire the table tick and
       // invalidate the provider that just read.
-      await insertRaw(id: 'peer-a', date: DateTime(2026, 3, 8, 6));
-      await insertRaw(id: 'peer-b', date: DateTime(2026, 3, 8, 23));
+      await insertRaw(
+        id: 'peer-a',
+        day: day1,
+        offset: const Duration(hours: 6),
+      );
+      await insertRaw(
+        id: 'peer-b',
+        day: day1,
+        offset: const Duration(hours: 23),
+      );
 
       await repository.getForTrip(testTripId);
 

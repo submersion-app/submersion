@@ -152,8 +152,13 @@ class TripDayWeather extends Table {
   TextColumn get id => text()();
   TextColumn get tripId => text().references(Trips, #id)();
 
-  /// Local midnight for the day, as epoch milliseconds (the convention
-  /// TripItineraryDays.date is written with).
+  /// UTC midnight for the day, as epoch milliseconds (milliseconds being the
+  /// convention TripItineraryDays.date is written with).
+  ///
+  /// UTC rather than local: this column is half the row identity, and it
+  /// feeds the derived id. A local midnight epoch differs in every timezone,
+  /// so two devices would key the same trip day differently and never
+  /// converge. Write it through tripDayMillis.
   IntColumn get date => integer()();
 
   /// The coordinates the lookup actually used, so a row records what it was

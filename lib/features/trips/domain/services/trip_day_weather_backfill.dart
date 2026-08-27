@@ -56,11 +56,14 @@ class TripDayWeatherBackfill {
       // A historical archive has nothing for a day that has not happened.
       if (day.kind == TripStoryDayKind.future) continue;
 
-      // Normalize to midnight: stored rows are keyed on midnight millis, so a
-      // stray time component would never match and the day would refetch on
-      // every view.
+      // Ask with the key the rows are actually stored under. getForTrip keys
+      // by tripDayMillis, which is UTC midnight so two devices converge on one
+      // row; a local DateTime's epoch agrees with that only at UTC+0. Building
+      // the lookup from the local value instead made every stored day read as
+      // missing on any other device and refetch on every view, which is the
+      // thing this whole feature exists to stop.
       final date = DateTime(day.date.year, day.date.month, day.date.day);
-      if (stored.containsKey(date.millisecondsSinceEpoch)) continue;
+      if (stored.containsKey(tripDayMillis(date))) continue;
 
       // nearestPointForDay walks outward from the day, so a dive-free day
       // between two dived days borrows the closer one's coordinates. A trip

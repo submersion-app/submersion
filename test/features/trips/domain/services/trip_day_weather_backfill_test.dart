@@ -145,16 +145,40 @@ void main() {
     });
 
     test('a day with a stored row is skipped', () {
+      // Keyed the way the repository keys it. getForTrip returns a map keyed
+      // by tripDayMillis, so keying this fixture any other way would assert a
+      // contract production never offers: it would pass here and still refetch
+      // every day on a real device.
       final story = storyWith([day(index: 0)], points: [pointFor(0)]);
       final stored = {
-        DateTime(2026, 3, 8).millisecondsSinceEpoch: storedFor(
-          DateTime(2026, 3, 8),
-        ),
+        tripDayMillis(DateTime(2026, 3, 8)): storedFor(DateTime(2026, 3, 8)),
       };
 
       expect(
         TripDayWeatherBackfill.targetsFor(story: story, stored: stored),
         isEmpty,
+      );
+    });
+
+    test('the stored lookup is not the device local midnight', () {
+      // The day key is UTC midnight so two devices converge on one row. A
+      // lookup built from a local DateTime's epoch agrees with it only at
+      // UTC+0, so on any other device every stored day reads as missing and
+      // is refetched on every view, which is the whole thing this feature
+      // exists to stop. Discriminating only off UTC; run with
+      // TZ=America/New_York to see it bite.
+      final story = storyWith([day(index: 0)], points: [pointFor(0)]);
+      final localKey = DateTime(2026, 3, 8).millisecondsSinceEpoch;
+      final utcKey = tripDayMillis(DateTime(2026, 3, 8));
+
+      final stored = {utcKey: storedFor(DateTime(2026, 3, 8))};
+
+      expect(
+        TripDayWeatherBackfill.targetsFor(story: story, stored: stored),
+        isEmpty,
+        reason:
+            'a row stored under the repository key must skip the day '
+            '(local key $localKey vs day key $utcKey)',
       );
     });
 

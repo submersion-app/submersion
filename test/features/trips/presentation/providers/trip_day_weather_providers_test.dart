@@ -186,7 +186,10 @@ void main() {
     test('a day already stored is not fetched', () async {
       final repository = FakeTripDayWeatherRepository(
         stored: {
-          DateTime(2026, 3, 8).millisecondsSinceEpoch: TripDayWeather(
+          // Keyed as getForTrip keys it. A local DateTime's epoch matches the
+          // day key only at UTC+0, so keying it that way would assert a
+          // contract production never offers.
+          tripDayMillis(DateTime(2026, 3, 8)): TripDayWeather(
             id: 'w1',
             tripId: 'trip-1',
             date: DateTime(2026, 3, 8),
