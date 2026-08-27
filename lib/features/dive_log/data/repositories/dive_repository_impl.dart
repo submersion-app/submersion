@@ -51,6 +51,18 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 
+/// A dive that a conditions fetch can still do something for: its site carries
+/// coordinates and at least one weather column is empty.
+///
+/// [dateTime] is the dive's wall clock (entry time when recorded, otherwise the
+/// dive date), used to pick the hour to sample from the archive response.
+typedef ConditionsCandidate = ({
+  String id,
+  DateTime dateTime,
+  double latitude,
+  double longitude,
+});
+
 class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
   /// (orphan-prevention spec 4.2); injectable for tests, self-constructed
@@ -518,6 +530,221 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set GPS on dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The weather columns a conditions fetch is allowed to fill.
+  ///
+  /// `weatherDescription` is deliberately absent: the provider returns no
+  /// prose, and the column holds the diver's own words when it holds anything.
+  static Expression<bool> _hasConditionsGap(Dives t) =>
+      t.windSpeed.isNull() |
+      t.windDirection.isNull() |
+      t.cloudCover.isNull() |
+      t.precipitation.isNull() |
+      t.humidity.isNull() |
+      t.weatherCode.isNull() |
+      t.airTemp.isNull() |
+      t.surfacePressure.isNull();
+
+  /// Restricts a conditions query to dives that can still be filled: the dive
+  /// has a site with coordinates and at least one empty weather column.
+  ///
+  /// Shared by the candidate list and its count so the two can never disagree
+  /// about what "needs conditions" means.
+  Expression<bool> _needsConditions($DiveSitesTable sites, {String? diverId}) {
+    var condition =
+        sites.latitude.isNotNull() &
+        sites.longitude.isNotNull() &
+        _hasConditionsGap(_db.dives);
+    if (diverId != null) {
+      condition = condition & _db.dives.diverId.equals(diverId);
+    }
+    return condition;
+  }
+
+  /// How many dives a conditions fetch could still fill something in for.
+  ///
+  /// A COUNT rather than `getDivesNeedingConditions().length`: the confirm
+  /// dialog only needs the number, and a large logbook should not be
+  /// materialised to produce it.
+  Future<int> countDivesNeedingConditions({String? diverId}) async {
+    try {
+      final sites = _db.diveSites;
+      final countExpr = _db.dives.id.count();
+      final query = _db.selectOnly(_db.dives)
+        ..addColumns([countExpr])
+        ..where(_needsConditions(sites, diverId: diverId));
+      query.join([innerJoin(sites, sites.id.equalsExp(_db.dives.siteId))]);
+
+      final row = await query.getSingle();
+      final int total = row.read(countExpr) ?? 0;
+      return total;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives needing conditions',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Dives a conditions fetch can still fill something in for: the dive has a
+  /// site with coordinates and at least one empty weather column.
+  ///
+  /// Projects only the id, sample time and coordinates rather than selecting
+  /// whole `dives` and `dive_sites` rows, so scanning a large logbook neither
+  /// transfers nor deserialises columns nobody reads.
+  Future<List<ConditionsCandidate>> getDivesNeedingConditions({
+    String? diverId,
+  }) async {
+    try {
+      final sites = _db.diveSites;
+      final query = _db.selectOnly(_db.dives)
+        ..addColumns([
+          _db.dives.id,
+          _db.dives.entryTime,
+          _db.dives.diveDateTime,
+          sites.latitude,
+          sites.longitude,
+        ])
+        ..where(_needsConditions(sites, diverId: diverId))
+        ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)]);
+      query.join([innerJoin(sites, sites.id.equalsExp(_db.dives.siteId))]);
+
+      final rows = await query.get();
+      final candidates = <ConditionsCandidate>[];
+      for (final row in rows) {
+        final id = row.read(_db.dives.id);
+        final diveDateTime = row.read(_db.dives.diveDateTime);
+        final latitude = row.read(sites.latitude);
+        final longitude = row.read(sites.longitude);
+        if (id == null ||
+            diveDateTime == null ||
+            latitude == null ||
+            longitude == null) {
+          continue;
+        }
+        candidates.add((
+          id: id,
+          dateTime: DateTime.fromMillisecondsSinceEpoch(
+            row.read(_db.dives.entryTime) ?? diveDateTime,
+            isUtc: true,
+          ),
+          latitude: latitude,
+          longitude: longitude,
+        ));
+      }
+      return candidates;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives needing conditions',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Stamps fetched conditions onto a dive, filling only columns that are
+  /// currently NULL. Anything the diver already recorded survives untouched:
+  /// an absent [Value] is left out of the UPDATE entirely rather than rewritten.
+  ///
+  /// The read and the write run in one transaction. Deciding what to fill needs
+  /// the current row, so without it another write landing in the await gap
+  /// could fill a column between the two and have this update overwrite it.
+  ///
+  /// The provenance stamp is only applied when the dive carries no
+  /// [WeatherSource] yet, so hand-entered weather is never relabelled as
+  /// provider data. Returns whether anything was written.
+  Future<bool> fillDiveConditions(
+    String diveId, {
+    double? windSpeed,
+    CurrentDirection? windDirection,
+    CloudCover? cloudCover,
+    Precipitation? precipitation,
+    double? humidity,
+    int? weatherCode,
+    double? airTemp,
+    double? surfacePressure,
+    required WeatherSource source,
+    required DateTime fetchedAt,
+  }) async {
+    try {
+      final wrote = await _db.transaction(() async {
+        final row = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+        if (row == null) return false;
+
+        Value<T> fill<T extends Object>(T? current, T? incoming) =>
+            current == null && incoming != null
+            ? Value(incoming)
+            : const Value.absent();
+
+        final wind = fill(row.windSpeed, windSpeed);
+        final windDir = fill(row.windDirection, windDirection?.name);
+        final cloud = fill(row.cloudCover, cloudCover?.name);
+        final precip = fill(row.precipitation, precipitation?.name);
+        final hum = fill(row.humidity, humidity);
+        final code = fill(row.weatherCode, weatherCode);
+        final air = fill(row.airTemp, airTemp);
+        final pressure = fill(row.surfacePressure, surfacePressure);
+
+        final filledAny = [
+          wind,
+          windDir,
+          cloud,
+          precip,
+          hum,
+          code,
+          air,
+          pressure,
+        ].any((value) => value.present);
+        if (!filledAny) return false;
+
+        final stampProvenance = row.weatherSource == null;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(
+            windSpeed: wind,
+            windDirection: windDir,
+            cloudCover: cloud,
+            precipitation: precip,
+            humidity: hum,
+            weatherCode: code,
+            airTemp: air,
+            surfacePressure: pressure,
+            weatherSource: stampProvenance
+                ? Value(source.name)
+                : const Value.absent(),
+            weatherFetchedAt: stampProvenance
+                ? Value(fetchedAt.millisecondsSinceEpoch)
+                : const Value.absent(),
+            updatedAt: Value(now),
+          ),
+        );
+        // Inside the transaction so the row and its pending marker either both
+        // land or neither does.
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+        return true;
+      });
+
+      // In-memory notification: only meaningful once the write has committed.
+      if (wrote) SyncEventBus.notifyLocalChange();
+      return wrote;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to fill conditions on dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );

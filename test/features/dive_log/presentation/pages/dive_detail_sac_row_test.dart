@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -93,27 +95,32 @@ void main() {
   AppLocalizations l10nOf(WidgetTester tester) =>
       AppLocalizations.of(tester.element(find.byType(DiveDetailPage)));
 
-  testWidgets('volumetric SAC reads the ideal value when ideal is selected', (
+  Finder laneRow(String label) => find.widgetWithText(DiveDetailRow, label);
+
+  testWidgets('RMV reads the ideal value when ideal is selected', (
     tester,
   ) async {
     await pumpWith(
       tester,
       const AppSettings(
-        sacUnit: SacUnit.litersPerMin,
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
         gasModel: GasModel.ideal,
       ),
     );
 
     expect(find.text('17.6 L/min'), findsOneWidget);
+    expect(laneRow('RMV'), findsOneWidget);
+    expect(laneRow('SAC'), findsNothing);
     expect(find.byType(SacVolumeHint), findsNothing);
   });
 
-  testWidgets('volumetric SAC reads the real value when real is selected', (
-    tester,
-  ) async {
+  testWidgets('RMV reads the real value when real is selected', (tester) async {
     await pumpWith(
       tester,
-      const AppSettings(sacUnit: SacUnit.litersPerMin, gasModel: GasModel.real),
+      const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+        gasModel: GasModel.real,
+      ),
     );
 
     expect(find.text('16.8 L/min'), findsOneWidget);
@@ -123,20 +130,38 @@ void main() {
     for (final model in GasModel.values) {
       await pumpWith(
         tester,
-        AppSettings(sacUnit: SacUnit.pressurePerMin, gasModel: model),
+        AppSettings(
+          gasConsumptionDisplay: GasConsumptionDisplay.sac,
+          gasModel: model,
+        ),
       );
       // 150 bar / 44 min / 2.32 bar ambient = 1.47 bar/min, whichever
       // equation of state is selected.
       expect(find.text('1.5 bar/min'), findsOneWidget);
+      expect(laneRow('SAC'), findsOneWidget);
     }
   });
 
-  group('volumetric SAC without a cylinder volume (issue #386)', () {
+  testWidgets('both shows SAC above RMV with no hint', (tester) async {
+    await pumpWith(tester, const AppSettings());
+
+    expect(laneRow('SAC'), findsOneWidget);
+    expect(laneRow('RMV'), findsOneWidget);
+    expect(find.text('1.5 bar/min'), findsOneWidget);
+    expect(find.text('16.8 L/min'), findsOneWidget);
+    expect(find.byType(SacVolumeHint), findsNothing);
+    expect(
+      tester.getTopLeft(laneRow('SAC')).dy,
+      lessThan(tester.getTopLeft(laneRow('RMV')).dy),
+    );
+  });
+
+  group('RMV without a cylinder volume (issue #386)', () {
     testWidgets('falls back to the pressure lane and says why', (tester) async {
       // A dive-computer download: transmitter pressures, no cylinder size.
       await pumpWith(
         tester,
-        const AppSettings(sacUnit: SacUnit.litersPerMin),
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
         dive: reportedDive(volume: null),
       );
 
@@ -153,7 +178,7 @@ void main() {
       await pumpWith(
         tester,
         const AppSettings(
-          sacUnit: SacUnit.litersPerMin,
+          gasConsumptionDisplay: GasConsumptionDisplay.rmv,
           volumeUnit: VolumeUnit.cubicFeet,
         ),
         dive: reportedDive(volume: null),
@@ -185,7 +210,7 @@ void main() {
       );
       await pumpWith(
         tester,
-        const AppSettings(sacUnit: SacUnit.litersPerMin),
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
         dive: dive,
       );
 
@@ -193,10 +218,10 @@ void main() {
       expect(find.byType(SacVolumeHint), findsOneWidget);
     });
 
-    testWidgets('shows no hint in the pressure lane', (tester) async {
+    testWidgets('shows no hint in SAC-only mode', (tester) async {
       await pumpWith(
         tester,
-        const AppSettings(sacUnit: SacUnit.pressurePerMin),
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.sac),
         dive: reportedDive(volume: null),
       );
 
@@ -208,7 +233,7 @@ void main() {
       final dive = reportedDive(volume: null);
       final base = await getBaseOverrides(
         settingsNotifier: MockSettingsNotifier(
-          const AppSettings(sacUnit: SacUnit.litersPerMin),
+          const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
         ),
       );
       final router = GoRouter(
@@ -265,16 +290,27 @@ void main() {
       );
       await pumpWith(
         tester,
-        const AppSettings(sacUnit: SacUnit.litersPerMin),
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
         dive: dive,
       );
 
       // Nothing to fall back to, so a hint about volume would mislead.
-      expect(
-        find.text(l10nOf(tester).diveLog_detail_label_sacRate),
-        findsNothing,
-      );
+      expect(laneRow('SAC'), findsNothing);
+      expect(laneRow('RMV'), findsNothing);
       expect(find.byType(SacVolumeHint), findsNothing);
+    });
+
+    testWidgets('both mode shows the SAC row and one hint', (tester) async {
+      await pumpWith(
+        tester,
+        const AppSettings(),
+        dive: reportedDive(volume: null),
+      );
+
+      expect(laneRow('SAC'), findsOneWidget);
+      expect(find.text('1.5 bar/min'), findsOneWidget);
+      expect(laneRow('RMV'), findsNothing);
+      expect(find.byType(SacVolumeHint), findsOneWidget);
     });
   });
 }

@@ -6,6 +6,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -83,7 +84,7 @@ class DiverSettingsRepository {
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
-              sacUnit: Value(s.sacUnit.name),
+              gasConsumptionDisplay: Value(s.gasConsumptionDisplay.name),
               gasModel: Value(s.gasModel.name),
               defaultCurrency: Value(s.defaultCurrency),
               visibilityScalePreset: Value(s.visibilityScalePreset.name),
@@ -247,7 +248,7 @@ class DiverSettingsRepository {
           volumeUnit: Value(settings.volumeUnit.name),
           weightUnit: Value(settings.weightUnit.name),
           altitudeUnit: Value(settings.altitudeUnit.name),
-          sacUnit: Value(settings.sacUnit.name),
+          gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
           gasModel: Value(settings.gasModel.name),
           defaultCurrency: Value(settings.defaultCurrency),
           visibilityScalePreset: Value(settings.visibilityScalePreset.name),
@@ -453,7 +454,9 @@ class DiverSettingsRepository {
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
-      sacUnit: _parseSacUnit(row.sacUnit),
+      gasConsumptionDisplay: GasConsumptionDisplay.fromName(
+        row.gasConsumptionDisplay,
+      ),
       gasModel: GasModel.fromName(row.gasModel),
       defaultCurrency: row.defaultCurrency,
       visibilityScalePreset: _parseVisibilityScalePreset(
@@ -622,13 +625,6 @@ class DiverSettingsRepository {
     return AltitudeUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => AltitudeUnit.meters,
-    );
-  }
-
-  SacUnit _parseSacUnit(String value) {
-    return SacUnit.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => SacUnit.pressurePerMin,
     );
   }
 

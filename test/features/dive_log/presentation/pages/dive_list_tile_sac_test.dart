@@ -53,7 +53,7 @@ void main() {
 
   Widget buildTile(AppSettings settings) {
     final config = CardViewConfig.defaultDetailed().copyWith(
-      extraFields: [DiveField.sacRate],
+      extraFields: [DiveField.sac, DiveField.rmv],
     );
     return testApp(
       overrides: [
@@ -71,33 +71,28 @@ void main() {
     );
   }
 
-  group('DiveListTile SAC extra field', () {
-    testWidgets('honors pressure preference (bar/min)', (tester) async {
-      await tester.pumpWidget(
-        buildTile(
-          const AppSettings(
-            sacUnit: SacUnit.pressurePerMin,
-            pressureUnit: PressureUnit.bar,
-          ),
-        ),
-      );
+  group('DiveListTile consumption extra fields', () {
+    testWidgets('renders both lanes in metric', (tester) async {
+      await tester.pumpWidget(buildTile(const AppSettings()));
       await tester.pumpAndSettle();
 
       expect(find.text('1.0 bar/min'), findsOneWidget);
+      expect(find.text('9.3 L/min'), findsOneWidget);
     });
 
-    testWidgets('honors volume preference (L/min)', (tester) async {
+    testWidgets('renders both lanes in imperial', (tester) async {
       await tester.pumpWidget(
         buildTile(
           const AppSettings(
-            sacUnit: SacUnit.litersPerMin,
-            volumeUnit: VolumeUnit.liters,
+            pressureUnit: PressureUnit.psi,
+            volumeUnit: VolumeUnit.cubicFeet,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('9.3 L/min'), findsOneWidget);
+      expect(find.text('15 psi/min'), findsOneWidget);
+      expect(find.text('0.33 cuft/min'), findsOneWidget);
     });
   });
 }

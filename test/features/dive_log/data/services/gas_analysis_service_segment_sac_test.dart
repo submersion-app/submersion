@@ -521,7 +521,7 @@ void main() {
             model: GasModel.real,
           );
       final expectedSacLpm = expectedGasUsed / 50 / 3.0;
-      expect(results.first.sacVolume, closeTo(expectedSacLpm, 0.1));
+      expect(results.first.rmv, closeTo(expectedSacLpm, 0.1));
     });
 
     test('falls back to pressure-based SAC when tank has no volume', () {
@@ -555,7 +555,7 @@ void main() {
       // Pressure-based: (200-60) / 50 / 3.0 ≈ 0.933 bar/min
       expect(results.first.sacRate!, closeTo(0.933, 0.01));
       // sacVolume should be null (no tank volume)
-      expect(results.first.sacVolume, isNull);
+      expect(results.first.rmv, isNull);
     });
 
     test(
@@ -590,7 +590,7 @@ void main() {
         expect(results.first.sacRate, isNotNull);
         // Z-corrected: should be close to but not identical to simple pressure math
         expect(results.first.sacRate!, closeTo(0.933, 0.05));
-        expect(results.first.sacVolume, isNotNull);
+        expect(results.first.rmv, isNotNull);
       },
     );
 
@@ -624,7 +624,7 @@ void main() {
         expect(results.first.sacRate, isNotNull);
         // Simple pressure-based: (200-60) / 50 / 3.0 ≈ 0.933 bar/min
         expect(results.first.sacRate!, closeTo(0.933, 0.01));
-        expect(results.first.sacVolume, isNull);
+        expect(results.first.rmv, isNull);
       },
     );
 

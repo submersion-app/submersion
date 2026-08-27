@@ -34,14 +34,11 @@ extension DiveFieldFormatter on DiveField {
       case DiveField.endPressure:
         return units.formatPressure(value as double?);
 
-      case DiveField.sacRate:
-        if (value is double) {
-          // The base unit of [value] depends on the SAC mode: L/min in volume
-          // mode, bar/min in pressure mode. [convertSac] and [sacSymbol] honor
-          // the diver's SAC unit and volume/pressure unit preferences.
-          return '${units.convertSac(value).toStringAsFixed(1)} ${units.sacSymbol}';
-        }
-        return '--';
+      case DiveField.sac:
+        return value is double ? units.formatSac(value) : '--';
+
+      case DiveField.rmv:
+        return value is double ? units.formatRmv(value) : '--';
 
       case DiveField.gasConsumed:
         return units.formatVolume(value as double?);

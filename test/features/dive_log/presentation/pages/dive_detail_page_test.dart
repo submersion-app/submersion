@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -1328,7 +1328,7 @@ void main() {
       // segment reused the first tank with a volume, printing 8.8 L/min twice.
       final dive = diveWithProfile().copyWith(
         tanks: const [
-          // No start/end pressures: dive.sacPressure stays null, so the SAC
+          // No start/end pressures: dive.sac stays null, so the SAC
           // normalization factor is exactly 1.0 and the expected value is just
           // sacRate * volume.
           DiveTank(id: 'tank-a', name: 'Left', volume: 11.0),
@@ -1365,7 +1365,7 @@ void main() {
       // The L/min display is what exercises the volume conversion at all; the
       // default pressurePerMin renders bar/min and ignores tank volume.
       final settings = MockSettingsNotifier();
-      await settings.setSacUnit(SacUnit.litersPerMin);
+      await settings.setGasConsumptionDisplay(GasConsumptionDisplay.rmv);
       final base = await getBaseOverrides(settingsNotifier: settings);
       final originalOnError = FlutterError.onError;
       addTearDown(() => FlutterError.onError = originalOnError);

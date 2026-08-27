@@ -7,6 +7,7 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
@@ -124,7 +125,11 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           body: Column(
             children: [
               _buildSearchBar(),
-              _buildCategoryFilter(),
+              SpeciesCategoryChips(
+                selected: _selectedCategory,
+                onSelected: (category) =>
+                    setState(() => _selectedCategory = category),
+              ),
               Expanded(
                 child: speciesAsync.when(
                   loading: () =>
@@ -165,37 +170,6 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
               : null,
         ),
         onChanged: (value) => setState(() => _searchQuery = value),
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilter() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          FilterChip(
-            label: Text(context.l10n.marineLife_speciesManage_allFilter),
-            selected: _selectedCategory == null,
-            onSelected: (_) => setState(() => _selectedCategory = null),
-          ),
-          const SizedBox(width: 8),
-          ...SpeciesCategory.values.map((category) {
-            return Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: FilterChip(
-                label: Text(category.localizedName(context.l10n)),
-                selected: _selectedCategory == category,
-                onSelected: (_) => setState(
-                  () => _selectedCategory = _selectedCategory == category
-                      ? null
-                      : category,
-                ),
-              ),
-            );
-          }),
-        ],
       ),
     );
   }

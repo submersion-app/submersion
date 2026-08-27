@@ -125,55 +125,33 @@ void main() {
   });
 
   group('DiveFieldFormatter - gas fields', () {
-    test('sacRate volume mode (litersPerMin) formats as L/min', () {
-      const litersUnits = UnitFormatter(
-        AppSettings(
-          sacUnit: SacUnit.litersPerMin,
-          volumeUnit: VolumeUnit.liters,
-        ),
-      );
-      final result = DiveField.sacRate.formatValue(12.3, litersUnits);
-      expect(result, '12.3 L/min');
+    test('sac formats bar/min in metric', () {
+      expect(DiveField.sac.formatValue(1.23, units), '1.2 bar/min');
     });
 
-    test('sacRate volume mode converts L/min to cuft/min in imperial', () {
+    test('sac formats psi/min without a decimal in imperial', () {
+      const psiUnits = UnitFormatter(
+        AppSettings(pressureUnit: PressureUnit.psi),
+      );
+      // 1.23 bar/min * 14.5038 = 17.8 psi/min
+      expect(DiveField.sac.formatValue(1.23, psiUnits), '18 psi/min');
+    });
+
+    test('rmv formats L/min in metric', () {
+      expect(DiveField.rmv.formatValue(12.3, units), '12.3 L/min');
+    });
+
+    test('rmv formats cuft/min with two decimals in imperial', () {
       const cuftUnits = UnitFormatter(
-        AppSettings(
-          sacUnit: SacUnit.litersPerMin,
-          volumeUnit: VolumeUnit.cubicFeet,
-        ),
+        AppSettings(volumeUnit: VolumeUnit.cubicFeet),
       );
       // 12.3 L/min * 0.0353147 = 0.434 cuft/min
-      final result = DiveField.sacRate.formatValue(12.3, cuftUnits);
-      expect(result, '0.4 cuft/min');
+      expect(DiveField.rmv.formatValue(12.3, cuftUnits), '0.43 cuft/min');
     });
 
-    test('sacRate pressure mode (pressurePerMin) formats as bar/min', () {
-      const barUnits = UnitFormatter(
-        AppSettings(
-          sacUnit: SacUnit.pressurePerMin,
-          pressureUnit: PressureUnit.bar,
-        ),
-      );
-      final result = DiveField.sacRate.formatValue(12.3, barUnits);
-      expect(result, '12.3 bar/min');
-    });
-
-    test('sacRate pressure mode converts bar/min to psi/min in imperial', () {
-      const psiUnits = UnitFormatter(
-        AppSettings(
-          sacUnit: SacUnit.pressurePerMin,
-          pressureUnit: PressureUnit.psi,
-        ),
-      );
-      // 12.3 bar/min * 14.5038 = 178.4 psi/min
-      final result = DiveField.sacRate.formatValue(12.3, psiUnits);
-      expect(result, '178.4 psi/min');
-    });
-
-    test('sacRate returns "--" for non-double', () {
-      final result = DiveField.sacRate.formatValue('invalid', units);
-      expect(result, '--');
+    test('sac and rmv return "--" for non-double', () {
+      expect(DiveField.sac.formatValue('invalid', units), '--');
+      expect(DiveField.rmv.formatValue(null, units), '--');
     });
 
     test('gasConsumed formats with volume unit', () {
@@ -441,7 +419,8 @@ void main() {
         DiveField.tankCount: 1,
         DiveField.startPressure: 200.0,
         DiveField.endPressure: 50.0,
-        DiveField.sacRate: 15.0,
+        DiveField.sac: 1.5,
+        DiveField.rmv: 15.0,
         DiveField.gasConsumed: 1800.0,
         DiveField.totalWeight: 6.0,
         DiveField.diveComputerModel: 'Model',

@@ -256,7 +256,7 @@ void main() {
         // backGas: start=100, end=200 (invalid — no drop)
         // stage: start=200, end=100 (valid — 100 bar drop)
         // Must NOT fall back to stage; must exclude dive entirely,
-        // matching Dive.sacPressure which returns null in this case.
+        // matching Dive.sac which returns null in this case.
         final diveId = await insertDiveWithTank(
           id: 'dive-pres-trend-invalid-bg',
           bottomTimeSeconds: 35 * 60,
@@ -443,7 +443,7 @@ void main() {
         // backGas: start=100, end=200 (invalid — no drop)
         // stage: start=200, end=100 (valid — 100 bar drop)
         // Must NOT fall back to stage; must exclude dive entirely,
-        // matching Dive.sacPressure which returns null in this case.
+        // matching Dive.sac which returns null in this case.
         final diveId = await insertDiveWithTank(
           id: 'dive-pres-rec-invalid-bg',
           bottomTimeSeconds: 35 * 60,

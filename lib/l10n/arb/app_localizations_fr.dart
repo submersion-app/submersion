@@ -4858,7 +4858,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_label_rateOfChange => 'Taux de variation';
 
   @override
-  String get diveLog_detail_label_sacRate => 'Consommation SAC';
+  String get diveLog_detail_label_rmv => 'RMV';
+
+  @override
+  String get diveLog_detail_label_sac => 'SAC';
 
   @override
   String get diveLog_detail_label_state => 'Etat';
@@ -4936,7 +4939,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_sacRateBySegment =>
-      'Consommation SAC par segment';
+      'Consommation de gaz par segment';
 
   @override
   String get diveLog_detail_section_tags => 'Tags';
@@ -5994,7 +5997,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_pressureThresholds => 'Seuils de pression';
 
   @override
-  String get diveLog_legend_label_sacRate => 'Consommation SAC';
+  String get diveLog_legend_label_sacRate => 'Conso.';
 
   @override
   String get diveLog_legend_label_showGas => 'Gaz';
@@ -6101,6 +6104,88 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_listPage_menuMatchSites =>
       'Associer les plongées aux sites';
+
+  @override
+  String get diveLog_listPage_menuFetchConditions =>
+      'Récupérer les conditions de toutes les plongées';
+
+  @override
+  String get diveLog_fetchConditions_confirmTitle =>
+      'Récupérer les conditions ?';
+
+  @override
+  String diveLog_fetchConditions_confirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Les conditions manquent pour $count plongées.',
+      one: 'Les conditions manquent pour 1 plongée.',
+    );
+    return '$_temp0 Seuls les champs vides sont remplis : rien de ce que vous avez déjà saisi ne sera modifié.';
+  }
+
+  @override
+  String get diveLog_fetchConditions_confirmAction => 'Récupérer';
+
+  @override
+  String get diveLog_fetchConditions_noneNeeded =>
+      'Aucune plongée sans conditions.';
+
+  @override
+  String get diveLog_fetchConditions_progressTitle =>
+      'Récupération des conditions';
+
+  @override
+  String diveLog_fetchConditions_progressCount(int completed, int total) {
+    return '$completed sur $total';
+  }
+
+  @override
+  String get diveLog_fetchConditions_summaryTitle => 'Conditions récupérées';
+
+  @override
+  String diveLog_fetchConditions_summaryFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées mises à jour',
+      one: '1 plongée mise à jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnavailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aucune donnée disponible pour $count plongées',
+      one: 'Aucune donnée disponible pour 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnchanged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rien à remplir pour $count plongées',
+      one: 'Rien à remplir pour 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Arrêté avant la fin ; $count plongées ont été traitées.',
+      one: 'Arrêté avant la fin ; 1 plongée a été traitée.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_sighting_decreaseCount => 'Diminuer le nombre';
@@ -6541,7 +6626,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setup_units_pressure => 'Pression';
 
   @override
-  String get setup_units_sac => 'Taux SAC';
+  String get setup_units_gasConsumption => 'Consommation de gaz';
 
   @override
   String get setup_units_subtitle =>
@@ -7029,9 +7114,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_rangeStats_label_minTemp => 'Min Temp';
 
   @override
-  String get diveLog_rangeStats_label_sacRate => 'SAC Rate';
-
-  @override
   String get diveLog_rangeStats_title => 'Stats plage';
 
   @override
@@ -7507,7 +7589,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tooltip_rate => 'Vitesse';
 
   @override
-  String get diveLog_tooltip_sac => 'CAS';
+  String get gasConsumption_rmv => 'RMV';
+
+  @override
+  String get gasConsumption_sac => 'SAC';
 
   @override
   String get diveLog_tooltip_sensor => 'Capteur';
@@ -10122,10 +10207,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_profileMetric_pressure_short => 'Press';
 
   @override
-  String get enum_profileMetric_sacRate => 'Consommation SAC';
+  String get enum_profileMetric_sacRate => 'Consommation de gaz';
 
   @override
-  String get enum_profileMetric_sacRate_short => 'SAC';
+  String get enum_profileMetric_sacRate_short => 'Conso.';
 
   @override
   String get enum_profileMetric_surfaceGf => 'GF surface';
@@ -12490,6 +12575,121 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marineLife_speciesManage_searchHint => 'Rechercher des especes...';
 
   @override
+  String get marineLife_speciesPage_title => 'Espèces';
+
+  @override
+  String get marineLife_speciesPage_searchHint =>
+      'Rechercher les espèces observées';
+
+  @override
+  String get marineLife_speciesPage_clearSearchTooltip =>
+      'Effacer la recherche';
+
+  @override
+  String get marineLife_speciesPage_manageCatalogTooltip =>
+      'Gérer le catalogue';
+
+  @override
+  String get marineLife_speciesPage_sortTooltip => 'Trier';
+
+  @override
+  String get marineLife_speciesPage_sort_mostSightings =>
+      'Plus d\'observations';
+
+  @override
+  String get marineLife_speciesPage_sort_recentlySeen => 'Vues récemment';
+
+  @override
+  String get marineLife_speciesPage_sort_firstSeen => 'Première observation';
+
+  @override
+  String get marineLife_speciesPage_sort_name => 'Nom';
+
+  @override
+  String marineLife_speciesPage_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espèces',
+      one: '1 espèce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_sightingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations',
+      one: '1 observation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_divesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_lastSeen(String date) {
+    return 'Vue pour la dernière fois le $date';
+  }
+
+  @override
+  String get marineLife_speciesPage_emptyTitle =>
+      'Aucune espèce pour l\'instant';
+
+  @override
+  String get marineLife_speciesPage_emptyHint =>
+      'Les observations de vie marine ajoutées à une plongée apparaîtront ici.';
+
+  @override
+  String get marineLife_speciesPage_noMatch =>
+      'Aucune espèce ne correspond à votre recherche';
+
+  @override
+  String marineLife_speciesPage_error(String error) {
+    return 'Impossible de charger vos espèces : $error';
+  }
+
+  @override
+  String get marineLife_speciesPage_retry => 'Réessayer';
+
+  @override
+  String marineLife_speciesDetail_sightingsTitle(Object count) {
+    return 'Observations ($count)';
+  }
+
+  @override
+  String marineLife_speciesDetail_sightingsError(String error) {
+    return 'Impossible de charger les observations : $error';
+  }
+
+  @override
+  String marineLife_speciesDetail_showAll(Object count) {
+    return 'Tout afficher ($count)';
+  }
+
+  @override
+  String get marineLife_speciesDetail_showFewer => 'Afficher moins';
+
+  @override
+  String get marineLife_speciesDetail_unknownSite => 'Site inconnu';
+
+  @override
+  String marineLife_speciesDetail_countTimes(Object count) {
+    return '× $count';
+  }
+
+  @override
   String get marineLife_speciesPicker_allFilter => 'Tout';
 
   @override
@@ -14551,11 +14751,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveDetailSection_sacSegments_name => 'SAC par segment';
+  String get diveDetailSection_sacSegments_name =>
+      'Consommation de gaz par segment';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Segmentation SAC par phase/temps';
+      'SAC et RMV par phase ou temps';
 
   @override
   String get diveDetailSection_details_name => 'Details';
@@ -14789,7 +14990,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Liste des bouteilles, melanges gazeux, pressions, SAC par bouteille';
+      'Liste des bouteilles, melanges gazeux, pressions, consommation par bouteille';
 
   @override
   String get diveDetailSection_buddies_name => 'Binomes';
@@ -14960,7 +15161,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_metric_pressure => 'Pression';
 
   @override
-  String get settings_appearance_metric_sacRate => 'SAC Rate';
+  String get settings_appearance_metric_sacRate => 'Consommation de gaz';
 
   @override
   String get settings_appearance_metric_surfaceGf => 'GF surface';
@@ -16938,9 +17139,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_units_dialog_pressureUnit => 'Unite de pression';
 
   @override
-  String get settings_units_dialog_sacRateUnit => 'Unite de SAC Rate';
-
-  @override
   String get settings_units_gasModel => 'Calculs de gaz';
 
   @override
@@ -17004,27 +17202,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_units_quickSelect => 'Selection rapide';
 
   @override
-  String get settings_units_sacRate => 'SAC Rate';
+  String get settings_units_gasConsumption_both_subtitle =>
+      'Afficher SAC et RMV côte à côte.';
+
+  @override
+  String get settings_units_gasConsumption_both => 'Les deux';
+
+  @override
+  String settings_units_gasConsumption_rmv_subtitle(String unit) {
+    return 'Volume de gaz respiré par minute en surface ($unit). Nécessite le volume du bloc.';
+  }
+
+  @override
+  String settings_units_gasConsumption_sac_subtitle(String unit) {
+    return 'Baisse de pression du bloc par minute ($unit). Fonctionne avec toutes les pressions enregistrées.';
+  }
+
+  @override
+  String get settings_units_dialog_gasConsumption =>
+      'Affichage de la consommation de gaz';
+
+  @override
+  String get settings_units_gasConsumption => 'Consommation de gaz';
 
   @override
   String get settings_units_defaultCurrency => 'Devise par défaut';
 
   @override
   String get settings_units_dialog_defaultCurrency => 'Devise par défaut';
-
-  @override
-  String get settings_units_sac_pressurePerMinute => 'Pression par minute';
-
-  @override
-  String get settings_units_sac_pressurePerMinute_subtitle =>
-      'Pas de volume de bloc necessaire (bar/min ou psi/min)';
-
-  @override
-  String get settings_units_sac_volumePerMinute => 'Volume par minute';
-
-  @override
-  String get settings_units_sac_volumePerMinute_subtitle =>
-      'Necessite le volume du bloc (L/min ou cuft/min)';
 
   @override
   String get settings_units_temperature => 'Temperature';
@@ -17275,7 +17480,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statistics_category_equipment_title => 'Equipement';
 
   @override
-  String get statistics_category_gas_subtitle => 'Taux SAC et melanges gazeux';
+  String get statistics_category_gas_subtitle =>
+      'Consommation de gaz et melanges';
 
   @override
   String get statistics_category_gas_title => 'Consommation d\'air';
@@ -17494,44 +17700,53 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_gas_sacByRole_error =>
-      'Echec du chargement du SAC par role';
+      'Echec du chargement de la consommation par role';
 
   @override
   String get statistics_gas_sacByRole_subtitle =>
       'Consommation moyenne par type de bloc';
 
   @override
-  String get statistics_gas_sacByRole_title => 'SAC par role du bloc';
+  String get statistics_gas_sacByRole_title =>
+      'Consommation de gaz par role du bloc';
 
   @override
-  String get statistics_gas_sacRecords_best => 'Meilleur taux SAC';
-
-  @override
-  String get statistics_gas_sacRecords_empty => 'Aucune donnee SAC disponible';
+  String get statistics_gas_sacRecords_empty => 'Aucune donnee de consommation';
 
   @override
   String get statistics_gas_sacRecords_error =>
-      'Echec du chargement des records SAC';
+      'Echec du chargement des records de consommation';
 
   @override
-  String get statistics_gas_sacRecords_highest => 'Taux SAC le plus eleve';
+  String get statistics_gas_sacRecords_highestRmv => 'RMV le plus élevé';
+
+  @override
+  String get statistics_gas_sacRecords_highestSac => 'SAC le plus élevé';
+
+  @override
+  String get statistics_gas_sacRecords_bestRmv => 'Meilleur RMV';
+
+  @override
+  String get statistics_gas_sacRecords_bestSac => 'Meilleur SAC';
 
   @override
   String get statistics_gas_sacRecords_subtitle =>
       'Meilleure et pire consommation d\'air';
 
   @override
-  String get statistics_gas_sacRecords_title => 'Records de taux SAC';
+  String get statistics_gas_sacRecords_title =>
+      'Records de consommation de gaz';
 
   @override
   String get statistics_gas_sacTrend_error =>
-      'Echec du chargement de la tendance SAC';
+      'Echec du chargement de la tendance de consommation';
 
   @override
   String get statistics_gas_sacTrend_subtitle => 'Moyenne mensuelle sur 5 ans';
 
   @override
-  String get statistics_gas_sacTrend_title => 'Tendance du taux SAC';
+  String get statistics_gas_sacTrend_title =>
+      'Tendance de la consommation de gaz';
 
   @override
   String get statistics_gas_tankRole_backGas => 'Gaz dorsal';
@@ -17687,6 +17902,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_marineLife_speciesSpotted => 'Especes observees';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_title =>
+      'Voir toutes les espèces';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_subtitle =>
+      'Toutes les espèces que vous avez enregistrées, avec recherche';
 
   @override
   String get statistics_profile_appBar_title => 'Analyse de profil';
@@ -20087,12 +20310,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get units_profileMetric_millivolts => 'mV';
-
-  @override
-  String get units_sac_litersPerMin => 'L/min';
-
-  @override
-  String get units_sac_pressurePerMin => 'pression/min';
 
   @override
   String get units_temperature_celsius => 'C';
@@ -24693,7 +24910,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Ajoutez le volume du bloc pour afficher la consommation SAC en $unit/min';
+    return 'Ajoutez le volume du bloc pour afficher le RMV en $unit/min';
   }
 
   @override
@@ -25974,7 +26191,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveField_endPressure => 'Pression finale';
 
   @override
-  String get enum_diveField_sacRate => 'Consommation SAC';
+  String get enum_diveField_rmv => 'RMV (taux de volume)';
+
+  @override
+  String get enum_diveField_sac => 'SAC (taux de pression)';
 
   @override
   String get enum_diveField_gasConsumed => 'Gaz consommé';
@@ -26148,7 +26368,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveField_endPressure_short => 'P fin';
 
   @override
-  String get enum_diveField_sacRate_short => 'SAC';
+  String get enum_diveField_rmv_short => 'RMV';
+
+  @override
+  String get enum_diveField_sac_short => 'SAC';
 
   @override
   String get enum_diveField_gasConsumed_short => 'Gaz cons.';

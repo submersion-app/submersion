@@ -219,7 +219,7 @@ void main() {
     ) async {
       await openDialog(tester);
       expect(_inDialog(find.text('Heart Rate')), findsOneWidget);
-      expect(_inDialog(find.text('SAC Rate')), findsOneWidget);
+      expect(_inDialog(find.text('Consumption')), findsOneWidget);
     });
 
     testWidgets('Overlays section shows both ascent-rate toggles', (
@@ -762,7 +762,7 @@ void main() {
 
       expect(find.text('Temp'), findsOneWidget);
       expect(find.text('Heart Rate'), findsNothing);
-      expect(find.text('SAC Rate'), findsNothing);
+      expect(find.text('Consumption'), findsNothing);
       expect(
         tester.getSize(find.byType(DiveProfileLegend)).height,
         lessThanOrEqualTo(56),
@@ -773,7 +773,7 @@ void main() {
     testWidgets('wide width fills remaining space with inactive toggles', (
       tester,
     ) async {
-      // Heart Rate and SAC Rate default OFF; at 1200px they are admitted as
+      // Heart Rate and Consumption default OFF; at 1200px they are admitted as
       // inactive fillers after the active toggles.
       await _pumpLegendAt(
         tester,
@@ -787,7 +787,7 @@ void main() {
       );
 
       expect(find.text('Heart Rate'), findsOneWidget);
-      expect(find.text('SAC Rate'), findsOneWidget);
+      expect(find.text('Consumption'), findsOneWidget);
       expect(
         tester.getSize(find.byType(DiveProfileLegend)).height,
         lessThanOrEqualTo(56),

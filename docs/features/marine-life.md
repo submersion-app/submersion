@@ -4,7 +4,7 @@ Track species sightings and build a database of your underwater encounters.
 
 ## Species Database
 
-Submersion includes a pre-seeded species database with 40+ common species, plus you can add your own.
+Submersion includes a pre-seeded species database with 511 species, plus you can add your own.
 
 <div class="screenshot-placeholder">
   <strong>Screenshot: Species List</strong><br>
@@ -67,11 +67,28 @@ Each species entry contains:
 3. See your sighting history
 4. View where you've seen it
 
+## Species Page
+
+The Species page lists every species you have logged, across all your dives.
+Open it from **Statistics** > **Marine Life** > **See all species**.
+
+- **Search** matches the common name (in your language), the English name
+  and the scientific name.
+- **Category chips** narrow the list to fish, sharks, turtles and so on.
+- **Sort** by most sightings, recently seen, first seen (the order you
+  discovered each species) or name.
+- Each row shows the sighting count, the number of dives and the date you
+  last saw the species. Tap it to open the species details.
+- The **Manage catalog** action in the toolbar opens the species catalog,
+  where you add, edit and delete species.
+
+The Species page is not affected by the Statistics filter.
+
 ## Adding Custom Species
 
 For species not in the database:
 
-1. Go to **Settings** > **Species**
+1. Go to **Settings** > **Manage species** (or tap **Manage catalog** on the Species page)
 2. Tap **+ Add Species**
 3. Enter common name
 4. Enter scientific name (optional)
@@ -103,6 +120,7 @@ For each species, view:
 - First sighting date
 - Sites where seen
 - Depth range observed
+- Every dive where you saw it, newest first, with the site, date, count and notes
 
 ## Site-Species Correlation
 

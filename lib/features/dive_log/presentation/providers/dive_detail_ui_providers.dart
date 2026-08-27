@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -157,3 +158,18 @@ final surfaceGpsSectionExpandedProvider = Provider<bool>((ref) {
 /// Whether the Surface GPS map shows the whole recording rather than just
 /// the dive's own window plus margin.
 final surfaceGpsFullTrackProvider = StateProvider<bool>((ref) => false);
+
+/// The lane the consumption-by-segment card renders when the display
+/// preference shows both. Session only: null follows the preference.
+final sacSegmentsLaneOverrideProvider = StateProvider<GasConsumptionLane?>(
+  (ref) => null,
+);
+
+/// The lane the card renders. An override only counts while the preference
+/// still allows that lane, so switching to SAC-only never shows RMV.
+final sacSegmentsLaneProvider = Provider<GasConsumptionLane>((ref) {
+  final display = ref.watch(gasConsumptionDisplayProvider);
+  final override = ref.watch(sacSegmentsLaneOverrideProvider);
+  if (override != null && display.lanes.contains(override)) return override;
+  return display.lanes.first;
+});

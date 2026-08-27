@@ -171,8 +171,9 @@ void main() {
       notifier.applyPreset(standard);
 
       final config = notifier.state;
-      expect(config.columns.length, equals(23));
-      expect(config.columns.any((c) => c.field == DiveField.sacRate), isTrue);
+      expect(config.columns.length, equals(24));
+      expect(config.columns.any((c) => c.field == DiveField.sac), isTrue);
+      expect(config.columns.any((c) => c.field == DiveField.rmv), isTrue);
       expect(config.columns.any((c) => c.field == DiveField.waterTemp), isTrue);
     });
 

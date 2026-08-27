@@ -93,8 +93,11 @@ void main() {
       expect(imperial.settings.volumeUnit, VolumeUnit.cubicFeet);
       expect(imperial.settings.weightUnit, WeightUnit.pounds);
       expect(imperial.settings.altitudeUnit, AltitudeUnit.feet);
-      // sacUnit untouched by preset
-      expect(imperial.settings.sacUnit, const AppSettings().sacUnit);
+      // gasConsumptionDisplay untouched by preset
+      expect(
+        imperial.settings.gasConsumptionDisplay,
+        const AppSettings().gasConsumptionDisplay,
+      );
       // and back to metric
       final metric = imperial.applyingUnitPreset(UnitPreset.metric);
       expect(metric.settings.unitPreset, UnitPreset.metric);

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -489,15 +488,11 @@ void main() {
   });
 
   group('DiveFieldExtractor - SAC rate and gas consumed', () {
-    test('sacRate defaults to pressurePerMin to match AppSettings default', () {
-      // No sacUnit passed -> uses the default. The default matches the
-      // AppSettings default (pressurePerMin), so an omitted argument stays
-      // consistent with default settings instead of silently producing an
-      // L/min value that a default UnitFormatter would mislabel as bar/min.
-      final result = DiveField.sacRate.extractFromDive(testDive);
+    test('sac yields bar/min from the reference tank', () {
+      final result = DiveField.sac.extractFromDive(testDive);
       expect(result, isA<double>());
       // Pressure-based: 150 bar / 52 / 2.82 ≈ 1.02 bar/min
-      expect((result as double), closeTo(1.02, 0.05));
+      expect(result as double, closeTo(1.02, 0.05));
     });
 
     test('gasConsumed computes correctly with valid tank data', () {
@@ -507,9 +502,10 @@ void main() {
       expect(result, 1800.0);
     });
 
-    test('sacRate returns null for dive with no tanks', () {
+    test('sac and rmv return null for a dive with no tanks', () {
       final noTankDive = Dive(id: 'dive-empty', dateTime: now, tanks: const []);
-      expect(DiveField.sacRate.extractFromDive(noTankDive), isNull);
+      expect(DiveField.sac.extractFromDive(noTankDive), isNull);
+      expect(DiveField.rmv.extractFromDive(noTankDive), isNull);
     });
 
     test('gasConsumed returns null for dive with no tanks', () {
@@ -517,7 +513,7 @@ void main() {
       expect(DiveField.gasConsumed.extractFromDive(noTankDive), isNull);
     });
 
-    test('sacRate returns null when tank has no volume', () {
+    test('rmv returns null when the tank has no volume', () {
       const noVolumeTank = DiveTank(
         id: 'tank-nv',
         startPressure: 200.0,
@@ -530,32 +526,30 @@ void main() {
         avgDepth: 18.0,
         tanks: [noVolumeTank],
       );
-      // Volume mode requires tank volume; pressure mode would still produce a
-      // value here, so this null check is specific to litersPerMin.
-      expect(
-        DiveField.sacRate.extractFromDive(dive, sacUnit: SacUnit.litersPerMin),
-        isNull,
-      );
+      // RMV needs a cylinder volume; SAC would still produce a value here.
+      expect(DiveField.rmv.extractFromDive(dive), isNull);
     });
 
-    test('sacRate returns null when no avgDepth', () {
+    test('sac and rmv return null when no avgDepth', () {
       final dive = Dive(
         id: 'dive-nod',
         dateTime: now,
         runtime: const Duration(minutes: 45),
         tanks: [testTank],
       );
-      expect(DiveField.sacRate.extractFromDive(dive), isNull);
+      expect(DiveField.sac.extractFromDive(dive), isNull);
+      expect(DiveField.rmv.extractFromDive(dive), isNull);
     });
 
-    test('sacRate returns null when no runtime', () {
+    test('sac and rmv return null when no runtime', () {
       final dive = Dive(
         id: 'dive-nor',
         dateTime: now,
         avgDepth: 18.0,
         tanks: [testTank],
       );
-      expect(DiveField.sacRate.extractFromDive(dive), isNull);
+      expect(DiveField.sac.extractFromDive(dive), isNull);
+      expect(DiveField.rmv.extractFromDive(dive), isNull);
     });
 
     test('gasConsumed returns null when pressure used is zero', () {
@@ -569,7 +563,7 @@ void main() {
       expect(DiveField.gasConsumed.extractFromDive(dive), isNull);
     });
 
-    test('sacRate sums all tanks on multi-tank dive', () {
+    test('rmv sums all tanks on a multi-tank dive', () {
       const tank1 = DiveTank(
         id: 't1',
         volume: 12.0,
@@ -589,10 +583,7 @@ void main() {
         avgDepth: 18.2,
         tanks: [tank1, tank2],
       );
-      final result = DiveField.sacRate.extractFromDive(
-        dive,
-        sacUnit: SacUnit.litersPerMin,
-      );
+      final result = DiveField.rmv.extractFromDive(dive);
       expect(result, isA<double>());
       // Tank 1: gasVol(12.0, 200, air) - gasVol(12.0, 100, air)
       // Tank 2: gasVol(7.0, 200, air) - gasVol(7.0, 150, air)
@@ -602,25 +593,19 @@ void main() {
       expect(result as double, closeTo(9.70, 0.1));
     });
 
-    test('sacRate volume mode returns L/min from Dive.sacFor', () {
-      final result = DiveField.sacRate.extractFromDive(
-        testDive,
-        sacUnit: SacUnit.litersPerMin,
-      );
+    test('rmv returns L/min from Dive.rmvFor', () {
+      final result = DiveField.rmv.extractFromDive(testDive);
       // With Z-factor correction against the 1 bar reference (issue #828).
       expect(result as double, closeTo(11.83, 0.1));
     });
 
-    test('sacRate pressure mode returns bar/min from dive.sacPressure', () {
-      final result = DiveField.sacRate.extractFromDive(
-        testDive,
-        sacUnit: SacUnit.pressurePerMin,
-      );
+    test('sac returns bar/min from Dive.sac', () {
+      final result = DiveField.sac.extractFromDive(testDive);
       // 150 bar / 52 / 2.82 ≈ 1.02 bar/min
       expect(result as double, closeTo(1.02, 0.05));
     });
 
-    test('sacRate pressure mode works without tank volume', () {
+    test('sac works without a tank volume where rmv cannot', () {
       // A tank with pressures but no volume: volume-based SAC is impossible,
       // but pressure-based SAC only needs the pressure drop.
       const noVolumeTank = DiveTank(
@@ -637,17 +622,8 @@ void main() {
         tanks: [noVolumeTank],
       );
 
-      expect(
-        DiveField.sacRate.extractFromDive(dive, sacUnit: SacUnit.litersPerMin),
-        isNull,
-      );
-      expect(
-        DiveField.sacRate.extractFromDive(
-          dive,
-          sacUnit: SacUnit.pressurePerMin,
-        ),
-        isA<double>(),
-      );
+      expect(DiveField.rmv.extractFromDive(dive), isNull);
+      expect(DiveField.sac.extractFromDive(dive), isA<double>());
     });
 
     test('gasConsumed sums all tanks on multi-tank dive', () {
@@ -862,7 +838,8 @@ void main() {
       // Fields not available on DiveSummary should return null
       expect(DiveField.buddy.extractFromSummary(testSummary), isNull);
       expect(DiveField.diveMaster.extractFromSummary(testSummary), isNull);
-      expect(DiveField.sacRate.extractFromSummary(testSummary), isNull);
+      expect(DiveField.sac.extractFromSummary(testSummary), isNull);
+      expect(DiveField.rmv.extractFromSummary(testSummary), isNull);
       expect(DiveField.gasConsumed.extractFromSummary(testSummary), isNull);
       expect(DiveField.airTemp.extractFromSummary(testSummary), isNull);
       expect(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -149,14 +150,20 @@ class _UnitsStepState extends ConsumerState<UnitsStep> {
                 onChanged: (u) =>
                     notifier.updateSettings(s.copyWith(altitudeUnit: u)),
               ),
-              _unitRow<SacUnit>(
-                label: l10n.setup_units_sac,
-                keyPrefix: 'setup-unit-sac',
-                values: SacUnit.values,
-                selected: s.sacUnit,
-                symbol: (u) => u.symbol,
-                onChanged: (u) =>
-                    notifier.updateSettings(s.copyWith(sacUnit: u)),
+              _unitRow<GasConsumptionDisplay>(
+                label: l10n.setup_units_gasConsumption,
+                keyPrefix: 'setup-unit-gasconsumption',
+                values: GasConsumptionDisplay.values,
+                selected: s.gasConsumptionDisplay,
+                symbol: (d) => switch (d) {
+                  GasConsumptionDisplay.sac => l10n.gasConsumption_sac,
+                  GasConsumptionDisplay.rmv => l10n.gasConsumption_rmv,
+                  GasConsumptionDisplay.both =>
+                    l10n.settings_units_gasConsumption_both,
+                },
+                onChanged: (d) => notifier.updateSettings(
+                  s.copyWith(gasConsumptionDisplay: d),
+                ),
               ),
               _unitRow<TimeFormat>(
                 label: l10n.setup_units_timeFormat,

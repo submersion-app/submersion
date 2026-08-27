@@ -234,7 +234,7 @@ void main() {
             depthLabel.evaluate().isNotEmpty;
 
         if (hasDiveContent) {
-          // Enable Pressure and SAC toggles in the dive profile chart
+          // Enable the Pressure and gas-consumption profile-chart toggles
           await _enableProfileToggles(tester);
           await screenshotHelper.waitForContent(tester);
           await screenshotHelper.takeScreenshot(tester, 'dive_detail');
@@ -641,7 +641,7 @@ Future<void> _selectEquipmentCard(
   }
 }
 
-/// Enables Pressure and SAC toggles in the dive profile chart.
+/// Enables the Pressure and gas-consumption toggles in the profile chart.
 /// These toggles show additional data curves on the profile graph.
 Future<void> _enableProfileToggles(WidgetTester tester) async {
   // The toggles are text labels that can be tapped
@@ -652,10 +652,13 @@ Future<void> _enableProfileToggles(WidgetTester tester) async {
     await _settle(tester);
   }
 
-  // Look for SAC toggle and tap it if found
-  final sacToggle = find.text('SAC');
-  if (sacToggle.evaluate().isNotEmpty) {
-    await tester.tap(sacToggle.first);
+  // Look for the gas-consumption toggle and tap it if found. Match the
+  // legend's own label, not 'SAC': the detail summary now carries rows
+  // labelled SAC and RMV, so a bare find.text('SAC') selected a row that is
+  // not hit-testable here and the tap missed.
+  final consumptionToggle = find.text('Consumption');
+  if (consumptionToggle.evaluate().isNotEmpty) {
+    await tester.tap(consumptionToggle.first);
     await _settle(tester);
   }
 }

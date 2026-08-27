@@ -38,7 +38,7 @@ enum DiveDetailSectionId {
     return switch (this) {
       decoO2 => 'Deco Status / Tissue Loading',
       safetyReview => 'Safety Review',
-      sacSegments => 'SAC Rate by Segment',
+      sacSegments => 'Gas consumption by segment',
       details => 'Details',
       environment => 'Environment',
       altitude => 'Altitude',
@@ -66,7 +66,7 @@ enum DiveDetailSectionId {
     return switch (this) {
       decoO2 => 'NDL, ceiling, tissue heat map, O2 toxicity',
       safetyReview => 'Automatic post-dive profile observations',
-      sacSegments => 'Phase/time SAC segmentation',
+      sacSegments => 'SAC and RMV by phase or time',
       details => 'Type, location, trip, dive center, interval',
       environment => 'Air/water temp, visibility, current',
       altitude => 'Altitude value, category, deco requirement',
@@ -75,7 +75,8 @@ enum DiveDetailSectionId {
       surfaceGps => 'GPS entry/exit points and surface drift',
       weights => 'Weight breakdown, total weight',
       buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
-      tanks => 'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+      tanks =>
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       buddies => 'Buddy list with roles',
       signatures => 'Buddy/instructor signature display and capture',
       equipment => 'Equipment used in dive',

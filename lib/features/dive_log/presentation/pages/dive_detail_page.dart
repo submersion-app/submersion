@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -572,7 +573,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       dive: dive,
       units: units,
       settings: settings,
-      sacUnit: ref.watch(sacUnitProvider),
+      display: ref.watch(gasConsumptionDisplayProvider),
     );
   }
 
@@ -2118,7 +2119,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 profile: chartProfile,
                 units: units,
                 tanks: dive.tanks,
-                sacUnit: ref.watch(sacUnitProvider),
               ),
             ],
           ],
@@ -2311,7 +2311,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final sacUnit = ref.watch(sacUnitProvider);
+    final display = ref.watch(gasConsumptionDisplayProvider);
+    final lane = ref.watch(sacSegmentsLaneProvider);
 
     // Get the selected segmentation method
     final selectedMethod = ref.watch(selectedSegmentationProvider);
@@ -2362,20 +2363,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Use the top-level normalization function
     final normalizationFactor = calculateSacNormalizationFactor(dive, analysis);
 
-    // Format SAC value based on unit setting, applying normalization.
+    // Format a segment for the lane the card shows, applying normalization.
     String formatSacValue(double sacBarPerMin, {String? segmentTankId}) {
-      // Apply normalization to align with overall dive SAC
       final normalizedSac = sacBarPerMin * normalizationFactor;
       final volume = volumeForSegment(segmentTankId);
-
-      if (sacUnit == SacUnit.litersPerMin && volume != null) {
-        // Convert bar/min to L/min: sacLPerMin = sacBarPerMin * tankVolume
-        final sacLPerMin = normalizedSac * volume;
-        return '${units.convertVolume(sacLPerMin).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-      } else {
-        // Convert to user's pressure unit (bar or psi)
-        return '${units.convertPressure(normalizedSac).toStringAsFixed(1)} ${units.pressureSymbol}/min';
+      if (lane == GasConsumptionLane.rmv && volume != null) {
+        return units.formatRmv(normalizedSac * volume);
       }
+      return units.formatSac(normalizedSac);
     }
 
     // Determine which phase the selected point falls into (using original
@@ -2432,6 +2427,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (display == GasConsumptionDisplay.both) ...[
+                  _buildLaneSelector(context, ref, lane),
+                  const SizedBox(height: 8),
+                ],
                 // Segmentation method selector
                 _buildSegmentationSelector(
                   context,
@@ -2544,7 +2543,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   );
                 }),
                 // Some segment fell back to the pressure lane above: say why.
-                if (sacUnit == SacUnit.litersPerMin &&
+                if (lane == GasConsumptionLane.rmv &&
                     renderSegments.any(
                       (s) => volumeForSegment(s.tankId) == null,
                     )) ...[
@@ -2565,6 +2564,35 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Build the segmentation method selector chips
+  /// SAC | RMV chip for the segment card, shown only when the preference
+  /// displays both lanes (a single-lane preference has nothing to choose).
+  Widget _buildLaneSelector(
+    BuildContext context,
+    WidgetRef ref,
+    GasConsumptionLane lane,
+  ) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SegmentedButton<GasConsumptionLane>(
+        segments: [
+          ButtonSegment(
+            value: GasConsumptionLane.sac,
+            label: Text(context.l10n.gasConsumption_sac),
+          ),
+          ButtonSegment(
+            value: GasConsumptionLane.rmv,
+            label: Text(context.l10n.gasConsumption_rmv),
+          ),
+        ],
+        selected: {lane},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) =>
+            ref.read(sacSegmentsLaneOverrideProvider.notifier).state =
+                selection.first,
+      ),
+    );
+  }
+
   Widget _buildSegmentationSelector(
     BuildContext context,
     WidgetRef ref,
@@ -3186,7 +3214,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context.l10n.diveLog_detail_label_diveMaster,
                 dive.diveMaster!,
               ),
-            _buildSacRow(context, ref, dive, units),
+            _buildGasConsumptionRows(context, ref, dive, units),
             // Gradient factors (from dive computer)
             if (dive.gradientFactorLow != null &&
                 dive.gradientFactorHigh != null)
@@ -4127,61 +4155,49 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildSacRow(
+  /// The consumption rows of the summary: SAC (pressure lane) and RMV
+  /// (volume lane) behind the diver's display preference. A lane that
+  /// cannot be computed is omitted. A wanted-but-missing RMV shows the
+  /// volume hint instead of vanishing (issue #386), and RMV-only mode falls
+  /// back to the SAC row so the diver still sees a number.
+  Widget _buildGasConsumptionRows(
     BuildContext context,
     WidgetRef ref,
     Dive dive,
     UnitFormatter units,
   ) {
-    final sacUnit = ref.watch(sacUnitProvider);
+    final display = ref.watch(gasConsumptionDisplayProvider);
+    final sac = dive.sac;
+    final rmv = display.showsRmv
+        ? dive.rmvFor(ref.watch(gasModelProvider))
+        : null;
+    final l10n = context.l10n;
 
-    // Determine which SAC value to show based on setting
-    if (sacUnit == SacUnit.litersPerMin) {
-      // Volume-based SAC (L/min) - requires tank volume and a gas model
-      final sac = dive.sacFor(ref.watch(gasModelProvider));
-      if (sac != null) {
-        final value =
-            '${units.convertVolume(sac).toStringAsFixed(1)} ${units.volumeSymbol}/min';
-        return _buildDetailRow(
+    Widget sacRow() => _buildDetailRow(
+      context,
+      l10n.diveLog_detail_label_sac,
+      units.formatSac(sac!),
+    );
+
+    final rows = <Widget>[
+      if (display.showsSac && sac != null) sacRow(),
+      if (rmv != null)
+        _buildDetailRow(
           context,
-          context.l10n.diveLog_detail_label_sacRate,
-          value,
-        );
-      }
-      // No cylinder volume (the norm for dive-computer downloads): show the
-      // pressure lane and say why, rather than hiding the row and leaving
-      // the L/min preference looking broken (issue #386). A pressure SAC
-      // with no volumetric one means no cylinder with a pressure drop has a
-      // volume, whatever a stage bottle carries, so the hint is accurate.
-      // With no pressure data either there is nothing to fall back to.
-      if (dive.sacPressure == null) return const SizedBox.shrink();
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDetailRow(
-            context,
-            context.l10n.diveLog_detail_label_sacRate,
-            _formatPressureSac(dive.sacPressure!, units),
-          ),
-          SacVolumeHint(
-            volumeSymbol: units.volumeSymbol,
-            onTap: () => context.push('/dives/${dive.id}/edit'),
-          ),
-        ],
-      );
-    } else {
-      // Pressure-based SAC (bar/min or psi/min) - doesn't require tank volume
-      if (dive.sacPressure == null) return const SizedBox.shrink();
-      return _buildDetailRow(
-        context,
-        context.l10n.diveLog_detail_label_sacRate,
-        _formatPressureSac(dive.sacPressure!, units),
-      );
-    }
+          l10n.diveLog_detail_label_rmv,
+          units.formatRmv(rmv),
+        ),
+      if (display.showsRmv && rmv == null && sac != null) ...[
+        if (!display.showsSac) sacRow(),
+        SacVolumeHint(
+          volumeSymbol: units.volumeSymbol,
+          onTap: () => context.push('/dives/${dive.id}/edit'),
+        ),
+      ],
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
-
-  String _formatPressureSac(double sacPressure, UnitFormatter units) =>
-      '${units.convertPressure(sacPressure).toStringAsFixed(1)} ${units.pressureSymbol}/min';
 
   Widget _buildDetailRow(
     BuildContext context,

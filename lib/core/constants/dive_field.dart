@@ -62,7 +62,8 @@ enum DiveField {
   tankCount,
   startPressure,
   endPressure,
-  sacRate,
+  sac,
+  rmv,
   gasConsumed,
 
   // Weight
@@ -176,7 +177,8 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.tankCount:
       case DiveField.startPressure:
       case DiveField.endPressure:
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
       case DiveField.gasConsumed:
         return DiveFieldCategory.tank;
 
@@ -290,8 +292,10 @@ extension DiveFieldMetadata on DiveField {
         return 'Start Pressure';
       case DiveField.endPressure:
         return 'End Pressure';
-      case DiveField.sacRate:
-        return 'SAC Rate';
+      case DiveField.sac:
+        return 'SAC (pressure rate)';
+      case DiveField.rmv:
+        return 'RMV (volume rate)';
       case DiveField.gasConsumed:
         return 'Gas Consumed';
       case DiveField.totalWeight:
@@ -412,8 +416,10 @@ extension DiveFieldMetadata on DiveField {
         return 'Start P';
       case DiveField.endPressure:
         return 'End P';
-      case DiveField.sacRate:
+      case DiveField.sac:
         return 'SAC';
+      case DiveField.rmv:
+        return 'RMV';
       case DiveField.gasConsumed:
         return 'Gas Used';
       case DiveField.totalWeight:
@@ -504,7 +510,8 @@ extension DiveFieldMetadata on DiveField {
     DiveField.tankCount => l10n.enum_diveField_tankCount,
     DiveField.startPressure => l10n.enum_diveField_startPressure,
     DiveField.endPressure => l10n.enum_diveField_endPressure,
-    DiveField.sacRate => l10n.enum_diveField_sacRate,
+    DiveField.sac => l10n.enum_diveField_sac,
+    DiveField.rmv => l10n.enum_diveField_rmv,
     DiveField.gasConsumed => l10n.enum_diveField_gasConsumed,
     DiveField.totalWeight => l10n.enum_diveField_totalWeight,
     DiveField.diveComputerModel => l10n.enum_diveField_diveComputerModel,
@@ -567,7 +574,8 @@ extension DiveFieldMetadata on DiveField {
     DiveField.tankCount => l10n.enum_diveField_tankCount_short,
     DiveField.startPressure => l10n.enum_diveField_startPressure_short,
     DiveField.endPressure => l10n.enum_diveField_endPressure_short,
-    DiveField.sacRate => l10n.enum_diveField_sacRate_short,
+    DiveField.sac => l10n.enum_diveField_sac_short,
+    DiveField.rmv => l10n.enum_diveField_rmv_short,
     DiveField.gasConsumed => l10n.enum_diveField_gasConsumed_short,
     DiveField.totalWeight => l10n.enum_diveField_totalWeight_short,
     DiveField.diveComputerModel => l10n.enum_diveField_diveComputerModel_short,
@@ -650,7 +658,8 @@ extension DiveFieldMetadata on DiveField {
         return Icons.luggage;
       case DiveField.diveTypeName:
         return Icons.category;
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
         return null;
       case DiveField.gasConsumed:
         return null;

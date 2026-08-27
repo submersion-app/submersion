@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -170,7 +170,9 @@ void main() {
     await pumpWith(
       tester,
       dive: diveWithProfile(tanks: const [backGasNoVolume]),
-      settings: const AppSettings(sacUnit: SacUnit.litersPerMin),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+      ),
     );
 
     final card = sacCard(tester);
@@ -183,7 +185,9 @@ void main() {
     await pumpWith(
       tester,
       dive: diveWithProfile(tanks: const [backGasWithVolume]),
-      settings: const AppSettings(sacUnit: SacUnit.litersPerMin),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+      ),
     );
 
     final card = sacCard(tester);
@@ -197,7 +201,9 @@ void main() {
     await pumpWith(
       tester,
       dive: diveWithProfile(tanks: const [backGasNoVolume]),
-      settings: const AppSettings(sacUnit: SacUnit.pressurePerMin),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.sac,
+      ),
     );
 
     expect(hintIn(sacCard(tester)), findsNothing);
@@ -207,7 +213,7 @@ void main() {
     final dive = diveWithProfile(tanks: const [backGasNoVolume]);
     final base = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(
-        const AppSettings(sacUnit: SacUnit.litersPerMin),
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
       ),
     );
     final router = GoRouter(
@@ -288,7 +294,9 @@ void main() {
     await pumpWith(
       tester,
       dive: diveWithProfile(tanks: const [backGasNoVolume, stageWithVolume]),
-      settings: const AppSettings(sacUnit: SacUnit.litersPerMin),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+      ),
     );
 
     final card = sacCard(tester);
@@ -305,7 +313,9 @@ void main() {
     await pumpWith(
       tester,
       dive: diveWithProfile(tanks: const [backGasWithVolume, decoNoVolume]),
-      settings: const AppSettings(sacUnit: SacUnit.litersPerMin),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+      ),
       segmentTankId: 'deco',
     );
 
@@ -313,5 +323,40 @@ void main() {
     expect(hintIn(card), findsOneWidget);
     expect(unitIn(card, 'bar'), findsWidgets);
     expect(unitIn(card, 'L'), findsNothing);
+  });
+
+  testWidgets('both mode shows the lane chip and RMV is a tap away', (
+    tester,
+  ) async {
+    // Display left at its default (both); the back gas carries a volume so
+    // the RMV lane can convert.
+    await pumpWith(
+      tester,
+      dive: diveWithProfile(tanks: const [backGasWithVolume]),
+      settings: const AppSettings(),
+    );
+
+    final chip = find.byType(SegmentedButton<GasConsumptionLane>);
+    expect(chip, findsOneWidget);
+    // Seeded from lanes.first: SAC, so the values carry the pressure unit.
+    expect(find.textContaining('bar/min'), findsWidgets);
+
+    await tester.ensureVisible(chip);
+    await tester.tap(find.descendant(of: chip, matching: find.text('RMV')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.textContaining('L/min'), findsWidgets);
+  });
+
+  testWidgets('single-lane modes show no chip', (tester) async {
+    await pumpWith(
+      tester,
+      dive: diveWithProfile(tanks: const [backGasWithVolume]),
+      settings: const AppSettings(
+        gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+      ),
+    );
+    expect(find.byType(SegmentedButton<GasConsumptionLane>), findsNothing);
   });
 }

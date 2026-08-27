@@ -64,7 +64,8 @@ void main() {
     });
 
     test('fields without icons return null', () {
-      expect(DiveField.sacRate.icon, isNull);
+      expect(DiveField.sac.icon, isNull);
+      expect(DiveField.rmv.icon, isNull);
       expect(DiveField.gradientFactorLow.icon, isNull);
     });
 
@@ -81,7 +82,8 @@ void main() {
       expect(summaryFields, contains(DiveField.diveNumber));
       expect(summaryFields, contains(DiveField.maxDepth));
       expect(summaryFields, isNot(contains(DiveField.buddy)));
-      expect(summaryFields, isNot(contains(DiveField.sacRate)));
+      expect(summaryFields, isNot(contains(DiveField.sac)));
+      expect(summaryFields, isNot(contains(DiveField.rmv)));
     });
   });
 
@@ -134,7 +136,8 @@ void main() {
       expect(DiveField.tankCount.displayName, equals('Tank Count'));
       expect(DiveField.startPressure.displayName, equals('Start Pressure'));
       expect(DiveField.endPressure.displayName, equals('End Pressure'));
-      expect(DiveField.sacRate.displayName, equals('SAC Rate'));
+      expect(DiveField.sac.displayName, equals('SAC (pressure rate)'));
+      expect(DiveField.rmv.displayName, equals('RMV (volume rate)'));
       expect(DiveField.gasConsumed.displayName, equals('Gas Consumed'));
     });
 
@@ -213,7 +216,8 @@ void main() {
       final nullIconFields = [
         DiveField.siteLatitude,
         DiveField.siteLongitude,
-        DiveField.sacRate,
+        DiveField.sac,
+        DiveField.rmv,
         DiveField.gasConsumed,
         DiveField.gradientFactorLow,
         DiveField.gradientFactorHigh,
@@ -289,12 +293,10 @@ void main() {
         isTrue,
       );
 
-      expect(DiveField.sacRate.displayName, equals('SAC Rate'));
-      expect(DiveField.sacRate.shortLabel, equals('SAC'));
-      expect(
-        DiveField.sacRate.displayName != DiveField.sacRate.shortLabel,
-        isTrue,
-      );
+      expect(DiveField.sac.displayName, equals('SAC (pressure rate)'));
+      expect(DiveField.sac.shortLabel, equals('SAC'));
+      expect(DiveField.rmv.displayName, equals('RMV (volume rate)'));
+      expect(DiveField.rmv.shortLabel, equals('RMV'));
 
       expect(DiveField.diveMaster.displayName, equals('Dive Master'));
       expect(DiveField.diveMaster.shortLabel, equals('DM'));
