@@ -22,6 +22,11 @@ import 'package:submersion/features/universal_import/presentation/providers/impo
 /// Android (SAF tree URI), [IosDirectoryScanner] on iOS (security-scoped
 /// directory), and [DesktopDirectoryScanner] on all other platforms
 /// (dart:io POSIX path).
+// no-tick: a session controller, not a cached query. Its one repository read,
+// getMediaForDive, runs inside the alreadyLinkedBasenames callback at link
+// time, so it re-reads on every call and no result is held or rendered.
+// Invalidating would rebuild the controller and discard the seeded imageRefs
+// mid-flow, which is what ImportSummaryStep's one-time seed guard protects.
 final importPhotoLinkControllerProvider =
     StateNotifierProvider<ImportPhotoLinkController, ImportPhotoLinkState>((
       ref,
