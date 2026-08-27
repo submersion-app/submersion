@@ -89,20 +89,42 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     return _readoutLookups = DiveReadoutLookups(data);
   }
 
-  void _initZ(Dive3dSceneData data) {
-    if (_zInitialized) return;
-    _zInitialized = true;
-    final z = data.zAxisMetrics.contains(SceneMetric.temperature)
-        ? SceneMetric.temperature
-        : null;
-    _zMetric = z;
-    if (_colorFollowsZ) _colorMetric = z ?? SceneMetric.depth;
+  /// Picks the initial Z metric, then keeps the selection honest on every
+  /// later build: the active source can change under us and take a metric's
+  /// samples with it, and the axis provider would quietly fall back to a
+  /// flat path while the chip still named the old metric. Runs during build,
+  /// so it assigns fields the same build then reads (never setState).
+  void _syncZ(Dive3dSceneData data) {
+    final available = data.zAxisMetrics;
+    if (!_zInitialized) {
+      _zInitialized = true;
+      _zMetric = available.contains(SceneMetric.temperature)
+          ? SceneMetric.temperature
+          : null;
+      if (_colorFollowsZ) _colorMetric = _zMetric ?? SceneMetric.depth;
+      return;
+    }
+    final z = _zMetric;
+    if (z != null && !available.contains(z)) {
+      _zMetric = null;
+      if (_colorFollowsZ) _colorMetric = SceneMetric.depth;
+    }
+    if (!data.availableMetrics.contains(_colorMetric)) {
+      _colorMetric = SceneMetric.depth;
+    }
   }
+
+  /// A pick is anchored in the scene it was taken from, and the chrome draws
+  /// a ring for any non-null pick. Anything that re-maps the scene or swaps
+  /// the payload type has to drop it, or the ring lingers over coordinates
+  /// that no longer mean anything.
+  void _clearHover() => _hoverPick.value = null;
 
   void _selectZ(SceneMetric? z) {
     setState(() {
       _zMetric = z;
       if (_colorFollowsZ) _colorMetric = z ?? SceneMetric.depth;
+      _clearHover();
     });
   }
 
@@ -157,7 +179,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     if (sceneData == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    _initZ(sceneData);
+    _syncZ(sceneData);
     final scene = ref
         .watch(
           dive3dGeometryProvider((
@@ -400,7 +422,10 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
         ),
       ],
       selected: {_sceneKind},
-      onSelectionChanged: (s) => setState(() => _sceneKind = s.first),
+      onSelectionChanged: (s) => setState(() {
+        _sceneKind = s.first;
+        _clearHover();
+      }),
       showSelectedIcon: false,
     );
   }
@@ -445,6 +470,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
             onSelected: (_) => setState(() {
               _colorMetric = metric;
               _colorFollowsZ = false;
+              _clearHover();
             }),
           ),
         PopupMenuButton<SceneOverlay>(

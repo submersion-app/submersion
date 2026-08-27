@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_3d/application/compare_providers.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.da
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_hover_tooltip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
+import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
@@ -433,5 +435,87 @@ void main() {
     await tester.pump();
     expect(find.byType(DiveHoverTooltip), findsOneWidget);
     expect(find.text('1:40'), findsOneWidget); // sample 1 of 2 = t = 100 s
+  });
+
+  testWidgets('a Z metric that loses its samples falls back to None', (
+    tester,
+  ) async {
+    // The active source can change under the page and take a metric's
+    // samples with it; the chip must not keep naming a metric the scene no
+    // longer plots.
+    final source = StateProvider<Dive3dSceneData>((ref) => readoutSceneData());
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => ref.watch(source)),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Z axis: Temp'), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Dive3dPage)),
+    );
+    final noTemp = Dive3dSceneData(
+      diveId: 'd1',
+      times: readoutSceneData().times,
+      depths: readoutSceneData().depths,
+      temperatures: const [null, null],
+      ascentRates: const [null, null],
+      ppO2s: const [null, null],
+      cnss: const [null, null],
+      heartRates: const [null, null],
+      ceilings: const [null, null],
+      ttss: const [null, null],
+      tankPressures: const {},
+      gasSwitches: const [],
+      bookmarkEvents: const [],
+      photos: const [],
+      durationSeconds: readoutSceneData().durationSeconds,
+      maxDepthMeters: readoutSceneData().maxDepthMeters,
+    );
+    container.read(source.notifier).state = noTemp;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Z axis: None'), findsOneWidget);
+    expect(find.text('Z axis: Temp'), findsNothing);
+  });
+
+  testWidgets('changing the Z metric drops a stale hover pick', (tester) async {
+    await pumpPage(tester);
+    final viewportFinder = find.byType(Dive3dInteractiveViewport);
+    final viewport = tester.widget<Dive3dInteractiveViewport>(viewportFinder);
+    final path = viewport.scene.scrubPath!;
+    final projector = SceneProjector(
+      size: tester.getSize(viewportFinder),
+      bounds: viewport.scene.bounds,
+    );
+    final target =
+        tester.getTopLeft(viewportFinder) +
+        projector.project(path.xs[1], path.ys[1], path.zs![1]);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(target);
+    await tester.pump();
+    expect(find.byType(DiveHoverTooltip), findsOneWidget);
+
+    // Switching Z re-maps the scene, so the pick's anchor is meaningless.
+    await tester.tap(find.byKey(const ValueKey('dive3dZAxisMenu')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('None'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(DiveHoverTooltip), findsNothing);
   });
 }
