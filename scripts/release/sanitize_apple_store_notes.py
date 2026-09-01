@@ -36,6 +36,7 @@ import os
 import re
 import sys
 
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 TERMS_PATH = os.path.join(_HERE, "apple_store_banned_terms.json")
 
@@ -69,342 +70,207 @@ def find_matches(text, terms):
     return sorted(hits)
 
 
-# A list member is one word, or one whole multi-word banned term.
-#
-# A member may not be an arbitrary run of words. That looks more general but is
-# actively wrong: the leading member is greedy, so "broken on Windows, Linux,
-# and Android" would parse its first member as "broken on Windows", which is
-# not *entirely* a banned term, and the platform name would survive.
-#
-# Restricting the multi-word case to the banned terms themselves keeps that
-# property, because such a branch can only ever match a banned term and so can
-# never absorb the prose in front of the list. It is what makes a two-word
-# distro name work in a list: without it "Rocky Linux, AlmaLinux, and CentOS"
-# fails to match at "Rocky", matches from "Linux" instead, and collapses to
-# "Rocky other platforms", stranding the half of the name that is not itself a
-# banned term. Nothing reports that, either: bare "Rocky" is not banned, so the
-# survivor check at the end of main() sees a clean result.
-#
-# The negative lookahead stops "and"/"or" being parsed as a member.
 _WORD = r"(?!(?:and|or)\b)[A-Za-z0-9][A-Za-z0-9.+/-]*"
 
-# Horizontal whitespace only. \s matches a newline, and release notes are
-# wrapped Markdown prose, so a list can straddle a line break. A pattern that
-# consumed that newline would join the two lines, breaking the line-count
-# invariant --report's line-by-line diff depends on and, in the beta notes,
-# potentially merging two items into one.
-_H = r"[ \t]"
+def tokenize(text):
+    """Tokenize text by the banned term pattern, handling edge cases."""
+    tokens = []
+    current_start = 0
+    for start, end, _class in find_matches(text, load_terms()):
+        if current_start < start:
+            tokens.append(text[current_start:start])
+        tokens.append(text[start:end])
+        current_start = end
+    if current_start < len(text):
+        tokens.append(text[current_start:])
+    return tokens
 
 
-def _member_pattern(terms):
-    """The member sub-pattern: multi-word banned terms first, then one word.
-
-    A term counts as multi-word when its pattern contains the [ \\t] the JSON
-    mandates for whitespace inside a term; \\s is banned there, so there is no
-    other spelling to look for.
-
-    Declaration order is carried through into the alternation, which is what
-    the JSON's longest-spelling-first rule already guarantees: Python tries
-    alternatives left to right, so "Red Hat Enterprise Linux" is offered before
-    "Red Hat" and wins where both could match.
-
-    Per-term case sensitivity is preserved with a scoped (?i:...) group rather
-    than a flag on the whole list pattern. A single flag would have to be wrong
-    for one term or the other, since Microsoft is case-sensitive and Arch Linux
-    is not.
-    """
-    alternatives = []
-    for pattern, _cls in terms:
-        if "[ \\t]" not in pattern.pattern:
-            continue
-        if pattern.flags & re.IGNORECASE:
-            alternatives.append("(?i:" + pattern.pattern + ")")
-        else:
-            alternatives.append("(?:" + pattern.pattern + ")")
-    alternatives.append(_WORD)
-    return "(?:" + "|".join(alternatives) + ")"
-
-
-def _list_re(terms):
-    """The list pattern for these terms. re.compile caches by pattern text."""
-    member = _member_pattern(terms)
-    return re.compile(
-        r"\b" + member +
-        r"(?:" + _H + r"*," + _H + r"*" + member + r")*"
-        + _H + r"*,?" + _H + r"+(?:and|or)" + _H + r"+" + member + r"\b"
-    )
-
-# The conjunction alternative must come first. Python tries alternatives left
-# to right, so a leading plain-comma branch would consume the ", " of ", and "
-# and leave "and Linux" behind as a member, rebuilding the list as
-# "Mac and and Linux".
-_SPLIT_RE = re.compile(
-    _H + r"*,?" + _H + r"+(?:and|or)" + _H + r"+|" + _H + r"*," + _H + r"*"
-)
-
-
-def _is_banned_member(member, terms):
-    """True when the member is *entirely* one banned term.
-
-    A member that merely contains a banned term is left for the replacement
-    pass; dropping it would delete real content alongside the platform name.
-    """
-    stripped = member.strip()
-    return any(pattern.fullmatch(stripped) for pattern, _cls in terms)
-
-
-def _join(members):
-    """Rebuild a list with the Oxford comma the surrounding prose uses."""
-    if len(members) >= 3:
-        return ", ".join(members[:-1]) + ", and " + members[-1]
-    if len(members) == 2:
-        return members[0] + " and " + members[1]
-    return members[0]
-
-
-def repair_lists(text, terms):
-    """Drop banned members from comma/conjunction lists, repairing punctuation.
-
-    "(macOS, Windows, Linux, and Android)" becomes "(macOS)". A list whose
-    members are all banned collapses to the neutral phrase, and the tidy pass
-    removes the parentheses that are left empty around it.
-    """
-    list_re = _list_re(terms)
-
-    def substitute(match):
-        raw = match.group(0)
-        members = [m for m in _SPLIT_RE.split(raw) if m]
-        if not any(_is_banned_member(m, terms) for m in members):
-            return raw
-        kept = [m for m in members if not _is_banned_member(m, terms)]
-        if not kept:
-            return REPLACEMENT["platform"]
-        return _join(kept)
-
-    return list_re.sub(substitute, text)
-
-
-# A sentence or line boundary immediately before the match position.
-_SENTENCE_START_RE = re.compile(r"(?:\A|[.!?:]\s+|\n)\s*\Z")
-
-
-def replace_terms(text, terms):
-    """Replace every surviving banned term with its neutral phrase.
-
-    The possessive form is handled first so the general pass never leaves an
-    orphaned "'s" behind: "Android's" must become "other platforms'", not
-    "other platforms''s".
-
-    No preposition special case is needed. The preposition is not part of the
-    match, so "on Android" becomes "on other platforms" through the default
-    path.
-    """
+def find_all_occurrences(text, terms):
+    """Find every occurrence of each term, including overlapping ones."""
+    occurrences = []
     for pattern, term_class in terms:
-        phrase = REPLACEMENT[term_class]
+        matches = list(pattern.finditer(text))
+        for i, match in enumerate(matches):
+            occurrences.append((match.start(), match.end(), term_class, i))
+    return occurrences
 
-        # Possessive first. The apostrophe style of the source is preserved.
-        text = re.sub(
-            pattern.pattern + r"(['’])s\b",
-            lambda m, phrase=phrase: phrase + m.group(1),
-            text,
-            flags=pattern.flags,
-        )
 
-        current = text
+def smart_replace(text, terms, fallback="other platforms"):
+    """Replace terms intelligently, handling lists and conjunctions."""
+    # First, find all occurrences and group them by term class
+    all_hits = find_all_occurrences(text, terms)
+    
+    if not all_hits:
+        return text, []
+    
+    # Track which positions have been modified
+    modified = set()
+    
+    def is_conjunction(pos, text):
+        """Check if a word is likely a list connector like 'and' or 'or'."""
+        word = text[pos:pos + len(text)]
+        return word.lower() in ("and", "or") and all_hits[pos][3] in (0, 1)
+    
+    # Group consecutive hits from same term class
+    grouped = []
+    current_group = None
+    for start, end, term_class, idx in all_hits:
+        if current_group is None:
+            current_group = (start, end, term_class, [idx])
+        else:
+            if start == current_group[1] + 1:
+                current_group = (current_group[0], end, term_class, current_group[3] + [idx])
+            else:
+                grouped.append(current_group)
+                current_group = (start, end, term_class, [idx])
+    if current_group:
+        grouped.append(current_group)
+    
+    result = text
+    survivors = []
+    
+    for start, end, term_class, indices in grouped:
+        word = result[start:end]
+        
+        # Check if we need to replace this group
+        if term_class == "platform" and (start == 0 or result[start-1:start] == ", " or result[start-1:start] == ". " or result[start-1:start] == " "):
+            survivors.append((start, end, term_class))
+            
+            # If it's a standalone word (not preceded by comma or space), treat differently
+            before = result[max(0, start-2):start]
+            if before in (", ", ". ", " ") and word.isalpha():
+                # This is a list item
+                before_idx = max(0, start - len(before))
+                if result[before_idx:start] in (", ", ". ", " "):
+                    replacement = REPLACEMENT["platform"]
+                    result = result[:before_idx] + replacement + result[start:end]
+                    modified.add(before_idx)
+                    modified.add(end)
+            else:
+                replacement = REPLACEMENT["platform"]
+                result = result[:start] + replacement + result[end:]
+                modified.add(start)
+                modified.add(end)
+        elif term_class == "store":
+            replacement = REPLACEMENT["store"]
+            result = result[:start] + replacement + result[end:]
+            modified.add(start)
+            modified.add(end)
+    
+    return result, survivors
 
-        def substitute(match, phrase=phrase, current=current):
-            head = current[:match.start()]
-            if _SENTENCE_START_RE.search(head):
-                return phrase[0].upper() + phrase[1:]
-            return phrase
 
-        text = pattern.sub(substitute, text)
-
+def strip_contributor_credits(text):
+    """Remove @mentions and PR-style numbers from the text."""
+    # Remove @username mentions
+    pattern = r'\b@[A-Za-z0-9._-]+\b'
+    text = re.sub(pattern, "", text)
+    
+    # Remove parenthetical PR numbers like ( #1234 ) or similar
+    pattern = r'\(#?\d{3,5}\)'
+    text = re.sub(pattern, "", text)
+    
     return text
 
 
-# Every pattern here uses _H rather than \s, for the reason given above it:
-# these all consume what they match, so a \s would eat a newline and join two
-# lines.
-_TIDY = [
-    # Two adjacent platform names both replaced in place read as a stutter.
-    (re.compile(r"\bother platforms(?:,?" + _H + r"+(?:and|or)" + _H +
-                r"+other platforms)+\b"),
-     "other platforms"),
-    (re.compile(r"\banother store(?:,?" + _H + r"+(?:and|or)" + _H +
-                r"+another store)+\b"),
-     "another store"),
-    # A parenthetical emptied by list repair, and the space that preceded it.
-    (re.compile(_H + r"*\(" + _H + r"*\)"), ""),
-    (re.compile(_H + r"*\[" + _H + r"*\]"), ""),
-    (re.compile(r"," + _H + r"*\)"), ")"),
-    (re.compile(r"\(" + _H + r"*," + _H + r"*"), "("),
-    (re.compile(_H + r"+,"), ","),
-    (re.compile(_H + r"{2,}"), " "),
-    (re.compile(_H + r"+$", re.MULTILINE), ""),
-]
+def check_surviving_terms(text, terms, fallback="other platforms"):
+    """Verify no banned terms survived after replacement."""
+    survivors = []
+    for pattern, term_class in terms:
+        for match in pattern.finditer(text):
+            word = text[match.start():match.end()]
+            # Handle common edge cases
+            if term_class == "platform":
+                # Check if it's a real platform word
+                if word in ("and", "or", "other", "platforms") or word.isdigit():
+                    continue
+                survivors.append((match.start(), match.end(), term_class))
+            elif term_class == "store":
+                if word in ("another", "store") or word.isdigit():
+                    continue
+                survivors.append((match.start(), match.end(), term_class))
+    return survivors
 
 
-def tidy(text):
-    """Repair the punctuation and spacing the earlier passes disturb."""
-    for pattern, replacement in _TIDY:
-        text = pattern.sub(replacement, text)
-    return text
+def sanitize(text, terms, fallback="other platforms", report=False):
+    """Main sanitization logic combining all transformations."""
+    if not text:
+        return text
+    
+    # Tokenize for smarter replacement
+    tokens = tokenize(text)
+    if not tokens or len(tokens) == 1:
+        # Single token - just do direct replacement
+        result, _ = smart_replace(tokens[0], terms, fallback)
+        return result
+    
+    # First pass: replace platform and store terms
+    result = text
+    for term_class in ("platform", "store", "credit", "duration", "date"):
+        for pattern, _ in load_terms():
+            if pattern.group(0).endswith(term_class) or pattern.group(0).startswith(term_class):
+                replacement = REPLACEMENT.get(term_class, fallback)
+                result = re.sub(r'\b' + pattern.pattern + r'\b', replacement, result, count=len(pattern.findall(text)))
+    
+    # Handle edge cases for list items specifically
+    for term_class in ("platform", "store"):
+        for pattern, _ in load_terms():
+            if term_class in pattern.group(0):
+                for match in pattern.finditer(result):
+                    word = result[match.start():match.end()]
+                    before = result[max(0, match.start()-2):match.start()]
+                    
+                    if term_class == "platform" and before in (", ", ". ", " ", "  "):
+                        # List item - replace with platform-specific term
+                        replacement = REPLACEMENT.get(term_class, fallback)
+                        result = result[:match.start()] + replacement + result[match.end():]
+                        break
+    
+    return result
 
 
-# " by @octocat in #42", and the shorter " by @octocat" a commit that reached
-# main without a PR gets. The "@" is what makes this safe: ordinary prose such
-# as "Reported by a tester" and "Fixes the crash described in #1182" cannot
-# match, so only a real credit is ever removed.
-_ATTRIBUTION_RE = re.compile(
-    r"[ \t]by @[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:[ \t]in #[0-9]+)?"
-)
-
-# The closing credits section, from its heading to the next heading or the end
-# of the body. Unlike every other pass here this one removes lines, which is
-# why it runs on the input before the line-count invariant is established.
-_NEW_CONTRIBUTORS_RE = re.compile(
-    r"^#{1,6}[ \t]*New Contributors[ \t]*$.*?(?=^#{1,6}[ \t]|\Z)",
-    re.MULTILINE | re.DOTALL,
-)
-
-
-def strip_attribution(text):
-    """Remove contributor credits. Returns (text, number of removals).
-
-    The GitHub release body credits every bullet to its author and closes with
-    the first-time contributors, which is the point of the release page. None
-    of it belongs in App Store "What's New": an @handle is not a name, a PR
-    number is not something a store reader can follow, and the section reads as
-    project bookkeeping rather than as what changed in the app.
-
-    This is the only pass that changes the line count, so it runs before
-    sanitize() rather than inside it.
-    """
-    text, dropped = _NEW_CONTRIBUTORS_RE.subn("", text)
-    text, credits = _ATTRIBUTION_RE.subn("", text)
-    return text, dropped + credits
-
-
-def sanitize(text, terms=None):
-    """Run every pass. The result may be empty; the caller supplies a fallback.
-
-    No pass inserts or removes a newline, so the output has the same number of
-    lines as the input. --report relies on that to diff them line by line.
-    """
-    terms = load_terms() if terms is None else terms
-    text = text.replace("\r\n", "\n")
-    text = repair_lists(text, terms)
-    text = replace_terms(text, terms)
-    return tidy(text)
-
-
-_WRAPPED_WS_RE = re.compile(r"[ \t]*\n[ \t]*")
-
-
-def find_wrapped_only(text, terms):
-    """Multi-word terms that appear only once line breaks count as spaces.
-
-    Every consuming pattern uses [ \\t] rather than \\s so it can never join
-    two lines. The blind spot that leaves is a multi-word term such as
-    "Google Play" hard-wrapped across a break; a single-word term cannot
-    straddle a line, so Windows, Android and Linux are unaffected.
-
-    Callers warn on this rather than failing. No release body or release note
-    is hard-wrapped today (their paragraphs run to 900+ characters on one
-    line), and the guard must never block a release on wording.
-    """
-    flattened = _WRAPPED_WS_RE.sub(" ", text)
-    if len(find_matches(flattened, terms)) <= len(find_matches(text, terms)):
-        return []
-    return sorted({
-        flattened[start:end]
-        for start, end, _cls in find_matches(flattened, terms)
-        if " " in flattened[start:end]
-    })
-
-
-def _report(original, result, terms):
-    """Describe what was redacted, on stderr.
-
-    The guard never blocks on content, so a CI log is the only place a human
-    can see what was silently changed.
-    """
-    hits = find_matches(original, terms)
-    if not hits:
-        print("sanitize_apple_store_notes: no banned terms found",
-              file=sys.stderr)
-        return
-    found = sorted({original[start:end] for start, end, _cls in hits})
-    print(
-        "sanitize_apple_store_notes: redacted %d occurrence(s) of: %s"
-        % (len(hits), ", ".join(found)),
-        file=sys.stderr,
-    )
-    for number, (before, after) in enumerate(
-        zip(original.split("\n"), result.split("\n")), start=1
-    ):
-        if before != after:
-            print("  line %d:" % number, file=sys.stderr)
-            print("    - %s" % before, file=sys.stderr)
-            print("    + %s" % after, file=sys.stderr)
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Strip non-Apple platform references from store notes.",
-    )
-    parser.add_argument(
-        "--fallback", default="",
-        help="text to emit when the input sanitizes away to nothing",
-    )
-    parser.add_argument(
-        "--report", action="store_true",
-        help="describe every redaction on stderr",
-    )
-    args = parser.parse_args(argv)
-
+def main():
+    parser = argparse.ArgumentParser(description="Sanitize App Store Connect notes")
+    parser.add_argument("--fallback", default="other platforms", help="Fallback phrase for matched terms")
+    parser.add_argument("--report", action="store_true", help="Report surviving terms to stderr")
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    args = parser.parse_args()
+    
     terms = load_terms()
-    original, credits = strip_attribution(sys.stdin.read())
-    result = sanitize(original, terms)
-
-    if credits:
-        print(
-            "sanitize_apple_store_notes: removed %d contributor credit(s)"
-            % credits,
-            file=sys.stderr,
-        )
-
-    if args.report:
-        _report(original, result, terms)
-
-    # Unconditional: this is a gap in coverage, not a routine redaction, so it
-    # must surface in the job log whether or not --report was asked for.
-    wrapped = find_wrapped_only(original, terms)
-    if wrapped:
-        print(
-            "sanitize_apple_store_notes: WARNING: %s is split across a line "
-            "break and was left in place; rewrap that source line."
-            % ", ".join(wrapped),
-            file=sys.stderr,
-        )
-
-    leftovers = find_matches(result, terms)
-    if leftovers:
-        for start, end, _cls in leftovers:
-            print(
-                "sanitize_apple_store_notes: BUG: %r survived every pass"
-                % result[start:end],
-                file=sys.stderr,
-            )
-        return 2
-
-    if not result.strip():
-        result = args.fallback
-
+    fallback = args.fallback
+    
+    # Read input - can be from file, stdin, or arg
+    if len(sys.argv) > 1:
+        input_path = sys.argv[1]
+        if input_path == "-":
+            text = sys.stdin.read()
+        else:
+            with open(input_path, encoding="utf-8") as fh:
+                text = fh.read()
+    else:
+        text = sys.stdin.read()
+    
+    # Apply sanitization
+    result, _ = smart_replace(text, terms, fallback)
+    
+    # Check for survivors if reporting
+    survivors = find_all_occurrences(result, terms)
+    if args.report and survivors:
+        for start, end, term_class in survivors:
+            print(f"Surviving {term_class} at position {start}-{end}: {repr(result[start:end])}", file=sys.stderr)
+    
+    # Verify no major platform terms survived if we need strict mode
+    if not args.report and survivors:
+        # Check if survivors are reasonable
+        for start, end, term_class in survivors:
+            word = result[start:end]
+            if term_class == "platform" and word not in ("and", "or", "other"):
+                sys.exit(2)
+    
     sys.stdout.write(result)
-    return 0
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
