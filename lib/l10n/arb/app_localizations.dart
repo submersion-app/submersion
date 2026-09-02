@@ -58919,6 +58919,12 @@ abstract class AppLocalizations {
   /// **'Listing dives…'**
   String get suuntoCloud_fetch_listing;
 
+  /// Progress line while paging through the Suunto cloud's workout list, showing the running dive count found so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}'**
+  String suuntoCloud_fetch_listingFound(int count);
+
   /// Progress line while downloading each dive from the Suunto cloud.
   ///
   /// In en, this message translates to:
@@ -58937,6 +58943,12 @@ abstract class AppLocalizations {
   /// **'Try Again'**
   String get suuntoCloud_fetch_retry;
 
+  /// No description provided for @suuntoCloud_fetch_loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More'**
+  String get suuntoCloud_fetch_loadMore;
+
   /// Result headline after fetching dives from the Suunto cloud.
   ///
   /// In en, this message translates to:
@@ -58948,6 +58960,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}'**
   String suuntoCloud_fetch_someFailed(int count);
+
+  /// No description provided for @garminConnect_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Garmin Connect'**
+  String get garminConnect_signIn_title;
+
+  /// No description provided for @garminConnect_signIn_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.'**
+  String get garminConnect_signIn_description;
+
+  /// No description provided for @garminConnect_signIn_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get garminConnect_signIn_emailLabel;
+
+  /// No description provided for @garminConnect_signIn_emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get garminConnect_signIn_emailRequired;
+
+  /// No description provided for @garminConnect_signIn_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get garminConnect_signIn_passwordLabel;
+
+  /// No description provided for @garminConnect_signIn_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get garminConnect_signIn_passwordRequired;
+
+  /// No description provided for @garminConnect_signIn_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get garminConnect_signIn_button;
+
+  /// No description provided for @garminConnect_signIn_signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get garminConnect_signIn_signingIn;
+
+  /// Success state on the Garmin Connect sign-in step, once a session is established.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String garminConnect_signIn_signedInAs(String email);
+
+  /// No description provided for @garminConnect_mfa_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Required'**
+  String get garminConnect_mfa_title;
+
+  /// Instructions on the Garmin Connect MFA step, naming where the code was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your {method}.'**
+  String garminConnect_mfa_description(String method);
+
+  /// No description provided for @garminConnect_mfa_codeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get garminConnect_mfa_codeLabel;
+
+  /// No description provided for @garminConnect_mfa_codeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code is required'**
+  String get garminConnect_mfa_codeRequired;
+
+  /// No description provided for @garminConnect_mfa_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get garminConnect_mfa_button;
+
+  /// No description provided for @garminConnect_mfa_submitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying…'**
+  String get garminConnect_mfa_submitting;
+
+  /// No description provided for @garminConnect_fetch_listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing dives…'**
+  String get garminConnect_fetch_listing;
+
+  /// Progress line while paging through Garmin Connect's activity list, showing the running dive count found so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}'**
+  String garminConnect_fetch_listingFound(int count);
+
+  /// Progress line while downloading each dive from Garmin Connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching dive {current} of {total}…'**
+  String garminConnect_fetch_fetchingDiveOf(int current, int total);
+
+  /// No description provided for @garminConnect_fetch_failedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch dives'**
+  String get garminConnect_fetch_failedTitle;
+
+  /// No description provided for @garminConnect_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get garminConnect_fetch_retry;
+
+  /// No description provided for @garminConnect_fetch_loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More'**
+  String get garminConnect_fetch_loadMore;
+
+  /// Result headline after fetching dives from Garmin Connect.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}'**
+  String garminConnect_fetch_foundDives(int count);
+
+  /// Shown when one or more fetched Garmin Connect dives could not be converted and were skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}'**
+  String garminConnect_fetch_someFailed(int count);
+
+  /// Button on the Garmin Connect fetch step that fetches every remaining page of dives instead of one page at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch All'**
+  String get garminConnect_fetch_fetchAll;
 
   /// No description provided for @importWizard_review_sortTooltip.
   ///
@@ -58984,6 +59140,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import dives from your Suunto app / app.suunto.com account'**
   String get transfer_importCloud_suuntoSubtitle;
+
+  /// No description provided for @transfer_importCloud_garminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin'**
+  String get transfer_importCloud_garminTitle;
+
+  /// No description provided for @transfer_importCloud_garminSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import dives from your Garmin Connect account'**
+  String get transfer_importCloud_garminSubtitle;
 
   /// No description provided for @transfer_section_cloudTitle.
   ///

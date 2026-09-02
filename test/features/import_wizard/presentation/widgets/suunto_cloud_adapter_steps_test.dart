@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -61,10 +62,15 @@ class _FakeCloudClient extends SuuntoCloudClient {
   String? loggedInPassword;
   final List<String> fetchedKeys = [];
 
+  /// When set, [login] awaits this before resolving, so a test can observe
+  /// the in-flight "signing in" state.
+  Completer<void>? gate;
+
   @override
   Future<String> login(String email, String password) async {
     loggedInEmail = email;
     loggedInPassword = password;
+    if (gate != null) await gate!.future;
     final error = loginError;
     if (error != null) throw error;
     sessionKey = 'session-for-$email';
@@ -74,11 +80,48 @@ class _FakeCloudClient extends SuuntoCloudClient {
   @override
   Future<bool> verifySession() async => sessionValid;
 
+  /// The pages [fetchDivePage] serves, in order. Empty pages are dropped:
+  /// the real client walks past dive-less listing pages internally, so a
+  /// page it hands back is either non-empty or the end of the history.
+  List<List<SuuntoWorkoutSummary>> get pages =>
+      [workouts].where((page) => page.isNotEmpty).toList();
+
+  /// Every `offset` [fetchDivePage] has been asked for, so a test can assert
+  /// a retry re-requests the page that failed rather than skipping it.
+  final List<int> requestedPageOffsets = [];
+
+  /// `offset` is used as a plain page index here. The fake owns both sides
+  /// of the cursor, so counting pages reads more clearly than mimicking the
+  /// server's item offsets.
   @override
-  Future<List<SuuntoWorkoutSummary>> listDives({int sinceMs = 0}) async {
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 100,
+  }) async {
+    requestedPageOffsets.add(offset);
     final error = listError;
     if (error != null) throw error;
-    return workouts;
+    return _pageAt(offset);
+  }
+
+  SuuntoDivePage _pageAt(int offset) {
+    final all = pages;
+    if (offset >= all.length) {
+      return SuuntoDivePage(
+        dives: const [],
+        nextOffset: offset,
+        hasMore: false,
+      );
+    }
+    // Always reports "there may be more", the way a full listing page does.
+    // The end of the history is only learned from the empty page past the
+    // last one, which is what the real client does too.
+    return SuuntoDivePage(
+      dives: all[offset],
+      nextOffset: offset + 1,
+      hasMore: true,
+    );
   }
 
   @override
@@ -88,6 +131,100 @@ class _FakeCloudClient extends SuuntoCloudClient {
       throw const SuuntoApiException('fetch blew up');
     }
     return Uint8List.fromList(utf8.encode(jsonEncode(smlByKey[key])));
+  }
+}
+
+/// Yields its dives across two separate pages instead of one, the shape a
+/// large account's paginated workout list has.
+class _MultiPageClient extends _FakeCloudClient {
+  _MultiPageClient({
+    required List<SuuntoWorkoutSummary> page1,
+    required this.page2,
+    required super.smlByKey,
+  }) : super(workouts: page1);
+
+  final List<SuuntoWorkoutSummary> page2;
+
+  /// When set, held open right before serving [page2] -- lets a test
+  /// observe the "Load More" in-flight state instead of it resolving
+  /// before the test can pump a frame to see it.
+  Completer<void>? secondPageGate;
+
+  @override
+  List<List<SuuntoWorkoutSummary>> get pages =>
+      [workouts, page2].where((page) => page.isNotEmpty).toList();
+
+  @override
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 100,
+  }) async {
+    if (offset > 0 && secondPageGate != null) await secondPageGate!.future;
+    return super.fetchDivePage(
+      sinceMs: sinceMs,
+      offset: offset,
+      pageSize: pageSize,
+    );
+  }
+}
+
+/// Succeeds on the first page, then throws when asked for a second one --
+/// the shape a transient network error has when the diver taps Load More.
+class _FailingSecondPageClient extends _FakeCloudClient {
+  _FailingSecondPageClient({
+    required List<SuuntoWorkoutSummary> page1,
+    required super.smlByKey,
+    Object? error,
+  }) : error = error ?? const SuuntoApiException('page 2 blew up'),
+       super(workouts: page1);
+
+  final Object error;
+
+  @override
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 100,
+  }) async {
+    requestedPageOffsets.add(offset);
+    if (offset > 0) throw error;
+    return _pageAt(offset);
+  }
+}
+
+/// Fails the *second* page exactly once, then serves it -- the shape a
+/// transient network error has when the diver taps Load More and then tries
+/// again. The real client's page cursor has to survive the throw for the
+/// retry to reach the same page rather than falling off the end of the
+/// history.
+class _RecoveringSecondPageClient extends _FakeCloudClient {
+  _RecoveringSecondPageClient({
+    required List<SuuntoWorkoutSummary> page1,
+    required this.page2,
+    required super.smlByKey,
+  }) : super(workouts: page1);
+
+  final List<SuuntoWorkoutSummary> page2;
+
+  bool _hasFailed = false;
+
+  @override
+  List<List<SuuntoWorkoutSummary>> get pages =>
+      [workouts, page2].where((page) => page.isNotEmpty).toList();
+
+  @override
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 100,
+  }) async {
+    requestedPageOffsets.add(offset);
+    if (offset > 0 && !_hasFailed) {
+      _hasFailed = true;
+      throw const SuuntoApiException('page 2 blew up');
+    }
+    return _pageAt(offset);
   }
 }
 
@@ -330,6 +467,56 @@ void main() {
       expect(find.textContaining('socket died'), findsOneWidget);
     });
 
+    testWidgets('submits the sign-in form on keyboard done from the password '
+        'field', (tester) async {
+      final store = _FakeSessionStore();
+      final client = _FakeCloudClient();
+
+      await tester.pumpWidget(
+        _host(
+          store: store,
+          clientFactory: () => client,
+          child: SuuntoCloudSignInStep(onSignedIn: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'a@b.c');
+      await tester.enterText(find.byType(TextFormField).last, 'pw');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(client.loggedInEmail, 'a@b.c');
+      expect(find.text('Signed in as a@b.c'), findsOneWidget);
+    });
+
+    testWidgets('shows a signing-in spinner while login is in flight', (
+      tester,
+    ) async {
+      final client = _FakeCloudClient()..gate = Completer<void>();
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: () => client,
+          child: SuuntoCloudSignInStep(onSignedIn: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'a@b.c');
+      await tester.enterText(find.byType(TextFormField).last, 'pw');
+      await tester.tap(find.text('Sign In'));
+      await tester.pump();
+
+      expect(find.text('Signing in…'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      client.gate!.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Signed in as a@b.c'), findsOneWidget);
+    });
+
     testWidgets('toggles password visibility', (tester) async {
       await tester.pumpWidget(
         _host(
@@ -422,13 +609,214 @@ void main() {
       expect(find.text('No dives found'), findsOneWidget);
       expect(find.text('Could not fetch dives'), findsNothing);
     });
+
+    testWidgets(
+      'stops after the first page and lets Load More fetch the rest',
+      (tester) async {
+        final client = _MultiPageClient(
+          page1: [_workout('w1')],
+          page2: [_workout('w2')],
+          smlByKey: {'w1': _diveJson(), 'w2': _diveJson()},
+        );
+        List<SuuntoParsedDive>? fetched;
+        final container = ProviderContainer(
+          overrides: [
+            suuntoSessionStoreProvider.overrideWithValue(_FakeSessionStore()),
+            suuntoCloudClientFactoryProvider.overrideWithValue(
+              _FakeCloudClient.new,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SuuntoCloudFetchStep(
+                  client: client,
+                  onDivesFetched: (dives) => fetched = dives,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Only the newest page has been fetched; the diver can already
+        // advance without waiting for the rest.
+        expect(client.fetchedKeys, ['w1']);
+        expect(fetched, hasLength(1));
+        expect(find.text('Found 1 dive'), findsOneWidget);
+        expect(container.read(suuntoCloudDivesFetchedProvider), isTrue);
+        expect(find.text('Load More'), findsOneWidget);
+
+        await tester.tap(find.text('Load More'));
+        await tester.pumpAndSettle();
+
+        expect(client.fetchedKeys, ['w1', 'w2']);
+        expect(fetched, hasLength(2));
+        expect(find.text('Found 2 dives'), findsOneWidget);
+        // Exhaustion isn't known until an attempt to load a further page
+        // comes back empty, so the button is still offered here...
+        expect(find.text('Load More'), findsOneWidget);
+
+        await tester.tap(find.text('Load More'));
+        await tester.pumpAndSettle();
+
+        // ...and only disappears once that attempt confirms there's nothing
+        // left, without having added or lost any dives.
+        expect(client.fetchedKeys, ['w1', 'w2']);
+        expect(fetched, hasLength(2));
+        expect(find.text('Load More'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a Load More failure keeps the dives already fetched instead of '
+      'discarding them',
+      (tester) async {
+        final client = _FailingSecondPageClient(
+          page1: [_workout('w1')],
+          smlByKey: {'w1': _diveJson()},
+        );
+        List<SuuntoParsedDive>? fetched;
+
+        await tester.pumpWidget(
+          _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeCloudClient.new,
+            child: SuuntoCloudFetchStep(
+              client: client,
+              onDivesFetched: (dives) => fetched = dives,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Found 1 dive'), findsOneWidget);
+
+        await tester.tap(find.text('Load More'));
+        await tester.pumpAndSettle();
+
+        // The failed page didn't wipe out the dive already fetched, and the
+        // Load More button stays put so the diver can try again.
+        expect(fetched, hasLength(1));
+        expect(find.text('Found 1 dive'), findsOneWidget);
+        expect(find.text('page 2 blew up'), findsOneWidget);
+        expect(find.text('Load More'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a non-API Load More failure is surfaced the same way', (
+      tester,
+    ) async {
+      final client = _FailingSecondPageClient(
+        page1: [_workout('w1')],
+        smlByKey: {'w1': _diveJson()},
+        error: StateError('socket died'),
+      );
+      List<SuuntoParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeCloudClient.new,
+          child: SuuntoCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Load More'));
+      await tester.pumpAndSettle();
+
+      expect(fetched, hasLength(1));
+      expect(find.textContaining('socket died'), findsOneWidget);
+      expect(find.text('Load More'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Load More retries the page that failed rather than walking past it',
+      (tester) async {
+        final client = _RecoveringSecondPageClient(
+          page1: [_workout('w1')],
+          page2: [_workout('w2')],
+          smlByKey: {'w1': _diveJson(), 'w2': _diveJson()},
+        );
+        List<SuuntoParsedDive>? fetched;
+
+        await tester.pumpWidget(
+          _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeCloudClient.new,
+            child: SuuntoCloudFetchStep(
+              client: client,
+              onDivesFetched: (dives) => fetched = dives,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Load More'));
+        await tester.pumpAndSettle();
+        expect(find.text('page 2 blew up'), findsOneWidget);
+
+        await tester.tap(find.text('Load More'));
+        await tester.pumpAndSettle();
+
+        // The cursor stayed parked on the page that threw, so the retry
+        // asked for that same page instead of reporting the history as
+        // exhausted and hiding the button.
+        expect(client.requestedPageOffsets, [0, 1, 1]);
+        expect(fetched, hasLength(2));
+        expect(find.text('Found 2 dives'), findsOneWidget);
+        expect(find.text('page 2 blew up'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'shows a spinner and progress text while Load More is in flight',
+      (tester) async {
+        final client = _MultiPageClient(
+          page1: [_workout('w1')],
+          page2: [_workout('w2')],
+          smlByKey: {'w1': _diveJson(), 'w2': _diveJson()},
+        )..secondPageGate = Completer<void>();
+
+        await tester.pumpWidget(
+          _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeCloudClient.new,
+            child: SuuntoCloudFetchStep(client: client, onDivesFetched: (_) {}),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Load More'));
+        await tester.pump();
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+        client.secondPageGate!.complete();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Found 2 dives'), findsOneWidget);
+      },
+    );
   });
 
   group('SuuntoCloudFetchStep failures', () {
-    // The step is declared autoAdvance: true against
-    // suuntoCloudDivesFetchedProvider, so leaving that provider false on a
-    // failure is the only thing keeping the wizard from sailing past the
-    // error into an empty review page.
+    // suuntoCloudDivesFetchedProvider is this step's canAdvance, so a
+    // first-page failure must leave it false -- otherwise the wizard's Next
+    // button would let the diver proceed into an empty review page with no
+    // indication anything went wrong.
     Future<ProviderContainer> pumpFailing(
       WidgetTester tester, {
       required SuuntoCloudClient? client,
@@ -557,9 +945,14 @@ class _RecoveringClient extends _FakeCloudClient {
   int attempts = 0;
 
   @override
-  Future<List<SuuntoWorkoutSummary>> listDives({int sinceMs = 0}) async {
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 100,
+  }) async {
     attempts++;
+    requestedPageOffsets.add(offset);
     if (attempts == 1) throw const SuuntoApiException('temporary failure');
-    return workouts;
+    return _pageAt(offset);
   }
 }

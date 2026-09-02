@@ -283,10 +283,12 @@ class _UnifiedImportWizardBodyState
     if (result == null) return;
 
     // Always refresh the computers list — ensureComputer() (or
-    // SuuntoCloudAdapter's per-dive computer resolution) may have created a
-    // new record even when all dives were skipped.
+    // SuuntoCloudAdapter's/GarminCloudAdapter's per-dive computer
+    // resolution) may have created a new record even when all dives were
+    // skipped.
     if (widget.adapter.sourceType == ImportSourceType.diveComputer ||
-        widget.adapter.sourceType == ImportSourceType.suuntoCloud) {
+        widget.adapter.sourceType == ImportSourceType.suuntoCloud ||
+        widget.adapter.sourceType == ImportSourceType.garminCloud) {
       ref.invalidate(allDiveComputersProvider);
     }
 

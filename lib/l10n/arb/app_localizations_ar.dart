@@ -35487,6 +35487,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'جارٍ سرد الغوصات…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'جارٍ سرد الغوصات… (تم العثور على $count غوصة حتى الآن)',
+      one: 'جارٍ سرد الغوصات… (تم العثور على غوصة واحدة حتى الآن)',
+      zero: 'جارٍ سرد الغوصات…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return 'جلب الغوصة $current من $total…';
   }
@@ -35496,6 +35508,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => 'تحميل المزيد';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -35521,6 +35536,111 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title => 'تسجيل الدخول إلى Garmin Connect';
+
+  @override
+  String get garminConnect_signIn_description =>
+      'سجّل الدخول بحساب Garmin Connect الخاص بك لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.';
+
+  @override
+  String get garminConnect_signIn_emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get garminConnect_signIn_emailRequired => 'البريد الإلكتروني مطلوب';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => 'كلمة المرور';
+
+  @override
+  String get garminConnect_signIn_passwordRequired => 'كلمة المرور مطلوبة';
+
+  @override
+  String get garminConnect_signIn_button => 'تسجيل الدخول';
+
+  @override
+  String get garminConnect_signIn_signingIn => 'جارٍ تسجيل الدخول…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return 'تم تسجيل الدخول باسم $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => 'التحقق مطلوب';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return 'أدخل رمز التحقق المُرسل إلى $method.';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => 'رمز التحقق';
+
+  @override
+  String get garminConnect_mfa_codeRequired => 'رمز التحقق مطلوب';
+
+  @override
+  String get garminConnect_mfa_button => 'تحقّق';
+
+  @override
+  String get garminConnect_mfa_submitting => 'جارٍ التحقق…';
+
+  @override
+  String get garminConnect_fetch_listing => 'جارٍ سرد الغوصات…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'جارٍ سرد الغوصات… (تم العثور على $count غوصة حتى الآن)',
+      one: 'جارٍ سرد الغوصات… (تم العثور على غوصة واحدة حتى الآن)',
+      zero: 'جارٍ سرد الغوصات…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return 'جلب الغوصة $current من $total…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle => 'تعذّر جلب الغوصات';
+
+  @override
+  String get garminConnect_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get garminConnect_fetch_loadMore => 'تحميل المزيد';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم العثور على $count غوصة',
+      one: 'تم العثور على غوصة واحدة',
+      zero: 'لم يتم العثور على غوصات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحويل $count غوصة وتم تخطيها.',
+      one: 'تعذّر تحويل غوصة واحدة وتم تخطيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => 'تحميل الكل';
+
+  @override
   String get importWizard_review_sortTooltip => 'ترتيب';
 
   @override
@@ -35538,6 +35658,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       'استيراد الغوصات من تطبيق Suunto أو حساب app.suunto.com';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      'استيراد الغوصات من حساب Garmin Connect الخاص بك';
 
   @override
   String get transfer_section_cloudTitle => 'السحابة';

@@ -154,6 +154,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/downloa
     show diveImportServiceProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
@@ -899,6 +900,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'importFromCloudSuunto',
                 builder: (context, state) =>
                     const _SuuntoCloudImportWizardRoute(),
+              ),
+              GoRoute(
+                path: 'import-cloud/garmin',
+                name: 'importFromCloudGarmin',
+                builder: (context, state) =>
+                    const _GarminCloudImportWizardRoute(),
               ),
             ],
           ),
@@ -1673,6 +1680,32 @@ class _SuuntoCloudImportWizardRoute extends ConsumerWidget {
 
     return UnifiedImportWizard(
       adapter: SuuntoCloudAdapter(
+        importService: importService,
+        computerRepository: computerRepo,
+        diveRepository: diveRepo,
+        consolidationService: consolidationService,
+        diverId: diverId,
+        ref: ref,
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [GarminCloudAdapter] with dependencies from
+/// Riverpod, for importing dives from a Garmin Connect account.
+class _GarminCloudImportWizardRoute extends ConsumerWidget {
+  const _GarminCloudImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+    final consolidationService = ref.watch(diveConsolidationServiceProvider);
+
+    return UnifiedImportWizard(
+      adapter: GarminCloudAdapter(
         importService: importService,
         computerRepository: computerRepo,
         diveRepository: diveRepo,

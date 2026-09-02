@@ -35293,6 +35293,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'Listing dives…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Listing dives… ($count found so far)',
+      one: 'Listing dives… (1 found so far)',
+      zero: 'Listing dives…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return 'Fetching dive $current of $total…';
   }
@@ -35302,6 +35314,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => 'Try Again';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => 'Load More';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -35327,6 +35342,111 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title => 'Sign in to Garmin Connect';
+
+  @override
+  String get garminConnect_signIn_description =>
+      'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.';
+
+  @override
+  String get garminConnect_signIn_emailLabel => 'Email';
+
+  @override
+  String get garminConnect_signIn_emailRequired => 'Email is required';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => 'Password';
+
+  @override
+  String get garminConnect_signIn_passwordRequired => 'Password is required';
+
+  @override
+  String get garminConnect_signIn_button => 'Sign In';
+
+  @override
+  String get garminConnect_signIn_signingIn => 'Signing in…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => 'Verification Required';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return 'Enter the verification code sent to your $method.';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => 'Verification Code';
+
+  @override
+  String get garminConnect_mfa_codeRequired => 'Verification code is required';
+
+  @override
+  String get garminConnect_mfa_button => 'Verify';
+
+  @override
+  String get garminConnect_mfa_submitting => 'Verifying…';
+
+  @override
+  String get garminConnect_fetch_listing => 'Listing dives…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Listing dives… ($count found so far)',
+      one: 'Listing dives… (1 found so far)',
+      zero: 'Listing dives…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return 'Fetching dive $current of $total…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle => 'Could not fetch dives';
+
+  @override
+  String get garminConnect_fetch_retry => 'Try Again';
+
+  @override
+  String get garminConnect_fetch_loadMore => 'Load More';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $count dives',
+      one: 'Found 1 dive',
+      zero: 'No dives found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be converted and were skipped.',
+      one: '1 dive could not be converted and was skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => 'Fetch All';
+
+  @override
   String get importWizard_review_sortTooltip => 'Sort';
 
   @override
@@ -35344,6 +35464,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       'Import dives from your Suunto app / app.suunto.com account';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      'Import dives from your Garmin Connect account';
 
   @override
   String get transfer_section_cloudTitle => 'Cloud';

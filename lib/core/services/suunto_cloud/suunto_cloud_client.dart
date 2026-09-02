@@ -44,6 +44,29 @@ class SuuntoWorkoutSummary {
   int? get durationSeconds => diveTimeSeconds ?? totalTimeSeconds;
 }
 
+/// One page of the dive-workout listing, plus the cursor needed to ask for
+/// the page after it.
+class SuuntoDivePage {
+  const SuuntoDivePage({
+    required this.dives,
+    required this.nextOffset,
+    required this.hasMore,
+  });
+
+  /// The page's dive workouts, newest first. Empty only when the account's
+  /// history is exhausted -- [SuuntoCloudClient.fetchDivePage] walks past
+  /// listing pages that hold no dives rather than returning them.
+  final List<SuuntoWorkoutSummary> dives;
+
+  /// The `offset` to hand [SuuntoCloudClient.fetchDivePage] for the next
+  /// page. Meaningless once [hasMore] is false.
+  final int nextOffset;
+
+  /// Whether the server reported a full listing page, meaning there is more
+  /// history past this one.
+  final bool hasMore;
+}
+
 /// Talks to an UNDOCUMENTED, UNOFFICIAL Suunto/Sports-Tracker cloud API
 /// (api.sports-tracker.com). Using this against your own Suunto account may
 /// violate Suunto's Terms of Service -- read them before using this. Use
@@ -124,34 +147,105 @@ class SuuntoCloudClient {
     }
   }
 
-  /// Chronological (oldest first) list of dive-activity workouts only
-  /// (scuba diving / freediving), paginating through the API as needed.
-  Future<List<SuuntoWorkoutSummary>> listDives({int sinceMs = 0}) async {
-    const pageSize = 100;
-    var offset = 0;
-    final dives = <SuuntoWorkoutSummary>[];
+  /// Fetches the page of dive-activity workouts (scuba diving / freediving)
+  /// at [offset], newest first.
+  ///
+  /// The Suunto/Sports-Tracker `workouts` listing is itself paginated
+  /// oldest-to-newest by offset. Fetching one page at a time -- rather than
+  /// buffering the diver's entire history before returning anything -- lets
+  /// a caller start acting on the newest dives while older pages are still
+  /// being fetched. Each page is additionally sorted newest first on its own
+  /// as a defensive measure, in case the server ever returns a page out of
+  /// order.
+  ///
+  /// The listing carries every activity type, and the dive filter runs
+  /// client-side, so a listing page can hold no dives at all. This walks
+  /// past such pages internally: a returned page is either non-empty or
+  /// genuinely the end of the account's history, and a caller never has to
+  /// tell "nothing on this page" apart from "nothing left".
+  ///
+  /// Exposed as an explicit cursor rather than only as [listDivesPaged] so
+  /// a caller can retry a single failed page. A `Stream` that has thrown is
+  /// terminated for good, and asking a terminated one for its next page
+  /// reports "no more pages" -- silently truncating the history at whatever
+  /// page happened to hit a transient network error.
+  Future<SuuntoDivePage> fetchDivePage({
+    int sinceMs = 0,
+    int offset = 0,
+    int pageSize = 15,
+  }) async {
+    var next = offset;
 
     while (true) {
       final items = await _listWorkouts(
         sinceMs: sinceMs,
         limit: pageSize,
-        offset: offset,
+        offset: next,
       );
-      if (items.isEmpty) break;
+      if (items.isEmpty) {
+        return SuuntoDivePage(
+          dives: const [],
+          nextOffset: next,
+          hasMore: false,
+        );
+      }
 
+      final summaries = <SuuntoWorkoutSummary>[];
       for (final item in items) {
         final activityId = (item['activityId'] as num?)?.toInt() ?? -1;
         if (activityId == _activityScubaDiving ||
             activityId == _activityFreeDiving) {
-          dives.add(_toWorkoutSummary(item, activityId));
+          summaries.add(_toWorkoutSummary(item, activityId));
         }
       }
 
-      if (items.length < pageSize) break;
-      offset += pageSize;
+      final hasMore = items.length >= pageSize;
+      next += pageSize;
+      if (summaries.isNotEmpty || !hasMore) {
+        summaries.sort((a, b) => b.startTime.compareTo(a.startTime));
+        return SuuntoDivePage(
+          dives: summaries,
+          nextOffset: next,
+          hasMore: hasMore,
+        );
+      }
     }
+  }
 
-    dives.sort((a, b) => a.startTime.compareTo(b.startTime));
+  /// Streams pages of dive-activity workouts, newest first, walking the
+  /// cursor [fetchDivePage] hands back until the history runs out.
+  Stream<List<SuuntoWorkoutSummary>> listDivesPaged({
+    int sinceMs = 0,
+    int pageSize = 15,
+  }) async* {
+    var offset = 0;
+
+    while (true) {
+      final page = await fetchDivePage(
+        sinceMs: sinceMs,
+        offset: offset,
+        pageSize: pageSize,
+      );
+      if (page.dives.isNotEmpty) yield page.dives;
+      if (!page.hasMore) break;
+      offset = page.nextOffset;
+    }
+  }
+
+  /// Every dive-activity workout, newest first. A convenience wrapper over
+  /// [listDivesPaged] for callers that don't need progressive access to
+  /// pages as they arrive from the network.
+  Future<List<SuuntoWorkoutSummary>> listDives({
+    int sinceMs = 0,
+    int pageSize = 15,
+  }) async {
+    final dives = <SuuntoWorkoutSummary>[];
+    await for (final page in listDivesPaged(
+      sinceMs: sinceMs,
+      pageSize: pageSize,
+    )) {
+      dives.addAll(page);
+    }
     return dives;
   }
 

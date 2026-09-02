@@ -21716,9 +21716,11 @@
   "suuntoCloud_signIn_signingIn": "Signing in…",
   "suuntoCloud_signIn_signedInAs": "Signed in as {email}",
   "suuntoCloud_fetch_listing": "Listing dives…",
+  "suuntoCloud_fetch_listingFound": "{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}",
   "suuntoCloud_fetch_fetchingDiveOf": "Fetching dive {current} of {total}…",
   "suuntoCloud_fetch_failedTitle": "Could not fetch dives",
   "suuntoCloud_fetch_retry": "Try Again",
+  "suuntoCloud_fetch_loadMore": "Load More",
   "suuntoCloud_fetch_foundDives": "{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}",
   "suuntoCloud_fetch_someFailed": "{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}",
   "@suuntoCloud_signIn_signedInAs": {
@@ -21726,6 +21728,14 @@
     "placeholders": {
       "email": {
         "type": "String"
+      }
+    }
+  },
+  "@suuntoCloud_fetch_listingFound": {
+    "description": "Progress line while paging through the Suunto cloud's workout list, showing the running dive count found so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -21756,12 +21766,92 @@
       }
     }
   },
+  "garminConnect_signIn_title": "Sign in to Garmin Connect",
+  "garminConnect_signIn_description": "Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "garminConnect_signIn_emailLabel": "Email",
+  "garminConnect_signIn_emailRequired": "Email is required",
+  "garminConnect_signIn_passwordLabel": "Password",
+  "garminConnect_signIn_passwordRequired": "Password is required",
+  "garminConnect_signIn_button": "Sign In",
+  "garminConnect_signIn_signingIn": "Signing in…",
+  "garminConnect_signIn_signedInAs": "Signed in as {email}",
+  "garminConnect_mfa_title": "Verification Required",
+  "garminConnect_mfa_description": "Enter the verification code sent to your {method}.",
+  "garminConnect_mfa_codeLabel": "Verification Code",
+  "garminConnect_mfa_codeRequired": "Verification code is required",
+  "garminConnect_mfa_button": "Verify",
+  "garminConnect_mfa_submitting": "Verifying…",
+  "garminConnect_fetch_listing": "Listing dives…",
+  "garminConnect_fetch_listingFound": "{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}",
+  "garminConnect_fetch_fetchingDiveOf": "Fetching dive {current} of {total}…",
+  "garminConnect_fetch_failedTitle": "Could not fetch dives",
+  "garminConnect_fetch_retry": "Try Again",
+  "garminConnect_fetch_loadMore": "Load More",
+  "garminConnect_fetch_foundDives": "{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}",
+  "garminConnect_fetch_someFailed": "{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}",
+  "garminConnect_fetch_fetchAll": "Fetch All",
+  "@garminConnect_fetch_fetchAll": {
+    "description": "Button on the Garmin Connect fetch step that fetches every remaining page of dives instead of one page at a time."
+  },
+  "@garminConnect_signIn_signedInAs": {
+    "description": "Success state on the Garmin Connect sign-in step, once a session is established.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "@garminConnect_fetch_listingFound": {
+    "description": "Progress line while paging through Garmin Connect's activity list, showing the running dive count found so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@garminConnect_mfa_description": {
+    "description": "Instructions on the Garmin Connect MFA step, naming where the code was sent.",
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "@garminConnect_fetch_fetchingDiveOf": {
+    "description": "Progress line while downloading each dive from Garmin Connect.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@garminConnect_fetch_foundDives": {
+    "description": "Result headline after fetching dives from Garmin Connect.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@garminConnect_fetch_someFailed": {
+    "description": "Shown when one or more fetched Garmin Connect dives could not be converted and were skipped.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importWizard_review_sortTooltip": "Sort",
   "importWizard_review_sortByDate": "Date",
   "importWizard_review_sortByDepth": "Depth",
   "importWizard_review_sortByDuration": "Time",
   "transfer_importCloud_suuntoTitle": "Suunto",
   "transfer_importCloud_suuntoSubtitle": "Import dives from your Suunto app / app.suunto.com account",
+  "transfer_importCloud_garminTitle": "Garmin",
+  "transfer_importCloud_garminSubtitle": "Import dives from your Garmin Connect account",
   "transfer_section_cloudTitle": "Cloud",
   "transfer_section_cloudSubtitle": "Import from cloud",
   "settings_storageUsage_appBar_title": "Storage Usage",

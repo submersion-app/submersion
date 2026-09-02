@@ -125,6 +125,26 @@ class FitParserService {
         ? null
         : heartRates.reduce((a, b) => a + b) / heartRates.length;
 
+    // Entry GPS: the session's start position, when the device already had a
+    // GPS fix at the moment logging began. Many dive computers haven't
+    // acquired one yet at that point (diver already descending, wrist
+    // underwater, cold start), so fall back to the first record carrying a
+    // fix -- still close enough to the entry point to be useful, and far
+    // better than leaving the dive without any location at all.
+    var entryLat = summary.entryLat;
+    var entryLong = summary.entryLong;
+    if (entryLat == null || entryLong == null) {
+      for (final r in records) {
+        final lat = r.positionLat;
+        final long = r.positionLong;
+        if (lat != null && long != null) {
+          entryLat = lat;
+          entryLong = long;
+          break;
+        }
+      }
+    }
+
     // Exit GPS: the last record carrying a position fix (often absent).
     double? exitLat;
     double? exitLong;
@@ -161,8 +181,8 @@ class FitParserService {
       minTemperature: minTemperature,
       maxTemperature: maxTemperature,
       avgHeartRate: avgHeartRate,
-      latitude: summary.entryLat,
-      longitude: summary.entryLong,
+      latitude: entryLat,
+      longitude: entryLong,
       exitLatitude: exitLat,
       exitLongitude: exitLong,
       diveNumber: summary.diveNumber,

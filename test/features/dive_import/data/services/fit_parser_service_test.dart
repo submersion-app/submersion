@@ -20,6 +20,7 @@ Uint8List buildTestDiveFitFile({
   int serialNumber = 12345,
   double? startLat,
   double? startLong,
+  Map<int, (double, double)>? recordPositions,
 }) {
   final builder = FitFileBuilder(autoDefine: true, minStringSize: 50);
 
@@ -56,6 +57,12 @@ Uint8List buildTestDiveFitFile({
       if (hr != null) {
         record.heartRate = hr;
       }
+    }
+
+    final position = recordPositions?[i];
+    if (position != null) {
+      record.positionLat = position.$1;
+      record.positionLong = position.$2;
     }
 
     builder.add(record);
@@ -531,6 +538,42 @@ void main() {
       expect(result, isNotNull);
       expect(result!.latitude, isNull);
       expect(result.longitude, isNull);
+    });
+
+    test('falls back to the first record with a GPS fix when the session has '
+        'no start position (device hadn\'t locked on yet)', () async {
+      final bytes = buildTestDiveFitFile(
+        startTime: DateTime(2024, 1, 1, 10, 0, 0),
+        durationSeconds: 1800,
+        depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+        // No session start position -- the device hadn't acquired a fix
+        // yet when it started logging.
+        recordPositions: {2: (28.46, -16.32), 3: (28.461, -16.321)},
+      );
+
+      final result = await service.parseFitFile(bytes);
+
+      expect(result, isNotNull);
+      expect(result!.latitude, closeTo(28.46, 0.0001));
+      expect(result.longitude, closeTo(-16.32, 0.0001));
+    });
+
+    test('prefers the session start position over any record fix when both '
+        'are present', () async {
+      final bytes = buildTestDiveFitFile(
+        startTime: DateTime(2024, 1, 1, 10, 0, 0),
+        durationSeconds: 1800,
+        depthSamples: [0.0, 10.0, 15.0, 10.0, 0.0],
+        startLat: 28.4594,
+        startLong: -16.3228,
+        recordPositions: {2: (28.999, -16.999)},
+      );
+
+      final result = await service.parseFitFile(bytes);
+
+      expect(result, isNotNull);
+      expect(result!.latitude, closeTo(28.4594, 0.0001));
+      expect(result.longitude, closeTo(-16.3228, 0.0001));
     });
 
     test(

@@ -35685,6 +35685,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'Merülések listázása…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Merülések listázása… (eddig $count található)',
+      one: 'Merülések listázása… (eddig 1 található)',
+      zero: 'Merülések listázása…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return '$total merülésből a(z) $current letöltése…';
   }
@@ -35695,6 +35707,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => 'Újra';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => 'Továbbiak betöltése';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -35720,6 +35735,116 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title =>
+      'Bejelentkezés a Garmin Connect fiókba';
+
+  @override
+  String get garminConnect_signIn_description =>
+      'Jelentkezz be a Garmin Connect fiókoddal, hogy közvetlenül importáld a merüléseidet. A jelszavadat soha nem tároljuk, csak a létrejövő munkamenetet.';
+
+  @override
+  String get garminConnect_signIn_emailLabel => 'E-mail';
+
+  @override
+  String get garminConnect_signIn_emailRequired =>
+      'Az e-mail cím megadása kötelező';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => 'Jelszó';
+
+  @override
+  String get garminConnect_signIn_passwordRequired =>
+      'A jelszó megadása kötelező';
+
+  @override
+  String get garminConnect_signIn_button => 'Bejelentkezés';
+
+  @override
+  String get garminConnect_signIn_signingIn => 'Bejelentkezés…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return 'Bejelentkezve mint $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => 'Ellenőrzés szükséges';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return 'Add meg a(z) $method címre küldött ellenőrző kódot.';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => 'Ellenőrző kód';
+
+  @override
+  String get garminConnect_mfa_codeRequired =>
+      'Az ellenőrző kód megadása kötelező';
+
+  @override
+  String get garminConnect_mfa_button => 'Ellenőrzés';
+
+  @override
+  String get garminConnect_mfa_submitting => 'Ellenőrzés…';
+
+  @override
+  String get garminConnect_fetch_listing => 'Merülések listázása…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Merülések listázása… (eddig $count található)',
+      one: 'Merülések listázása… (eddig 1 található)',
+      zero: 'Merülések listázása…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return '$total merülésből a(z) $current letöltése…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle =>
+      'Nem sikerült letölteni a merüléseket';
+
+  @override
+  String get garminConnect_fetch_retry => 'Újra';
+
+  @override
+  String get garminConnect_fetch_loadMore => 'Továbbiak betöltése';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés található',
+      one: '1 merülés található',
+      zero: 'Nem található merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült konvertálni, ezért kimaradtak.',
+      one: '1 merülést nem sikerült konvertálni, ezért kimaradt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => 'Összes betöltése';
+
+  @override
   String get importWizard_review_sortTooltip => 'Rendezés';
 
   @override
@@ -35737,6 +35862,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       'Merulesek importalasa a Suunto alkalmazasbol vagy az app.suunto.com fiokbol';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      'Merülések importálása a Garmin Connect fiókból';
 
   @override
   String get transfer_section_cloudTitle => 'Felho';

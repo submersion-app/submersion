@@ -851,9 +851,9 @@ class _ComputersSectionContent extends ConsumerWidget {
 /// Cloud import section content.
 ///
 /// Lists dive-computer manufacturer cloud accounts that dives can be
-/// imported from directly (no file export/transfer needed). Currently just
-/// Suunto; additional providers (Garmin Connect, Shearwater Cloud, etc.)
-/// get their own card here as they're added.
+/// imported from directly (no file export/transfer needed). Additional
+/// providers (Shearwater Cloud, etc.) get their own card here as they're
+/// added.
 class _CloudSectionContent extends ConsumerWidget {
   final WidgetRef ref;
 
@@ -861,8 +861,6 @@ class _CloudSectionContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -873,52 +871,85 @@ class _CloudSectionContent extends ConsumerWidget {
             context.l10n.transfer_section_cloudTitle,
           ),
           const SizedBox(height: 8),
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => context.push('/transfer/import-cloud/suunto'),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+          _CloudProviderCard(
+            title: context.l10n.transfer_importCloud_suuntoTitle,
+            subtitle: context.l10n.transfer_importCloud_suuntoSubtitle,
+            icon: Icons.watch,
+            onTap: () => context.push('/transfer/import-cloud/suunto'),
+          ),
+          const SizedBox(height: 8),
+          _CloudProviderCard(
+            title: context.l10n.transfer_importCloud_garminTitle,
+            subtitle: context.l10n.transfer_importCloud_garminSubtitle,
+            icon: Icons.watch,
+            onTap: () => context.push('/transfer/import-cloud/garmin'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single tappable cloud-provider entry within [_CloudSectionContent].
+class _CloudProviderCard extends StatelessWidget {
+  const _CloudProviderCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: colorScheme.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.watch, color: colorScheme.primary),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.l10n.transfer_importCloud_suuntoTitle,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            context.l10n.transfer_importCloud_suuntoSubtitle,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

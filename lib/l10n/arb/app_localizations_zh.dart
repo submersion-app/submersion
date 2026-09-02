@@ -33723,6 +33723,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get suuntoCloud_fetch_listing => '正在列出潜水记录…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '正在列出潜水记录…（目前已找到 $count 次）',
+      one: '正在列出潜水记录…（目前已找到 1 次）',
+      zero: '正在列出潜水记录…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return '正在获取第 $current 次潜水，共 $total 次…';
   }
@@ -33732,6 +33744,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => '重试';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => '加载更多';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -33757,6 +33772,111 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title => '登录 Garmin Connect';
+
+  @override
+  String get garminConnect_signIn_description =>
+      '使用您的 Garmin Connect 账户登录，即可直接导入潜水记录。您的密码不会被保存，仅缓存由此生成的会话。';
+
+  @override
+  String get garminConnect_signIn_emailLabel => '电子邮件';
+
+  @override
+  String get garminConnect_signIn_emailRequired => '请输入电子邮件';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => '密码';
+
+  @override
+  String get garminConnect_signIn_passwordRequired => '请输入密码';
+
+  @override
+  String get garminConnect_signIn_button => '登录';
+
+  @override
+  String get garminConnect_signIn_signingIn => '正在登录…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return '已登录为 $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => '需要验证';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return '请输入发送到您 $method 的验证码。';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => '验证码';
+
+  @override
+  String get garminConnect_mfa_codeRequired => '请输入验证码';
+
+  @override
+  String get garminConnect_mfa_button => '验证';
+
+  @override
+  String get garminConnect_mfa_submitting => '正在验证…';
+
+  @override
+  String get garminConnect_fetch_listing => '正在列出潜水记录…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '正在列出潜水记录…（目前已找到 $count 次）',
+      one: '正在列出潜水记录…（目前已找到 1 次）',
+      zero: '正在列出潜水记录…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return '正在获取第 $current 次潜水，共 $total 次…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle => '无法获取潜水记录';
+
+  @override
+  String get garminConnect_fetch_retry => '重试';
+
+  @override
+  String get garminConnect_fetch_loadMore => '加载更多';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '找到 $count 次潜水',
+      one: '找到 1 次潜水',
+      zero: '未找到潜水记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次潜水无法转换，已跳过。',
+      one: '有 1 次潜水无法转换，已跳过。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => '加载全部';
+
+  @override
   String get importWizard_review_sortTooltip => '排序';
 
   @override
@@ -33774,6 +33894,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       '从您的 Suunto 应用或 app.suunto.com 账户导入潜水记录';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      '从您的 Garmin Connect 账户导入潜水记录';
 
   @override
   String get transfer_section_cloudTitle => '云端';

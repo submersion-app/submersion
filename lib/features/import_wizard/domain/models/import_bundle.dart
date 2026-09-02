@@ -22,6 +22,9 @@ enum ImportSourceType {
 
   /// A Suunto cloud (app.suunto.com) import.
   suuntoCloud,
+
+  /// A Garmin Connect cloud import.
+  garminCloud,
 }
 
 /// The kind of entity represented by an [EntityGroup].

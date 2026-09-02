@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_session_store.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -26,32 +24,32 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/suunto_cloud_adapter_steps.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_adapter_steps.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_dive_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 
 /// Signals that the sign-in step can advance (a usable session was obtained).
-final suuntoCloudSignedInProvider = StateProvider<bool>((ref) => false);
+final garminCloudSignedInProvider = StateProvider<bool>((ref) => false);
 
 /// The keychain-backed session cache the sign-in step reads and writes.
 /// Injected rather than constructed inline so a widget test can supply an
 /// in-memory store instead of hitting the platform keychain.
-final suuntoSessionStoreProvider = Provider<SuuntoSessionStore>(
-  (ref) => SuuntoSessionStore(),
+final garminSessionStoreProvider = Provider<GarminSessionStore>(
+  (ref) => GarminSessionStore(),
 );
 
 /// Builds the client the sign-in step authenticates with. Injected for the
-/// same reason as [suuntoSessionStoreProvider]: overriding it keeps a test
-/// from ever reaching api.sports-tracker.com.
-final suuntoCloudClientFactoryProvider = Provider<SuuntoCloudClient Function()>(
-  (ref) => SuuntoCloudClient.new,
-);
+/// same reason as [garminSessionStoreProvider]: overriding it keeps a test
+/// from ever reaching connect.garmin.com.
+final garminConnectClientFactoryProvider =
+    Provider<GarminConnectClient Function()>((ref) => GarminConnectClient.new);
 
 /// Signals that the fetch step can advance (dives have been downloaded and
 /// converted).
-final suuntoCloudDivesFetchedProvider = StateProvider<bool>((ref) => false);
+final garminCloudDivesFetchedProvider = StateProvider<bool>((ref) => false);
 
-/// Outcome of a single `SuuntoCloudAdapter._consolidateDive` call. Mirrors
+/// Outcome of a single `GarminCloudAdapter._consolidateDive` call. Mirrors
 /// `DiveComputerAdapter`'s outcome type -- see that class for the rationale.
 enum _ConsolidateOutcome {
   consolidated,
@@ -64,22 +62,23 @@ enum _ConsolidateOutcome {
 /// left behind (only [_ConsolidateOutcome.keptStandalone] leaves one).
 typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 
-/// Import source adapter for dives pulled from the Suunto cloud
-/// (app.suunto.com), via the undocumented Sports-Tracker API.
+/// Import source adapter for dives pulled from a Garmin Connect account, via
+/// the undocumented Garmin Connect mobile API.
 ///
-/// Two acquisition steps: sign in (email/password, with a cached-session
-/// fast path), then fetch (list + download + convert every scuba/freediving
-/// workout). From there this behaves like [DiveComputerAdapter]: dives are
-/// converted into [DownloadedDive] so tanks, gas switches, and duplicate/
-/// consolidation handling are shared with a real dive-computer download --
-/// the only difference is that a single cloud account can span *several*
-/// distinct physical computers over the years, so the owning [DiveComputer]
-/// is resolved per-dive (by device model + serial number) instead of once
-/// per session.
-class SuuntoCloudAdapter implements ImportSourceAdapter {
-  static final _log = LoggerService.forClass(SuuntoCloudAdapter);
+/// Three acquisition steps: sign in (email/password, with a cached-session
+/// fast path and an MFA follow-up when Garmin challenges the account), then
+/// fetch (list + download + parse every diving/apnea activity's FIT file).
+/// From there this behaves like [DiveComputerAdapter]: dives are converted
+/// into [DownloadedDive] so tanks, gas switches, and duplicate/consolidation
+/// handling are shared with a real dive-computer download -- the only
+/// difference is that a single cloud account can span *several* distinct
+/// physical computers over the years, so the owning [DiveComputer] is
+/// resolved per-dive (by device model + serial number) instead of once per
+/// session.
+class GarminCloudAdapter implements ImportSourceAdapter {
+  static final _log = LoggerService.forClass(GarminCloudAdapter);
 
-  SuuntoCloudAdapter({
+  GarminCloudAdapter({
     required DiveImportService importService,
     required DiveComputerRepository computerRepository,
     required DiveRepository diveRepository,
@@ -100,7 +99,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   final String _diverId;
   final WidgetRef? _ref;
 
-  List<SuuntoParsedDive> _parsedDives = [];
+  List<GarminParsedDive> _parsedDives = [];
 
   /// Resolved/created [DiveComputer] records, keyed by serial number (or by
   /// device model name when no serial was reported).
@@ -108,23 +107,23 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
 
   /// The authenticated client obtained by the sign-in step, reused by the
   /// fetch step to list and download dives.
-  SuuntoCloudClient? _client;
+  GarminConnectClient? _client;
 
   /// Set by the sign-in step widget once a session has been established
   /// (either from a cached session or a fresh login).
-  void setClient(SuuntoCloudClient client) {
+  void setClient(GarminConnectClient client) {
     _client = client;
   }
 
   /// The authenticated client set by the sign-in step. Only meaningful once
   /// the sign-in acquisition step has completed.
-  SuuntoCloudClient? get client => _client;
+  GarminConnectClient? get client => _client;
 
   /// Load the list of fetched+converted dives into this adapter.
   ///
-  /// Called internally by the fetch step widget after downloading from the
-  /// Suunto cloud.
-  void setParsedDives(List<SuuntoParsedDive> dives) {
+  /// Called internally by the fetch step widget after downloading from
+  /// Garmin Connect.
+  void setParsedDives(List<GarminParsedDive> dives) {
     _parsedDives = List.unmodifiable(dives);
   }
 
@@ -139,15 +138,15 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     _parsedDives = [];
     final ref = _ref;
     if (ref == null) return;
-    ref.invalidate(suuntoCloudSignedInProvider);
-    ref.invalidate(suuntoCloudDivesFetchedProvider);
+    ref.invalidate(garminCloudSignedInProvider);
+    ref.invalidate(garminCloudDivesFetchedProvider);
   }
 
   @override
-  ImportSourceType get sourceType => ImportSourceType.suuntoCloud;
+  ImportSourceType get sourceType => ImportSourceType.garminCloud;
 
   @override
-  String get displayName => 'Suunto Cloud';
+  String get displayName => 'Garmin Connect';
 
   @override
   String get defaultTagName {
@@ -156,7 +155,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
         '${now.year}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
-    return 'Suunto Cloud Import $date';
+    return 'Garmin Connect Import $date';
   }
 
   @override
@@ -167,7 +166,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     DuplicateAction.replaceSource,
   };
 
-  /// A Suunto cloud import only ever produces dives, so there is no entity
+  /// A Garmin Connect import only ever produces dives, so there is no entity
   /// type that needs a narrower set than the adapter-wide one.
   @override
   Set<DuplicateAction> duplicateActionsFor(ImportEntityType type) =>
@@ -178,16 +177,16 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     WizardStepDef(
       label: 'Sign In',
       icon: Icons.login,
-      builder: (context) => SuuntoCloudSignInStep(onSignedIn: setClient),
-      canAdvance: suuntoCloudSignedInProvider,
+      builder: (context) => GarminCloudSignInStep(onSignedIn: setClient),
+      canAdvance: garminCloudSignedInProvider,
       autoAdvance: true,
     ),
     WizardStepDef(
       label: 'Fetch',
       icon: Icons.cloud_download,
       builder: (context) =>
-          SuuntoCloudFetchStep(client: _client, onDivesFetched: setParsedDives),
-      canAdvance: suuntoCloudDivesFetchedProvider,
+          GarminCloudFetchStep(client: _client, onDivesFetched: setParsedDives),
+      canAdvance: garminCloudDivesFetchedProvider,
       // Not auto-advance: the fetch step lets the diver move on as soon as
       // the newest page of dives is ready without waiting for the rest of a
       // large account's history, via an explicit Load More button. Auto-
@@ -205,7 +204,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
 
     return ImportBundle(
       source: ImportSourceInfo(
-        type: ImportSourceType.suuntoCloud,
+        type: ImportSourceType.garminCloud,
         displayName: displayName,
       ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
@@ -381,8 +380,8 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
             ConflictResolution.replaceSource,
             comp.id,
             diverId: _diverId,
-            descriptorVendor: 'Suunto',
-            descriptorProduct: parsed.deviceName,
+            descriptorVendor: 'Garmin',
+            descriptorProduct: parsed.deviceModel,
           );
           updated++;
         }
@@ -391,8 +390,8 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
           parsed.dive,
           computerId: comp.id,
           diverId: _diverId,
-          descriptorVendor: 'Suunto',
-          descriptorProduct: parsed.deviceName,
+          descriptorVendor: 'Garmin',
+          descriptorProduct: parsed.deviceModel,
         );
         imported++;
         importedDiveIds.add(diveId);
@@ -429,29 +428,29 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     }
   }
 
-  String _computerCacheKey(SuuntoParsedDive parsed) =>
+  String _computerCacheKey(GarminParsedDive parsed) =>
       normalizedIdentityPart(parsed.serialNumber) ??
-      normalizedIdentityPart(parsed.deviceName) ??
-      'Suunto';
+      normalizedIdentityPart(parsed.deviceModel) ??
+      'Garmin';
 
-  DiveComputer? _computerFor(SuuntoParsedDive parsed) =>
+  DiveComputer? _computerFor(GarminParsedDive parsed) =>
       _computersByKey[_computerCacheKey(parsed)];
 
   /// Finds or creates the [DiveComputer] record for [parsed]'s reporting
   /// device, matching on hardware identity (manufacturer/model/serial) the
   /// same way [DiveComputerAdapter.ensureComputer] does for a freshly
   /// discovered BLE/USB device.
-  Future<DiveComputer> _resolveComputer(SuuntoParsedDive parsed) async {
+  Future<DiveComputer> _resolveComputer(GarminParsedDive parsed) async {
     final cacheKey = _computerCacheKey(parsed);
     final cached = _computersByKey[cacheKey];
     if (cached != null) return cached;
 
-    final model = normalizedIdentityPart(parsed.deviceName) ?? 'Suunto';
+    final model = normalizedIdentityPart(parsed.deviceModel) ?? 'Garmin';
     final serial = normalizedIdentityPart(parsed.serialNumber);
 
     if (serial != null) {
       final existing = await _computerRepository.findByHardwareIdentity(
-        manufacturer: 'Suunto',
+        manufacturer: 'Garmin',
         model: model,
         serialNumber: serial,
         diverId: _diverId,
@@ -467,7 +466,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
         id: const Uuid().v4(),
         name: model,
         diverId: _diverId,
-        manufacturer: 'Suunto',
+        manufacturer: 'Garmin',
         model: model,
       ).copyWith(
         serialNumber: serial,
@@ -483,31 +482,20 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   // Helpers -- entity item conversion
   // ---------------------------------------------------------------------------
 
-  static final _dateFormatter = DateFormat('MMM d, yyyy');
-  static final _timeFormatter = DateFormat('h:mm a');
-
-  EntityItem _diveToEntityItem(SuuntoParsedDive parsed) {
-    final dive = parsed.dive;
-    final localStart = dive.startTime.toLocal();
-    final dateStr = _dateFormatter.format(localStart);
-    final timeStr = _timeFormatter.format(localStart);
-    final title = '$dateStr — $timeStr';
-
+  EntityItem _diveToEntityItem(GarminParsedDive parsed) {
     final settings = _ref?.read(settingsProvider) ?? const AppSettings();
-    final units = UnitFormatter(settings);
-    final durationMin = dive.duration.inMinutes;
-    final tempStr = dive.minTemperature != null
-        ? ' · ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'
-        : '';
-    final subtitle =
-        '${units.formatDepth(dive.maxDepth)} max · $durationMin min$tempStr';
+    final summary = formatGarminDiveSummary(parsed, settings);
 
     final diveData = IncomingDiveData.fromDownloadedDive(
-      dive,
+      parsed.dive,
       computer: _computerFor(parsed),
     );
 
-    return EntityItem(title: title, subtitle: subtitle, diveData: diveData);
+    return EntityItem(
+      title: summary.title,
+      subtitle: summary.subtitle,
+      diveData: diveData,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -518,7 +506,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   /// existing dive. Mirrors `DiveComputerAdapter._consolidateDive` -- see
   /// that method's doc comment for the failure modes it guards against.
   Future<_ConsolidateResult> _consolidateDive(
-    SuuntoParsedDive parsed,
+    GarminParsedDive parsed,
     String targetDiveId,
     DiveComputer comp,
   ) async {
@@ -535,8 +523,8 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
         parsed.dive,
         computerId: comp.id,
         diverId: _diverId,
-        descriptorVendor: 'Suunto',
-        descriptorProduct: parsed.deviceName,
+        descriptorVendor: 'Garmin',
+        descriptorProduct: parsed.deviceModel,
       );
       await _consolidationService.apply(
         targetDiveId: targetDiveId,

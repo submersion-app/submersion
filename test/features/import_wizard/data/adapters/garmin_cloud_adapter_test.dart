@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -10,12 +10,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
     hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
-import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
+import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 @GenerateNiceMocks([
   MockSpec<DiveImportService>(),
@@ -23,24 +24,24 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
   MockSpec<DiveRepository>(),
   MockSpec<DiveConsolidationService>(),
 ])
-import 'suunto_cloud_adapter_test.mocks.dart';
+import 'garmin_cloud_adapter_test.mocks.dart';
 
-SuuntoParsedDive makeParsedDive({
+GarminParsedDive makeParsedDive({
   DateTime? startTime,
   int durationSeconds = 30 * 60,
   double maxDepth = 18.5,
-  String? deviceName = 'Suunto Ocean',
+  String? deviceModel = 'Descent Mk2',
   String? serialNumber = 'SN-1',
   String? firmwareVersion,
 }) {
-  return SuuntoParsedDive(
+  return GarminParsedDive(
     dive: DownloadedDive(
       startTime: startTime ?? DateTime.utc(2026, 3, 15, 10, 32),
       durationSeconds: durationSeconds,
       maxDepth: maxDepth,
       profile: const [],
     ),
-    deviceName: deviceName,
+    deviceModel: deviceModel,
     serialNumber: serialNumber,
     firmwareVersion: firmwareVersion,
   );
@@ -51,7 +52,7 @@ void main() {
   late MockDiveComputerRepository mockComputerRepo;
   late MockDiveRepository mockDiveRepo;
   late MockDiveConsolidationService mockConsolidationService;
-  late SuuntoCloudAdapter adapter;
+  late GarminCloudAdapter adapter;
 
   const diverId = 'diver-1';
 
@@ -59,7 +60,7 @@ void main() {
     id: 'computer-$serial',
     name: name,
     diverId: diverId,
-    manufacturer: 'Suunto',
+    manufacturer: 'Garmin',
     model: name,
     serialNumber: serial,
     createdAt: DateTime(2026, 1, 1),
@@ -72,7 +73,7 @@ void main() {
     mockDiveRepo = MockDiveRepository();
     mockConsolidationService = MockDiveConsolidationService();
 
-    adapter = SuuntoCloudAdapter(
+    adapter = GarminCloudAdapter(
       importService: mockImportService,
       computerRepository: mockComputerRepo,
       diveRepository: mockDiveRepo,
@@ -126,8 +127,8 @@ void main() {
       expect(
         tagName,
         anyOf(
-          'Suunto Cloud Import ${isoDate(before)}',
-          'Suunto Cloud Import ${isoDate(after)}',
+          'Garmin Connect Import ${isoDate(before)}',
+          'Garmin Connect Import ${isoDate(after)}',
         ),
       );
     });
@@ -163,8 +164,8 @@ void main() {
 
     test('resolves separate computers for different devices', () async {
       adapter.setParsedDives([
-        makeParsedDive(deviceName: 'Suunto Ocean', serialNumber: 'SN-1'),
-        makeParsedDive(deviceName: 'Suunto EON Steel', serialNumber: 'SN-2'),
+        makeParsedDive(deviceModel: 'Descent Mk2', serialNumber: 'SN-1'),
+        makeParsedDive(deviceModel: 'Descent G1', serialNumber: 'SN-2'),
       ]);
 
       await adapter.buildBundle();
@@ -173,34 +174,68 @@ void main() {
     });
 
     test(
-      'falls back to Suunto when the device name is present but blank',
+      'keys the computer cache by device model when no serial was reported',
       () async {
         adapter.setParsedDives([
-          makeParsedDive(deviceName: '   ', serialNumber: null),
+          makeParsedDive(deviceModel: 'Descent Mk2', serialNumber: null),
+          makeParsedDive(deviceModel: 'Descent Mk2', serialNumber: ''),
         ]);
 
         await adapter.buildBundle();
 
-        // A blank name is the same thing as a missing one, but `?.trim()`
-        // yields '' rather than null, so a plain `?? 'Suunto'` never fires and
-        // the computer is registered with an empty name.
-        final created =
-            verify(mockComputerRepo.createComputer(captureAny)).captured.single
-                as DiveComputer;
-        expect(created.name, 'Suunto');
-        expect(created.model, 'Suunto');
+        // Both dives fall back to the same "Descent Mk2" cache key, so only
+        // one computer is created rather than one per dive.
+        verify(mockComputerRepo.createComputer(any)).called(1);
       },
     );
 
     test(
+      'reuses a computer already on file instead of creating a duplicate',
+      () async {
+        final existing = computerFor('Descent Mk2', 'SN-1');
+        when(
+          mockComputerRepo.findByHardwareIdentity(
+            manufacturer: 'Garmin',
+            model: 'Descent Mk2',
+            serialNumber: 'SN-1',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => existing);
+
+        adapter.setParsedDives([
+          makeParsedDive(startTime: DateTime.utc(2026, 3, 1)),
+          makeParsedDive(startTime: DateTime.utc(2026, 3, 2)),
+        ]);
+
+        await adapter.buildBundle();
+
+        verifyNever(mockComputerRepo.createComputer(any));
+      },
+    );
+
+    test('falls back to Garmin when the model is present but blank', () async {
+      adapter.setParsedDives([
+        makeParsedDive(deviceModel: '   ', serialNumber: null),
+      ]);
+
+      await adapter.buildBundle();
+
+      // A blank model is the same thing as a missing one, but `?.trim()`
+      // yields '' rather than null, so a plain `?? 'Garmin'` never fires and
+      // the computer is registered with an empty name.
+      final created =
+          verify(mockComputerRepo.createComputer(captureAny)).captured.single
+              as DiveComputer;
+      expect(created.name, 'Garmin');
+      expect(created.model, 'Garmin');
+    });
+
+    test(
       'stores a blank serial and firmware as null rather than \'\'',
       () async {
-        // Unlike the Garmin side, these come straight out of the cloud JSON
-        // (`device['SerialNumber']`), so a present-but-empty string is a shape
-        // the API can genuinely hand back.
         adapter.setParsedDives([
           makeParsedDive(
-            deviceName: 'Suunto Ocean',
+            deviceModel: 'Descent Mk2',
             serialNumber: '',
             firmwareVersion: '   ',
           ),
@@ -208,6 +243,9 @@ void main() {
 
         await adapter.buildBundle();
 
+        // Matches how DiveComputerRepository.findOrRegisterImportedComputer
+        // stores an imported computer, so a cloud import and a file import of
+        // the same device do not end up as two differently-shaped rows.
         final created =
             verify(mockComputerRepo.createComputer(captureAny)).captured.single
                 as DiveComputer;
@@ -290,12 +328,31 @@ void main() {
           any,
           computerId: anyNamed('computerId'),
           diverId: diverId,
-          descriptorVendor: 'Suunto',
-          descriptorProduct: 'Suunto Ocean',
+          descriptorVendor: 'Garmin',
+          descriptorProduct: 'Descent Mk2',
         ),
       ).called(1);
       verify(mockComputerRepo.incrementDiveCount(any, by: 1)).called(1);
       verify(mockComputerRepo.updateLastDownload(any)).called(1);
+    });
+
+    test('reports progress per dive as it imports', () async {
+      adapter.setParsedDives([makeParsedDive(), makeParsedDive()]);
+      final bundle = await adapter.buildBundle();
+      stubImportAsNew();
+
+      final progress = <(ImportPhase, int, int)>[];
+      await adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0, 1},
+        },
+        {},
+        onProgress: (phase, current, total) =>
+            progress.add((phase, current, total)),
+      );
+
+      expect(progress, [(ImportPhase.dives, 1, 2), (ImportPhase.dives, 2, 2)]);
     });
 
     test('skips a dive whose duplicate action is skip', () async {
@@ -469,6 +526,23 @@ void main() {
       ).called(1);
     });
 
+    test(
+      'consolidates a duplicate marked consolidate even when unselected',
+      () async {
+        final bundle = await bundleWithMatch();
+        when(
+          mockDiveRepo.getComputerIdForDive('existing-dive'),
+        ).thenAnswer((_) async => 'other-computer');
+        stubImportAsNew();
+
+        final result = await adapter.performImport(bundle, const {}, {
+          ImportEntityType.dives: {0: DuplicateAction.consolidate},
+        });
+
+        expect(result.consolidatedCount, 1);
+      },
+    );
+
     test('skips consolidating onto a dive from the same computer', () async {
       final bundle = await bundleWithMatch();
       // buildBundle() already created the computer, so read back the id the
@@ -605,17 +679,28 @@ void main() {
           ConflictResolution.replaceSource,
           any,
           diverId: diverId,
-          descriptorVendor: 'Suunto',
-          descriptorProduct: 'Suunto Ocean',
+          descriptorVendor: 'Garmin',
+          descriptorProduct: 'Descent Mk2',
         ),
       ).called(1);
+    });
+
+    test('replaces the source of a duplicate marked replaceSource even when '
+        'unselected', () async {
+      final bundle = await bundleWithMatch();
+
+      final result = await adapter.performImport(bundle, const {}, {
+        ImportEntityType.dives: {0: DuplicateAction.replaceSource},
+      });
+
+      expect(result.updatedCount, 1);
     });
   });
 
   group('adapter metadata', () {
-    test('declares the Suunto cloud source type and duplicate actions', () {
-      expect(adapter.sourceType, ImportSourceType.suuntoCloud);
-      expect(adapter.displayName, 'Suunto Cloud');
+    test('declares the Garmin cloud source type and duplicate actions', () {
+      expect(adapter.sourceType, ImportSourceType.garminCloud);
+      expect(adapter.displayName, 'Garmin Connect');
       expect(
         adapter.duplicateActionsFor(ImportEntityType.dives),
         adapter.supportedDuplicateActions,
@@ -638,14 +723,14 @@ void main() {
     });
 
     test('setClient exposes the authenticated client to the fetch step', () {
-      final client = SuuntoCloudClient();
+      final client = GarminConnectClient();
       adapter.setClient(client);
 
       expect(adapter.client, same(client));
     });
 
     test('resetState clears the client and the fetched dives', () async {
-      adapter.setClient(SuuntoCloudClient());
+      adapter.setClient(GarminConnectClient());
       adapter.setParsedDives([makeParsedDive()]);
 
       adapter.resetState();

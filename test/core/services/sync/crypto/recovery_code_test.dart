@@ -18,7 +18,10 @@ void main() {
 
     test('generate returns 8 wordlist words joined by hyphens', () {
       final code = RecoveryCode.generate();
-      final words = code.split('-');
+      // Naively splitting on '-' overcounts when a chosen word is itself
+      // hyphenated (the list's one hyphenated entry is "yo-yo"), so words
+      // are recovered by greedily matching against the wordlist instead.
+      final words = _splitIntoWords(code);
       expect(words.length, 8);
       for (final w in words) {
         expect(effShortWordlist.contains(w), isTrue, reason: w);
@@ -40,4 +43,21 @@ void main() {
       );
     });
   });
+}
+
+List<String> _splitIntoWords(String code) {
+  final parts = code.split('-');
+  final words = <String>[];
+  var i = 0;
+  while (i < parts.length) {
+    if (i + 1 < parts.length &&
+        effShortWordlist.contains('${parts[i]}-${parts[i + 1]}')) {
+      words.add('${parts[i]}-${parts[i + 1]}');
+      i += 2;
+    } else {
+      words.add(parts[i]);
+      i += 1;
+    }
+  }
+  return words;
 }

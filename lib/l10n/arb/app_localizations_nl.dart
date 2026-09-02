@@ -35597,6 +35597,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'Duiken worden opgehaald…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Duiken worden opgehaald… (tot nu toe $count gevonden)',
+      one: 'Duiken worden opgehaald… (tot nu toe 1 gevonden)',
+      zero: 'Duiken worden opgehaald…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return 'Duik $current van $total downloaden…';
   }
@@ -35606,6 +35618,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => 'Meer laden';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -35632,6 +35647,112 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title => 'Aanmelden bij Garmin Connect';
+
+  @override
+  String get garminConnect_signIn_description =>
+      'Meld je aan met je Garmin Connect-account om je duiken rechtstreeks te importeren. Je wachtwoord wordt nooit opgeslagen, alleen de resulterende sessie.';
+
+  @override
+  String get garminConnect_signIn_emailLabel => 'E-mail';
+
+  @override
+  String get garminConnect_signIn_emailRequired => 'E-mail is verplicht';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => 'Wachtwoord';
+
+  @override
+  String get garminConnect_signIn_passwordRequired => 'Wachtwoord is verplicht';
+
+  @override
+  String get garminConnect_signIn_button => 'Aanmelden';
+
+  @override
+  String get garminConnect_signIn_signingIn => 'Bezig met aanmelden…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return 'Aangemeld als $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => 'Verificatie vereist';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return 'Voer de verificatiecode in die naar je $method is verzonden.';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => 'Verificatiecode';
+
+  @override
+  String get garminConnect_mfa_codeRequired => 'Verificatiecode is verplicht';
+
+  @override
+  String get garminConnect_mfa_button => 'Verifiëren';
+
+  @override
+  String get garminConnect_mfa_submitting => 'Bezig met verifiëren…';
+
+  @override
+  String get garminConnect_fetch_listing => 'Duiken worden opgehaald…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Duiken worden opgehaald… (tot nu toe $count gevonden)',
+      one: 'Duiken worden opgehaald… (tot nu toe 1 gevonden)',
+      zero: 'Duiken worden opgehaald…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return 'Duik $current van $total downloaden…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle => 'Kan duiken niet ophalen';
+
+  @override
+  String get garminConnect_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get garminConnect_fetch_loadMore => 'Meer laden';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken gevonden',
+      one: '1 duik gevonden',
+      zero: 'Geen duiken gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken konden niet worden geconverteerd en zijn overgeslagen.',
+      one: '1 duik kon niet worden geconverteerd en is overgeslagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => 'Alles laden';
+
+  @override
   String get importWizard_review_sortTooltip => 'Sorteren';
 
   @override
@@ -35649,6 +35770,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       'Duiken importeren uit je Suunto-app of app.suunto.com-account';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      'Duiken importeren uit je Garmin Connect-account';
 
   @override
   String get transfer_section_cloudTitle => 'Cloud';

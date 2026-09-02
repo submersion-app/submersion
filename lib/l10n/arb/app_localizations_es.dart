@@ -35884,6 +35884,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'Listando inmersiones…';
 
   @override
+  String suuntoCloud_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Listando inmersiones… ($count encontradas hasta el momento)',
+      one: 'Listando inmersiones… (1 encontrada hasta el momento)',
+      zero: 'Listando inmersiones…',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return 'Obteniendo inmersión $current de $total…';
   }
@@ -35894,6 +35906,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_retry => 'Reintentar';
+
+  @override
+  String get suuntoCloud_fetch_loadMore => 'Cargar más';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
@@ -35919,6 +35934,115 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get garminConnect_signIn_title => 'Iniciar sesión en Garmin Connect';
+
+  @override
+  String get garminConnect_signIn_description =>
+      'Inicia sesión con tu cuenta de Garmin Connect para importar tus inmersiones directamente. Tu contraseña nunca se almacena; solo se guarda la sesión resultante.';
+
+  @override
+  String get garminConnect_signIn_emailLabel => 'Correo electrónico';
+
+  @override
+  String get garminConnect_signIn_emailRequired =>
+      'El correo electrónico es obligatorio';
+
+  @override
+  String get garminConnect_signIn_passwordLabel => 'Contraseña';
+
+  @override
+  String get garminConnect_signIn_passwordRequired =>
+      'La contraseña es obligatoria';
+
+  @override
+  String get garminConnect_signIn_button => 'Iniciar sesión';
+
+  @override
+  String get garminConnect_signIn_signingIn => 'Iniciando sesión…';
+
+  @override
+  String garminConnect_signIn_signedInAs(String email) {
+    return 'Sesión iniciada como $email';
+  }
+
+  @override
+  String get garminConnect_mfa_title => 'Verificación requerida';
+
+  @override
+  String garminConnect_mfa_description(String method) {
+    return 'Introduce el código de verificación enviado a tu $method.';
+  }
+
+  @override
+  String get garminConnect_mfa_codeLabel => 'Código de verificación';
+
+  @override
+  String get garminConnect_mfa_codeRequired =>
+      'El código de verificación es obligatorio';
+
+  @override
+  String get garminConnect_mfa_button => 'Verificar';
+
+  @override
+  String get garminConnect_mfa_submitting => 'Verificando…';
+
+  @override
+  String get garminConnect_fetch_listing => 'Listando inmersiones…';
+
+  @override
+  String garminConnect_fetch_listingFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Listando inmersiones… ($count encontradas hasta el momento)',
+      one: 'Listando inmersiones… (1 encontrada hasta el momento)',
+      zero: 'Listando inmersiones…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_fetchingDiveOf(int current, int total) {
+    return 'Obteniendo inmersión $current de $total…';
+  }
+
+  @override
+  String get garminConnect_fetch_failedTitle =>
+      'No se pudieron obtener las inmersiones';
+
+  @override
+  String get garminConnect_fetch_retry => 'Reintentar';
+
+  @override
+  String get garminConnect_fetch_loadMore => 'Cargar más';
+
+  @override
+  String garminConnect_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se encontraron $count inmersiones',
+      one: 'Se encontró 1 inmersión',
+      zero: 'No se encontraron inmersiones',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String garminConnect_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'No se pudieron convertir $count inmersiones y se omitieron.',
+      one: 'No se pudo convertir 1 inmersión y se omitió.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get garminConnect_fetch_fetchAll => 'Cargar todo';
+
+  @override
   String get importWizard_review_sortTooltip => 'Ordenar';
 
   @override
@@ -35936,6 +36060,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get transfer_importCloud_suuntoSubtitle =>
       'Importa inmersiones desde tu aplicacion Suunto o tu cuenta de app.suunto.com';
+
+  @override
+  String get transfer_importCloud_garminTitle => 'Garmin';
+
+  @override
+  String get transfer_importCloud_garminSubtitle =>
+      'Importa inmersiones desde tu cuenta de Garmin Connect';
 
   @override
   String get transfer_section_cloudTitle => 'Nube';

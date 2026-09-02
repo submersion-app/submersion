@@ -27,6 +27,13 @@ void main() {
           return const Scaffold(body: Text('suunto wizard'));
         },
       ),
+      GoRoute(
+        path: '/transfer/import-cloud/garmin',
+        builder: (context, state) {
+          pushedRoutes.add(state.matchedLocation);
+          return const Scaffold(body: Text('garmin wizard'));
+        },
+      ),
     ],
   );
 
@@ -61,7 +68,9 @@ void main() {
     expect(find.text('Import from cloud'), findsWidgets);
   });
 
-  testWidgets('the cloud section renders the Suunto card', (tester) async {
+  testWidgets('the cloud section renders the Suunto and Garmin cards', (
+    tester,
+  ) async {
     await pumpTransfer(tester);
 
     expect(find.text('Suunto'), findsOneWidget);
@@ -69,7 +78,12 @@ void main() {
       find.text('Import dives from your Suunto app / app.suunto.com account'),
       findsOneWidget,
     );
-    expect(find.byIcon(Icons.watch), findsOneWidget);
+    expect(find.text('Garmin'), findsOneWidget);
+    expect(
+      find.text('Import dives from your Garmin Connect account'),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.watch), findsNWidgets(2));
   });
 
   testWidgets('tapping the Suunto card opens the flattened wizard route', (
@@ -84,6 +98,18 @@ void main() {
     // so assert on the route that actually built instead.
     expect(pushedRoutes, ['/transfer/import-cloud/suunto']);
     expect(find.text('suunto wizard'), findsOneWidget);
+  });
+
+  testWidgets('tapping the Garmin card opens the flattened wizard route', (
+    tester,
+  ) async {
+    await pumpTransfer(tester);
+
+    await tester.tap(find.text('Garmin'));
+    await tester.pumpAndSettle();
+
+    expect(pushedRoutes, ['/transfer/import-cloud/garmin']);
+    expect(find.text('garmin wizard'), findsOneWidget);
   });
 
   testWidgets('an unknown section id still renders a message', (tester) async {
