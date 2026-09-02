@@ -518,14 +518,15 @@ class PdfSharedComponents {
   }) {
     // Callers pass dives newest-first (getAllDives) or oldest-first depending
     // on the path, so order the pair here rather than trusting the caller.
-    // Otherwise the cover contradicts the summary page, which sorts.
-    if (firstDiveDate != null &&
+    // Otherwise the cover contradicts the summary page, which sorts. Ordering
+    // once here fixes every template at the same time, which is why it lives
+    // on the shared cover rather than at the call sites.
+    final reversed =
+        firstDiveDate != null &&
         lastDiveDate != null &&
-        firstDiveDate.isAfter(lastDiveDate)) {
-      final earlier = lastDiveDate;
-      lastDiveDate = firstDiveDate;
-      firstDiveDate = earlier;
-    }
+        firstDiveDate.isAfter(lastDiveDate);
+    final rangeStart = reversed ? lastDiveDate : firstDiveDate;
+    final rangeEnd = reversed ? firstDiveDate : lastDiveDate;
 
     return pw.Center(
       child: pw.Column(
@@ -549,9 +550,9 @@ class PdfSharedComponents {
           pw.SizedBox(height: 24),
           pw.Text('$diveCount Dives', style: const pw.TextStyle(fontSize: 24)),
           pw.SizedBox(height: 10),
-          if (firstDiveDate != null && lastDiveDate != null)
+          if (rangeStart != null && rangeEnd != null)
             pw.Text(
-              '${dates.date(firstDiveDate)} - ${dates.date(lastDiveDate)}',
+              '${dates.date(rangeStart)} - ${dates.date(rangeEnd)}',
               style: const pw.TextStyle(fontSize: 16),
             ),
           pw.SizedBox(height: 40),
