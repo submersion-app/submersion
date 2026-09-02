@@ -350,8 +350,11 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     if (tank != null) ...[
                       _buildPadiField(
                         'Air',
-                        '${units.formatPressureValue(tank.startPressure)}-'
-                            '${units.formatPressure(tank.endPressure)}',
+                        pdfPressureRange(
+                          units,
+                          tank.startPressure,
+                          tank.endPressure,
+                        ),
                       ),
                     ],
                     if (dive.waterType != null)

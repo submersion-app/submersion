@@ -14,6 +14,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'dart:typed_data';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -66,6 +67,10 @@ class _RecordingExportService implements ExportService {
   /// The options the bulk sheet routed through, for assertions.
   PdfExportOptions? pdfOptions;
 
+  /// The personalization the bulk sheet routed through, for assertions.
+  Diver? pdfDiver;
+  Uint8List? pdfDiverPhoto;
+
   Future<String?> _save(String label) async {
     calls.add('save:$label');
     await gate?.future;
@@ -87,6 +92,8 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
   }) {
     pdfOptions = options;
+    pdfDiver = diver;
+    pdfDiverPhoto = diverPhoto;
     return _share('pdf');
   }
 
@@ -104,6 +111,8 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
   }) {
     pdfOptions = options;
+    pdfDiver = diver;
+    pdfDiverPhoto = diverPhoto;
     return _save('pdf');
   }
 
@@ -194,7 +203,11 @@ void main() {
   });
 
   /// Pumps the list, selects both dives, and opens the bulk export sheet.
-  Future<void> pumpAndOpenExportSheet(WidgetTester tester) async {
+  Future<void> pumpAndOpenExportSheet(
+    WidgetTester tester, {
+    Diver? diver,
+    DiverPhotoLoader? photoLoader,
+  }) async {
     final summaries = dives.map(DiveSummary.fromDive).toList();
     final base = await getBaseOverrides();
 
@@ -214,7 +227,11 @@ void main() {
           // getBaseOverrides stubs preDiveSessionForDiveProvider.
           buddyRepositoryProvider.overrideWithValue(_FakeBuddyRepository()),
           allCertificationsProvider.overrideWith((ref) async => const []),
-          currentDiverProvider.overrideWith((ref) async => null),
+          currentDiverProvider.overrideWith((ref) async => diver),
+          // The real loader reads the file system, and a dart:io await never
+          // completes inside testWidgets' FakeAsync zone.
+          if (photoLoader != null)
+            diverPhotoLoaderProvider.overrideWithValue(photoLoader),
         ],
         child: const DiveListContent(showAppBar: false),
       ),
@@ -290,6 +307,61 @@ void main() {
       PdfTemplate.detailed,
       reason: 'the picker default must reach the export service',
     );
+  });
+
+  group('diver portrait', () {
+    // The bulk route passed `diver` but never `diverPhoto`, so the Detailed
+    // front matter fell back to its placeholder frame on every path except
+    // the settings export.
+    final diver = Diver(
+      id: 'me',
+      name: 'Ada',
+      photoPath: '/portraits/ada.jpg',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final portrait = Uint8List.fromList([9, 8, 7]);
+
+    testWidgets('reaches the export service on share', (tester) async {
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        photoLoader: (path) async =>
+            path == '/portraits/ada.jpg' ? portrait : null,
+      );
+      await chooseFormatAndDestination(tester, 'PDF Logbook', 'Share');
+
+      expect(exportService.pdfDiver?.id, 'me');
+      expect(exportService.pdfDiverPhoto, portrait);
+    });
+
+    testWidgets('reaches the export service on save', (tester) async {
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        photoLoader: (path) async => portrait,
+      );
+      await chooseFormatAndDestination(tester, 'PDF Logbook', 'Save to File');
+
+      expect(exportService.pdfDiverPhoto, portrait);
+    });
+
+    testWidgets('an unreadable portrait still exports', (tester) async {
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        photoLoader: (path) async => null,
+      );
+      await chooseFormatAndDestination(tester, 'PDF Logbook', 'Share');
+
+      expect(exportService.calls, ['share:pdf']);
+      expect(exportService.pdfDiverPhoto, isNull);
+      expect(
+        exportService.pdfDiver?.id,
+        'me',
+        reason: 'a missing portrait must not drop the diver as well',
+      );
+    });
   });
 
   testWidgets('dismissing the PDF template picker exports nothing', (

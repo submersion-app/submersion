@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
@@ -102,4 +103,53 @@ void main() {
       expect(text, contains('bar'));
     },
   );
+
+  group('a half-filled pressure pair stays readable', () {
+    // The range prints what the diver recorded rather than suppressing
+    // itself, so one endpoint can be the '--' placeholder. Concatenating
+    // that against a '-' separator produced '200---', three dashes with no
+    // space, which reads as a mangled number rather than a missing value.
+    final halfFilled = dive.copyWith(
+      tanks: const [DiveTank(id: 't1', startPressure: 200)],
+    );
+
+    Future<String> renderHalfFilled(PdfTemplateBuilder builder) async =>
+        pdfVisibleText(
+          await builder.buildPdf(
+            dives: [halfFilled],
+            pageSize: PdfPageSize.a4,
+            dates: dates,
+            units: metric,
+          ),
+        );
+
+    test('PADI separates the endpoints', () async {
+      final text = await renderHalfFilled(PdfTemplatePadi());
+      expect(text, isNot(contains('---')));
+      expect(text, contains('200'));
+    });
+
+    test('Detailed separates the endpoints', () async {
+      final text = await renderHalfFilled(PdfTemplateDetailed());
+      expect(text, isNot(contains('---')));
+      expect(text, contains('200'));
+    });
+
+    test('keeps the unit that the missing endpoint used to take with it', () {
+      // formatPressure(null) returns a bare '--', so appending it dropped
+      // the unit from the whole field: the range read '200---' with no bar
+      // or psi anywhere on it.
+      for (final builder in [PdfTemplatePadi(), PdfTemplateDetailed()]) {
+        expect(renderHalfFilled(builder), completion(contains('bar')));
+      }
+    });
+
+    test('prints the placeholder for a cylinder with no pressure at all', () {
+      expect(
+        pdfPressureRange(metric, null, null),
+        '--',
+        reason: 'a bare unit with nothing in front of it is not a value',
+      );
+    });
+  });
 }

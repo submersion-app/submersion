@@ -335,8 +335,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // than suppressing the whole range.
     final pressures = <String>[
       if (tank.startPressure != null || tank.endPressure != null)
-        '${units.formatPressureValue(tank.startPressure)} - '
-            '${units.formatPressure(tank.endPressure)}',
+        pdfPressureRange(units, tank.startPressure, tank.endPressure),
       if (tank.pressureUsed != null)
         '${units.formatPressure(tank.pressureUsed)} used',
     ];

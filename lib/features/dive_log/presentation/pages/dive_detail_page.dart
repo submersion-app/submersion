@@ -20,6 +20,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -3220,6 +3221,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       var exportDive = dive;
       List<Certification>? certifications;
       Diver? diver;
+      Uint8List? diverPhoto;
       try {
         final buddies = await ref.read(buddiesForDiveProvider(dive.id).future);
         if (buddies.isNotEmpty) exportDive = dive.copyWith(buddies: buddies);
@@ -3227,6 +3229,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           certifications = await ref.read(allCertificationsProvider.future);
         }
         diver = await ref.read(currentDiverProvider.future);
+        // The portrait travels with the diver: passing one without the other
+        // leaves the Detailed front matter on its placeholder frame.
+        diverPhoto = await ref.read(diverPhotoLoaderProvider)(diver?.photoPath);
       } catch (_) {
         // Export the dive as loaded.
       }
@@ -3242,6 +3247,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         profiles: profiles,
         certifications: certifications,
         diver: diver,
+        diverPhoto: diverPhoto,
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues

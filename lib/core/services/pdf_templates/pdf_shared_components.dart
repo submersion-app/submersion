@@ -31,6 +31,23 @@ double pdfMaxDepth(List<Dive> dives) => dives
     .map((d) => d.maxDepth!)
     .fold<double>(0, (max, depth) => depth > max ? depth : max);
 
+/// A cylinder's start-to-end pressure range, with the unit printed once.
+///
+/// The range prints whatever the diver recorded, so one endpoint may be the
+/// formatter's `--` placeholder. Both endpoints are therefore rendered as
+/// bare values around a spaced separator: appending an already-united
+/// `formatPressure` to a bare `formatPressureValue` produced `200---` on a
+/// half-filled pair (the separator and the placeholder running together) and
+/// dropped the unit entirely, since the placeholder carries none.
+///
+/// Returns the plain placeholder when the cylinder records no pressure at
+/// all, rather than a unit with nothing in front of it.
+String pdfPressureRange(UnitFormatter units, double? start, double? end) {
+  if (start == null && end == null) return '--';
+  return '${units.formatPressureValue(start)} - '
+      '${units.formatPressureValue(end)} ${units.pressureSymbol}';
+}
+
 /// Shared PDF components used across multiple templates.
 ///
 /// These helper methods provide consistent styling and layout for

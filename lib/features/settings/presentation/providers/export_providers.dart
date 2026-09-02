@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -322,7 +322,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
     // Get current diver for personalization
     final diver = await _ref.read(currentDiverProvider.future);
-    final diverPhoto = await _loadDiverPhoto(diver?.photoPath);
+    final diverPhoto = await _ref.read(diverPhotoLoaderProvider)(
+      diver?.photoPath,
+    );
 
     // Depth profiles, for the templates that chart them. getAllDives skips
     // profile hydration for performance, so they are loaded here, in one
@@ -391,17 +393,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
   ///
   /// A missing or unreadable photo must never fail the export: the logbook is
   /// still perfectly usable without a portrait.
-  Future<Uint8List?> _loadDiverPhoto(String? photoPath) async {
-    if (photoPath == null || photoPath.isEmpty) return null;
-    try {
-      final file = File(photoPath);
-      if (!await file.exists()) return null;
-      return await file.readAsBytes();
-    } catch (_) {
-      return null;
-    }
-  }
-
   Future<void> exportDivesToUddf() async {
     state = state.copyWith(
       status: ExportStatus.exporting,

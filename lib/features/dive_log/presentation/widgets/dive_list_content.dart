@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -632,12 +635,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       // plainer export instead of no export.
       List<Certification>? certifications;
       Diver? diver;
+      Uint8List? diverPhoto;
       if (format == _BulkExportFormat.pdf) {
         try {
           if (pdfOptions?.includeCertificationCards == true) {
             certifications = await ref.read(allCertificationsProvider.future);
           }
           diver = await ref.read(currentDiverProvider.future);
+          // The portrait travels with the diver: passing one without the
+          // other leaves the Detailed front matter on its placeholder frame.
+          diverPhoto = await ref.read(diverPhotoLoaderProvider)(
+            diver?.photoPath,
+          );
         } catch (_) {
           // Keep the export going without the personalization.
         }
@@ -661,6 +670,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   options: pdfOptions!,
                   certifications: certifications,
                   diver: diver,
+                  diverPhoto: diverPhoto,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -669,6 +679,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   options: pdfOptions!,
                   certifications: certifications,
                   diver: diver,
+                  diverPhoto: diverPhoto,
                 ),
         _BulkExportFormat.csv =>
           sharing
